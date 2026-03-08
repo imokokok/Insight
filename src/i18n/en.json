@@ -10,13 +10,13 @@
     "api3": "API3"
   },
   "footer": {
-    "copyright": "© 2026 Oracle Analytics Platform. All rights reserved.",
+    "copyright": "© 2026 Insight. All rights reserved.",
     "documentation": "Documentation",
     "github": "GitHub",
     "contact": "Contact"
   },
   "home": {
-    "title": "Oracle Analytics Platform",
+    "title": "Insight",
     "subtitle": "Your comprehensive hub for oracle analytics and comparison tools. Explore leading oracle solutions, analyze performance across blockchains, and make data-driven decisions.",
     "platformStats": {
       "oraclesIntegrated": "Oracles Integrated",
@@ -30,8 +30,8 @@
     },
     "quickStats": "Quick Oracle Stats",
     "exploreFeatures": "Explore Features",
-    "aboutTitle": "About Oracle Analytics Platform",
-    "aboutDescription": "This platform provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
+    "aboutTitle": "About Insight",
+    "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
     "builtWith": "Built with modern technologies, designed for developers and analysts in the Web3 space.",
     "loading": "Loading..."
   },

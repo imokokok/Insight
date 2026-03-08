@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Oracle Analytics Platform',
-  description: 'Professional analytics platform for oracle solutions',
+  title: 'Insight',
+  description: 'Professional oracle analytics platform',
 };
 
 export default function RootLayout({
