@@ -1,7 +1,0 @@
-- [x] package.json 中的 name 字段已更新为"insight"
-- [x] layout.tsx 中的 metadata.title 已更新为"Insight"
-- [x] 英文国际化文件 (en.json) 中的品牌文本已更新
-- [x] 中文国际化文件 (zh-CN.json) 中的品牌文本已更新
-- [x] README.md 中的项目描述已更新
-- [x] 开发服务器运行时浏览器标签显示"Insight"
-- [x] 导航栏和其他组件正确显示新品牌名称
