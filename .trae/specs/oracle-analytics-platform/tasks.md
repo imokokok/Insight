@@ -1,198 +1,226 @@
-# Oracle Analytics Platform - The Implementation Plan (Decomposed and Prioritized Task List)
+# Oracle Analytics Platform - Professional Enhancement - The Implementation Plan
 
-## [x] Task 1: Project Initialization & Setup
-
+## [ ] Task 1: Design System & Theme Setup
 - **Priority**: P0
 - **Depends On**: None
 - **Description**:
-  - Initialize Next.js + TypeScript project
-  - Set up Tailwind CSS for styling
-  - Configure ESLint and Prettier for code quality
-  - Set up feature-based project structure
-  - Initialize Supabase project and configure integration
-- **Acceptance Criteria Addressed**: [AC-6, AC-7]
+  - Implement professional color palette (primary blue/purple gradient, neutral tones, accent colors)
+  - Set up dark/light mode with system preference detection
+  - Create typography scale (headings, body, captions)
+  - Define spacing system and breakpoints
+  - Create reusable theme context provider
+- **Acceptance Criteria Addressed**: [AC-1, AC-2]
 - **Test Requirements**:
-  - `programmatic` TR-1.1: Project initializes successfully with `npm run dev`
-  - `programmatic` TR-1.2: Feature-based directory structure exists
-  - `human-judgement` TR-1.3: Code quality tools are configured and working
-- **Notes**: Use Next.js 14 with App Router for modern architecture
+  - `human-judgement` TR-1.1: Color palette is professional and accessible
+  - `human-judgement` TR-1.2: Dark/light mode toggle works smoothly
+  - `programmatic` TR-1.3: Theme context is properly typed and exported
+- **Notes**: Use Tailwind CSS theme configuration for consistency
 
-## [x] Task 2: Core UI Components & Layout
-
+## [ ] Task 2: Professional Branding & Logo
 - **Priority**: P0
 - **Depends On**: Task 1
 - **Description**:
-  - Create responsive navigation bar
-  - Design and implement main layout template
-  - Create footer component
-  - Implement dark/light mode toggle (optional but recommended)
-  - Create reusable card components for data display
-- **Acceptance Criteria Addressed**: [AC-5]
+  - Create professional Insight logo (text + icon)
+  - Update favicon and metadata
+  - Replace "Oracle Analytics" branding with "Insight"
+  - Update Navbar with new logo
+- **Acceptance Criteria Addressed**: [AC-9]
 - **Test Requirements**:
-  - `human-judgement` TR-2.1: Navigation works across all pages
-  - `human-judgement` TR-2.2: Layout is responsive on desktop, tablet, and mobile
-  - `programmatic` TR-2.3: Reusable components are properly exported and typed
-- **Notes**: Follow professional analytics platform design principles (clean, data-focused)
+  - `human-judgement` TR-2.1: Logo looks professional in both themes
+  - `human-judgement` TR-2.2: Branding is consistent across all pages
+- **Notes**: Logo should convey data/analytics theme
 
-## [x] Task 3: Oracle Integration Layer
-
+## [ ] Task 3: Enhanced UI Components
 - **Priority**: P0
 - **Depends On**: Task 1
 - **Description**:
-  - Create API clients for each of the 5 oracles
-  - Implement data fetching utilities with error handling
-  - Create unified data types for price data across all oracles
-  - Set up Supabase tables for caching oracle data
-- **Acceptance Criteria Addressed**: [AC-1, AC-2, AC-7]
+  - Improve Card component with professional styling and hover effects
+  - Create Button component with variants (primary, secondary, ghost)
+  - Create Badge component for status indicators
+  - Create Select/Dropdown component for consistent styling
+  - Enhance table styling with better borders and hover states
+- **Acceptance Criteria Addressed**: [AC-1]
 - **Test Requirements**:
-  - `programmatic` TR-3.1: All 5 oracle API clients can fetch price data
-  - `programmatic` TR-3.2: Unified data types are properly defined and used
-  - `programmatic` TR-3.3: Error handling works for failed API calls
-  - `programmatic` TR-3.4: Supabase tables are created and data can be written/read
-- **Notes**: Prioritize ETH/USD and BTC/USD pairs initially; support Ethereum mainnet, Polygon, Arbitrum, Optimism
+  - `human-judgement` TR-3.1: Components look professional in both themes
+  - `programmatic` TR-3.2: All components are properly typed
+- **Notes**: Follow existing Card component pattern but enhance
 
-## [x] Task 4: Cross-Oracle Price Comparison Page
-
+## [ ] Task 4: Skeleton Loaders
 - **Priority**: P0
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 1
 - **Description**:
-  - Create price comparison page UI
-  - Implement blockchain and oracle selection dropdowns
-  - Display price data in table format
-  - Add price trend charts using Recharts
-  - Implement data refresh functionality
-- **Acceptance Criteria Addressed**: [AC-1, AC-4, AC-5]
+  - Create Skeleton component with shimmer animation
+  - Create page-specific skeleton loaders (home, cross-oracle, oracle pages)
+  - Replace generic loading text with skeleton loaders
+  - Ensure loaders match content structure
+- **Acceptance Criteria Addressed**: [AC-6]
 - **Test Requirements**:
-  - `programmatic` TR-4.1: Page loads and displays price data
-  - `human-judgement` TR-4.2: Selection dropdowns work correctly
-  - `human-judgement` TR-4.3: Charts display price trends clearly
-  - `programmatic` TR-4.4: Data refresh button updates displayed data
-- **Notes**: Keep UI clean and focused on data comparison
+  - `human-judgement` TR-4.1: Skeleton loaders match content layout
+  - `human-judgement` TR-4.2: Shimmer animation is smooth
+- **Notes**: Make loaders responsive to screen size
 
-## [x] Task 5: Cross-Chain Same-Oracle Price Comparison Page
-
+## [ ] Task 5: Error Handling & States
 - **Priority**: P0
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 3
 - **Description**:
-  - Create cross-chain comparison page UI
-  - Implement oracle and blockchain selection dropdowns
-  - Display cross-chain price data in table and chart formats
-  - Add price difference calculations between chains
-- **Acceptance Criteria Addressed**: [AC-2, AC-4, AC-5]
+  - Create Error component with user-friendly message
+  - Add retry button to error states
+  - Implement graceful degradation for failed API calls
+  - Add proper error logging
+- **Acceptance Criteria Addressed**: [AC-7]
 - **Test Requirements**:
-  - `programmatic` TR-5.1: Page loads and displays cross-chain price data
-  - `human-judgement` TR-5.2: Selection dropdowns work correctly
-  - `human-judgement` TR-5.3: Price differences are clearly visible
-- **Notes**: Similar UI pattern to cross-oracle page but with different selection logic
+  - `human-judgement` TR-5.1: Error messages are helpful
+  - `programmatic` TR-5.2: Retry functionality works correctly
+- **Notes**: Don't expose technical details to users
 
-## [x] Task 6: Chainlink Analytics Page
-
+## [ ] Task 6: Home Page Dashboard Redesign
 - **Priority**: P1
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 1, 2, 3, 4
 - **Description**:
-  - Create Chainlink-specific analytics page
-  - Display Chainlink unique features (decentralized nodes, reputation system, etc.)
-  - Show Chainlink price feeds across chains
-  - Add Chainlink network statistics
-- **Acceptance Criteria Addressed**: [AC-3, AC-4, AC-5]
+  - Redesign home page with professional dashboard layout
+  - Add visual indicators (trend arrows, color coding for positive/negative)
+  - Improve platform stats cards with icons
+  - Enhance navigation cards with better visuals
+- **Acceptance Criteria Addressed**: [AC-1, AC-8]
 - **Test Requirements**:
-  - `human-judgement` TR-6.1: Page exists and is accessible from navigation
-  - `human-judgement` TR-6.2: Chainlink-specific information is displayed
-  - `programmatic` TR-6.3: Chainlink price data is loaded correctly
-- **Notes**: Highlight Chainlink's strengths and unique characteristics
+  - `human-judgement` TR-6.1: Dashboard looks professional
+  - `human-judgement` TR-6.2: Visual indicators are clear
+- **Notes**: Keep the same functionality but improve presentation
 
-## [x] Task 7: Band Protocol Analytics Page
-
+## [ ] Task 7: Chart Visualization Enhancement
 - **Priority**: P1
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 1
 - **Description**:
-  - Create Band Protocol-specific analytics page
-  - Display Band Protocol unique features (cross-chain oracle, data sources, etc.)
-  - Show Band Protocol price feeds
-  - Add Band Protocol network statistics
-- **Acceptance Criteria Addressed**: [AC-3, AC-4, AC-5]
+  - Create professional chart styles (colors, gradients, tooltips)
+  - Add area chart option in addition to line charts
+  - Improve tooltip styling and information
+  - Fix chart responsive issues
+  - Add chart grid and axis improvements
+- **Acceptance Criteria Addressed**: [AC-3]
 - **Test Requirements**:
-  - `human-judgement` TR-7.1: Page exists and is accessible from navigation
-  - `human-judgement` TR-7.2: Band Protocol-specific information is displayed
-  - `programmatic` TR-7.3: Band Protocol price data is loaded correctly
-- **Notes**: Highlight Band Protocol's cross-chain capabilities
+  - `human-judgement` TR-7.1: Charts look professional in both themes
+  - `programmatic` TR-7.2: Charts are responsive to container size
+- **Notes**: Use Recharts configuration to style
 
-## [x] Task 8: UMA Analytics Page
-
+## [ ] Task 8: Time Range Selector
 - **Priority**: P1
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 3, 7
 - **Description**:
-  - Create UMA-specific analytics page
-  - Display UMA unique features (Optimistic Oracle, priceless contracts, etc.)
-  - Show UMA price feeds and market data
-  - Add UMA network statistics
-- **Acceptance Criteria Addressed**: [AC-3, AC-4, AC-5]
+  - Create TimeRangeSelector component (1H, 24H, 7D, 30D)
+  - Add to all pages with charts
+  - Update data fetching to support different time ranges
+  - Update chart title to show selected range
+- **Acceptance Criteria Addressed**: [AC-4]
 - **Test Requirements**:
-  - `human-judgement` TR-8.1: Page exists and is accessible from navigation
-  - `human-judgement` TR-8.2: UMA-specific information is displayed
-  - `programmatic` TR-8.3: UMA price data is loaded correctly
-- **Notes**: Highlight UMA's optimistic oracle mechanism
+  - `programmatic` TR-8.1: Time range selector updates chart data
+  - `human-judgement` TR-8.2: Selected range is clearly indicated
+- **Notes**: Update oracle client layer to support time range parameter
 
-## [x] Task 9: Pyth Network Analytics Page
-
+## [ ] Task 9: Data Export Feature
 - **Priority**: P1
-- **Depends On**: Task 2, Task 3
+- **Depends On**: Task 3
 - **Description**:
-  - Create Pyth Network-specific analytics page
-  - Display Pyth Network unique features (first-party data, low latency, etc.)
-  - Show Pyth price feeds
-  - Add Pyth Network statistics
-- **Acceptance Criteria Addressed**: [AC-3, AC-4, AC-5]
-- **Test Requirements**:
-  - `human-judgement` TR-9.1: Page exists and is accessible from navigation
-  - `human-judgement` TR-9.2: Pyth Network-specific information is displayed
-  - `programmatic` TR-9.3: Pyth Network price data is loaded correctly
-- **Notes**: Highlight Pyth's first-party data and low latency
-
-## [x] Task 10: API3 Analytics Page
-
-- **Priority**: P1
-- **Depends On**: Task 2, Task 3
-- **Description**:
-  - Create API3-specific analytics page
-  - Display API3 unique features (first-party oracles, Airnode, etc.)
-  - Show API3 price feeds
-  - Add API3 network statistics
-- **Acceptance Criteria Addressed**: [AC-3, AC-4, AC-5]
-- **Test Requirements**:
-  - `human-judgement` TR-10.1: Page exists and is accessible from navigation
-  - `human-judgement` TR-10.2: API3-specific information is displayed
-  - `programmatic` TR-10.3: API3 price data is loaded correctly
-- **Notes**: Highlight API3's Airnode and first-party oracle approach
-
-## [x] Task 11: Home/Dashboard Page
-
-- **Priority**: P1
-- **Depends On**: Task 2, Task 3
-- **Description**:
-  - Create home page with overview of all features
-  - Display quick stats about oracle prices
-  - Add navigation cards to main features
-  - Include brief platform introduction
+  - Create ExportButton component with CSV/JSON options
+  - Add to cross-oracle and cross-chain pages
+  - Implement CSV export functionality
+  - Implement JSON export functionality
+  - Add proper file naming with timestamp
 - **Acceptance Criteria Addressed**: [AC-5]
 - **Test Requirements**:
-  - `human-judgement` TR-11.1: Home page is attractive and informative
-  - `human-judgement` TR-11.2: Navigation to all main features works from home page
-- **Notes**: Make a professional first impression
+  - `programmatic` TR-9.1: CSV export contains correct data
+  - `programmatic` TR-9.2: JSON export contains correct data
+  - `human-judgement` TR-9.3: Export UI is intuitive
+- **Notes**: Use Blob URL approach for download
 
-## [x] Task 12: Testing & Deployment Preparation
+## [ ] Task 10: Cross-Oracle Page Enhancement
+- **Priority**: P1
+- **Depends On**: Task 3, 4, 5, 7, 8, 9
+- **Description**:
+  - Apply new design system to cross-oracle page
+  - Add skeleton loaders
+  - Add time range selector
+  - Add export button
+  - Improve table styling
+  - Enhance chart visualization
+- **Acceptance Criteria Addressed**: [AC-1, AC-3, AC-4, AC-5, AC-6, AC-7]
+- **Test Requirements**:
+  - `human-judgement` TR-10.1: Page looks professional in both themes
+  - `programmatic` TR-10.2: All features work correctly
+- **Notes**: Update styling incrementally
 
+## [ ] Task 11: Cross-Chain Page Enhancement
+- **Priority**: P1
+- **Depends On**: Task 3, 4, 5, 7, 8, 9
+- **Description**:
+  - Apply new design system to cross-chain page
+  - Add skeleton loaders
+  - Add time range selector
+  - Add export button
+  - Improve table styling
+  - Enhance chart visualization
+- **Acceptance Criteria Addressed**: [AC-1, AC-3, AC-4, AC-5, AC-6, AC-7]
+- **Test Requirements**:
+  - `human-judgement` TR-11.1: Page looks professional in both themes
+  - `programmatic` TR-11.2: All features work correctly
+- **Notes**: Same pattern as cross-oracle page
+
+## [ ] Task 12: Individual Oracle Pages Enhancement
+- **Priority**: P1
+- **Depends On**: Task 3, 4, 5, 7, 8
+- **Description**:
+  - Apply new design system to all 5 oracle pages
+  - Add skeleton loaders
+  - Add time range selector
+  - Improve stat cards with visual indicators
+  - Enhance chart visualization
+  - Consistent layout across all oracle pages
+- **Acceptance Criteria Addressed**: [AC-1, AC-3, AC-4, AC-6, AC-7]
+- **Test Requirements**:
+  - `human-judgement` TR-12.1: All oracle pages look professional
+  - `human-judgement` TR-12.2: Layout is consistent across pages
+- **Notes**: Chainlink, Band Protocol, UMA, Pyth Network, API3
+
+## [ ] Task 13: Navbar & Footer Enhancement
+- **Priority**: P2
+- **Depends On**: Task 1, 2
+- **Description**:
+  - Add theme toggle to Navbar
+  - Improve Navbar styling with better spacing
+  - Add active route indicator
+  - Enhance Footer with better styling and links
+  - Add social media/contact links to Footer
+- **Acceptance Criteria Addressed**: [AC-1, AC-2]
+- **Test Requirements**:
+  - `human-judgement` TR-13.1: Navbar looks professional
+  - `programmatic` TR-13.2: Theme toggle works from Navbar
+- **Notes**: Keep responsive mobile menu
+
+## [ ] Task 14: Global Styles & Polish
 - **Priority**: P2
 - **Depends On**: All previous tasks
 - **Description**:
-  - Run full application tests
-  - Fix any bugs or issues
-  - Optimize performance
-  - Prepare Vercel deployment configuration
-  - Document environment variables needed
-- **Acceptance Criteria Addressed**: [AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7]
+  - Add smooth scroll behavior
+  - Add focus states for accessibility
+  - Improve hover effects across all components
+  - Add subtle animations for better UX
+  - Optimize for 4K displays
+- **Acceptance Criteria Addressed**: [AC-1, AC-2]
 - **Test Requirements**:
-  - `programmatic` TR-12.1: All pages load without errors
-  - `programmatic` TR-12.2: All API calls work correctly
-  - `human-judgement` TR-12.3: Application is ready for deployment
-- **Notes**: Test thoroughly across different browsers and devices
+  - `human-judgement` TR-14.1: Animations are smooth and not distracting
+  - `human-judgement` TR-14.2: Accessibility features work correctly
+- **Notes**: Focus on subtle, professional animations
+
+## [ ] Task 15: Testing & QA
+- **Priority**: P2
+- **Depends On**: All previous tasks
+- **Description**:
+  - Test all pages in both light and dark modes
+  - Test responsive behavior across all breakpoints
+  - Test all interactive features
+  - Test error states and loading states
+  - Verify accessibility compliance
+- **Acceptance Criteria Addressed**: [AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8, AC-9]
+- **Test Requirements**:
+  - `human-judgement` TR-15.1: All pages work correctly in both themes
+  - `programmatic` TR-15.2: No console errors in development
+- **Notes**: Test on multiple browsers if possible

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
 import {
   LineChart,
@@ -20,7 +20,7 @@ import { PriceData } from '@/lib/types/oracle';
 const umaClient = new UMAClient();
 
 export default function UMAPage() {
-  const t = useTranslations('uma');
+  const { t } = useI18n();
   const [btcHistorical, setBtcHistorical] = useState<PriceData[]>([]);
   const [ethHistorical, setEthHistorical] = useState<PriceData[]>([]);
   const [currentPrices, setCurrentPrices] = useState<Record<string, PriceData>>({});

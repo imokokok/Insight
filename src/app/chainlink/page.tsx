@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import {
   LineChart,
   Line,
@@ -18,7 +18,7 @@ import { PriceData, Blockchain } from '@/lib/types/oracle';
 const chainlinkClient = new ChainlinkClient();
 
 export default function ChainlinkPage() {
-  const t = useTranslations('chainlink');
+  const { t } = useI18n();
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);

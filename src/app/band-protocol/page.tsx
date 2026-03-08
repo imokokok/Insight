@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import {
   LineChart,
   Line,
@@ -21,7 +21,7 @@ import { PriceData } from '@/lib/types/oracle';
 const bandClient = new BandProtocolClient();
 
 export default function BandProtocolPage() {
-  const t = useTranslations('bandProtocol');
+  const { t } = useI18n();
   const [btcPrice, setBtcPrice] = useState<PriceData | null>(null);
   const [ethPrice, setEthPrice] = useState<PriceData | null>(null);
   const [solPrice, setSolPrice] = useState<PriceData | null>(null);

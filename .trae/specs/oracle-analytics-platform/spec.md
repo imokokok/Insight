@@ -1,116 +1,130 @@
-# Oracle Analytics Platform - Product Requirement Document
+# Oracle Analytics Platform - Professional Enhancement - Product Requirement Document
 
 ## Overview
-
-- **Summary**: A web-based oracle data analytics platform that integrates 5 major oracle networks (Chainlink, Band Protocol, UMA, Pyth Network, API3), providing price comparison features and individual oracle analytics pages.
-- **Purpose**: To enable users to easily compare oracle prices across different chains and networks, and analyze each oracle's unique characteristics in a professional, user-friendly interface.
-- **Target Users**: DeFi developers, researchers, traders, and crypto enthusiasts who need reliable oracle data analysis.
+- **Summary**: Enhancing the existing oracle analytics platform to professional standards with improved UI/UX, advanced data visualization, professional branding, and additional analytics features.
+- **Purpose**: To transform the current platform into a truly professional-grade analytics tool that meets industry standards for DeFi developers, researchers, and analysts.
+- **Target Users**: Professional DeFi developers, blockchain researchers, institutional traders, and crypto analysts who require sophisticated analytics tools.
 
 ## Goals
-
-- Integrate 5 major oracle networks: Chainlink, Band Protocol, UMA, Pyth Network, API3
-- Provide cross-oracle price comparison on the same blockchain
-- Provide cross-chain price comparison for the same oracle
-- Create dedicated analytics pages for each oracle
-- Build a professional, clean, and intuitive data analytics UI
-- Deploy on Vercel with Supabase backend
+- Implement a cohesive professional design system with consistent branding
+- Add dark/light mode toggle for better user experience
+- Enhance data visualization with professional charts and interactive elements
+- Add advanced analytics features (time range selection, data export, comparison tools)
+- Implement skeleton loaders and improved loading states
+- Enhance error handling and user feedback
+- Add responsive dashboard with key metrics overview
+- Improve chart responsiveness and visualization quality
+- Add professional typography and spacing system
 
 ## Non-Goals (Out of Scope)
-
-- Advanced trading features or execution
+- Adding new oracle integrations beyond the existing 5
+- Implementing real-time alerting/notifications
+- Adding trading execution features
+- Mobile native application development
 - Complex statistical modeling beyond basic analytics
-- Real-time alerting/notifications system
-- Custom oracle integration by end-users
-- Mobile native application
 
 ## Background & Context
+The current platform has a solid foundation with:
+- Next.js 16 + TypeScript + Tailwind CSS stack
+- 5 major oracle integrations (Chainlink, Band Protocol, UMA, Pyth Network, API3)
+- Basic cross-oracle and cross-chain comparison features
+- Recharts for data visualization
+- Multi-language support (English/Chinese)
 
-- Oracle networks are critical infrastructure for DeFi, providing reliable off-chain data
-- Different oracles have different strengths, data sources, and pricing mechanisms
-- Current market lacks a simple, unified platform for comparing oracle data across networks
-- Vercel + Supabase provides a modern, scalable stack for rapid development
+However, it lacks the professional polish expected in enterprise-grade analytics platforms, including:
+- Inconsistent UI/UX design
+- Missing dark mode
+- Basic data visualization
+- Limited interactive features
+- Suboptimal loading states
 
 ## Functional Requirements
-
-- **FR-1**: Oracle Price Comparison - Compare prices from different oracles on the same blockchain
-- **FR-2**: Cross-Chain Price Comparison - Compare prices from the same oracle across different blockchains
-- **FR-3**: Oracle-Specific Analytics Pages - Dedicated pages for each of the 5 oracles showing their unique characteristics
-- **FR-4**: Data Visualization - Charts and graphs displaying price trends and comparisons
-- **FR-5**: Responsive UI - Professional, clean interface that works on desktop and mobile
+- **FR-1**: Professional Design System - Implement cohesive branding, typography, color scheme, and component library
+- **FR-2**: Dark/Light Mode - Add system-aware theme toggle with smooth transitions
+- **FR-3**: Advanced Data Visualization - Enhance charts with interactive features, better styling, and additional chart types
+- **FR-4**: Time Range Selector - Allow users to select different time ranges for historical data (1h, 24h, 7d, 30d)
+- **FR-5**: Data Export - Enable users to export price data in CSV/JSON formats
+- **FR-6**: Professional Loading States - Implement skeleton loaders and improved loading animations
+- **FR-7**: Enhanced Error Handling - Add user-friendly error messages and retry functionality
+- **FR-8**: Dashboard Metrics - Create professional dashboard with key performance indicators
+- **FR-9**: Branded Logo & Favicon - Add professional Insight branding with custom logo
 
 ## Non-Functional Requirements
-
-- **NFR-1**: Performance - Page loads in < 2 seconds, data updates within reasonable time
-- **NFR-2**: Reliability - Minimal downtime, graceful error handling for failed API calls
-- **NFR-3**: Maintainability - Feature-based architecture, clean code structure
-- **NFR-4**: Accessibility - WCAG 2.0 AA compliant UI
+- **NFR-1**: Performance - Page loads in < 1.5 seconds, smooth animations at 60fps
+- **NFR-2**: Accessibility - WCAG 2.1 AA compliant UI with proper contrast ratios
+- **NFR-3**: Responsiveness - Perfect display on all screen sizes from mobile to 4K
+- **NFR-4**: Maintainability - Clean, well-documented code with consistent patterns
+- **NFR-5**: User Experience - Intuitive navigation with clear visual hierarchy and feedback
 
 ## Constraints
-
-- **Technical**: Next.js (React), TypeScript, Tailwind CSS, Vercel, Supabase, Recharts (for visualization)
-- **Business**: Project must be simple, no overcomplicated features; focus on core analytics
-- **Dependencies**: External oracle APIs, CoinGecko/CoinMarketCap for price data, Etherscan/Polygonscan for blockchain data
+- **Technical**: Must work with existing Next.js 16, Tailwind CSS, and Recharts stack
+- **Business**: Must maintain backward compatibility with existing features
+- **Dependencies**: Limited to existing dependencies (no major new libraries)
 
 ## Assumptions
-
-- All 5 oracles have public APIs or data feeds accessible
-- Basic blockchain data is available via public explorers
-- Users have basic understanding of DeFi and oracle concepts
-- Vercel and Supabase free tiers are sufficient for initial deployment
+- Users expect professional analytics platform experience similar to Bloomberg, TradingView, or DeBank
+- Dark mode is a critical feature for DeFi users who work late hours
+- Interactive charts with hover tooltips and zoom improve data comprehension
+- Data export is essential for professional analysts
+- Professional branding builds trust with institutional users
 
 ## Acceptance Criteria
 
-### AC-1: Cross-Oracle Price Comparison
-
-- **Given**: User is on the price comparison page
-- **When**: User selects a blockchain and multiple oracles
-- **Then**: System displays real-time (or recent) price data from selected oracles side by side
-- **Verification**: `programmatic`
-
-### AC-2: Cross-Chain Same-Oracle Price Comparison
-
-- **Given**: User is on the cross-chain comparison page
-- **When**: User selects an oracle and multiple blockchains
-- **Then**: System displays price data from the selected oracle across chosen blockchains
-- **Verification**: `programmatic`
-
-### AC-3: Oracle-Specific Analytics Page Exists for All 5 Oracles
-
-- **Given**: User navigates to the platform
-- **When**: User looks for oracle-specific pages
-- **Then**: Pages exist for Chainlink, Band Protocol, UMA, Pyth Network, and API3, each showing unique characteristics
+### AC-1: Professional Design System Implemented
+- **Given**: User visits the platform
+- **When**: Navigating through any page
+- **Then**: All UI elements follow consistent design language, typography, and spacing
 - **Verification**: `human-judgment`
 
-### AC-4: Data Visualization Charts Display Correctly
+### AC-2: Dark/Light Mode Works Correctly
+- **Given**: User is on any page
+- **When**: User toggles theme or system preference changes
+- **Then**: Theme switches smoothly with all elements properly styled in both modes
+- **Verification**: `human-judgment`
 
+### AC-3: Advanced Charts Display Correctly
 - **Given**: User is on a page with price data
-- **When**: Price data is loaded
-- **Then**: Charts display price trends in a readable, professional format
+- **When**: Viewing price charts
+- **Then**: Charts have professional styling, interactive tooltips, and smooth animations
 - **Verification**: `human-judgment`
 
-### AC-5: Responsive UI Works on Multiple Devices
+### AC-4: Time Range Selector Functions
+- **Given**: User is viewing historical price data
+- **When**: User selects different time ranges
+- **Then**: Chart updates to show data for selected time period
+- **Verification**: `programmatic`
 
-- **Given**: User accesses the platform from different devices
-- **When**: Using desktop, tablet, or mobile
-- **Then**: UI adapts correctly and remains usable
+### AC-5: Data Export Works
+- **Given**: User is viewing price comparison data
+- **When**: User clicks export button
+- **Then**: Data downloads in selected format (CSV/JSON) with correct structure
+- **Verification**: `programmatic`
+
+### AC-6: Skeleton Loaders Display During Loading
+- **Given**: Page is fetching data
+- **When**: Data is loading
+- **Then**: Skeleton loaders are displayed in place of content
 - **Verification**: `human-judgment`
 
-### AC-6: Feature-Based Architecture Implemented
+### AC-7: Error States Provide Useful Feedback
+- **Given**: An API call fails
+- **When**: Error occurs
+- **Then**: User sees friendly error message with retry option
+- **Verification**: `human-judgment`
 
-- **Given**: Codebase is examined
-- **When**: Looking at project structure
-- **Then**: Features are organized in separate directories with clear separation of concerns
-- **Verification**: `programmatic`
+### AC-8: Dashboard Shows Key Metrics
+- **Given**: User is on home page
+- **When**: Viewing dashboard
+- **Then**: Professional dashboard displays key metrics with visual indicators
+- **Verification**: `human-judgment`
 
-### AC-7: Vercel + Supabase Integration Works
-
-- **Given**: Application is deployed
-- **When**: Using the platform
-- **Then**: Frontend is served via Vercel, and backend data is stored/retrieved from Supabase
-- **Verification**: `programmatic`
+### AC-9: Branding is Consistent
+- **Given**: User visits any page
+- **When**: Looking at branding elements
+- **Then**: Logo, colors, and typography are consistent across the platform
+- **Verification**: `human-judgment`
 
 ## Open Questions
-
-- [ ] Which specific blockchains should we support initially? (Ethereum mainnet, Polygon, Arbitrum, Optimism recommended)
-- [ ] What price pairs should we prioritize? (ETH/USD, BTC/USD recommended)
-- [ ] How frequently should data be updated?
+- [ ] Should we add a sidebar navigation for desktop?
+- [ ] What specific export formats are most important (CSV, JSON, Excel)?
+- [ ] Should we add chart zoom/pan capabilities?

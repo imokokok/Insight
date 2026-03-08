@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
 import {
   LineChart,
@@ -59,7 +59,7 @@ const chainColors: Record<Blockchain, string> = {
 };
 
 export default function CrossChainPage() {
-  const t = useTranslations('crossChain');
+  const { t } = useI18n();
   const [selectedProvider, setSelectedProvider] = useState<OracleProvider>(
     OracleProvider.CHAINLINK
   );

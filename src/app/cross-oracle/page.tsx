@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
 import { OracleProvider, PriceData } from '@/lib/types/oracle';
 import {
@@ -41,7 +41,7 @@ const oracleNames = {
 const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
 
 export default function CrossOraclePage() {
-  const t = useTranslations('crossOracle');
+  const { t } = useI18n();
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
     OracleProvider.BAND_PROTOCOL,
