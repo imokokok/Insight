@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
 import { PythNetworkClient } from '@/lib/oracles/pythNetwork';
 import { PriceData } from '@/lib/types/oracle';
@@ -20,7 +20,7 @@ import {
 const pythClient = new PythNetworkClient();
 
 export default function PythNetworkPage() {
-  const t = useTranslations('pythNetwork');
+  const { t } = useI18n();
   const [priceFeeds, setPriceFeeds] = useState<PriceData[]>([]);
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);

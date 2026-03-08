@@ -2,7 +2,7 @@
 
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/context';
 import {
   LineChart,
   Line,
@@ -44,8 +44,8 @@ const securityMetrics = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-export default function API3Page() {
-  const t = useTranslations('api3');
+export default function Api3Page() {
+  const { t } = useI18n();
   const [currentPrice, setCurrentPrice] = useState({
     BTC: 68300,
     ETH: 3530,
