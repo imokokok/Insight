@@ -1,0 +1,187 @@
+{
+  "navbar": {
+    "home": "Home",
+    "crossOracle": "Cross-Oracle Comparison",
+    "crossChain": "Cross-Chain Comparison",
+    "chainlink": "Chainlink",
+    "bandProtocol": "Band Protocol",
+    "uma": "UMA",
+    "pythNetwork": "Pyth Network",
+    "api3": "API3"
+  },
+  "footer": {
+    "copyright": "© 2026 Oracle Analytics Platform. All rights reserved.",
+    "documentation": "Documentation",
+    "github": "GitHub",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Oracle Analytics Platform",
+    "subtitle": "Your comprehensive hub for oracle analytics and comparison tools. Explore leading oracle solutions, analyze performance across blockchains, and make data-driven decisions.",
+    "platformStats": {
+      "oraclesIntegrated": "Oracles Integrated",
+      "blockchains": "Blockchains",
+      "dataFeeds": "Data Feeds",
+      "comparisons": "Comparisons",
+      "active": "Active",
+      "supported": "Supported",
+      "growing": "Growing",
+      "available": "Available"
+    },
+    "quickStats": "Quick Oracle Stats",
+    "exploreFeatures": "Explore Features",
+    "aboutTitle": "About Oracle Analytics Platform",
+    "aboutDescription": "This platform provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
+    "builtWith": "Built with modern technologies, designed for developers and analysts in the Web3 space.",
+    "loading": "Loading..."
+  },
+  "crossOracle": {
+    "title": "Cross-Oracle Comparison",
+    "refresh": "Refresh",
+    "lastUpdated": "Last updated: {time}",
+    "selectSymbol": "Select Symbol",
+    "selectOracles": "Select Oracles",
+    "currentPriceComparison": "Current Price Comparison",
+    "priceTrend": "Price Trend (Last 24 Hours)",
+    "oracle": "Oracle",
+    "symbol": "Symbol",
+    "price": "Price",
+    "confidence": "Confidence",
+    "timestamp": "Timestamp"
+  },
+  "crossChain": {
+    "title": "Cross-Chain Price Comparison",
+    "oracleProvider": "Oracle Provider",
+    "symbol": "Symbol",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "priceComparisonTable": "Price Comparison Table",
+    "blockchain": "Blockchain",
+    "price": "Price",
+    "differenceVs": "Difference (vs {chain})",
+    "percentDifference": "% Difference",
+    "priceChart": "Price Chart"
+  },
+  "chainlink": {
+    "title": "Chainlink",
+    "subtitle": "Decentralized Oracle Network",
+    "stats": {
+      "decentralizedNodes": "Decentralized Nodes",
+      "supportedChains": "Supported Chains",
+      "dataFeeds": "Data Feeds",
+      "totalValueSecured": "Total Value Secured"
+    },
+    "priceChartTitle": "LINK/USD Price (7 Days)",
+    "loadingChartData": "Loading chart data...",
+    "currentPriceTitle": "Current Price",
+    "loadingPrice": "Loading price...",
+    "updatedJustNow": "Updated just now",
+    "chain": "Chain",
+    "ethereum": "Ethereum",
+    "source": "Source",
+    "chainlinkDataFeed": "Chainlink Data Feed",
+    "failedToLoad": "Failed to load price data",
+    "keyFeatures": "Key Features",
+    "decentralizedNodesTitle": "Decentralized Nodes",
+    "decentralizedNodesDesc": "Distributed network of independent node operators ensuring no single point of failure.",
+    "reputationSystemTitle": "Reputation System",
+    "reputationSystemDesc": "Transparent reputation scoring for node operators based on performance and reliability.",
+    "securityFirstTitle": "Security First",
+    "securityFirstDesc": "Battle-tested infrastructure with multiple security layers and audit processes.",
+    "multiChainSupportTitle": "Multi-Chain Support",
+    "multiChainSupportDesc": "Connects to 20+ blockchains including Ethereum, Arbitrum, Polygon, and more."
+  },
+  "bandProtocol": {
+    "title": "Band Protocol",
+    "subtitle": "Cross-chain data oracle platform built on Cosmos SDK",
+    "features": {
+      "crossChainOracle": "Cross-Chain Oracle",
+      "crossChainOracleDesc": "Seamlessly connects and delivers data across multiple blockchain networks with high reliability.",
+      "dataSources": "Data Sources",
+      "dataSourcesDesc": "Aggregates data from multiple premium sources including exchanges, APIs, and enterprise providers.",
+      "cosmosSdkIntegration": "Cosmos SDK Integration",
+      "cosmosSdkIntegrationDesc": "Built on Cosmos SDK, enabling fast finality, high throughput, and native interoperability."
+    },
+    "stats": {
+      "activeDataSources": "Active Data Sources",
+      "supportedBlockchains": "Supported Blockchains",
+      "priceFeeds": "Price Feeds",
+      "dailyTransactions": "Daily Transactions"
+    },
+    "btcPriceFeed": "BTC/USD Price Feed (24h)",
+    "loadingData": "Loading data...",
+    "currentPriceFeeds": "Current Price Feeds",
+    "loading": "Loading...",
+    "bitcoin": "Bitcoin",
+    "ethereum": "Ethereum",
+    "solana": "Solana"
+  },
+  "uma": {
+    "title": "UMA",
+    "subtitle": "The Optimistic Oracle Protocol - Build priceless synthetic assets and financial contracts",
+    "features": {
+      "optimisticOracle": "Optimistic Oracle",
+      "optimisticOracleDesc": "Decentralized dispute resolution system that allows users to request price data with economic guarantees.",
+      "pricelessContracts": "Priceless Contracts",
+      "pricelessContractsDesc": "Contracts that don't rely on on-chain price feeds, using off-chain data instead.",
+      "financialContracts": "Financial Contracts",
+      "financialContractsDesc": "Create synthetic assets, derivatives, and other financial products on any blockchain.",
+      "dataVerification": "Data Verification",
+      "dataVerificationDesc": "Robust system for verifying and disputing data using economic incentives."
+    },
+    "btcPriceHistory": "BTC/USD Price History (24h)",
+    "ethPriceHistory": "ETH/USD Price History (24h)"
+  },
+  "pythNetwork": {
+    "title": "Pyth Network",
+    "subtitle": "High-frequency financial data oracle with first-party exchange data and sub-second latency.",
+    "stats": {
+      "totalPriceFeeds": "Total Price Feeds",
+      "updateFrequency": "Update Frequency",
+      "supportedChains": "Supported Chains",
+      "dataSources": "Data Sources",
+      "lowLatency": "Low Latency",
+      "multiChain": "Multi-chain",
+      "firstParty": "First-party"
+    },
+    "btcPriceFeed": "BTC/USD Price Feed",
+    "loading": "Loading...",
+    "uniqueFeatures": "Unique Features",
+    "firstPartyData": "First-Party Data",
+    "firstPartyDataDesc": "Direct from leading exchanges",
+    "lowLatencyFeature": "Low Latency",
+    "lowLatencyFeatureDesc": "Sub-second updates",
+    "highFrequency": "High-Frequency",
+    "highFrequencyDesc": "400ms update intervals",
+    "priceFeeds": "Price Feeds",
+    "loadingPriceFeeds": "Loading price feeds...",
+    "symbol": "Symbol",
+    "price": "Price",
+    "timestamp": "Timestamp",
+    "confidence": "Confidence",
+    "na": "N/A"
+  },
+  "api3": {
+    "title": "API3",
+    "subtitle": "Decentralized API solutions for smart contracts",
+    "uniqueFeatures": "Unique Features",
+    "features": {
+      "firstPartyOracles": "First-Party Oracles",
+      "firstPartyOraclesDesc": "Direct data delivery from API providers, eliminating middlemen and reducing trust assumptions",
+      "airnode": "Airnode",
+      "airnodeDesc": "Lightweight, serverless oracle node that allows API providers to easily deploy oracles without maintaining infrastructure",
+      "decentralizedApiConnectivity": "Decentralized API Connectivity",
+      "decentralizedApiConnectivityDesc": "Trustless, decentralized API connectivity enabling smart contracts to securely interact with external data sources",
+      "quantifiableSecurity": "Quantifiable Security",
+      "quantifiableSecurityDesc": "On-chain security guarantees with transparent, auditable security parameters and quantifiable risk assessments"
+    },
+    "priceFeeds": "Price Feeds (24h)",
+    "networkDistribution": "Network Distribution",
+    "quantifiableSecurityMetrics": "Quantifiable Security Metrics"
+  },
+  "languageSwitcher": {
+    "english": "English",
+    "chinese": "简体中文"
+  }
+}

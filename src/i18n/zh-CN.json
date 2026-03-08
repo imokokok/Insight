@@ -1,0 +1,187 @@
+{
+  "navbar": {
+    "home": "首页",
+    "crossOracle": "跨预言机比较",
+    "crossChain": "跨链比较",
+    "chainlink": "Chainlink",
+    "bandProtocol": "Band Protocol",
+    "uma": "UMA",
+    "pythNetwork": "Pyth Network",
+    "api3": "API3"
+  },
+  "footer": {
+    "copyright": "© 2026 预言机分析平台。保留所有权利。",
+    "documentation": "文档",
+    "github": "GitHub",
+    "contact": "联系我们"
+  },
+  "home": {
+    "title": "预言机分析平台",
+    "subtitle": "您的预言机分析和比较工具的综合中心。探索领先的预言机解决方案，分析跨区块链的性能，并做出数据驱动的决策。",
+    "platformStats": {
+      "oraclesIntegrated": "集成预言机",
+      "blockchains": "区块链",
+      "dataFeeds": "数据源",
+      "comparisons": "比较",
+      "active": "活跃",
+      "supported": "支持",
+      "growing": "增长中",
+      "available": "可用"
+    },
+    "quickStats": "快速预言机统计",
+    "exploreFeatures": "探索功能",
+    "aboutTitle": "关于预言机分析平台",
+    "aboutDescription": "该平台提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth Network 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",
+    "builtWith": "采用现代技术构建，为 Web3 领域的开发者和分析师设计。",
+    "loading": "加载中..."
+  },
+  "crossOracle": {
+    "title": "跨预言机比较",
+    "refresh": "刷新",
+    "lastUpdated": "最后更新: {time}",
+    "selectSymbol": "选择交易对",
+    "selectOracles": "选择预言机",
+    "currentPriceComparison": "当前价格比较",
+    "priceTrend": "价格趋势（过去24小时）",
+    "oracle": "预言机",
+    "symbol": "交易对",
+    "price": "价格",
+    "confidence": "置信度",
+    "timestamp": "时间戳"
+  },
+  "crossChain": {
+    "title": "跨链价格比较",
+    "oracleProvider": "预言机提供商",
+    "symbol": "交易对",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "loadingData": "加载数据中...",
+    "priceComparisonTable": "价格比较表",
+    "blockchain": "区块链",
+    "price": "价格",
+    "differenceVs": "差异（与 {chain} 相比）",
+    "percentDifference": "差异百分比",
+    "priceChart": "价格图表"
+  },
+  "chainlink": {
+    "title": "Chainlink",
+    "subtitle": "去中心化预言机网络",
+    "stats": {
+      "decentralizedNodes": "去中心化节点",
+      "supportedChains": "支持的链",
+      "dataFeeds": "数据源",
+      "totalValueSecured": "保障总价值"
+    },
+    "priceChartTitle": "LINK/USD 价格（7天）",
+    "loadingChartData": "加载图表数据中...",
+    "currentPriceTitle": "当前价格",
+    "loadingPrice": "加载价格中...",
+    "updatedJustNow": "刚刚更新",
+    "chain": "链",
+    "ethereum": "以太坊",
+    "source": "来源",
+    "chainlinkDataFeed": "Chainlink 数据源",
+    "failedToLoad": "加载价格数据失败",
+    "keyFeatures": "主要功能",
+    "decentralizedNodesTitle": "去中心化节点",
+    "decentralizedNodesDesc": "独立节点运营商的分布式网络，确保无单点故障。",
+    "reputationSystemTitle": "声誉系统",
+    "reputationSystemDesc": "基于性能和可靠性的节点运营商透明声誉评分。",
+    "securityFirstTitle": "安全第一",
+    "securityFirstDesc": "经过实战检验的基础设施，具有多层安全和审计流程。",
+    "multiChainSupportTitle": "多链支持",
+    "multiChainSupportDesc": "连接 20+ 条区块链，包括以太坊、Arbitrum、Polygon 等。"
+  },
+  "bandProtocol": {
+    "title": "Band Protocol",
+    "subtitle": "基于 Cosmos SDK 构建的跨链数据预言机平台",
+    "features": {
+      "crossChainOracle": "跨链预言机",
+      "crossChainOracleDesc": "跨多个区块链网络无缝连接和传输数据，具有高可靠性。",
+      "dataSources": "数据源",
+      "dataSourcesDesc": "从多个高级来源聚合数据，包括交易所、API 和企业提供商。",
+      "cosmosSdkIntegration": "Cosmos SDK 集成",
+      "cosmosSdkIntegrationDesc": "基于 Cosmos SDK 构建，实现快速最终性、高吞吐量和原生互操作性。"
+    },
+    "stats": {
+      "activeDataSources": "活跃数据源",
+      "supportedBlockchains": "支持的区块链",
+      "priceFeeds": "价格源",
+      "dailyTransactions": "每日交易"
+    },
+    "btcPriceFeed": "BTC/USD 价格源（24小时）",
+    "loadingData": "加载数据中...",
+    "currentPriceFeeds": "当前价格源",
+    "loading": "加载中...",
+    "bitcoin": "比特币",
+    "ethereum": "以太坊",
+    "solana": "Solana"
+  },
+  "uma": {
+    "title": "UMA",
+    "subtitle": "乐观预言机协议 - 构建无价的合成资产和金融合约",
+    "features": {
+      "optimisticOracle": "乐观预言机",
+      "optimisticOracleDesc": "去中心化争议解决系统，允许用户请求具有经济保障的价格数据。",
+      "pricelessContracts": "无价合约",
+      "pricelessContractsDesc": "不依赖链上价格源的合约，而是使用链下数据。",
+      "financialContracts": "金融合约",
+      "financialContractsDesc": "在任何区块链上创建合成资产、衍生品和其他金融产品。",
+      "dataVerification": "数据验证",
+      "dataVerificationDesc": "使用经济激励验证和争议数据的强大系统。"
+    },
+    "btcPriceHistory": "BTC/USD 价格历史（24小时）",
+    "ethPriceHistory": "ETH/USD 价格历史（24小时）"
+  },
+  "pythNetwork": {
+    "title": "Pyth Network",
+    "subtitle": "具有第一方交易所数据和亚秒级延迟的高频金融数据预言机。",
+    "stats": {
+      "totalPriceFeeds": "总价格源",
+      "updateFrequency": "更新频率",
+      "supportedChains": "支持的链",
+      "dataSources": "数据源",
+      "lowLatency": "低延迟",
+      "multiChain": "多链",
+      "firstParty": "第一方"
+    },
+    "btcPriceFeed": "BTC/USD 价格源",
+    "loading": "加载中...",
+    "uniqueFeatures": "独特功能",
+    "firstPartyData": "第一方数据",
+    "firstPartyDataDesc": "直接来自领先交易所",
+    "lowLatencyFeature": "低延迟",
+    "lowLatencyFeatureDesc": "亚秒级更新",
+    "highFrequency": "高频",
+    "highFrequencyDesc": "400毫秒更新间隔",
+    "priceFeeds": "价格源",
+    "loadingPriceFeeds": "加载价格源中...",
+    "symbol": "交易对",
+    "price": "价格",
+    "timestamp": "时间戳",
+    "confidence": "置信度",
+    "na": "不适用"
+  },
+  "api3": {
+    "title": "API3",
+    "subtitle": "智能合约的去中心化 API 解决方案",
+    "uniqueFeatures": "独特功能",
+    "features": {
+      "firstPartyOracles": "第一方预言机",
+      "firstPartyOraclesDesc": "来自 API 提供商的直接数据传输，消除中间商并减少信任假设",
+      "airnode": "Airnode",
+      "airnodeDesc": "轻量级、无服务器的预言机节点，允许 API 提供商轻松部署预言机，而无需维护基础设施",
+      "decentralizedApiConnectivity": "去中心化 API 连接",
+      "decentralizedApiConnectivityDesc": "无信任、去中心化的 API 连接，使智能合约能够安全地与外部数据源交互",
+      "quantifiableSecurity": "可量化的安全性",
+      "quantifiableSecurityDesc": "链上安全保障，具有透明、可审计的安全参数和可量化的风险评估"
+    },
+    "priceFeeds": "价格源（24小时）",
+    "networkDistribution": "网络分布",
+    "quantifiableSecurityMetrics": "可量化的安全指标"
+  },
+  "languageSwitcher": {
+    "english": "English",
+    "chinese": "简体中文"
+  }
+}
