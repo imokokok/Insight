@@ -138,47 +138,47 @@ function CustomTooltip({
   const isUp = data.close !== undefined && data.open !== undefined ? data.close >= data.open : true;
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl shadow-black/50">
-      <p className="text-slate-300 text-xs mb-2 font-medium">{label}</p>
+    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+      <p className="text-gray-600 text-xs mb-2 font-medium">{label}</p>
 
       {chartType === 'candlestick' && data.open !== undefined ? (
         <div className="space-y-1">
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-slate-400">开盘:</span>
-            <span className="text-white font-mono">${data.open.toFixed(4)}</span>
+            <span className="text-gray-500">开盘:</span>
+            <span className="text-gray-900 font-mono">${data.open.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-slate-400">最高:</span>
-            <span className="text-emerald-400 font-mono">${data.high?.toFixed(4)}</span>
+            <span className="text-gray-500">最高:</span>
+            <span className="text-green-600 font-mono">${data.high?.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-slate-400">最低:</span>
-            <span className="text-rose-400 font-mono">${data.low?.toFixed(4)}</span>
+            <span className="text-gray-500">最低:</span>
+            <span className="text-red-600 font-mono">${data.low?.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-slate-400">收盘:</span>
-            <span className={`font-mono ${isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <span className="text-gray-500">收盘:</span>
+            <span className={`font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`}>
               ${data.close?.toFixed(4)}
             </span>
           </div>
         </div>
       ) : (
         <div className="flex justify-between gap-4 text-xs">
-          <span className="text-slate-400">价格:</span>
-          <span className="text-blue-400 font-mono">${data.price.toFixed(4)}</span>
+          <span className="text-gray-500">价格:</span>
+          <span className="text-blue-600 font-mono">${data.price.toFixed(4)}</span>
         </div>
       )}
 
       {data.ma7 !== undefined && chartType === 'line' && (
         <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-slate-400">MA7:</span>
-          <span className="text-amber-400 font-mono">${data.ma7.toFixed(4)}</span>
+          <span className="text-gray-500">MA7:</span>
+          <span className="text-amber-600 font-mono">${data.ma7.toFixed(4)}</span>
         </div>
       )}
 
-      <div className="flex justify-between gap-4 text-xs mt-2 pt-2 border-t border-slate-700">
-        <span className="text-slate-400">成交量:</span>
-        <span className="text-slate-300 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
+      <div className="flex justify-between gap-4 text-xs mt-2 pt-2 border-t border-gray-200">
+        <span className="text-gray-500">成交量:</span>
+        <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
       </div>
     </div>
   );
@@ -203,8 +203,6 @@ function CandlestickShape(props: {
   const isUp = close >= open;
   const color = isUp ? '#10b981' : '#f43f5e'; // emerald-500 : rose-500
   const bodyHeight = Math.abs(close - open);
-  // wickHeight is calculated but not used in current simplified implementation
-  // const wickHeight = high - low;
 
   // 计算 Y 坐标（这里简化处理，实际应该根据 YAxis 的 scale 计算）
   const centerX = x + width / 2;
@@ -230,85 +228,6 @@ function CandlestickShape(props: {
         rx={1}
       />
     </g>
-  );
-}
-
-// 时间周期切换器组件
-function TimeRangeSelector({
-  value,
-  onChange,
-}: {
-  value: TimeRange;
-  onChange: (range: TimeRange) => void;
-}) {
-  const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
-
-  return (
-    <div className="flex items-center bg-slate-800/50 rounded-lg p-1">
-      {timeRanges.map((range) => (
-        <button
-          key={range}
-          onClick={() => onChange(range)}
-          className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
-            value === range
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-              : 'text-slate-400 hover:text-white hover:bg-slate-700'
-          }`}
-        >
-          {range}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// 图表类型切换器组件
-function ChartTypeSelector({
-  value,
-  onChange,
-}: {
-  value: ChartType;
-  onChange: (type: ChartType) => void;
-}) {
-  return (
-    <div className="flex items-center bg-slate-800/50 rounded-lg p-1">
-      <button
-        onClick={() => onChange('line')}
-        className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-          value === 'line'
-            ? 'bg-slate-700 text-white'
-            : 'text-slate-400 hover:text-white hover:bg-slate-700'
-        }`}
-      >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-          />
-        </svg>
-        折线
-      </button>
-      <button
-        onClick={() => onChange('candlestick')}
-        className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 flex items-center gap-1.5 ${
-          value === 'candlestick'
-            ? 'bg-slate-700 text-white'
-            : 'text-slate-400 hover:text-white hover:bg-slate-700'
-        }`}
-      >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-        蜡烛
-      </button>
-    </div>
   );
 }
 
@@ -418,7 +337,7 @@ export function PriceChart({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center" style={{ height }}>
-        <div className="flex items-center gap-3 text-slate-400">
+        <div className="flex items-center gap-3 text-gray-400">
           <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
@@ -442,16 +361,16 @@ export function PriceChart({
 
   return (
     <div className="h-full flex flex-col">
-      {/* 工具栏 */}
+      {/* 价格信息 */}
       {showToolbar && (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           {/* 左侧：价格信息 */}
           <div className="flex items-center gap-4">
             <div>
-              <span className="text-2xl font-bold text-white">${currentPrice.toFixed(4)}</span>
+              <span className="text-2xl font-bold text-gray-900">${currentPrice.toFixed(4)}</span>
               <span
                 className={`ml-2 text-sm font-medium ${
-                  priceChange.percent >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                  priceChange.percent >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
                 {priceChange.percent >= 0 ? '+' : ''}
@@ -459,45 +378,38 @@ export function PriceChart({
               </span>
             </div>
           </div>
-
-          {/* 右侧：控制按钮 */}
-          <div className="flex items-center gap-2">
-            <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-            <div className="w-px h-6 bg-slate-700 mx-1" />
-            <ChartTypeSelector value={chartType} onChange={setChartType} />
-          </div>
         </div>
       )}
 
       {/* 图表区域 */}
-      <div className="flex-1 min-h-0 bg-slate-800/30 rounded-lg p-4">
+      <div className="flex-1 min-h-0 bg-gray-50 rounded-lg p-4">
         <ResponsiveContainer width="100%" height={height - (showToolbar ? 80 : 0)}>
           <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             {/* 网格线 */}
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#334155"
-              strokeOpacity={0.3}
+              stroke="#e5e7eb"
+              strokeOpacity={0.5}
               vertical={false}
             />
 
             {/* X轴 */}
             <XAxis
               dataKey="time"
-              stroke="#64748b"
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              stroke="#9ca3af"
+              tick={{ fontSize: 11, fill: '#6b7280' }}
               tickLine={false}
-              axisLine={{ stroke: '#334155', strokeOpacity: 0.5 }}
+              axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
               minTickGap={30}
             />
 
             {/* 价格 Y轴（左侧） */}
             <YAxis
               yAxisId="price"
-              stroke="#64748b"
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              stroke="#9ca3af"
+              tick={{ fontSize: 11, fill: '#6b7280' }}
               tickLine={false}
-              axisLine={{ stroke: '#334155', strokeOpacity: 0.5 }}
+              axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
               domain={[priceRange.min, priceRange.max]}
               tickFormatter={(value) => `$${Number(value).toFixed(2)}`}
               width={60}
@@ -507,8 +419,8 @@ export function PriceChart({
             <YAxis
               yAxisId="volume"
               orientation="right"
-              stroke="#64748b"
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              stroke="#9ca3af"
+              tick={{ fontSize: 11, fill: '#6b7280' }}
               tickLine={false}
               axisLine={false}
               domain={[volumeRange.min, volumeRange.max]}
@@ -519,7 +431,7 @@ export function PriceChart({
             <Tooltip
               content={<CustomTooltip chartType={chartType} />}
               cursor={{
-                stroke: '#475569',
+                stroke: '#d1d5db',
                 strokeWidth: 1,
                 strokeDasharray: '4 4',
               }}
@@ -552,7 +464,7 @@ export function PriceChart({
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#60a5fa' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#2563eb' }}
                 />
                 {/* MA7 移动平均线 */}
                 <Line
@@ -578,7 +490,7 @@ export function PriceChart({
               dataKey="time"
               height={30}
               stroke="#3b82f6"
-              fill="#1e293b"
+              fill="#f3f4f6"
               tickFormatter={() => ''}
             />
           </ComposedChart>
@@ -590,18 +502,18 @@ export function PriceChart({
         <div className="flex items-center justify-center gap-6 mt-3">
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-blue-500 rounded-full" />
-            <span className="text-xs text-slate-400">价格</span>
+            <span className="text-xs text-gray-500">价格</span>
           </div>
           <div className="flex items-center gap-2">
             <span
               className="w-3 h-0.5 bg-amber-500 rounded-full border-dashed"
               style={{ borderTop: '2px dashed #f59e0b' }}
             />
-            <span className="text-xs text-slate-400">MA7</span>
+            <span className="text-xs text-gray-500">MA7</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-emerald-500/30 rounded" />
-            <span className="text-xs text-slate-400">成交量</span>
+            <span className="w-3 h-3 bg-green-500/30 rounded" />
+            <span className="text-xs text-gray-500">成交量</span>
           </div>
         </div>
       )}

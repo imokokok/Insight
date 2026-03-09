@@ -123,9 +123,9 @@ const mockNodeData = {
 
 // 获取响应时间颜色
 function getResponseTimeColor(ms: number): string {
-  if (ms < 200) return 'text-emerald-400';
-  if (ms < 500) return 'text-amber-400';
-  return 'text-rose-400';
+  if (ms < 200) return 'text-emerald-600';
+  if (ms < 500) return 'text-amber-600';
+  return 'text-rose-600';
 }
 
 // 获取响应时间背景色
@@ -152,10 +152,10 @@ function GeoTooltip({ active, payload }: GeoTooltipProps) {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-white font-semibold">{item.region}</p>
-        <p className="text-slate-300 text-sm">{item.count.toLocaleString()} nodes</p>
-        <p className="text-slate-400 text-sm">{item.percentage}%</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-900 font-semibold">{item.region}</p>
+        <p className="text-gray-700 text-sm">{item.count.toLocaleString()} nodes</p>
+        <p className="text-gray-600 text-sm">{item.percentage}%</p>
       </div>
     );
   }
@@ -175,11 +175,11 @@ function GeoDistributionChart({ data }: { data: GeoDistribution[] }) {
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">Geographic Distribution</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Node distribution by region</p>
+          <h3 className="text-gray-900 text-sm font-semibold">Geographic Distribution</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Node distribution by region</p>
         </div>
       </div>
 
@@ -217,8 +217,8 @@ function GeoDistributionChart({ data }: { data: GeoDistribution[] }) {
           <div key={item.region} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
             <div className="flex-1 min-w-0">
-              <p className="text-slate-300 text-xs truncate">{item.region}</p>
-              <p className="text-slate-500 text-xs">
+              <p className="text-gray-700 text-xs truncate">{item.region}</p>
+              <p className="text-gray-500 text-xs">
                 {item.count} ({item.percentage}%)
               </p>
             </div>
@@ -239,10 +239,10 @@ function NodeTypeTooltip({ active, payload }: NodeTypeTooltipProps) {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-white font-semibold">{item.type}</p>
-        <p className="text-slate-300 text-sm">{item.count.toLocaleString()} nodes</p>
-        <p className="text-slate-400 text-sm">{item.percentage}%</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-900 font-semibold">{item.type}</p>
+        <p className="text-gray-700 text-sm">{item.count.toLocaleString()} nodes</p>
+        <p className="text-gray-600 text-sm">{item.percentage}%</p>
       </div>
     );
   }
@@ -262,11 +262,11 @@ function NodeTypeChart({ data }: { data: NodeType[] }) {
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">Node Types</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Distribution by node function</p>
+          <h3 className="text-gray-900 text-sm font-semibold">Node Types</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Distribution by node function</p>
         </div>
       </div>
 
@@ -303,11 +303,11 @@ function NodeTypeChart({ data }: { data: NodeType[] }) {
           <div key={item.type} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-slate-300 text-xs">{item.type}</span>
+              <span className="text-gray-700 text-xs">{item.type}</span>
             </div>
             <div className="text-right">
-              <span className="text-white text-xs font-medium">{item.count}</span>
-              <span className="text-slate-500 text-xs ml-1">({item.percentage}%)</span>
+              <span className="text-gray-900 text-xs font-medium">{item.count}</span>
+              <span className="text-gray-500 text-xs ml-1">({item.percentage}%)</span>
             </div>
           </div>
         ))}
@@ -319,31 +319,31 @@ function NodeTypeChart({ data }: { data: NodeType[] }) {
 // 节点性能排行榜组件
 function NodePerformanceTable({ data }: { data: NodePerformance[] }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">Top 10 Nodes</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Performance ranking by reputation</p>
+          <h3 className="text-gray-900 text-sm font-semibold">Top 10 Nodes</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Performance ranking by reputation</p>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-700">
-              <th className="text-left py-3 px-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Rank
               </th>
-              <th className="text-left py-3 px-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Node Name
               </th>
-              <th className="text-left py-3 px-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Response
               </th>
-              <th className="text-left py-3 px-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Success Rate
               </th>
-              <th className="text-left py-3 px-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Reputation
               </th>
             </tr>
@@ -352,19 +352,19 @@ function NodePerformanceTable({ data }: { data: NodePerformance[] }) {
             {data.map((node) => (
               <tr
                 key={node.rank}
-                className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors duration-200"
+                className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
               >
                 <td className="py-3 px-2">
                   <span
                     className={`text-sm font-bold ${
-                      node.rank <= 3 ? 'text-amber-400' : 'text-slate-400'
+                      node.rank <= 3 ? 'text-amber-500' : 'text-gray-600'
                     }`}
                   >
                     #{node.rank}
                   </span>
                 </td>
                 <td className="py-3 px-2">
-                  <span className="text-sm text-white font-medium">{node.name}</span>
+                  <span className="text-sm text-gray-900 font-medium">{node.name}</span>
                 </td>
                 <td className="py-3 px-2">
                   <div className="flex items-center gap-2">
@@ -378,21 +378,21 @@ function NodePerformanceTable({ data }: { data: NodePerformance[] }) {
                 </td>
                 <td className="py-3 px-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden max-w-20">
+                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-20">
                       <div
                         className="h-full bg-blue-500 rounded-full"
                         style={{ width: `${node.successRate}%` }}
                       />
                     </div>
-                    <span className="text-sm text-slate-300 min-w-[3rem]">{node.successRate}%</span>
+                    <span className="text-sm text-gray-700 min-w-[3rem]">{node.successRate}%</span>
                   </div>
                 </td>
                 <td className="py-3 px-2">
                   <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
-                    <span className="text-sm text-white font-medium">{node.reputation}</span>
+                    <span className="text-sm text-gray-900 font-medium">{node.reputation}</span>
                   </div>
                 </td>
               </tr>
@@ -414,8 +414,8 @@ interface EarningsTooltipProps {
 function EarningsTooltip({ active, payload, label }: EarningsTooltipProps) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-slate-400 text-xs mb-2">{label}</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-600 text-xs mb-2">{label}</p>
         {payload.map((entry, idx) => (
           <p key={idx} className="text-sm" style={{ color: entry.color }}>
             {entry.name}:{' '}
@@ -435,20 +435,20 @@ function NodeEarningsChart({ data }: { data: EarningsHistory[] }) {
   const avgApr = data.reduce((sum, item) => sum + item.apr, 0) / data.length;
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">Node Earnings Analysis</h3>
-          <p className="text-slate-500 text-xs mt-0.5">30-day earnings and APR trends</p>
+          <h3 className="text-gray-900 text-sm font-semibold">Node Earnings Analysis</h3>
+          <p className="text-gray-500 text-xs mt-0.5">30-day earnings and APR trends</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-xs text-slate-500">Avg Daily</p>
-            <p className="text-sm font-semibold text-blue-400">{formatNumber(avgEarnings)} LINK</p>
+            <p className="text-xs text-gray-500">Avg Daily</p>
+            <p className="text-sm font-semibold text-blue-600">{formatNumber(avgEarnings)} LINK</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-500">Avg APR</p>
-            <p className="text-sm font-semibold text-emerald-400">{formatNumber(avgApr)}%</p>
+            <p className="text-xs text-gray-500">Avg APR</p>
+            <p className="text-sm font-semibold text-emerald-600">{formatNumber(avgApr)}%</p>
           </div>
         </div>
       </div>
@@ -456,42 +456,42 @@ function NodeEarningsChart({ data }: { data: EarningsHistory[] }) {
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="date"
-              stroke="#64748B"
-              tick={{ fill: '#64748B', fontSize: 10 }}
+              stroke="#6b7280"
+              tick={{ fill: '#6b7280', fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: '#334155' }}
+              axisLine={{ stroke: '#e5e7eb' }}
               interval={4}
             />
             <YAxis
               yAxisId="left"
-              stroke="#64748B"
-              tick={{ fill: '#64748B', fontSize: 10 }}
+              stroke="#6b7280"
+              tick={{ fill: '#6b7280', fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: '#334155' }}
+              axisLine={{ stroke: '#e5e7eb' }}
               label={{
                 value: 'Earnings (LINK)',
                 angle: -90,
                 position: 'insideLeft',
-                fill: '#64748B',
+                fill: '#6b7280',
                 fontSize: 10,
               }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="#64748B"
-              tick={{ fill: '#64748B', fontSize: 10 }}
+              stroke="#6b7280"
+              tick={{ fill: '#6b7280', fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: '#334155' }}
+              axisLine={{ stroke: '#e5e7eb' }}
               domain={['dataMin - 0.1', 'dataMax + 0.1']}
               label={{
                 value: 'APR (%)',
                 angle: 90,
                 position: 'insideRight',
-                fill: '#64748B',
+                fill: '#6b7280',
                 fontSize: 10,
               }}
             />
@@ -542,20 +542,20 @@ function StatCard({
 }) {
   const trendColor =
     trendDirection === 'up'
-      ? 'text-emerald-400'
+      ? 'text-emerald-600'
       : trendDirection === 'down'
-        ? 'text-rose-400'
-        : 'text-slate-400';
+        ? 'text-rose-600'
+        : 'text-gray-600';
 
   const trendIcon = trendDirection === 'up' ? '↑' : trendDirection === 'down' ? '↓' : '→';
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 backdrop-blur-sm hover:bg-slate-800/70 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">{title}</p>
-          <p className="text-white text-xl font-bold">{value}</p>
-          {subValue && <p className="text-slate-500 text-xs mt-1">{subValue}</p>}
+          <p className="text-gray-600 text-xs uppercase tracking-wider mb-2">{title}</p>
+          <p className="text-gray-900 text-xl font-bold">{value}</p>
+          {subValue && <p className="text-gray-500 text-xs mt-1">{subValue}</p>}
           {trend !== undefined && (
             <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trendColor}`}>
               <span>{trendIcon}</span>
@@ -563,11 +563,11 @@ function StatCard({
                 {trend > 0 ? '+' : ''}
                 {trend}%
               </span>
-              <span className="text-slate-500 ml-1">vs last month</span>
+              <span className="text-gray-500 ml-1">vs last month</span>
             </div>
           )}
         </div>
-        <div className="p-2.5 bg-slate-700/50 rounded-lg text-slate-400">{icon}</div>
+        <div className="p-2.5 bg-gray-100 rounded-lg text-gray-600">{icon}</div>
       </div>
     </div>
   );
@@ -714,7 +714,7 @@ export function NodeAnalyticsPanel() {
 
       {/* 最后更新时间 */}
       <div className="text-right">
-        <p className="text-xs text-slate-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>
+        <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>
       </div>
     </div>
   );

@@ -30,31 +30,31 @@ const mockNetworkData = {
 // 网络状态配置
 const statusConfig = {
   online: {
-    color: 'emerald',
-    bgColor: 'bg-emerald-500',
-    textColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/30',
-    bgGradient: 'from-emerald-500/20 to-emerald-500/5',
+    color: 'green',
+    bgColor: 'bg-green-500',
+    textColor: 'text-green-600',
+    borderColor: 'border-green-200',
+    bgGradient: 'from-green-50 to-green-100',
     label: '在线',
-    pulseColor: 'bg-emerald-400',
+    pulseColor: 'bg-green-400',
   },
   warning: {
-    color: 'amber',
-    bgColor: 'bg-amber-500',
-    textColor: 'text-amber-400',
-    borderColor: 'border-amber-500/30',
-    bgGradient: 'from-amber-500/20 to-amber-500/5',
+    color: 'yellow',
+    bgColor: 'bg-yellow-500',
+    textColor: 'text-yellow-600',
+    borderColor: 'border-yellow-200',
+    bgGradient: 'from-yellow-50 to-yellow-100',
     label: '警告',
-    pulseColor: 'bg-amber-400',
+    pulseColor: 'bg-yellow-400',
   },
   offline: {
-    color: 'rose',
-    bgColor: 'bg-rose-500',
-    textColor: 'text-rose-400',
-    borderColor: 'border-rose-500/30',
-    bgGradient: 'from-rose-500/20 to-rose-500/5',
+    color: 'red',
+    bgColor: 'bg-red-500',
+    textColor: 'text-red-600',
+    borderColor: 'border-red-200',
+    bgGradient: 'from-red-50 to-red-100',
     label: '离线',
-    pulseColor: 'bg-rose-400',
+    pulseColor: 'bg-red-400',
   },
 };
 
@@ -74,10 +74,10 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
   const config = statusConfig[status];
 
   return (
-    <div className={`bg-slate-800/50 border ${config.borderColor} rounded-xl p-5 backdrop-blur-sm`}>
+    <div className={`bg-white border ${config.borderColor} rounded-xl p-5`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">网络状态</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">网络状态</p>
           <div className="flex items-center gap-3">
             <div className="relative">
               <span className={`relative flex h-4 w-4`}>
@@ -91,7 +91,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
             </div>
             <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
           </div>
-          <p className="text-slate-500 text-xs mt-2">实时监控中 • 最后检查: 刚刚</p>
+          <p className="text-gray-400 text-xs mt-2">实时监控中 • 最后检查: 刚刚</p>
         </div>
         <div className={`p-4 rounded-xl bg-gradient-to-br ${config.bgGradient}`}>
           <svg
@@ -117,22 +117,22 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
 function MetricCardComponent({ metric }: { metric: MetricCard }) {
   const trendColor =
     metric.trendDirection === 'up'
-      ? 'text-emerald-400'
+      ? 'text-green-600'
       : metric.trendDirection === 'down'
-        ? 'text-rose-400'
-        : 'text-slate-400';
+        ? 'text-red-600'
+        : 'text-gray-500';
 
   const trendIcon =
     metric.trendDirection === 'up' ? '↑' : metric.trendDirection === 'down' ? '↓' : '→';
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 backdrop-blur-sm hover:bg-slate-800/70 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">{metric.title}</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{metric.title}</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-white text-xl font-bold">{metric.value}</span>
-            {metric.unit && <span className="text-slate-500 text-sm">{metric.unit}</span>}
+            <span className="text-gray-900 text-xl font-bold">{metric.value}</span>
+            {metric.unit && <span className="text-gray-500 text-sm">{metric.unit}</span>}
           </div>
           <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${trendColor}`}>
             <span>{trendIcon}</span>
@@ -140,10 +140,10 @@ function MetricCardComponent({ metric }: { metric: MetricCard }) {
               {metric.trend > 0 ? '+' : ''}
               {metric.trend}%
             </span>
-            <span className="text-slate-500 ml-1">vs 上周</span>
+            <span className="text-gray-400 ml-1">vs 上周</span>
           </div>
         </div>
-        <div className="p-2.5 bg-slate-700/50 rounded-lg text-slate-400">{metric.icon}</div>
+        <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{metric.icon}</div>
       </div>
     </div>
   );
@@ -162,7 +162,7 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
     if (ratio > 0.6) return 'bg-blue-500';
     if (ratio > 0.4) return 'bg-blue-600';
     if (ratio > 0.2) return 'bg-blue-700';
-    return 'bg-blue-900';
+    return 'bg-blue-200';
   };
 
   // 格式化小时标签
@@ -171,16 +171,16 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white text-sm font-semibold">网络活动热力图</p>
-          <p className="text-slate-500 text-xs mt-0.5">24小时数据请求分布</p>
+          <p className="text-gray-900 text-sm font-semibold">网络活动热力图</p>
+          <p className="text-gray-500 text-xs mt-0.5">24小时数据请求分布</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>低</span>
           <div className="flex gap-1">
-            <div className="w-3 h-3 bg-blue-900 rounded"></div>
+            <div className="w-3 h-3 bg-blue-200 rounded"></div>
             <div className="w-3 h-3 bg-blue-700 rounded"></div>
             <div className="w-3 h-3 bg-blue-600 rounded"></div>
             <div className="w-3 h-3 bg-blue-500 rounded"></div>
@@ -195,11 +195,11 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
         {hourlyData.map((value, index) => (
           <div key={index} className="group relative">
             <div
-              className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-white/30 cursor-pointer`}
+              className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-blue-300 cursor-pointer`}
               title={`${getHourLabel(index)}: ${value.toLocaleString()} 请求`}
             />
             {/* 悬停提示 */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
               {getHourLabel(index)}: {value.toLocaleString()}
             </div>
           </div>
@@ -210,34 +210,34 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
       <div className="grid grid-cols-12 gap-1.5 mt-2">
         {[0, 4, 8, 12, 16, 20].map((hour) => (
           <div key={hour} className="text-center">
-            <span className="text-xs text-slate-500">{getHourLabel(hour)}</span>
+            <span className="text-xs text-gray-500">{getHourLabel(hour)}</span>
           </div>
         ))}
       </div>
 
       {/* 统计信息 */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700/50">
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <div className="text-center">
-          <p className="text-xs text-slate-500">总请求量</p>
-          <p className="text-sm font-semibold text-white">
+          <p className="text-xs text-gray-500">总请求量</p>
+          <p className="text-sm font-semibold text-gray-900">
             {hourlyData.reduce((a, b) => a + b, 0).toLocaleString()}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-slate-500">峰值时段</p>
-          <p className="text-sm font-semibold text-white">
+          <p className="text-xs text-gray-500">峰值时段</p>
+          <p className="text-sm font-semibold text-gray-900">
             {getHourLabel(hourlyData.indexOf(maxValue))}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-slate-500">平均/小时</p>
-          <p className="text-sm font-semibold text-white">
+          <p className="text-xs text-gray-500">平均/小时</p>
+          <p className="text-sm font-semibold text-gray-900">
             {Math.round(hourlyData.reduce((a, b) => a + b, 0) / 24).toLocaleString()}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-slate-500">峰值请求</p>
-          <p className="text-sm font-semibold text-white">{maxValue.toLocaleString()}</p>
+          <p className="text-xs text-gray-500">峰值请求</p>
+          <p className="text-sm font-semibold text-gray-900">{maxValue.toLocaleString()}</p>
         </div>
       </div>
     </div>
@@ -248,9 +248,9 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
 function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; latency: number }) {
   // 获取延迟状态颜色
   const getLatencyColor = (ms: number) => {
-    if (ms < 100) return { color: 'text-emerald-400', bgColor: 'bg-emerald-500', label: '优秀' };
-    if (ms < 500) return { color: 'text-amber-400', bgColor: 'bg-amber-500', label: '良好' };
-    return { color: 'text-rose-400', bgColor: 'bg-rose-500', label: '缓慢' };
+    if (ms < 100) return { color: 'text-green-600', bgColor: 'bg-green-500', label: '优秀' };
+    if (ms < 500) return { color: 'text-yellow-600', bgColor: 'bg-yellow-500', label: '良好' };
+    return { color: 'text-red-600', bgColor: 'bg-red-500', label: '缓慢' };
   };
 
   const latencyStatus = getLatencyColor(latency);
@@ -266,15 +266,15 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white text-sm font-semibold">数据新鲜度</p>
-          <p className="text-slate-500 text-xs mt-0.5">实时数据同步状态</p>
+          <p className="text-gray-900 text-sm font-semibold">数据新鲜度</p>
+          <p className="text-gray-500 text-xs mt-0.5">实时数据同步状态</p>
         </div>
-        <div className="p-2 bg-slate-700/50 rounded-lg">
+        <div className="p-2 bg-gray-100 rounded-lg">
           <svg
-            className="w-5 h-5 text-slate-400"
+            className="w-5 h-5 text-gray-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -291,10 +291,10 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
 
       <div className="space-y-4">
         {/* 最后更新时间 */}
-        <div className="flex items-center justify-between py-2 border-b border-slate-700/50">
+        <div className="flex items-center justify-between py-2 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <svg
-              className="w-4 h-4 text-slate-500"
+              className="w-4 h-4 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -306,17 +306,17 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <span className="text-sm text-slate-400">最后更新</span>
+            <span className="text-sm text-gray-500">最后更新</span>
           </div>
           <div className="text-right">
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-gray-900">
               {lastUpdated.toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
               })}
             </p>
-            <p className="text-xs text-slate-500">{getTimeAgo()}</p>
+            <p className="text-xs text-gray-400">{getTimeAgo()}</p>
           </div>
         </div>
 
@@ -324,7 +324,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-2">
             <svg
-              className="w-4 h-4 text-slate-500"
+              className="w-4 h-4 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -336,7 +336,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            <span className="text-sm text-slate-400">数据延迟</span>
+            <span className="text-sm text-gray-500">数据延迟</span>
           </div>
           <div className="flex items-center gap-2">
             <span className={`relative flex h-2.5 w-2.5`}>
@@ -348,9 +348,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
               ></span>
             </span>
             <span className={`text-sm font-semibold ${latencyStatus.color}`}>{latency}ms</span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full bg-slate-700 ${latencyStatus.color}`}
-            >
+            <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-100 ${latencyStatus.color}`}>
               {latencyStatus.label}
             </span>
           </div>

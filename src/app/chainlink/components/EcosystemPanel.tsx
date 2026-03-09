@@ -126,16 +126,16 @@ const PIE_COLORS = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Lending: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  DEX: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
-  Derivatives: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-  Stablecoin: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  Lending: 'bg-blue-50 text-blue-600 border-blue-200',
+  DEX: 'bg-violet-50 text-violet-600 border-violet-200',
+  Derivatives: 'bg-pink-50 text-pink-600 border-pink-200',
+  Stablecoin: 'bg-amber-50 text-amber-600 border-amber-200',
 };
 
 const NETWORK_STATUS_COLORS = {
-  active: { bg: 'bg-emerald-500', text: 'text-emerald-400', label: 'Active' },
-  syncing: { bg: 'bg-amber-500', text: 'text-amber-400', label: 'Syncing' },
-  maintenance: { bg: 'bg-rose-500', text: 'text-rose-400', label: 'Maintenance' },
+  active: { bg: 'bg-emerald-500', text: 'text-emerald-600', label: 'Active' },
+  syncing: { bg: 'bg-amber-500', text: 'text-amber-600', label: 'Syncing' },
+  maintenance: { bg: 'bg-rose-500', text: 'text-rose-600', label: 'Maintenance' },
 };
 
 // ==================== 辅助函数 ====================
@@ -183,7 +183,7 @@ function ProtocolLogo({ name }: { name: string }) {
 // 协议功能标签组件
 function FeatureTag({ feature }: { feature: string }) {
   return (
-    <span className="px-2 py-0.5 text-xs bg-slate-700/50 text-slate-300 rounded-full border border-slate-600/30">
+    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded-full border border-gray-200">
       {feature}
     </span>
   );
@@ -191,7 +191,7 @@ function FeatureTag({ feature }: { feature: string }) {
 
 // 协议类别标签组件
 function CategoryTag({ category }: { category: string }) {
-  const colorClass = CATEGORY_COLORS[category] || 'bg-slate-700 text-slate-400 border-slate-600';
+  const colorClass = CATEGORY_COLORS[category] || 'bg-gray-200 text-gray-600 border-gray-200';
   return (
     <span className={`px-2 py-0.5 text-xs rounded-full border ${colorClass}`}>{category}</span>
   );
@@ -212,21 +212,21 @@ function StatCard({
   trend?: { value: string; positive: boolean };
 }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-200">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:bg-gray-50 transition-all duration-200">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">{title}</p>
-          <p className="text-2xl font-bold text-white">{value}</p>
-          {subValue && <p className="text-sm text-slate-500 mt-1">{subValue}</p>}
+          <p className="text-gray-600 text-xs uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          {subValue && <p className="text-sm text-gray-500 mt-1">{subValue}</p>}
           {trend && (
             <p
-              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-400' : 'text-rose-400'}`}
+              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}
             >
               {trend.positive ? '↑' : '↓'} {trend.value}
             </p>
           )}
         </div>
-        <div className="p-3 bg-slate-700/50 rounded-lg text-slate-300">{icon}</div>
+        <div className="p-3 bg-gray-100 rounded-lg text-gray-700">{icon}</div>
       </div>
     </div>
   );
@@ -251,10 +251,10 @@ function CustomPieTooltip({
     const data = payload[0].payload;
     const percent = ((data.tvs / mockEcosystemData.stats.totalTVS) * 100).toFixed(1);
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-white font-medium">{data.name}</p>
-        <p className="text-slate-400 text-sm">TVS: {formatTVS(data.tvs)}</p>
-        <p className="text-slate-400 text-sm">占比: {percent}%</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-900 font-medium">{data.name}</p>
+        <p className="text-gray-600 text-sm">TVS: {formatTVS(data.tvs)}</p>
+        <p className="text-gray-600 text-sm">占比: {percent}%</p>
       </div>
     );
   }
@@ -359,11 +359,11 @@ function TVSDistributionChart() {
   }, [protocols]);
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">TVS Distribution</h3>
-          <p className="text-slate-500 text-xs mt-0.5">By DeFi Protocol</p>
+          <h3 className="text-gray-900 text-sm font-semibold">TVS Distribution</h3>
+          <p className="text-gray-500 text-xs mt-0.5">By DeFi Protocol</p>
         </div>
       </div>
 
@@ -399,8 +399,8 @@ function TVSDistributionChart() {
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
               />
-              <span className="text-xs text-slate-400 truncate">{item.name}</span>
-              <span className="text-xs text-slate-500 ml-auto">{percent}%</span>
+              <span className="text-xs text-gray-600 truncate">{item.name}</span>
+              <span className="text-xs text-gray-500 ml-auto">{percent}%</span>
             </div>
           );
         })}
@@ -419,47 +419,44 @@ function ProtocolList() {
   }, [protocols]);
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden backdrop-blur-sm">
-      <div className="px-5 py-4 border-b border-slate-700">
-        <h3 className="text-white text-sm font-semibold">DeFi Protocol Integrations</h3>
-        <p className="text-slate-500 text-xs mt-0.5">Major protocols using Chainlink</p>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-200">
+        <h3 className="text-gray-900 text-sm font-semibold">DeFi Protocol Integrations</h3>
+        <p className="text-gray-500 text-xs mt-0.5">Major protocols using Chainlink</p>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-slate-900/50">
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <tr className="bg-gray-50">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Protocol
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 TVS
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider hidden md:table-cell">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden md:table-cell">
                 Chainlink Features
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-gray-200">
             {sortedProtocols.map((protocol) => (
-              <tr
-                key={protocol.id}
-                className="hover:bg-slate-700/30 transition-colors duration-200"
-              >
+              <tr key={protocol.id} className="hover:bg-gray-50 transition-colors duration-200">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <ProtocolLogo name={protocol.name} />
-                    <span className="text-sm font-medium text-white">{protocol.name}</span>
+                    <span className="text-sm font-medium text-gray-900">{protocol.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <CategoryTag category={protocol.category} />
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-sm font-semibold text-white">
+                  <span className="text-sm font-semibold text-gray-900">
                     {formatTVS(protocol.tvs)}
                   </span>
                 </td>
@@ -484,7 +481,7 @@ function NetworkCard({ network }: { network: BlockchainNetwork }) {
   const statusConfig = NETWORK_STATUS_COLORS[network.status];
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 backdrop-blur-sm hover:bg-slate-800/70 hover:border-slate-600 transition-all duration-200 group cursor-pointer">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 group cursor-pointer">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           {/* 网络 Logo（使用首字母） */}
@@ -494,8 +491,8 @@ function NetworkCard({ network }: { network: BlockchainNetwork }) {
             {network.name.charAt(0)}
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">{network.name}</h4>
-            <p className="text-xs text-slate-500">TVS: {formatTVS(network.tvs)}</p>
+            <h4 className="text-sm font-semibold text-gray-900">{network.name}</h4>
+            <p className="text-xs text-gray-500">TVS: {formatTVS(network.tvs)}</p>
           </div>
         </div>
         {/* 状态指示器 */}
@@ -511,10 +508,10 @@ function NetworkCard({ network }: { network: BlockchainNetwork }) {
       </div>
 
       {/* 数据源数量 */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
         <div className="flex items-center gap-2">
           <svg
-            className="w-4 h-4 text-slate-500"
+            className="w-4 h-4 text-gray-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -526,9 +523,9 @@ function NetworkCard({ network }: { network: BlockchainNetwork }) {
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          <span className="text-xs text-slate-400">Data Sources</span>
+          <span className="text-xs text-gray-600">Data Sources</span>
         </div>
-        <span className="text-sm font-semibold text-white">{network.dataSources}</span>
+        <span className="text-sm font-semibold text-gray-900">{network.dataSources}</span>
       </div>
     </div>
   );
@@ -539,11 +536,11 @@ function NetworkGrid() {
   const { networks } = mockEcosystemData;
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-white text-sm font-semibold">Supported Blockchains</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Multi-chain oracle network</p>
+          <h3 className="text-gray-900 text-sm font-semibold">Supported Blockchains</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Multi-chain oracle network</p>
         </div>
       </div>
 
