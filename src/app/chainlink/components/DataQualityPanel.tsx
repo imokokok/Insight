@@ -128,7 +128,7 @@ const getStatusConfig = (status: DeviationStatus) => {
   switch (status) {
     case 'normal':
       return {
-        color: 'text-emerald-400',
+        color: 'text-emerald-600',
         bgColor: 'bg-emerald-500',
         barColor: 'bg-emerald-500',
         label: '正常',
@@ -136,7 +136,7 @@ const getStatusConfig = (status: DeviationStatus) => {
       };
     case 'warning':
       return {
-        color: 'text-amber-400',
+        color: 'text-amber-600',
         bgColor: 'bg-amber-500',
         barColor: 'bg-amber-500',
         label: '警告',
@@ -144,7 +144,7 @@ const getStatusConfig = (status: DeviationStatus) => {
       };
     case 'critical':
       return {
-        color: 'text-red-400',
+        color: 'text-red-600',
         bgColor: 'bg-red-500',
         barColor: 'bg-red-500',
         label: '异常',
@@ -157,28 +157,28 @@ const getRatingConfig = (score: number) => {
   if (score >= 90) {
     return {
       rating: '优秀',
-      color: 'text-emerald-400',
+      color: 'text-emerald-600',
       bgColor: 'from-emerald-500 to-emerald-600',
       strokeColor: '#10b981',
     };
   } else if (score >= 75) {
     return {
       rating: '良好',
-      color: 'text-blue-400',
+      color: 'text-blue-600',
       bgColor: 'from-blue-500 to-blue-600',
       strokeColor: '#3b82f6',
     };
   } else if (score >= 60) {
     return {
       rating: '一般',
-      color: 'text-amber-400',
+      color: 'text-amber-600',
       bgColor: 'from-amber-500 to-amber-600',
       strokeColor: '#f59e0b',
     };
   } else {
     return {
       rating: '较差',
-      color: 'text-red-400',
+      color: 'text-red-600',
       bgColor: 'from-red-500 to-red-600',
       strokeColor: '#ef4444',
     };
@@ -190,23 +190,23 @@ const getRatingConfig = (score: number) => {
 // 1. 价格偏差监控表格
 function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden backdrop-blur-sm">
-      <div className="px-5 py-4 border-b border-slate-700">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-white">价格偏差监控</h3>
-            <p className="text-xs text-slate-500 mt-0.5">与 Chainlink 预言机价格对比</p>
+            <h3 className="text-sm font-semibold text-gray-900">价格偏差监控</h3>
+            <p className="text-xs text-gray-500 mt-0.5">与 Chainlink 预言机价格对比</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-xs text-slate-400">
+            <span className="flex items-center gap-1 text-xs text-gray-600">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               正常
             </span>
-            <span className="flex items-center gap-1 text-xs text-slate-400">
+            <span className="flex items-center gap-1 text-xs text-gray-600">
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               警告
             </span>
-            <span className="flex items-center gap-1 text-xs text-slate-400">
+            <span className="flex items-center gap-1 text-xs text-gray-600">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
               异常
             </span>
@@ -217,49 +217,46 @@ function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-slate-800/80">
-              <th className="px-5 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <tr className="bg-gray-50">
+              <th className="px-5 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 交易所
               </th>
-              <th className="px-5 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-5 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                 价格 (USD)
               </th>
-              <th className="px-5 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-5 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                 偏差百分比
               </th>
-              <th className="px-5 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-5 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                 偏差金额
               </th>
-              <th className="px-5 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-5 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                 状态
               </th>
-              <th className="px-5 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 可视化
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-gray-100">
             {data.map((exchange, index) => {
               const statusConfig = getStatusConfig(exchange.status);
               const progressWidth = Math.min((exchange.deviationPercent / 1) * 100, 100);
 
               return (
-                <tr
-                  key={exchange.name}
-                  className="hover:bg-slate-700/30 transition-colors duration-200"
-                >
+                <tr key={exchange.name} className="hover:bg-gray-50 transition-colors duration-200">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
-                        <span className="text-sm font-bold text-slate-300">
+                      <div className="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center">
+                        <span className="text-sm font-bold text-gray-700">
                           {exchange.name.charAt(0)}
                         </span>
                       </div>
-                      <span className="text-sm font-medium text-white">{exchange.name}</span>
+                      <span className="text-sm font-medium text-gray-900">{exchange.name}</span>
                     </div>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <span className="text-sm font-mono text-white">
+                    <span className="text-sm font-mono text-gray-900">
                       ${exchange.price.toFixed(2)}
                     </span>
                   </td>
@@ -270,13 +267,13 @@ function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <span className="text-sm font-mono text-slate-300">
+                    <span className="text-sm font-mono text-gray-700">
                       ${exchange.deviationAmount.toFixed(2)}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-center">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color} bg-slate-700/50`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color} bg-gray-100`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${statusConfig.bgColor} mr-1.5`}
@@ -286,15 +283,13 @@ function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${statusConfig.barColor}`}
                           style={{ width: `${progressWidth}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs text-slate-500 w-8">
-                        {progressWidth.toFixed(0)}%
-                      </span>
+                      <span className="text-xs text-gray-500 w-8">{progressWidth.toFixed(0)}%</span>
                     </div>
                   </td>
                 </tr>
@@ -314,15 +309,15 @@ function ConsistencyScoreGauge({ scoreData }: { scoreData: ConsistencyScore }) {
   const strokeDashoffset = circumference - (scoreData.score / 100) * circumference;
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-white">数据一致性评分</h3>
-          <p className="text-xs text-slate-500 mt-0.5">基于多维度质量指标</p>
+          <h3 className="text-sm font-semibold text-gray-900">数据一致性评分</h3>
+          <p className="text-xs text-gray-500 mt-0.5">基于多维度质量指标</p>
         </div>
-        <div className="p-2 bg-slate-700/50 rounded-lg">
+        <div className="p-2 bg-gray-100 rounded-lg">
           <svg
-            className="w-5 h-5 text-slate-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -342,7 +337,7 @@ function ConsistencyScoreGauge({ scoreData }: { scoreData: ConsistencyScore }) {
         <div className="relative w-40 h-40">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             {/* 背景圆环 */}
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" strokeWidth="8" />
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" strokeWidth="8" />
             {/* 进度圆环 */}
             <circle
               cx="50"
@@ -359,8 +354,8 @@ function ConsistencyScoreGauge({ scoreData }: { scoreData: ConsistencyScore }) {
           </svg>
           {/* 中心内容 */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-white">{scoreData.score}</span>
-            <span className="text-xs text-slate-400">/ 100</span>
+            <span className="text-4xl font-bold text-gray-900">{scoreData.score}</span>
+            <span className="text-xs text-gray-600">/ 100</span>
           </div>
         </div>
 
@@ -374,10 +369,10 @@ function ConsistencyScoreGauge({ scoreData }: { scoreData: ConsistencyScore }) {
           <div
             className={`flex items-center gap-1 text-sm ${
               scoreData.trend === 'up'
-                ? 'text-emerald-400'
+                ? 'text-emerald-600'
                 : scoreData.trend === 'down'
-                  ? 'text-red-400'
-                  : 'text-slate-400'
+                  ? 'text-red-600'
+                  : 'text-gray-600'
             }`}
           >
             {scoreData.trend === 'up' && (
@@ -421,14 +416,14 @@ function ConsistencyScoreGauge({ scoreData }: { scoreData: ConsistencyScore }) {
             { label: '异常检测', value: 83 },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 w-20">{item.label}</span>
-              <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <span className="text-xs text-gray-600 w-20">{item.label}</span>
+              <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"
                   style={{ width: `${item.value}%` }}
                 ></div>
               </div>
-              <span className="text-xs text-slate-300 w-8 text-right">{item.value}</span>
+              <span className="text-xs text-gray-700 w-8 text-right">{item.value}</span>
             </div>
           ))}
         </div>
@@ -450,13 +445,13 @@ function LatencyTooltip({ active, payload, data }: LatencyTooltipProps) {
     const total = data.reduce((sum, d) => sum + d.count, 0);
     const percentage = ((item.count / total) * 100).toFixed(1);
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-sm font-medium text-white">{item.range}</p>
-        <p className="text-xs text-slate-400 mt-1">
-          数量: <span className="text-white">{item.count.toLocaleString()}</span>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+        <p className="text-sm font-medium text-gray-900">{item.range}</p>
+        <p className="text-xs text-gray-600 mt-1">
+          数量: <span className="text-gray-900">{item.count.toLocaleString()}</span>
         </p>
-        <p className="text-xs text-slate-400">
-          占比: <span className="text-white">{percentage}%</span>
+        <p className="text-xs text-gray-600">
+          占比: <span className="text-gray-900">{percentage}%</span>
         </p>
       </div>
     );
@@ -467,15 +462,15 @@ function LatencyTooltip({ active, payload, data }: LatencyTooltipProps) {
 // 3. 更新延迟分布图表
 function LatencyDistributionChart({ data }: { data: LatencyDistribution[] }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-white">更新延迟分布</h3>
-          <p className="text-xs text-slate-500 mt-0.5">数据更新响应时间统计</p>
+          <h3 className="text-sm font-semibold text-gray-900">更新延迟分布</h3>
+          <p className="text-xs text-gray-500 mt-0.5">数据更新响应时间统计</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>样本总数:</span>
-          <span className="text-white font-mono">
+          <span className="text-gray-900 font-mono">
             {data.reduce((sum, d) => sum + d.count, 0).toLocaleString()}
           </span>
         </div>
@@ -484,17 +479,17 @@ function LatencyDistributionChart({ data }: { data: LatencyDistribution[] }) {
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
             <XAxis
               dataKey="range"
-              tick={{ fill: '#94a3b8', fontSize: 11 }}
-              axisLine={{ stroke: '#334155' }}
-              tickLine={{ stroke: '#334155' }}
+              tick={{ fill: '#6b7280', fontSize: 11 }}
+              axisLine={{ stroke: '#e5e7eb' }}
+              tickLine={{ stroke: '#e5e7eb' }}
             />
             <YAxis
-              tick={{ fill: '#94a3b8', fontSize: 11 }}
-              axisLine={{ stroke: '#334155' }}
-              tickLine={{ stroke: '#334155' }}
+              tick={{ fill: '#6b7280', fontSize: 11 }}
+              axisLine={{ stroke: '#e5e7eb' }}
+              tickLine={{ stroke: '#e5e7eb' }}
               tickFormatter={(value) => value.toLocaleString()}
             />
             <Tooltip content={<LatencyTooltip data={data} />} />
@@ -508,11 +503,11 @@ function LatencyDistributionChart({ data }: { data: LatencyDistribution[] }) {
       </div>
 
       {/* 图例 */}
-      <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-4 border-t border-slate-700/50">
+      <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
         {data.map((item) => (
           <div key={item.range} className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded" style={{ backgroundColor: item.color }}></span>
-            <span className="text-xs text-slate-400">{item.range}</span>
+            <span className="text-xs text-gray-600">{item.range}</span>
           </div>
         ))}
       </div>
@@ -525,15 +520,15 @@ function AnomalyDetectionIndicator({ data }: { data: AnomalyData }) {
   const totalCount = data.types.reduce((sum, t) => sum + t.count, 0);
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-white">异常值检测</h3>
-          <p className="text-xs text-slate-500 mt-0.5">最近24小时异常统计</p>
+          <h3 className="text-sm font-semibold text-gray-900">异常值检测</h3>
+          <p className="text-xs text-gray-500 mt-0.5">最近24小时异常统计</p>
         </div>
-        <div className="p-2 bg-slate-700/50 rounded-lg">
+        <div className="p-2 bg-gray-100 rounded-lg">
           <svg
-            className="w-5 h-5 text-slate-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -550,32 +545,32 @@ function AnomalyDetectionIndicator({ data }: { data: AnomalyData }) {
 
       {/* 异常统计概览 */}
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="bg-slate-700/30 rounded-lg p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">异常值总数</p>
-          <p className="text-2xl font-bold text-white">{data.totalAnomalies}</p>
-          <p className="text-xs text-slate-500 mt-1">最近24小时</p>
+        <div className="bg-gray-100 rounded-lg p-4 text-center">
+          <p className="text-xs text-gray-600 mb-1">异常值总数</p>
+          <p className="text-2xl font-bold text-gray-900">{data.totalAnomalies}</p>
+          <p className="text-xs text-gray-500 mt-1">最近24小时</p>
         </div>
-        <div className="bg-slate-700/30 rounded-lg p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">异常率</p>
-          <p className="text-2xl font-bold text-white">{data.anomalyRate}%</p>
-          <p className="text-xs text-slate-500 mt-1">占总数据量</p>
+        <div className="bg-gray-100 rounded-lg p-4 text-center">
+          <p className="text-xs text-gray-600 mb-1">异常率</p>
+          <p className="text-2xl font-bold text-gray-900">{data.anomalyRate}%</p>
+          <p className="text-xs text-gray-500 mt-1">占总数据量</p>
         </div>
       </div>
 
       {/* 异常类型分布 */}
       <div className="space-y-3">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">异常类型分布</p>
+        <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">异常类型分布</p>
         {data.types.map((type) => (
           <div key={type.type} className="flex items-center gap-3">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-slate-300">{type.type}</span>
+                <span className="text-sm text-gray-700">{type.type}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono text-white">{type.count}</span>
-                  <span className="text-xs text-slate-500">({type.percentage}%)</span>
+                  <span className="text-sm font-mono text-gray-900">{type.count}</span>
+                  <span className="text-xs text-gray-500">({type.percentage}%)</span>
                 </div>
               </div>
-              <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
@@ -590,7 +585,7 @@ function AnomalyDetectionIndicator({ data }: { data: AnomalyData }) {
       </div>
 
       {/* 底部提示 */}
-      <div className="mt-5 pt-4 border-t border-slate-700/50">
+      <div className="mt-5 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2 text-xs">
           <span
             className={`w-2 h-2 rounded-full ${
@@ -601,15 +596,15 @@ function AnomalyDetectionIndicator({ data }: { data: AnomalyData }) {
                   : 'bg-red-500'
             }`}
           ></span>
-          <span className="text-slate-400">
+          <span className="text-gray-600">
             系统状态:
             <span
               className={`ml-1 font-medium ${
                 data.anomalyRate < 1
-                  ? 'text-emerald-400'
+                  ? 'text-emerald-600'
                   : data.anomalyRate < 5
-                    ? 'text-amber-400'
-                    : 'text-red-400'
+                    ? 'text-amber-600'
+                    : 'text-red-600'
               }`}
             >
               {data.anomalyRate < 1 ? '正常' : data.anomalyRate < 5 ? '需关注' : '警告'}
@@ -685,7 +680,7 @@ export function DataQualityPanel() {
   return (
     <div className="space-y-6">
       {/* 顶部：Chainlink 参考价格 */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
@@ -697,27 +692,27 @@ export function DataQualityPanel() {
               </svg>
             </div>
             <div>
-              <p className="text-slate-400 text-xs uppercase tracking-wider">Chainlink 参考价格</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-gray-600 text-xs uppercase tracking-wider">Chainlink 参考价格</p>
+              <p className="text-2xl font-bold text-gray-900">
                 ${qualityData.chainlinkPrice.toFixed(2)}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-gray-500">
                 最后更新: {lastUpdated.toLocaleTimeString('zh-CN')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs text-slate-400">数据点总数</p>
-              <p className="text-lg font-semibold text-white">5,171</p>
+              <p className="text-xs text-gray-600">数据点总数</p>
+              <p className="text-lg font-semibold text-gray-900">5,171</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400">监控交易所</p>
-              <p className="text-lg font-semibold text-white">4</p>
+              <p className="text-xs text-gray-600">监控交易所</p>
+              <p className="text-lg font-semibold text-gray-900">4</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400">平均偏差</p>
-              <p className="text-lg font-semibold text-emerald-400">0.25%</p>
+              <p className="text-xs text-gray-600">平均偏差</p>
+              <p className="text-lg font-semibold text-emerald-600">0.25%</p>
             </div>
           </div>
         </div>

@@ -225,27 +225,27 @@ const getRiskLevelConfig = (level: RiskLevel) => {
     low: {
       color: 'emerald',
       bgColor: 'bg-emerald-500',
-      bgColorLight: 'bg-emerald-500/20',
-      textColor: 'text-emerald-400',
-      borderColor: 'border-emerald-500/30',
+      bgColorLight: 'bg-emerald-50',
+      textColor: 'text-emerald-600',
+      borderColor: 'border-emerald-200',
       gradient: 'from-emerald-500 to-emerald-600',
       label: '低风险',
     },
     medium: {
       color: 'amber',
       bgColor: 'bg-amber-500',
-      bgColorLight: 'bg-amber-500/20',
-      textColor: 'text-amber-400',
-      borderColor: 'border-amber-500/30',
+      bgColorLight: 'bg-amber-50',
+      textColor: 'text-amber-600',
+      borderColor: 'border-amber-200',
       gradient: 'from-amber-500 to-amber-600',
       label: '中风险',
     },
     high: {
       color: 'rose',
       bgColor: 'bg-rose-500',
-      bgColorLight: 'bg-rose-500/20',
-      textColor: 'text-rose-400',
-      borderColor: 'border-rose-500/30',
+      bgColorLight: 'bg-rose-50',
+      textColor: 'text-rose-600',
+      borderColor: 'border-rose-200',
       gradient: 'from-rose-500 to-rose-600',
       label: '高风险',
     },
@@ -306,7 +306,7 @@ function CircularGauge({
       case 'up':
         return (
           <svg
-            className="w-5 h-5 text-emerald-400"
+            className="w-5 h-5 text-emerald-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -322,7 +322,7 @@ function CircularGauge({
       case 'down':
         return (
           <svg
-            className="w-5 h-5 text-rose-400"
+            className="w-5 h-5 text-rose-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -338,7 +338,7 @@ function CircularGauge({
       default:
         return (
           <svg
-            className="w-5 h-5 text-slate-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -361,7 +361,7 @@ function CircularGauge({
             fill="none"
             stroke="currentColor"
             strokeWidth={strokeWidth}
-            className="text-slate-700"
+            className="text-gray-200"
           />
           {/* 进度圆环 */}
           <circle
@@ -379,8 +379,8 @@ function CircularGauge({
         </svg>
         {/* 中心内容 */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold text-white">{score}</span>
-          <span className="text-sm text-slate-400">/ 100</span>
+          <span className="text-4xl font-bold text-gray-900">{score}</span>
+          <span className="text-sm text-gray-600">/ 100</span>
         </div>
       </div>
       {/* 底部信息 */}
@@ -405,21 +405,21 @@ function RiskMetricCard({ metric }: { metric: RiskMetric }) {
   const getTrendIcon = () => {
     switch (metric.trend) {
       case 'up':
-        return <span className="text-emerald-400">↑</span>;
+        return <span className="text-emerald-600">↑</span>;
       case 'down':
-        return <span className="text-rose-400">↓</span>;
+        return <span className="text-rose-600">↓</span>;
       default:
-        return <span className="text-slate-400">→</span>;
+        return <span className="text-gray-600">→</span>;
     }
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-200">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:bg-gray-50 transition-all duration-200">
       {/* 头部 */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h4 className="text-white font-semibold">{metric.name}</h4>
-          <p className="text-xs text-slate-400 mt-1">{metric.description}</p>
+          <h4 className="text-gray-900 font-semibold">{metric.name}</h4>
+          <p className="text-xs text-gray-600 mt-1">{metric.description}</p>
         </div>
         <div
           className={`px-2 py-1 rounded-lg ${config.bgColorLight} ${config.textColor} text-xs font-medium`}
@@ -431,30 +431,30 @@ function RiskMetricCard({ metric }: { metric: RiskMetric }) {
       {/* 主要指标 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-white">{metric.value}</span>
+          <span className="text-2xl font-bold text-gray-900">{metric.value}</span>
           {getTrendIcon()}
         </div>
         {/* 进度条 */}
         <div className="flex-1 mx-4">
-          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full bg-gradient-to-r ${config.gradient} transition-all duration-500`}
               style={{ width: `${metric.score}%` }}
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-slate-500">风险评分</span>
+            <span className="text-xs text-gray-500">风险评分</span>
             <span className={`text-xs font-medium ${config.textColor}`}>{metric.score}/100</span>
           </div>
         </div>
       </div>
 
       {/* 详细数据 */}
-      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-700/50">
+      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-200">
         {metric.details.map((detail, index) => (
           <div key={index} className="flex justify-between items-center">
-            <span className="text-xs text-slate-400">{detail.label}</span>
-            <span className="text-sm font-medium text-white">{detail.value}</span>
+            <span className="text-xs text-gray-600">{detail.label}</span>
+            <span className="text-sm font-medium text-gray-900">{detail.value}</span>
           </div>
         ))}
       </div>
@@ -473,16 +473,16 @@ function SubScoreCard({
   icon: React.ReactNode;
 }) {
   const getColorClass = (s: number) => {
-    if (s >= 80) return 'text-emerald-400';
-    if (s >= 60) return 'text-amber-400';
-    return 'text-rose-400';
+    if (s >= 80) return 'text-emerald-600';
+    if (s >= 60) return 'text-amber-600';
+    return 'text-rose-600';
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
-      <div className="p-2 bg-slate-700/50 rounded-lg text-slate-400">{icon}</div>
+    <div className="flex items-center gap-3 p-3 bg-white rounded-lg">
+      <div className="p-2 bg-gray-100 rounded-lg text-gray-600">{icon}</div>
       <div className="flex-1">
-        <p className="text-xs text-slate-400">{title}</p>
+        <p className="text-xs text-gray-600">{title}</p>
         <p className={`text-lg font-bold ${getColorClass(score)}`}>{score}</p>
       </div>
     </div>
@@ -496,15 +496,15 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
   );
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-white font-semibold">历史安全事件</h3>
-          <p className="text-xs text-slate-400 mt-1">过去12个月的安全记录</p>
+          <h3 className="text-gray-900 font-semibold">历史安全事件</h3>
+          <p className="text-xs text-gray-600 mt-1">过去12个月的安全记录</p>
         </div>
-        <div className="p-2 bg-slate-700/50 rounded-lg">
+        <div className="p-2 bg-gray-100 rounded-lg">
           <svg
-            className="w-5 h-5 text-slate-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -521,7 +521,7 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
 
       <div className="relative">
         {/* 时间线 */}
-        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-700" />
+        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
 
         {/* 事件列表 */}
         <div className="space-y-4">
@@ -533,7 +533,7 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
               <div key={event.id} className="relative pl-10">
                 {/* 时间点 */}
                 <div
-                  className={`absolute left-2 top-1 w-4 h-4 rounded-full border-2 border-slate-800 ${
+                  className={`absolute left-2 top-1 w-4 h-4 rounded-full border-2 border-white ${
                     event.type === 'vulnerability'
                       ? 'bg-rose-500'
                       : event.type === 'upgrade'
@@ -543,56 +543,56 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
                 />
 
                 {/* 事件卡片 */}
-                <div className="bg-slate-800/70 rounded-lg p-4 hover:bg-slate-800 transition-colors">
+                <div className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-medium ${
                           event.type === 'vulnerability'
-                            ? 'bg-rose-500/20 text-rose-400'
+                            ? 'bg-rose-50 text-rose-600'
                             : event.type === 'upgrade'
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-emerald-500/20 text-emerald-400'
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'bg-emerald-50 text-emerald-600'
                         }`}
                       >
                         {typeConfig.label}
                       </span>
-                      <span className="text-xs text-slate-500">{event.date}</span>
+                      <span className="text-xs text-gray-500">{event.date}</span>
                     </div>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
                         event.status === 'resolved'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-amber-500/20 text-amber-400'
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-amber-50 text-amber-600'
                       }`}
                     >
                       {event.status === 'resolved' ? '已解决' : '监控中'}
                     </span>
                   </div>
 
-                  <h4 className="text-sm font-medium text-white mb-1">{event.title}</h4>
-                  <p className="text-xs text-slate-400 mb-3">{event.description}</p>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">{event.title}</h4>
+                  <p className="text-xs text-gray-600 mb-3">{event.description}</p>
 
                   <div className="flex items-center gap-4 text-xs">
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-500">影响:</span>
+                      <span className="text-gray-500">影响:</span>
                       <span
                         className={
                           event.impact === '无'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600'
                             : event.impact === '低'
-                              ? 'text-amber-400'
+                              ? 'text-amber-600'
                               : event.impact === '中'
-                                ? 'text-orange-400'
-                                : 'text-blue-400'
+                                ? 'text-orange-600'
+                                : 'text-blue-600'
                         }
                       >
                         {event.impact}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-500">响应:</span>
-                      <span className="text-white">{event.responseTime}</span>
+                      <span className="text-gray-500">响应:</span>
+                      <span className="text-gray-900">{event.responseTime}</span>
                     </div>
                   </div>
                 </div>
@@ -608,15 +608,15 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
 // 风险缓解措施面板
 function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-white font-semibold">风险缓解措施</h3>
-          <p className="text-xs text-slate-400 mt-1">当前部署的安全措施</p>
+          <h3 className="text-gray-900 font-semibold">风险缓解措施</h3>
+          <p className="text-xs text-gray-600 mt-1">当前部署的安全措施</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">生效中:</span>
-          <span className="text-sm font-semibold text-emerald-400">
+          <span className="text-xs text-gray-600">生效中:</span>
+          <span className="text-sm font-semibold text-emerald-600">
             {mitigations.filter((m) => m.status === 'active').length}/{mitigations.length}
           </span>
         </div>
@@ -630,7 +630,7 @@ function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) 
           return (
             <div
               key={measure.id}
-              className="flex items-start gap-3 p-3 bg-slate-800/70 rounded-lg hover:bg-slate-800 transition-colors group"
+              className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
             >
               {/* 状态指示器 */}
               <div
@@ -639,22 +639,22 @@ function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) 
                     ? 'bg-emerald-500'
                     : measure.status === 'pending'
                       ? 'bg-amber-500'
-                      : 'bg-slate-500'
+                      : 'bg-gray-500'
                 }`}
               />
 
               {/* 内容 */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-sm font-medium text-white truncate">{measure.title}</h4>
+                  <h4 className="text-sm font-medium text-gray-900 truncate">{measure.title}</h4>
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-xs px-2 py-0.5 rounded ${
                         measure.status === 'active'
-                          ? 'bg-emerald-500/20 text-emerald-400'
+                          ? 'bg-emerald-50 text-emerald-600'
                           : measure.status === 'pending'
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-slate-500/20 text-slate-400'
+                            ? 'bg-amber-50 text-amber-600'
+                            : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {statusConfig.label}
@@ -662,16 +662,16 @@ function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) 
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 mb-2">{measure.description}</p>
+                <p className="text-xs text-gray-600 mb-2">{measure.description}</p>
 
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-xs px-2 py-0.5 rounded ${
                       measure.category === 'technical'
-                        ? 'bg-blue-500/20 text-blue-400'
+                        ? 'bg-blue-50 text-blue-600'
                         : measure.category === 'operational'
-                          ? 'bg-purple-500/20 text-purple-400'
-                          : 'bg-amber-500/20 text-amber-400'
+                          ? 'bg-purple-50 text-purple-600'
+                          : 'bg-amber-50 text-amber-600'
                     }`}
                   >
                     {categoryConfig.label}
@@ -679,8 +679,8 @@ function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) 
 
                   {/* 有效性进度条 */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500">有效性</span>
-                    <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <span className="text-xs text-gray-500">有效性</span>
+                    <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
                           measure.effectiveness >= 90
@@ -692,7 +692,7 @@ function MitigationPanel({ mitigations }: { mitigations: MitigationMeasure[] }) 
                         style={{ width: `${measure.effectiveness}%` }}
                       />
                     </div>
-                    <span className="text-xs text-white w-8">{measure.effectiveness}%</span>
+                    <span className="text-xs text-gray-900 w-8">{measure.effectiveness}%</span>
                   </div>
                 </div>
               </div>
@@ -731,15 +731,15 @@ export function RiskAssessmentPanel() {
       {/* 顶部：整体风险评分 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 环形仪表盘 */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 backdrop-blur-sm">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-white font-semibold">整体风险评分</h3>
-              <p className="text-xs text-slate-400 mt-1">综合安全评估</p>
+              <h3 className="text-gray-900 font-semibold">整体风险评分</h3>
+              <p className="text-xs text-gray-600 mt-1">综合安全评估</p>
             </div>
-            <div className="p-2 bg-slate-700/50 rounded-lg">
+            <div className="p-2 bg-gray-100 rounded-lg">
               <svg
-                className="w-5 h-5 text-slate-400"
+                className="w-5 h-5 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -762,18 +762,18 @@ export function RiskAssessmentPanel() {
             />
           </div>
           <div className="text-center mt-2">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               最后更新: {new Date(riskData.lastUpdated).toLocaleString('zh-CN')}
             </p>
           </div>
         </div>
 
         {/* 子评分 */}
-        <div className="lg:col-span-2 bg-slate-800/50 border border-slate-700 rounded-xl p-6 backdrop-blur-sm">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-white font-semibold">维度子评分</h3>
-              <p className="text-xs text-slate-400 mt-1">各维度安全评分详情</p>
+              <h3 className="text-gray-900 font-semibold">维度子评分</h3>
+              <p className="text-xs text-gray-600 mt-1">各维度安全评分详情</p>
             </div>
           </div>
 
@@ -823,28 +823,28 @@ export function RiskAssessmentPanel() {
           </div>
 
           {/* 风险说明 */}
-          <div className="bg-slate-800/70 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-white mb-3">风险等级说明</h4>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-900 mb-3">风险等级说明</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
                 <div>
-                  <span className="text-emerald-400 font-medium">低风险 (80-100)</span>
-                  <p className="text-slate-500">网络运行稳定，风险可控</p>
+                  <span className="text-emerald-600 font-medium">低风险 (80-100)</span>
+                  <p className="text-gray-500">网络运行稳定，风险可控</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-amber-500" />
                 <div>
-                  <span className="text-amber-400 font-medium">中风险 (60-79)</span>
-                  <p className="text-slate-500">需要关注，建议监控</p>
+                  <span className="text-amber-600 font-medium">中风险 (60-79)</span>
+                  <p className="text-gray-500">需要关注，建议监控</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-rose-500" />
                 <div>
-                  <span className="text-rose-400 font-medium">高风险 (0-59)</span>
-                  <p className="text-slate-500">需要立即采取措施</p>
+                  <span className="text-rose-600 font-medium">高风险 (0-59)</span>
+                  <p className="text-gray-500">需要立即采取措施</p>
                 </div>
               </div>
             </div>
@@ -855,8 +855,8 @@ export function RiskAssessmentPanel() {
       {/* 风险指标仪表板 */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold">风险指标详情</h3>
-          <span className="text-xs text-slate-400">实时评估</span>
+          <h3 className="text-gray-900 font-semibold">风险指标详情</h3>
+          <span className="text-xs text-gray-600">实时评估</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {riskData.metrics.map((metric) => (

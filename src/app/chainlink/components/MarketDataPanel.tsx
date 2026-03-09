@@ -85,14 +85,14 @@ function PriceDisplay({ price, previousPrice }: { price: number; previousPrice: 
   return (
     <div className="flex flex-col items-start">
       <div className="flex items-baseline gap-1">
-        <span className="text-slate-400 text-3xl font-light">$</span>
+        <span className="text-gray-400 text-3xl font-light">$</span>
         <span
           className={`text-6xl md:text-7xl font-bold tracking-tight transition-all duration-300 ${
             flashColor === 'green'
-              ? 'text-emerald-400 scale-105'
+              ? 'text-green-600 scale-105'
               : flashColor === 'red'
-                ? 'text-rose-400 scale-105'
-                : 'text-white'
+                ? 'text-red-600 scale-105'
+                : 'text-gray-900'
           } ${isAnimating ? 'scale-105' : 'scale-100'}`}
         >
           {price.toFixed(2)}
@@ -123,8 +123,8 @@ function PriceChangeIndicator({
         <div
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-lg ${
             isPositive
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              ? 'bg-green-50 text-green-600 border border-green-200'
+              : 'bg-red-50 text-red-600 border border-red-200'
           }`}
         >
           <span className="text-xl">{isPositive ? '↑' : '↓'}</span>
@@ -133,8 +133,8 @@ function PriceChangeIndicator({
             {change.toFixed(2)}%
           </span>
         </div>
-        <div className="text-slate-400 text-sm">
-          <span className={isPositive ? 'text-emerald-400' : 'text-rose-400'}>
+        <div className="text-gray-500 text-sm">
+          <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
             {isPositive ? '+' : ''}${changeValue.toFixed(2)}
           </span>
           <span className="ml-1">(24h)</span>
@@ -144,13 +144,13 @@ function PriceChangeIndicator({
       {/* 24h 最高最低价 */}
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-slate-500">24h High</span>
-          <span className="text-emerald-400 font-medium">${high24h.toFixed(2)}</span>
+          <span className="text-gray-500">24h High</span>
+          <span className="text-green-600 font-medium">${high24h.toFixed(2)}</span>
         </div>
-        <div className="w-px h-4 bg-slate-700" />
+        <div className="w-px h-4 bg-gray-300" />
         <div className="flex items-center gap-2">
-          <span className="text-slate-500">24h Low</span>
-          <span className="text-rose-400 font-medium">${low24h.toFixed(2)}</span>
+          <span className="text-gray-500">24h Low</span>
+          <span className="text-red-600 font-medium">${low24h.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -170,14 +170,14 @@ function MetricCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 backdrop-blur-sm hover:bg-slate-800/70 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">{label}</p>
-          <p className="text-white text-lg font-semibold">{value}</p>
-          {subValue && <p className="text-slate-500 text-xs mt-1">{subValue}</p>}
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{label}</p>
+          <p className="text-gray-900 text-lg font-semibold">{value}</p>
+          {subValue && <p className="text-gray-400 text-xs mt-1">{subValue}</p>}
         </div>
-        <div className="p-2 bg-slate-700/50 rounded-lg text-slate-400">{icon}</div>
+        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
       </div>
     </div>
   );
@@ -344,9 +344,9 @@ export function MarketDataPanel() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center justify-center h-48">
-          <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex items-center gap-2 text-gray-400">
             <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
@@ -370,7 +370,7 @@ export function MarketDataPanel() {
   }
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6">
       {/* 头部：代币信息和最后更新时间 */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -378,13 +378,13 @@ export function MarketDataPanel() {
             <span className="text-white font-bold text-xl">LINK</span>
           </div>
           <div>
-            <h2 className="text-white font-semibold text-lg">Chainlink</h2>
-            <p className="text-slate-400 text-sm">LINK / USD</p>
+            <h2 className="text-gray-900 font-semibold text-lg">Chainlink</h2>
+            <p className="text-gray-500 text-sm">LINK / USD</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-slate-500 text-xs">Last updated</p>
-          <p className="text-slate-300 text-sm font-mono">{lastUpdated.toLocaleTimeString()}</p>
+          <p className="text-gray-400 text-xs">Last updated</p>
+          <p className="text-gray-700 text-sm font-mono">{lastUpdated.toLocaleTimeString()}</p>
         </div>
       </div>
 
