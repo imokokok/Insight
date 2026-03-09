@@ -13,6 +13,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: t('navbar.home') },
+    { href: '/price-query', label: t('navbar.priceQuery') },
     { href: '/cross-oracle', label: t('navbar.crossOracle') },
     { href: '/cross-chain', label: t('navbar.crossChain') },
     { href: '/chainlink', label: t('navbar.chainlink') },

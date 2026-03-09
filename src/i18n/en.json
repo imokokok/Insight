@@ -1,6 +1,7 @@
 {
   "navbar": {
     "home": "Home",
+    "priceQuery": "Price Query",
     "crossOracle": "Cross-Oracle Comparison",
     "crossChain": "Cross-Chain Comparison",
     "chainlink": "Chainlink",
@@ -187,7 +188,14 @@
   "uma": {
     "title": "UMA",
     "subtitle": "The Optimistic Oracle Protocol - Build priceless synthetic assets and financial contracts",
+    "stats": {
+      "supportedChains": "Supported Chains",
+      "activeContracts": "Active Contracts",
+      "totalValueLocked": "Total Value Locked",
+      "dataVerificationRequests": "Data Verification Requests"
+    },
     "features": {
+      "title": "Key Features",
       "optimisticOracle": "Optimistic Oracle",
       "optimisticOracleDesc": "Decentralized dispute resolution system that allows users to request price data with economic guarantees.",
       "pricelessContracts": "Priceless Contracts",

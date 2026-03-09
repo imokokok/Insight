@@ -1,6 +1,7 @@
 {
   "navbar": {
     "home": "首页",
+    "priceQuery": "价格查询",
     "crossOracle": "跨预言机比较",
     "crossChain": "跨链比较",
     "chainlink": "Chainlink",
@@ -187,7 +188,14 @@
   "uma": {
     "title": "UMA",
     "subtitle": "乐观预言机协议 - 构建无价的合成资产和金融合约",
+    "stats": {
+      "supportedChains": "支持的链",
+      "activeContracts": "活跃合约",
+      "totalValueLocked": "总锁仓价值",
+      "dataVerificationRequests": "数据验证请求"
+    },
     "features": {
+      "title": "核心功能",
       "optimisticOracle": "乐观预言机",
       "optimisticOracleDesc": "去中心化争议解决系统，允许用户请求具有经济保障的价格数据。",
       "pricelessContracts": "无价合约",

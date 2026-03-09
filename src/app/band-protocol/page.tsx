@@ -14,7 +14,12 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
+import AdvancedCard, {
+  AdvancedCardHeader,
+  AdvancedCardTitle,
+  AdvancedCardContent,
+} from '@/components/AdvancedCard';
+import StatCard from '@/components/StatCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { PriceData } from '@/lib/types/oracle';
 
@@ -82,117 +87,171 @@ export default function BandProtocolPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-        <p className="text-gray-600">{t('subtitle')}</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+          <p className="text-gray-600">{t('subtitle')}</p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 px-5 py-3 rounded-xl border border-blue-100">
+            <span className="text-2xl">🔗</span>
+            <div className="text-sm">
+              <span className="font-semibold text-gray-800">Band Protocol</span>
+              <span className="text-gray-600"> • Decentralized Oracle Network</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {features.map((feature, index) => (
-          <Card key={index}>
-            <CardContent className="text-center">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600 text-sm">{feature.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <AdvancedCard className="mb-8" variant="glass">
+        <AdvancedCardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <div key={index} className="text-center p-6 rounded-2xl bg-white/50 border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300">
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-600 text-sm">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </AdvancedCardContent>
+      </AdvancedCard>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {networkStats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-              <div className="flex items-end gap-2">
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            key={index}
+            title={stat.label}
+            value={stat.value}
+            accentColor={index === 0 ? 'blue' : index === 1 ? 'green' : index === 2 ? 'purple' : 'orange'}
+            description={stat.change}
+          />
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('btcPriceFeed')}</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <AdvancedCard variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('btcPriceFeed')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent>
               {isLoading ? (
                 <div className="h-80 flex items-center justify-center">
-                  <p className="text-gray-500">{t('loadingData')}</p>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-500">{t('loadingData')}</p>
+                  </div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={320}>
-                  <AreaChart data={chartData}>
+                  <AreaChart data={chartData} margin={{ top: 20, right: 40, left: 20, bottom: 20 }}>
                     <defs>
                       <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="time" stroke="#6b7280" tick={{ fontSize: 12 }} />
-                    <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} domain={['auto', 'auto']} />
+                    <CartesianGrid strokeDasharray="5 5" stroke="#f3f4f6" vertical={false} />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={10}
+                    />
+                    <YAxis
+                      domain={['auto', 'auto']}
+                      tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={80}
+                    />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: 'none',
+                        borderRadius: '16px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        padding: '16px 20px',
+                        backdropFilter: 'blur(10px)'
                       }}
+                      formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Price']}
+                      labelFormatter={(label) => label}
+                      cursor={{ stroke: '#e5e7eb', strokeWidth: 1, strokeDasharray: '4 4' }}
                     />
                     <Area
                       type="monotone"
                       dataKey="price"
                       stroke="#3b82f6"
-                      strokeWidth={2}
+                      strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorPrice)"
+                      dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                      activeDot={{ r: 7, strokeWidth: 0 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
-            </CardContent>
-          </Card>
+            </AdvancedCardContent>
+          </AdvancedCard>
         </div>
 
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('currentPriceFeeds')}</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <AdvancedCard variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('currentPriceFeeds')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent>
               {isLoading ? (
-                <p className="text-gray-500">{t('loading')}</p>
+                <div className="py-8 flex items-center justify-center">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-900">BTC/USD</p>
-                      <p className="text-xs text-gray-500">{t('bitcoin')}</p>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl border border-orange-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        ₿
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">BTC/USD</p>
+                        <p className="text-xs text-gray-500">{t('bitcoin')}</p>
+                      </div>
                     </div>
-                    <p className="font-bold text-gray-900">${btcPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">${btcPrice?.price.toLocaleString()}</p>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-900">ETH/USD</p>
-                      <p className="text-xs text-gray-500">{t('ethereum')}</p>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        Ξ
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">ETH/USD</p>
+                        <p className="text-xs text-gray-500">{t('ethereum')}</p>
+                      </div>
                     </div>
-                    <p className="font-bold text-gray-900">${ethPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">${ethPrice?.price.toLocaleString()}</p>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-900">SOL/USD</p>
-                      <p className="text-xs text-gray-500">{t('solana')}</p>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        S
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">SOL/USD</p>
+                        <p className="text-xs text-gray-500">{t('solana')}</p>
+                      </div>
                     </div>
-                    <p className="font-bold text-gray-900">${solPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">${solPrice?.price.toLocaleString()}</p>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </AdvancedCardContent>
+          </AdvancedCard>
         </div>
       </div>
     </div>
