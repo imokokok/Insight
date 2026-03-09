@@ -34,7 +34,22 @@
     "aboutTitle": "关于 Insight",
     "aboutDescription": "Insight 提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth Network 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",
     "builtWith": "采用现代技术构建，为 Web3 领域的开发者和分析师设计。",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "unavailable": "不可用",
+    "navigationCards": {
+      "crossOracle": "比较不同预言机解决方案的性能、安全性和功能",
+      "crossChain": "分析预言机在多个区块链网络上的性能",
+      "chainlink": "具有强大基础设施的去中心化预言机网络",
+      "bandProtocol": "跨链数据预言机平台",
+      "uma": "用于去中心化金融的乐观预言机协议",
+      "pythNetwork": "高频金融数据预言机",
+      "api3": "连接现实世界数据的去中心化 API 解决方案"
+    }
+  },
+  "error": {
+    "somethingWrong": "出现错误",
+    "description": "发生意外错误，请重试。",
+    "tryAgain": "重试"
   },
   "crossOracle": {
     "title": "跨预言机比较",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { API3Client } from '@/lib/oracles/api3';
+import { API3Client, FirstPartyOracleData } from '@/lib/oracles/api3';
 import { useI18n } from '@/lib/i18n/context';
 
 const api3Client = new API3Client();
@@ -12,7 +12,7 @@ const CHAIN_COLORS = ['#1E40AF', '#10B981', '#8B5CF6'];
 
 export function FirstPartyOraclePanel() {
   const { t } = useI18n();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<FirstPartyOracleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

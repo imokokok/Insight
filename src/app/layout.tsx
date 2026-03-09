@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { I18nProvider } from '@/lib/i18n/context';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,9 +32,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <I18nProvider>
-          <Navbar />
-          <main className="flex-1 bg-gray-50">{children}</main>
-          <Footer />
+          <ErrorBoundary>
+            <Navbar />
+            <main className="flex-1 bg-gray-50">{children}</main>
+            <Footer />
+          </ErrorBoundary>
         </I18nProvider>
       </body>
     </html>

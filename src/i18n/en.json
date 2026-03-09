@@ -34,7 +34,22 @@
     "aboutTitle": "About Insight",
     "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
     "builtWith": "Built with modern technologies, designed for developers and analysts in the Web3 space.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "unavailable": "Unavailable",
+    "navigationCards": {
+      "crossOracle": "Compare performance, security, and features across different oracle solutions",
+      "crossChain": "Analyze oracle performance across multiple blockchain networks",
+      "chainlink": "Decentralized oracle network with robust infrastructure",
+      "bandProtocol": "Cross-chain data oracle platform",
+      "uma": "Optimistic oracle protocol for decentralized finance",
+      "pythNetwork": "High-frequency financial data oracle",
+      "api3": "Decentralized API solutions connecting real-world data"
+    }
+  },
+  "error": {
+    "somethingWrong": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "tryAgain": "Try Again"
   },
   "crossOracle": {
     "title": "Cross-Oracle Comparison",

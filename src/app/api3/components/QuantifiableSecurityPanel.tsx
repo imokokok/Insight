@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { API3Client } from '@/lib/oracles/api3';
+import { API3Client, StakingData } from '@/lib/oracles/api3';
 import { useI18n } from '@/lib/i18n/context';
 
 const api3Client = new API3Client();
@@ -11,7 +11,7 @@ const COLORS = ['#1E40AF', '#3B82F6', '#6366F1', '#8B5CF6'];
 
 export function QuantifiableSecurityPanel() {
   const { t } = useI18n();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<StakingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
