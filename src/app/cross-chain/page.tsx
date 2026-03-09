@@ -212,7 +212,9 @@ export default function CrossChainPage() {
                         {t('price')}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('differenceVs', { chain: chainNames[currentPrices[0]?.chain as Blockchain] })}
+                        {t('differenceVs', {
+                          chain: chainNames[currentPrices[0]?.chain as Blockchain],
+                        })}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t('percentDifference')}

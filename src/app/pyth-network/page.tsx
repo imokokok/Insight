@@ -81,7 +81,9 @@ export default function PythNetworkPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="h-80 flex items-center justify-center text-gray-500">{t('loading')}</div>
+              <div className="h-80 flex items-center justify-center text-gray-500">
+                {t('loading')}
+              </div>
             ) : (
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">

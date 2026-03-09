@@ -40,6 +40,9 @@ const oracleNames = {
 
 const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
 
+type SortColumn = 'price' | 'timestamp' | null;
+type SortDirection = 'asc' | 'desc';
+
 export default function CrossOraclePage() {
   const { t } = useI18n();
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
@@ -53,6 +56,38 @@ export default function CrossOraclePage() {
   >({});
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const validPrices = priceData.map((d) => d.price).filter((p) => p > 0);
+  const avgPrice =
+    validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+  const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+  const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const priceRange = maxPrice - minPrice;
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedPriceData = [...priceData].sort((a, b) => {
+    if (!sortColumn) return 0;
+
+    if (sortColumn === 'price') {
+      return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
+    }
+
+    if (sortColumn === 'timestamp') {
+      return sortDirection === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
+    }
+
+    return 0;
+  });
 
   const fetchPriceData = useCallback(async () => {
     setIsLoading(true);
@@ -82,6 +117,7 @@ export default function CrossOraclePage() {
   }, [selectedOracles, selectedSymbol]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPriceData();
   }, [fetchPriceData]);
 
@@ -110,7 +146,7 @@ export default function CrossOraclePage() {
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
     return sortedTimestamps.map((timestamp) => {
-      const point: any = {
+      const point: Record<string, string | number | undefined> = {
         timestamp: new Date(timestamp).toLocaleTimeString(),
       };
 
@@ -158,50 +194,92 @@ export default function CrossOraclePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>{t('selectSymbol')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {symbols.map((symbol) => (
-                <button
-                  key={symbol}
-                  onClick={() => setSelectedSymbol(symbol)}
-                  className={`w-full px-4 py-2 rounded-lg text-left transition-colors ${
-                    selectedSymbol === symbol
-                      ? 'bg-blue-100 text-blue-700 font-medium'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {symbol}
-                </button>
-              ))}
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card>
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-gray-600 mb-1">{t('averagePrice')}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {avgPrice > 0
+                ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '-'}
+            </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-gray-600 mb-1">
+              {t('highestPrice')} / {t('lowestPrice')}
+            </p>
+            <p className="text-3xl font-bold text-gray-900">
+              {maxPrice > 0
+                ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '-'}
+            </p>
+            {minPrice > 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                {t('lowestPrice')}: $
+                {minPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-6">
+            <p className="text-sm font-medium text-gray-600 mb-1">{t('priceRange')}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {priceRange > 0
+                ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '-'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <Card className="lg:col-span-3">
+      <div className="mb-8">
+        <Card>
           <CardHeader>
-            <CardTitle>{t('selectOracles')}</CardTitle>
+            <CardTitle>
+              {t('selectSymbol')} & {t('selectOracles')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {Object.values(OracleProvider).map((oracle) => (
-                <label
-                  key={oracle}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedOracles.includes(oracle)}
-                    onChange={() => toggleOracle(oracle)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-gray-700">{oracleNames[oracle]}</span>
-                </label>
-              ))}
+            <div className="mb-6">
+              <div className="flex flex-wrap gap-2">
+                {symbols.map((symbol) => (
+                  <button
+                    key={symbol}
+                    onClick={() => setSelectedSymbol(symbol)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedSymbol === symbol
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {symbol}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="flex flex-wrap gap-2">
+                {Object.values(OracleProvider).map((oracle) => (
+                  <label
+                    key={oracle}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedOracles.includes(oracle)}
+                      onChange={() => toggleOracle(oracle)}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{oracleNames[oracle]}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -236,50 +314,121 @@ export default function CrossOraclePage() {
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
                       {t('oracle')}
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                      {t('symbol')}
+                    <th
+                      className="text-right py-3 px-4 text-sm font-semibold text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                      onClick={() => handleSort('price')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        {t('price')}
+                        <svg
+                          className={`w-4 h-4 transition-transform ${
+                            sortColumn === 'price'
+                              ? sortDirection === 'asc'
+                                ? 'rotate-180'
+                                : ''
+                              : 'opacity-30'
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">
-                      {t('price')}
-                    </th>
+                    {validPrices.length > 1 && avgPrice > 0 && (
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">
+                        {t('deviation')}
+                      </th>
+                    )}
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">
                       {t('confidence')}
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">
-                      {t('timestamp')}
+                    <th
+                      className="text-right py-3 px-4 text-sm font-semibold text-gray-600 cursor-pointer hover:text-gray-900 select-none"
+                      onClick={() => handleSort('timestamp')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        {t('timestamp')}
+                        <svg
+                          className={`w-4 h-4 transition-transform ${
+                            sortColumn === 'timestamp'
+                              ? sortDirection === 'asc'
+                                ? 'rotate-180'
+                                : ''
+                              : 'opacity-30'
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {priceData.map((data, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: chartColors[data.provider] }}
-                          />
-                          <span className="font-medium text-gray-900">
-                            {oracleNames[data.provider]}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-gray-700">{data.symbol}</td>
-                      <td className="py-4 px-4 text-right font-semibold text-gray-900">
-                        $
-                        {data.price.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-4 px-4 text-right text-gray-700">
-                        {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
-                      </td>
-                      <td className="py-4 px-4 text-right text-gray-500 text-sm">
-                        {new Date(data.timestamp).toLocaleTimeString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedPriceData.map((data, index) => {
+                    let deviationPercent: number | null = null;
+                    if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
+                      deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
+                    }
+                    return (
+                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: chartColors[data.provider] }}
+                            />
+                            <span className="font-medium text-gray-900">
+                              {oracleNames[data.provider]}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-right font-semibold text-gray-900">
+                          $
+                          {data.price.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </td>
+                        {validPrices.length > 1 && avgPrice > 0 && (
+                          <td className="py-4 px-4 text-right font-semibold">
+                            {deviationPercent !== null ? (
+                              <span
+                                className={
+                                  deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'
+                                }
+                              >
+                                {deviationPercent >= 0 ? '+' : ''}
+                                {deviationPercent.toFixed(2)}%
+                              </span>
+                            ) : (
+                              '-'
+                            )}
+                          </td>
+                        )}
+                        <td className="py-4 px-4 text-right text-gray-700">
+                          {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
+                        </td>
+                        <td className="py-4 px-4 text-right text-gray-500 text-sm">
+                          {new Date(data.timestamp).toLocaleTimeString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
