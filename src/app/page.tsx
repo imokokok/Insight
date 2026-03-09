@@ -128,14 +128,18 @@ export default function Home() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <div className="mb-10 sm:mb-12">
         <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('home.title')}</h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">{t('home.subtitle')}</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            {t('home.title')}
+          </h1>
+          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
+            {t('home.subtitle')}
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
         {platformStats.map((stat, index) => (
-          <Card 
+          <Card
             key={index}
             className="animate-fade-in"
             style={{ animationDelay: `${index * 100}ms` }}
@@ -150,10 +154,12 @@ export default function Home() {
       </div>
 
       <div className="mb-10">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('home.quickStats')}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
+          {t('home.quickStats')}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {quickStats.map((stat, index) => (
-            <Card 
+            <Card
               key={index}
               className="animate-fade-in"
               style={{ animationDelay: `${400 + index * 100}ms` }}
@@ -161,7 +167,9 @@ export default function Home() {
               <CardContent className="py-4 sm:py-6">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.provider}</p>
-                  <span className="text-base sm:text-lg font-semibold text-gray-500">{stat.symbol}</span>
+                  <span className="text-base sm:text-lg font-semibold text-gray-500">
+                    {stat.symbol}
+                  </span>
                 </div>
                 {loading ? (
                   <div className="h-10 flex items-center justify-center text-gray-400 text-sm animate-pulse-finance">
@@ -180,7 +188,9 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">${stat.price.toFixed(2)}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      ${stat.price.toFixed(2)}
+                    </p>
                     <p
                       className={`text-xs sm:text-sm mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
                     >
@@ -195,17 +205,21 @@ export default function Home() {
       </div>
 
       <div className="mb-10">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('home.exploreFeatures')}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
+          {t('home.exploreFeatures')}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {navigationCards.map((card, index) => (
             <Link key={index} href={card.href}>
-              <Card 
+              <Card
                 className="h-full animate-fade-in"
                 style={{ animationDelay: `${800 + index * 100}ms` }}
               >
                 <CardContent className="py-4 sm:py-6">
                   <div className="text-3xl sm:text-4xl mb-3">{card.icon}</div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{card.title}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                    {card.title}
+                  </h3>
                   <p className="text-xs sm:text-sm text-gray-600">{card.description}</p>
                 </CardContent>
               </Card>
@@ -214,11 +228,18 @@ export default function Home() {
         </div>
       </div>
 
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100 animate-fade-in" style={{ animationDelay: '1200ms' }}>
+      <Card
+        className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100 animate-fade-in"
+        style={{ animationDelay: '1200ms' }}
+      >
         <CardContent className="py-6 sm:py-8">
           <div className="text-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">{t('home.aboutTitle')}</h2>
-            <p className="text-sm sm:text-base text-gray-600 max-w-3xl mx-auto mb-4">{t('home.aboutDescription')}</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+              {t('home.aboutTitle')}
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 max-w-3xl mx-auto mb-4">
+              {t('home.aboutDescription')}
+            </p>
             <p className="text-gray-500 text-xs sm:text-sm">{t('home.builtWith')}</p>
           </div>
         </CardContent>

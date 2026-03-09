@@ -319,7 +319,6 @@ export default function CrossOraclePage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPriceData();
   }, [fetchPriceData]);
 

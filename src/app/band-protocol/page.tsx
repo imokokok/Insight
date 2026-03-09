@@ -107,7 +107,10 @@ export default function BandProtocolPage() {
         <AdvancedCardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <div key={index} className="text-center p-6 rounded-2xl bg-white/50 border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300">
+              <div
+                key={index}
+                className="text-center p-6 rounded-2xl bg-white/50 border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300"
+              >
                 <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
                 <p className="text-gray-600 text-sm">{feature.description}</p>
@@ -123,7 +126,9 @@ export default function BandProtocolPage() {
             key={index}
             title={stat.label}
             value={stat.value}
-            accentColor={index === 0 ? 'blue' : index === 1 ? 'green' : index === 2 ? 'purple' : 'orange'}
+            accentColor={
+              index === 0 ? 'blue' : index === 1 ? 'green' : index === 2 ? 'purple' : 'orange'
+            }
             description={stat.change}
           />
         ))}
@@ -153,8 +158,8 @@ export default function BandProtocolPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="5 5" stroke="#f3f4f6" vertical={false} />
-                    <XAxis 
-                      dataKey="time" 
+                    <XAxis
+                      dataKey="time"
                       stroke="#9ca3af"
                       tick={{ fontSize: 12, fill: '#6b7280' }}
                       tickLine={false}
@@ -171,13 +176,14 @@ export default function BandProtocolPage() {
                       width={80}
                     />
                     <Tooltip
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
+                      contentStyle={{
+                        backgroundColor: 'white',
                         border: 'none',
                         borderRadius: '16px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        boxShadow:
+                          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                         padding: '16px 20px',
-                        backdropFilter: 'blur(10px)'
+                        backdropFilter: 'blur(10px)',
                       }}
                       formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Price']}
                       labelFormatter={(label) => label}
@@ -222,7 +228,9 @@ export default function BandProtocolPage() {
                         <p className="text-xs text-gray-500">{t('bitcoin')}</p>
                       </div>
                     </div>
-                    <p className="font-bold text-gray-900 text-lg">${btcPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">
+                      ${btcPrice?.price.toLocaleString()}
+                    </p>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3">
@@ -234,7 +242,9 @@ export default function BandProtocolPage() {
                         <p className="text-xs text-gray-500">{t('ethereum')}</p>
                       </div>
                     </div>
-                    <p className="font-bold text-gray-900 text-lg">${ethPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">
+                      ${ethPrice?.price.toLocaleString()}
+                    </p>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3">
@@ -246,7 +256,9 @@ export default function BandProtocolPage() {
                         <p className="text-xs text-gray-500">{t('solana')}</p>
                       </div>
                     </div>
-                    <p className="font-bold text-gray-900 text-lg">${solPrice?.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 text-lg">
+                      ${solPrice?.price.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               )}

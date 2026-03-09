@@ -39,7 +39,9 @@ export default function AdvancedCard({
     solid: 'bg-gray-900 text-white shadow-2xl',
   };
 
-  const hoverClasses = hoverable ? 'hover:scale-[1.03] hover:-translate-y-2 cursor-pointer active:scale-[0.98]' : '';
+  const hoverClasses = hoverable
+    ? 'hover:scale-[1.03] hover:-translate-y-2 cursor-pointer active:scale-[0.98]'
+    : '';
 
   const shadowAnimationClasses = animatedShadow ? 'hover:shadow-2xl hover:shadow-blue-200/50' : '';
 

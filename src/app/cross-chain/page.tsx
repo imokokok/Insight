@@ -403,7 +403,9 @@ export default function CrossChainPage() {
         });
 
         if (closestChainPrice) {
-          matchedDelays.push(Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000);
+          matchedDelays.push(
+            Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000
+          );
         }
       });
 
@@ -492,12 +494,54 @@ export default function CrossChainPage() {
   }));
 
   const statsData = [
-    { label: t('averagePrice'), value: avgPrice > 0 ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: null },
-    { label: t('highestPrice'), value: maxPrice > 0 ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: minPrice > 0 ? `Min: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
-    { label: t('priceRange'), value: priceRange > 0 ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: null },
-    { label: t('standardDeviation'), value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-', subValue: standardDeviation > 0 ? `$${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
-    { label: t('coefficientOfVariation'), value: coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-', subValue: null },
-    { label: t('consistencyRating'), value: standardDeviationPercent > 0 ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`) : '-', subValue: null },
+    {
+      label: t('averagePrice'),
+      value:
+        avgPrice > 0
+          ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-',
+      subValue: null,
+    },
+    {
+      label: t('highestPrice'),
+      value:
+        maxPrice > 0
+          ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-',
+      subValue:
+        minPrice > 0
+          ? `Min: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : null,
+    },
+    {
+      label: t('priceRange'),
+      value:
+        priceRange > 0
+          ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-',
+      subValue: null,
+    },
+    {
+      label: t('standardDeviation'),
+      value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-',
+      subValue:
+        standardDeviation > 0
+          ? `$${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : null,
+    },
+    {
+      label: t('coefficientOfVariation'),
+      value: coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-',
+      subValue: null,
+    },
+    {
+      label: t('consistencyRating'),
+      value:
+        standardDeviationPercent > 0
+          ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)
+          : '-',
+      subValue: null,
+    },
   ];
 
   return (
@@ -530,14 +574,18 @@ export default function CrossChainPage() {
       {/* Controls */}
       <div className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b border-gray-200">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('oracleProvider')}</label>
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('oracleProvider')}
+          </label>
           <select
             value={selectedProvider}
             onChange={(e) => setSelectedProvider(e.target.value as OracleProvider)}
             className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
           >
             {providerOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -549,7 +597,9 @@ export default function CrossChainPage() {
             className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[100px]"
           >
             {symbolOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -561,7 +611,9 @@ export default function CrossChainPage() {
             className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[120px]"
           >
             {timeRangeOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -573,7 +625,9 @@ export default function CrossChainPage() {
             className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
           >
             {baseChainOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -586,7 +640,12 @@ export default function CrossChainPage() {
             <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
           ) : (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           )}
           {loading ? t('loading') : t('refresh')}
@@ -602,7 +661,9 @@ export default function CrossChainPage() {
         <>
           {/* Heatmap */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceVolatilityHeatmap')}</h3>
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+              {t('priceVolatilityHeatmap')}
+            </h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
                 <div className="flex">
@@ -616,10 +677,14 @@ export default function CrossChainPage() {
                 {supportedChains.map((xChain) => (
                   <div key={xChain} className="flex">
                     <div className="w-24 shrink-0 flex items-center py-1">
-                      <span className="text-xs font-medium text-gray-600">{chainNames[xChain]}</span>
+                      <span className="text-xs font-medium text-gray-600">
+                        {chainNames[xChain]}
+                      </span>
                     </div>
                     {supportedChains.map((yChain) => {
-                      const cell = heatmapData.find((d) => d.xChain === xChain && d.yChain === yChain);
+                      const cell = heatmapData.find(
+                        (d) => d.xChain === xChain && d.yChain === yChain
+                      );
                       const percent = cell?.percent || 0;
                       const isDiagonal = xChain === yChain;
 
@@ -627,13 +692,23 @@ export default function CrossChainPage() {
                         <div
                           key={`${xChain}-${yChain}`}
                           className="flex-1 min-w-20 h-12 flex items-center justify-center px-0.5"
-                          style={{ backgroundColor: isDiagonal ? '#f3f4f6' : getHeatmapColor(percent, maxHeatmapValue) }}
-                          title={isDiagonal ? '-' : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`}
+                          style={{
+                            backgroundColor: isDiagonal
+                              ? '#f3f4f6'
+                              : getHeatmapColor(percent, maxHeatmapValue),
+                          }}
+                          title={
+                            isDiagonal
+                              ? '-'
+                              : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`
+                          }
                         >
                           {isDiagonal ? (
                             <span className="text-gray-300 text-sm">—</span>
                           ) : (
-                            <span className={`text-xs font-medium ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}>
+                            <span
+                              className={`text-xs font-medium ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}
+                            >
                               {percent.toFixed(2)}%
                             </span>
                           )}
@@ -644,7 +719,10 @@ export default function CrossChainPage() {
                 ))}
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <span className="text-xs text-gray-500">{t('low')}</span>
-                  <div className="w-32 h-2" style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }} />
+                  <div
+                    className="w-32 h-2"
+                    style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}
+                  />
                   <span className="text-xs text-gray-500">{t('high')}</span>
                 </div>
               </div>
@@ -654,27 +732,40 @@ export default function CrossChainPage() {
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 pb-8 border-b border-gray-200">
             {statsData.map((stat, index) => (
-              <div key={index} className={`px-4 py-3 ${index > 0 ? 'border-l border-gray-200' : ''}`}>
+              <div
+                key={index}
+                className={`px-4 py-3 ${index > 0 ? 'border-l border-gray-200' : ''}`}
+              >
                 <div className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</div>
                 <div className="text-lg font-semibold text-gray-900 mt-1">{stat.value}</div>
-                {stat.subValue && <div className="text-xs text-gray-400 mt-0.5">{stat.subValue}</div>}
+                {stat.subValue && (
+                  <div className="text-xs text-gray-400 mt-0.5">{stat.subValue}</div>
+                )}
               </div>
             ))}
           </div>
 
           {/* Price Comparison Table */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceComparisonTable')}</h3>
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+              {t('priceComparisonTable')}
+            </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">{t('blockchain')}</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('price')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      {t('blockchain')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('price')}
+                    </th>
                     <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
                       {t('differenceVs')} {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
                     </th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('percentDifference')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('percentDifference')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -682,12 +773,21 @@ export default function CrossChainPage() {
                     <tr key={item.chain} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
                         <div className="flex items-center">
-                          <div className="w-3 h-3 mr-2" style={{ backgroundColor: chainColors[item.chain as Blockchain] }} />
-                          <span className="text-sm font-medium text-gray-900">{chainNames[item.chain as Blockchain]}</span>
+                          <div
+                            className="w-3 h-3 mr-2"
+                            style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
+                          />
+                          <span className="text-sm font-medium text-gray-900">
+                            {chainNames[item.chain as Blockchain]}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
-                        ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                        $
+                        {item.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-sm">
                         <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
@@ -696,7 +796,8 @@ export default function CrossChainPage() {
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-sm">
                         <span className={item.diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {item.diffPercent >= 0 ? '+' : ''}{item.diffPercent.toFixed(4)}%
+                          {item.diffPercent >= 0 ? '+' : ''}
+                          {item.diffPercent.toFixed(4)}%
                         </span>
                       </td>
                     </tr>
@@ -708,16 +809,28 @@ export default function CrossChainPage() {
 
           {/* Stability Analysis Table */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('stabilityAnalysis')}</h3>
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+              {t('stabilityAnalysis')}
+            </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">{t('blockchain')}</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('priceVolatility')}</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('stabilityRating')}</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('averageDelay')}</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('maxDelay')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      {t('blockchain')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('priceVolatility')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('stabilityRating')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('averageDelay')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('maxDelay')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -736,15 +849,22 @@ export default function CrossChainPage() {
                       <tr key={chain} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4">
                           <div className="flex items-center">
-                            <div className="w-3 h-3 mr-2" style={{ backgroundColor: chainColors[chain] }} />
-                            <span className="text-sm font-medium text-gray-900">{chainNames[chain]}</span>
+                            <div
+                              className="w-3 h-3 mr-2"
+                              style={{ backgroundColor: chainColors[chain] }}
+                            />
+                            <span className="text-sm font-medium text-gray-900">
+                              {chainNames[chain]}
+                            </span>
                           </div>
                         </td>
                         <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
                           {volatility > 0 ? `${volatility.toFixed(4)}%` : '-'}
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <span className={`text-sm font-medium ${stabilityColorMap[stabilityRating]}`}>
+                          <span
+                            className={`text-sm font-medium ${stabilityColorMap[stabilityRating]}`}
+                          >
                             {volatility > 0 ? t(`stability.${stabilityRating}`) : '-'}
                           </span>
                         </td>
@@ -764,7 +884,9 @@ export default function CrossChainPage() {
 
           {/* Price Chart */}
           <div>
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceChart')}</h3>
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+              {t('priceChart')}
+            </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
