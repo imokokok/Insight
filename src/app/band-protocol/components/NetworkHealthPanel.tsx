@@ -356,13 +356,33 @@ export function NetworkHealthPanel() {
   // 生成24小时活动数据
   const generateHourlyActivity = useCallback((totalRequests: number) => {
     const basePattern = [
-      0.04, 0.03, 0.02, 0.02, 0.02, 0.03, // 00-05 低谷
-      0.05, 0.08, 0.12, 0.15, 0.16, 0.15, // 06-11 上升
-      0.14, 0.13, 0.12, 0.13, 0.14, 0.15, // 12-17 平稳
-      0.16, 0.15, 0.12, 0.09, 0.07, 0.05, // 18-23 下降
+      0.04,
+      0.03,
+      0.02,
+      0.02,
+      0.02,
+      0.03, // 00-05 低谷
+      0.05,
+      0.08,
+      0.12,
+      0.15,
+      0.16,
+      0.15, // 06-11 上升
+      0.14,
+      0.13,
+      0.12,
+      0.13,
+      0.14,
+      0.15, // 12-17 平稳
+      0.16,
+      0.15,
+      0.12,
+      0.09,
+      0.07,
+      0.05, // 18-23 下降
     ];
-    
-    return basePattern.map(ratio => 
+
+    return basePattern.map((ratio) =>
       Math.round(totalRequests * ratio * (0.9 + Math.random() * 0.2))
     );
   }, []);
@@ -408,12 +428,15 @@ export function NetworkHealthPanel() {
   const simulateDataUpdate = useCallback(() => {
     setNetworkStats((prev) => {
       if (!prev) return prev;
-      
+
       const fluctuation = () => (Math.random() - 0.5) * 0.02;
-      
+
       return {
         ...prev,
-        activeValidators: Math.max(60, prev.activeValidators + Math.round((Math.random() - 0.5) * 3)),
+        activeValidators: Math.max(
+          60,
+          prev.activeValidators + Math.round((Math.random() - 0.5) * 3)
+        ),
         totalValidators: Math.max(70, prev.totalValidators + Math.round((Math.random() - 0.5) * 2)),
         bondedTokens: Math.max(80_000_000, prev.bondedTokens * (1 + fluctuation())),
         stakingRatio: Math.min(100, Math.max(50, prev.stakingRatio + fluctuation() * 10)),
@@ -426,10 +449,13 @@ export function NetworkHealthPanel() {
 
     setCrossChainStats((prev) => {
       if (!prev) return prev;
-      
+
       return {
         ...prev,
-        totalRequests24h: Math.max(8000, prev.totalRequests24h + Math.round((Math.random() - 0.5) * 200)),
+        totalRequests24h: Math.max(
+          8000,
+          prev.totalRequests24h + Math.round((Math.random() - 0.5) * 200)
+        ),
         totalRequests7d: prev.totalRequests7d + Math.round((Math.random() - 0.5) * 1000),
         totalRequests30d: prev.totalRequests30d + Math.round((Math.random() - 0.5) * 5000),
         timestamp: Date.now(),
@@ -439,7 +465,7 @@ export function NetworkHealthPanel() {
     // 更新热力图数据
     setHourlyActivity((prev) => {
       if (prev.length === 0) return prev;
-      return prev.map(value => 
+      return prev.map((value) =>
         Math.max(100, Math.round(value * (1 + (Math.random() - 0.5) * 0.05)))
       );
     });
@@ -579,8 +605,8 @@ export function NetworkHealthPanel() {
 
   // 默认热力图数据
   const defaultHourlyData = [
-    320, 280, 250, 220, 190, 210, 280, 420, 580, 720, 850, 920,
-    880, 840, 790, 820, 860, 910, 880, 760, 650, 520, 410, 350,
+    320, 280, 250, 220, 190, 210, 280, 420, 580, 720, 850, 920, 880, 840, 790, 820, 860, 910, 880,
+    760, 650, 520, 410, 350,
   ];
 
   return (
@@ -599,7 +625,9 @@ export function NetworkHealthPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 跨链数据请求热力图 - 占据2列 */}
         <div className="lg:col-span-2">
-          <ActivityHeatmap hourlyData={hourlyActivity.length > 0 ? hourlyActivity : defaultHourlyData} />
+          <ActivityHeatmap
+            hourlyData={hourlyActivity.length > 0 ? hourlyActivity : defaultHourlyData}
+          />
         </div>
 
         {/* 数据新鲜度指示器 */}

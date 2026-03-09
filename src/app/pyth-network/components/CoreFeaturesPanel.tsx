@@ -11,8 +11,6 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  AreaChart,
-  Area,
 } from 'recharts';
 
 // ==================== 类型定义 ====================
@@ -257,9 +255,9 @@ function LatencyComparisonChart({ data }: { data: LatencyDataPoint[] }) {
           <p className="text-xs text-gray-500">Speed Advantage</p>
           <p className="text-lg font-bold text-green-600">
             {(
-              (data.reduce((sum, d) => sum + d.chainlink, 0) / data.length -
+              ((data.reduce((sum, d) => sum + d.chainlink, 0) / data.length -
                 data.reduce((sum, d) => sum + d.pyth, 0) / data.length) /
-              (data.reduce((sum, d) => sum + d.chainlink, 0) / data.length) *
+                (data.reduce((sum, d) => sum + d.chainlink, 0) / data.length)) *
               100
             ).toFixed(0)}
             %
@@ -336,7 +334,11 @@ function UpdateFrequencyChart({ data }: { data: UpdateFrequencyDataPoint[] }) {
 /**
  * 数据新鲜度分布组件
  */
-function FreshnessDistribution({ data }: { data: { range: string; count: number; percentage: number }[] }) {
+function FreshnessDistribution({
+  data,
+}: {
+  data: { range: string; count: number; percentage: number }[];
+}) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -488,7 +490,8 @@ export function CoreFeaturesPanel() {
     {
       id: 'first-party',
       title: 'First-Party Data',
-      description: 'Direct data from 95+ institutional publishers including trading firms and exchanges',
+      description:
+        'Direct data from 95+ institutional publishers including trading firms and exchanges',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

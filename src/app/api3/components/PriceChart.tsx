@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,11 +10,8 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { API3Client } from '@/lib/oracles/api3';
 import { Blockchain } from '@/lib/types/oracle';
 import { useI18n } from '@/lib/i18n/context';
-
-const api3Client = new API3Client();
 
 type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
@@ -119,8 +114,6 @@ function CustomTooltip({
 }
 
 export function PriceChart({
-  symbol,
-  chain,
   initialTimeRange = '24H',
   height = 320,
   showToolbar = true,
@@ -130,10 +123,7 @@ export function PriceChart({
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const timeRanges: TimeRange[] = useMemo(
-    () => ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'],
-    []
-  );
+  const timeRanges: TimeRange[] = useMemo(() => ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'], []);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);

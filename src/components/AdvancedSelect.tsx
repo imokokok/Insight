@@ -113,12 +113,6 @@ export default function AdvancedSelect({
     }
   }, [isOpen, searchable]);
 
-  useEffect(() => {
-    if (value !== undefined) {
-      setInternalValue(value);
-    }
-  }, [value]);
-
   return (
     <div className={className}>
       {label && (
@@ -224,7 +218,7 @@ export default function AdvancedSelect({
               {filteredOptions.length === 0 ? (
                 <div className="px-4 py-8 text-center text-sm text-gray-500">No options found</div>
               ) : (
-                filteredOptions.map((option, index) => (
+                filteredOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"

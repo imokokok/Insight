@@ -8,7 +8,6 @@ import { MarketDataPanel } from './components/MarketDataPanel';
 import { PriceChart } from './components/PriceChart';
 import { NetworkHealthPanel } from './components/NetworkHealthPanel';
 import { FirstPartyOraclePanel } from './components/FirstPartyOraclePanel';
-import { QuantifiableSecurityPanel } from './components/QuantifiableSecurityPanel';
 import { EcosystemPanel } from './components/EcosystemPanel';
 import { RiskAssessmentPanel } from './components/RiskAssessmentPanel';
 
@@ -28,10 +27,7 @@ type TabItem = {
 const Api3Icon = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <svg viewBox="0 0 256 256" className={className} fill="none">
     <circle cx="128" cy="128" r="120" fill="#1E40AF" />
-    <path
-      d="M128 48L168 88H144V168H168L128 208L88 168H112V88H88L128 48Z"
-      fill="white"
-    />
+    <path d="M128 48L168 88H144V168H168L128 208L88 168H112V88H88L128 48Z" fill="white" />
     <circle cx="128" cy="128" r="32" fill="white" fillOpacity="0.3" />
   </svg>
 );
@@ -437,8 +433,7 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('api3.lastUpdated')}: {t('api3.justNow')} • {t('api3.period')}:{' '}
-            {timeRange}
+            {t('api3.lastUpdated')}: {t('api3.justNow')} • {t('api3.period')}: {timeRange}
           </p>
         </div>
 
@@ -508,9 +503,7 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
                     <span className="text-sm font-semibold text-gray-900">$12.5M</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">
-                      {t('api3.marketData.marketCap')}
-                    </span>
+                    <span className="text-sm text-gray-600">{t('api3.marketData.marketCap')}</span>
                     <span className="text-sm font-semibold text-gray-900">$280M</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -587,7 +580,6 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
 
 // 主页面组件
 export default function Api3Page() {
-  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState('market');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -635,8 +627,20 @@ export default function Api3Page() {
   }, [priceData, historicalData, timeRange]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData, timeRange]);
+    const fetchAndSetData = async () => {
+      try {
+        const [price, history] = await Promise.all([
+          api3Client.getPrice('API3', Blockchain.ETHEREUM),
+          api3Client.getHistoricalPrices('API3', Blockchain.ETHEREUM, 7),
+        ]);
+        setPriceData(price);
+        setHistoricalData(history);
+      } catch (error) {
+        console.error('Error fetching API3 data:', error);
+      }
+    };
+    fetchAndSetData();
+  }, [timeRange]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -67,11 +67,7 @@ const CHART_TYPE_CONFIG: Record<ChartType, { label: string; icon: string }> = {
  * @param timeRange - 时间周期
  * @param symbol - 代币符号
  */
-function generateHistoricalData(
-  basePrice: number,
-  timeRange: TimeRange,
-  _symbol: string = 'PYTH'
-): ChartDataPoint[] {
+function generateHistoricalData(basePrice: number, timeRange: TimeRange): ChartDataPoint[] {
   const config = TIME_RANGE_CONFIG[timeRange];
   const now = Date.now();
   const dataPoints: ChartDataPoint[] = [];
@@ -375,7 +371,7 @@ export function PriceChart({
       setCurrentPrice(priceData.price);
 
       // 生成历史数据
-      const historicalData = generateHistoricalData(priceData.price, timeRange, symbol);
+      const historicalData = generateHistoricalData(priceData.price, timeRange);
       setData(historicalData);
     } catch (error) {
       // 检查是否是取消错误
@@ -385,7 +381,7 @@ export function PriceChart({
       // 使用默认价格生成数据
       const defaultPrice = symbol === 'PYTH' ? 0.82 : 100;
       setCurrentPrice(defaultPrice);
-      setData(generateHistoricalData(defaultPrice, timeRange, symbol));
+      setData(generateHistoricalData(defaultPrice, timeRange));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
@@ -505,12 +501,18 @@ export function PriceChart({
           <StatCard
             label="最高价"
             value={`$${stats.high.toFixed(4)}`}
-            trend={{ value: ((stats.high - stats.avgPrice) / stats.avgPrice) * 100, isPositive: true }}
+            trend={{
+              value: ((stats.high - stats.avgPrice) / stats.avgPrice) * 100,
+              isPositive: true,
+            }}
           />
           <StatCard
             label="最低价"
             value={`$${stats.low.toFixed(4)}`}
-            trend={{ value: ((stats.avgPrice - stats.low) / stats.avgPrice) * 100, isPositive: false }}
+            trend={{
+              value: ((stats.avgPrice - stats.low) / stats.avgPrice) * 100,
+              isPositive: false,
+            }}
           />
           <StatCard label="平均价" value={`$${stats.avgPrice.toFixed(4)}`} />
           <StatCard

@@ -6,11 +6,26 @@ import { useI18n } from '@/lib/i18n/context';
 // 模拟生态数据
 const ecosystemData = {
   protocols: [
-    { name: 'Aave', category: 'Lending', tvs: '$450M', features: ['Price Feeds', 'Liquidation Protection'] },
+    {
+      name: 'Aave',
+      category: 'Lending',
+      tvs: '$450M',
+      features: ['Price Feeds', 'Liquidation Protection'],
+    },
     { name: 'Compound', category: 'Lending', tvs: '$280M', features: ['Price Feeds'] },
-    { name: 'Synthetix', category: 'Derivatives', tvs: '$320M', features: ['Price Feeds', 'Forex Data'] },
+    {
+      name: 'Synthetix',
+      category: 'Derivatives',
+      tvs: '$320M',
+      features: ['Price Feeds', 'Forex Data'],
+    },
     { name: 'dYdX', category: 'DEX', tvs: '$180M', features: ['Price Feeds'] },
-    { name: 'GMX', category: 'Perpetuals', tvs: '$220M', features: ['Price Feeds', 'Fast Updates'] },
+    {
+      name: 'GMX',
+      category: 'Perpetuals',
+      tvs: '$220M',
+      features: ['Price Feeds', 'Fast Updates'],
+    },
     { name: 'Ribbon', category: 'Options', tvs: '$95M', features: ['Price Feeds'] },
   ],
   blockchains: [
@@ -42,8 +57,19 @@ export function EcosystemPanel() {
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-2 text-gray-400">
           <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
           </svg>
           <span>{t('api3.loading')}</span>
         </div>
@@ -76,7 +102,9 @@ export function EcosystemPanel() {
       {/* DeFi 协议集成 */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">{t('api3.ecosystem.protocolIntegrations')}</h3>
+          <h3 className="font-semibold text-gray-900">
+            {t('api3.ecosystem.protocolIntegrations')}
+          </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -136,14 +164,29 @@ export function EcosystemPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 区块链覆盖 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">{t('api3.ecosystem.blockchainCoverage')}</h3>
+          <h3 className="font-semibold text-gray-900 mb-4">
+            {t('api3.ecosystem.blockchainCoverage')}
+          </h3>
           <div className="space-y-3">
             {ecosystemData.blockchains.map((chain, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -164,11 +207,24 @@ export function EcosystemPanel() {
           <h3 className="font-semibold text-gray-900 mb-4">{t('api3.ecosystem.dataProviders')}</h3>
           <div className="space-y-3">
             {ecosystemData.apiProviders.map((provider, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <svg
+                      className="w-5 h-5 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -190,13 +246,35 @@ export function EcosystemPanel() {
         <h3 className="font-semibold text-gray-900 mb-4">{t('api3.ecosystem.dapiTypes')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { type: t('api3.ecosystem.crypto'), count: 120, icon: '₿', color: 'bg-orange-100 text-orange-600' },
-            { type: t('api3.ecosystem.forex'), count: 28, icon: '💱', color: 'bg-blue-100 text-blue-600' },
-            { type: t('api3.ecosystem.commodities'), count: 12, icon: '🏭', color: 'bg-green-100 text-green-600' },
-            { type: t('api3.ecosystem.stocks'), count: 8, icon: '📈', color: 'bg-purple-100 text-purple-600' },
+            {
+              type: t('api3.ecosystem.crypto'),
+              count: 120,
+              icon: '₿',
+              color: 'bg-orange-100 text-orange-600',
+            },
+            {
+              type: t('api3.ecosystem.forex'),
+              count: 28,
+              icon: '💱',
+              color: 'bg-blue-100 text-blue-600',
+            },
+            {
+              type: t('api3.ecosystem.commodities'),
+              count: 12,
+              icon: '🏭',
+              color: 'bg-green-100 text-green-600',
+            },
+            {
+              type: t('api3.ecosystem.stocks'),
+              count: 8,
+              icon: '📈',
+              color: 'bg-purple-100 text-purple-600',
+            },
           ].map((item, index) => (
             <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center text-2xl mx-auto mb-2`}>
+              <div
+                className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center text-2xl mx-auto mb-2`}
+              >
                 {item.icon}
               </div>
               <p className="text-lg font-bold text-gray-900">{item.count}</p>

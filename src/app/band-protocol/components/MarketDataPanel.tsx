@@ -364,7 +364,10 @@ export function MarketDataPanel() {
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: '#4520E6', boxShadow: '0 10px 25px -5px rgba(69, 32, 230, 0.25)' }}
+            style={{
+              backgroundColor: '#4520E6',
+              boxShadow: '0 10px 25px -5px rgba(69, 32, 230, 0.25)',
+            }}
           >
             <span className="text-white font-bold text-xl">BAND</span>
           </div>

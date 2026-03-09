@@ -32,13 +32,6 @@ interface PriceFeed {
   emaConfidence: number;
 }
 
-interface CategoryStats {
-  category: AssetCategory;
-  count: number;
-  avgPublishers: number;
-  avgConfidence: number;
-}
-
 // ==================== 模拟数据 ====================
 
 const mockPriceFeeds: PriceFeed[] = [
@@ -284,14 +277,35 @@ const mockPriceFeeds: PriceFeed[] = [
 
 // ==================== 颜色配置 ====================
 
-const CATEGORY_COLORS: Record<AssetCategory, { bg: string; text: string; border: string; chart: string }> = {
-  Crypto: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200', chart: '#8B5CF6' },
-  Equities: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', chart: '#3B82F6' },
-  FX: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', chart: '#10B981' },
-  Commodities: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', chart: '#F59E0B' },
+const CATEGORY_COLORS: Record<
+  AssetCategory,
+  { bg: string; text: string; border: string; chart: string }
+> = {
+  Crypto: {
+    bg: 'bg-violet-50',
+    text: 'text-violet-600',
+    border: 'border-violet-200',
+    chart: '#8B5CF6',
+  },
+  Equities: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-600',
+    border: 'border-blue-200',
+    chart: '#3B82F6',
+  },
+  FX: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    border: 'border-emerald-200',
+    chart: '#10B981',
+  },
+  Commodities: {
+    bg: 'bg-amber-50',
+    text: 'text-amber-600',
+    border: 'border-amber-200',
+    chart: '#F59E0B',
+  },
 };
-
-const PIE_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B'];
 
 // ==================== 辅助函数 ====================
 
@@ -302,16 +316,12 @@ function formatPrice(price: number): string {
   return price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 }
 
-function formatConfidence(confidence: number): string {
-  return `${confidence} bps`;
-}
-
 function getTimeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const seconds = Math.floor(diff / 1000);
-  
+
   if (seconds < 60) return `${seconds}s ago`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   return `${Math.floor(seconds / 3600)}h ago`;
@@ -341,7 +351,9 @@ function StatCard({
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {subValue && <p className="text-sm text-gray-500 mt-1">{subValue}</p>}
           {trend && (
-            <p className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p
+              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}
+            >
               {trend.positive ? '↑' : '↓'} {trend.value}
             </p>
           )}
@@ -356,7 +368,9 @@ function StatCard({
 function CategoryTag({ category }: { category: AssetCategory }) {
   const colors = CATEGORY_COLORS[category];
   return (
-    <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}>
+    <span
+      className={`px-2.5 py-1 text-xs font-medium rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}
+    >
       {category}
     </span>
   );
@@ -367,7 +381,7 @@ function ConfidenceIndicator({ confidence }: { confidence: number }) {
   let colorClass = 'bg-emerald-500';
   let textClass = 'text-emerald-600';
   let label = 'High';
-  
+
   if (confidence > 20) {
     colorClass = 'bg-amber-500';
     textClass = 'text-amber-600';
@@ -477,7 +491,7 @@ function PublishersDistributionChart() {
       FX: { total: 0, count: 0 },
       Commodities: { total: 0, count: 0 },
     };
-    
+
     mockPriceFeeds.forEach((feed) => {
       categoryStats[feed.category].total += feed.publishers;
       categoryStats[feed.category].count += 1;
@@ -503,15 +517,12 @@ function PublishersDistributionChart() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={publisherData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              dataKey="category" 
+            <XAxis
+              dataKey="category"
               tick={{ fontSize: 11, fill: '#6B7280' }}
               axisLine={{ stroke: '#E5E7EB' }}
             />
-            <YAxis 
-              tick={{ fontSize: 11, fill: '#6B7280' }}
-              axisLine={{ stroke: '#E5E7EB' }}
-            />
+            <YAxis tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={{ stroke: '#E5E7EB' }} />
             <RechartsTooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
@@ -562,7 +573,9 @@ function PriceFeedsTable({
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-200">
         <h3 className="text-gray-900 text-sm font-semibold">Price Feeds</h3>
-        <p className="text-gray-500 text-xs mt-0.5">Real-time price data with confidence intervals</p>
+        <p className="text-gray-500 text-xs mt-0.5">
+          Real-time price data with confidence intervals
+        </p>
       </div>
 
       <div className="overflow-x-auto">
@@ -610,7 +623,9 @@ function PriceFeedsTable({
                   <CategoryTag category={feed.category} />
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-semibold text-gray-900">${formatPrice(feed.price)}</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    ${formatPrice(feed.price)}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span
@@ -654,7 +669,12 @@ function ConfidenceExplanationCard() {
     <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl p-5">
       <div className="flex items-start gap-3">
         <div className="p-2 bg-violet-100 rounded-lg">
-          <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-violet-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -666,8 +686,9 @@ function ConfidenceExplanationCard() {
         <div>
           <h4 className="text-gray-900 font-semibold text-sm">Pyth Confidence Interval</h4>
           <p className="text-gray-600 text-xs mt-1">
-            Pyth uniquely provides confidence intervals alongside each price update, representing the uncertainty 
-            in the aggregate price. Lower confidence values (in basis points) indicate higher precision.
+            Pyth uniquely provides confidence intervals alongside each price update, representing
+            the uncertainty in the aggregate price. Lower confidence values (in basis points)
+            indicate higher precision.
           </p>
           <div className="flex items-center gap-4 mt-3">
             <div className="flex items-center gap-1.5">

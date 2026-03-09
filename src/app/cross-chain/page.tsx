@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import {
   LineChart,
@@ -216,7 +216,7 @@ export default function CrossChainPage() {
   const currentClient = oracleClients[selectedProvider];
   const supportedChains = currentClient.supportedChains;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const currentPromises = supportedChains.map((chain) =>
@@ -239,10 +239,11 @@ export default function CrossChainPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentClient, supportedChains, selectedSymbol, selectedTimeRange]);
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvider, selectedSymbol, selectedTimeRange]);
 
   useEffect(() => {
@@ -277,7 +278,7 @@ export default function CrossChainPage() {
     };
 
     return sortedTimestamps.map((timestamp) => {
-      const dataPoint: any = {
+      const dataPoint: { timestamp: number; time: string; [chain: string]: number | string } = {
         timestamp,
         time: new Date(timestamp).toLocaleString([], getTimeFormat()),
       };

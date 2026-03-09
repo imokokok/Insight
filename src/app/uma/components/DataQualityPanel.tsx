@@ -158,13 +158,7 @@ function ProgressBar({
 }
 
 // 验证准确性监控组件
-function ValidationAccuracyMonitor({
-  accuracy,
-  trend,
-}: {
-  accuracy: number;
-  trend: number[];
-}) {
+function ValidationAccuracyMonitor({ accuracy, trend }: { accuracy: number; trend: number[] }) {
   // 计算趋势方向
   const trendDirection = trend[trend.length - 1] > trend[trend.length - 2] ? 'up' : 'down';
   const trendValue = Math.abs(trend[trend.length - 1] - trend[trend.length - 2]);
@@ -229,12 +223,7 @@ function ValidationAccuracyMonitor({
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <circle
-            cx="100"
-            cy={100 - ((accuracy - minValue) / range) * 100}
-            r="4"
-            fill="#10b981"
-          />
+          <circle cx="100" cy={100 - ((accuracy - minValue) / range) * 100} r="4" fill="#10b981" />
         </svg>
       </div>
 
@@ -329,13 +318,7 @@ function ValidatorParticipationStats({
 }
 
 // 争议率分析组件
-function DisputeRateAnalysis({
-  disputeRate,
-  trend,
-}: {
-  disputeRate: number;
-  trend: number[];
-}) {
+function DisputeRateAnalysis({ disputeRate, trend }: { disputeRate: number; trend: number[] }) {
   // 计算趋势
   const trendDirection = trend[trend.length - 1] < trend[trend.length - 2] ? 'up' : 'down';
   const trendValue = Math.abs(trend[trend.length - 1] - trend[trend.length - 2]);
@@ -404,7 +387,9 @@ function DisputeRateAnalysis({
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <polyline
             fill="none"
-            stroke={statusColor === 'green' ? '#10b981' : statusColor === 'blue' ? '#3b82f6' : '#f59e0b'}
+            stroke={
+              statusColor === 'green' ? '#10b981' : statusColor === 'blue' ? '#3b82f6' : '#f59e0b'
+            }
             strokeWidth="3"
             points={points}
             strokeLinecap="round"
@@ -414,7 +399,9 @@ function DisputeRateAnalysis({
             cx="100"
             cy={100 - ((disputeRate - minValue) / range) * 100}
             r="4"
-            fill={statusColor === 'green' ? '#10b981' : statusColor === 'blue' ? '#3b82f6' : '#f59e0b'}
+            fill={
+              statusColor === 'green' ? '#10b981' : statusColor === 'blue' ? '#3b82f6' : '#f59e0b'
+            }
           />
         </svg>
       </div>
@@ -428,13 +415,7 @@ function DisputeRateAnalysis({
 }
 
 // 数据一致性评分组件
-function ConsistencyScore({
-  score,
-  trend,
-}: {
-  score: number;
-  trend: number[];
-}) {
+function ConsistencyScore({ score, trend }: { score: number; trend: number[] }) {
   // 计算趋势
   const trendDirection = trend[trend.length - 1] > trend[trend.length - 2] ? 'up' : 'down';
   const trendValue = Math.abs(trend[trend.length - 1] - trend[trend.length - 2]);
@@ -482,21 +463,22 @@ function ConsistencyScore({
           {/* 环形进度条 */}
           <svg className="w-32 h-32 transform -rotate-90">
             {/* 背景圆环 */}
-            <circle
-              cx="64"
-              cy="64"
-              r="40"
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="8"
-            />
+            <circle cx="64" cy="64" r="40" fill="none" stroke="#e5e7eb" strokeWidth="8" />
             {/* 进度圆环 */}
             <circle
               cx="64"
               cy="64"
               r="40"
               fill="none"
-              stroke={statusInfo.bgColor === 'bg-green-500' ? '#10b981' : statusInfo.bgColor === 'bg-blue-500' ? '#3b82f6' : statusInfo.bgColor === 'bg-yellow-500' ? '#f59e0b' : '#ef4444'}
+              stroke={
+                statusInfo.bgColor === 'bg-green-500'
+                  ? '#10b981'
+                  : statusInfo.bgColor === 'bg-blue-500'
+                    ? '#3b82f6'
+                    : statusInfo.bgColor === 'bg-yellow-500'
+                      ? '#f59e0b'
+                      : '#ef4444'
+              }
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -542,7 +524,10 @@ export function DataQualityPanel() {
       const fluctuation = () => (Math.random() - 0.5) * 0.5;
 
       const newAccuracy = Math.min(100, Math.max(90, prev.validationAccuracy + fluctuation()));
-      const newParticipation = Math.min(100, Math.max(50, prev.participation + fluctuation() * 2));
+      const newParticipation = Math.min(
+        100,
+        Math.max(50, prev.validatorParticipation + fluctuation() * 2)
+      );
       const newDisputeRate = Math.max(0, Math.min(10, prev.disputeRate + fluctuation() * 0.3));
       const newConsistency = Math.min(100, Math.max(70, prev.consistencyScore + fluctuation()));
 

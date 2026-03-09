@@ -207,7 +207,7 @@ export class UMAClient extends BaseOracleClient {
   async getDisputes(): Promise<DisputeData[]> {
     const disputes: DisputeData[] = [];
     const now = Date.now();
-    
+
     // 生成模拟争议数据
     for (let i = 0; i < 50; i++) {
       const isResolved = Math.random() > 0.3;
@@ -219,7 +219,7 @@ export class UMAClient extends BaseOracleClient {
         resolutionTime: isResolved ? Math.floor(Math.random() * 48) + 1 : undefined,
       });
     }
-    
+
     return disputes.sort((a, b) => b.timestamp - a.timestamp);
   }
 
@@ -242,14 +242,14 @@ export class UMAClient extends BaseOracleClient {
   // 获取验证活动数据
   async getVerificationActivity(): Promise<VerificationActivity> {
     const hourly = [
-      3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200,
-      8800, 8400, 7900, 8200, 8600, 9100, 8800, 7600, 6500, 5200, 4100, 3500,
+      3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200, 8800, 8400, 7900,
+      8200, 8600, 9100, 8800, 7600, 6500, 5200, 4100, 3500,
     ];
-    
+
     const total = hourly.reduce((a, b) => a + b, 0);
     const peakRequests = Math.max(...hourly);
     const peakHour = hourly.indexOf(peakRequests);
-    
+
     return {
       hourly,
       total,
@@ -263,7 +263,7 @@ export class UMAClient extends BaseOracleClient {
   async getDisputeTrends(): Promise<{ date: string; filed: number; resolved: number }[]> {
     const trends = [];
     const now = new Date();
-    
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
@@ -273,7 +273,7 @@ export class UMAClient extends BaseOracleClient {
         resolved: Math.floor(Math.random() * 15) + 8,
       });
     }
-    
+
     return trends;
   }
 
@@ -282,7 +282,7 @@ export class UMAClient extends BaseOracleClient {
     const trends = [];
     let cumulative = 0;
     const now = new Date();
-    
+
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
@@ -294,7 +294,7 @@ export class UMAClient extends BaseOracleClient {
         cumulative,
       });
     }
-    
+
     return trends;
   }
 }

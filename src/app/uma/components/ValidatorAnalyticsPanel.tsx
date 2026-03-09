@@ -335,7 +335,7 @@ function RevenueTrendChart({ data }: { data: RevenueData[] }) {
               border: '1px solid #e5e7eb',
               boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
             }}
-            formatter={(value: number, name: string) => [
+            formatter={(value: any, name: any) => [
               name === 'revenue' ? `${value} UMA` : `${value.toLocaleString()} UMA`,
               name === 'revenue' ? '日收益' : '累计收益',
             ]}
@@ -515,7 +515,7 @@ export function ValidatorAnalyticsPanel() {
                         border: '1px solid #e5e7eb',
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
                       }}
-                      formatter={(value: number, name: string) => [`${value}%`, name]}
+                      formatter={(value: any, name: any) => [`${value}%`, name]}
                     />
                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>

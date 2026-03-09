@@ -4,18 +4,14 @@ interface AdvancedTableProps {
   children: ReactNode;
   className?: string;
   striped?: boolean;
-  hoverable?: boolean;
   bordered?: boolean;
-  compact?: boolean;
 }
 
 export default function AdvancedTable({
   children,
   className = '',
   striped = true,
-  hoverable = true,
   bordered = false,
-  compact = false,
 }: AdvancedTableProps) {
   const baseClasses = 'w-full text-left border-collapse';
   const stripedClasses = striped ? 'table-striped' : '';

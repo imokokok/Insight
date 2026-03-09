@@ -10,8 +10,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  PieChart,
-  Pie,
 } from 'recharts';
 
 // ==================== 类型定义 ====================
@@ -244,7 +242,10 @@ function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
               const progressWidth = Math.min((exchange.deviationPercent / 1) * 100, 100);
 
               return (
-                <tr key={exchange.name} className="hover:bg-purple-50/30 transition-colors duration-200">
+                <tr
+                  key={exchange.name}
+                  className="hover:bg-purple-50/30 transition-colors duration-200"
+                >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
@@ -683,12 +684,14 @@ export function DataQualityPanel() {
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" viewBox="0 0 32 32" fill="currentColor">
-                <path d="M16 0L2.5 8v16L16 32l13.5-8V8L16 0zM16 4l10 5.5v11L16 26l-10-5.5v-11L16 4z"/>
-                <path d="M16 8l-6 3.5v7L16 22l6-3.5v-7L16 8z"/>
+                <path d="M16 0L2.5 8v16L16 32l13.5-8V8L16 0zM16 4l10 5.5v11L16 26l-10-5.5v-11L16 4z" />
+                <path d="M16 8l-6 3.5v7L16 22l6-3.5v-7L16 8z" />
               </svg>
             </div>
             <div>
-              <p className="text-purple-600 text-xs uppercase tracking-wider">Band Protocol 参考价格</p>
+              <p className="text-purple-600 text-xs uppercase tracking-wider">
+                Band Protocol 参考价格
+              </p>
               <p className="text-2xl font-bold text-purple-900">
                 ${qualityData.bandPrice.toFixed(3)}
               </p>

@@ -8,7 +8,6 @@ import { PriceData, Blockchain } from '@/lib/types/oracle';
 import { MarketDataPanel } from './components/MarketDataPanel';
 import { PriceChart } from './components/PriceChart';
 import { NetworkHealthPanel } from './components/NetworkHealthPanel';
-import { DataQualityPanel } from './components/DataQualityPanel';
 import { NodeAnalyticsPanel } from './components/NodeAnalyticsPanel';
 import { EcosystemPanel } from './components/EcosystemPanel';
 import { RiskAssessmentPanel } from './components/RiskAssessmentPanel';
@@ -588,7 +587,6 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
 
 // 主页面组件
 export default function ChainlinkPage() {
-  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState('market');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -636,8 +634,20 @@ export default function ChainlinkPage() {
   }, [priceData, historicalData, timeRange]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData, timeRange]);
+    const fetchAndSetData = async () => {
+      try {
+        const [price, history] = await Promise.all([
+          chainlinkClient.getPrice('LINK', Blockchain.ETHEREUM),
+          chainlinkClient.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 7),
+        ]);
+        setPriceData(price);
+        setHistoricalData(history);
+      } catch (error) {
+        console.error('Error fetching Chainlink data:', error);
+      }
+    };
+    fetchAndSetData();
+  }, [timeRange]);
 
   return (
     <div className="min-h-screen bg-gray-50">

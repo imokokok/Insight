@@ -36,7 +36,10 @@ interface ChartDataPoint {
 }
 
 // 时间周期配置
-const TIME_RANGE_CONFIG: Record<TimeRange, { period: '1d' | '7d' | '30d' | '90d' | '1y'; label: string }> = {
+const TIME_RANGE_CONFIG: Record<
+  TimeRange,
+  { period: '1d' | '7d' | '30d' | '90d' | '1y'; label: string }
+> = {
   '1H': { period: '1d', label: '1小时' },
   '24H': { period: '1d', label: '24小时' },
   '7D': { period: '7d', label: '7天' },
@@ -131,37 +134,40 @@ export function PriceChart({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // 转换历史数据为图表数据
-  const convertHistoricalData = useCallback((historicalData: HistoricalPricePoint[], range: TimeRange): ChartDataPoint[] => {
-    const config = TIME_RANGE_CONFIG[range];
-    
-    return historicalData.map((point) => {
-      const date = new Date(point.timestamp);
-      let timeLabel: string;
-      
-      if (config.period === '1d') {
-        timeLabel = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      } else if (config.period === '7d') {
-        timeLabel = date.toLocaleDateString('zh-CN', {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-        });
-      } else {
-        timeLabel = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-      }
+  const convertHistoricalData = useCallback(
+    (historicalData: HistoricalPricePoint[], range: TimeRange): ChartDataPoint[] => {
+      const config = TIME_RANGE_CONFIG[range];
 
-      return {
-        time: timeLabel,
-        timestamp: point.timestamp,
-        price: point.close,
-        volume: point.volume,
-        open: point.open,
-        high: point.high,
-        low: point.low,
-        close: point.close,
-      };
-    });
-  }, []);
+      return historicalData.map((point) => {
+        const date = new Date(point.timestamp);
+        let timeLabel: string;
+
+        if (config.period === '1d') {
+          timeLabel = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else if (config.period === '7d') {
+          timeLabel = date.toLocaleDateString('zh-CN', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+          });
+        } else {
+          timeLabel = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        }
+
+        return {
+          time: timeLabel,
+          timestamp: point.timestamp,
+          price: point.close,
+          volume: point.volume,
+          open: point.open,
+          high: point.high,
+          low: point.low,
+          close: point.close,
+        };
+      });
+    },
+    []
+  );
 
   // 获取数据
   const fetchData = useCallback(async () => {
@@ -383,7 +389,13 @@ export function PriceChart({
             />
 
             {/* 交易量柱状图 */}
-            <Bar yAxisId="volume" dataKey="volume" fill={BAND_COLORS.primary} fillOpacity={0.2} stroke="none">
+            <Bar
+              yAxisId="volume"
+              dataKey="volume"
+              fill={BAND_COLORS.primary}
+              fillOpacity={0.2}
+              stroke="none"
+            >
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
@@ -441,10 +453,7 @@ export function PriceChart({
           <span className="text-xs text-gray-500">价格</span>
         </div>
         <div className="flex items-center gap-2">
-          <span
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: BAND_COLORS.volumeUp }}
-          />
+          <span className="w-3 h-3 rounded" style={{ backgroundColor: BAND_COLORS.volumeUp }} />
           <span className="text-xs text-gray-500">成交量</span>
         </div>
       </div>

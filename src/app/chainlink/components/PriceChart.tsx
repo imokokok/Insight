@@ -47,11 +47,7 @@ const TIME_RANGE_CONFIG: Record<TimeRange, { hours: number; interval: number; la
 };
 
 // 生成模拟历史数据
-function generateHistoricalData(
-  basePrice: number,
-  timeRange: TimeRange,
-  _symbol: string = 'LINK'
-): ChartDataPoint[] {
+function generateHistoricalData(basePrice: number, timeRange: TimeRange): ChartDataPoint[] {
   const config = TIME_RANGE_CONFIG[timeRange];
   const now = Date.now();
   const dataPoints: ChartDataPoint[] = [];
@@ -247,8 +243,8 @@ export function PriceChart({
   height = 400,
   showToolbar = true,
 }: PriceChartProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
-  const [chartType, setChartType] = useState<ChartType>('line');
+  const [timeRange] = useState<TimeRange>(initialTimeRange);
+  const [chartType] = useState<ChartType>('line');
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
@@ -277,7 +273,7 @@ export function PriceChart({
       setCurrentPrice(priceData.price);
 
       // 生成历史数据
-      const historicalData = generateHistoricalData(priceData.price, timeRange, symbol);
+      const historicalData = generateHistoricalData(priceData.price, timeRange);
       setData(historicalData);
     } catch (error) {
       // 检查是否是取消错误
@@ -287,7 +283,7 @@ export function PriceChart({
       // 使用默认价格生成数据
       const defaultPrice = symbol === 'LINK' ? 18 : 100;
       setCurrentPrice(defaultPrice);
-      setData(generateHistoricalData(defaultPrice, timeRange, symbol));
+      setData(generateHistoricalData(defaultPrice, timeRange));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);

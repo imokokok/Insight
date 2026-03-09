@@ -140,7 +140,7 @@ export class BandProtocolClient extends BaseOracleClient {
         circulatingSupply: Number(circulatingSupply.toFixed(2)),
         totalSupply: Number(totalSupply.toFixed(2)),
         maxSupply: 250_000_000,
-        stakingRatio: Number(((circulatingSupply * 0.65) / circulatingSupply * 100).toFixed(2)),
+        stakingRatio: Number((((circulatingSupply * 0.65) / circulatingSupply) * 100).toFixed(2)),
         stakingApr: Number((8 + Math.random() * 4).toFixed(2)),
         timestamp: Date.now(),
       };
@@ -213,20 +213,20 @@ export class BandProtocolClient extends BaseOracleClient {
       const totalTokens = 85_000_000 + Math.random() * 10_000_000;
 
       for (let i = 0; i < Math.min(limit, validatorNames.length); i++) {
-        const tokens = i === 0 
-          ? totalTokens * 0.08 
-          : totalTokens * (0.05 / (i + 1) + Math.random() * 0.01);
-        
+        const tokens =
+          i === 0 ? totalTokens * 0.08 : totalTokens * (0.05 / (i + 1) + Math.random() * 0.01);
+
         validators.push({
           operatorAddress: `bandvaloper1${this.generateRandomAddress()}`,
           moniker: validatorNames[i],
           identity: this.generateRandomHex(16),
-          website: i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
+          website:
+            i < 10 ? `https://${validatorNames[i].toLowerCase().replace(/\s+/g, '')}.com` : '',
           details: `Professional validator ${validatorNames[i]} securing Band Protocol network`,
           tokens: Number(tokens.toFixed(2)),
           delegatorShares: Number(tokens.toFixed(2)),
           commissionRate: Number((0.05 + Math.random() * 0.15).toFixed(4)),
-          maxCommissionRate: Number((0.15 + Math.random() * 0.10).toFixed(4)),
+          maxCommissionRate: Number((0.15 + Math.random() * 0.1).toFixed(4)),
           maxCommissionChangeRate: Number((0.01 + Math.random() * 0.02).toFixed(4)),
           uptime: Number((99.5 + Math.random() * 0.48).toFixed(2)),
           jailed: false,
@@ -369,11 +369,13 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   // 获取 BAND 历史价格
-  async getHistoricalBandPrices(period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'): Promise<HistoricalPricePoint[]> {
+  async getHistoricalBandPrices(
+    period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
+  ): Promise<HistoricalPricePoint[]> {
     try {
       const basePrice = BASE_PRICES.BAND || 2.5;
       const prices: HistoricalPricePoint[] = [];
-      
+
       const periodConfig: Record<string, { points: number; intervalHours: number }> = {
         '1d': { points: 24, intervalHours: 1 },
         '7d': { points: 84, intervalHours: 2 },

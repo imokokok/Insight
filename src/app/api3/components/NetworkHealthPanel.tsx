@@ -18,8 +18,8 @@ const mockNetworkData = {
 
   // 24小时活动数据（每小时请求量）
   hourlyActivity: [
-    1200, 1100, 950, 800, 750, 900, 1400, 2100, 2800, 3200, 3500, 3800,
-    3600, 3400, 3100, 3300, 3500, 3700, 3400, 2900, 2400, 1900, 1500, 1300,
+    1200, 1100, 950, 800, 750, 900, 1400, 2100, 2800, 3200, 3500, 3800, 3600, 3400, 3100, 3300,
+    3500, 3700, 3400, 2900, 2400, 1900, 1500, 1300,
   ],
 
   // 网络状态
@@ -79,7 +79,9 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
     <div className={`bg-white border ${config.borderColor} rounded-xl p-5`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('api3.networkHealth.networkStatus')}</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
+            {t('api3.networkHealth.networkStatus')}
+          </p>
           <div className="flex items-center gap-3">
             <div className="relative">
               <span className={`relative flex h-4 w-4`}>
@@ -91,9 +93,14 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
                 ></span>
               </span>
             </div>
-            <span className={`text-2xl font-bold ${config.textColor}`}>{t(`api3.networkHealth.${status}`)}</span>
+            <span className={`text-2xl font-bold ${config.textColor}`}>
+              {t(`api3.networkHealth.${status}`)}
+            </span>
           </div>
-          <p className="text-gray-400 text-xs mt-2">{t('api3.networkHealth.monitoring')} • {t('api3.networkHealth.lastCheck')}: {t('api3.justNow')}</p>
+          <p className="text-gray-400 text-xs mt-2">
+            {t('api3.networkHealth.monitoring')} • {t('api3.networkHealth.lastCheck')}:{' '}
+            {t('api3.justNow')}
+          </p>
         </div>
         <div className={`p-4 rounded-xl bg-gradient-to-br ${config.bgGradient}`}>
           <svg
@@ -178,7 +185,9 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('api3.networkHealth.activityHeatmap')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('api3.networkHealth.activityHeatmap')}
+          </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('api3.networkHealth.24hDistribution')}</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -253,8 +262,18 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
   const { t } = useI18n();
   // 获取延迟状态颜色
   const getLatencyColor = (ms: number) => {
-    if (ms < 100) return { color: 'text-green-600', bgColor: 'bg-green-500', label: t('api3.networkHealth.excellent') };
-    if (ms < 500) return { color: 'text-yellow-600', bgColor: 'bg-yellow-500', label: t('api3.networkHealth.good') };
+    if (ms < 100)
+      return {
+        color: 'text-green-600',
+        bgColor: 'bg-green-500',
+        label: t('api3.networkHealth.excellent'),
+      };
+    if (ms < 500)
+      return {
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-500',
+        label: t('api3.networkHealth.good'),
+      };
     return { color: 'text-red-600', bgColor: 'bg-red-500', label: t('api3.networkHealth.slow') };
   };
 
@@ -274,7 +293,9 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('api3.networkHealth.dataFreshness')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('api3.networkHealth.dataFreshness')}
+          </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('api3.networkHealth.realtimeSync')}</p>
         </div>
         <div className="p-2 bg-gray-100 rounded-lg">
