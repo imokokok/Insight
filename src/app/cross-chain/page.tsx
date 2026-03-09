@@ -2,7 +2,21 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/Card';
+import AdvancedCard, {
+  AdvancedCardHeader,
+  AdvancedCardTitle,
+  AdvancedCardContent,
+  AdvancedCardFooter,
+} from '@/components/AdvancedCard';
+import AdvancedTable, {
+  AdvancedTableHeader,
+  AdvancedTableBody,
+  AdvancedTableRow,
+  AdvancedTableHead,
+  AdvancedTableCell,
+} from '@/components/AdvancedTable';
+import StatCard from '@/components/StatCard';
+import AdvancedSelect from '@/components/AdvancedSelect';
 import {
   LineChart,
   Line,
@@ -60,11 +74,11 @@ const chainNames: Record<Blockchain, string> = {
 const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
 
 const chainColors: Record<Blockchain, string> = {
-  [Blockchain.ETHEREUM]: '#627EEA',
-  [Blockchain.ARBITRUM]: '#28A0F0',
-  [Blockchain.OPTIMISM]: '#FF0420',
-  [Blockchain.POLYGON]: '#8247E5',
-  [Blockchain.SOLANA]: '#14F195',
+  [Blockchain.ETHEREUM]: '#6366F1',
+  [Blockchain.ARBITRUM]: '#06B6D4',
+  [Blockchain.OPTIMISM]: '#EF4444',
+  [Blockchain.POLYGON]: '#A855F7',
+  [Blockchain.SOLANA]: '#10B981',
 };
 
 const TIME_RANGES = [
@@ -96,42 +110,55 @@ export default function CrossChainPage() {
 
   const exportToCSV = () => {
     const csvLines: string[] = [];
-    
+
     csvLines.push('=== ' + t('currentPrices') + ' ===');
     const currentHeaders = [t('blockchain'), t('price'), t('difference'), t('percentDifference')];
     csvLines.push(currentHeaders.join(','));
-    
+
     priceDifferences.forEach((item) => {
       const row = [
         chainNames[item.chain as Blockchain],
-        item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+        item.price.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 4,
+        }),
         item.diff.toFixed(4),
-        item.diffPercent.toFixed(4) + '%'
+        item.diffPercent.toFixed(4) + '%',
       ];
       csvLines.push(row.join(','));
     });
-    
+
     csvLines.push('');
     csvLines.push('=== ' + t('historicalPrices') + ' ===');
-    
+
     const allTimestamps = new Set<number>();
     supportedChains.forEach((chain) => {
       historicalPrices[chain]?.forEach((price) => allTimestamps.add(price.timestamp));
     });
     const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
-    
-    const historicalHeaders = [t('timestamp'), ...supportedChains.map(chain => chainNames[chain])];
+
+    const historicalHeaders = [
+      t('timestamp'),
+      ...supportedChains.map((chain) => chainNames[chain]),
+    ];
     csvLines.push(historicalHeaders.join(','));
-    
+
     sortedTimestamps.forEach((timestamp) => {
       const row: string[] = [new Date(timestamp).toLocaleString()];
       supportedChains.forEach((chain) => {
         const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
-        row.push(price ? price.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '');
+        row.push(
+          price
+            ? price.price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4,
+              })
+            : ''
+        );
       });
       csvLines.push(row.join(','));
     });
-    
+
     const csvContent = csvLines.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -150,21 +177,22 @@ export default function CrossChainPage() {
         symbol: selectedSymbol,
         oracleProvider: providerNames[selectedProvider],
         exportTimestamp: new Date().toISOString(),
-        baseChain: selectedBaseChain ? chainNames[selectedBaseChain] : null
+        baseChain: selectedBaseChain ? chainNames[selectedBaseChain] : null,
       },
       currentPrices: priceDifferences.map((item) => ({
         blockchain: chainNames[item.chain as Blockchain],
         price: item.price,
         difference: item.diff,
-        percentDifference: item.diffPercent
+        percentDifference: item.diffPercent,
       })),
       historicalPrices: supportedChains.map((chain) => ({
         blockchain: chainNames[chain],
-        prices: historicalPrices[chain]?.map((price) => ({
-          price: price.price,
-          timestamp: new Date(price.timestamp).toISOString(),
-          source: price.source
-        })) || []
+        prices:
+          historicalPrices[chain]?.map((price) => ({
+            price: price.price,
+            timestamp: new Date(price.timestamp).toISOString(),
+            source: price.source,
+          })) || [],
       })),
       summary: {
         averagePrice: avgPrice,
@@ -172,8 +200,8 @@ export default function CrossChainPage() {
         lowestPrice: minPrice,
         priceRange: priceRange,
         standardDeviationPercent: standardDeviationPercent,
-        consistencyRating: getConsistencyRating(standardDeviationPercent)
-      }
+        consistencyRating: getConsistencyRating(standardDeviationPercent),
+      },
     };
 
     const jsonContent = JSON.stringify(exportData, null, 2);
@@ -224,7 +252,11 @@ export default function CrossChainPage() {
     if (supportedChains.length > 0 && !selectedBaseChain) {
       setSelectedBaseChain(supportedChains[0]);
     }
-    if (supportedChains.length > 0 && selectedBaseChain && !supportedChains.includes(selectedBaseChain)) {
+    if (
+      supportedChains.length > 0 &&
+      selectedBaseChain &&
+      !supportedChains.includes(selectedBaseChain)
+    ) {
       setSelectedBaseChain(supportedChains[0]);
     }
   }, [supportedChains, selectedBaseChain]);
@@ -237,7 +269,7 @@ export default function CrossChainPage() {
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
 
-    const getTimeFormat = () => {
+    const getTimeFormat = (): Intl.DateTimeFormatOptions => {
       if (selectedTimeRange <= 6) {
         return { hour: '2-digit', minute: '2-digit' };
       } else if (selectedTimeRange <= 24) {
@@ -264,7 +296,7 @@ export default function CrossChainPage() {
 
   const priceDifferences = useMemo(() => {
     if (currentPrices.length < 2 || !selectedBaseChain) return [];
-    const basePriceData = currentPrices.find(p => p.chain === selectedBaseChain);
+    const basePriceData = currentPrices.find((p) => p.chain === selectedBaseChain);
     if (!basePriceData) return [];
     const basePrice = basePriceData.price;
     return currentPrices.map((priceData) => {
@@ -347,7 +379,8 @@ export default function CrossChainPage() {
         return;
       }
       const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
-      const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+      const variance =
+        prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
       const stdDev = Math.sqrt(variance);
       volatility[chain] = mean > 0 ? (stdDev / mean) * 100 : 0;
     });
@@ -358,7 +391,7 @@ export default function CrossChainPage() {
     if (supportedChains.length === 0) return {};
     const baseChain = supportedChains[0];
     const delays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>> = {};
-    
+
     const basePrices = historicalPrices[baseChain] || [];
     if (basePrices.length === 0) return delays;
 
@@ -367,15 +400,15 @@ export default function CrossChainPage() {
         delays[chain] = { avgDelay: 0, maxDelay: 0 };
         return;
       }
-      
+
       const chainPrices = historicalPrices[chain] || [];
       if (chainPrices.length === 0) return;
 
       const matchedDelays: number[] = [];
       basePrices.forEach((basePrice) => {
-        let closestChainPrice = null;
+        let closestChainPrice: PriceData | null = null;
         let minDiff = Infinity;
-        
+
         chainPrices.forEach((chainPrice) => {
           const diff = Math.abs(chainPrice.timestamp - basePrice.timestamp);
           if (diff < minDiff) {
@@ -383,33 +416,33 @@ export default function CrossChainPage() {
             closestChainPrice = chainPrice;
           }
         });
-        
+
         if (closestChainPrice) {
-          matchedDelays.push(Math.abs(closestChainPrice.timestamp - basePrice.timestamp) / 1000);
+          matchedDelays.push(Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000);
         }
       });
-      
+
       if (matchedDelays.length > 0) {
         const avgDelay = matchedDelays.reduce((a, b) => a + b, 0) / matchedDelays.length;
         const maxDelay = Math.max(...matchedDelays);
         delays[chain] = { avgDelay, maxDelay };
       }
     });
-    
+
     return delays;
   }, [historicalPrices, supportedChains]);
 
   const heatmapData = useMemo(() => {
     if (currentPrices.length < 2) return [];
     const data: HeatmapData[] = [];
-    
+
     supportedChains.forEach((xChain) => {
       supportedChains.forEach((yChain) => {
-        const xPrice = currentPrices.find(p => p.chain === xChain)?.price || 0;
-        const yPrice = currentPrices.find(p => p.chain === yChain)?.price || 0;
+        const xPrice = currentPrices.find((p) => p.chain === xChain)?.price || 0;
+        const yPrice = currentPrices.find((p) => p.chain === yChain)?.price || 0;
         const diff = Math.abs(xPrice - yPrice);
         const percent = xPrice > 0 ? (diff / xPrice) * 100 : 0;
-        
+
         data.push({
           x: chainNames[xChain],
           y: chainNames[yChain],
@@ -420,18 +453,18 @@ export default function CrossChainPage() {
         });
       });
     });
-    
+
     return data;
   }, [currentPrices, supportedChains]);
 
   const maxHeatmapValue = useMemo(() => {
     if (heatmapData.length === 0) return 1;
-    return Math.max(...heatmapData.map(d => d.percent));
+    return Math.max(...heatmapData.map((d) => d.percent));
   }, [heatmapData]);
 
   const getHeatmapColor = (percent: number, maxPercent: number): string => {
     const normalized = Math.min(percent / Math.max(maxPercent, 0.1), 1);
-    
+
     if (normalized < 0.33) {
       const t = normalized / 0.33;
       const r = Math.floor(76 + (251 - 76) * t);
@@ -453,24 +486,54 @@ export default function CrossChainPage() {
     }
   };
 
+  const providerOptions = Object.values(OracleProvider).map((provider) => ({
+    value: provider,
+    label: providerNames[provider],
+  }));
+
+  const symbolOptions = symbols.map((symbol) => ({
+    value: symbol,
+    label: symbol,
+  }));
+
+  const timeRangeOptions = TIME_RANGES.map((range) => ({
+    value: range.value,
+    label: t(range.key),
+  }));
+
+  const baseChainOptions = supportedChains.map((chain) => ({
+    value: chain,
+    label: chainNames[chain],
+  }));
+
+  const consistencyRatingColorMap: Record<string, any> = {
+    excellent: 'green',
+    good: 'blue',
+    fair: 'orange',
+    poor: 'red',
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">{t('title')}</h1>
-        <div className="flex items-center gap-2">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+          <p className="text-gray-600">{t('subtitle') || '跨链价格分析与监控'}</p>
+        </div>
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
           <span className="text-sm text-gray-600">{t('export')}:</span>
           <div className="flex gap-2">
             <button
               onClick={exportToCSV}
               disabled={loading || currentPrices.length === 0}
-              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium shadow-md hover:shadow-lg"
             >
               CSV
             </button>
             <button
               onClick={exportToJSON}
               disabled={loading || currentPrices.length === 0}
-              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium shadow-md hover:shadow-lg"
             >
               JSON
             </button>
@@ -478,107 +541,98 @@ export default function CrossChainPage() {
         </div>
       </div>
 
-      <Card className="mb-8">
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-6 items-end">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">{t('oracleProvider')}</label>
-              <select
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value as OracleProvider)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {Object.values(OracleProvider).map((provider) => (
-                  <option key={provider} value={provider}>
-                    {providerNames[provider]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">{t('symbol')}</label>
-              <select
-                value={selectedSymbol}
-                onChange={(e) => setSelectedSymbol(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {symbols.map((symbol) => (
-                  <option key={symbol} value={symbol}>
-                    {symbol}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">{t('timeRange')}</label>
-              <select
-                value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(Number(e.target.value))}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {TIME_RANGES.map((range) => (
-                  <option key={range.value} value={range.value}>
-                    {t(range.key)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">{t('baseChain')}</label>
-              <select
-                value={selectedBaseChain || ''}
-                onChange={(e) => setSelectedBaseChain(e.target.value as Blockchain)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {supportedChains.map((chain) => (
-                  <option key={chain} value={chain}>
-                    {chainNames[chain]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+      <AdvancedCard className="mb-8" variant="glass">
+        <AdvancedCardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <AdvancedSelect
+              label={t('oracleProvider')}
+              options={providerOptions}
+              value={selectedProvider}
+              onChange={(value) => setSelectedProvider(value as OracleProvider)}
+              size="md"
+              variant="filled"
+            />
+            <AdvancedSelect
+              label={t('symbol')}
+              options={symbolOptions}
+              value={selectedSymbol}
+              onChange={(value) => setSelectedSymbol(value as string)}
+              size="md"
+              variant="filled"
+            />
+            <AdvancedSelect
+              label={t('timeRange')}
+              options={timeRangeOptions}
+              value={selectedTimeRange}
+              onChange={(value) => setSelectedTimeRange(Number(value))}
+              size="md"
+              variant="filled"
+            />
+            <AdvancedSelect
+              label={t('baseChain')}
+              options={baseChainOptions}
+              value={selectedBaseChain || ''}
+              onChange={(value) => setSelectedBaseChain(value as Blockchain)}
+              size="md"
+              variant="filled"
+            />
+          </div>
+          <div className="flex justify-center">
             <button
               onClick={fetchData}
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              )}
               {loading ? t('loading') : t('refresh')}
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </AdvancedCardContent>
+      </AdvancedCard>
 
       {loading ? (
-        <Card>
-          <CardContent className="py-12 flex justify-center items-center">
-            <div className="text-gray-500">{t('loadingData')}</div>
-          </CardContent>
-        </Card>
+        <AdvancedCard variant="glass">
+          <AdvancedCardContent className="py-16 flex flex-col justify-center items-center gap-4">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-gray-600 text-lg font-medium">{t('loadingData')}</div>
+          </AdvancedCardContent>
+        </AdvancedCard>
       ) : (
         <>
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>{t('priceVolatilityHeatmap')}</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('priceVolatilityHeatmap')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent>
               <div className="overflow-x-auto">
                 <div className="min-w-full">
                   <div className="flex">
-                    <div className="w-24 shrink-0"></div>
+                    <div className="w-28 shrink-0"></div>
                     {supportedChains.map((chain) => (
-                      <div key={chain} className="flex-1 min-w-20 text-center px-1">
-                        <span className="text-xs font-medium text-gray-600">{chainNames[chain]}</span>
+                      <div key={chain} className="flex-1 min-w-24 text-center px-2 py-2">
+                        <span className="text-sm font-semibold text-gray-700">
+                          {chainNames[chain]}
+                        </span>
                       </div>
                     ))}
                   </div>
                   {supportedChains.map((xChain) => (
                     <div key={xChain} className="flex">
-                      <div className="w-24 shrink-0 flex items-center">
-                        <span className="text-xs font-medium text-gray-600">{chainNames[xChain]}</span>
+                      <div className="w-28 shrink-0 flex items-center py-2">
+                        <span className="text-sm font-semibold text-gray-700">
+                          {chainNames[xChain]}
+                        </span>
                       </div>
                       {supportedChains.map((yChain) => {
                         const cell = heatmapData.find(
@@ -586,20 +640,28 @@ export default function CrossChainPage() {
                         );
                         const percent = cell?.percent || 0;
                         const isDiagonal = xChain === yChain;
-                        
+
                         return (
                           <div
                             key={`${xChain}-${yChain}`}
-                            className="flex-1 min-w-20 h-14 flex items-center justify-center px-1"
+                            className="flex-1 min-w-24 h-16 flex items-center justify-center px-1 mx-0.5 my-0.5 rounded-lg"
                             style={{
-                              backgroundColor: isDiagonal ? '#f3f4f6' : getHeatmapColor(percent, maxHeatmapValue),
+                              backgroundColor: isDiagonal
+                                ? '#f3f4f6'
+                                : getHeatmapColor(percent, maxHeatmapValue),
                             }}
-                            title={isDiagonal ? '-' : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`}
+                            title={
+                              isDiagonal
+                                ? '-'
+                                : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`
+                            }
                           >
                             {isDiagonal ? (
-                              <span className="text-gray-300">-</span>
+                              <span className="text-gray-400 text-lg">—</span>
                             ) : (
-                              <span className={`text-xs font-semibold ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}>
+                              <span
+                                className={`text-xs font-bold ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}
+                              >
                                 {percent.toFixed(2)}%
                               </span>
                             )}
@@ -608,282 +670,287 @@ export default function CrossChainPage() {
                       })}
                     </div>
                   ))}
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <span className="text-xs text-gray-500">{t('low')}</span>
-                    <div className="w-32 h-3 rounded" style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}></div>
-                    <span className="text-xs text-gray-500">{t('high')}</span>
+                  <div className="mt-6 flex items-center justify-center gap-3">
+                    <span className="text-sm text-gray-600 font-medium">{t('low')}</span>
+                    <div
+                      className="w-40 h-4 rounded-xl shadow-inner"
+                      style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}
+                    ></div>
+                    <span className="text-sm text-gray-600 font-medium">{t('high')}</span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </AdvancedCardContent>
+          </AdvancedCard>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">{t('averagePrice')}</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-gray-900">
-                    {avgPrice > 0
-                      ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                      : '-'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">
-                  {t('highestPrice')} / {t('lowestPrice')}
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-gray-900">
-                    {maxPrice > 0
-                      ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                      : '-'}
-                  </p>
-                </div>
-                {minPrice > 0 && (
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-sm text-gray-500">
-                      {t('lowestPrice')}: $
-                      {minPrice.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">{t('priceRange')}</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-gray-900">
-                    {priceRange > 0
-                      ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                      : '-'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">{t('standardDeviation')}</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-gray-900">
-                    {standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-'}
-                  </p>
-                </div>
-                {standardDeviation > 0 && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    {t('absoluteValue')}: $
-                    {standardDeviation.toLocaleString(undefined, {
+            <StatCard
+              title={t('averagePrice')}
+              value={
+                avgPrice > 0
+                  ? avgPrice.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
-                    })}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">{t('coefficientOfVariation')}</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-gray-900">
-                    {coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-sm font-medium text-gray-600 mb-1">{t('consistencyRating')}</p>
-                <div className="flex items-baseline gap-2">
-                  <p
-                    className={`text-3xl font-bold ${
-                      getConsistencyRating(standardDeviationPercent) === 'excellent'
-                        ? 'text-green-600'
-                        : getConsistencyRating(standardDeviationPercent) === 'good'
-                          ? 'text-blue-600'
-                          : getConsistencyRating(standardDeviationPercent) === 'fair'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                    }`}
-                  >
-                    {standardDeviationPercent > 0
-                      ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)
-                      : '-'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                    })
+                  : '-'
+              }
+              prefix="$"
+              accentColor="blue"
+            />
+            <StatCard
+              title={`${t('highestPrice')} / ${t('lowestPrice')}`}
+              value={
+                maxPrice > 0
+                  ? maxPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : '-'
+              }
+              prefix="$"
+              accentColor="green"
+              description={
+                minPrice > 0
+                  ? `${t('lowestPrice')}: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : ''
+              }
+            />
+            <StatCard
+              title={t('priceRange')}
+              value={
+                priceRange > 0
+                  ? priceRange.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : '-'
+              }
+              prefix="$"
+              accentColor="purple"
+            />
+            <StatCard
+              title={t('standardDeviation')}
+              value={standardDeviation > 0 ? standardDeviationPercent.toFixed(4) : '-'}
+              suffix="%"
+              accentColor="orange"
+              description={
+                standardDeviation > 0
+                  ? `${t('absoluteValue')}: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : ''
+              }
+            />
+            <StatCard
+              title={t('coefficientOfVariation')}
+              value={coefficientOfVariation > 0 ? (coefficientOfVariation * 100).toFixed(4) : '-'}
+              suffix="%"
+              accentColor="cyan"
+            />
+            <StatCard
+              title={t('consistencyRating')}
+              value={
+                standardDeviationPercent > 0
+                  ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)
+                  : '-'
+              }
+              accentColor={
+                consistencyRatingColorMap[getConsistencyRating(standardDeviationPercent)]
+              }
+            />
           </div>
-        </div>
 
-        <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>{t('priceComparisonTable')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('blockchain')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('price')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('differenceVs', {
-                          chain: selectedBaseChain ? chainNames[selectedBaseChain] : '',
+          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('priceComparisonTable')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent className="px-4">
+              <AdvancedTable striped hoverable>
+                <AdvancedTableHeader>
+                  <AdvancedTableRow hoverable={false}>
+                    <AdvancedTableHead>{t('blockchain')}</AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">{t('price')}</AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">
+                      {t('differenceVs')}: {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
+                    </AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">
+                      {t('percentDifference')}
+                    </AdvancedTableHead>
+                  </AdvancedTableRow>
+                </AdvancedTableHeader>
+                <AdvancedTableBody>
+                  {priceDifferences.map((item, index) => (
+                    <AdvancedTableRow key={item.chain}>
+                      <AdvancedTableCell>
+                        <div className="flex items-center">
+                          <div
+                            className="w-4 h-4 rounded-full mr-3 shadow-sm"
+                            style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
+                          />
+                          <span className="font-semibold text-gray-800">
+                            {chainNames[item.chain as Blockchain]}
+                          </span>
+                        </div>
+                      </AdvancedTableCell>
+                      <AdvancedTableCell className="text-right font-mono text-gray-800">
+                        $
+                        {item.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
                         })}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('percentDifference')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {priceDifferences.map((item, index) => (
-                      <tr key={item.chain} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                      </AdvancedTableCell>
+                      <AdvancedTableCell className="text-right font-mono">
+                        <span
+                          className={
+                            item.diff >= 0
+                              ? 'text-green-600 font-semibold'
+                              : 'text-red-600 font-semibold'
+                          }
+                        >
+                          {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
+                        </span>
+                      </AdvancedTableCell>
+                      <AdvancedTableCell className="text-right font-mono">
+                        <span
+                          className={
+                            item.diffPercent >= 0
+                              ? 'text-green-600 font-semibold'
+                              : 'text-red-600 font-semibold'
+                          }
+                        >
+                          {item.diffPercent >= 0 ? '+' : ''}
+                          {item.diffPercent.toFixed(4)}%
+                        </span>
+                      </AdvancedTableCell>
+                    </AdvancedTableRow>
+                  ))}
+                </AdvancedTableBody>
+              </AdvancedTable>
+            </AdvancedCardContent>
+          </AdvancedCard>
+
+          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('stabilityAnalysis')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent className="px-4">
+              <AdvancedTable striped hoverable>
+                <AdvancedTableHeader>
+                  <AdvancedTableRow hoverable={false}>
+                    <AdvancedTableHead>{t('blockchain')}</AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">
+                      {t('priceVolatility')}
+                    </AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">
+                      {t('stabilityRating')}
+                    </AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">
+                      {t('averageDelay')}
+                    </AdvancedTableHead>
+                    <AdvancedTableHead className="text-right">{t('maxDelay')}</AdvancedTableHead>
+                  </AdvancedTableRow>
+                </AdvancedTableHeader>
+                <AdvancedTableBody>
+                  {supportedChains.map((chain, index) => {
+                    const volatility = chainVolatility[chain] ?? 0;
+                    const delay = updateDelays[chain];
+                    const stabilityRating = getStabilityRating(volatility);
+
+                    const stabilityColorMap: Record<string, any> = {
+                      stable: 'text-green-600',
+                      moderate: 'text-yellow-600',
+                      unstable: 'text-red-600',
+                    };
+
+                    return (
+                      <AdvancedTableRow key={chain}>
+                        <AdvancedTableCell>
                           <div className="flex items-center">
                             <div
-                              className="w-3 h-3 rounded-full mr-3"
-                              style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
+                              className="w-4 h-4 rounded-full mr-3 shadow-sm"
+                              style={{ backgroundColor: chainColors[chain] }}
                             />
-                            <span className="text-sm font-medium text-gray-900">
-                              {chainNames[item.chain as Blockchain]}
-                            </span>
+                            <span className="font-semibold text-gray-800">{chainNames[chain]}</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                          $
-                          {item.price.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4,
-                          })}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono">
-                          <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
+                        </AdvancedTableCell>
+                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                          {volatility > 0 ? `${volatility.toFixed(4)}%` : '-'}
+                        </AdvancedTableCell>
+                        <AdvancedTableCell className="text-right">
+                          <span className={`font-bold ${stabilityColorMap[stabilityRating]}`}>
+                            {volatility > 0 ? t(`stability.${stabilityRating}`) : '-'}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono">
-                          <span
-                            className={item.diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}
-                          >
-                            {item.diffPercent >= 0 ? '+' : ''}
-                            {item.diffPercent.toFixed(4)}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                        </AdvancedTableCell>
+                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                          {delay ? `${delay.avgDelay.toFixed(2)} ${t('seconds')}` : '-'}
+                        </AdvancedTableCell>
+                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                          {delay ? `${delay.maxDelay.toFixed(2)} ${t('seconds')}` : '-'}
+                        </AdvancedTableCell>
+                      </AdvancedTableRow>
+                    );
+                  })}
+                </AdvancedTableBody>
+              </AdvancedTable>
+            </AdvancedCardContent>
+          </AdvancedCard>
 
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>{t('stabilityAnalysis')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('blockchain')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('priceVolatility')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('stabilityRating')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('averageDelay')}
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('maxDelay')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {supportedChains.map((chain, index) => {
-                      const volatility = chainVolatility[chain] ?? 0;
-                      const delay = updateDelays[chain];
-                      const stabilityRating = getStabilityRating(volatility);
-                      
-                      return (
-                        <tr key={chain} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div
-                                className="w-3 h-3 rounded-full mr-3"
-                                style={{ backgroundColor: chainColors[chain] }}
-                              />
-                              <span className="text-sm font-medium text-gray-900">
-                                {chainNames[chain]}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                            {volatility > 0 ? `${volatility.toFixed(4)}%` : '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <span
-                              className={`text-sm font-semibold ${
-                                stabilityRating === 'stable'
-                                  ? 'text-green-600'
-                                  : stabilityRating === 'moderate'
-                                    ? 'text-yellow-600'
-                                    : 'text-red-600'
-                              }`}
-                            >
-                              {volatility > 0 ? t(`stability.${stabilityRating}`) : '-'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                            {delay ? `${delay.avgDelay.toFixed(2)} ${t('seconds')}` : '-'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
-                            {delay ? `${delay.maxDelay.toFixed(2)} ${t('seconds')}` : '-'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('priceChart')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
+          <AdvancedCard variant="default" hoverable={false}>
+            <AdvancedCardHeader>
+              <AdvancedCardTitle>{t('priceChart')}</AdvancedCardTitle>
+            </AdvancedCardHeader>
+            <AdvancedCardContent>
+              <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
+                  <LineChart data={chartData} margin={{ top: 20, right: 40, left: 20, bottom: 20 }}>
+                    <defs>
+                      {supportedChains.map((chain) => (
+                        <linearGradient key={chain} id={`color${chain}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={chainColors[chain]} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={chainColors[chain]} stopOpacity={0} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="5 5" stroke="#f3f4f6" vertical={false} />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={10}
+                    />
                     <YAxis
                       domain={['auto', 'auto']}
                       tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={80}
                     />
                     <Tooltip
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: 'none',
+                        borderRadius: '16px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        padding: '16px 20px',
+                        backdropFilter: 'blur(10px)'
+                      }}
                       formatter={(value) => [`$${Number(value).toFixed(4)}`, '']}
                       labelFormatter={(label) => label}
+                      cursor={{ stroke: '#e5e7eb', strokeWidth: 1, strokeDasharray: '4 4' }}
                     />
-                    <Legend />
+                    <Legend 
+                      wrapperStyle={{ 
+                        paddingTop: '24px', 
+                        display: 'flex', 
+                        justifyContent: 'center',
+                        flexWrap: 'wrap',
+                        gap: '16px'
+                      }}
+                      iconType="circle"
+                      iconSize={8}
+                    />
                     {supportedChains.map((chain) => (
                       <Line
                         key={chain}
@@ -891,16 +958,17 @@ export default function CrossChainPage() {
                         dataKey={chain}
                         name={chainNames[chain]}
                         stroke={chainColors[chain]}
-                        dot={false}
-                        strokeWidth={2}
-                        activeDot={{ r: 8 }}
+                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
+                        strokeWidth={3}
+                        activeDot={{ r: 7, strokeWidth: 0 }}
+                        fill={`url(#color${chain})`}
                       />
                     ))}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
+            </AdvancedCardContent>
+          </AdvancedCard>
         </>
       )}
     </div>

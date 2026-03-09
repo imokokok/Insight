@@ -3,14 +3,44 @@ import { ReactNode } from 'react';
 interface CardProps {
   children: ReactNode;
   className?: string;
+  variant?: 'default' | 'elevated' | 'outlined' | 'gradient';
+  hoverable?: boolean;
+  style?: React.CSSProperties;
 }
 
-export default function Card({ children, className = '' }: CardProps) {
+export default function Card({ 
+  children, 
+  className = '', 
+  variant = 'default',
+  hoverable = true,
+  style
+}: CardProps) {
+  const baseClasses = 'bg-white rounded-2xl transition-all duration-500 ease-out';
+  
+  const variantClasses = {
+    default: 'border border-gray-100 shadow-sm',
+    elevated: 'border-0 shadow-lg shadow-gray-200/50',
+    outlined: 'border-2 border-gray-200 shadow-none',
+    gradient: 'border-0 shadow-lg shadow-blue-200/30 relative overflow-hidden',
+  };
+  
+  const hoverClasses = hoverable
+    ? 'hover:shadow-2xl hover:shadow-blue-100/60 hover:-translate-y-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
+    : '';
+  
+  const gradientOverlay = variant === 'gradient' ? (
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 pointer-events-none" />
+  ) : null;
+  
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${hoverClasses} ${className}`}
+      style={style}
     >
-      {children}
+      {gradientOverlay}
+      <div className="relative z-10">
+        {children}
+      </div>
     </div>
   );
 }
@@ -21,7 +51,7 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`px-8 py-6 border-b border-gray-100 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-5 border-b border-gray-100 ${className}`}>{children}</div>;
 }
 
 interface CardTitleProps {
@@ -43,5 +73,5 @@ interface CardContentProps {
 }
 
 export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`px-8 py-6 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-5 ${className}`}>{children}</div>;
 }
