@@ -19,10 +19,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   const platformStats = [
-    { label: t('home.platformStats.oraclesIntegrated'), value: '5', change: t('home.platformStats.active') },
-    { label: t('home.platformStats.blockchains'), value: '6', change: t('home.platformStats.supported') },
-    { label: t('home.platformStats.dataFeeds'), value: '1000+', change: t('home.platformStats.growing') },
-    { label: t('home.platformStats.comparisons'), value: 'Cross-Chain', change: t('home.platformStats.available') },
+    {
+      label: t('home.platformStats.oraclesIntegrated'),
+      value: '5',
+      change: t('home.platformStats.active'),
+    },
+    {
+      label: t('home.platformStats.blockchains'),
+      value: '6',
+      change: t('home.platformStats.supported'),
+    },
+    {
+      label: t('home.platformStats.dataFeeds'),
+      value: '1000+',
+      change: t('home.platformStats.growing'),
+    },
+    {
+      label: t('home.platformStats.comparisons'),
+      value: 'Cross-Chain',
+      change: t('home.platformStats.available'),
+    },
   ];
 
   const quickStats = [
@@ -113,9 +129,7 @@ export default function Home() {
       <div className="mb-12">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('home.title')}</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            {t('home.subtitle')}
-          </p>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">{t('home.subtitle')}</p>
         </div>
       </div>
 
@@ -192,15 +206,9 @@ export default function Home() {
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
         <CardContent className="py-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {t('home.aboutTitle')}
-            </h2>
-            <p className="text-gray-600 max-w-3xl mx-auto mb-4">
-              {t('home.aboutDescription')}
-            </p>
-            <p className="text-gray-500 text-sm">
-              {t('home.builtWith')}
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('home.aboutTitle')}</h2>
+            <p className="text-gray-600 max-w-3xl mx-auto mb-4">{t('home.aboutDescription')}</p>
+            <p className="text-gray-500 text-sm">{t('home.builtWith')}</p>
           </div>
         </CardContent>
       </Card>

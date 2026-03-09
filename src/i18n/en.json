@@ -47,7 +47,12 @@
     "symbol": "Symbol",
     "price": "Price",
     "confidence": "Confidence",
-    "timestamp": "Timestamp"
+    "timestamp": "Timestamp",
+    "averagePrice": "Average Price",
+    "highestPrice": "Highest Price",
+    "lowestPrice": "Lowest Price",
+    "priceRange": "Price Range",
+    "deviation": "Deviation (%)"
   },
   "crossChain": {
     "title": "Cross-Chain Price Comparison",

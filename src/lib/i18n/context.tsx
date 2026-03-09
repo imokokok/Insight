@@ -44,7 +44,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = (key: string): string => {
     const keys = key.split('.');
     let value: any = translations[locale];
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
@@ -52,15 +52,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return key;
       }
     }
-    
+
     return typeof value === 'string' ? value : key;
   };
 
-  return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n() {

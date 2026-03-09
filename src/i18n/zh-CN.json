@@ -47,7 +47,12 @@
     "symbol": "交易对",
     "price": "价格",
     "confidence": "置信度",
-    "timestamp": "时间戳"
+    "timestamp": "时间戳",
+    "averagePrice": "平均价格",
+    "highestPrice": "最高价格",
+    "lowestPrice": "最低价格",
+    "priceRange": "价格区间",
+    "deviation": "偏差百分比"
   },
   "crossChain": {
     "title": "跨链价格比较",
