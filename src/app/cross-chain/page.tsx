@@ -54,6 +54,12 @@ const chainNames: Record<Blockchain, string> = {
   [Blockchain.OPTIMISM]: 'Optimism',
   [Blockchain.POLYGON]: 'Polygon',
   [Blockchain.SOLANA]: 'Solana',
+  [Blockchain.AVALANCHE]: 'Avalanche',
+  [Blockchain.FANTOM]: 'Fantom',
+  [Blockchain.CRONOS]: 'Cronos',
+  [Blockchain.JUNO]: 'Juno',
+  [Blockchain.COSMOS]: 'Cosmos',
+  [Blockchain.OSMOSIS]: 'Osmosis',
 };
 
 const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
@@ -64,6 +70,12 @@ const chainColors: Record<Blockchain, string> = {
   [Blockchain.OPTIMISM]: '#EF4444',
   [Blockchain.POLYGON]: '#A855F7',
   [Blockchain.SOLANA]: '#10B981',
+  [Blockchain.AVALANCHE]: '#E84133',
+  [Blockchain.FANTOM]: '#1969FF',
+  [Blockchain.CRONOS]: '#002D74',
+  [Blockchain.JUNO]: '#DC1FFF',
+  [Blockchain.COSMOS]: '#2E3148',
+  [Blockchain.OSMOSIS]: '#FAAB3B',
 };
 
 const TIME_RANGES = [

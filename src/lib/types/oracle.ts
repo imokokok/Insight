@@ -12,6 +12,12 @@ export enum Blockchain {
   OPTIMISM = 'optimism',
   POLYGON = 'polygon',
   SOLANA = 'solana',
+  AVALANCHE = 'avalanche',
+  FANTOM = 'fantom',
+  CRONOS = 'cronos',
+  JUNO = 'juno',
+  COSMOS = 'cosmos',
+  OSMOSIS = 'osmosis',
 }
 
 export interface PriceData {

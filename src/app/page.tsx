@@ -42,53 +42,53 @@ export default function Home() {
   ];
 
   const quickStats = [
-    { provider: 'Chainlink', symbol: 'LINK', price: 14.85, change: '+2.3%' },
-    { provider: 'Band Protocol', symbol: 'BAND', price: 1.72, change: '-0.8%' },
-    { provider: 'Pyth Network', symbol: 'PYTH', price: 0.98, change: '+1.5%' },
-    { provider: 'UMA', symbol: 'UMA', price: 4.56, change: '+0.2%' },
+    { provider: 'Chainlink', symbol: 'LINK' },
+    { provider: 'Band Protocol', symbol: 'BAND' },
+    { provider: 'Pyth Network', symbol: 'PYTH' },
+    { provider: 'UMA', symbol: 'UMA' },
   ];
 
   const navigationCards = [
     {
       href: '/cross-oracle',
       title: t('navbar.crossOracle'),
-      description: 'Compare performance, security, and features across different oracle solutions',
+      description: t('home.navigationCards.crossOracle'),
       icon: '🔍',
     },
     {
       href: '/cross-chain',
       title: t('navbar.crossChain'),
-      description: 'Analyze oracle performance across multiple blockchain networks',
+      description: t('home.navigationCards.crossChain'),
       icon: '⛓️',
     },
     {
       href: '/chainlink',
       title: 'Chainlink',
-      description: 'Decentralized oracle network with robust infrastructure',
+      description: t('home.navigationCards.chainlink'),
       icon: '🔗',
     },
     {
       href: '/band-protocol',
       title: 'Band Protocol',
-      description: 'Cross-chain data oracle platform',
+      description: t('home.navigationCards.bandProtocol'),
       icon: '📡',
     },
     {
       href: '/uma',
       title: 'UMA',
-      description: 'Optimistic oracle protocol for decentralized finance',
+      description: t('home.navigationCards.uma'),
       icon: '⭐',
     },
     {
       href: '/pyth-network',
       title: 'Pyth Network',
-      description: 'High-frequency financial data oracle',
+      description: t('home.navigationCards.pythNetwork'),
       icon: '📊',
     },
     {
       href: '/api3',
       title: 'API3',
-      description: 'Decentralized API solutions connecting real-world data',
+      description: t('home.navigationCards.api3'),
       icon: '🔌',
     },
   ];
@@ -180,23 +180,14 @@ export default function Home() {
                     <p className="text-xl sm:text-2xl font-bold text-gray-900">
                       ${prices[stat.symbol].price.toFixed(2)}
                     </p>
-                    <p
-                      className={`text-xs sm:text-sm mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {stat.change}
+                    <p className="text-xs sm:text-sm mt-1 text-green-600">
+                      {((prices[stat.symbol].confidence ?? 0.95) * 100).toFixed(0)}% confidence
                     </p>
                   </>
                 ) : (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                      ${stat.price.toFixed(2)}
-                    </p>
-                    <p
-                      className={`text-xs sm:text-sm mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {stat.change}
-                    </p>
-                  </>
+                  <div className="h-10 flex items-center justify-center text-gray-400 text-sm">
+                    {t('home.unavailable')}
+                  </div>
                 )}
               </CardContent>
             </Card>
