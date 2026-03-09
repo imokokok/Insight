@@ -3,6 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  --finance-primary: #1e40af;
+  --finance-secondary: #3b82f6;
+  --finance-accent: #60a5fa;
+  --finance-success: #10b981;
+  --finance-warning: #f59e0b;
+  --finance-danger: #ef4444;
+  --finance-neutral: #64748b;
+  
+  --finance-gradient-blue: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  --finance-gradient-green: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+  --finance-gradient-purple: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
+  --finance-gradient-gold: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
+  
+  --shadow-finance-soft: 0 4px 20px -2px rgba(30, 64, 175, 0.1);
+  --shadow-finance-medium: 0 8px 30px -4px rgba(30, 64, 175, 0.15);
+  --shadow-finance-strong: 0 12px 40px -6px rgba(30, 64, 175, 0.2);
 }
 
 @theme inline {
@@ -10,6 +27,14 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  --color-finance-primary: var(--finance-primary);
+  --color-finance-secondary: var(--finance-secondary);
+  --color-finance-accent: var(--finance-accent);
+  --color-finance-success: var(--finance-success);
+  --color-finance-warning: var(--finance-warning);
+  --color-finance-danger: var(--finance-danger);
+  --color-finance-neutral: var(--finance-neutral);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +48,48 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.transition-finance {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-finance-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift {
+  transform: translateY(0);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.animate-pulse-finance {
+  animation: pulse-finance 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-finance {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
