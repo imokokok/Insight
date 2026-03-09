@@ -317,19 +317,44 @@ function CircularGauge({
     switch (trend) {
       case 'up':
         return (
-          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          <svg
+            className="w-5 h-5 text-emerald-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
           </svg>
         );
       case 'down':
         return (
-          <svg className="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+          <svg
+            className="w-5 h-5 text-rose-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+            />
           </svg>
         );
       default:
         return (
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
           </svg>
         );
@@ -508,7 +533,12 @@ function ConfidenceAnalysisChart() {
               yAxisId="count"
               tick={{ fontSize: 11, fill: '#6B7280' }}
               axisLine={{ stroke: '#E5E7EB' }}
-              label={{ value: 'Feed Count', angle: -90, position: 'insideLeft', style: { fontSize: 10, fill: '#9CA3AF' } }}
+              label={{
+                value: 'Feed Count',
+                angle: -90,
+                position: 'insideLeft',
+                style: { fontSize: 10, fill: '#9CA3AF' },
+              }}
             />
             <YAxis
               yAxisId="accuracy"
@@ -517,7 +547,12 @@ function ConfidenceAnalysisChart() {
               tick={{ fontSize: 11, fill: '#6B7280' }}
               axisLine={{ stroke: '#E5E7EB' }}
               tickFormatter={(value) => `${value}%`}
-              label={{ value: 'Accuracy %', angle: 90, position: 'insideRight', style: { fontSize: 10, fill: '#9CA3AF' } }}
+              label={{
+                value: 'Accuracy %',
+                angle: 90,
+                position: 'insideRight',
+                style: { fontSize: 10, fill: '#9CA3AF' },
+              }}
             />
             <Tooltip
               content={({ active, payload }) => {
@@ -541,7 +576,8 @@ function ConfidenceAnalysisChart() {
       <div className="mt-4 p-3 bg-violet-50 rounded-lg border border-violet-200">
         <p className="text-xs text-violet-700">
           <span className="font-semibold">洞察：</span>
-          置信区间与预测准确率呈负相关。低置信区间（&lt; 20 bps）的价格馈送具有更高的预测准确率（&gt; 94%）。
+          置信区间与预测准确率呈负相关。低置信区间（&lt; 20
+          bps）的价格馈送具有更高的预测准确率（&gt; 94%）。
         </p>
       </div>
     </div>
@@ -562,7 +598,12 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
           <p className="text-xs text-gray-600 mt-1">过去12个月的安全记录</p>
         </div>
         <div className="p-2 bg-gray-100 rounded-lg">
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -579,7 +620,7 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
 
         {/* 事件列表 */}
         <div className="space-y-4">
-          {sortedEvents.map((event, index) => {
+          {sortedEvents.map((event) => {
             const typeConfig = getEventTypeConfig(event.type);
 
             return (
@@ -763,7 +804,12 @@ function ConfidenceIntervalExplanation() {
     <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl p-5">
       <div className="flex items-start gap-3">
         <div className="p-2 bg-violet-100 rounded-lg">
-          <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-violet-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -775,7 +821,8 @@ function ConfidenceIntervalExplanation() {
         <div>
           <h4 className="text-gray-900 font-semibold text-sm">Pyth 置信区间风险管理</h4>
           <p className="text-gray-600 text-xs mt-1">
-            Pyth 独特的置信区间机制为每个价格更新提供不确定性量化，帮助 DeFi 协议做出更明智的风险决策。
+            Pyth 独特的置信区间机制为每个价格更新提供不确定性量化，帮助 DeFi
+            协议做出更明智的风险决策。
             当置信区间扩大时，表示市场不确定性增加，协议可以相应调整风险参数。
           </p>
           <div className="grid grid-cols-3 gap-4 mt-3">
@@ -832,7 +879,12 @@ export function RiskAssessmentPanel() {
               <p className="text-xs text-gray-600 mt-1">综合安全评估</p>
             </div>
             <div className="p-2 bg-gray-100 rounded-lg">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

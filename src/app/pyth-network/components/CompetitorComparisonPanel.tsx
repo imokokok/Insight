@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -222,7 +222,12 @@ function ComparisonMatrix() {
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
       <div className="p-4 border-b border-slate-700/50">
         <h3 className="text-white font-semibold flex items-center gap-2">
-          <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-violet-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -328,7 +333,12 @@ function LatencyComparisonChart() {
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold flex items-center gap-2">
-          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-emerald-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -399,7 +409,12 @@ function MarketShareChart() {
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
       <div className="mb-4">
         <h3 className="text-white font-semibold flex items-center gap-2">
-          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-amber-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -450,7 +465,10 @@ function MarketShareChart() {
                 return (
                   <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: data.color }}
+                      />
                       <span className="text-white font-medium text-sm">{data.name}</span>
                     </div>
                     <div className="space-y-1 text-xs">
@@ -518,7 +536,12 @@ function RadarComparisonChart() {
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold flex items-center gap-2">
-          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-purple-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -875,7 +898,12 @@ export function CompetitorComparisonPanel() {
       {/* 技术架构差异 */}
       <div>
         <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-cyan-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

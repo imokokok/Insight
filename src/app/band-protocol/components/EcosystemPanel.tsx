@@ -1,16 +1,34 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
+
+function CustomTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+        <p className="text-gray-900 font-semibold text-sm mb-2">{data.fullName}</p>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-gray-500">24小时:</span>
+            <span className="text-purple-600 font-medium">{data.requests.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-gray-500">7天:</span>
+            <span className="text-purple-600 font-medium">{data.requests7d.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-gray-500">30天:</span>
+            <span className="text-purple-600 font-medium">{data.requests30d.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
 
 // 区块链网络信息
 interface NetworkInfo {
@@ -214,7 +232,9 @@ function BridgeStatusIndicator({ status }: { status: NetworkInfo['bridgeStatus']
   return (
     <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full ${cfg.bgColor}`}>
       <span className="relative flex h-2 w-2">
-        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${cfg.pulseColor} opacity-75`}></span>
+        <span
+          className={`animate-ping absolute inline-flex h-full w-full rounded-full ${cfg.pulseColor} opacity-75`}
+        ></span>
         <span className={`relative inline-flex rounded-full h-2 w-2 ${cfg.color}`}></span>
       </span>
       <span className={`text-xs font-medium ${cfg.textColor}`}>{cfg.label}</span>
@@ -255,32 +275,6 @@ function CrossChainChart({ data }: { data: ChainDataRequest[] }) {
     requests30d: chain.requestCount30d,
   }));
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
-          <p className="text-gray-900 font-semibold text-sm mb-2">{data.fullName}</p>
-          <div className="space-y-1 text-xs">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-gray-500">24小时:</span>
-              <span className="text-purple-600 font-medium">{data.requests.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-gray-500">7天:</span>
-              <span className="text-purple-600 font-medium">{data.requests7d.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-gray-500">30天:</span>
-              <span className="text-purple-600 font-medium">{data.requests30d.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -307,12 +301,7 @@ function CrossChainChart({ data }: { data: ChainDataRequest[] }) {
               tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F3F4F6' }} />
-            <Bar
-              dataKey="requests"
-              fill="#7C3AED"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={50}
-            />
+            <Bar dataKey="requests" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={50} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -458,7 +447,10 @@ export function EcosystemPanel() {
     setStats((prev) => ({
       totalRequests: prev.totalRequests + Math.round((Math.random() - 0.3) * 1000),
       successRate: Math.min(100, Math.max(99.5, prev.successRate + (Math.random() - 0.5) * 0.1)),
-      avgResponseTime: Math.max(150, Math.min(500, prev.avgResponseTime + (Math.random() - 0.5) * 20)),
+      avgResponseTime: Math.max(
+        150,
+        Math.min(500, prev.avgResponseTime + (Math.random() - 0.5) * 20)
+      ),
       dataSourceCount: prev.dataSourceCount + (Math.random() > 0.9 ? 1 : 0),
     }));
 
@@ -496,7 +488,14 @@ export function EcosystemPanel() {
         <div className="flex items-center justify-center h-48">
           <div className="flex items-center gap-2 text-gray-400">
             <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
               <path
                 className="opacity-75"
                 fill="currentColor"

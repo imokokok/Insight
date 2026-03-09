@@ -1,14 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { API3Client, FirstPartyOracleData } from '@/lib/oracles/api3';
 import { useI18n } from '@/lib/i18n/context';
 
 const api3Client = new API3Client();
 
 const COLORS = ['#1E40AF', '#3B82F6', '#6366F1', '#8B5CF6'];
-const CHAIN_COLORS = ['#1E40AF', '#10B981', '#8B5CF6'];
 
 export function FirstPartyOraclePanel() {
   const { t } = useI18n();
@@ -34,8 +45,19 @@ export function FirstPartyOraclePanel() {
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-2 text-gray-400">
           <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
           </svg>
           <span>{t('api3.loading')}</span>
         </div>
@@ -45,7 +67,10 @@ export function FirstPartyOraclePanel() {
 
   // 地理分布数据
   const regionData = [
-    { name: t('api3.firstParty.regions.northAmerica'), value: data.airnodeDeployments.byRegion.northAmerica },
+    {
+      name: t('api3.firstParty.regions.northAmerica'),
+      value: data.airnodeDeployments.byRegion.northAmerica,
+    },
     { name: t('api3.firstParty.regions.europe'), value: data.airnodeDeployments.byRegion.europe },
     { name: t('api3.firstParty.regions.asia'), value: data.airnodeDeployments.byRegion.asia },
     { name: t('api3.firstParty.regions.others'), value: data.airnodeDeployments.byRegion.others },
@@ -60,16 +85,28 @@ export function FirstPartyOraclePanel() {
 
   // API 提供商类型数据
   const providerTypeData = [
-    { name: t('api3.firstParty.providerTypes.exchanges'), value: data.airnodeDeployments.byProviderType.exchanges },
-    { name: t('api3.firstParty.providerTypes.traditionalFinance'), value: data.airnodeDeployments.byProviderType.traditionalFinance },
-    { name: t('api3.firstParty.providerTypes.others'), value: data.airnodeDeployments.byProviderType.others },
+    {
+      name: t('api3.firstParty.providerTypes.exchanges'),
+      value: data.airnodeDeployments.byProviderType.exchanges,
+    },
+    {
+      name: t('api3.firstParty.providerTypes.traditionalFinance'),
+      value: data.airnodeDeployments.byProviderType.traditionalFinance,
+    },
+    {
+      name: t('api3.firstParty.providerTypes.others'),
+      value: data.airnodeDeployments.byProviderType.others,
+    },
   ];
 
   // dAPI 资产类型数据
   const assetTypeData = [
     { name: t('api3.firstParty.assetTypes.crypto'), value: data.dapiCoverage.byAssetType.crypto },
     { name: t('api3.firstParty.assetTypes.forex'), value: data.dapiCoverage.byAssetType.forex },
-    { name: t('api3.firstParty.assetTypes.commodities'), value: data.dapiCoverage.byAssetType.commodities },
+    {
+      name: t('api3.firstParty.assetTypes.commodities'),
+      value: data.dapiCoverage.byAssetType.commodities,
+    },
     { name: t('api3.firstParty.assetTypes.stocks'), value: data.dapiCoverage.byAssetType.stocks },
   ];
 
@@ -80,11 +117,23 @@ export function FirstPartyOraclePanel() {
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-blue-600 rounded-lg">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
-            <h3 className="font-semibold text-gray-900">{t('api3.firstParty.advantages.noMiddlemen')}</h3>
+            <h3 className="font-semibold text-gray-900">
+              {t('api3.firstParty.advantages.noMiddlemen')}
+            </h3>
           </div>
           <p className="text-sm text-gray-600">{t('api3.firstParty.advantages.noMiddlemenDesc')}</p>
         </div>
@@ -92,31 +141,61 @@ export function FirstPartyOraclePanel() {
         <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-green-600 rounded-lg">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
-            <h3 className="font-semibold text-gray-900">{t('api3.firstParty.advantages.sourceTransparency')}</h3>
+            <h3 className="font-semibold text-gray-900">
+              {t('api3.firstParty.advantages.sourceTransparency')}
+            </h3>
           </div>
-          <p className="text-sm text-gray-600">{t('api3.firstParty.advantages.sourceTransparencyDesc')}</p>
+          <p className="text-sm text-gray-600">
+            {t('api3.firstParty.advantages.sourceTransparencyDesc')}
+          </p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 bg-purple-600 rounded-lg">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
-            <h3 className="font-semibold text-gray-900">{t('api3.firstParty.advantages.fastResponse')}</h3>
+            <h3 className="font-semibold text-gray-900">
+              {t('api3.firstParty.advantages.fastResponse')}
+            </h3>
           </div>
-          <p className="text-sm text-gray-600">{t('api3.firstParty.advantages.fastResponseDesc')} {data.advantages.responseTime}ms</p>
+          <p className="text-sm text-gray-600">
+            {t('api3.firstParty.advantages.fastResponseDesc')} {data.advantages.responseTime}ms
+          </p>
         </div>
       </div>
 
       {/* Airnode 统计 */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('api3.firstParty.airnodeStats')}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('api3.firstParty.airnodeStats')}
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-2xl font-bold text-blue-600">{data.airnodeDeployments.total}</p>
@@ -141,7 +220,9 @@ export function FirstPartyOraclePanel() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 地理分布 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('api3.firstParty.geographicDistribution')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('api3.firstParty.geographicDistribution')}
+          </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -168,7 +249,9 @@ export function FirstPartyOraclePanel() {
 
         {/* 区块链分布 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('api3.firstParty.chainDistribution')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('api3.firstParty.chainDistribution')}
+          </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chainData} layout="vertical">
@@ -184,7 +267,9 @@ export function FirstPartyOraclePanel() {
 
         {/* API 提供商类型 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('api3.firstParty.providerTypes.title')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('api3.firstParty.providerTypes.title')}
+          </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -211,7 +296,9 @@ export function FirstPartyOraclePanel() {
 
         {/* dAPI 资产类型分布 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('api3.firstParty.dapiAssetTypes')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('api3.firstParty.dapiAssetTypes')}
+          </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={assetTypeData}>

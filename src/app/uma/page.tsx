@@ -28,7 +28,9 @@ type TabItem = {
 
 // UMA Logo 组件
 const UMAIcon = ({ className = 'w-8 h-8' }: { className?: string }) => (
-  <div className={`flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg text-white font-bold ${className}`}>
+  <div
+    className={`flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg text-white font-bold ${className}`}
+  >
     <span className="text-sm">UMA</span>
   </div>
 );
@@ -497,7 +499,10 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
         )}
 
         {/* 以下只在 market/network/disputes/validators 页面显示 */}
-        {(activeTab === 'market' || activeTab === 'network' || activeTab === 'disputes' || activeTab === 'validators') && (
+        {(activeTab === 'market' ||
+          activeTab === 'network' ||
+          activeTab === 'disputes' ||
+          activeTab === 'validators') && (
           <>
             {/* 统计卡片网格 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -510,10 +515,7 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               {/* 价格图表 */}
               <DashboardCard title={t('uma.priceChart.title')} className="lg:col-span-2">
-                <PriceChart
-                  timeRange={timeRange}
-                  height={320}
-                />
+                <PriceChart timeRange={timeRange} height={320} />
               </DashboardCard>
 
               {/* 快速统计 */}
@@ -608,7 +610,6 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
 
 // 主页面组件
 export default function UMAPage() {
-  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState('market');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -656,8 +657,20 @@ export default function UMAPage() {
   }, [priceData, historicalData, timeRange]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData, timeRange]);
+    const fetchAndSetData = async () => {
+      try {
+        const [price, history] = await Promise.all([
+          umaClient.getPrice('UMA'),
+          umaClient.getHistoricalPrices('UMA'),
+        ]);
+        setPriceData(price);
+        setHistoricalData(history);
+      } catch (error) {
+        console.error('Error fetching UMA data:', error);
+      }
+    };
+    fetchAndSetData();
+  }, [timeRange]);
 
   return (
     <div className="min-h-screen bg-gray-50">

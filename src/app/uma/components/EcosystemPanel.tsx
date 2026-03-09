@@ -3,6 +3,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number }>;
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+        <p className="text-gray-900 font-semibold text-sm">{payload[0].name}</p>
+        <p className="text-purple-600 font-bold">{payload[0].value}%</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 // 集成协议数据
 interface Protocol {
   id: string;
@@ -115,15 +132,15 @@ function formatCurrency(value: number, compact: boolean = false): string {
 }
 
 // 协议卡片组件
-function ProtocolCard({ protocol, index }: { protocol: Protocol; index: number }) {
+function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      '跨链桥': 'bg-blue-50 text-blue-600 border-blue-200',
-      '预测市场': 'bg-green-50 text-green-600 border-green-200',
-      '保险': 'bg-purple-50 text-purple-600 border-purple-200',
-      '社区': 'bg-pink-50 text-pink-600 border-pink-200',
-      '稳定币': 'bg-yellow-50 text-yellow-600 border-yellow-200',
-      '衍生品': 'bg-orange-50 text-orange-600 border-orange-200',
+      跨链桥: 'bg-blue-50 text-blue-600 border-blue-200',
+      预测市场: 'bg-green-50 text-green-600 border-green-200',
+      保险: 'bg-purple-50 text-purple-600 border-purple-200',
+      社区: 'bg-pink-50 text-pink-600 border-pink-200',
+      稳定币: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+      衍生品: 'bg-orange-50 text-orange-600 border-orange-200',
     };
     return colors[category] || 'bg-gray-50 text-gray-600 border-gray-200';
   };
@@ -137,7 +154,9 @@ function ProtocolCard({ protocol, index }: { protocol: Protocol; index: number }
           </div>
           <div>
             <h4 className="text-gray-900 font-semibold text-sm">{protocol.name}</h4>
-            <span className={`inline-block px-2 py-0.5 text-xs rounded-full border mt-1 ${getCategoryColor(protocol.category)}`}>
+            <span
+              className={`inline-block px-2 py-0.5 text-xs rounded-full border mt-1 ${getCategoryColor(protocol.category)}`}
+            >
               {protocol.category}
             </span>
           </div>
@@ -162,18 +181,6 @@ function ContractTypeChart({ data }: { data: ContractType[] }) {
 
   const onPieLeave = () => {
     setActiveIndex(null);
-  };
-
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
-          <p className="text-gray-900 font-semibold text-sm">{payload[0].name}</p>
-          <p className="text-purple-600 font-bold">{payload[0].value}%</p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
@@ -275,7 +282,9 @@ function TvsDistribution({ protocols, totalTvs }: { protocols: Protocol[]; total
                   <span className="text-sm text-gray-700 font-medium">{protocol.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-900 font-semibold">{formatCurrency(protocol.tvs, true)}</span>
+                  <span className="text-sm text-gray-900 font-semibold">
+                    {formatCurrency(protocol.tvs, true)}
+                  </span>
                   <span className="text-xs text-gray-400">({percentage.toFixed(1)}%)</span>
                 </div>
               </div>
@@ -381,10 +390,17 @@ export function EcosystemPanel() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">总 TVS</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(ecosystemData.totalTvs, true)}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {formatCurrency(ecosystemData.totalTvs, true)}
+              </p>
             </div>
             <div className="p-3 bg-purple-50 rounded-xl">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -403,7 +419,12 @@ export function EcosystemPanel() {
               <p className="text-2xl font-bold text-gray-900">{ecosystemData.protocolCount}+</p>
             </div>
             <div className="p-3 bg-pink-50 rounded-xl">
-              <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-pink-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -422,7 +443,12 @@ export function EcosystemPanel() {
               <p className="text-2xl font-bold text-gray-900">{ecosystemData.blockchains.length}</p>
             </div>
             <div className="p-3 bg-blue-50 rounded-xl">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -460,8 +486,8 @@ export function EcosystemPanel() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ecosystemData.protocols.map((protocol, index) => (
-            <ProtocolCard key={protocol.id} protocol={protocol} index={index} />
+          {ecosystemData.protocols.map((protocol) => (
+            <ProtocolCard key={protocol.id} protocol={protocol} />
           ))}
         </div>
       </div>

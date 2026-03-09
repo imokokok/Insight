@@ -525,9 +525,8 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
 
         {/* 事件列表 */}
         <div className="space-y-4">
-          {sortedEvents.map((event, index) => {
+          {sortedEvents.map((event) => {
             const typeConfig = getEventTypeConfig(event.type);
-            const isLast = index === sortedEvents.length - 1;
 
             return (
               <div key={event.id} className="relative pl-10">

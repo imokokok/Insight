@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { MarketDataPanel } from './components/MarketDataPanel';
 import { PriceChart } from './components/PriceChart';
 import { NetworkHealthPanel } from './components/NetworkHealthPanel';
@@ -10,8 +9,6 @@ import { DataQualityPanel } from './components/DataQualityPanel';
 import { ValidatorAnalyticsPanel } from './components/ValidatorAnalyticsPanel';
 import { EcosystemPanel } from './components/EcosystemPanel';
 import { RiskAssessmentPanel } from './components/RiskAssessmentPanel';
-
-const bandClient = new BandProtocolClient();
 
 // 时间范围类型
 type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y';
@@ -27,17 +24,9 @@ type TabItem = {
 const BandProtocolIcon = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <svg viewBox="0 0 256 256" className={className} fill="none">
     <circle cx="128" cy="128" r="120" fill="#4520E6" />
-    <path
-      d="M128 48L176 80V144L128 176L80 144V80L128 48Z"
-      fill="white"
-      fillOpacity="0.9"
-    />
+    <path d="M128 48L176 80V144L128 176L80 144V80L128 48Z" fill="white" fillOpacity="0.9" />
     <circle cx="128" cy="128" r="24" fill="#4520E6" />
-    <path
-      d="M128 192L80 160V176L128 208L176 176V160L128 192Z"
-      fill="white"
-      fillOpacity="0.6"
-    />
+    <path d="M128 192L80 160V176L128 208L176 176V160L128 192Z" fill="white" fillOpacity="0.6" />
   </svg>
 );
 
@@ -412,8 +401,8 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {t('bandProtocol.lastUpdated')}: {t('bandProtocol.justNow')} • {t('bandProtocol.period')}:{' '}
-            {timeRange}
+            {t('bandProtocol.lastUpdated')}: {t('bandProtocol.justNow')} •{' '}
+            {t('bandProtocol.period')}: {timeRange}
           </p>
         </div>
 
@@ -513,7 +502,6 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
 
 // 主页面组件
 export default function BandProtocolPage() {
-  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState('market');
   const [isRefreshing, setIsRefreshing] = useState(false);

@@ -348,7 +348,7 @@ function CompetitorRadarChart() {
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
               }}
-              formatter={(value: number) => [`${value}分`, '']}
+              formatter={(value: any) => [`${value}分`, '']}
             />
           </RadarChart>
         </ResponsiveContainer>
@@ -428,7 +428,7 @@ function TVSTrendComparison() {
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
               }}
-              formatter={(value: number, name: string) => [formatTVS(value), name]}
+              formatter={(value: any, name: any) => [formatTVS(value), name]}
               labelFormatter={(label) => `${label}`}
             />
             <Legend

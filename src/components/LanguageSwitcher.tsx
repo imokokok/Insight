@@ -4,7 +4,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { useState } from 'react';
 
 export default function LanguageSwitcher() {
-  const { locale, setLocale, t } = useI18n();
+  const { locale, setLocale } = useI18n();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const switchLanguage = (newLocale: 'en' | 'zh-CN') => {

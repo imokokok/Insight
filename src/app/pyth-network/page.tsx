@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/context';
 import { PythNetworkClient } from '@/lib/oracles/pythNetwork';
 import { PriceData, Blockchain } from '@/lib/types/oracle';
 import { MarketDataPanel } from './components/MarketDataPanel';
@@ -36,16 +35,8 @@ const PythIcon = ({ className = 'w-8 h-8' }: { className?: string }) => (
       </linearGradient>
     </defs>
     <circle cx="128" cy="128" r="120" fill="url(#pythGradient)" />
-    <path
-      d="M128 48L168 88L128 128L88 88L128 48Z"
-      fill="white"
-      fillOpacity="0.9"
-    />
-    <path
-      d="M128 128L168 168L128 208L88 168L128 128Z"
-      fill="white"
-      fillOpacity="0.6"
-    />
+    <path d="M128 48L168 88L128 128L88 88L128 48Z" fill="white" fillOpacity="0.9" />
+    <path d="M128 128L168 168L128 208L88 168L128 128Z" fill="white" fillOpacity="0.6" />
     <circle cx="128" cy="128" r="20" fill="white" />
   </svg>
 );
@@ -422,16 +413,14 @@ function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: T
         {/* 页面标题 */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Real-time data • Period: {timeRange}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">Real-time data • Period: {timeRange}</p>
         </div>
 
         {/* 市场数据面板 */}
         {activeTab === 'market' && (
           <div className="space-y-6">
             <MarketDataPanel />
-            
+
             {/* 统计卡片网格 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map((stat, index) => (
@@ -531,8 +520,20 @@ export default function PythNetworkPage() {
   }, [priceData, historicalData, timeRange]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData, timeRange]);
+    const fetchAndSetData = async () => {
+      try {
+        const [price, history] = await Promise.all([
+          pythClient.getPrice('PYTH', Blockchain.SOLANA),
+          pythClient.getHistoricalPrices('PYTH', Blockchain.SOLANA, 7),
+        ]);
+        setPriceData(price);
+        setHistoricalData(history);
+      } catch (error) {
+        console.error('Error fetching Pyth data:', error);
+      }
+    };
+    fetchAndSetData();
+  }, [timeRange]);
 
   return (
     <div className="min-h-screen bg-gray-50">

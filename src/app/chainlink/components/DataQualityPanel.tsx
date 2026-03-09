@@ -10,8 +10,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  PieChart,
-  Pie,
 } from 'recharts';
 
 // ==================== 类型定义 ====================
@@ -239,7 +237,7 @@ function PriceDeviationTable({ data }: { data: ExchangePriceData[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((exchange, index) => {
+            {data.map((exchange) => {
               const statusConfig = getStatusConfig(exchange.status);
               const progressWidth = Math.min((exchange.deviationPercent / 1) * 100, 100);
 
@@ -517,8 +515,6 @@ function LatencyDistributionChart({ data }: { data: LatencyDistribution[] }) {
 
 // 4. 异常值检测指示器
 function AnomalyDetectionIndicator({ data }: { data: AnomalyData }) {
-  const totalCount = data.types.reduce((sum, t) => sum + t.count, 0);
-
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">

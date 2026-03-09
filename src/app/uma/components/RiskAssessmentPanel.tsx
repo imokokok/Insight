@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import AdvancedCard, {
   AdvancedCardHeader,
   AdvancedCardTitle,
@@ -212,14 +212,7 @@ function OverallRiskScore({ score, level }: { score: number; level: RiskLevel })
         <div className="relative">
           {/* 背景圆环 */}
           <svg className="w-40 h-40 transform -rotate-90">
-            <circle
-              cx="80"
-              cy="80"
-              r="45"
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="10"
-            />
+            <circle cx="80" cy="80" r="45" fill="none" stroke="#e5e7eb" strokeWidth="10" />
             {/* 进度圆环 */}
             <circle
               cx="80"
@@ -334,9 +327,7 @@ function SecurityTimeline({ events }: { events: SecurityEvent[] }) {
             {/* 时间线 */}
             <div className="flex flex-col items-center">
               <div className={`w-3 h-3 rounded-full ${typeConfig.bgColor} ${typeConfig.color}`} />
-              {index < events.length - 1 && (
-                <div className="w-0.5 h-full bg-gray-200 mt-2" />
-              )}
+              {index < events.length - 1 && <div className="w-0.5 h-full bg-gray-200 mt-2" />}
             </div>
             {/* 内容 */}
             <div className="flex-1 pb-4">
@@ -402,16 +393,46 @@ function RiskMitigationList({ mitigations }: { mitigations: RiskMitigation[] }) 
             {/* 状态指示器 */}
             <div className="flex-shrink-0 mt-0.5">
               {mitigation.status === 'completed' ? (
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : mitigation.status === 'active' ? (
-                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               )}
             </div>
@@ -432,7 +453,12 @@ function RiskMitigationList({ mitigations }: { mitigations: RiskMitigation[] }) 
             {/* 优先级 */}
             <div className="flex-shrink-0">
               <span className={`text-xs font-medium ${getPriorityColor(mitigation.priority)}`}>
-                {mitigation.priority === 'high' ? '高' : mitigation.priority === 'medium' ? '中' : '低'}优先级
+                {mitigation.priority === 'high'
+                  ? '高'
+                  : mitigation.priority === 'medium'
+                    ? '中'
+                    : '低'}
+                优先级
               </span>
             </div>
           </div>

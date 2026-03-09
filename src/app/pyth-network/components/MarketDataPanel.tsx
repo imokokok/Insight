@@ -330,8 +330,7 @@ export function MarketDataPanel() {
   }, [fetchPrice]);
 
   // 计算流通供应量占比
-  const circulatingRatio =
-    (mockMarketData.circulatingSupply / mockMarketData.totalSupply) * 100;
+  const circulatingRatio = (mockMarketData.circulatingSupply / mockMarketData.totalSupply) * 100;
 
   // 市场数据指标配置
   const metrics = [

@@ -21,27 +21,18 @@ interface SlashEvent {
   resolved: boolean;
 }
 
-// 风险指标类型
-interface RiskMetrics {
-  validatorConcentration: {
-    top10Percentage: number;
-    giniCoefficient: number;
-    nakamotoCoefficient: number;
-  };
-  singlePointOfFailure: {
-    score: number;
-    criticalValidators: number;
-    dependencyRisk: RiskLevel;
-  };
-  dataManipulation: {
-    score: number;
-    oracleDeviation: number;
-    staleDataRisk: RiskLevel;
-  };
-}
-
 // 风险等级配置
-const riskLevelConfig: Record<RiskLevel, { color: string; bgColor: string; textColor: string; borderColor: string; label: string; icon: string }> = {
+const riskLevelConfig: Record<
+  RiskLevel,
+  {
+    color: string;
+    bgColor: string;
+    textColor: string;
+    borderColor: string;
+    label: string;
+    icon: string;
+  }
+> = {
   low: {
     color: 'green',
     bgColor: 'bg-green-500',
@@ -245,7 +236,9 @@ function RiskScoreCard({
   const percentage = (score / maxScore) * 100;
 
   return (
-    <div className={`bg-white border ${config.borderColor} rounded-xl p-5 hover:shadow-md transition-shadow duration-200`}>
+    <div
+      className={`bg-white border ${config.borderColor} rounded-xl p-5 hover:shadow-md transition-shadow duration-200`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
@@ -283,7 +276,11 @@ function RiskScoreCard({
               {detail.trend && (
                 <span
                   className={`text-xs ${
-                    detail.trend === 'up' ? 'text-red-500' : detail.trend === 'down' ? 'text-green-500' : 'text-gray-400'
+                    detail.trend === 'up'
+                      ? 'text-red-500'
+                      : detail.trend === 'down'
+                        ? 'text-green-500'
+                        : 'text-gray-400'
                   }`}
                 >
                   {detail.trend === 'up' ? '↑' : detail.trend === 'down' ? '↓' : '→'}
@@ -392,7 +389,9 @@ function ValidatorConcentrationDashboard({
       <div className="space-y-2">
         <p className="text-xs text-gray-500 mb-2">前10验证者质押分布</p>
         {validators.slice(0, 10).map((validator, index) => {
-          const percentage = networkStats ? (validator.tokens / networkStats.bondedTokens) * 100 : 0;
+          const percentage = networkStats
+            ? (validator.tokens / networkStats.bondedTokens) * 100
+            : 0;
           return (
             <div key={validator.operatorAddress} className="flex items-center gap-2">
               <span className="text-xs text-gray-500 w-6">{index + 1}</span>
@@ -403,7 +402,9 @@ function ValidatorConcentrationDashboard({
                   style={{ width: `${percentage * 3}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600 w-12 text-right">{percentage.toFixed(1)}%</span>
+              <span className="text-xs text-gray-600 w-12 text-right">
+                {percentage.toFixed(1)}%
+              </span>
             </div>
           );
         })}
@@ -470,30 +471,64 @@ function SinglePointOfFailureDashboard({ validators }: { validators: ValidatorIn
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <span className="text-sm text-gray-600">高风险验证者</span>
           </div>
-          <span className={`text-sm font-semibold ${metrics.criticalValidators > 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <span
+            className={`text-sm font-semibold ${metrics.criticalValidators > 0 ? 'text-red-600' : 'text-green-600'}`}
+          >
             {metrics.criticalValidators} 个
           </span>
         </div>
 
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="text-sm text-gray-600">平均在线率</span>
           </div>
-          <span className="text-sm font-semibold text-gray-900">{metrics.avgUptime.toFixed(2)}%</span>
+          <span className="text-sm font-semibold text-gray-900">
+            {metrics.avgUptime.toFixed(2)}%
+          </span>
         </div>
 
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
             </svg>
             <span className="text-sm text-gray-600">活跃验证者</span>
           </div>
@@ -506,12 +541,17 @@ function SinglePointOfFailureDashboard({ validators }: { validators: ValidatorIn
 
 // 数据操纵风险组件
 function DataManipulationDashboard() {
-  const [metrics, setMetrics] = useState({
-    score: 25,
-    oracleDeviation: 0.5,
-    staleDataRisk: 'low' as RiskLevel,
-    lastUpdate: Date.now(),
-  });
+  const getInitialMetrics = useCallback(
+    () => ({
+      score: 25,
+      oracleDeviation: 0.5,
+      staleDataRisk: 'low' as RiskLevel,
+      lastUpdate: Date.now(),
+    }),
+    []
+  );
+
+  const [metrics, setMetrics] = useState(getInitialMetrics);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -556,18 +596,40 @@ function DataManipulationDashboard() {
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+              />
             </svg>
             <span className="text-sm text-gray-600">价格偏差率</span>
           </div>
-          <span className="text-sm font-semibold text-green-600">{metrics.oracleDeviation.toFixed(2)}%</span>
+          <span className="text-sm font-semibold text-green-600">
+            {metrics.oracleDeviation.toFixed(2)}%
+          </span>
         </div>
 
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="text-sm text-gray-600">数据新鲜度</span>
           </div>
@@ -576,8 +638,18 @@ function DataManipulationDashboard() {
 
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
             </svg>
             <span className="text-sm text-gray-600">验证机制</span>
           </div>
@@ -591,6 +663,15 @@ function DataManipulationDashboard() {
 // Slash 事件时间线组件
 function SlashEventTimeline({ events }: { events: SlashEvent[] }) {
   const [filter, setFilter] = useState<'all' | 'downtime' | 'double_sign' | 'malicious'>('all');
+  const getCurrentTime = useCallback(() => Date.now(), []);
+  const [currentTime, setCurrentTime] = useState<number>(getCurrentTime);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredEvents = useMemo(() => {
     if (filter === 'all') return events;
@@ -636,7 +717,7 @@ function SlashEventTimeline({ events }: { events: SlashEvent[] }) {
   };
 
   const formatTimeAgo = (timestamp: number) => {
-    const days = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60 * 24));
+    const days = Math.floor((currentTime - timestamp) / (1000 * 60 * 60 * 24));
     if (days < 30) return `${days}天前`;
     if (days < 365) return `${Math.floor(days / 30)}个月前`;
     return `${Math.floor(days / 365)}年前`;
@@ -695,7 +776,7 @@ function SlashEventTimeline({ events }: { events: SlashEvent[] }) {
 
       {/* 时间线 */}
       <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-        {filteredEvents.map((event, index) => (
+        {filteredEvents.map((event) => (
           <div key={event.id} className="relative pl-6 pb-4 border-l-2 border-gray-200 last:pb-0">
             {/* 时间线节点 */}
             <div
@@ -713,7 +794,9 @@ function SlashEventTimeline({ events }: { events: SlashEvent[] }) {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                 <div>
-                  <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getReasonColor(event.reason)}`}>
+                  <span
+                    className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getReasonColor(event.reason)}`}
+                  >
                     {getReasonLabel(event.reason)}
                   </span>
                   <span className={`ml-2 text-xs font-medium ${getImpactColor(event.impact)}`}>
@@ -728,18 +811,30 @@ function SlashEventTimeline({ events }: { events: SlashEvent[] }) {
 
               <div className="flex flex-wrap items-center gap-4 text-xs">
                 <span className="text-gray-600">
-                  惩罚: <span className="font-semibold text-red-600">{event.amount.toLocaleString()} BAND</span>
+                  惩罚:{' '}
+                  <span className="font-semibold text-red-600">
+                    {event.amount.toLocaleString()} BAND
+                  </span>
                 </span>
                 <span className="text-gray-600">
-                  销毁: <span className="font-semibold text-orange-600">{event.tokensBurned.toLocaleString()} BAND</span>
+                  销毁:{' '}
+                  <span className="font-semibold text-orange-600">
+                    {event.tokensBurned.toLocaleString()} BAND
+                  </span>
                 </span>
                 <span className="text-gray-600">
-                  响应: <span className="font-semibold text-blue-600">{event.responseTime}分钟</span>
+                  响应:{' '}
+                  <span className="font-semibold text-blue-600">{event.responseTime}分钟</span>
                 </span>
                 {event.resolved && (
                   <span className="flex items-center gap-1 text-green-600">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     已解决
                   </span>
@@ -800,10 +895,12 @@ function MitigationMeasuresPanel() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">
-            完成度: {' '}
+            完成度:{' '}
             <span className="font-semibold text-purple-600">
               {Math.round(
-                (mitigationMeasures.filter((m) => m.status === 'completed').length / mitigationMeasures.length) * 100
+                (mitigationMeasures.filter((m) => m.status === 'completed').length /
+                  mitigationMeasures.length) *
+                  100
               )}
               %
             </span>
@@ -836,24 +933,40 @@ function MitigationMeasuresPanel() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
               {isExpanded && (
                 <div className="p-3 space-y-3">
                   {measures.map((measure) => (
-                    <div key={measure.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100">
+                    <div
+                      key={measure.id}
+                      className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-100"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-medium text-gray-900">{measure.title}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(measure.priority)}`}>
-                            {measure.priority === 'high' ? '高优先级' : measure.priority === 'medium' ? '中优先级' : '低优先级'}
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(measure.priority)}`}
+                          >
+                            {measure.priority === 'high'
+                              ? '高优先级'
+                              : measure.priority === 'medium'
+                                ? '中优先级'
+                                : '低优先级'}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">{measure.description}</p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(measure.status)}`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${getStatusColor(measure.status)}`}
+                      >
                         {getStatusLabel(measure.status)}
                       </span>
                     </div>
@@ -874,22 +987,42 @@ function BestPracticesPanel() {
     const icons: Record<string, React.ReactNode> = {
       split: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+          />
         </svg>
       ),
       chart: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
         </svg>
       ),
       vote: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+          />
         </svg>
       ),
       shield: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
         </svg>
       ),
     };
@@ -905,8 +1038,13 @@ function BestPracticesPanel() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {bestPractices.map((practice) => (
-          <div key={practice.id} className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
-            <div className="p-2 bg-purple-100 rounded-lg text-purple-600">{getIcon(practice.icon)}</div>
+          <div
+            key={practice.id}
+            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100"
+          >
+            <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+              {getIcon(practice.icon)}
+            </div>
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-1">{practice.title}</h4>
               <p className="text-xs text-gray-600">{practice.description}</p>
@@ -1090,10 +1228,22 @@ export function RiskAssessmentPanel() {
           title="验证者集中度风险"
           score={riskScores.validatorConcentration}
           maxScore={100}
-          level={riskScores.validatorConcentration > 70 ? 'critical' : riskScores.validatorConcentration > 50 ? 'high' : riskScores.validatorConcentration > 30 ? 'medium' : 'low'}
+          level={
+            riskScores.validatorConcentration > 70
+              ? 'critical'
+              : riskScores.validatorConcentration > 50
+                ? 'high'
+                : riskScores.validatorConcentration > 30
+                  ? 'medium'
+                  : 'low'
+          }
           description="前10验证者控制份额过高可能导致中心化风险"
           details={[
-            { label: '前10占比', value: `${(riskScores.validatorConcentration / 1.2).toFixed(1)}%`, trend: 'up' },
+            {
+              label: '前10占比',
+              value: `${(riskScores.validatorConcentration / 1.2).toFixed(1)}%`,
+              trend: 'up',
+            },
             { label: '建议阈值', value: '< 50%' },
             { label: '趋势', value: '稳定' },
           ]}
@@ -1102,10 +1252,22 @@ export function RiskAssessmentPanel() {
           title="单点故障风险"
           score={riskScores.singlePointOfFailure}
           maxScore={100}
-          level={riskScores.singlePointOfFailure > 70 ? 'critical' : riskScores.singlePointOfFailure > 50 ? 'high' : riskScores.singlePointOfFailure > 25 ? 'medium' : 'low'}
+          level={
+            riskScores.singlePointOfFailure > 70
+              ? 'critical'
+              : riskScores.singlePointOfFailure > 50
+                ? 'high'
+                : riskScores.singlePointOfFailure > 25
+                  ? 'medium'
+                  : 'low'
+          }
           description="关键验证者故障可能影响网络稳定性"
           details={[
-            { label: '高风险节点', value: `${Math.floor(riskScores.singlePointOfFailure / 15)} 个`, trend: 'down' },
+            {
+              label: '高风险节点',
+              value: `${Math.floor(riskScores.singlePointOfFailure / 15)} 个`,
+              trend: 'down',
+            },
             { label: '平均在线率', value: '99.7%' },
             { label: '冗余度', value: '良好' },
           ]}
@@ -1114,7 +1276,15 @@ export function RiskAssessmentPanel() {
           title="数据操纵风险"
           score={riskScores.dataManipulation}
           maxScore={100}
-          level={riskScores.dataManipulation > 70 ? 'critical' : riskScores.dataManipulation > 50 ? 'high' : riskScores.dataManipulation > 25 ? 'medium' : 'low'}
+          level={
+            riskScores.dataManipulation > 70
+              ? 'critical'
+              : riskScores.dataManipulation > 50
+                ? 'high'
+                : riskScores.dataManipulation > 25
+                  ? 'medium'
+                  : 'low'
+          }
           description="预言机数据被恶意操纵的可能性评估"
           details={[
             { label: '价格偏差', value: '< 0.5%', trend: 'down' },

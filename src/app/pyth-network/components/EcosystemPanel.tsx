@@ -177,12 +177,35 @@ const mockStats: EcosystemStats = {
 
 // ==================== 颜色配置 ====================
 
-const CATEGORY_COLORS: Record<ProtocolCategory, { bg: string; text: string; border: string; chart: string }> = {
+const CATEGORY_COLORS: Record<
+  ProtocolCategory,
+  { bg: string; text: string; border: string; chart: string }
+> = {
   Lending: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', chart: '#3B82F6' },
-  DEX: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200', chart: '#8B5CF6' },
-  Derivatives: { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200', chart: '#EC4899' },
-  Perpetuals: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', chart: '#F59E0B' },
-  Options: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', chart: '#10B981' },
+  DEX: {
+    bg: 'bg-violet-50',
+    text: 'text-violet-600',
+    border: 'border-violet-200',
+    chart: '#8B5CF6',
+  },
+  Derivatives: {
+    bg: 'bg-pink-50',
+    text: 'text-pink-600',
+    border: 'border-pink-200',
+    chart: '#EC4899',
+  },
+  Perpetuals: {
+    bg: 'bg-amber-50',
+    text: 'text-amber-600',
+    border: 'border-amber-200',
+    chart: '#F59E0B',
+  },
+  Options: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-600',
+    border: 'border-emerald-200',
+    chart: '#10B981',
+  },
 };
 
 const NETWORK_STATUS_COLORS = {
@@ -221,7 +244,9 @@ function StatCard({
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {subValue && <p className="text-sm text-gray-500 mt-1">{subValue}</p>}
           {trend && (
-            <p className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p
+              className={`text-xs mt-2 font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}
+            >
               {trend.positive ? '↑' : '↓'} {trend.value}
             </p>
           )}
@@ -248,7 +273,9 @@ function ProtocolLogo({ name, gradient }: { name: string; gradient: string }) {
 function CategoryTag({ category }: { category: ProtocolCategory }) {
   const colors = CATEGORY_COLORS[category];
   return (
-    <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}>
+    <span
+      className={`px-2.5 py-1 text-xs font-medium rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}
+    >
       {category}
     </span>
   );
@@ -273,7 +300,7 @@ function TVSDistributionChart() {
       Perpetuals: 0,
       Options: 0,
     };
-    
+
     mockProtocols.forEach((protocol) => {
       categoryTVS[protocol.category] += protocol.tvs;
     });
@@ -394,7 +421,9 @@ function ProtocolList() {
                   <span className="text-sm text-gray-700">{protocol.chain}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-semibold text-gray-900">{formatTVS(protocol.tvs)}</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatTVS(protocol.tvs)}
+                  </span>
                 </td>
                 <td className="px-4 py-3 hidden lg:table-cell">
                   <div className="flex flex-wrap gap-1">

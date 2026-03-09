@@ -17,8 +17,8 @@ const mockNetworkData = {
 
   // 24小时活动数据（每小时验证请求量）
   hourlyActivity: [
-    1800, 1600, 1400, 1200, 1100, 1300, 1800, 2800, 4200, 5600, 6800, 7500,
-    7200, 6800, 6200, 6500, 7000, 7400, 7100, 5800, 4500, 3200, 2400, 2100,
+    1800, 1600, 1400, 1200, 1100, 1300, 1800, 2800, 4200, 5600, 6800, 7500, 7200, 6800, 6200, 6500,
+    7000, 7400, 7100, 5800, 4500, 3200, 2400, 2100,
   ],
 
   // 网络状态
@@ -377,7 +377,10 @@ export function NetworkHealthPanel() {
 
       return {
         ...prev,
-        activeValidators: Math.max(800, prev.activeValidators + Math.round((Math.random() - 0.5) * 5)),
+        activeValidators: Math.max(
+          800,
+          prev.activeValidators + Math.round((Math.random() - 0.5) * 5)
+        ),
         validatorUptime: Math.min(100, Math.max(99, prev.validatorUptime + fluctuation() * 0.1)),
         avgResponseTime: Math.max(
           150,

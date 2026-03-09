@@ -64,24 +64,39 @@ const revenueTrendData = [
 ];
 
 // 排序类型
- type SortField = 'tokens' | 'uptime' | 'reputation';
- type SortOrder = 'asc' | 'desc';
+type SortField = 'tokens' | 'uptime' | 'reputation';
+type SortOrder = 'asc' | 'desc';
+
+function SortIcon({
+  field,
+  sortField,
+  sortOrder,
+}: {
+  field: SortField;
+  sortField: SortField;
+  sortOrder: SortOrder;
+}) {
+  if (sortField !== field) {
+    return <span className="text-gray-300">↕</span>;
+  }
+  return <span className="text-purple-600">{sortOrder === 'desc' ? '↓' : '↑'}</span>;
+}
 
 // 地理分布卡片
 function GeoDistributionCard() {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <h3 className="text-gray-900 font-semibold text-lg mb-4">Geographic Distribution</h3>
-      
+
       {/* 区域分布条形图 */}
       <div className="h-48 mb-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={geoDistributionData} layout="vertical" margin={{ left: 0, right: 20 }}>
             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
             <XAxis type="number" hide />
-            <YAxis 
-              dataKey="region" 
-              type="category" 
+            <YAxis
+              dataKey="region"
+              type="category"
               width={100}
               tick={{ fill: '#6B7280', fontSize: 12 }}
               axisLine={false}
@@ -109,10 +124,7 @@ function GeoDistributionCard() {
       <div className="grid grid-cols-2 gap-3">
         {geoDistributionData.map((item) => (
           <div key={item.region} className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: item.color }}
-            />
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
             <div className="flex-1">
               <span className="text-gray-600 text-sm">{item.region}</span>
               <div className="flex items-center gap-2">
@@ -132,7 +144,7 @@ function ValidatorTypeCard() {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <h3 className="text-gray-900 font-semibold text-lg mb-4">Validator Types</h3>
-      
+
       {/* 饼图 */}
       <div className="h-48 mb-4">
         <ResponsiveContainer width="100%" height="100%">
@@ -168,10 +180,7 @@ function ValidatorTypeCard() {
         {validatorTypeData.map((item) => (
           <div key={item.name} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: item.color }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
               <span className="text-gray-600 text-sm">{item.name}</span>
             </div>
             <span className="text-gray-900 font-semibold text-sm">{item.value}</span>
@@ -183,32 +192,41 @@ function ValidatorTypeCard() {
 }
 
 // 验证者排行榜表格
-function ValidatorRankingTable({ 
-  validators, 
-  sortField, 
-  sortOrder, 
-  onSort 
-}: { 
-  validators: ValidatorInfo[]; 
+function ValidatorRankingTable({
+  validators,
+  sortField,
+  sortOrder,
+  onSort,
+}: {
+  validators: ValidatorInfo[];
   sortField: SortField;
   sortOrder: SortOrder;
   onSort: (field: SortField) => void;
 }) {
-  // 计算声誉评分（基于委托量和运行时间）
+  const [randomOffset, setRandomOffset] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRandomOffset(Math.random());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getReputationScore = (validator: ValidatorInfo): number => {
     const tokenScore = Math.min(validator.tokens / 1000000, 50);
     const uptimeScore = (validator.uptime / 100) * 50;
     return Math.round(tokenScore + uptimeScore);
   };
 
-  // 计算响应时间（模拟数据）
-  const getResponseTime = (validator: ValidatorInfo): number => {
-    return Math.round(150 + Math.random() * 200);
+  const getResponseTime = (validator: ValidatorInfo, index: number): number => {
+    const base =
+      150 + ((validator.operatorAddress.charCodeAt(index % 10) + randomOffset * 100) % 200);
+    return Math.round(base);
   };
 
-  // 计算成功率（模拟数据）
   const getSuccessRate = (validator: ValidatorInfo): number => {
-    return Math.min(validator.uptime + Math.random() * 0.5, 100);
+    const randomFactor = randomOffset * 0.5;
+    return Math.min(validator.uptime + randomFactor, 100);
   };
 
   // 排序后的验证者列表
@@ -232,20 +250,13 @@ function ValidatorRankingTable({
     return sorted;
   }, [validators, sortField, sortOrder]);
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) {
-      return <span className="text-gray-300">↕</span>;
-    }
-    return <span className="text-purple-600">{sortOrder === 'desc' ? '↓' : '↑'}</span>;
-  };
-
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div className="p-5 border-b border-gray-200">
         <h3 className="text-gray-900 font-semibold text-lg">Top 10 Validators</h3>
         <p className="text-gray-500 text-sm mt-1">Ranked by performance metrics</p>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -262,22 +273,22 @@ function ValidatorRankingTable({
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Success Rate
               </th>
-              <th 
+              <th
                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-purple-600"
                 onClick={() => onSort('reputation')}
               >
                 <span className="flex items-center gap-1">
                   Reputation
-                  <SortIcon field="reputation" />
+                  <SortIcon field="reputation" sortField={sortField} sortOrder={sortOrder} />
                 </span>
               </th>
-              <th 
+              <th
                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-purple-600"
                 onClick={() => onSort('tokens')}
               >
                 <span className="flex items-center gap-1">
                   Delegated
-                  <SortIcon field="tokens" />
+                  <SortIcon field="tokens" sortField={sortField} sortOrder={sortOrder} />
                 </span>
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -287,18 +298,18 @@ function ValidatorRankingTable({
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedValidators.map((validator, index) => {
-              const responseTime = getResponseTime(validator);
+              const responseTime = getResponseTime(validator, index);
               const successRate = getSuccessRate(validator);
               const reputation = getReputationScore(validator);
-              
+
               return (
                 <tr key={validator.operatorAddress} className="hover:bg-gray-50">
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${
-                      index < 3 
-                        ? 'bg-purple-100 text-purple-700' 
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold ${
+                        index < 3 ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
                       {index + 1}
                     </span>
                   </td>
@@ -316,17 +327,22 @@ function ValidatorRankingTable({
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`text-sm ${
-                      responseTime < 200 ? 'text-green-600' : 
-                      responseTime < 300 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
+                    <span
+                      className={`text-sm ${
+                        responseTime < 200
+                          ? 'text-green-600'
+                          : responseTime < 300
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                      }`}
+                    >
                       {responseTime}ms
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-purple-500 rounded-full"
                           style={{ width: `${successRate}%` }}
                         />
@@ -366,26 +382,26 @@ function RevenueAnalysisCard() {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <h3 className="text-gray-900 font-semibold text-lg mb-4">Revenue Analysis</h3>
-      
+
       {/* 收益趋势图 */}
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={revenueTrendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              dataKey="day" 
+            <XAxis
+              dataKey="day"
               tick={{ fill: '#6B7280', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
             />
-            <YAxis 
+            <YAxis
               yAxisId="left"
               tick={{ fill: '#6B7280', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(value) => `$${value}`}
             />
-            <YAxis 
+            <YAxis
               yAxisId="right"
               orientation="right"
               tick={{ fill: '#6B7280', fontSize: 12 }}
@@ -401,21 +417,21 @@ function RevenueAnalysisCard() {
                 fontSize: '12px',
               }}
             />
-            <Line 
+            <Line
               yAxisId="left"
-              type="monotone" 
-              dataKey="avgRevenue" 
-              stroke="#7C3AED" 
+              type="monotone"
+              dataKey="avgRevenue"
+              stroke="#7C3AED"
               strokeWidth={2}
               dot={{ fill: '#7C3AED', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
               name="Avg Daily Revenue ($)"
             />
-            <Line 
+            <Line
               yAxisId="right"
-              type="monotone" 
-              dataKey="apr" 
-              stroke="#10B981" 
+              type="monotone"
+              dataKey="apr"
+              stroke="#10B981"
               strokeWidth={2}
               strokeDasharray="5 5"
               dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
@@ -518,9 +534,7 @@ export function ValidatorAnalyticsPanel() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">Validator Analytics</h2>
-            <p className="text-purple-200">
-              Comprehensive analysis of Band Protocol validators
-            </p>
+            <p className="text-purple-200">Comprehensive analysis of Band Protocol validators</p>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <div className="text-center">
@@ -543,7 +557,7 @@ export function ValidatorAnalyticsPanel() {
       </div>
 
       {/* 第二行：验证者排行榜 */}
-      <ValidatorRankingTable 
+      <ValidatorRankingTable
         validators={validators}
         sortField={sortField}
         sortOrder={sortOrder}

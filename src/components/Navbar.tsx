@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/context';
@@ -25,12 +25,18 @@ export default function Navbar() {
 
   const isActive = (href: string) => {
     if (!pathname) return false;
-    const currentPath = pathname.split('?')[0]; // 移除查询参数
+    const currentPath = pathname.split('?')[0];
     if (href === '/') {
       return currentPath === '/';
     }
     return currentPath === href;
   };
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
@@ -46,7 +52,7 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center space-x-1 mx-auto">
             {navLinks.map((link) => {
-              const active = isActive(link.href);
+              const active = mounted && isActive(link.href);
               return (
                 <Link
                   key={link.href}
@@ -107,7 +113,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-200 animate-fade-in">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 max-h-96 overflow-y-auto">
             {navLinks.map((link) => {
-              const active = isActive(link.href);
+              const active = mounted && isActive(link.href);
               return (
                 <Link
                   key={link.href}

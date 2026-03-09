@@ -13,85 +13,99 @@ import {
   Blockchain,
 } from '@/lib/oracles';
 
+const platformStatsBase = [
+  {
+    key: 'oraclesIntegrated',
+    value: '5',
+    changeKey: 'active',
+  },
+  {
+    key: 'blockchains',
+    value: '6',
+    changeKey: 'supported',
+  },
+  {
+    key: 'dataFeeds',
+    value: '1000+',
+    changeKey: 'growing',
+  },
+  {
+    key: 'comparisons',
+    value: 'Cross-Chain',
+    changeKey: 'available',
+  },
+];
+
+const quickStats = [
+  { provider: 'Chainlink', symbol: 'LINK' },
+  { provider: 'Band Protocol', symbol: 'BAND' },
+  { provider: 'Pyth Network', symbol: 'PYTH' },
+  { provider: 'UMA', symbol: 'UMA' },
+];
+
+const navigationCardsBase = [
+    {
+      href: '/cross-oracle',
+      titleKey: 'navbar.crossOracle',
+      descriptionKey: 'home.navigationCards.crossOracle',
+      icon: '🔍',
+    },
+    {
+      href: '/cross-chain',
+      titleKey: 'navbar.crossChain',
+      descriptionKey: 'home.navigationCards.crossChain',
+      icon: '⛓️',
+    },
+    {
+      href: '/chainlink',
+      titleKey: 'Chainlink',
+      descriptionKey: 'home.navigationCards.chainlink',
+      icon: '🔗',
+    },
+    {
+      href: '/band-protocol',
+      titleKey: 'Band Protocol',
+      descriptionKey: 'home.navigationCards.bandProtocol',
+      icon: '📡',
+    },
+    {
+      href: '/uma',
+      titleKey: 'UMA',
+      descriptionKey: 'home.navigationCards.uma',
+      icon: '⭐',
+    },
+    {
+      href: '/pyth-network',
+      titleKey: 'Pyth Network',
+      descriptionKey: 'home.navigationCards.pythNetwork',
+      icon: '📊',
+    },
+    {
+      href: '/api3',
+      titleKey: 'API3',
+      descriptionKey: 'home.navigationCards.api3',
+      icon: '🔌',
+    },
+  ];
+
 export default function Home() {
   const { t } = useI18n();
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [loading, setLoading] = useState(true);
 
-  const platformStats = [
-    {
-      label: t('home.platformStats.oraclesIntegrated'),
-      value: '5',
-      change: t('home.platformStats.active'),
-    },
-    {
-      label: t('home.platformStats.blockchains'),
-      value: '6',
-      change: t('home.platformStats.supported'),
-    },
-    {
-      label: t('home.platformStats.dataFeeds'),
-      value: '1000+',
-      change: t('home.platformStats.growing'),
-    },
-    {
-      label: t('home.platformStats.comparisons'),
-      value: 'Cross-Chain',
-      change: t('home.platformStats.available'),
-    },
-  ];
+  const platformStats = platformStatsBase.map(stat => ({
+    label: t(`home.platformStats.${stat.key}`),
+    value: stat.value,
+    change: t(`home.platformStats.${stat.changeKey}`),
+  }));
 
-  const quickStats = [
-    { provider: 'Chainlink', symbol: 'LINK' },
-    { provider: 'Band Protocol', symbol: 'BAND' },
-    { provider: 'Pyth Network', symbol: 'PYTH' },
-    { provider: 'UMA', symbol: 'UMA' },
-  ];
-
-  const navigationCards = [
-    {
-      href: '/cross-oracle',
-      title: t('navbar.crossOracle'),
-      description: t('home.navigationCards.crossOracle'),
-      icon: '🔍',
-    },
-    {
-      href: '/cross-chain',
-      title: t('navbar.crossChain'),
-      description: t('home.navigationCards.crossChain'),
-      icon: '⛓️',
-    },
-    {
-      href: '/chainlink',
-      title: 'Chainlink',
-      description: t('home.navigationCards.chainlink'),
-      icon: '🔗',
-    },
-    {
-      href: '/band-protocol',
-      title: 'Band Protocol',
-      description: t('home.navigationCards.bandProtocol'),
-      icon: '📡',
-    },
-    {
-      href: '/uma',
-      title: 'UMA',
-      description: t('home.navigationCards.uma'),
-      icon: '⭐',
-    },
-    {
-      href: '/pyth-network',
-      title: 'Pyth Network',
-      description: t('home.navigationCards.pythNetwork'),
-      icon: '📊',
-    },
-    {
-      href: '/api3',
-      title: 'API3',
-      description: t('home.navigationCards.api3'),
-      icon: '🔌',
-    },
-  ];
+  const navigationCards = navigationCardsBase.map(card => ({
+    href: card.href,
+    title: card.titleKey,
+    titleKey: card.titleKey,
+    description: t(card.descriptionKey),
+    icon: card.icon,
+  }));
 
   useEffect(() => {
     async function fetchPrices() {
@@ -209,7 +223,7 @@ export default function Home() {
                 <CardContent className="py-4 sm:py-6">
                   <div className="text-3xl sm:text-4xl mb-3">{card.icon}</div>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                    {card.title}
+                    {card.title === card.titleKey ? t(card.titleKey) : card.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600">{card.description}</p>
                 </CardContent>
