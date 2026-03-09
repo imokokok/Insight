@@ -1,436 +1,659 @@
 'use client';
 
-import AdvancedCard, {
-  AdvancedCardHeader,
-  AdvancedCardTitle,
-  AdvancedCardContent,
-} from '@/components/AdvancedCard';
-import StatCard from '@/components/StatCard';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import { API3Client } from '@/lib/oracles/api3';
+import { PriceData, Blockchain } from '@/lib/types/oracle';
+import { MarketDataPanel } from './components/MarketDataPanel';
+import { PriceChart } from './components/PriceChart';
+import { NetworkHealthPanel } from './components/NetworkHealthPanel';
+import { FirstPartyOraclePanel } from './components/FirstPartyOraclePanel';
+import { QuantifiableSecurityPanel } from './components/QuantifiableSecurityPanel';
+import { EcosystemPanel } from './components/EcosystemPanel';
+import { RiskAssessmentPanel } from './components/RiskAssessmentPanel';
 
-const priceFeedData = [
-  { time: '00:00', BTC: 68000, ETH: 3500, SOL: 180 },
-  { time: '04:00', BTC: 68120, ETH: 3515, SOL: 181 },
-  { time: '08:00', BTC: 68050, ETH: 3508, SOL: 180.5 },
-  { time: '12:00', BTC: 68200, ETH: 3520, SOL: 182 },
-  { time: '16:00', BTC: 68150, ETH: 3518, SOL: 181.5 },
-  { time: '20:00', BTC: 68250, ETH: 3525, SOL: 182.5 },
-  { time: '24:00', BTC: 68300, ETH: 3530, SOL: 183 },
-];
+const api3Client = new API3Client();
 
-const networkStatsData = [
-  { name: 'Ethereum', value: 65 },
-  { name: 'Arbitrum', value: 20 },
-  { name: 'Polygon', value: 15 },
-];
+// 时间范围类型
+type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
-const securityMetrics = [
-  { name: '去中心化程度', value: 95 },
-  { name: '节点安全性', value: 92 },
-  { name: '数据完整性', value: 88 },
-  { name: '响应速度', value: 90 },
-];
-
-const COLORS = ['#1e40af', '#3b82f6', '#6366f1', '#8b5cf6'];
-const LINE_COLORS = {
-  BTC: '#f59e0b',
-  ETH: '#3b82f6',
-  SOL: '#8b5cf6',
+// 标签页类型
+type TabItem = {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
 };
 
-const BAR_COLORS = ['#1e40af', '#3b82f6', '#10b981', '#8b5cf6'];
+// API3 Logo 组件
+const Api3Icon = ({ className = 'w-8 h-8' }: { className?: string }) => (
+  <svg viewBox="0 0 256 256" className={className} fill="none">
+    <circle cx="128" cy="128" r="120" fill="#1E40AF" />
+    <path
+      d="M128 48L168 88H144V168H168L128 208L88 168H112V88H88L128 48Z"
+      fill="white"
+    />
+    <circle cx="128" cy="128" r="32" fill="white" fillOpacity="0.3" />
+  </svg>
+);
 
-export default function Api3Page() {
+// 标签页导航组件
+function TabNavigation({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}) {
   const { t } = useI18n();
-  const [currentPrice, setCurrentPrice] = useState({
-    BTC: 68300,
-    ETH: 3530,
-    SOL: 183,
-    API3: 2.8,
-  });
 
-  const features = useMemo(
+  const tabs: TabItem[] = useMemo(
     () => [
       {
-        title: t('api3.features.firstPartyOracles'),
-        description: t('api3.features.firstPartyOraclesDesc'),
-        icon: '🔒',
-        gradient: 'from-blue-500 to-cyan-400',
-        bgColor: 'bg-blue-50',
+        id: 'market',
+        label: t('api3.menu.marketData'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        ),
       },
       {
-        title: t('api3.features.airnode'),
-        description: t('api3.features.airnodeDesc'),
-        icon: '✈️',
-        gradient: 'from-purple-500 to-pink-400',
-        bgColor: 'bg-purple-50',
+        id: 'network',
+        label: t('api3.menu.networkHealth'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
       },
       {
-        title: t('api3.features.decentralizedApiConnectivity'),
-        description: t('api3.features.decentralizedApiConnectivityDesc'),
-        icon: '🔗',
-        gradient: 'from-green-500 to-emerald-400',
-        bgColor: 'bg-green-50',
+        id: 'airnodes',
+        label: t('api3.menu.firstPartyOracles'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        ),
       },
       {
-        title: t('api3.features.quantifiableSecurity'),
-        description: t('api3.features.quantifiableSecurityDesc'),
-        icon: '📊',
-        gradient: 'from-orange-500 to-amber-400',
-        bgColor: 'bg-orange-50',
+        id: 'ecosystem',
+        label: t('api3.menu.ecosystem'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'risk',
+        label: t('api3.menu.riskAssessment'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        ),
       },
     ],
     [t]
   );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPrice((prev) => ({
-        BTC: prev.BTC + (Math.random() - 0.5) * 100,
-        ETH: prev.ETH + (Math.random() - 0.5) * 5,
-        SOL: prev.SOL + (Math.random() - 0.5) * 0.5,
-        API3: prev.API3 + (Math.random() - 0.5) * 0.05,
-      }));
-    }, 3000);
+  return (
+    <div className="border-b border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`
+                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
+                ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+}
 
-    return () => clearInterval(interval);
-  }, []);
+// 顶部操作栏组件
+function PageHeader({
+  timeRange,
+  onTimeRangeChange,
+  onRefresh,
+  onExport,
+  isRefreshing,
+}: {
+  timeRange: TimeRange;
+  onTimeRangeChange: (range: TimeRange) => void;
+  onRefresh: () => void;
+  onExport: () => void;
+  isRefreshing: boolean;
+}) {
+  const { t } = useI18n();
+  const timeRanges: TimeRange[] = useMemo(() => ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'], []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <header className="mb-10 sm:mb-16 animate-fade-in">
-          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-700 to-blue-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-xl">
-              🔗
-            </div>
+    <div className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* 左侧：标题 */}
+          <div className="flex items-center gap-3">
+            <Api3Icon className="w-8 h-8" />
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-                {t('api3.title')}
-              </h1>
-              <p className="text-base sm:text-lg text-gray-600 mt-1 sm:mt-2">
-                {t('api3.subtitle')}
-              </p>
+              <h1 className="text-xl font-bold text-gray-900">{t('api3.analytics')}</h1>
+              <p className="text-sm text-gray-500">{t('api3.platform')}</p>
             </div>
           </div>
-          <div className="h-1 w-20 sm:w-24 bg-gradient-to-r from-blue-700 to-blue-500 rounded-full"></div>
-        </header>
 
-        <section className="mb-10 sm:mb-12 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {Object.entries(currentPrice).map(([symbol, price], index) => {
-              const iconMap: Record<string, string> = {
-                BTC: '₿',
-                ETH: 'Ξ',
-                SOL: '◎',
-                API3: '🔗',
-              };
-              const colorMap: Record<
-                string,
-                'blue' | 'purple' | 'green' | 'orange' | 'red' | 'cyan'
-              > = {
-                BTC: 'orange',
-                ETH: 'blue',
-                SOL: 'purple',
-                API3: 'cyan',
-              };
-              const fixedPrice = price.toFixed(symbol === 'API3' ? 2 : symbol === 'SOL' ? 1 : 0);
-              return (
-                <StatCard
-                  key={symbol}
-                  title={`${symbol}/USD`}
-                  value={fixedPrice}
-                  prefix="$"
-                  icon={<span className="text-xl sm:text-2xl">{iconMap[symbol]}</span>}
-                  trend={0.24}
-                  trendDirection="up"
-                  accentColor={colorMap[symbol]}
-                  variant={index === 0 ? 'accent' : 'default'}
-                  className="hover-lift"
-                />
-              );
-            })}
-          </div>
-        </section>
+          {/* 右侧：操作按钮 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 时间范围选择器 */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              {timeRanges.map((range) => (
+                <button
+                  key={range}
+                  onClick={() => onTimeRangeChange(range)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                    timeRange === range
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {t(`api3.timeRange.${range}`)}
+                </button>
+              ))}
+            </div>
 
-        <section className="mb-10 sm:mb-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <div className="w-1.5 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-700 to-blue-400 rounded-full"></div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              {t('api3.uniqueFeatures')}
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="group relative overflow-hidden rounded-2xl sm:rounded-3xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 sm:hover:-translate-y-2 cursor-pointer"
-                style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50"
+            >
+              <svg
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <div className={`absolute inset-0 ${feature.bgColor} opacity-90`}></div>
-                <div className="relative p-6 sm:p-8">
-                  <div className="flex items-start gap-4 sm:gap-6">
-                    <div
-                      className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      {feature.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-blue-700 transition-colors duration-300">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span className="hidden sm:inline">{t('api3.refresh')}</span>
+            </button>
 
-                  <div
-                    className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${feature.gradient} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}
-                  ></div>
-                </div>
-              </div>
-            ))}
+            <button
+              onClick={onExport}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              <span className="hidden sm:inline">{t('api3.export')}</span>
+            </button>
           </div>
-        </section>
-
-        <section className="mb-10 sm:mb-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-            <AdvancedCard className="lg:col-span-2" variant="glass" hoverable={false}>
-              <AdvancedCardHeader className="border-gray-200/50">
-                <AdvancedCardTitle className="text-gray-900">
-                  {t('api3.priceFeeds')}
-                </AdvancedCardTitle>
-              </AdvancedCardHeader>
-              <AdvancedCardContent>
-                <div className="h-72 sm:h-80 lg:h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={priceFeedData}
-                      margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-                    >
-                      <defs>
-                        {Object.entries(LINE_COLORS).map(([key, color]) => (
-                          <linearGradient key={key} id={`color${key}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={color} stopOpacity={0.25} />
-                            <stop offset="95%" stopColor={color} stopOpacity={0} />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <CartesianGrid strokeDasharray="6 6" stroke="#f0f0f0" vertical={false} />
-                      <XAxis
-                        dataKey="time"
-                        stroke="#9ca3af"
-                        tick={{ fontSize: 11, fill: '#6b7280' }}
-                        tickLine={false}
-                        axisLine={false}
-                        dy={8}
-                      />
-                      <YAxis
-                        domain={['auto', 'auto']}
-                        tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                        stroke="#9ca3af"
-                        tick={{ fontSize: 11, fill: '#6b7280' }}
-                        tickLine={false}
-                        axisLine={false}
-                        width={70}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          border: '1px solid #f0f0f0',
-                          borderRadius: '12px',
-                          boxShadow: 'var(--shadow-finance-medium)',
-                          padding: '12px 16px',
-                          backdropFilter: 'blur(10px)',
-                        }}
-                        formatter={(value) => [`$${Number(value).toLocaleString()}`, '']}
-                        labelFormatter={(label) => label}
-                        cursor={{ stroke: '#e5e7eb', strokeWidth: 1, strokeDasharray: '4 4' }}
-                      />
-                      <Legend
-                        wrapperStyle={{
-                          paddingTop: '20px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          flexWrap: 'wrap',
-                          gap: '12px',
-                        }}
-                        iconType="circle"
-                        iconSize={8}
-                      />
-                      {Object.entries(LINE_COLORS).map(([key, color]) => (
-                        <Line
-                          key={key}
-                          type="monotone"
-                          dataKey={key}
-                          name={key}
-                          stroke={color}
-                          strokeWidth={2.5}
-                          dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
-                          activeDot={{ r: 6, strokeWidth: 0 }}
-                          fill={`url(#color${key})`}
-                        />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </AdvancedCardContent>
-            </AdvancedCard>
-
-            <AdvancedCard variant="default" hoverable={false}>
-              <AdvancedCardHeader className="border-gray-100">
-                <AdvancedCardTitle>{t('api3.networkDistribution')}</AdvancedCardTitle>
-              </AdvancedCardHeader>
-              <AdvancedCardContent>
-                <div className="h-72 sm:h-80 lg:h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <defs>
-                        {COLORS.map((color, index) => (
-                          <linearGradient
-                            key={`pieGrad${index}`}
-                            id={`pieGrad${index}`}
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop offset="0%" stopColor={color} stopOpacity={1} />
-                            <stop offset="100%" stopColor={color} stopOpacity={0.8} />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <Pie
-                        data={networkStatsData}
-                        cx="50%"
-                        cy="45%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                        }
-                        outerRadius={70}
-                        innerRadius={40}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {networkStatsData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={`url(#pieGrad${index})`}
-                            stroke="white"
-                            strokeWidth={2}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #f0f0f0',
-                          borderRadius: '12px',
-                          boxShadow: 'var(--shadow-finance-medium)',
-                          padding: '12px 16px',
-                        }}
-                      />
-                      <Legend
-                        verticalAlign="bottom"
-                        height={48}
-                        iconType="circle"
-                        iconSize={8}
-                        wrapperStyle={{ paddingBottom: '10px' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </AdvancedCardContent>
-            </AdvancedCard>
-          </div>
-        </section>
-
-        <section className="animate-fade-in" style={{ animationDelay: '0.7s' }}>
-          <AdvancedCard variant="default" hoverable={false}>
-            <AdvancedCardHeader className="border-gray-100">
-              <AdvancedCardTitle>{t('api3.quantifiableSecurityMetrics')}</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent>
-              <div className="h-72 sm:h-80 lg:h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={securityMetrics}
-                    margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-                  >
-                    <defs>
-                      {BAR_COLORS.map((color, index) => (
-                        <linearGradient
-                          key={`barGrad${index}`}
-                          id={`barGrad${index}`}
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop offset="0%" stopColor={color} stopOpacity={1} />
-                          <stop offset="100%" stopColor={color} stopOpacity={0.6} />
-                        </linearGradient>
-                      ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="6 6" stroke="#f0f0f0" vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      dy={8}
-                      interval={0}
-                    />
-                    <YAxis
-                      domain={[0, 100]}
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={40}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #f0f0f0',
-                        borderRadius: '12px',
-                        boxShadow: 'var(--shadow-finance-medium)',
-                        padding: '12px 16px',
-                      }}
-                      formatter={(value) => [`${value}分`, '安全评分']}
-                    />
-                    <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={48}>
-                      {securityMetrics.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`url(#barGrad${index})`} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </AdvancedCardContent>
-          </AdvancedCard>
-        </section>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// 卡片组件
+function DashboardCard({
+  title,
+  children,
+  className = '',
+  headerAction,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+  headerAction?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm ${className}`}
+    >
+      {title && (
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          {headerAction && <div>{headerAction}</div>}
+        </div>
+      )}
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+// 统计卡片组件
+function StatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+}: {
+  title: string;
+  value: string;
+  change: string;
+  changeType: 'positive' | 'negative' | 'neutral';
+  icon: React.ReactNode;
+}) {
+  return (
+    <DashboardCard className="h-full">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p
+            className={`text-xs mt-2 font-medium ${
+              changeType === 'positive'
+                ? 'text-green-600'
+                : changeType === 'negative'
+                  ? 'text-red-600'
+                  : 'text-gray-500'
+            }`}
+          >
+            {changeType === 'positive' && '↑ '}
+            {changeType === 'negative' && '↓ '}
+            {changeType === 'neutral' && '→ '}
+            {change}
+          </p>
+        </div>
+        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+      </div>
+    </DashboardCard>
+  );
+}
+
+// 主内容区域组件
+function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: TimeRange }) {
+  const { t } = useI18n();
+
+  // 统计数据 - 使用 useMemo 优化
+  const stats = useMemo(
+    () => [
+      {
+        title: t('api3.stats.activeAirnodes'),
+        value: '156',
+        change: '+8%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('api3.stats.supportedChains'),
+        value: '3',
+        change: '0%',
+        changeType: 'neutral' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('api3.stats.dapis'),
+        value: '168',
+        change: '+15%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('api3.stats.totalValueSecured'),
+        value: '$2.5B',
+        change: '+22%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+        ),
+      },
+    ],
+    [t]
+  );
+
+  // 网络状态数据 - 使用 useMemo 优化
+  const networkStatusData = useMemo(
+    () => [
+      {
+        label: t('api3.networkHealth.activeAirnodes'),
+        value: '156',
+        status: 'healthy' as const,
+      },
+      { label: t('api3.stats.dapis'), value: '168', status: 'healthy' as const },
+      {
+        label: t('api3.networkHealth.responseTime'),
+        value: '180ms',
+        status: 'healthy' as const,
+      },
+      { label: t('api3.successRate'), value: '99.97%', status: 'healthy' as const },
+    ],
+    [t]
+  );
+
+  // 数据源数据 - 使用 useMemo 优化
+  const dataSources = useMemo(
+    () => [
+      { name: 'API3 Network', status: 'active' as const, latency: '85ms' },
+      { name: 'Ethereum Mainnet', status: 'active' as const, latency: '180ms' },
+      { name: 'Arbitrum One', status: 'active' as const, latency: '95ms' },
+      { name: 'Polygon Network', status: 'active' as const, latency: '120ms' },
+    ],
+    []
+  );
+
+  const getPageTitle = useCallback(() => {
+    switch (activeTab) {
+      case 'market':
+        return t('api3.pageTitles.market');
+      case 'network':
+        return t('api3.pageTitles.network');
+      case 'airnodes':
+        return t('api3.pageTitles.airnodes');
+      case 'ecosystem':
+        return t('api3.pageTitles.ecosystem');
+      case 'risk':
+        return t('api3.pageTitles.risk');
+      default:
+        return '';
+    }
+  }, [activeTab, t]);
+
+  return (
+    <main className="flex-1 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* 页面标题 */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('api3.lastUpdated')}: {t('api3.justNow')} • {t('api3.period')}:{' '}
+            {timeRange}
+          </p>
+        </div>
+
+        {/* 市场数据面板 */}
+        {activeTab === 'market' && (
+          <div className="mb-6">
+            <MarketDataPanel />
+          </div>
+        )}
+
+        {/* 网络健康度面板 */}
+        {activeTab === 'network' && (
+          <div className="mb-6">
+            <NetworkHealthPanel />
+          </div>
+        )}
+
+        {/* 风险评估面板 */}
+        {activeTab === 'risk' && (
+          <div className="mb-6">
+            <RiskAssessmentPanel />
+          </div>
+        )}
+
+        {/* 第一方预言机分析面板 */}
+        {activeTab === 'airnodes' && (
+          <div className="mb-6">
+            <FirstPartyOraclePanel />
+          </div>
+        )}
+
+        {/* 生态系统面板 */}
+        {activeTab === 'ecosystem' && (
+          <div className="mb-6">
+            <EcosystemPanel />
+          </div>
+        )}
+
+        {/* 以下只在 market/network 页面显示 */}
+        {(activeTab === 'market' || activeTab === 'network') && (
+          <>
+            {/* 统计卡片网格 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {stats.map((stat, index) => (
+                <StatCard key={index} {...stat} />
+              ))}
+            </div>
+
+            {/* 主图表区域 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              {/* 价格图表 */}
+              <DashboardCard title={t('api3.priceChart.title')} className="lg:col-span-2">
+                <PriceChart
+                  symbol="API3"
+                  chain={Blockchain.ETHEREUM}
+                  initialTimeRange={timeRange}
+                  height={320}
+                  showToolbar={true}
+                />
+              </DashboardCard>
+
+              {/* 快速统计 */}
+              <DashboardCard title={t('api3.quickStats')}>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">{t('api3.24hVolume')}</span>
+                    <span className="text-sm font-semibold text-gray-900">$12.5M</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">
+                      {t('api3.marketData.marketCap')}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">$280M</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">
+                      {t('api3.marketData.circulatingSupply')}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">100M API3</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">{t('api3.stakingApr')}</span>
+                    <span className="text-sm font-semibold text-green-600">12.5%</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-600">{t('api3.networkUptime')}</span>
+                    <span className="text-sm font-semibold text-green-600">99.97%</span>
+                  </div>
+                </div>
+              </DashboardCard>
+            </div>
+
+            {/* 底部信息卡片 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DashboardCard title={t('api3.networkStatus')} className="lg:col-span-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {networkStatusData.map((item, index) => (
+                    <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
+                      <p className="text-lg font-semibold text-gray-900">{item.value}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            item.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
+                          }`}
+                        />
+                        <span className="text-xs text-gray-500">
+                          {item.status === 'healthy'
+                            ? t('api3.normal')
+                            : t('api3.networkHealth.warning')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+
+              <DashboardCard title={t('api3.dataSource')}>
+                <div className="space-y-3">
+                  {dataSources.map((source, index) => (
+                    <div key={index} className="flex items-center justify-between py-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            source.status === 'active'
+                              ? 'bg-green-500'
+                              : 'bg-yellow-500 animate-pulse'
+                          }`}
+                        />
+                        <span className="text-sm text-gray-700 truncate">{source.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 font-mono flex-shrink-0">
+                        {source.latency}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+// 主页面组件
+export default function Api3Page() {
+  const { t } = useI18n();
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
+  const [activeTab, setActiveTab] = useState('market');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [priceData, setPriceData] = useState<PriceData | null>(null);
+  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
+
+  // 获取数据
+  const fetchData = useCallback(async () => {
+    try {
+      const [price, history] = await Promise.all([
+        api3Client.getPrice('API3', Blockchain.ETHEREUM),
+        api3Client.getHistoricalPrices('API3', Blockchain.ETHEREUM, 7),
+      ]);
+      setPriceData(price);
+      setHistoricalData(history);
+    } catch (error) {
+      console.error('Error fetching API3 data:', error);
+    }
+  }, []);
+
+  // 刷新数据
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setTimeout(() => setIsRefreshing(false), 500);
+  }, [fetchData]);
+
+  // 导出数据
+  const handleExport = useCallback(() => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      price: priceData,
+      historical: historicalData,
+      timeRange,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `api3-data-${timeRange}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [priceData, historicalData, timeRange]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, timeRange]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 页面头部 */}
+      <PageHeader
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        onRefresh={handleRefresh}
+        onExport={handleExport}
+        isRefreshing={isRefreshing}
+      />
+
+      {/* 标签页导航 */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* 主内容区域 */}
+      <PageContent activeTab={activeTab} timeRange={timeRange} />
     </div>
   );
 }

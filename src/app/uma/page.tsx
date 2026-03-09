@@ -1,365 +1,680 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import AdvancedCard, {
-  AdvancedCardHeader,
-  AdvancedCardTitle,
-  AdvancedCardContent,
-} from '@/components/AdvancedCard';
-import StatCard from '@/components/StatCard';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
+
 import { UMAClient } from '@/lib/oracles/uma';
 import { PriceData } from '@/lib/types/oracle';
+import { MarketDataPanel } from './components/MarketDataPanel';
+import { PriceChart } from './components/PriceChart';
+import { NetworkHealthPanel } from './components/NetworkHealthPanel';
+import { DataQualityPanel } from './components/DataQualityPanel';
+import { ValidatorAnalyticsPanel } from './components/ValidatorAnalyticsPanel';
+import { EcosystemPanel } from './components/EcosystemPanel';
+import DisputeResolutionPanel from './components/DisputeResolutionPanel';
+import { CompetitorComparisonPanel } from './components/CompetitorComparisonPanel';
 
 const umaClient = new UMAClient();
 
-const UMAIcon = () => <div className="text-4xl">🔮</div>;
+// 时间范围类型
+type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
-export default function UMAPage() {
+// 标签页类型
+type TabItem = {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+};
+
+// UMA Logo 组件
+const UMAIcon = ({ className = 'w-8 h-8' }: { className?: string }) => (
+  <div className={`flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg text-white font-bold ${className}`}>
+    <span className="text-sm">UMA</span>
+  </div>
+);
+
+// 标签页导航组件
+function TabNavigation({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}) {
   const { t } = useI18n();
-  const [btcHistorical, setBtcHistorical] = useState<PriceData[]>([]);
-  const [ethHistorical, setEthHistorical] = useState<PriceData[]>([]);
-  const [currentPrices, setCurrentPrices] = useState<Record<string, PriceData>>({});
 
-  const UMA_STATS = [
-    {
-      titleKey: 'uma.stats.supportedChains',
-      value: '10+',
-      trendDirection: 'up' as const,
-      trend: 10,
-      trendLabel: '',
-      accentColor: 'blue' as const,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l1.1 1.1"
-          />
-        </svg>
-      ),
-    },
-    {
-      titleKey: 'uma.stats.activeContracts',
-      value: '500+',
-      trendDirection: 'up' as const,
-      trend: 15,
-      trendLabel: '',
-      accentColor: 'purple' as const,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      titleKey: 'uma.stats.totalValueLocked',
-      value: '$50M+',
-      trendDirection: 'neutral' as const,
-      trend: 0,
-      trendLabel: '',
-      accentColor: 'green' as const,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      titleKey: 'uma.stats.dataVerificationRequests',
-      value: '10K+',
-      trendDirection: 'up' as const,
-      trend: 20,
-      trendLabel: '',
-      accentColor: 'orange' as const,
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-  ];
-
-  const FEATURES = [
-    {
-      titleKey: 'uma.features.optimisticOracle',
-      descriptionKey: 'uma.features.optimisticOracleDesc',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
-          />
-        </svg>
-      ),
-      gradient: 'from-blue-500 to-cyan-500',
-    },
-    {
-      titleKey: 'uma.features.pricelessContracts',
-      descriptionKey: 'uma.features.pricelessContractsDesc',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      gradient: 'from-purple-500 to-pink-500',
-    },
-    {
-      titleKey: 'uma.features.financialContracts',
-      descriptionKey: 'uma.features.financialContractsDesc',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-      ),
-      gradient: 'from-green-500 to-emerald-500',
-    },
-    {
-      titleKey: 'uma.features.dataVerification',
-      descriptionKey: 'uma.features.dataVerificationDesc',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      gradient: 'from-orange-500 to-amber-500',
-    },
-  ];
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const btc = await umaClient.getHistoricalPrices('BTC');
-      const eth = await umaClient.getHistoricalPrices('ETH');
-      const btcPrice = await umaClient.getPrice('BTC');
-      const ethPrice = await umaClient.getPrice('ETH');
-      const umaPrice = await umaClient.getPrice('UMA');
-
-      setBtcHistorical(btc);
-      setEthHistorical(eth);
-      setCurrentPrices({ BTC: btcPrice, ETH: ethPrice, UMA: umaPrice });
-    };
-
-    fetchData();
-  }, []);
-
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-  };
+  const tabs: TabItem[] = useMemo(
+    () => [
+      {
+        id: 'market',
+        label: t('uma.menu.marketData'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'network',
+        label: t('uma.menu.networkHealth'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'disputes',
+        label: t('uma.menu.disputes'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'validators',
+        label: t('uma.menu.validators'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'ecosystem',
+        label: t('uma.menu.ecosystem'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: 'risk',
+        label: t('uma.menu.risk'),
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        ),
+      },
+    ],
+    [t]
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white mb-12 shadow-2xl">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-32 -translate-y-32" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-48 translate-y-48" />
-          </div>
-          <div className="relative p-8 md:p-12">
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-white/20 backdrop-blur-sm rounded-2xl p-4 shadow-lg flex items-center justify-center">
-                <UMAIcon />
-              </div>
-              <div className="text-center md:text-left">
-                <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">
-                  {t('uma.title')}
-                </h1>
-                <p className="text-xl opacity-90">{t('uma.subtitle')}</p>
-              </div>
+    <div className="border-b border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`
+                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
+                ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+// 顶部操作栏组件
+function PageHeader({
+  timeRange,
+  onTimeRangeChange,
+  onRefresh,
+  onExport,
+  isRefreshing,
+}: {
+  timeRange: TimeRange;
+  onTimeRangeChange: (range: TimeRange) => void;
+  onRefresh: () => void;
+  onExport: () => void;
+  isRefreshing: boolean;
+}) {
+  const { t } = useI18n();
+  const timeRanges: TimeRange[] = useMemo(() => ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'], []);
+
+  return (
+    <div className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* 左侧：标题 */}
+          <div className="flex items-center gap-3">
+            <UMAIcon className="w-8 h-8" />
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">{t('uma.analytics')}</h1>
+              <p className="text-sm text-gray-500">{t('uma.platform')}</p>
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {UMA_STATS.map((stat, index) => (
-            <StatCard
-              key={index}
-              title={t(stat.titleKey)}
-              value={stat.value}
-              icon={stat.icon}
-              trend={stat.trend}
-              trendDirection={stat.trendDirection}
-              trendLabel={stat.trendLabel}
-              accentColor={stat.accentColor}
-              variant={index === 0 ? 'accent' : 'default'}
-            />
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          <AdvancedCard className="lg:col-span-2" variant="glass" hoverable={false}>
-            <AdvancedCardHeader>
-              <AdvancedCardTitle className="text-gray-900">价格历史对比</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={btcHistorical}>
-                    <defs>
-                      <linearGradient id="colorBtcLine" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#f7931a" />
-                        <stop offset="100%" stopColor="#f2a900" />
-                      </linearGradient>
-                      <linearGradient id="colorEthLine" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#627eea" />
-                        <stop offset="100%" stopColor="#818cf8" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="timestamp"
-                      tickFormatter={formatDate}
-                      stroke="#6b7280"
-                      tick={{ fill: '#6b7280' }}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tickFormatter={(value) => `$${value.toLocaleString()}`}
-                      stroke="#6b7280"
-                      tick={{ fill: '#6b7280' }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                      }}
-                      formatter={(value, name) => [
-                        typeof value === 'number'
-                          ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-                          : '',
-                        name,
-                      ]}
-                      labelFormatter={(label) => formatDate(Number(label))}
-                    />
-                    <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="line" />
-                    <Line
-                      type="monotone"
-                      dataKey="price"
-                      name="BTC"
-                      stroke="url(#colorBtcLine)"
-                      strokeWidth={3}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </AdvancedCardContent>
-          </AdvancedCard>
-
-          <div className="space-y-6">
-            {Object.entries(currentPrices).map(([symbol, data]) => {
-              const isPositive = (data.change ?? 0) >= 0;
-              const gradientType =
-                symbol === 'BTC' ? 'orange' : symbol === 'ETH' ? 'blue' : 'purple';
-              const icon = symbol === 'BTC' ? '₿' : symbol === 'ETH' ? 'Ξ' : '🔮';
-
-              return (
-                <AdvancedCard
-                  key={symbol}
-                  variant="gradient"
-                  gradientType={gradientType}
-                  hoverable={false}
+          {/* 右侧：操作按钮 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 时间范围选择器 */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              {timeRanges.map((range) => (
+                <button
+                  key={range}
+                  onClick={() => onTimeRangeChange(range)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                    timeRange === range
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  <AdvancedCardContent>
-                    <div className="text-center">
-                      <div className="text-5xl mb-2">{icon}</div>
-                      <h3 className="text-xl font-bold mb-2">{symbol}/USD</h3>
-                      <p className="text-3xl font-bold mb-2">
-                        $
-                        {data.price.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </p>
-                      <p
-                        className={`text-sm font-medium ${isPositive ? 'text-green-300' : 'text-red-300'}`}
-                      >
-                        {isPositive ? '↑' : '↓'} {Math.abs(data.change ?? 0).toFixed(2)}%
-                      </p>
-                    </div>
-                  </AdvancedCardContent>
-                </AdvancedCard>
-              );
-            })}
-          </div>
-        </div>
+                  {t(`uma.timeRange.${range}`)}
+                </button>
+              ))}
+            </div>
 
-        <div className="mb-8">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">{t('uma.features.title')}</h2>
-            <p className="text-gray-600 text-lg">{t('uma.subtitle')}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {FEATURES.map((feature, index) => (
-              <div key={index} className="group">
-                <AdvancedCard variant="default" hoverable={true}>
-                  <AdvancedCardContent className="p-8">
-                    <div className="flex items-start gap-6">
-                      <div
-                        className={`flex-shrink-0 p-4 rounded-2xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                      >
-                        {feature.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                          {t(feature.titleKey)}
-                        </h3>
-                        <p className="text-gray-600 leading-relaxed">{t(feature.descriptionKey)}</p>
-                      </div>
-                    </div>
-                  </AdvancedCardContent>
-                </AdvancedCard>
-              </div>
-            ))}
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50"
+            >
+              <svg
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span className="hidden sm:inline">{t('uma.refresh')}</span>
+            </button>
+
+            <button
+              onClick={onExport}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              <span className="hidden sm:inline">{t('uma.export')}</span>
+            </button>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// 卡片组件
+function DashboardCard({
+  title,
+  children,
+  className = '',
+  headerAction,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+  headerAction?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm ${className}`}
+    >
+      {title && (
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          {headerAction && <div>{headerAction}</div>}
+        </div>
+      )}
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+// 统计卡片组件
+function StatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+}: {
+  title: string;
+  value: string;
+  change: string;
+  changeType: 'positive' | 'negative' | 'neutral';
+  icon: React.ReactNode;
+}) {
+  return (
+    <DashboardCard className="h-full">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p
+            className={`text-xs mt-2 font-medium ${
+              changeType === 'positive'
+                ? 'text-green-600'
+                : changeType === 'negative'
+                  ? 'text-red-600'
+                  : 'text-gray-500'
+            }`}
+          >
+            {changeType === 'positive' && '↑ '}
+            {changeType === 'negative' && '↓ '}
+            {changeType === 'neutral' && '→ '}
+            {change}
+          </p>
+        </div>
+        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+      </div>
+    </DashboardCard>
+  );
+}
+
+// 主内容区域组件
+function PageContent({ activeTab, timeRange }: { activeTab: string; timeRange: TimeRange }) {
+  const { t } = useI18n();
+
+  // 统计数据 - 使用 useMemo 优化
+  const stats = useMemo(
+    () => [
+      {
+        title: t('uma.stats.supportedChains'),
+        value: '10+',
+        change: '+10%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('uma.stats.activeContracts'),
+        value: '500+',
+        change: '+15%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('uma.stats.totalValueLocked'),
+        value: '$50M+',
+        change: '0%',
+        changeType: 'neutral' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: t('uma.stats.dataVerificationRequests'),
+        value: '10K+',
+        change: '+20%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+    ],
+    [t]
+  );
+
+  // 网络状态数据 - 使用 useMemo 优化
+  const networkStatusData = useMemo(
+    () => [
+      {
+        label: t('uma.networkHealth.activeValidators'),
+        value: '150+',
+        status: 'healthy' as const,
+      },
+      { label: t('uma.stats.activeContracts'), value: '500+', status: 'healthy' as const },
+      {
+        label: t('uma.networkHealth.responseTime'),
+        value: '180ms',
+        status: 'healthy' as const,
+      },
+      { label: t('uma.successRate'), value: '99.95%', status: 'healthy' as const },
+    ],
+    [t]
+  );
+
+  // 数据源数据 - 使用 useMemo 优化
+  const dataSources = useMemo(
+    () => [
+      { name: 'Optimistic Oracle', status: 'active' as const, latency: '120ms' },
+      { name: 'Ethereum Mainnet', status: 'active' as const, latency: '180ms' },
+      { name: 'Polygon Network', status: 'active' as const, latency: '89ms' },
+      { name: 'Arbitrum One', status: 'active' as const, latency: '156ms' },
+    ],
+    []
+  );
+
+  const getPageTitle = useCallback(() => {
+    switch (activeTab) {
+      case 'market':
+        return t('uma.pageTitles.market');
+      case 'network':
+        return t('uma.pageTitles.network');
+      case 'disputes':
+        return t('uma.pageTitles.disputes');
+      case 'validators':
+        return t('uma.pageTitles.validators');
+      case 'ecosystem':
+        return t('uma.pageTitles.ecosystem');
+      case 'risk':
+        return t('uma.pageTitles.risk');
+      default:
+        return '';
+    }
+  }, [activeTab, t]);
+
+  return (
+    <main className="flex-1 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* 页面标题 */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('uma.lastUpdated')}: {t('uma.justNow')} • {t('uma.period')}: {timeRange}
+          </p>
+        </div>
+
+        {/* 市场数据面板 */}
+        {activeTab === 'market' && (
+          <div className="mb-6">
+            <MarketDataPanel />
+          </div>
+        )}
+
+        {/* 网络健康度面板 */}
+        {activeTab === 'network' && (
+          <div className="mb-6">
+            <NetworkHealthPanel />
+          </div>
+        )}
+
+        {/* 争议解决面板 */}
+        {activeTab === 'disputes' && (
+          <div className="mb-6">
+            <DisputeResolutionPanel />
+          </div>
+        )}
+
+        {/* 验证者分析面板 */}
+        {activeTab === 'validators' && (
+          <div className="mb-6">
+            <ValidatorAnalyticsPanel />
+          </div>
+        )}
+
+        {/* 生态系统面板 */}
+        {activeTab === 'ecosystem' && (
+          <div className="mb-6">
+            <EcosystemPanel />
+          </div>
+        )}
+
+        {/* 风险评估面板 */}
+        {activeTab === 'risk' && (
+          <div className="mb-6">
+            <DataQualityPanel />
+          </div>
+        )}
+
+        {/* 以下只在 market/network/disputes/validators 页面显示 */}
+        {(activeTab === 'market' || activeTab === 'network' || activeTab === 'disputes' || activeTab === 'validators') && (
+          <>
+            {/* 统计卡片网格 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {stats.map((stat, index) => (
+                <StatCard key={index} {...stat} />
+              ))}
+            </div>
+
+            {/* 主图表区域 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              {/* 价格图表 */}
+              <DashboardCard title={t('uma.priceChart.title')} className="lg:col-span-2">
+                <PriceChart
+                  timeRange={timeRange}
+                  height={320}
+                />
+              </DashboardCard>
+
+              {/* 快速统计 */}
+              <DashboardCard title={t('uma.quickStats')}>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">{t('uma.24hVolume')}</span>
+                    <span className="text-sm font-semibold text-gray-900">$12.5M</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">{t('uma.marketData.marketCap')}</span>
+                    <span className="text-sm font-semibold text-gray-900">$180M</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">
+                      {t('uma.marketData.circulatingSupply')}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">75M UMA</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">{t('uma.stakingApr')}</span>
+                    <span className="text-sm font-semibold text-green-600">8.5%</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-gray-600">{t('uma.networkUptime')}</span>
+                    <span className="text-sm font-semibold text-green-600">99.95%</span>
+                  </div>
+                </div>
+              </DashboardCard>
+            </div>
+
+            {/* 底部信息卡片 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DashboardCard title={t('uma.networkStatus')} className="lg:col-span-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {networkStatusData.map((item, index) => (
+                    <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
+                      <p className="text-lg font-semibold text-gray-900">{item.value}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            item.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
+                          }`}
+                        />
+                        <span className="text-xs text-gray-500">
+                          {item.status === 'healthy'
+                            ? t('uma.normal')
+                            : t('uma.networkHealth.warning')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+
+              <DashboardCard title={t('uma.dataSource')}>
+                <div className="space-y-3">
+                  {dataSources.map((source, index) => (
+                    <div key={index} className="flex items-center justify-between py-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            source.status === 'active'
+                              ? 'bg-green-500'
+                              : 'bg-yellow-500 animate-pulse'
+                          }`}
+                        />
+                        <span className="text-sm text-gray-700 truncate">{source.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 font-mono flex-shrink-0">
+                        {source.latency}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+            </div>
+          </>
+        )}
+
+        {/* 生态系统页面显示竞品对比 */}
+        {activeTab === 'ecosystem' && (
+          <div className="mb-6">
+            <CompetitorComparisonPanel />
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+// 主页面组件
+export default function UMAPage() {
+  const { t } = useI18n();
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
+  const [activeTab, setActiveTab] = useState('market');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [priceData, setPriceData] = useState<PriceData | null>(null);
+  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
+
+  // 获取数据
+  const fetchData = useCallback(async () => {
+    try {
+      const [price, history] = await Promise.all([
+        umaClient.getPrice('UMA'),
+        umaClient.getHistoricalPrices('UMA'),
+      ]);
+      setPriceData(price);
+      setHistoricalData(history);
+    } catch (error) {
+      console.error('Error fetching UMA data:', error);
+    }
+  }, []);
+
+  // 刷新数据
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setTimeout(() => setIsRefreshing(false), 500);
+  }, [fetchData]);
+
+  // 导出数据
+  const handleExport = useCallback(() => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      price: priceData,
+      historical: historicalData,
+      timeRange,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `uma-data-${timeRange}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [priceData, historicalData, timeRange]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, timeRange]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 页面头部 */}
+      <PageHeader
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        onRefresh={handleRefresh}
+        onExport={handleExport}
+        isRefreshing={isRefreshing}
+      />
+
+      {/* 标签页导航 */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* 主内容区域 */}
+      <PageContent activeTab={activeTab} timeRange={timeRange} />
     </div>
   );
 }
