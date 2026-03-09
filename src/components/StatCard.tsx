@@ -19,6 +19,7 @@ interface StatCardProps {
   className?: string;
   onClick?: () => void;
   children?: ReactNode;
+  style?: React.CSSProperties;
 }
 
 const accentColors: Record<AccentColor, string> = {
@@ -66,6 +67,7 @@ export default function StatCard({
   className = '',
   onClick,
   children,
+  style,
 }: StatCardProps) {
   const baseClasses = 'relative overflow-hidden rounded-2xl transition-all duration-300';
   const clickableClasses = onClick ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1' : '';
@@ -95,6 +97,7 @@ export default function StatCard({
     <div
       className={`${baseClasses} ${variantClasses[variant]} ${clickableClasses} ${className}`}
       onClick={onClick}
+      style={style}
     >
       {variant === 'accent' && <div className="absolute inset-0 bg-black/5" />}
 

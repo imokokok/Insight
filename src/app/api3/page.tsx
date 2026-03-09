@@ -65,36 +65,39 @@ export default function Api3Page() {
     API3: 2.8,
   });
 
-  const features = useMemo(() => [
-    {
-      title: t('api3.features.firstPartyOracles'),
-      description: t('api3.features.firstPartyOraclesDesc'),
-      icon: '🔒',
-      gradient: 'from-blue-500 to-cyan-400',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      title: t('api3.features.airnode'),
-      description: t('api3.features.airnodeDesc'),
-      icon: '✈️',
-      gradient: 'from-purple-500 to-pink-400',
-      bgColor: 'bg-purple-50',
-    },
-    {
-      title: t('api3.features.decentralizedApiConnectivity'),
-      description: t('api3.features.decentralizedApiConnectivityDesc'),
-      icon: '🔗',
-      gradient: 'from-green-500 to-emerald-400',
-      bgColor: 'bg-green-50',
-    },
-    {
-      title: t('api3.features.quantifiableSecurity'),
-      description: t('api3.features.quantifiableSecurityDesc'),
-      icon: '📊',
-      gradient: 'from-orange-500 to-amber-400',
-      bgColor: 'bg-orange-50',
-    },
-  ], [t]);
+  const features = useMemo(
+    () => [
+      {
+        title: t('api3.features.firstPartyOracles'),
+        description: t('api3.features.firstPartyOraclesDesc'),
+        icon: '🔒',
+        gradient: 'from-blue-500 to-cyan-400',
+        bgColor: 'bg-blue-50',
+      },
+      {
+        title: t('api3.features.airnode'),
+        description: t('api3.features.airnodeDesc'),
+        icon: '✈️',
+        gradient: 'from-purple-500 to-pink-400',
+        bgColor: 'bg-purple-50',
+      },
+      {
+        title: t('api3.features.decentralizedApiConnectivity'),
+        description: t('api3.features.decentralizedApiConnectivityDesc'),
+        icon: '🔗',
+        gradient: 'from-green-500 to-emerald-400',
+        bgColor: 'bg-green-50',
+      },
+      {
+        title: t('api3.features.quantifiableSecurity'),
+        description: t('api3.features.quantifiableSecurityDesc'),
+        icon: '📊',
+        gradient: 'from-orange-500 to-amber-400',
+        bgColor: 'bg-orange-50',
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -138,7 +141,10 @@ export default function Api3Page() {
                 SOL: '◎',
                 API3: '🔗',
               };
-              const colorMap: Record<string, 'blue' | 'purple' | 'green' | 'orange' | 'red' | 'cyan'> = {
+              const colorMap: Record<
+                string,
+                'blue' | 'purple' | 'green' | 'orange' | 'red' | 'cyan'
+              > = {
                 BTC: 'orange',
                 ETH: 'blue',
                 SOL: 'purple',
@@ -170,18 +176,20 @@ export default function Api3Page() {
               {t('api3.uniqueFeatures')}
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
             {features.map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="group relative overflow-hidden rounded-2xl sm:rounded-3xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 sm:hover:-translate-y-2 cursor-pointer"
                 style={{ animationDelay: `${0.3 + index * 0.1}s` }}
               >
                 <div className={`absolute inset-0 ${feature.bgColor} opacity-90`}></div>
                 <div className="relative p-6 sm:p-8">
                   <div className="flex items-start gap-4 sm:gap-6">
-                    <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <div
+                      className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                    >
                       {feature.icon}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -193,8 +201,10 @@ export default function Api3Page() {
                       </p>
                     </div>
                   </div>
-                  
-                  <div className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${feature.gradient} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
+
+                  <div
+                    className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${feature.gradient} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}
+                  ></div>
                 </div>
               </div>
             ))}
@@ -205,12 +215,17 @@ export default function Api3Page() {
           <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
             <AdvancedCard className="lg:col-span-2" variant="glass" hoverable={false}>
               <AdvancedCardHeader className="border-gray-200/50">
-                <AdvancedCardTitle className="text-gray-900">{t('api3.priceFeeds')}</AdvancedCardTitle>
+                <AdvancedCardTitle className="text-gray-900">
+                  {t('api3.priceFeeds')}
+                </AdvancedCardTitle>
               </AdvancedCardHeader>
               <AdvancedCardContent>
                 <div className="h-72 sm:h-80 lg:h-96">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={priceFeedData} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+                    <LineChart
+                      data={priceFeedData}
+                      margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+                    >
                       <defs>
                         {Object.entries(LINE_COLORS).map(([key, color]) => (
                           <linearGradient key={key} id={`color${key}`} x1="0" y1="0" x2="0" y2="1">
@@ -256,7 +271,7 @@ export default function Api3Page() {
                           display: 'flex',
                           justifyContent: 'center',
                           flexWrap: 'wrap',
-                          gap: '12px'
+                          gap: '12px',
                         }}
                         iconType="circle"
                         iconSize={8}
@@ -290,7 +305,14 @@ export default function Api3Page() {
                     <PieChart>
                       <defs>
                         {COLORS.map((color, index) => (
-                          <linearGradient key={`pieGrad${index}`} id={`pieGrad${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient
+                            key={`pieGrad${index}`}
+                            id={`pieGrad${index}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
                             <stop offset="0%" stopColor={color} stopOpacity={1} />
                             <stop offset="100%" stopColor={color} stopOpacity={0.8} />
                           </linearGradient>
@@ -301,15 +323,17 @@ export default function Api3Page() {
                         cx="50%"
                         cy="45%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                        }
                         outerRadius={70}
                         innerRadius={40}
                         paddingAngle={5}
                         dataKey="value"
                       >
                         {networkStatsData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={`url(#pieGrad${index})`}
                             stroke="white"
                             strokeWidth={2}
@@ -348,10 +372,20 @@ export default function Api3Page() {
             <AdvancedCardContent>
               <div className="h-72 sm:h-80 lg:h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={securityMetrics} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+                  <BarChart
+                    data={securityMetrics}
+                    margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+                  >
                     <defs>
                       {BAR_COLORS.map((color, index) => (
-                        <linearGradient key={`barGrad${index}`} id={`barGrad${index}`} x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient
+                          key={`barGrad${index}`}
+                          id={`barGrad${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
                           <stop offset="0%" stopColor={color} stopOpacity={1} />
                           <stop offset="100%" stopColor={color} stopOpacity={0.6} />
                         </linearGradient>
@@ -385,16 +419,9 @@ export default function Api3Page() {
                       }}
                       formatter={(value) => [`${value}分`, '安全评分']}
                     />
-                    <Bar
-                      dataKey="value"
-                      radius={[8, 8, 0, 0]}
-                      barSize={48}
-                    >
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={48}>
                       {securityMetrics.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={`url(#barGrad${index})`}
-                        />
+                        <Cell key={`cell-${index}`} fill={`url(#barGrad${index})`} />
                       ))}
                     </Bar>
                   </BarChart>

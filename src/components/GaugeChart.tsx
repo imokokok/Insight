@@ -9,12 +9,7 @@ interface GaugeChartProps {
   size?: number;
 }
 
-export default function GaugeChart({
-  value,
-  maxValue,
-  label,
-  size = 160,
-}: GaugeChartProps) {
+export default function GaugeChart({ value, maxValue, label, size = 160 }: GaugeChartProps) {
   const [displayValue, setDisplayValue] = useState(0);
 
   const clampedValue = Math.min(Math.max(value, 0), maxValue);

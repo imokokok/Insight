@@ -38,7 +38,9 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center group">
-              <div className="text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-300">Insight</div>
+              <div className="text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
+                Insight
+              </div>
             </Link>
           </div>
 
@@ -74,7 +76,12 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-600 hover:text-gray-900 p-2 rounded-md hover:bg-gray-100 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              <svg className={`h-6 w-6 transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className={`h-6 w-6 transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 {isMenuOpen ? (
                   <path
                     strokeLinecap="round"
