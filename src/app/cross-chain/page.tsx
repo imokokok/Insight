@@ -2,21 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import AdvancedCard, {
-  AdvancedCardHeader,
-  AdvancedCardTitle,
-  AdvancedCardContent,
-  AdvancedCardFooter,
-} from '@/components/AdvancedCard';
-import AdvancedTable, {
-  AdvancedTableHeader,
-  AdvancedTableBody,
-  AdvancedTableRow,
-  AdvancedTableHead,
-  AdvancedTableCell,
-} from '@/components/AdvancedTable';
-import StatCard from '@/components/StatCard';
-import AdvancedSelect from '@/components/AdvancedSelect';
 import {
   LineChart,
   Line,
@@ -506,469 +491,333 @@ export default function CrossChainPage() {
     label: chainNames[chain],
   }));
 
-  const consistencyRatingColorMap: Record<string, any> = {
-    excellent: 'green',
-    good: 'blue',
-    fair: 'orange',
-    poor: 'red',
-  };
+  const statsData = [
+    { label: t('averagePrice'), value: avgPrice > 0 ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: null },
+    { label: t('highestPrice'), value: maxPrice > 0 ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: minPrice > 0 ? `Min: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
+    { label: t('priceRange'), value: priceRange > 0 ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-', subValue: null },
+    { label: t('standardDeviation'), value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-', subValue: standardDeviation > 0 ? `$${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null },
+    { label: t('coefficientOfVariation'), value: coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-', subValue: null },
+    { label: t('consistencyRating'), value: standardDeviationPercent > 0 ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`) : '-', subValue: null },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-          <p className="text-gray-600">{t('subtitle') || '跨链价格分析与监控'}</p>
+          <h1 className="text-2xl font-semibold text-gray-900">{t('title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('subtitle') || '跨链价格分析与监控'}</p>
         </div>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
-          <span className="text-sm text-gray-600">{t('export')}:</span>
-          <div className="flex gap-2">
-            <button
-              onClick={exportToCSV}
-              disabled={loading || currentPrices.length === 0}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium shadow-md hover:shadow-lg"
-            >
-              CSV
-            </button>
-            <button
-              onClick={exportToJSON}
-              disabled={loading || currentPrices.length === 0}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium shadow-md hover:shadow-lg"
-            >
-              JSON
-            </button>
-          </div>
+          <span className="text-sm text-gray-500">{t('export')}:</span>
+          <button
+            onClick={exportToCSV}
+            disabled={loading || currentPrices.length === 0}
+            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            CSV
+          </button>
+          <button
+            onClick={exportToJSON}
+            disabled={loading || currentPrices.length === 0}
+            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            JSON
+          </button>
         </div>
       </div>
 
-      <AdvancedCard className="mb-8" variant="glass">
-        <AdvancedCardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <AdvancedSelect
-              label={t('oracleProvider')}
-              options={providerOptions}
-              value={selectedProvider}
-              onChange={(value) => setSelectedProvider(value as OracleProvider)}
-              size="md"
-              variant="filled"
-            />
-            <AdvancedSelect
-              label={t('symbol')}
-              options={symbolOptions}
-              value={selectedSymbol}
-              onChange={(value) => setSelectedSymbol(value as string)}
-              size="md"
-              variant="filled"
-            />
-            <AdvancedSelect
-              label={t('timeRange')}
-              options={timeRangeOptions}
-              value={selectedTimeRange}
-              onChange={(value) => setSelectedTimeRange(Number(value))}
-              size="md"
-              variant="filled"
-            />
-            <AdvancedSelect
-              label={t('baseChain')}
-              options={baseChainOptions}
-              value={selectedBaseChain || ''}
-              onChange={(value) => setSelectedBaseChain(value as Blockchain)}
-              size="md"
-              variant="filled"
-            />
-          </div>
-          <div className="flex justify-center">
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              )}
-              {loading ? t('loading') : t('refresh')}
-            </button>
-          </div>
-        </AdvancedCardContent>
-      </AdvancedCard>
+      {/* Controls */}
+      <div className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b border-gray-200">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('oracleProvider')}</label>
+          <select
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value as OracleProvider)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
+          >
+            {providerOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('symbol')}</label>
+          <select
+            value={selectedSymbol}
+            onChange={(e) => setSelectedSymbol(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[100px]"
+          >
+            {symbolOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('timeRange')}</label>
+          <select
+            value={selectedTimeRange}
+            onChange={(e) => setSelectedTimeRange(Number(e.target.value))}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[120px]"
+          >
+            {timeRangeOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('baseChain')}</label>
+          <select
+            value={selectedBaseChain || ''}
+            onChange={(e) => setSelectedBaseChain(e.target.value as Blockchain)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
+          >
+            {baseChainOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        >
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          )}
+          {loading ? t('loading') : t('refresh')}
+        </button>
+      </div>
 
       {loading ? (
-        <AdvancedCard variant="glass">
-          <AdvancedCardContent className="py-16 flex flex-col justify-center items-center gap-4">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-gray-600 text-lg font-medium">{t('loadingData')}</div>
-          </AdvancedCardContent>
-        </AdvancedCard>
+        <div className="py-16 flex flex-col justify-center items-center gap-3">
+          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <div className="text-gray-500 text-sm">{t('loadingData')}</div>
+        </div>
       ) : (
         <>
-          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
-            <AdvancedCardHeader>
-              <AdvancedCardTitle>{t('priceVolatilityHeatmap')}</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent>
-              <div className="overflow-x-auto">
-                <div className="min-w-full">
-                  <div className="flex">
-                    <div className="w-28 shrink-0"></div>
-                    {supportedChains.map((chain) => (
-                      <div key={chain} className="flex-1 min-w-24 text-center px-2 py-2">
-                        <span className="text-sm font-semibold text-gray-700">
-                          {chainNames[chain]}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {supportedChains.map((xChain) => (
-                    <div key={xChain} className="flex">
-                      <div className="w-28 shrink-0 flex items-center py-2">
-                        <span className="text-sm font-semibold text-gray-700">
-                          {chainNames[xChain]}
-                        </span>
-                      </div>
-                      {supportedChains.map((yChain) => {
-                        const cell = heatmapData.find(
-                          (d) => d.xChain === xChain && d.yChain === yChain
-                        );
-                        const percent = cell?.percent || 0;
-                        const isDiagonal = xChain === yChain;
-
-                        return (
-                          <div
-                            key={`${xChain}-${yChain}`}
-                            className="flex-1 min-w-24 h-16 flex items-center justify-center px-1 mx-0.5 my-0.5 rounded-lg"
-                            style={{
-                              backgroundColor: isDiagonal
-                                ? '#f3f4f6'
-                                : getHeatmapColor(percent, maxHeatmapValue),
-                            }}
-                            title={
-                              isDiagonal
-                                ? '-'
-                                : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`
-                            }
-                          >
-                            {isDiagonal ? (
-                              <span className="text-gray-400 text-lg">—</span>
-                            ) : (
-                              <span
-                                className={`text-xs font-bold ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}
-                              >
-                                {percent.toFixed(2)}%
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
+          {/* Heatmap */}
+          <div className="mb-8 pb-8 border-b border-gray-200">
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceVolatilityHeatmap')}</h3>
+            <div className="overflow-x-auto">
+              <div className="min-w-full">
+                <div className="flex">
+                  <div className="w-24 shrink-0" />
+                  {supportedChains.map((chain) => (
+                    <div key={chain} className="flex-1 min-w-20 text-center px-1 py-2">
+                      <span className="text-xs font-medium text-gray-600">{chainNames[chain]}</span>
                     </div>
                   ))}
-                  <div className="mt-6 flex items-center justify-center gap-3">
-                    <span className="text-sm text-gray-600 font-medium">{t('low')}</span>
-                    <div
-                      className="w-40 h-4 rounded-xl shadow-inner"
-                      style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}
-                    ></div>
-                    <span className="text-sm text-gray-600 font-medium">{t('high')}</span>
+                </div>
+                {supportedChains.map((xChain) => (
+                  <div key={xChain} className="flex">
+                    <div className="w-24 shrink-0 flex items-center py-1">
+                      <span className="text-xs font-medium text-gray-600">{chainNames[xChain]}</span>
+                    </div>
+                    {supportedChains.map((yChain) => {
+                      const cell = heatmapData.find((d) => d.xChain === xChain && d.yChain === yChain);
+                      const percent = cell?.percent || 0;
+                      const isDiagonal = xChain === yChain;
+
+                      return (
+                        <div
+                          key={`${xChain}-${yChain}`}
+                          className="flex-1 min-w-20 h-12 flex items-center justify-center px-0.5"
+                          style={{ backgroundColor: isDiagonal ? '#f3f4f6' : getHeatmapColor(percent, maxHeatmapValue) }}
+                          title={isDiagonal ? '-' : `${chainNames[xChain]} vs ${chainNames[yChain]}: ${percent.toFixed(4)}%`}
+                        >
+                          {isDiagonal ? (
+                            <span className="text-gray-300 text-sm">—</span>
+                          ) : (
+                            <span className={`text-xs font-medium ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}>
+                              {percent.toFixed(2)}%
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
+                ))}
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className="text-xs text-gray-500">{t('low')}</span>
+                  <div className="w-32 h-2" style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }} />
+                  <span className="text-xs text-gray-500">{t('high')}</span>
                 </div>
               </div>
-            </AdvancedCardContent>
-          </AdvancedCard>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              title={t('averagePrice')}
-              value={
-                avgPrice > 0
-                  ? avgPrice.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : '-'
-              }
-              prefix="$"
-              accentColor="blue"
-            />
-            <StatCard
-              title={`${t('highestPrice')} / ${t('lowestPrice')}`}
-              value={
-                maxPrice > 0
-                  ? maxPrice.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : '-'
-              }
-              prefix="$"
-              accentColor="green"
-              description={
-                minPrice > 0
-                  ? `${t('lowestPrice')}: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : ''
-              }
-            />
-            <StatCard
-              title={t('priceRange')}
-              value={
-                priceRange > 0
-                  ? priceRange.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : '-'
-              }
-              prefix="$"
-              accentColor="purple"
-            />
-            <StatCard
-              title={t('standardDeviation')}
-              value={standardDeviation > 0 ? standardDeviationPercent.toFixed(4) : '-'}
-              suffix="%"
-              accentColor="orange"
-              description={
-                standardDeviation > 0
-                  ? `${t('absoluteValue')}: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : ''
-              }
-            />
-            <StatCard
-              title={t('coefficientOfVariation')}
-              value={coefficientOfVariation > 0 ? (coefficientOfVariation * 100).toFixed(4) : '-'}
-              suffix="%"
-              accentColor="cyan"
-            />
-            <StatCard
-              title={t('consistencyRating')}
-              value={
-                standardDeviationPercent > 0
-                  ? t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)
-                  : '-'
-              }
-              accentColor={
-                consistencyRatingColorMap[getConsistencyRating(standardDeviationPercent)]
-              }
-            />
+            </div>
           </div>
 
-          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
-            <AdvancedCardHeader>
-              <AdvancedCardTitle>{t('priceComparisonTable')}</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent className="px-4">
-              <AdvancedTable striped hoverable>
-                <AdvancedTableHeader>
-                  <AdvancedTableRow hoverable={false}>
-                    <AdvancedTableHead>{t('blockchain')}</AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">{t('price')}</AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">
-                      {t('differenceVs')}: {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
-                    </AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">
-                      {t('percentDifference')}
-                    </AdvancedTableHead>
-                  </AdvancedTableRow>
-                </AdvancedTableHeader>
-                <AdvancedTableBody>
-                  {priceDifferences.map((item, index) => (
-                    <AdvancedTableRow key={item.chain}>
-                      <AdvancedTableCell>
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 pb-8 border-b border-gray-200">
+            {statsData.map((stat, index) => (
+              <div key={index} className={`px-4 py-3 ${index > 0 ? 'border-l border-gray-200' : ''}`}>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</div>
+                <div className="text-lg font-semibold text-gray-900 mt-1">{stat.value}</div>
+                {stat.subValue && <div className="text-xs text-gray-400 mt-0.5">{stat.subValue}</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* Price Comparison Table */}
+          <div className="mb-8 pb-8 border-b border-gray-200">
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceComparisonTable')}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">{t('blockchain')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('price')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('differenceVs')} {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('percentDifference')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priceDifferences.map((item) => (
+                    <tr key={item.chain} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4">
                         <div className="flex items-center">
-                          <div
-                            className="w-4 h-4 rounded-full mr-3 shadow-sm"
-                            style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
-                          />
-                          <span className="font-semibold text-gray-800">
-                            {chainNames[item.chain as Blockchain]}
-                          </span>
+                          <div className="w-3 h-3 mr-2" style={{ backgroundColor: chainColors[item.chain as Blockchain] }} />
+                          <span className="text-sm font-medium text-gray-900">{chainNames[item.chain as Blockchain]}</span>
                         </div>
-                      </AdvancedTableCell>
-                      <AdvancedTableCell className="text-right font-mono text-gray-800">
-                        $
-                        {item.price.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 4,
-                        })}
-                      </AdvancedTableCell>
-                      <AdvancedTableCell className="text-right font-mono">
-                        <span
-                          className={
-                            item.diff >= 0
-                              ? 'text-green-600 font-semibold'
-                              : 'text-red-600 font-semibold'
-                          }
-                        >
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
+                        ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-sm">
+                        <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
                           {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
                         </span>
-                      </AdvancedTableCell>
-                      <AdvancedTableCell className="text-right font-mono">
-                        <span
-                          className={
-                            item.diffPercent >= 0
-                              ? 'text-green-600 font-semibold'
-                              : 'text-red-600 font-semibold'
-                          }
-                        >
-                          {item.diffPercent >= 0 ? '+' : ''}
-                          {item.diffPercent.toFixed(4)}%
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-sm">
+                        <span className={item.diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {item.diffPercent >= 0 ? '+' : ''}{item.diffPercent.toFixed(4)}%
                         </span>
-                      </AdvancedTableCell>
-                    </AdvancedTableRow>
+                      </td>
+                    </tr>
                   ))}
-                </AdvancedTableBody>
-              </AdvancedTable>
-            </AdvancedCardContent>
-          </AdvancedCard>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-          <AdvancedCard className="mb-8" variant="default" hoverable={false}>
-            <AdvancedCardHeader>
-              <AdvancedCardTitle>{t('stabilityAnalysis')}</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent className="px-4">
-              <AdvancedTable striped hoverable>
-                <AdvancedTableHeader>
-                  <AdvancedTableRow hoverable={false}>
-                    <AdvancedTableHead>{t('blockchain')}</AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">
-                      {t('priceVolatility')}
-                    </AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">
-                      {t('stabilityRating')}
-                    </AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">
-                      {t('averageDelay')}
-                    </AdvancedTableHead>
-                    <AdvancedTableHead className="text-right">{t('maxDelay')}</AdvancedTableHead>
-                  </AdvancedTableRow>
-                </AdvancedTableHeader>
-                <AdvancedTableBody>
-                  {supportedChains.map((chain, index) => {
+          {/* Stability Analysis Table */}
+          <div className="mb-8 pb-8 border-b border-gray-200">
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('stabilityAnalysis')}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">{t('blockchain')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('priceVolatility')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('stabilityRating')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('averageDelay')}</th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">{t('maxDelay')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supportedChains.map((chain) => {
                     const volatility = chainVolatility[chain] ?? 0;
                     const delay = updateDelays[chain];
                     const stabilityRating = getStabilityRating(volatility);
 
-                    const stabilityColorMap: Record<string, any> = {
+                    const stabilityColorMap: Record<string, string> = {
                       stable: 'text-green-600',
                       moderate: 'text-yellow-600',
                       unstable: 'text-red-600',
                     };
 
                     return (
-                      <AdvancedTableRow key={chain}>
-                        <AdvancedTableCell>
+                      <tr key={chain} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4">
                           <div className="flex items-center">
-                            <div
-                              className="w-4 h-4 rounded-full mr-3 shadow-sm"
-                              style={{ backgroundColor: chainColors[chain] }}
-                            />
-                            <span className="font-semibold text-gray-800">{chainNames[chain]}</span>
+                            <div className="w-3 h-3 mr-2" style={{ backgroundColor: chainColors[chain] }} />
+                            <span className="text-sm font-medium text-gray-900">{chainNames[chain]}</span>
                           </div>
-                        </AdvancedTableCell>
-                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
                           {volatility > 0 ? `${volatility.toFixed(4)}%` : '-'}
-                        </AdvancedTableCell>
-                        <AdvancedTableCell className="text-right">
-                          <span className={`font-bold ${stabilityColorMap[stabilityRating]}`}>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className={`text-sm font-medium ${stabilityColorMap[stabilityRating]}`}>
                             {volatility > 0 ? t(`stability.${stabilityRating}`) : '-'}
                           </span>
-                        </AdvancedTableCell>
-                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
                           {delay ? `${delay.avgDelay.toFixed(2)} ${t('seconds')}` : '-'}
-                        </AdvancedTableCell>
-                        <AdvancedTableCell className="text-right font-mono text-gray-800">
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
                           {delay ? `${delay.maxDelay.toFixed(2)} ${t('seconds')}` : '-'}
-                        </AdvancedTableCell>
-                      </AdvancedTableRow>
+                        </td>
+                      </tr>
                     );
                   })}
-                </AdvancedTableBody>
-              </AdvancedTable>
-            </AdvancedCardContent>
-          </AdvancedCard>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-          <AdvancedCard variant="default" hoverable={false}>
-            <AdvancedCardHeader>
-              <AdvancedCardTitle>{t('priceChart')}</AdvancedCardTitle>
-            </AdvancedCardHeader>
-            <AdvancedCardContent>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 40, left: 20, bottom: 20 }}>
-                    <defs>
-                      {supportedChains.map((chain) => (
-                        <linearGradient key={chain} id={`color${chain}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={chainColors[chain]} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={chainColors[chain]} stopOpacity={0} />
-                        </linearGradient>
-                      ))}
-                    </defs>
-                    <CartesianGrid strokeDasharray="5 5" stroke="#f3f4f6" vertical={false} />
-                    <XAxis 
-                      dataKey="time" 
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      dy={10}
+          {/* Price Chart */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">{t('priceChart')}</h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis
+                    dataKey="time"
+                    stroke="#9ca3af"
+                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    tickLine={false}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <YAxis
+                    domain={['auto', 'auto']}
+                    tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
+                    stroke="#9ca3af"
+                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    tickLine={false}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                    width={70}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      padding: '12px 16px',
+                    }}
+                    formatter={(value) => [`$${Number(value).toFixed(4)}`, '']}
+                    labelStyle={{ color: '#6b7280', fontSize: '12px', marginBottom: '4px' }}
+                  />
+                  <Legend
+                    wrapperStyle={{
+                      paddingTop: '16px',
+                      fontSize: '12px',
+                    }}
+                    iconType="line"
+                    iconSize={12}
+                  />
+                  {supportedChains.map((chain) => (
+                    <Line
+                      key={chain}
+                      type="monotone"
+                      dataKey={chain}
+                      name={chainNames[chain]}
+                      stroke={chainColors[chain]}
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 0 }}
                     />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={80}
-                    />
-                    <Tooltip
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: 'none',
-                        borderRadius: '16px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                        padding: '16px 20px',
-                        backdropFilter: 'blur(10px)'
-                      }}
-                      formatter={(value) => [`$${Number(value).toFixed(4)}`, '']}
-                      labelFormatter={(label) => label}
-                      cursor={{ stroke: '#e5e7eb', strokeWidth: 1, strokeDasharray: '4 4' }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ 
-                        paddingTop: '24px', 
-                        display: 'flex', 
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        gap: '16px'
-                      }}
-                      iconType="circle"
-                      iconSize={8}
-                    />
-                    {supportedChains.map((chain) => (
-                      <Line
-                        key={chain}
-                        type="monotone"
-                        dataKey={chain}
-                        name={chainNames[chain]}
-                        stroke={chainColors[chain]}
-                        dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
-                        strokeWidth={3}
-                        activeDot={{ r: 7, strokeWidth: 0 }}
-                        fill={`url(#color${chain})`}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </AdvancedCardContent>
-          </AdvancedCard>
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </>
       )}
     </div>
