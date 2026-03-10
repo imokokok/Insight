@@ -33,7 +33,9 @@ export async function GET(
   const providerKey = provider as OracleProvider;
   if (!Object.values(OracleProvider).includes(providerKey)) {
     return NextResponse.json(
-      { error: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}` },
+      {
+        error: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+      },
       { status: 400 }
     );
   }
@@ -46,14 +48,13 @@ export async function GET(
     if (period) {
       const periodNum = parseInt(period, 10);
       if (isNaN(periodNum) || periodNum < 1) {
-        return NextResponse.json({ error: 'Invalid period. Must be a positive integer.' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Invalid period. Must be a positive integer.' },
+          { status: 400 }
+        );
       }
 
-      const historicalPrices = await client.getHistoricalPrices(
-        symbol,
-        chainValue,
-        periodNum
-      );
+      const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
 
       return NextResponse.json({
         provider: providerKey,

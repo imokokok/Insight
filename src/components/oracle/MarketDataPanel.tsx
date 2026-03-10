@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain, PriceData } from '@/lib/types/oracle';
+import { Blockchain } from '@/lib/types/oracle';
 import { MetricCard } from './DashboardCard';
+import { formatCurrency, formatNumber } from '@/lib/utils/format';
 
 interface MarketDataConfig {
   symbol: string;
@@ -21,48 +22,21 @@ interface MarketDataConfig {
   change24hValue: number;
 }
 
-function formatCurrency(value: number, compact: boolean = false): string {
-  if (compact) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 2,
-    }).format(value);
-  }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatNumber(value: number, compact: boolean = false): string {
-  if (compact) {
-    return new Intl.NumberFormat('en-US', {
-      notation: 'compact',
-      maximumFractionDigits: 2,
-    }).format(value);
-  }
-  return new Intl.NumberFormat('en-US', {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function PriceDisplay({ price, previousPrice }: { price: number; previousPrice: number }) {
+function PriceDisplay({ price }: { price: number }) {
   const [flashColor, setFlashColor] = useState<'green' | 'red' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousPriceRef = useRef<number>(price);
 
   useEffect(() => {
-    if (price === previousPrice) return;
+    if (price === previousPriceRef.current) return;
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     Promise.resolve().then(() => {
-      setFlashColor(price > previousPrice ? 'green' : 'red');
+      setFlashColor(price > previousPriceRef.current ? 'green' : 'red');
       setIsAnimating(true);
     });
 
@@ -71,12 +45,14 @@ function PriceDisplay({ price, previousPrice }: { price: number; previousPrice: 
       setIsAnimating(false);
     }, 500);
 
+    previousPriceRef.current = price;
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [price, previousPrice]);
+  }, [price]);
 
   return (
     <div className="flex flex-col items-start">
@@ -164,11 +140,11 @@ export function MarketDataPanel({
   iconBgColor = 'bg-blue-600',
 }: MarketDataPanelProps) {
   const [price, setPrice] = useState<number>(config.change24hValue);
-  const [previousPrice, setPreviousPrice] = useState<number>(config.change24hValue);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const priceRef = useRef<number>(config.change24hValue);
 
   const fetchPrice = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -183,7 +159,7 @@ export function MarketDataPanel({
 
       if (abortController.signal.aborted) return;
 
-      setPreviousPrice((prev) => (prev !== price ? price : prev));
+      priceRef.current = priceData.price;
       setPrice(priceData.price);
       setLastUpdated(new Date());
     } catch (error) {
@@ -194,7 +170,7 @@ export function MarketDataPanel({
         setIsLoading(false);
       }
     }
-  }, [client, config.symbol, chain, price]);
+  }, [client, config.symbol, chain]);
 
   useEffect(() => {
     fetchPrice();
@@ -343,7 +319,9 @@ export function MarketDataPanel({
     <div className="bg-white border border-gray-200 rounded-2xl p-6">
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 ${iconBgColor} rounded-xl flex items-center justify-center shadow-lg`}>
+          <div
+            className={`w-12 h-12 ${iconBgColor} rounded-xl flex items-center justify-center shadow-lg`}
+          >
             <span className="text-white font-bold text-xl">{config.tokenSymbol}</span>
           </div>
           <div>
@@ -358,7 +336,7 @@ export function MarketDataPanel({
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-end gap-6 mb-8">
-        <PriceDisplay price={price} previousPrice={previousPrice} />
+        <PriceDisplay price={price} />
         <PriceChangeIndicator
           change={config.change24h}
           changeValue={config.change24hValue}

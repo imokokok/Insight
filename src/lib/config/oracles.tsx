@@ -39,7 +39,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     name: 'Chainlink',
     symbol: 'LINK',
     defaultChain: Blockchain.ETHEREUM,
-    supportedChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM, Blockchain.POLYGON],
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+    ],
     client: new ChainlinkClient(),
     iconBgColor: 'bg-blue-600',
     icon: (
@@ -73,8 +78,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 45000000,
       dataFeeds: 1243,
       hourlyActivity: [
-        3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200, 8800, 8400, 7900, 8200,
-        8600, 9100, 8800, 7600, 6500, 5200, 4100, 3500,
+        3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200, 8800, 8400, 7900,
+        8200, 8600, 9100, 8800, 7600, 6500, 5200, 4100, 3500,
       ],
       status: 'online',
       latency: 120,
@@ -235,8 +240,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 500000000,
       dataFeeds: 500,
       hourlyActivity: [
-        5000, 4500, 4000, 3500, 3000, 3500, 4500, 6500, 9000, 11000, 13000, 14000, 13500, 13000, 12500, 12800,
-        13200, 13800, 13500, 11500, 10000, 8000, 6500, 5500,
+        5000, 4500, 4000, 3500, 3000, 3500, 4500, 6500, 9000, 11000, 13000, 14000, 13500, 13000,
+        12500, 12800, 13200, 13800, 13500, 11500, 10000, 8000, 6500, 5500,
       ],
       status: 'online',
       latency: 50,

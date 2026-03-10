@@ -460,7 +460,9 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.currency />
-            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.symbol')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t('priceQuery.selectors.symbol')}
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {symbols.map((symbol) => (
@@ -483,7 +485,9 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.oracle />
-            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.oracle')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t('priceQuery.selectors.oracle')}
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.values(OracleProvider).map((oracle) => {
@@ -513,7 +517,9 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.blockchain />
-            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.blockchain')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t('priceQuery.selectors.blockchain')}
+            </span>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.values(Blockchain).map((chain) => {
@@ -543,7 +549,9 @@ export default function PriceQueryPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Icons.clock />
-            <span className="text-sm font-semibold text-gray-700 mr-2">{t('priceQuery.selectors.timeRange')}</span>
+            <span className="text-sm font-semibold text-gray-700 mr-2">
+              {t('priceQuery.selectors.timeRange')}
+            </span>
             <div className="flex gap-1">
               {TIME_RANGES.map((range) => (
                 <button
@@ -645,7 +653,10 @@ export default function PriceQueryPage() {
               />
             </div>
             <div className="px-4 border-r border-gray-200 last:border-r-0">
-              <StatItem label={t('priceQuery.stats.dataPoints')} value={queryResults.length.toString()} />
+              <StatItem
+                label={t('priceQuery.stats.dataPoints')}
+                value={queryResults.length.toString()}
+              />
             </div>
             <div className="px-4">
               <div className="py-4">
@@ -754,9 +765,9 @@ export default function PriceQueryPage() {
           {chartData.length > 0 && (
             <div className="mb-8 pb-8 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Icons.chart />
-              {t('priceQuery.chart.title')}
-            </h2>
+                <Icons.chart />
+                {t('priceQuery.chart.title')}
+              </h2>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
@@ -833,7 +844,9 @@ export default function PriceQueryPage() {
 
           {/* Quick Links */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('priceQuery.quickLinks.title')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {t('priceQuery.quickLinks.title')}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <a
                 href="/cross-chain"
@@ -847,7 +860,9 @@ export default function PriceQueryPage() {
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                       {t('priceQuery.quickLinks.crossChain')}
                     </p>
-                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossChainDesc')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceQuery.quickLinks.crossChainDesc')}
+                    </p>
                   </div>
                 </div>
               </a>
@@ -863,7 +878,9 @@ export default function PriceQueryPage() {
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                       {t('priceQuery.quickLinks.crossOracle')}
                     </p>
-                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossOracleDesc')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceQuery.quickLinks.crossOracleDesc')}
+                    </p>
                   </div>
                 </div>
               </a>
@@ -879,7 +896,9 @@ export default function PriceQueryPage() {
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                       {t('navbar.chainlink')}
                     </p>
-                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.chainlinkDesc')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceQuery.quickLinks.chainlinkDesc')}
+                    </p>
                   </div>
                 </div>
               </a>
