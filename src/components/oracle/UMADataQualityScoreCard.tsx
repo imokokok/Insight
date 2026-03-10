@@ -1,51 +1,17 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/context';
 
-export interface DataQualityScoreCardProps {
-  completeness?: number;
-  timeliness?: number;
-  accuracy?: number;
-  overallScore?: number;
-}
-
-export interface FreshnessData {
-  timestamp: number;
-  age: number;
-  isFresh: boolean;
-}
-
-export interface CompletenessData {
-  total: number;
-  available: number;
-  percentage: number;
-}
-
-export interface ReliabilityData {
-  uptime: number;
-  errors: number;
-  successRate: number;
-}
-
-export type QualityLevel = 'excellent' | 'good' | 'fair' | 'poor';
-
-function TrendIndicator({
-  trend,
-  t,
-}: {
-  trend: 'up' | 'down' | 'stable';
-  t: (key: string) => string;
-}) {
+function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
+  const { t } = useI18n();
+  
   if (trend === 'up') {
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
         <span className="text-xs">{t('uma.dataQuality.improving')}</span>
       </div>
@@ -56,12 +22,7 @@ function TrendIndicator({
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
         <span className="text-xs">{t('uma.dataQuality.declining')}</span>
       </div>
@@ -83,13 +44,11 @@ function ScoreCard({
   score,
   trend,
   icon,
-  t,
 }: {
   title: string;
   score: number;
   trend: 'up' | 'down' | 'stable';
   icon: React.ReactNode;
-  t: (key: string) => string;
 }) {
   const getScoreColor = (score: number): string => {
     if (score >= 90) return 'text-green-600';
@@ -123,37 +82,52 @@ function ScoreCard({
         </div>
       </div>
       <div className="mt-3">
-        <TrendIndicator trend={trend} t={t} />
+        <TrendIndicator trend={trend} />
       </div>
     </div>
   );
 }
 
-export function DataQualityScoreCard({
-  completeness = 85,
-  timeliness = 90,
-  accuracy = 88,
-  overallScore,
-}: DataQualityScoreCardProps) {
+export function UMADataQualityScoreCard() {
   const { t } = useI18n();
+  const [data, setData] = useState<DataQualityScore | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const calculatedOverallScore =
-    overallScore ?? completeness * 0.35 + timeliness * 0.3 + accuracy * 0.35;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const client = new UMAClient();
+        const scoreData = await client.getDataQualityScore();
+        setData(scoreData);
+      } catch (error) {
+        console.error('Failed to fetch data quality score:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const data = {
-    overallScore: calculatedOverallScore,
-    networkHealth: { score: completeness, trend: 'stable' as const },
-    dataIntegrity: { score: accuracy, trend: 'up' as const },
-    responseTime: { score: timeliness, trend: 'stable' as const },
-    validatorActivity: { score: 92, trend: 'up' as const },
-  };
+    fetchData();
+  }, []);
+
+  if (loading || !data) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <div className="flex items-center justify-center h-48">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('uma.dataQuality.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('uma.dataQuality.title')}
+            </h3>
             <p className="text-sm text-gray-500 mt-1">{t('uma.dataQuality.subtitle')}</p>
           </div>
           <div className="text-right">
@@ -170,14 +144,8 @@ export function DataQualityScoreCard({
           title={t('uma.dataQuality.networkHealth')}
           score={data.networkHealth.score}
           trend={data.networkHealth.trend}
-          t={t}
           icon={
-            <svg
-              className="w-6 h-6 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -192,14 +160,8 @@ export function DataQualityScoreCard({
           title={t('uma.dataQuality.dataIntegrity')}
           score={data.dataIntegrity.score}
           trend={data.dataIntegrity.trend}
-          t={t}
           icon={
-            <svg
-              className="w-6 h-6 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -214,14 +176,8 @@ export function DataQualityScoreCard({
           title={t('uma.dataQuality.responseTime')}
           score={data.responseTime.score}
           trend={data.responseTime.trend}
-          t={t}
           icon={
-            <svg
-              className="w-6 h-6 text-purple-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -236,14 +192,8 @@ export function DataQualityScoreCard({
           title={t('uma.dataQuality.validatorActivity')}
           score={data.validatorActivity.score}
           trend={data.validatorActivity.trend}
-          t={t}
           icon={
-            <svg
-              className="w-6 h-6 text-yellow-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

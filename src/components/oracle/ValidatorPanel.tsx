@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
+import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
+import { StakingDistributionChart } from './StakingDistributionChart';
+import { ValidatorComparison } from './ValidatorComparison';
 
 type SortField = 'tokens' | 'commissionRate' | 'uptime' | 'rank';
 type SortDirection = 'asc' | 'desc';
@@ -254,21 +257,47 @@ function FilterButton({
   );
 }
 
-function ValidatorRow({ validator, onClick }: { validator: ValidatorInfo; onClick: () => void }) {
+function ValidatorRow({
+  validator,
+  onClick,
+  isSelected,
+  onToggleSelect,
+}: {
+  validator: ValidatorInfo;
+  onClick: () => void;
+  isSelected: boolean;
+  onToggleSelect: (e: React.MouseEvent) => void;
+}) {
   const status = validator.jailed ? 'jailed' : 'active';
   const config = statusConfig[status];
 
   return (
-    <tr
-      onClick={onClick}
-      className="group cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
-    >
+    <tr className="group cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
       <td className="py-4 px-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <button
+            onClick={onToggleSelect}
+            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+              isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            {isSelected && (
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </button>
+          <div
+            className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+            onClick={onClick}
+          >
             <span className="text-white font-bold text-xs">#{validator.rank}</span>
           </div>
-          <div>
+          <div onClick={onClick}>
             <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
               {validator.moniker}
             </p>
@@ -278,7 +307,7 @@ function ValidatorRow({ validator, onClick }: { validator: ValidatorInfo; onClic
           </div>
         </div>
       </td>
-      <td className="py-4 px-4">
+      <td className="py-4 px-4" onClick={onClick}>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-900">
             {formatNumber(validator.tokens, true)}
@@ -286,14 +315,14 @@ function ValidatorRow({ validator, onClick }: { validator: ValidatorInfo; onClic
           <span className="text-xs text-gray-400">BAND</span>
         </div>
       </td>
-      <td className="py-4 px-4">
+      <td className="py-4 px-4" onClick={onClick}>
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900">
             {(validator.commissionRate * 100).toFixed(2)}%
           </span>
         </div>
       </td>
-      <td className="py-4 px-4">
+      <td className="py-4 px-4" onClick={onClick}>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[80px]">
             <div
@@ -320,7 +349,7 @@ function ValidatorRow({ validator, onClick }: { validator: ValidatorInfo; onClic
           </span>
         </div>
       </td>
-      <td className="py-4 px-4">
+      <td className="py-4 px-4" onClick={onClick}>
         <div className="flex items-center gap-2">
           <span className={`relative flex h-2.5 w-2.5`}>
             <span
@@ -331,7 +360,7 @@ function ValidatorRow({ validator, onClick }: { validator: ValidatorInfo; onClic
           <span className={`text-sm font-medium ${config.textColor}`}>{config.label}</span>
         </div>
       </td>
-      <td className="py-4 px-4">
+      <td className="py-4 px-4" onClick={onClick}>
         <svg
           className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors"
           fill="none"
@@ -360,7 +389,37 @@ export function ValidatorPanel({
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [selectedValidator, setSelectedValidator] = useState<ValidatorInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedValidatorAddresses, setSelectedValidatorAddresses] = useState<Set<string>>(
+    new Set()
+  );
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const convertToValidatorData = useCallback((validator: ValidatorInfo): ValidatorData => {
+    const types: ('institution' | 'independent' | 'community')[] = [
+      'institution',
+      'independent',
+      'community',
+    ];
+    const regions = ['北美', '欧洲', '亚洲', '其他'];
+
+    return {
+      id: validator.operatorAddress,
+      name: validator.moniker,
+      type: types[validator.rank % 3],
+      region: regions[validator.rank % 4],
+      responseTime: Math.round(100 + Math.random() * 200),
+      successRate: validator.uptime,
+      reputation: Math.round(70 + validator.uptime * 0.3),
+      staked: validator.tokens,
+      earnings: Math.round(validator.tokens * validator.commissionRate * 100),
+    };
+  }, []);
+
+  const selectedValidatorsData = useMemo(() => {
+    return validators
+      .filter((v) => selectedValidatorAddresses.has(v.operatorAddress))
+      .map(convertToValidatorData);
+  }, [validators, selectedValidatorAddresses, convertToValidatorData]);
 
   const fetchValidators = useCallback(async () => {
     try {
@@ -434,6 +493,24 @@ export function ValidatorPanel({
     setIsModalOpen(true);
   };
 
+  const handleToggleSelect = (e: React.MouseEvent, address: string) => {
+    e.stopPropagation();
+    setSelectedValidatorAddresses((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(address)) {
+        newSet.delete(address);
+      } else if (newSet.size < 4) {
+        newSet.add(address);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSegmentClick = (validator: ValidatorInfo) => {
+    setSelectedValidator(validator);
+    setIsModalOpen(true);
+  };
+
   const activeCount = validators.filter((v) => !v.jailed).length;
   const jailedCount = validators.filter((v) => v.jailed).length;
 
@@ -483,7 +560,9 @@ export function ValidatorPanel({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <StakingDistributionChart validators={validators} onSegmentClick={handleSegmentClick} />
+
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -498,7 +577,7 @@ export function ValidatorPanel({
                 BAND
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <SortButton
                 field="rank"
                 currentField={sortField}
@@ -532,7 +611,7 @@ export function ValidatorPanel({
         </div>
 
         <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FilterButton
               status="all"
               currentStatus={filterStatus}
@@ -554,6 +633,11 @@ export function ValidatorPanel({
               label="监禁"
               count={jailedCount}
             />
+            {selectedValidatorAddresses.size > 0 && (
+              <span className="ml-2 text-sm text-blue-600 font-medium">
+                已选择 {selectedValidatorAddresses.size} 个验证者进行对比
+              </span>
+            )}
           </div>
         </div>
 
@@ -585,6 +669,8 @@ export function ValidatorPanel({
                   key={validator.operatorAddress}
                   validator={validator}
                   onClick={() => handleValidatorClick(validator)}
+                  isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
+                  onToggleSelect={(e) => handleToggleSelect(e, validator.operatorAddress)}
                 />
               ))}
             </tbody>
@@ -610,6 +696,10 @@ export function ValidatorPanel({
           </div>
         )}
       </div>
+
+      {selectedValidatorsData.length > 0 && (
+        <ValidatorComparison validators={selectedValidatorsData} />
+      )}
 
       <ValidatorDetailModal
         validator={selectedValidator}

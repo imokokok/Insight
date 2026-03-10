@@ -54,6 +54,53 @@ export interface VerificationActivity {
   peakRequests: number;
 }
 
+// 验证者性能热力图数据
+export interface ValidatorPerformanceHeatmapData {
+  validatorId: string;
+  validatorName: string;
+  hourlyData: {
+    hour: number;
+    responseTime: number;
+    successRate: number;
+  }[];
+}
+
+// 争议解决效率统计
+export interface DisputeEfficiencyStats {
+  avgResolutionTime: number;
+  medianResolutionTime: number;
+  stdDeviation: number;
+  successRateTrend: {
+    date: string;
+    rate: number;
+  }[];
+  resolutionTimeDistribution: {
+    range: string;
+    count: number;
+  }[];
+}
+
+// 数据质量评分
+export interface DataQualityScore {
+  overallScore: number;
+  networkHealth: {
+    score: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  dataIntegrity: {
+    score: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  responseTime: {
+    score: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  validatorActivity: {
+    score: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+}
+
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
   supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
@@ -296,5 +343,140 @@ export class UMAClient extends BaseOracleClient {
     }
 
     return trends;
+  }
+
+  // 获取验证者性能热力图数据
+  async getValidatorPerformanceHeatmap(): Promise<ValidatorPerformanceHeatmapData[]> {
+    const validators = await this.getValidators();
+    const heatmapData: ValidatorPerformanceHeatmapData[] = [];
+
+    for (const validator of validators.slice(0, 8)) {
+      const hourlyData = [];
+      for (let hour = 0; hour < 24; hour++) {
+        const baseResponseTime = validator.responseTime;
+        const variation = Math.sin((hour / 24) * Math.PI * 2) * 20 + Math.random() * 10 - 5;
+        const responseTime = Math.max(50, baseResponseTime + variation);
+        
+        const baseSuccessRate = validator.successRate;
+        const successVariation = Math.cos((hour / 24) * Math.PI * 2) * 0.3 + Math.random() * 0.2 - 0.1;
+        const successRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
+
+        hourlyData.push({
+          hour,
+          responseTime: Math.round(responseTime),
+          successRate: parseFloat(successRate.toFixed(2)),
+        });
+      }
+
+      heatmapData.push({
+        validatorId: validator.id,
+        validatorName: validator.name,
+        hourlyData,
+      });
+    }
+
+    return heatmapData;
+  }
+
+  // 获取争议解决效率统计
+  async getDisputeEfficiencyStats(): Promise<DisputeEfficiencyStats> {
+    const disputes = await this.getDisputes();
+    const resolvedDisputes = disputes.filter(d => d.status === 'resolved' && d.resolutionTime);
+
+    const resolutionTimes = resolvedDisputes.map(d => d.resolutionTime!);
+    
+    const avgResolutionTime = resolutionTimes.length > 0
+      ? resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length
+      : 0;
+
+    const sortedTimes = [...resolutionTimes].sort((a, b) => a - b);
+    const medianResolutionTime = sortedTimes.length > 0
+      ? sortedTimes[Math.floor(sortedTimes.length / 2)]
+      : 0;
+
+    const variance = resolutionTimes.length > 0
+      ? resolutionTimes.reduce((sum, time) => sum + Math.pow(time - avgResolutionTime, 2), 0) / resolutionTimes.length
+      : 0;
+    const stdDeviation = Math.sqrt(variance);
+
+    const successRateTrend = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      successRateTrend.push({
+        date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+        rate: 70 + Math.random() * 20,
+      });
+    }
+
+    const resolutionTimeDistribution = [
+      { range: '0-2h', count: Math.floor(resolutionTimes.filter(t => t <= 2).length) },
+      { range: '2-6h', count: Math.floor(resolutionTimes.filter(t => t > 2 && t <= 6).length) },
+      { range: '6-12h', count: Math.floor(resolutionTimes.filter(t => t > 6 && t <= 12).length) },
+      { range: '12-24h', count: Math.floor(resolutionTimes.filter(t => t > 12 && t <= 24).length) },
+      { range: '24-48h', count: Math.floor(resolutionTimes.filter(t => t > 24 && t <= 48).length) },
+      { range: '48h+', count: Math.floor(resolutionTimes.filter(t => t > 48).length) },
+    ];
+
+    return {
+      avgResolutionTime,
+      medianResolutionTime,
+      stdDeviation,
+      successRateTrend,
+      resolutionTimeDistribution,
+    };
+  }
+
+  // 获取数据质量评分
+  async getDataQualityScore(): Promise<DataQualityScore> {
+    const networkStats = await this.getNetworkStats();
+    
+    const networkHealthScore = Math.min(100, 
+      (networkStats.validatorUptime / 100) * 50 + 
+      (networkStats.activeValidators / 1000) * 25 + 
+      (networkStats.disputeSuccessRate / 100) * 25
+    );
+
+    const dataIntegrityScore = 85 + Math.random() * 10;
+
+    const responseTimeScore = Math.max(0, 100 - (networkStats.avgResponseTime - 100) / 2);
+
+    const validatorActivityScore = Math.min(100, 
+      (networkStats.activeValidators / 850) * 70 + 
+      (networkStats.totalStaked / 30000000) * 30
+    );
+
+    const overallScore = (
+      networkHealthScore * 0.3 +
+      dataIntegrityScore * 0.25 +
+      responseTimeScore * 0.25 +
+      validatorActivityScore * 0.2
+    );
+
+    const getTrend = (): 'up' | 'down' | 'stable' => {
+      const rand = Math.random();
+      return rand > 0.6 ? 'up' : rand > 0.3 ? 'stable' : 'down';
+    };
+
+    return {
+      overallScore: parseFloat(overallScore.toFixed(1)),
+      networkHealth: {
+        score: parseFloat(networkHealthScore.toFixed(1)),
+        trend: getTrend(),
+      },
+      dataIntegrity: {
+        score: parseFloat(dataIntegrityScore.toFixed(1)),
+        trend: getTrend(),
+      },
+      responseTime: {
+        score: parseFloat(responseTimeScore.toFixed(1)),
+        trend: getTrend(),
+      },
+      validatorActivity: {
+        score: parseFloat(validatorActivityScore.toFixed(1)),
+        trend: getTrend(),
+      },
+    };
   }
 }

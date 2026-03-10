@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/context';
+import { PerformanceGaugeGroup } from './PerformanceGauge';
+import { DataQualityScoreCard } from './DataQualityScoreCard';
 
 type NetworkStatus = 'online' | 'warning' | 'offline';
 
@@ -445,9 +447,7 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
     <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">
-            {t('pythNetwork.solana.title')}
-          </p>
+          <p className="text-gray-900 text-sm font-semibold">{t('pythNetwork.solana.title')}</p>
           <p className="text-gray-500 text-xs mt-0.5">{t('pythNetwork.solana.subtitle')}</p>
         </div>
         <div className="p-2 bg-purple-100 rounded-lg">
@@ -488,7 +488,9 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-1 rounded-lg text-xs font-medium ${status.bgColor} ${status.color}`}>
+            <span
+              className={`px-2 py-1 rounded-lg text-xs font-medium ${status.bgColor} ${status.color}`}
+            >
               {status.label}
             </span>
           </div>
@@ -514,9 +516,7 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
             </span>
           </div>
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">
-              {metrics.blockConfirmationTime}ms
-            </p>
+            <p className="text-sm font-medium text-gray-900">{metrics.blockConfirmationTime}ms</p>
             <p className="text-xs text-gray-400">{t('pythNetwork.solana.avgConfirmation')}</p>
           </div>
         </div>
@@ -590,7 +590,9 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
             <p className="text-sm font-medium text-gray-900">
               {(metrics.totalStake / 1000000).toFixed(2)}M SOL
             </p>
-            <p className="text-xs text-gray-400">{t('pythNetwork.solana.validators')}: {metrics.validatorCount}</p>
+            <p className="text-xs text-gray-400">
+              {t('pythNetwork.solana.validators')}: {metrics.validatorCount}
+            </p>
           </div>
         </div>
 
@@ -891,6 +893,71 @@ export function NetworkHealthPanel({
     },
   ];
 
+  const performanceGauges = [
+    {
+      value: networkData.avgResponseTime,
+      max: 1000,
+      label: '响应时间',
+      unit: 'ms',
+      type: 'value' as const,
+      warningThreshold: 500,
+      dangerThreshold: 800,
+    },
+    {
+      value: networkData.nodeUptime,
+      max: 100,
+      label: '在线率',
+      unit: '%',
+      type: 'percentage' as const,
+      warningThreshold: 95,
+      dangerThreshold: 90,
+    },
+    {
+      value: networkData.updateFrequency,
+      max: 60,
+      label: '更新频率',
+      unit: '秒',
+      type: 'value' as const,
+      warningThreshold: 30,
+      dangerThreshold: 45,
+    },
+  ];
+
+  const bandProtocolGauges = networkData.bandProtocolMetrics
+    ? [
+        {
+          value:
+            (networkData.bandProtocolMetrics.activeValidators /
+              networkData.bandProtocolMetrics.totalValidators) *
+            100,
+          max: 100,
+          label: '验证者活跃率',
+          unit: '%',
+          type: 'percentage' as const,
+          warningThreshold: 85,
+          dangerThreshold: 70,
+        },
+        {
+          value: networkData.bandProtocolMetrics.stakingRate,
+          max: 100,
+          label: '质押率',
+          unit: '%',
+          type: 'percentage' as const,
+          warningThreshold: 50,
+          dangerThreshold: 30,
+        },
+        {
+          value: networkData.bandProtocolMetrics.blockTime,
+          max: 10,
+          label: '区块时间',
+          unit: 's',
+          type: 'value' as const,
+          warningThreshold: 5,
+          dangerThreshold: 8,
+        },
+      ]
+    : [];
+
   return (
     <div className="space-y-6">
       <NetworkStatusIndicator status={networkData.status} />
@@ -901,8 +968,27 @@ export function NetworkHealthPanel({
         ))}
       </div>
 
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">性能仪表盘</h3>
+          <p className="text-sm text-gray-500 mt-1">实时网络性能指标可视化</p>
+        </div>
+        <PerformanceGaugeGroup gauges={performanceGauges} size={160} />
+      </div>
+
+      <DataQualityScoreCard />
+
       {networkData.bandProtocolMetrics && (
-        <BandProtocolMetricsCard metrics={networkData.bandProtocolMetrics} />
+        <>
+          <BandProtocolMetricsCard metrics={networkData.bandProtocolMetrics} />
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Band Protocol 性能仪表盘</h3>
+              <p className="text-sm text-gray-500 mt-1">链上验证者与网络性能指标</p>
+            </div>
+            <PerformanceGaugeGroup gauges={bandProtocolGauges} size={160} />
+          </div>
+        </>
       )}
 
       {networkData.solanaNetworkMetrics && (

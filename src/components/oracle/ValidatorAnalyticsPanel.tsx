@@ -4,6 +4,8 @@ import { useState, useEffect, ReactNode } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, ValidatorData } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/context';
+import { ValidatorPerformanceHeatmap } from './ValidatorPerformanceHeatmap';
+import { ValidatorComparison } from './ValidatorComparison';
 
 type SortField = 'name' | 'responseTime' | 'successRate' | 'reputation' | 'staked' | 'earnings';
 type SortDirection = 'asc' | 'desc';
@@ -595,6 +597,10 @@ export function ValidatorAnalyticsPanel() {
       </div>
 
       <EarningsChart data={earningsTrends} />
+
+      <ValidatorPerformanceHeatmap />
+
+      <ValidatorComparison validators={validators} />
     </div>
   );
 }

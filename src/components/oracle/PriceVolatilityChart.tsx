@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ComposedChart,
   Bar,
@@ -12,9 +12,12 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  AreaChart,
+  Area,
 } from 'recharts';
 import { OracleProvider } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
+import { VolatilityAlert } from './VolatilityAlert';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -42,11 +45,26 @@ export interface VolatilityTrendPoint {
   [key: string]: string | number;
 }
 
+export interface MultiScaleVolatility {
+  shortTerm: number;
+  midTerm: number;
+  longTerm: number;
+}
+
+export interface VolatilityDecomposition {
+  timestamp: string;
+  shortTerm: number;
+  midTerm: number;
+  longTerm: number;
+  total: number;
+}
+
 export interface PriceVolatilityChartProps {
   data: OraclePriceHistory[];
   oracleNames?: Partial<Record<OracleProvider, string>>;
   showTrend?: boolean;
   className?: string;
+  alertThreshold?: number;
 }
 
 const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
@@ -64,6 +82,14 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.PYTH_NETWORK]: '#EC4899',
   [OracleProvider.API3]: '#10B981',
 };
+
+const TIME_SCALE_CONFIG = {
+  short: { label: '短期 (1小时)', window: 6, color: '#3B82F6' },
+  mid: { label: '中期 (24小时)', window: 24, color: '#10B981' },
+  long: { label: '长期 (7天)', window: 168, color: '#8B5CF6' },
+};
+
+type TimeScale = 'short' | 'mid' | 'long';
 
 function calculateStandardDeviation(prices: number[]): number {
   if (prices.length === 0) return 0;
@@ -150,6 +176,82 @@ function calculateRollingVolatility(
   });
 }
 
+function calculateMultiScaleVolatility(
+  data: OraclePriceHistory[],
+  timeScale: TimeScale
+): VolatilityResult[] {
+  const windowSize = TIME_SCALE_CONFIG[timeScale].window;
+
+  return data.map((oracleData) => {
+    const prices = oracleData.prices.map((p) => p.price);
+    const windowPrices = prices.slice(-windowSize);
+    const mean = windowPrices.length > 0 ? windowPrices.reduce((sum, price) => sum + price, 0) / windowPrices.length : 0;
+    const stdDev = calculateStandardDeviation(windowPrices);
+    const cv = calculateCoefficientOfVariation(stdDev, mean);
+    const minPrice = windowPrices.length > 0 ? Math.min(...windowPrices) : 0;
+    const maxPrice = windowPrices.length > 0 ? Math.max(...windowPrices) : 0;
+    const priceRange = maxPrice - minPrice;
+
+    return {
+      oracle: oracleData.oracle,
+      name: DEFAULT_ORACLE_NAMES[oracleData.oracle] || oracleData.oracle,
+      stdDev,
+      mean,
+      cv,
+      minPrice,
+      maxPrice,
+      priceRange,
+    };
+  });
+}
+
+function calculateVolatilityDecomposition(
+  data: OraclePriceHistory[]
+): VolatilityDecomposition[] {
+  if (data.length === 0) return [];
+
+  const allTimestamps = new Set<number>();
+  data.forEach((oracleData) => {
+    oracleData.prices.forEach((p) => allTimestamps.add(p.timestamp));
+  });
+
+  const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
+
+  const avgOracle = data[0];
+  if (!avgOracle) return [];
+
+  return sortedTimestamps.slice(-20).map((timestamp) => {
+    const priceIndex = avgOracle.prices.findIndex((p) => p.timestamp === timestamp);
+    
+    const shortTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 6), priceIndex + 1).map(p => p.price);
+    const midTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 24), priceIndex + 1).map(p => p.price);
+    const longTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 168), priceIndex + 1).map(p => p.price);
+
+    const shortTermCV = shortTermPrices.length >= 2 
+      ? calculateCoefficientOfVariation(calculateStandardDeviation(shortTermPrices), shortTermPrices.reduce((a, b) => a + b, 0) / shortTermPrices.length)
+      : 0;
+    const midTermCV = midTermPrices.length >= 2
+      ? calculateCoefficientOfVariation(calculateStandardDeviation(midTermPrices), midTermPrices.reduce((a, b) => a + b, 0) / midTermPrices.length)
+      : 0;
+    const longTermCV = longTermPrices.length >= 2
+      ? calculateCoefficientOfVariation(calculateStandardDeviation(longTermPrices), longTermPrices.reduce((a, b) => a + b, 0) / longTermPrices.length)
+      : 0;
+
+    const total = shortTermCV + midTermCV + longTermCV;
+
+    return {
+      timestamp: new Date(timestamp).toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      shortTerm: Number((shortTermCV / (total || 1) * 100).toFixed(2)),
+      midTerm: Number((midTermCV / (total || 1) * 100).toFixed(2)),
+      longTerm: Number((longTermCV / (total || 1) * 100).toFixed(2)),
+      total: Number(total.toFixed(4)),
+    };
+  });
+}
+
 function getVolatilityLevel(cv: number): { label: string; color: string } {
   if (cv < 0.5) return { label: '极低', color: '#10B981' };
   if (cv < 1.0) return { label: '低', color: '#3B82F6' };
@@ -163,12 +265,19 @@ export function PriceVolatilityChart({
   oracleNames: customOracleNames,
   showTrend = true,
   className,
+  alertThreshold = 2.0,
 }: PriceVolatilityChartProps) {
   const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
+  const [selectedTimeScale, setSelectedTimeScale] = useState<TimeScale>('short');
 
   const volatilityResults = useMemo(
     () => calculateVolatility(data, oracleNames),
     [data, oracleNames]
+  );
+
+  const multiScaleVolatility = useMemo(
+    () => calculateMultiScaleVolatility(data, selectedTimeScale),
+    [data, selectedTimeScale]
   );
 
   const trendData = useMemo(
@@ -176,9 +285,14 @@ export function PriceVolatilityChart({
     [data, showTrend]
   );
 
+  const decompositionData = useMemo(
+    () => calculateVolatilityDecomposition(data),
+    [data]
+  );
+
   const chartData = useMemo(
     () =>
-      volatilityResults.map((result) => ({
+      multiScaleVolatility.map((result) => ({
         name: result.name,
         cv: Number(result.cv.toFixed(4)),
         stdDev: result.stdDev,
@@ -186,7 +300,7 @@ export function PriceVolatilityChart({
         oracle: result.oracle,
         level: getVolatilityLevel(result.cv),
       })),
-    [volatilityResults]
+    [multiScaleVolatility]
   );
 
   const avgCV = useMemo(() => {
@@ -194,11 +308,16 @@ export function PriceVolatilityChart({
     return volatilityResults.reduce((sum, r) => sum + r.cv, 0) / volatilityResults.length;
   }, [volatilityResults]);
 
+  const currentVolatility = useMemo(() => {
+    if (multiScaleVolatility.length === 0) return 0;
+    return multiScaleVolatility.reduce((sum, r) => sum + r.cv, 0) / multiScaleVolatility.length;
+  }, [multiScaleVolatility]);
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const dataPoint = payload[0].payload;
-    const result = volatilityResults.find((r) => r.oracle === dataPoint.oracle);
+    const result = multiScaleVolatility.find((r) => r.oracle === dataPoint.oracle);
 
     if (!result) return null;
 
@@ -269,189 +388,348 @@ export function PriceVolatilityChart({
     );
   };
 
+  const DecompositionTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200 min-w-[180px]">
+        <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
+        <div className="space-y-1">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">短期波动</span>
+            <span className="text-xs font-medium text-blue-600">{data.shortTerm.toFixed(1)}%</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">中期波动</span>
+            <span className="text-xs font-medium text-green-600">{data.midTerm.toFixed(1)}%</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">长期波动</span>
+            <span className="text-xs font-medium text-purple-600">{data.longTerm.toFixed(1)}%</span>
+          </div>
+          <div className="pt-1 mt-1 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-600">总波动率</span>
+              <span className="text-xs font-bold text-gray-900">{data.total.toFixed(4)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <DashboardCard title="价格波动率对比分析" className={className}>
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-            <p className="text-xs text-gray-600 mb-1">平均变异系数</p>
-            <p className="text-2xl font-bold text-blue-600">{avgCV.toFixed(4)}%</p>
-          </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-            <p className="text-xs text-gray-600 mb-1">最低波动</p>
-            <p className="text-2xl font-bold text-green-600">
-              {Math.min(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
-            </p>
-          </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-            <p className="text-xs text-gray-600 mb-1">最高波动</p>
-            <p className="text-2xl font-bold text-orange-600">
-              {Math.max(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
-            </p>
-          </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-            <p className="text-xs text-gray-600 mb-1">预言机数量</p>
-            <p className="text-2xl font-bold text-purple-600">{volatilityResults.length}</p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <VolatilityAlert
+        threshold={alertThreshold}
+        currentVolatility={currentVolatility}
+        className={className}
+      />
 
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">波动率对比（变异系数 CV）</h4>
-          <div style={{ height: 320 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart
-                data={chartData}
-                layout="vertical"
-                margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis
-                  type="number"
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
-                  tickFormatter={(value) => `${value.toFixed(2)}%`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 12, fill: '#374151' }}
-                  width={80}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="cv" radius={[0, 4, 4, 0]} maxBarSize={40}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.level.color} />
-                  ))}
-                </Bar>
-              </ComposedChart>
-            </ResponsiveContainer>
+      <DashboardCard title="价格波动率对比分析" className={className}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {(Object.keys(TIME_SCALE_CONFIG) as TimeScale[]).map((scale) => (
+                <button
+                  key={scale}
+                  onClick={() => setSelectedTimeScale(scale)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedTimeScale === scale
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {TIME_SCALE_CONFIG[scale].label}
+                </button>
+              ))}
+            </div>
+            <div className="text-xs text-gray-500">
+              窗口大小: {TIME_SCALE_CONFIG[selectedTimeScale].window} 个数据点
+            </div>
           </div>
-        </div>
 
-        {showTrend && trendData.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <p className="text-xs text-gray-600 mb-1">平均变异系数</p>
+              <p className="text-2xl font-bold text-blue-600">{avgCV.toFixed(4)}%</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <p className="text-xs text-gray-600 mb-1">最低波动</p>
+              <p className="text-2xl font-bold text-green-600">
+                {Math.min(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+              <p className="text-xs text-gray-600 mb-1">最高波动</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {Math.max(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+              <p className="text-xs text-gray-600 mb-1">预言机数量</p>
+              <p className="text-2xl font-bold text-purple-600">{volatilityResults.length}</p>
+            </div>
+          </div>
+
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">滚动波动率趋势</h4>
-            <div style={{ height: 280 }}>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              波动率对比（变异系数 CV）- {TIME_SCALE_CONFIG[selectedTimeScale].label}
+            </h4>
+            <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <ComposedChart
+                  data={chartData}
+                  layout="vertical"
+                  margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
-                    dataKey="period"
+                    type="number"
                     stroke="#9ca3af"
                     tick={{ fontSize: 11, fill: '#6b7280' }}
-                    minTickGap={40}
+                    tickFormatter={(value) => `${value.toFixed(2)}%`}
                   />
                   <YAxis
+                    type="category"
+                    dataKey="name"
                     stroke="#9ca3af"
-                    tick={{ fontSize: 11, fill: '#6b7280' }}
-                    tickFormatter={(value) => `${value}%`}
-                    width={50}
+                    tick={{ fontSize: 12, fill: '#374151' }}
+                    width={80}
                   />
-                  <Tooltip content={<TrendTooltip />} />
-                  <Legend />
-                  {data.map((oracleData) => (
-                    <Line
-                      key={oracleData.oracle}
-                      type="monotone"
-                      dataKey={oracleData.oracle}
-                      name={oracleNames[oracleData.oracle]}
-                      stroke={ORACLE_COLORS[oracleData.oracle]}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                    />
-                  ))}
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="cv" radius={[0, 4, 4, 0]} maxBarSize={40}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.level.color} />
+                    ))}
+                  </Bar>
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
-        )}
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  预言机
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  变异系数 (CV)
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  标准差 (σ)
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  平均价格
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  价格范围
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  波动等级
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {volatilityResults.map((result) => {
-                const level = getVolatilityLevel(result.cv);
-                return (
-                  <tr key={result.oracle} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: ORACLE_COLORS[result.oracle] }}
-                        />
-                        <span className="text-sm font-medium text-gray-900">{result.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="text-sm font-bold" style={{ color: level.color }}>
-                        {result.cv.toFixed(4)}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${result.stdDev.toFixed(4)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${result.mean.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${result.minPrice.toFixed(2)} - ${result.maxPrice.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className="text-xs font-medium px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: `${level.color}20`,
-                          color: level.color,
-                        }}
-                      >
-                        {level.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+          {showTrend && trendData.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">滚动波动率趋势</h4>
+              <div style={{ height: 280 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="period"
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      minTickGap={40}
+                    />
+                    <YAxis
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      tickFormatter={(value) => `${value}%`}
+                      width={50}
+                    />
+                    <Tooltip content={<TrendTooltip />} />
+                    <Legend />
+                    {data.map((oracleData) => (
+                      <Line
+                        key={oracleData.oracle}
+                        type="monotone"
+                        dataKey={oracleData.oracle}
+                        name={oracleNames[oracleData.oracle]}
+                        stroke={ORACLE_COLORS[oracleData.oracle]}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                    ))}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
 
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">波动率计算说明</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>
-              • <strong>标准差 (σ)</strong>: 衡量价格偏离平均值的程度，σ = √[Σ(xi-x̄)² / n]
-            </li>
-            <li>
-              • <strong>变异系数 (CV)</strong>: 标准差与平均值的比率，CV = (σ / x̄) × 100%
-            </li>
-            <li>• CV 越低表示价格越稳定，越高表示波动越大</li>
-            <li>• 滚动波动率使用 5 个时间点的窗口计算，反映波动率随时间的变化趋势</li>
-          </ul>
+          {decompositionData.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">波动率分解视图</h4>
+              <div style={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={decompositionData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="timestamp"
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      minTickGap={40}
+                    />
+                    <YAxis
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      tickFormatter={(value) => `${value}%`}
+                      width={50}
+                    />
+                    <Tooltip content={<DecompositionTooltip />} />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="longTerm"
+                      stackId="1"
+                      stroke={TIME_SCALE_CONFIG.long.color}
+                      fill={TIME_SCALE_CONFIG.long.color}
+                      fillOpacity={0.6}
+                      name="长期波动"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="midTerm"
+                      stackId="1"
+                      stroke={TIME_SCALE_CONFIG.mid.color}
+                      fill={TIME_SCALE_CONFIG.mid.color}
+                      fillOpacity={0.6}
+                      name="中期波动"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="shortTerm"
+                      stackId="1"
+                      stroke={TIME_SCALE_CONFIG.short.color}
+                      fill={TIME_SCALE_CONFIG.short.color}
+                      fillOpacity={0.6}
+                      name="短期波动"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="text-center p-3 rounded-lg bg-blue-50">
+                  <p className="text-xs text-gray-600 mb-1">短期波动占比</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {decompositionData.length > 0
+                      ? (
+                          decompositionData.reduce((sum, d) => sum + d.shortTerm, 0) /
+                          decompositionData.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-green-50">
+                  <p className="text-xs text-gray-600 mb-1">中期波动占比</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {decompositionData.length > 0
+                      ? (
+                          decompositionData.reduce((sum, d) => sum + d.midTerm, 0) /
+                          decompositionData.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-purple-50">
+                  <p className="text-xs text-gray-600 mb-1">长期波动占比</p>
+                  <p className="text-lg font-bold text-purple-600">
+                    {decompositionData.length > 0
+                      ? (
+                          decompositionData.reduce((sum, d) => sum + d.longTerm, 0) /
+                          decompositionData.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    预言机
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    变异系数 (CV)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    标准差 (σ)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    平均价格
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    价格范围
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    波动等级
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {multiScaleVolatility.map((result) => {
+                  const level = getVolatilityLevel(result.cv);
+                  return (
+                    <tr key={result.oracle} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div
+                            className="w-3 h-3 rounded-full mr-2"
+                            style={{ backgroundColor: ORACLE_COLORS[result.oracle] }}
+                          />
+                          <span className="text-sm font-medium text-gray-900">{result.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-sm font-bold" style={{ color: level.color }}>
+                          {result.cv.toFixed(4)}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
+                        ${result.stdDev.toFixed(4)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
+                        ${result.mean.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
+                        ${result.minPrice.toFixed(2)} - ${result.maxPrice.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className="text-xs font-medium px-2 py-1 rounded"
+                          style={{
+                            backgroundColor: `${level.color}20`,
+                            color: level.color,
+                          }}
+                        >
+                          {level.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">波动率计算说明</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>
+                • <strong>标准差 (σ)</strong>: 衡量价格偏离平均值的程度，σ = √[Σ(xi-x̄)² / n]
+              </li>
+              <li>
+                • <strong>变异系数 (CV)</strong>: 标准差与平均值的比率，CV = (σ / x̄) × 100%
+              </li>
+              <li>• CV 越低表示价格越稳定，越高表示波动越大</li>
+              <li>• 滚动波动率使用 5 个时间点的窗口计算，反映波动率随时间的变化趋势</li>
+              <li>• 多时间尺度分析帮助识别不同周期的波动特征</li>
+              <li>• 波动率分解展示短期、中期、长期波动对总波动的贡献</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </DashboardCard>
+      </DashboardCard>
+    </div>
   );
 }
