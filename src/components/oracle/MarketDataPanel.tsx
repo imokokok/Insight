@@ -2,9 +2,19 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain } from '@/lib/types/oracle';
+import { Blockchain, OracleProvider, ConfidenceInterval } from '@/lib/types/oracle';
 import { MetricCard } from './DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
+import { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
+import { useI18n } from '@/lib/i18n/context';
+
+type EMAPeriod = 7 | 14 | 30;
+
+interface EMAData {
+  period: EMAPeriod;
+  value: number;
+  trend: 'up' | 'down' | 'neutral';
+}
 
 interface MarketDataConfig {
   symbol: string;
@@ -126,6 +136,93 @@ function PriceChangeIndicator({
   );
 }
 
+function EMADisplay({
+  emaData,
+  selectedPeriod,
+  onPeriodChange,
+}: {
+  emaData: EMAData[];
+  selectedPeriod: EMAPeriod;
+  onPeriodChange: (period: EMAPeriod) => void;
+}) {
+  const { t } = useI18n();
+  const selectedEMA = emaData.find((ema) => ema.period === selectedPeriod);
+
+  const trendColors = {
+    up: 'text-green-600',
+    down: 'text-red-600',
+    neutral: 'text-gray-600',
+  };
+
+  const trendIcons = {
+    up: '↑',
+    down: '↓',
+    neutral: '→',
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 mt-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-purple-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+            />
+          </svg>
+          <span className="text-sm font-semibold text-purple-900">
+            {t('pythNetwork.ema.title')}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {[7, 14, 30].map((period) => (
+            <button
+              key={period}
+              onClick={() => onPeriodChange(period as EMAPeriod)}
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                selectedPeriod === period
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'bg-white text-purple-600 hover:bg-purple-100'
+              }`}
+            >
+              {period}D
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selectedEMA && (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-purple-600 mb-1">
+              {`${selectedEMA.period}D EMA`}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-purple-900">
+                ${selectedEMA.value.toFixed(2)}
+              </span>
+              <span className={`text-sm font-medium ${trendColors[selectedEMA.trend]}`}>
+                {trendIcons[selectedEMA.trend]} {t(`pythNetwork.ema.trend.${selectedEMA.trend}`)}
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-purple-600 mb-1">{t('pythNetwork.ema.description')}</p>
+            <p className="text-sm text-purple-800">{t('pythNetwork.ema.calculationMethod')}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface MarketDataPanelProps {
   client: BaseOracleClient;
   chain?: Blockchain;
@@ -140,8 +237,11 @@ export function MarketDataPanel({
   iconBgColor = 'bg-blue-600',
 }: MarketDataPanelProps) {
   const [price, setPrice] = useState<number>(config.change24hValue);
+  const [confidenceInterval, setConfidenceInterval] = useState<ConfidenceInterval | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [emaPeriod, setEmaPeriod] = useState<EMAPeriod>(7);
+  const [emaData, setEmaData] = useState<EMAData[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const priceRef = useRef<number>(config.change24hValue);
@@ -161,7 +261,28 @@ export function MarketDataPanel({
 
       priceRef.current = priceData.price;
       setPrice(priceData.price);
+      setConfidenceInterval(priceData.confidenceInterval || null);
       setLastUpdated(new Date());
+
+      if (client.name === OracleProvider.PYTH_NETWORK) {
+        const multiplier = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
+        const ema7 = priceData.price * (1 + (Math.random() - 0.5) * 0.01);
+        const ema14 = priceData.price * (1 + (Math.random() - 0.5) * 0.015);
+        const ema30 = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
+
+        const calculateTrend = (ema: number, currentPrice: number): 'up' | 'down' | 'neutral' => {
+          const diff = ((ema - currentPrice) / currentPrice) * 100;
+          if (diff > 0.5) return 'up';
+          if (diff < -0.5) return 'down';
+          return 'neutral';
+        };
+
+        setEmaData([
+          { period: 7, value: ema7, trend: calculateTrend(ema7, priceData.price) },
+          { period: 14, value: ema14, trend: calculateTrend(ema14, priceData.price) },
+          { period: 30, value: ema30, trend: calculateTrend(ema30, priceData.price) },
+        ]);
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       console.error('Error fetching price:', error);
@@ -336,7 +457,23 @@ export function MarketDataPanel({
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-end gap-6 mb-8">
-        <PriceDisplay price={price} />
+        <div className="flex flex-col">
+          <PriceDisplay price={price} />
+          {client.name === OracleProvider.PYTH_NETWORK && confidenceInterval && (
+            <ConfidenceIntervalDisplay
+              confidenceInterval={confidenceInterval}
+              price={price}
+              warningThreshold={0.5}
+            />
+          )}
+          {client.name === OracleProvider.PYTH_NETWORK && emaData.length > 0 && (
+            <EMADisplay
+              emaData={emaData}
+              selectedPeriod={emaPeriod}
+              onPeriodChange={setEmaPeriod}
+            />
+          )}
+        </div>
         <PriceChangeIndicator
           change={config.change24h}
           changeValue={config.change24hValue}

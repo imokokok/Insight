@@ -43,66 +43,186 @@ export function useRefresh(options: UseRefreshOptions = {}): UseRefreshReturn {
   };
 }
 
-interface UseExportOptions<T> {
-  data: T | null;
-  filename?: string;
-  format?: 'json' | 'csv';
-}
+export type ExportFormat = 'json' | 'csv';
+export type DataType = 'all' | 'price' | 'historical' | 'network';
 
-interface UseExportReturn {
-  exportData: () => void;
-}
-
-export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
-  const { data, filename, format = 'json' } = options;
-
-  const exportData = useCallback(() => {
-    if (!data) return;
-
-    const timestamp = Date.now();
-    const defaultFilename = `export-${timestamp}`;
-
-    if (format === 'json') {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filename || defaultFilename}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else if (format === 'csv') {
-      const csvContent = convertToCSV(data);
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filename || defaultFilename}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  }, [data, filename, format]);
-
-  return {
-    exportData,
+export interface ExportOptions {
+  format: ExportFormat;
+  dataType: DataType;
+  timeRange?: string;
+  includeMetadata?: boolean;
+  dateRange?: {
+    start: string;
+    end: string;
   };
 }
 
-function convertToCSV<T>(data: T): string {
-  if (Array.isArray(data) && data.length > 0) {
-    const headers = Object.keys(data[0] as object);
-    const rows = data.map((item) =>
+interface UseExportOptions<T> {
+  data: T | null;
+  filename?: string;
+  format?: ExportFormat;
+  exportOptions?: Partial<ExportOptions>;
+}
+
+interface UseExportReturn {
+  exportData: (customOptions?: Partial<ExportOptions>) => void;
+  generateFilename: (format: ExportFormat, options?: Partial<ExportOptions>) => string;
+}
+
+export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
+  const { data, filename, format = 'json', exportOptions = {} } = options;
+
+  const generateFilename = useCallback(
+    (formatType: ExportFormat, opts?: Partial<ExportOptions>): string => {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      
+      const parts: string[] = [];
+      
+      if (filename) {
+        parts.push(filename);
+      } else {
+        parts.push('export');
+      }
+      
+      parts.push(dateStr);
+      parts.push(timeStr);
+      
+      if (opts?.timeRange) {
+        parts.push(opts.timeRange.toLowerCase());
+      }
+      
+      if (opts?.dataType && opts.dataType !== 'all') {
+        parts.push(opts.dataType);
+      }
+      
+      return `${parts.join('-')}.${formatType}`;
+    },
+    [filename]
+  );
+
+  const exportData = useCallback(
+    (customOptions?: Partial<ExportOptions>) => {
+      if (!data) return;
+
+      const mergedOptions: ExportOptions = {
+        format: customOptions?.format || format,
+        dataType: customOptions?.dataType || exportOptions.dataType || 'all',
+        timeRange: customOptions?.timeRange || exportOptions.timeRange,
+        includeMetadata: customOptions?.includeMetadata ?? exportOptions.includeMetadata ?? true,
+        dateRange: customOptions?.dateRange || exportOptions.dateRange,
+      };
+
+      const finalFilename = generateFilename(mergedOptions.format, mergedOptions);
+
+      if (mergedOptions.format === 'json') {
+        const exportPayload = mergedOptions.includeMetadata
+          ? {
+              metadata: {
+                exportDate: new Date().toISOString(),
+                timeRange: mergedOptions.timeRange,
+                dataType: mergedOptions.dataType,
+                dateRange: mergedOptions.dateRange,
+              },
+              data: data,
+            }
+          : data;
+
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+          type: 'application/json',
+        });
+        downloadBlob(blob, finalFilename);
+      } else if (mergedOptions.format === 'csv') {
+        const csvContent = convertToCSV(data, mergedOptions);
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        downloadBlob(blob, finalFilename);
+      }
+    },
+    [data, format, exportOptions, generateFilename]
+  );
+
+  return {
+    exportData,
+    generateFilename,
+  };
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function convertToCSV<T>(data: T, options?: ExportOptions): string {
+  if (!data) return '';
+
+  let processedData: unknown = data;
+
+  if (options?.dataType === 'price' && typeof data === 'object' && data !== null) {
+    const dataObj = data as Record<string, unknown>;
+    processedData = dataObj.price || dataObj;
+  } else if (options?.dataType === 'historical' && typeof data === 'object' && data !== null) {
+    const dataObj = data as Record<string, unknown>;
+    processedData = dataObj.historical || dataObj;
+  }
+
+  if (Array.isArray(processedData) && processedData.length > 0) {
+    const headers = Object.keys(processedData[0] as object);
+    const rows = processedData.map((item) =>
       headers.map((header) => {
         const value = (item as Record<string, unknown>)[header];
-        return typeof value === 'string' ? `"${value}"` : value;
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
+        return String(value);
       })
     );
-    return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    
+    const metadataRows: string[] = [];
+    if (options?.includeMetadata) {
+      metadataRows.push('# Oracle Data Export');
+      metadataRows.push(`# Export Date: ${new Date().toISOString()}`);
+      if (options.timeRange) {
+        metadataRows.push(`# Time Range: ${options.timeRange}`);
+      }
+      if (options.dateRange) {
+        metadataRows.push(`# Date Range: ${options.dateRange.start} - ${options.dateRange.end}`);
+      }
+      metadataRows.push('#');
+    }
+    
+    return [...metadataRows, headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
   }
-  return '';
+
+  if (typeof processedData === 'object' && processedData !== null) {
+    const entries = Object.entries(processedData as Record<string, unknown>);
+    const rows = entries.map(([key, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        return `${key},"${JSON.stringify(value).replace(/"/g, '""')}"`;
+      }
+      return `${key},"${String(value).replace(/"/g, '""')}"`;
+    });
+    
+    const metadataRows: string[] = [];
+    if (options?.includeMetadata) {
+      metadataRows.push('# Oracle Data Export');
+      metadataRows.push(`# Export Date: ${new Date().toISOString()}`);
+      if (options.timeRange) {
+        metadataRows.push(`# Time Range: ${options.timeRange}`);
+      }
+      metadataRows.push('#');
+    }
+    
+    return [...metadataRows, 'Key,Value', ...rows].join('\n');
+  }
+
+  return String(processedData);
 }
 
 interface UseLocalStorageOptions<T> {

@@ -20,6 +20,12 @@ export enum Blockchain {
   OSMOSIS = 'osmosis',
 }
 
+export interface ConfidenceInterval {
+  bid: number;
+  ask: number;
+  widthPercentage: number;
+}
+
 export interface PriceData {
   provider: OracleProvider;
   chain?: Blockchain;
@@ -30,6 +36,7 @@ export interface PriceData {
   confidence?: number;
   source?: string;
   change?: number;
+  confidenceInterval?: ConfidenceInterval;
 }
 
 export interface OracleClient {
@@ -43,4 +50,28 @@ export interface OracleError {
   message: string;
   provider: OracleProvider;
   code?: string;
+}
+
+export type PublisherStatus = 'active' | 'inactive' | 'degraded';
+
+export interface Publisher {
+  id: string;
+  name: string;
+  reliabilityScore: number;
+  latency: number;
+  status: PublisherStatus;
+  submissionCount: number;
+  lastUpdate: number;
+  accuracy?: number;
+  priceDeviation?: number;
+  submissionFrequency?: number;
+}
+
+export interface PublisherStats {
+  publisherId: string;
+  historicalAccuracy: number[];
+  priceDeviations: number[];
+  submissionFrequency: number;
+  averageDeviation: number;
+  trend: 'improving' | 'stable' | 'declining';
 }

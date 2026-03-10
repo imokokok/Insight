@@ -243,6 +243,7 @@
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
       "nodeAnalytics": "节点分析",
+      "crossOracleComparison": "跨预言机对比",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估"
     },
@@ -535,7 +536,25 @@
     "period": "周期",
     "dataSource": "数据来源",
     "chainlinkNetwork": "Chainlink 网络",
-    "justNow": "刚刚"
+    "justNow": "刚刚",
+    "exportModal": {
+      "title": "导出数据",
+      "format": "导出格式",
+      "dataType": "数据类型",
+      "dataTypes": {
+        "all": "全部数据",
+        "price": "价格数据",
+        "historical": "历史数据",
+        "network": "网络数据"
+      },
+      "timeRange": "时间范围",
+      "customDateRange": "自定义日期范围",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "includeMetadata": "包含元数据",
+      "cancel": "取消",
+      "export": "导出"
+    }
   },
   "bandProtocol": {
     "title": "Band Protocol",
@@ -769,23 +788,49 @@
       "activeDisputes": "活跃争议",
       "disputeTrends": "争议趋势",
       "resolutionActivity": "解决活动",
-      "disputeDistribution": "争议分布"
+      "disputeDistribution": "争议分布",
+      "filedDisputes": "提交争议",
+      "resolvedDisputes": "已解决争议",
+      "statusActive": "活跃",
+      "statusResolved": "已解决",
+      "statusRejected": "已拒绝",
+      "disputeList": "争议列表",
+      "disputeId": "争议ID",
+      "timestamp": "时间戳",
+      "status": "状态",
+      "reward": "奖励金额",
+      "filterByStatus": "按状态筛选",
+      "allStatus": "全部状态",
+      "sortBy": "排序方式",
+      "noDisputes": "暂无争议数据",
+      "showingFirst": "显示前 {count} 条，共 {total} 条"
     },
     "validatorAnalytics": {
       "title": "验证者分析",
       "totalActiveValidators": "总活跃验证者",
       "avgResponseTime": "平均响应时间",
       "avgSuccessRate": "平均成功率",
+      "totalStaked": "总质押量",
       "performanceRanking": "性能排名",
       "geographicDistribution": "地理分布",
       "validatorTypes": "验证者类型",
       "earningsAnalysis": "收益分析",
+      "earningsTrend": "验证者收益趋势",
+      "earningsTrendDesc": "30天收益趋势分析",
+      "dailyEarnings": "日收益",
+      "cumulativeEarnings": "累计收益",
+      "totalCumulativeEarnings": "总累计收益",
       "rank": "排名",
       "validatorName": "验证者名称",
+      "type": "类型",
       "response": "响应",
       "successRate": "成功率",
       "reputation": "声誉",
-      "staked": "质押量"
+      "staked": "质押量",
+      "earnings": "收益",
+      "institution": "机构验证者",
+      "independent": "独立验证者",
+      "community": "社区验证者"
     },
     "ecosystem": {
       "title": "生态系统",
@@ -847,7 +892,39 @@
       "dataSources": "数据源",
       "lowLatency": "低延迟",
       "multiChain": "多链",
-      "firstParty": "第一方"
+      "firstParty": "第一方",
+      "updateFrequencyPerSecond": "价格更新频率",
+      "updatesPerSecond": "次/秒",
+      "avgConfidenceWidth": "平均置信区间宽度",
+      "publisherCount": "Publisher 数量",
+      "crossChainSupport": "跨链支持"
+    },
+    "solana": {
+      "title": "Solana 网络状态",
+      "subtitle": "Pyth 主要部署链",
+      "pythProgramStatus": "Pyth 程序状态",
+      "blockConfirmationTime": "区块确认时间",
+      "slotHeight": "Slot 高度",
+      "tps": "TPS",
+      "avgBlockTime": "平均区块时间",
+      "validatorCount": "验证者数量",
+      "totalStake": "总质押量",
+      "status": {
+        "active": "活跃",
+        "inactive": "未激活",
+        "degraded": "降级"
+      }
+    },
+    "ema": {
+      "title": "EMA 价格",
+      "description": "指数移动平均价格",
+      "period": "{days}日 EMA",
+      "calculationMethod": "基于指数加权平均计算",
+      "trend": {
+        "up": "上涨",
+        "down": "下跌",
+        "neutral": "稳定"
+      }
     },
     "btcPriceFeed": "BTC/USD 价格源",
     "loading": "加载中...",
@@ -864,7 +941,70 @@
     "price": "价格",
     "timestamp": "时间戳",
     "confidence": "置信度",
-    "na": "不适用"
+    "na": "不适用",
+    "ema": {
+      "period": "{days}日 EMA",
+      "trend": {
+        "up": "上涨",
+        "down": "下跌",
+        "neutral": "稳定"
+      }
+    },
+    "tabs": {
+      "stats": "准确率统计",
+      "extreme": "极端行情",
+      "trend": "准确率趋势"
+    },
+    "accuracy": {
+      "title": "价格准确率统计",
+      "overallScore": "整体准确率评分",
+      "basedOn": "基于",
+      "dataPoints": "个数据点",
+      "avgDeviation": "平均偏差",
+      "maxDeviation": "最大偏差",
+      "normalMarket": "正常市场",
+      "volatileMarket": "波动市场",
+      "extremeMarket": "极端市场",
+      "last7Days": "过去7天准确率",
+      "trendImproving": "改善中",
+      "trendStable": "稳定",
+      "trendDeclining": "下降中"
+    },
+    "extreme": {
+      "title": "极端行情分析",
+      "events": "个事件",
+      "totalEvents": "总事件数",
+      "avgRecovery": "平均恢复时间",
+      "avgDeviation": "平均偏差",
+      "highSeverity": "高严重性",
+      "eventTypes": "事件类型",
+      "type_flash_crash": "闪崩",
+      "type_pump": "价格暴涨",
+      "type_high_volatility": "高波动",
+      "type_liquidity_crisis": "流动性危机",
+      "timeline": "事件时间线",
+      "noEvents": "未检测到极端行情事件",
+      "oraclePrice": "预言机价格",
+      "marketPrice": "市场价格",
+      "recovery": "恢复时间",
+      "deviation": "偏差"
+    },
+    "trend": {
+      "title": "准确率趋势（过去30天）",
+      "accuracy": "准确率",
+      "deviation": "偏差",
+      "event": "事件",
+      "avgAccuracy": "平均准确率",
+      "maxAccuracy": "最高准确率",
+      "minAccuracy": "最低准确率",
+      "importantEvents": "重要事件"
+    },
+    "info": {
+      "title": "关于 Pyth Network 准确率",
+      "description": "Pyth Network 提供来自第一方数据源的高频价格数据，包括主要交易所和交易公司。准确率分析显示 Pyth 价格与实际市场价格在不同市场条件下的偏差情况。",
+      "learnMore": "了解更多",
+      "documentation": "文档"
+    }
   },
   "api3": {
     "title": "API3",
@@ -875,6 +1015,7 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
+      "crossOracleComparison": "跨预言机对比",
       "firstPartyOracles": "第一方预言机",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估"
@@ -1273,10 +1414,451 @@
       "refreshing": "刷新中..."
     }
   },
+  "priceDeviation": {
+    "title": "价格偏离监控",
+    "subtitle": "实时监控 Chainlink 与其他预言机价格偏离情况",
+    "selectSymbol": "选择交易对",
+    "selectChain": "选择区块链",
+    "autoRefresh": "自动刷新",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "chainlinkPrice": "Chainlink 价格",
+    "referencePrice": "参考价格",
+    "avgDeviation": "平均偏离度",
+    "avgDeviationDesc": "所有预言机平均偏离",
+    "maxDeviation": "最大偏离度",
+    "maxDeviationDesc": "最大价格偏离百分比",
+    "deviationDuration": "偏离持续时间",
+    "deviationDurationDesc": "持续偏离预警时间",
+    "currentComparison": "当前价格比较",
+    "provider": "预言机",
+    "price": "价格",
+    "deviation": "偏离值",
+    "deviationPercent": "偏离百分比",
+    "status": "状态",
+    "status_normal": "正常",
+    "status_warning": "警告",
+    "status_critical": "异常",
+    "lastUpdated": "最后更新",
+    "deviationBarChart": "偏离度柱状图",
+    "priceTrendChart": "价格趋势对比",
+    "deviationTrendChart": "偏离度历史趋势",
+    "warningThreshold": "警告阈值",
+    "criticalThreshold": "异常阈值"
+  },
+  "nodeReputation": {
+    "title": "节点声誉面板",
+    "subtitle": "综合节点性能和声誉分析",
+    "refresh": "刷新数据",
+    "lastUpdated": "最后更新",
+    "selectNode": "选择节点查看详情",
+    "loading": "加载节点数据...",
+    "reputationScore": {
+      "title": "节点声誉评分",
+      "subtitle": "综合性能评估",
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    },
+    "accuracy": {
+      "title": "历史准确率统计",
+      "subtitle": "不同时间维度的准确率",
+      "daily": "日准确率",
+      "weekly": "周准确率",
+      "monthly": "月准确率",
+      "day": "日",
+      "week": "周",
+      "month": "月"
+    },
+    "responseTime": {
+      "title": "响应时间分布",
+      "subtitle": "节点响应时间统计",
+      "avgResponseTime": "平均响应时间",
+      "excellent": "优秀 (<50ms)",
+      "good": "良好 (50-100ms)",
+      "fair": "一般 (100-150ms)",
+      "slow": "较慢 (>150ms)"
+    },
+    "staking": {
+      "title": "质押与收益",
+      "subtitle": "节点经济数据",
+      "stakedAmount": "质押量",
+      "totalEarnings": "累计收益",
+      "apr": "年化收益率",
+      "earningsTrend": "收益趋势（30天）",
+      "vsLastMonth": "较上月"
+    },
+    "nodeTypes": {
+      "title": "节点类型分布",
+      "subtitle": "按功能分类统计",
+      "dataProvider": "数据提供商",
+      "validator": "验证节点",
+      "aggregator": "聚合节点"
+    },
+    "ranking": {
+      "title": "节点排名 (Top 10)",
+      "subtitle": "按声誉评分排序",
+      "rank": "排名",
+      "nodeName": "节点名称",
+      "online": "在线"
+    }
+  },
+  "dataSourceTraceability": {
+    "title": "数据源追溯",
+    "subtitle": "追踪数据从源头到链上的完整流程",
+    "lastUpdated": "最后更新",
+    "statusOverview": {
+      "healthy": "健康",
+      "warning": "警告",
+      "critical": "异常"
+    },
+    "aggregationFlow": {
+      "title": "数据聚合流程",
+      "subtitle": "从数据源到链上的完整流程",
+      "completed": "已完成",
+      "processing": "处理中",
+      "pending": "待处理",
+      "steps": {
+        "dataCollection": "数据采集",
+        "dataCollectionDesc": "从多个数据源收集原始数据",
+        "dataValidation": "数据验证",
+        "dataValidationDesc": "验证数据完整性和真实性",
+        "anomalyDetection": "异常检测",
+        "anomalyDetectionDesc": "识别并过滤异常数据点",
+        "dataAggregation": "数据聚合",
+        "dataAggregationDesc": "加权平均计算最终价格",
+        "consensusVerification": "共识验证",
+        "consensusVerificationDesc": "验证节点达成共识",
+        "onChainPublishing": "链上发布",
+        "onChainPublishingDesc": "将数据提交到区块链"
+      },
+      "metrics": {
+        "processingTime": "处理时间",
+        "dataSourceCount": "数据源数量",
+        "successRate": "成功率"
+      }
+    },
+    "validationMechanism": {
+      "title": "数据验证机制",
+      "subtitle": "共识验证与节点状态",
+      "consensusReached": "共识已达成",
+      "consensusThreshold": "共识阈值",
+      "consensusThresholdDesc": "需要 2/3 节点同意",
+      "validationNodes": "验证节点数",
+      "validationNodesDesc": "当前活跃节点",
+      "nodeStatus": "验证节点状态",
+      "nodeMetrics": {
+        "response": "响应",
+        "accuracy": "准确率",
+        "reputation": "声誉"
+      }
+    },
+    "geographicDistribution": {
+      "title": "地理分布",
+      "subtitle": "数据源全球分布情况",
+      "globalDistribution": "全球分布",
+      "nodeCount": "节点",
+      "totalNodes": "总节点数",
+      "coveredRegions": "覆盖地区",
+      "avgLatency": "平均延迟"
+    },
+    "dependencyAnalysis": {
+      "title": "依赖度分析",
+      "subtitle": "数据源依赖分布与风险评估",
+      "mediumConcentration": "中等集中度",
+      "riskLevel": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      },
+      "suggestion": "依赖度建议",
+      "suggestionDesc": "前两大数据源占比 50%，建议增加更多数据源以降低集中度风险"
+    },
+    "healthMonitoring": {
+      "title": "健康度监控",
+      "subtitle": "实时数据源健康状态",
+      "realtimeMonitoring": "实时监控中",
+      "dataSourceHealth": "数据源健康度",
+      "networkConnectivity": "网络连接性",
+      "dataConsistency": "数据一致性",
+      "updateTimeliness": "更新及时性",
+      "healthySources": "健康数据源",
+      "needsAttention": "需关注"
+    },
+    "dataSourceList": {
+      "title": "数据源列表",
+      "filterAll": "全部",
+      "filterExchanges": "交易所",
+      "filterApiProviders": "API 提供商",
+      "filterNodeOperators": "节点运营商",
+      "card": {
+        "latency": "延迟",
+        "uptime": "在线率",
+        "reliability": "可靠性",
+        "contribution": "贡献度",
+        "location": "位置"
+      }
+    },
+    "sourceTypes": {
+      "exchange": "交易所",
+      "apiProvider": "API 提供商",
+      "nodeOperator": "节点运营商"
+    }
+  },
+  "latencyAnalysis": {
+    "title": "延迟分析",
+    "subtitle": "实时监控和分析预言机数据延迟",
+    "lastUpdated": "最后更新",
+    "refresh": "刷新",
+    "distribution": {
+      "title": "延迟分布直方图",
+      "description": "数据请求响应时间分布",
+      "range": "延迟范围",
+      "percentage": "百分比",
+      "count": "数量"
+    },
+    "percentiles": {
+      "latency": "延迟",
+      "p50Desc": "50% 的请求低于此值",
+      "p95Desc": "95% 的请求低于此值",
+      "p99Desc": "99% 的请求低于此值"
+    },
+    "trend": {
+      "title": "延迟趋势（过去24小时）",
+      "description": "历史延迟数据及百分位线",
+      "current": "当前延迟"
+    },
+    "crossChain": {
+      "title": "跨链延迟对比",
+      "description": "不同区块链网络的延迟对比",
+      "avgLatency": "平均延迟",
+      "latencyRange": "延迟范围"
+    },
+    "anomalies": {
+      "title": "延迟异常检测与报警",
+      "description": "过去24小时检测到的延迟异常",
+      "count": "个异常",
+      "severity": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
+      "types": {
+        "spike": "延迟突增",
+        "timeout": "超时",
+        "highLatency": "高延迟"
+      }
+    },
+    "stats": {
+      "avg": "平均值",
+      "min": "最小值",
+      "max": "最大值",
+      "stdDev": "标准差",
+      "samples": "总样本数"
+    }
+  },
+  "confidenceScore": {
+    "title": "数据置信度评分",
+    "subtitle": "综合评估数据质量和可靠性",
+    "overallScore": "综合置信度评分",
+    "overallScoreDesc": "基于多维度数据质量评估",
+    "totalScore": "总分",
+    "lastUpdated": "最后更新",
+    "refresh": "刷新数据",
+    "loading": "加载数据中...",
+    "level": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    },
+    "dimensions": {
+      "nodeCount": "节点数量",
+      "nodeCountDesc": "基于活跃节点数量和占比",
+      "consensus": "共识度",
+      "consensusDesc": "节点间数据一致性程度",
+      "diversity": "数据源多样性",
+      "diversityDesc": "数据源类型和数量",
+      "freshness": "数据新鲜度",
+      "freshnessDesc": "数据更新频率",
+      "accuracy": "历史准确率",
+      "accuracyDesc": "历史数据准确性"
+    },
+    "radarChart": {
+      "title": "维度评分雷达图",
+      "subtitle": "各维度评分可视化展示"
+    },
+    "details": {
+      "title": "各维度评分详情",
+      "subtitle": "详细评分数据与基准对比",
+      "weight": "权重",
+      "current": "当前值",
+      "benchmark": "基准"
+    },
+    "trend": {
+      "title": "置信度历史趋势",
+      "subtitle": "过去24小时评分变化",
+      "overall": "综合评分",
+      "nodes": "节点数量",
+      "consensus": "共识度",
+      "diversity": "多样性",
+      "freshness": "新鲜度",
+      "accuracy": "准确率"
+    },
+    "suggestions": {
+      "title": "改进建议",
+      "subtitle": "基于当前评分的优化建议",
+      "increaseNodes": "建议增加更多活跃节点以提高去中心化程度",
+      "checkConsensus": "节点共识度较低，建议检查数据源质量",
+      "increaseDiversity": "建议增加更多类型的数据源以提高多样性",
+      "optimizeFreshness": "数据更新频率较低，建议优化数据获取流程",
+      "improveAccuracy": "历史准确率有待提升，建议加强数据验证机制",
+      "maintainQuality": "当前数据质量优秀，建议保持现有配置"
+    }
+  },
+  "crossOracleComparison": {
+    "title": "跨预言机价格对比",
+    "subtitle": "实时对比多个预言机提供商的价格",
+    "consistencyScore": "价格一致性评分",
+    "priceComparison": "价格对比表",
+    "priceChart": "价格对比图表",
+    "priceTrend": "价格趋势历史",
+    "performanceComparison": "预言机性能对比",
+    "radarChart": "性能雷达图",
+    "autoRefresh": "自动刷新",
+    "enableAutoRefresh": "启用自动刷新",
+    "responseTime": "响应时间",
+    "avgResponseTime": "平均响应时间",
+    "updateFrequency": "更新频率",
+    "dataSources": "数据源",
+    "supportedChains": "支持的链",
+    "reliability": "可靠性",
+    "radar": {
+      "responseTime": "响应时间",
+      "updateFrequency": "更新频率",
+      "dataSources": "数据源",
+      "supportedChains": "支持的链",
+      "reliability": "可靠性"
+    }
+  },
   "language": {
     "en": "EN",
     "zh": "中文",
     "english": "English",
     "chinese": "简体中文"
+  },
+  "historicalAccuracy": {
+    "title": "历史准确度分析",
+    "subtitle": "历史价格准确性与回测分析",
+    "lastUpdated": "最后更新",
+    "timeRange1D": "1 天",
+    "timeRange1W": "1 周",
+    "timeRange1M": "1 月",
+    "timeRange3M": "3 月",
+    "timeRange1Y": "1 年",
+    "overallAccuracy": "整体准确率",
+    "overallAccuracyDesc": "历史价格准确度",
+    "avgDeviation": "平均偏差",
+    "avgDeviationDesc": "平均价格偏差百分比",
+    "maxDeviation": "最大偏差",
+    "maxDeviationDesc": "记录的最大偏差值",
+    "anomalyCount": "异常数量",
+    "anomalyCountDesc": "检测到的异常事件",
+    "stdDeviation": "标准差",
+    "stdDeviationDesc": "偏差波动性度量",
+    "totalDataPoints": "总数据点",
+    "totalDataPointsDesc": "历史数据样本数",
+    "withinThresholdRate": "阈值内比率",
+    "withinThresholdRateDesc": "在可接受范围内的数据",
+    "priceComparisonChart": "价格对比图表",
+    "marketPrice": "市场价格",
+    "deviation": "偏差",
+    "deviationPercent": "偏差百分比",
+    "accuracyStatsChart": "准确率统计图表",
+    "viewDaily": "日",
+    "viewWeekly": "周",
+    "viewMonthly": "月",
+    "accuracy": "准确率",
+    "deviationDistribution": "偏差分布直方图",
+    "percentage": "百分比",
+    "count": "数量",
+    "thresholdDistribution": "阈值分布",
+    "dataPoints": "数据点",
+    "withinThreshold": "阈值内",
+    "outsideThreshold": "阈值外",
+    "anomalyTimeline": "异常事件时间线",
+    "noAnomalies": "所选时间范围内未检测到异常",
+    "anomalyType_spike": "价格突增",
+    "anomalyType_drop": "价格下跌",
+    "anomalyType_stale": "数据过期",
+    "anomalyType_manipulation": "潜在操纵",
+    "severity_low": "低",
+    "severity_medium": "中",
+    "severity_high": "高",
+    "resolved": "已解决",
+    "time": "时间",
+    "duration": "持续时间",
+    "deviationHistoryChart": "偏差历史图表",
+    "warningThreshold": "警告阈值",
+    "criticalThreshold": "异常阈值"
+  },
+  "anomalyAlert": {
+    "title": "异常检测与报警系统",
+    "subtitle": "实时监控价格异常并推送报警",
+    "realtimeAlerts": "实时报警",
+    "historyTitle": "异常事件历史记录",
+    "configTitle": "检测配置",
+    "notificationTitle": "预言机异常报警",
+    "totalAnomalies": "总异常数",
+    "highSeverity": "高严重性",
+    "mediumSeverity": "中严重性",
+    "lowSeverity": "低严重性",
+    "priceSpikeCount": "价格突变",
+    "priceDeviationCount": "价格偏离",
+    "dataDelayCount": "数据延迟",
+    "priceDropCount": "价格下跌",
+    "enableNotifications": "启用通知",
+    "notificationsEnabled": "通知已启用",
+    "config": "配置",
+    "history": "历史",
+    "autoRefresh": "自动刷新",
+    "refresh": "刷新",
+    "clearAll": "清除全部",
+    "allTypes": "全部类型",
+    "allSeverities": "全部严重性",
+    "allStatus": "全部状态",
+    "unacknowledged": "未确认",
+    "acknowledged": "已确认",
+    "noAnomalies": "暂无异常事件",
+    "acknowledge": "确认",
+    "resolve": "解决",
+    "clear": "清除",
+    "lastCheck": "最后检查",
+    "currentValue": "当前值",
+    "expectedValue": "预期值",
+    "deviation": "偏差",
+    "delay": "延迟",
+    "last24Hours": "过去24小时",
+    "last7Days": "过去7天",
+    "avgResolutionTime": "平均解决时间",
+    "typeDistribution": "类型分布",
+    "severityDistribution": "严重性分布",
+    "priceSpikeThreshold": "价格突变阈值",
+    "priceDropThreshold": "价格下跌阈值",
+    "priceDeviationThreshold": "价格偏离阈值",
+    "dataDelayThreshold": "数据延迟阈值",
+    "checkInterval": "检查间隔",
+    "type_price_spike": "价格突变",
+    "type_price_deviation": "价格偏离",
+    "type_data_delay": "数据延迟",
+    "type_price_drop": "价格下跌",
+    "severity_high": "高",
+    "severity_medium": "中",
+    "severity_low": "低",
+    "priceSpikeMessage": "{provider} {symbol} 价格突变上涨 {percent}%",
+    "priceDropMessage": "{provider} {symbol} 价格突变下跌 {percent}%",
+    "priceDeviationMessage": "{provider} {symbol} 价格偏离 {percent}%",
+    "dataDelayMessage": "{provider} {symbol} 数据延迟 {delay}"
   }
 }
