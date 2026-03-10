@@ -1,0 +1,122 @@
+'use client';
+
+import { ReactNode, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/context';
+
+export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+
+interface TabItem {
+  id: string;
+  label: string;
+  icon: ReactNode;
+}
+
+interface TabNavigationProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  tabs?: TabItem[];
+  defaultTabs?: 'oracle' | 'custom';
+  customTabs?: TabItem[];
+}
+
+const defaultOracleTabs = (t: (key: string) => string): TabItem[] => [
+  {
+    id: 'market',
+    label: t('chainlink.menu.marketData'),
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'network',
+    label: t('chainlink.menu.networkHealth'),
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'ecosystem',
+    label: t('chainlink.menu.ecosystem'),
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'risk',
+    label: t('chainlink.menu.riskAssessment'),
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+    ),
+  },
+];
+
+export function TabNavigation({
+  activeTab,
+  onTabChange,
+  tabs,
+  defaultTabs = 'oracle',
+  customTabs,
+}: TabNavigationProps) {
+  const { t } = useI18n();
+
+  const displayTabs = useMemo(() => {
+    if (tabs) return tabs;
+    if (customTabs) return customTabs;
+    if (defaultTabs === 'oracle') return defaultOracleTabs(t);
+    return [];
+  }, [tabs, customTabs, defaultTabs, t]);
+
+  return (
+    <div className="border-b border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
+          {displayTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`
+                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
+                ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+}
