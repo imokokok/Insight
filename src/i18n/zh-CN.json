@@ -81,6 +81,7 @@
       "poor": "较差"
     },
     "outlier": "异常",
+    "trend": "趋势",
     "weightedAverage": "加权平均",
     "export": "导出",
     "exportCsv": "导出 CSV",
@@ -140,6 +141,261 @@
       "namePlaceholder": "输入配置名称",
       "delete": "删除此配置",
       "clearAll": "清除所有配置"
+    },
+    "priceDeviationHeatmap": {
+      "title": "价格偏差热力图",
+      "subtitle": "各预言机价格偏差可视化",
+      "deviationPercent": "偏差百分比",
+      "colorScale": "颜色标尺",
+      "minDeviation": "最小偏差",
+      "maxDeviation": "最大偏差",
+      "avgDeviation": "平均偏差",
+      "tooltip": {
+        "oracle": "预言机",
+        "deviation": "偏差值",
+        "percentage": "偏差百分比",
+        "comparedTo": "相对于平均价格"
+      },
+      "legend": {
+        "lowDeviation": "低偏差",
+        "highDeviation": "高偏差",
+        "normal": "正常范围",
+        "warning": "警告范围",
+        "critical": "异常范围"
+      }
+    },
+    "priceDistributionBoxPlot": {
+      "title": "价格分布箱线图",
+      "subtitle": "各预言机价格分布统计",
+      "median": "中位数",
+      "q1": "第一四分位数 (Q1)",
+      "q3": "第三四分位数 (Q3)",
+      "min": "最小值",
+      "max": "最大值",
+      "iqr": "四分位距 (IQR)",
+      "outliers": "异常值",
+      "whisker": "须线",
+      "box": "箱体",
+      "tooltip": {
+        "medianDesc": "中位数：数据中间值",
+        "iqrDesc": "IQR = Q3 - Q1，表示中间50%数据的范围",
+        "outlierDesc": "异常值：超出1.5倍IQR范围的数据点"
+      }
+    },
+    "dataQualityScoreCard": {
+      "title": "数据质量评分",
+      "subtitle": "综合数据质量评估",
+      "overallScore": "综合评分",
+      "dimensions": {
+        "accuracy": "准确性",
+        "timeliness": "及时性",
+        "consistency": "一致性",
+        "completeness": "完整性",
+        "reliability": "可靠性"
+      },
+      "score": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "较差"
+      },
+      "metrics": {
+        "dataPoints": "数据点数",
+        "updateFrequency": "更新频率",
+        "errorRate": "错误率",
+        "avgLatency": "平均延迟"
+      },
+      "tooltip": {
+        "accuracyDesc": "价格数据与市场实际价格的吻合度",
+        "timelinessDesc": "数据更新的及时程度",
+        "consistencyDesc": "数据在不同时间点的一致程度",
+        "completenessDesc": "数据的完整性和覆盖范围",
+        "reliabilityDesc": "数据源的可靠程度"
+      }
+    },
+    "latencyDistribution": {
+      "title": "延迟分布直方图",
+      "subtitle": "数据更新延迟分布",
+      "latencyMs": "延迟 (毫秒)",
+      "frequency": "频次",
+      "percentile": "百分位",
+      "p50": "P50 (中位数)",
+      "p95": "P95",
+      "p99": "P99",
+      "avgLatency": "平均延迟",
+      "minLatency": "最小延迟",
+      "maxLatency": "最大延迟",
+      "stdDev": "标准差",
+      "samples": "样本数",
+      "tooltip": {
+        "p50Desc": "50%的请求延迟低于此值",
+        "p95Desc": "95%的请求延迟低于此值",
+        "p99Desc": "99%的请求延迟低于此值"
+      },
+      "ranges": {
+        "fast": "快速 (<100ms)",
+        "normal": "正常 (100-500ms)",
+        "slow": "较慢 (500-1000ms)",
+        "verySlow": "很慢 (>1000ms)"
+      }
+    },
+    "priceCorrelationMatrix": {
+      "title": "价格相关性矩阵",
+      "subtitle": "预言机价格相关性分析",
+      "correlation": "相关系数",
+      "strongPositive": "强正相关",
+      "weakPositive": "弱正相关",
+      "noCorrelation": "无相关",
+      "weakNegative": "弱负相关",
+      "strongNegative": "强负相关",
+      "tooltip": {
+        "correlationDesc": "相关系数范围从-1到1，1表示完全正相关，-1表示完全负相关，0表示无相关",
+        "interpretation": "相关系数越接近1，表示两个预言机价格变化趋势越一致"
+      },
+      "legend": {
+        "title": "相关系数图例",
+        "range": "系数范围"
+      }
+    },
+    "priceVolatilityChart": {
+      "title": "价格波动率图表",
+      "subtitle": "价格波动趋势分析",
+      "volatility": "波动率",
+      "volatilityPercent": "波动率 (%)",
+      "rollingVolatility": "滚动波动率",
+      "period": "周期",
+      "rollingWindow": "滚动窗口",
+      "avgVolatility": "平均波动率",
+      "maxVolatility": "最大波动率",
+      "minVolatility": "最小波动率",
+      "volatilityTrend": "波动率趋势",
+      "tooltip": {
+        "volatilityDesc": "波动率衡量价格变化的剧烈程度",
+        "rollingDesc": "滚动波动率使用移动窗口计算，反映短期波动趋势"
+      },
+      "timeframes": {
+        "hourly": "小时",
+        "daily": "每日",
+        "weekly": "每周"
+      }
+    },
+    "oraclePerformanceRanking": {
+      "title": "预言机性能排名",
+      "subtitle": "综合性能评估排名",
+      "rank": "排名",
+      "oracle": "预言机",
+      "score": "评分",
+      "metrics": {
+        "accuracy": "准确性",
+        "latency": "延迟",
+        "uptime": "在线率",
+        "consistency": "一致性",
+        "dataPoints": "数据点数"
+      },
+      "change": "变化",
+      "trend": {
+        "improving": "上升",
+        "declining": "下降",
+        "stable": "稳定"
+      },
+      "tooltip": {
+        "scoreCalculation": "综合评分基于准确性、延迟、在线率、一致性等多维度加权计算",
+        "rankChange": "排名变化相对于上一周期"
+      }
+    },
+    "statsMetrics": {
+      "title": "统计指标",
+      "historicalMin": "历史最小值",
+      "historicalMax": "历史最大值",
+      "historicalAvg": "历史平均值",
+      "currentValue": "当前值",
+      "healthScore": "健康度评分",
+      "healthStatus": {
+        "healthy": "健康",
+        "warning": "警告",
+        "critical": "异常"
+      },
+      "percentile": "百分位值",
+      "percentileDesc": "第{p}百分位值",
+      "changeRate": "变化率",
+      "changeRate24h": "24小时变化率",
+      "volatilityIndex": "波动指数",
+      "stabilityScore": "稳定性评分",
+      "tooltip": {
+        "historicalMinDesc": "所选时间范围内的最低价格",
+        "historicalMaxDesc": "所选时间范围内的最高价格",
+        "healthScoreDesc": "综合健康度评分，基于数据质量、延迟、一致性等指标",
+        "stabilityScoreDesc": "稳定性评分，反映价格波动的稳定程度"
+      }
+    },
+    "priceTableOptimization": {
+      "title": "价格数据表格",
+      "subtitle": "实时价格数据展示",
+      "freshness": "数据新鲜度",
+      "freshnessStatus": {
+        "fresh": "新鲜",
+        "stale": "过期",
+        "unknown": "未知"
+      },
+      "timeSinceUpdate": "距更新时间",
+      "filter": {
+        "title": "筛选",
+        "all": "全部",
+        "normal": "正常",
+        "warning": "警告",
+        "critical": "异常",
+        "byDeviation": "按偏差筛选",
+        "byLatency": "按延迟筛选",
+        "byFreshness": "按新鲜度筛选"
+      },
+      "sort": {
+        "title": "排序",
+        "byPrice": "按价格",
+        "byDeviation": "按偏差",
+        "byLatency": "按延迟",
+        "byFreshness": "按新鲜度",
+        "ascending": "升序",
+        "descending": "降序"
+      },
+      "columns": {
+        "oracle": "预言机",
+        "price": "价格",
+        "deviation": "偏差",
+        "latency": "延迟",
+        "freshness": "新鲜度",
+        "status": "状态",
+        "lastUpdate": "最后更新"
+      },
+      "tooltip": {
+        "freshnessDesc": "数据新鲜度表示数据距离上次更新的时间",
+        "filterDesc": "使用筛选器快速定位特定状态的数据"
+      }
+    },
+    "chartToolbar": {
+      "zoom": "缩放",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "reset": "重置",
+      "resetZoom": "重置缩放",
+      "pan": "平移",
+      "export": "导出",
+      "exportPNG": "导出 PNG",
+      "exportSVG": "导出 SVG",
+      "exportCSV": "导出 CSV",
+      "fullscreen": "全屏",
+      "exitFullscreen": "退出全屏",
+      "settings": "设置",
+      "legend": "图例",
+      "showLegend": "显示图例",
+      "hideLegend": "隐藏图例",
+      "grid": "网格",
+      "showGrid": "显示网格",
+      "hideGrid": "隐藏网格",
+      "tooltip": {
+        "zoomDesc": "使用鼠标滚轮或拖拽选择区域进行缩放",
+        "panDesc": "按住并拖动图表进行平移",
+        "resetDesc": "重置图表到初始视图"
+      }
     }
   },
   "crossChain": {
@@ -231,7 +487,120 @@
     },
     "priceDeviationWarning": "价格偏离预警",
     "deviationThreshold": "偏离阈值: {threshold}%",
-    "deviationAlert": "检测到 {count} 条链价格偏离超过阈值"
+    "deviationAlert": "检测到 {count} 条链价格偏离超过阈值",
+    "median": "中位数价格",
+    "medianDesc": "排序后位于中间位置的价格值，比平均值更稳健",
+    "iqr": "四分位距",
+    "iqrDesc": "IQR = Q3 - Q1，反映中间50%数据的离散程度",
+    "maLine": "移动平均线",
+    "maPeriod": "MA周期",
+    "showMA": "显示MA",
+    "resetChart": "重置图表",
+    "technicalIndicators": "技术指标",
+    "highestPriceLabel": "最高",
+    "lowestPriceLabel": "最低",
+    "deviationFromAvg": "偏离均值",
+    "heatmapDetail": "价差详情",
+    "chainAPrice": "链A价格",
+    "chainBPrice": "链B价格",
+    "priceDistribution": "价格分布",
+    "frequency": "频次",
+    "priceRange": "价格区间",
+    "meanLine": "平均值",
+    "medianLine": "中位数",
+    "medianPrice": "中位数价格",
+    "iqr": "四分位距 (IQR)",
+    "skewness": "偏度",
+    "kurtosis": "峰度",
+    "confidenceInterval95": "95% 置信区间",
+    "priceDistribution": "价格分布分析",
+    "correlationAnalysis": "链间相关性分析",
+    "correlationMatrix": "相关系数矩阵",
+    "anomalyDetection": "异常检测",
+    "anomalyPanel": "异常检测面板",
+    "expectedRange": "预期范围",
+    "deviationDegree": "偏离程度",
+    "possibleCause": "可能原因",
+    "tooltip": {
+      "averagePrice": "所有链价格的平均值，反映整体价格水平",
+      "medianPrice": "中位数是排序后位于中间位置的价格值，比平均值更稳健",
+      "highestPrice": "所有链中的最高价格和最低价格",
+      "priceRange": "最高价与最低价之差，反映价格波动范围",
+      "iqr": "四分位距 = Q3 - Q1，反映价格分布的离散程度",
+      "standardDeviation": "标准差衡量价格相对于平均值的离散程度",
+      "skewness": "偏度衡量价格分布的对称性，正值表示右偏，负值表示左偏",
+      "kurtosis": "峰度衡量价格分布的尖峭程度，正值表示比正态分布更尖峭",
+      "confidenceInterval95": "95%置信区间表示有95%的概率真实价格落在此范围内",
+      "coefficientOfVariation": "变异系数 = 标准差/平均值，用于比较不同量纲数据的离散程度",
+      "consistencyRating": "基于标准差百分比的一致性评级",
+      "dataPoints": "历史价格数据的总数量"
+    },
+    "ma7": "MA7（7日移动平均）",
+    "ma20": "MA20（20日移动平均）",
+    "priceChange": "价格变化",
+    "sparkline": "价格趋势",
+    "dataIntegrity": "数据完整性",
+    "priceJumpFrequency": "价格跳动频率",
+    "clickToExpand": "点击展开详情",
+    "detailComparison": "详细对比",
+    "priceTrendComparison": "价格趋势对比",
+    "historicalSpreadChange": "历史价差变化",
+    "spreadPercent": "价差百分比",
+    "anomalyPoint": "异常点",
+    "anomalyDescription": "偏离均值超过2个标准差",
+    "stdDevRange": "标准差范围 (±1σ)",
+    "stdDevRangeDesc": "包含约68%的价格数据",
+    "anomalyDetectionPanel": "异常检测面板 (IQR方法)",
+    "chainName": "链名称",
+    "anomalyPrice": "异常价格",
+    "expectedRange": "预期范围",
+    "deviationDegree": "偏离程度",
+    "anomalyCount": "{count} 个异常",
+    "q1Percentile": "Q1 (25%分位数)",
+    "q3Percentile": "Q3 (75%分位数)",
+    "iqrLabel": "IQR",
+    "normalRange": "正常范围",
+    "anomalyType": "异常类型",
+    "belowLowerBound": "低于下限",
+    "aboveUpperBound": "高于上限",
+    "iqrExplanationTitle": "IQR异常检测说明",
+    "iqrExplanationDesc": "IQR（四分位距）方法通过计算数据的第25百分位数(Q1)和第75百分位数(Q3)，将超出 [Q1 - 1.5×IQR, Q3 + 1.5×IQR] 范围的值识别为异常值。此方法对极端值具有较好的鲁棒性，适用于价格异常检测场景。",
+    "iqrLowerBound": "IQR下限",
+    "iqrUpperBound": "IQR上限",
+    "priceDistributionAnalysis": "价格分布分析",
+    "priceDistributionHistogram": "价格分布直方图",
+    "frequency": "频率",
+    "chainPriceBoxPlot": "各链价格箱线图",
+    "minValue": "最小值",
+    "maxValue": "最大值",
+    "boxQ1Q3": "箱体: Q1 - Q3 (四分位距)",
+    "medianQ2": "中线: 中位数 (Q2)",
+    "outliersRed": "红点: 异常值",
+    "outlierDetection": "异常值检测",
+    "outlierDetectionDesc": "超出 [Q1 - 1.5×IQR, Q3 + 1.5×IQR] 范围的值被标记为异常值",
+    "chainCorrelationAnalysis": "链间相关性分析",
+    "correlationDesc": "Pearson 相关系数衡量两条链价格走势的线性相关程度。r = 1 表示完全正相关，r = -1 表示完全负相关，r = 0 表示无线性相关。",
+    "negativeCorrelation": "负相关",
+    "positiveCorrelation": "正相关",
+    "perfectPositive": "r = 1 (完全正相关)",
+    "noCorrelation": "r = 0 (无相关)",
+    "perfectNegative": "r = -1 (完全负相关)",
+    "dataIntegrity": "数据完整性",
+    "priceVolatility": "价格波动率",
+    "priceJumpFrequency": "价格跳动频率",
+    "noAnomalyDetected": "无异常",
+    "normalRangeDesc": "所有链的价格均在正常范围内，未检测到异常值。跨链价格一致性良好。",
+    "anomalyReasons": {
+      "priceSignificantlyLower": "价格显著低于其他链",
+      "liquidityIssue": "可能存在流动性不足",
+      "oracleDelay": "预言机更新延迟",
+      "priceSignificantlyHigher": "价格显著高于其他链",
+      "premiumTrading": "可能存在溢价交易",
+      "demandSpike": "链上需求激增",
+      "severeDeviation": "严重偏离正常范围，需立即关注",
+      "moderateDeviation": "偏离程度较大，建议监控",
+      "highVolatility": "该链价格波动性较高"
+    }
   },
   "chainlink": {
     "title": "Chainlink",

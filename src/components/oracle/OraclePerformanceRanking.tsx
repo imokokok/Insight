@@ -1,0 +1,446 @@
+'use client';
+
+import { useMemo } from 'react';
+import { OracleProvider } from '@/lib/types/oracle';
+import { DashboardCard } from './DashboardCard';
+
+export interface OraclePerformanceData {
+  provider: OracleProvider;
+  name: string;
+  responseTime: number;
+  accuracy: number;
+  stability: number;
+  dataSources: number;
+  supportedChains: number;
+  color?: string;
+}
+
+export interface RankingChange {
+  provider: OracleProvider;
+  previousRank: number;
+  currentRank: number;
+}
+
+interface OraclePerformanceRankingProps {
+  performanceData: OraclePerformanceData[];
+  previousRankings?: RankingChange[];
+  className?: string;
+}
+
+interface CalculatedRanking {
+  provider: OracleProvider;
+  name: string;
+  overallScore: number;
+  rank: number;
+  rankChange: number;
+  dimensionScores: {
+    responseTime: number;
+    accuracy: number;
+    stability: number;
+    dataSources: number;
+    supportedChains: number;
+  };
+  rawMetrics: {
+    responseTime: number;
+    accuracy: number;
+    stability: number;
+    dataSources: number;
+    supportedChains: number;
+  };
+  color?: string;
+}
+
+const WEIGHTS = {
+  responseTime: 0.30,
+  accuracy: 0.30,
+  stability: 0.20,
+  dataSources: 0.10,
+  supportedChains: 0.10,
+};
+
+const oracleNames: Record<OracleProvider, string> = {
+  [OracleProvider.CHAINLINK]: 'Chainlink',
+  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+  [OracleProvider.UMA]: 'UMA',
+  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.API3]: 'API3',
+};
+
+const oracleColors: Record<OracleProvider, string> = {
+  [OracleProvider.CHAINLINK]: '#375BD2',
+  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
+  [OracleProvider.UMA]: '#FF6B6B',
+  [OracleProvider.PYTH_NETWORK]: '#EC4899',
+  [OracleProvider.API3]: '#10B981',
+};
+
+function normalizeResponseTime(responseTime: number, allResponseTimes: number[]): number {
+  const min = Math.min(...allResponseTimes);
+  const max = Math.max(...allResponseTimes);
+  if (max === min) return 100;
+  return Math.max(0, Math.min(100, 100 - ((responseTime - min) / (max - min)) * 100));
+}
+
+function normalizeAccuracy(accuracy: number): number {
+  return Math.max(0, Math.min(100, accuracy));
+}
+
+function normalizeStability(stability: number, allStability: number[]): number {
+  const min = Math.min(...allStability);
+  const max = Math.max(...allStability);
+  if (max === min) return 100;
+  return Math.max(0, Math.min(100, ((stability - min) / (max - min)) * 100));
+}
+
+function normalizeDataSources(dataSources: number, allDataSources: number[]): number {
+  const min = Math.min(...allDataSources);
+  const max = Math.max(...allDataSources);
+  if (max === min) return 100;
+  return Math.max(0, Math.min(100, ((dataSources - min) / (max - min)) * 100));
+}
+
+function normalizeSupportedChains(chains: number, allChains: number[]): number {
+  const min = Math.min(...allChains);
+  const max = Math.max(...allChains);
+  if (max === min) return 100;
+  return Math.max(0, Math.min(100, ((chains - min) / (max - min)) * 100));
+}
+
+function getRankBadgeStyle(rank: number): string {
+  switch (rank) {
+    case 1:
+      return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-lg shadow-yellow-200';
+    case 2:
+      return 'bg-gradient-to-r from-gray-300 to-gray-400 text-white shadow-md shadow-gray-200';
+    case 3:
+      return 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md shadow-amber-200';
+    default:
+      return 'bg-gray-100 text-gray-600';
+  }
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 90) return 'text-green-600';
+  if (score >= 80) return 'text-blue-600';
+  if (score >= 70) return 'text-yellow-600';
+  if (score >= 60) return 'text-orange-600';
+  return 'text-red-600';
+}
+
+function getScoreBgColor(score: number): string {
+  if (score >= 90) return 'bg-green-50 border-green-200';
+  if (score >= 80) return 'bg-blue-50 border-blue-200';
+  if (score >= 70) return 'bg-yellow-50 border-yellow-200';
+  if (score >= 60) return 'bg-orange-50 border-orange-200';
+  return 'bg-red-50 border-red-200';
+}
+
+function RankChangeIndicator({ change }: { change: number }) {
+  if (change === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+        <span>→</span>
+        <span>不变</span>
+      </span>
+    );
+  }
+
+  if (change > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+        <span>↑</span>
+        <span>+{change}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
+      <span>↓</span>
+      <span>{change}</span>
+    </span>
+  );
+}
+
+function DimensionScoreBar({
+  label,
+  score,
+  weight,
+  color = 'blue',
+}: {
+  label: string;
+  score: number;
+  weight: number;
+  color?: string;
+}) {
+  const colorClasses: Record<string, string> = {
+    blue: 'bg-blue-500',
+    green: 'bg-green-500',
+    purple: 'bg-purple-500',
+    pink: 'bg-pink-500',
+    amber: 'bg-amber-500',
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-gray-600">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-900">{score.toFixed(1)}</span>
+          <span className="text-gray-400">({(weight * 100).toFixed(0)}%)</span>
+        </div>
+      </div>
+      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${colorClasses[color]}`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function OraclePerformanceRanking({
+  performanceData,
+  previousRankings = [],
+  className = '',
+}: OraclePerformanceRankingProps) {
+  const rankings = useMemo(() => {
+    const allResponseTimes = performanceData.map((d) => d.responseTime);
+    const allStability = performanceData.map((d) => d.stability);
+    const allDataSources = performanceData.map((d) => d.dataSources);
+    const allChains = performanceData.map((d) => d.supportedChains);
+
+    const calculated: CalculatedRanking[] = performanceData.map((data) => {
+      const responseTimeScore = normalizeResponseTime(data.responseTime, allResponseTimes);
+      const accuracyScore = normalizeAccuracy(data.accuracy);
+      const stabilityScore = normalizeStability(data.stability, allStability);
+      const dataSourcesScore = normalizeDataSources(data.dataSources, allDataSources);
+      const chainsScore = normalizeSupportedChains(data.supportedChains, allChains);
+
+      const overallScore =
+        responseTimeScore * WEIGHTS.responseTime +
+        accuracyScore * WEIGHTS.accuracy +
+        stabilityScore * WEIGHTS.stability +
+        dataSourcesScore * WEIGHTS.dataSources +
+        chainsScore * WEIGHTS.supportedChains;
+
+      return {
+        provider: data.provider,
+        name: data.name || oracleNames[data.provider] || data.provider,
+        overallScore,
+        rank: 0,
+        rankChange: 0,
+        dimensionScores: {
+          responseTime: responseTimeScore,
+          accuracy: accuracyScore,
+          stability: stabilityScore,
+          dataSources: dataSourcesScore,
+          supportedChains: chainsScore,
+        },
+        rawMetrics: {
+          responseTime: data.responseTime,
+          accuracy: data.accuracy,
+          stability: data.stability,
+          dataSources: data.dataSources,
+          supportedChains: data.supportedChains,
+        },
+        color: data.color || oracleColors[data.provider],
+      };
+    });
+
+    calculated.sort((a, b) => b.overallScore - a.overallScore);
+
+    calculated.forEach((item, index) => {
+      item.rank = index + 1;
+
+      const previousRanking = previousRankings.find((r) => r.provider === item.provider);
+      if (previousRanking) {
+        item.rankChange = previousRanking.previousRank - item.rank;
+      }
+    });
+
+    return calculated;
+  }, [performanceData, previousRankings]);
+
+  const topThree = rankings.slice(0, 3);
+  const restRankings = rankings.slice(3);
+
+  return (
+    <div className={`space-y-6 ${className}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">预言机性能排名</h3>
+          <p className="text-sm text-gray-500 mt-1">基于多维度综合评分的实时排名</p>
+        </div>
+        <div className="text-xs text-gray-400">
+          权重: 响应时间30% | 准确率30% | 稳定性20% | 数据源10% | 支持链10%
+        </div>
+      </div>
+
+      {topThree.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {topThree.map((item, index) => (
+            <div
+              key={item.provider}
+              className={`relative rounded-xl border-2 p-5 transition-all duration-300 hover:shadow-lg ${
+                item.rank === 1
+                  ? 'border-yellow-400 bg-gradient-to-b from-yellow-50 to-white'
+                  : item.rank === 2
+                    ? 'border-gray-300 bg-gradient-to-b from-gray-50 to-white'
+                    : 'border-amber-600 bg-gradient-to-b from-amber-50 to-white'
+              }`}
+            >
+              <div className="absolute -top-3 left-4">
+                <span
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-lg font-bold ${getRankBadgeStyle(item.rank)}`}
+                >
+                  {item.rank}
+                </span>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="font-semibold text-gray-900">{item.name}</span>
+                  </div>
+                  <RankChangeIndicator change={item.rankChange} />
+                </div>
+
+                <div className="text-center py-4">
+                  <p className={`text-4xl font-bold ${getScoreColor(item.overallScore)}`}>
+                    {item.overallScore.toFixed(1)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">综合评分</p>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <DimensionScoreBar
+                    label="响应时间"
+                    score={item.dimensionScores.responseTime}
+                    weight={WEIGHTS.responseTime}
+                    color="blue"
+                  />
+                  <DimensionScoreBar
+                    label="准确率"
+                    score={item.dimensionScores.accuracy}
+                    weight={WEIGHTS.accuracy}
+                    color="green"
+                  />
+                  <DimensionScoreBar
+                    label="稳定性"
+                    score={item.dimensionScores.stability}
+                    weight={WEIGHTS.stability}
+                    color="purple"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {restRankings.length > 0 && (
+        <DashboardCard>
+          <div className="space-y-3">
+            {restRankings.map((item) => (
+              <div
+                key={item.provider}
+                className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all duration-200"
+              >
+                <div className="flex items-center gap-4">
+                  <span
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${getRankBadgeStyle(item.rank)}`}
+                  >
+                    {item.rank}
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                  </div>
+
+                  <RankChangeIndicator change={item.rankChange} />
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-gray-700">
+                        {item.rawMetrics.responseTime}ms
+                      </span>
+                      <span>响应</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-gray-700">
+                        {item.rawMetrics.accuracy.toFixed(1)}%
+                      </span>
+                      <span>准确率</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-gray-700">
+                        {item.rawMetrics.dataSources}
+                      </span>
+                      <span>数据源</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-gray-700">
+                        {item.rawMetrics.supportedChains}
+                      </span>
+                      <span>链</span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`px-4 py-2 rounded-lg border ${getScoreBgColor(item.overallScore)}`}
+                  >
+                    <p className={`text-lg font-bold ${getScoreColor(item.overallScore)}`}>
+                      {item.overallScore.toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
+      )}
+
+      <DashboardCard title="评分维度说明">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm font-medium text-blue-900">响应时间</p>
+            <p className="text-xs text-blue-700 mt-1">权重 30%</p>
+            <p className="text-xs text-gray-600 mt-2">响应时间越低得分越高</p>
+          </div>
+          <div className="p-3 bg-green-50 rounded-lg">
+            <p className="text-sm font-medium text-green-900">准确率</p>
+            <p className="text-xs text-green-700 mt-1">权重 30%</p>
+            <p className="text-xs text-gray-600 mt-2">价格准确率越高得分越高</p>
+          </div>
+          <div className="p-3 bg-purple-50 rounded-lg">
+            <p className="text-sm font-medium text-purple-900">稳定性</p>
+            <p className="text-xs text-purple-700 mt-1">权重 20%</p>
+            <p className="text-xs text-gray-600 mt-2">基于标准差计算的稳定性</p>
+          </div>
+          <div className="p-3 bg-pink-50 rounded-lg">
+            <p className="text-sm font-medium text-pink-900">数据源数量</p>
+            <p className="text-xs text-pink-700 mt-1">权重 10%</p>
+            <p className="text-xs text-gray-600 mt-2">数据源越多得分越高</p>
+          </div>
+          <div className="p-3 bg-amber-50 rounded-lg">
+            <p className="text-sm font-medium text-amber-900">支持链数量</p>
+            <p className="text-xs text-amber-700 mt-1">权重 10%</p>
+            <p className="text-xs text-gray-600 mt-2">支持的区块链越多得分越高</p>
+          </div>
+        </div>
+      </DashboardCard>
+    </div>
+  );
+}
