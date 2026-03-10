@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData } from '@/lib/types/oracle';
+import { PriceData, OracleProvider } from '@/lib/types/oracle';
 import {
   TabNavigation,
   PageHeader,
@@ -13,8 +13,22 @@ import {
   DashboardCard,
   StatCard,
   TimeRange,
+  PublisherAnalysisPanel,
+  ValidatorPanel,
+  CrossChainPanel,
+  DataQualityPanel,
+  DisputeResolutionPanel,
+  ValidatorAnalyticsPanel,
+  RiskAssessmentPanel,
+  EcosystemPanel,
+  PriceStream,
+  UpdateFrequencyHeatmap,
+  CrossOracleComparison,
+  AccuracyAnalysisPanel,
 } from '@/components/oracle';
-import { useRefresh, useExport } from '@/hooks';
+import { useRefresh, useExport, ExportOptions } from '@/hooks';
+import { UMAClient } from '@/lib/oracles/uma';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 
 interface OraclePageTemplateProps {
   config: OracleConfig;
@@ -52,11 +66,161 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
       historical: historicalData,
       timeRange,
     },
-    filename: `${config.provider}-data-${timeRange}`,
+    filename: `${config.provider}-data`,
+    exportOptions: {
+      timeRange,
+    },
   });
 
-  const stats = useMemo(
-    () => [
+  const handleExport = useCallback(
+    (options?: ExportOptions) => {
+      exportData(options);
+    },
+    [exportData]
+  );
+
+  const stats = useMemo(() => {
+    if (config.provider === OracleProvider.UMA && config.client instanceof UMAClient) {
+      return [
+        {
+          title: t('uma.stats.activeValidators'),
+          value: '850+',
+          change: '+3%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('uma.stats.totalDisputes'),
+          value: '1,250+',
+          change: '+15%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('uma.stats.disputeSuccessRate'),
+          value: '78%',
+          change: '+5%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('uma.stats.supportedChains'),
+          value: `${config.supportedChains.length}+`,
+          change: '0%',
+          changeType: 'neutral' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+          ),
+        },
+      ];
+    }
+
+    if (config.provider === OracleProvider.PYTH_NETWORK) {
+      return [
+        {
+          title: t('pythNetwork.stats.updateFrequencyPerSecond'),
+          value: '2.5',
+          suffix: t('pythNetwork.stats.updatesPerSecond'),
+          change: '+12%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('pythNetwork.stats.avgConfidenceWidth'),
+          value: '0.15',
+          suffix: '%',
+          change: '-5%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('pythNetwork.stats.publisherCount'),
+          value: '90+',
+          change: '+8%',
+          changeType: 'positive' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          ),
+        },
+        {
+          title: t('pythNetwork.stats.crossChainSupport'),
+          value: `${config.supportedChains.length}+`,
+          change: '0%',
+          changeType: 'neutral' as const,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+          ),
+        },
+      ];
+    }
+
+    return [
       {
         title: t('chainlink.stats.decentralizedNodes'),
         value: `${config.networkData.activeNodes.toLocaleString()}+`,
@@ -121,9 +285,8 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
           </svg>
         ),
       },
-    ],
-    [t, config]
-  );
+    ];
+  }, [config, t]);
 
   const networkStatusData = useMemo(
     () => [
@@ -184,6 +347,10 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
         return t('chainlink.pageTitles.market');
       case 'network':
         return t('chainlink.pageTitles.network');
+      case 'validators':
+        return t('uma.pageTitles.validators');
+      case 'disputes':
+        return t('uma.pageTitles.disputes');
       case 'ecosystem':
         return t('chainlink.pageTitles.ecosystem');
       case 'risk':
@@ -202,11 +369,11 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
         onRefresh={refresh}
-        onExport={exportData}
+        onExport={handleExport}
         isRefreshing={isRefreshing}
       />
 
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} provider={config.provider} />
 
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -229,13 +396,122 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
             </div>
           )}
 
-          {activeTab === 'network' && (
+          {activeTab === 'market' && config.provider === OracleProvider.PYTH_NETWORK && (
             <div className="mb-6">
-              <NetworkHealthPanel config={config.networkData} />
+              <PriceStream
+                symbol={config.symbol}
+                initialPrice={config.marketData.change24hValue}
+                updateInterval={100}
+              />
             </div>
           )}
 
-          {(activeTab === 'market' || activeTab === 'network') && (
+          {activeTab === 'market' && config.provider === OracleProvider.PYTH_NETWORK && (
+            <div className="mb-6">
+              <AccuracyAnalysisPanel />
+            </div>
+          )}
+
+          {activeTab === 'market' && config.features.hasPublisherAnalytics && (
+            <div className="mb-6">
+              <PublisherAnalysisPanel />
+            </div>
+          )}
+
+          {activeTab === 'network' && (
+            <>
+              <div className="mb-6">
+                <NetworkHealthPanel config={config.networkData} />
+              </div>
+              {config.provider === OracleProvider.PYTH_NETWORK && (
+                <div className="mb-6">
+                  <UpdateFrequencyHeatmap
+                    hourlyActivity={config.networkData.hourlyActivity}
+                    updateFrequency={config.networkData.updateFrequency}
+                  />
+                </div>
+              )}
+              {config.provider === OracleProvider.BAND_PROTOCOL && config.client instanceof BandProtocolClient && (
+                <div className="mb-6">
+                  <ValidatorPanel client={config.client} />
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'validators' && config.provider === OracleProvider.UMA && (
+            <div className="mb-6">
+              <ValidatorAnalyticsPanel />
+            </div>
+          )}
+
+          {activeTab === 'disputes' && config.provider === OracleProvider.UMA && (
+            <div className="mb-6">
+              <DisputeResolutionPanel />
+            </div>
+          )}
+
+          {activeTab === 'risk' && (
+            <>
+              <div className="mb-6">
+                <RiskAssessmentPanel provider={config.provider} />
+              </div>
+              <div className="mb-6">
+                <DataQualityPanel symbol={config.symbol} basePrice={config.marketData.high24h} />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'ecosystem' && (
+            <div className="mb-6">
+              {config.provider === OracleProvider.PYTH_NETWORK ? (
+                <EcosystemPanel />
+              ) : config.provider === OracleProvider.BAND_PROTOCOL && config.client instanceof BandProtocolClient ? (
+                <CrossChainPanel client={config.client} />
+              ) : (
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <div className="text-center py-12">
+                    <svg
+                      className="w-16 h-16 mx-auto text-gray-300 mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">生态系统概览</h3>
+                    <p className="text-gray-500 max-w-md mx-auto">
+                      {config.name} 支持多个区块链网络，提供跨链数据传输和价格预言机服务。
+                      目前已集成 {config.supportedChains.length} 条主流区块链。
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-2">
+                      {config.supportedChains.map((chain, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg"
+                        >
+                          {chain}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <div className="mb-6">
+              <CrossOracleComparison />
+            </div>
+          )}
+
+          {(activeTab === 'market' || activeTab === 'network') && !config.features.hasPublisherAnalytics && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {stats.map((stat, index) => (
