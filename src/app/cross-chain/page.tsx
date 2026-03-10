@@ -670,7 +670,7 @@ export default function CrossChainPage() {
           <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin" />
           <div className="text-gray-500 text-sm">{t('crossChain.loadingData')}</div>
         </div>
-      ) :
+      ) : (
         <>
           {/* Heatmap */}
           <div className="mb-8 pb-8 border-b border-gray-200">
