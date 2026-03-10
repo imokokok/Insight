@@ -32,14 +32,19 @@ export async function GET(request: NextRequest) {
 
   if (!Object.values(OracleProvider).includes(provider)) {
     return NextResponse.json(
-      { error: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}` },
+      {
+        error: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+      },
       { status: 400 }
     );
   }
 
   const client = clients[provider];
   if (!client) {
-    return NextResponse.json({ error: `Client not found for provider: ${provider}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Client not found for provider: ${provider}` },
+      { status: 500 }
+    );
   }
 
   const chainValue = chain ? (chain as Blockchain) : undefined;
@@ -48,14 +53,13 @@ export async function GET(request: NextRequest) {
     if (period) {
       const periodNum = parseInt(period, 10);
       if (isNaN(periodNum) || periodNum < 1) {
-        return NextResponse.json({ error: 'Invalid period. Must be a positive integer.' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Invalid period. Must be a positive integer.' },
+          { status: 400 }
+        );
       }
 
-      const historicalPrices = await client.getHistoricalPrices(
-        symbol,
-        chainValue,
-        periodNum
-      );
+      const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
 
       return NextResponse.json({
         provider,
@@ -97,21 +101,26 @@ export async function POST(request: NextRequest) {
     const { requests } = body;
 
     if (!Array.isArray(requests)) {
-      return NextResponse.json({ error: 'Invalid request body. Expected { requests: [...] }' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid request body. Expected { requests: [...] }' },
+        { status: 400 }
+      );
     }
 
     const results = await Promise.allSettled(
-      requests.map(async (req: { provider: OracleProvider; symbol: string; chain?: Blockchain }) => {
-        const { provider, symbol, chain } = req;
-        const client = clients[provider];
+      requests.map(
+        async (req: { provider: OracleProvider; symbol: string; chain?: Blockchain }) => {
+          const { provider, symbol, chain } = req;
+          const client = clients[provider];
 
-        if (!client) {
-          throw new Error(`Invalid provider: ${provider}`);
+          if (!client) {
+            throw new Error(`Invalid provider: ${provider}`);
+          }
+
+          const priceData = await client.getPrice(symbol, chain);
+          return { provider, symbol, chain, data: priceData };
         }
-
-        const priceData = await client.getPrice(symbol, chain);
-        return { provider, symbol, chain, data: priceData };
-      })
+      )
     );
 
     const data = results.map((result, index) => ({
@@ -128,7 +137,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error processing batch request:', error);
     return NextResponse.json(
-      { error: 'Failed to process batch request', message: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to process batch request',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

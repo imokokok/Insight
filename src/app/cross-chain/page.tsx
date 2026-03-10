@@ -603,7 +603,9 @@ export default function CrossChainPage() {
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('crossChain.symbol')}</label>
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.symbol')}
+          </label>
           <select
             value={selectedSymbol}
             onChange={(e) => setSelectedSymbol(e.target.value)}
@@ -617,7 +619,9 @@ export default function CrossChainPage() {
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('crossChain.timeRange')}</label>
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.timeRange')}
+          </label>
           <select
             value={selectedTimeRange}
             onChange={(e) => setSelectedTimeRange(Number(e.target.value))}
@@ -631,7 +635,9 @@ export default function CrossChainPage() {
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 uppercase tracking-wide">{t('crossChain.baseChain')}</label>
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.baseChain')}
+          </label>
           <select
             value={selectedBaseChain || ''}
             onChange={(e) => setSelectedBaseChain(e.target.value as Blockchain)}
@@ -774,7 +780,8 @@ export default function CrossChainPage() {
                       {t('crossChain.price')}
                     </th>
                     <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
-                      {t('crossChain.differenceVs')} {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
+                      {t('crossChain.differenceVs')}{' '}
+                      {selectedBaseChain ? chainNames[selectedBaseChain] : ''}
                     </th>
                     <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
                       {t('crossChain.percentDifference')}

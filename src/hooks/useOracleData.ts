@@ -47,7 +47,9 @@ export function usePriceData(
 
       if (abortController.signal.aborted) return;
 
-      setPreviousPrice((prev) => (price?.price !== priceData.price ? price?.price ?? null : prev));
+      setPreviousPrice((prev) =>
+        price?.price !== priceData.price ? (price?.price ?? null) : prev
+      );
       setPrice(priceData);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
@@ -136,9 +138,12 @@ export function useHistoricalPrices(
   }, [client, symbol, chain, period]);
 
   useEffect(() => {
-    fetchPrices();
+    const timeoutId = setTimeout(() => {
+      fetchPrices();
+    }, 0);
 
     return () => {
+      clearTimeout(timeoutId);
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -207,7 +212,8 @@ export function useMultiplePrices(
       if (result.status === 'fulfilled') {
         newPrices[symbol] = result.value.price;
       } else {
-        newErrors[symbol] = result.reason instanceof Error ? result.reason : new Error('Unknown error');
+        newErrors[symbol] =
+          result.reason instanceof Error ? result.reason : new Error('Unknown error');
       }
     });
 
@@ -217,9 +223,12 @@ export function useMultiplePrices(
   }, [clients, symbols, chain]);
 
   useEffect(() => {
-    fetchPrices();
+    const timeoutId = setTimeout(() => {
+      fetchPrices();
+    }, 0);
 
     return () => {
+      clearTimeout(timeoutId);
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }

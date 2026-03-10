@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useMemo, useCallback } from 'react';
+import { ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { TimeRange } from './TabNavigation';
 

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { OracleConfig } from '@/lib/config/oracles';
-import { Blockchain, PriceData } from '@/lib/types/oracle';
+import { PriceData } from '@/lib/types/oracle';
 import {
   TabNavigation,
   PageHeader,
@@ -140,7 +140,8 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
       {
         label: t('chainlink.networkHealth.responseTime'),
         value: `${config.networkData.avgResponseTime}ms`,
-        status: config.networkData.avgResponseTime < 200 ? ('healthy' as const) : ('warning' as const),
+        status:
+          config.networkData.avgResponseTime < 200 ? ('healthy' as const) : ('warning' as const),
       },
       {
         label: t('chainlink.successRate'),
@@ -153,10 +154,26 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
 
   const dataSources = useMemo(
     () => [
-      { name: `${config.name} Market`, status: 'active' as const, latency: `${config.networkData.latency}ms` },
-      { name: config.defaultChain, status: 'active' as const, latency: `${config.networkData.avgResponseTime}ms` },
-      { name: 'Secondary Feed', status: 'active' as const, latency: `${Math.round(config.networkData.avgResponseTime * 1.2)}ms` },
-      { name: 'Backup Node', status: 'syncing' as const, latency: `${Math.round(config.networkData.avgResponseTime * 1.5)}ms` },
+      {
+        name: `${config.name} Market`,
+        status: 'active' as const,
+        latency: `${config.networkData.latency}ms`,
+      },
+      {
+        name: config.defaultChain,
+        status: 'active' as const,
+        latency: `${config.networkData.avgResponseTime}ms`,
+      },
+      {
+        name: 'Secondary Feed',
+        status: 'active' as const,
+        latency: `${Math.round(config.networkData.avgResponseTime * 1.2)}ms`,
+      },
+      {
+        name: 'Backup Node',
+        status: 'syncing' as const,
+        latency: `${Math.round(config.networkData.avgResponseTime * 1.5)}ms`,
+      },
     ],
     [config]
   );
@@ -196,7 +213,8 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              {t('chainlink.lastUpdated')}: {t('chainlink.justNow')} • {t('chainlink.period')}: {timeRange}
+              {t('chainlink.lastUpdated')}: {t('chainlink.justNow')} • {t('chainlink.period')}:{' '}
+              {timeRange}
             </p>
           </div>
 
@@ -247,13 +265,17 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chainlink.marketData.marketCap')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.marketData.marketCap')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.marketCap / 1e9).toFixed(1)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chainlink.marketData.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.marketData.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M {config.symbol}
                       </span>
@@ -264,7 +286,9 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                     </div>
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-gray-600">{t('chainlink.networkUptime')}</span>
-                      <span className="text-sm font-semibold text-green-600">{config.networkData.nodeUptime}%</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {config.networkData.nodeUptime}%
+                      </span>
                     </div>
                   </div>
                 </DashboardCard>
@@ -284,7 +308,9 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                             }`}
                           />
                           <span className="text-xs text-gray-500">
-                            {item.status === 'healthy' ? t('chainlink.normal') : t('chainlink.networkHealth.warning')}
+                            {item.status === 'healthy'
+                              ? t('chainlink.normal')
+                              : t('chainlink.networkHealth.warning')}
                           </span>
                         </div>
                       </div>
@@ -299,12 +325,16 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                         <div className="flex items-center gap-2 min-w-0">
                           <span
                             className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                              source.status === 'active' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'
+                              source.status === 'active'
+                                ? 'bg-green-500'
+                                : 'bg-yellow-500 animate-pulse'
                             }`}
                           />
                           <span className="text-sm text-gray-700 truncate">{source.name}</span>
                         </div>
-                        <span className="text-xs text-gray-500 font-mono flex-shrink-0">{source.latency}</span>
+                        <span className="text-xs text-gray-500 font-mono flex-shrink-0">
+                          {source.latency}
+                        </span>
                       </div>
                     ))}
                   </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/context';
@@ -11,26 +11,32 @@ export default function Navbar() {
   const { t } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: '/', label: t('navbar.home') },
-    { href: '/price-query', label: t('navbar.priceQuery') },
-    { href: '/cross-oracle', label: t('navbar.crossOracle') },
-    { href: '/cross-chain', label: t('navbar.crossChain') },
-    { href: '/chainlink', label: t('navbar.chainlink') },
-    { href: '/band-protocol', label: t('navbar.bandProtocol') },
-    { href: '/uma', label: t('navbar.uma') },
-    { href: '/pyth-network', label: t('navbar.pythNetwork') },
-    { href: '/api3', label: t('navbar.api3') },
-  ];
+  const navLinks = useMemo(
+    () => [
+      { href: '/', label: t('navbar.home') },
+      { href: '/price-query', label: t('navbar.priceQuery') },
+      { href: '/cross-oracle', label: t('navbar.crossOracle') },
+      { href: '/cross-chain', label: t('navbar.crossChain') },
+      { href: '/chainlink', label: t('navbar.chainlink') },
+      { href: '/band-protocol', label: t('navbar.bandProtocol') },
+      { href: '/uma', label: t('navbar.uma') },
+      { href: '/pyth-network', label: t('navbar.pythNetwork') },
+      { href: '/api3', label: t('navbar.api3') },
+    ],
+    [t]
+  );
 
-  const isActive = (href: string) => {
-    if (!pathname) return false;
-    const currentPath = pathname.split('?')[0];
-    if (href === '/') {
-      return currentPath === '/';
-    }
-    return currentPath === href;
-  };
+  const isActive = useCallback(
+    (href: string) => {
+      if (!pathname) return false;
+      const currentPath = pathname.split('?')[0];
+      if (href === '/') {
+        return currentPath === '/';
+      }
+      return currentPath === href;
+    },
+    [pathname]
+  );
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">

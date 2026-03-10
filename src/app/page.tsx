@@ -1,17 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n/context';
 import Card, { CardContent } from '@/components/Card';
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythNetworkClient,
-  PriceData,
-  Blockchain,
-} from '@/lib/oracles';
+import { useOraclePrices } from '@/hooks/useOraclePrices';
 
 const platformStatsBase = [
   {
@@ -44,99 +37,74 @@ const quickStats = [
 ];
 
 const navigationCardsBase = [
-    {
-      href: '/cross-oracle',
-      titleKey: 'navbar.crossOracle',
-      descriptionKey: 'home.navigationCards.crossOracle',
-      icon: '🔍',
-    },
-    {
-      href: '/cross-chain',
-      titleKey: 'navbar.crossChain',
-      descriptionKey: 'home.navigationCards.crossChain',
-      icon: '⛓️',
-    },
-    {
-      href: '/chainlink',
-      titleKey: 'navbar.chainlink',
-      descriptionKey: 'home.navigationCards.chainlink',
-      icon: '🔗',
-    },
-    {
-      href: '/band-protocol',
-      titleKey: 'navbar.bandProtocol',
-      descriptionKey: 'home.navigationCards.bandProtocol',
-      icon: '📡',
-    },
-    {
-      href: '/uma',
-      titleKey: 'navbar.uma',
-      descriptionKey: 'home.navigationCards.uma',
-      icon: '⭐',
-    },
-    {
-      href: '/pyth-network',
-      titleKey: 'navbar.pythNetwork',
-      descriptionKey: 'home.navigationCards.pythNetwork',
-      icon: '📊',
-    },
-    {
-      href: '/api3',
-      titleKey: 'navbar.api3',
-      descriptionKey: 'home.navigationCards.api3',
-      icon: '🔌',
-    },
-  ];
+  {
+    href: '/cross-oracle',
+    titleKey: 'navbar.crossOracle',
+    descriptionKey: 'home.navigationCards.crossOracle',
+    icon: '🔍',
+  },
+  {
+    href: '/cross-chain',
+    titleKey: 'navbar.crossChain',
+    descriptionKey: 'home.navigationCards.crossChain',
+    icon: '⛓️',
+  },
+  {
+    href: '/chainlink',
+    titleKey: 'navbar.chainlink',
+    descriptionKey: 'home.navigationCards.chainlink',
+    icon: '🔗',
+  },
+  {
+    href: '/band-protocol',
+    titleKey: 'navbar.bandProtocol',
+    descriptionKey: 'home.navigationCards.bandProtocol',
+    icon: '📡',
+  },
+  {
+    href: '/uma',
+    titleKey: 'navbar.uma',
+    descriptionKey: 'home.navigationCards.uma',
+    icon: '⭐',
+  },
+  {
+    href: '/pyth-network',
+    titleKey: 'navbar.pythNetwork',
+    descriptionKey: 'home.navigationCards.pythNetwork',
+    icon: '📊',
+  },
+  {
+    href: '/api3',
+    titleKey: 'navbar.api3',
+    descriptionKey: 'home.navigationCards.api3',
+    icon: '🔌',
+  },
+];
 
 export default function Home() {
   const { t } = useI18n();
-  const [prices, setPrices] = useState<Record<string, PriceData>>({});
-  const [loading, setLoading] = useState(true);
+  const { prices, loading } = useOraclePrices();
 
-  const platformStats = platformStatsBase.map(stat => ({
-    label: t(`home.platformStats.${stat.key}`),
-    value: stat.value,
-    change: t(`home.platformStats.${stat.changeKey}`),
-  }));
+  const platformStats = useMemo(
+    () =>
+      platformStatsBase.map((stat) => ({
+        label: t(`home.platformStats.${stat.key}`),
+        value: stat.value,
+        change: t(`home.platformStats.${stat.changeKey}`),
+      })),
+    [t]
+  );
 
-  const navigationCards = navigationCardsBase.map(card => ({
-    href: card.href,
-    title: card.titleKey,
-    titleKey: card.titleKey,
-    description: t(card.descriptionKey),
-    icon: card.icon,
-  }));
-
-  useEffect(() => {
-    async function fetchPrices() {
-      try {
-        const chainlinkClient = new ChainlinkClient();
-        const bandClient = new BandProtocolClient();
-        const umaClient = new UMAClient();
-        const pythClient = new PythNetworkClient();
-
-        const [linkPrice, bandPrice, umaPrice, pythPrice] = await Promise.allSettled([
-          chainlinkClient.getPrice('LINK', Blockchain.ETHEREUM),
-          bandClient.getPrice('BAND', Blockchain.ETHEREUM),
-          umaClient.getPrice('UMA', Blockchain.ETHEREUM),
-          pythClient.getPrice('PYTH', Blockchain.SOLANA),
-        ]);
-
-        const priceMap: Record<string, PriceData> = {};
-        if (linkPrice.status === 'fulfilled') priceMap['LINK'] = linkPrice.value;
-        if (bandPrice.status === 'fulfilled') priceMap['BAND'] = bandPrice.value;
-        if (umaPrice.status === 'fulfilled') priceMap['UMA'] = umaPrice.value;
-        if (pythPrice.status === 'fulfilled') priceMap['PYTH'] = pythPrice.value;
-
-        setPrices(priceMap);
-      } catch (error) {
-        console.error('Error fetching prices:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPrices();
-  }, []);
+  const navigationCards = useMemo(
+    () =>
+      navigationCardsBase.map((card) => ({
+        href: card.href,
+        title: t(card.titleKey),
+        description: t(card.descriptionKey),
+        icon: card.icon,
+      })),
+    [t]
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -180,7 +148,9 @@ export default function Home() {
             >
               <CardContent className="py-4 sm:py-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t(stat.providerKey)}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    {t(stat.providerKey)}
+                  </p>
                   <span className="text-base sm:text-lg font-semibold text-gray-500">
                     {stat.symbol}
                   </span>
@@ -223,7 +193,7 @@ export default function Home() {
                 <CardContent className="py-4 sm:py-6">
                   <div className="text-3xl sm:text-4xl mb-3">{card.icon}</div>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                    {card.title === card.titleKey ? t(card.titleKey) : card.title}
+                    {card.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600">{card.description}</p>
                 </CardContent>
