@@ -1284,7 +1284,7 @@ export default function CrossOraclePage() {
                     return (
                       <>
                         <tr
-                          key={index}
+                          key={data.provider}
                           onClick={() => setExpandedRow(isExpanded ? null : index)}
                           className={`border-b border-gray-100 cursor-pointer transition-colors ${
                             outlier ? 'bg-amber-50' : 'hover:bg-blue-50'

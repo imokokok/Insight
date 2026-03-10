@@ -129,7 +129,8 @@ export function API3PageContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [client, config]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { isRefreshing, refresh } = useRefresh({
     onRefresh: fetchData,

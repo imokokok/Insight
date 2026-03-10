@@ -3,10 +3,12 @@
 import { useI18n } from '@/lib/i18n/context';
 
 export interface DataQualityScoreCardProps {
-  completeness?: number;
+  completeness?: number | { successCount: number; totalCount: number };
   timeliness?: number;
   accuracy?: number;
   overallScore?: number;
+  freshness?: { lastUpdated: Date };
+  reliability?: { historicalAccuracy: number; responseSuccessRate: number };
 }
 
 export interface FreshnessData {
@@ -134,17 +136,33 @@ export function DataQualityScoreCard({
   timeliness = 90,
   accuracy = 88,
   overallScore,
+  freshness,
+  reliability,
 }: DataQualityScoreCardProps) {
   const { t } = useI18n();
 
+  const completenessValue = typeof completeness === 'number' 
+    ? completeness 
+    : completeness && 'successCount' in completeness
+      ? (completeness.successCount / completeness.totalCount) * 100
+      : 85;
+
+  const accuracyValue = typeof accuracy === 'number'
+    ? accuracy
+    : reliability?.historicalAccuracy ?? 88;
+
+  const timelinessValue = typeof timeliness === 'number'
+    ? timeliness
+    : reliability?.responseSuccessRate ?? 90;
+
   const calculatedOverallScore =
-    overallScore ?? completeness * 0.35 + timeliness * 0.3 + accuracy * 0.35;
+    overallScore ?? completenessValue * 0.35 + timelinessValue * 0.3 + accuracyValue * 0.35;
 
   const data = {
     overallScore: calculatedOverallScore,
-    networkHealth: { score: completeness, trend: 'stable' as const },
-    dataIntegrity: { score: accuracy, trend: 'up' as const },
-    responseTime: { score: timeliness, trend: 'stable' as const },
+    networkHealth: { score: completenessValue, trend: 'stable' as const },
+    dataIntegrity: { score: accuracyValue, trend: 'up' as const },
+    responseTime: { score: timelinessValue, trend: 'stable' as const },
     validatorActivity: { score: 92, trend: 'up' as const },
   };
 
