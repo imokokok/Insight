@@ -81,6 +81,7 @@
       "poor": "Poor"
     },
     "outlier": "Outlier",
+    "trend": "Trend",
     "weightedAverage": "Weighted Average",
     "export": "Export",
     "exportCsv": "Export CSV",
@@ -109,7 +110,293 @@
     "source": "Source",
     "priceVolatilityHeatmap": "Price Volatility Heatmap",
     "low": "Low",
-    "high": "High"
+    "high": "High",
+    "median": "Median",
+    "cv": "CV",
+    "rangeRatio": "Range Ratio",
+    "tooltip": {
+      "median": "Median is the middle value in sorted prices, more robust than average and less affected by outliers",
+      "cv": "Coefficient of Variation (CV) = StdDev/Mean, measures relative dispersion, smaller values indicate more consistency",
+      "rangeRatio": "Range Ratio = (Max - Min) / Median, reflects relative measure of price volatility"
+    },
+    "presets": {
+      "title": "Preset Configurations",
+      "mainstream": "Mainstream",
+      "mainstreamDesc": "Chainlink + Pyth Network + API3",
+      "decentralized": "Decentralized",
+      "decentralizedDesc": "Chainlink + Band Protocol + UMA",
+      "highFrequency": "High Frequency",
+      "highFrequencyDesc": "Pyth Network + API3",
+      "comprehensive": "Comprehensive",
+      "comprehensiveDesc": "All 5 oracles",
+      "active": "Current Config"
+    },
+    "customConfigs": {
+      "title": "Custom Configurations",
+      "select": "Select saved configuration",
+      "noSaved": "No saved configurations",
+      "saveCurrent": "Save current configuration",
+      "save": "Save",
+      "cancel": "Cancel",
+      "namePlaceholder": "Enter configuration name",
+      "delete": "Delete this configuration",
+      "clearAll": "Clear all configurations"
+    },
+    "priceDeviationHeatmap": {
+      "title": "Price Deviation Heatmap",
+      "subtitle": "Oracle price deviation visualization",
+      "deviationPercent": "Deviation Percentage",
+      "colorScale": "Color Scale",
+      "minDeviation": "Min Deviation",
+      "maxDeviation": "Max Deviation",
+      "avgDeviation": "Avg Deviation",
+      "tooltip": {
+        "oracle": "Oracle",
+        "deviation": "Deviation Value",
+        "percentage": "Deviation Percentage",
+        "comparedTo": "Compared to average price"
+      },
+      "legend": {
+        "lowDeviation": "Low Deviation",
+        "highDeviation": "High Deviation",
+        "normal": "Normal Range",
+        "warning": "Warning Range",
+        "critical": "Critical Range"
+      }
+    },
+    "priceDistributionBoxPlot": {
+      "title": "Price Distribution Box Plot",
+      "subtitle": "Oracle price distribution statistics",
+      "median": "Median",
+      "q1": "First Quartile (Q1)",
+      "q3": "Third Quartile (Q3)",
+      "min": "Minimum",
+      "max": "Maximum",
+      "iqr": "Interquartile Range (IQR)",
+      "outliers": "Outliers",
+      "whisker": "Whisker",
+      "box": "Box",
+      "tooltip": {
+        "medianDesc": "Median: middle value of data",
+        "iqrDesc": "IQR = Q3 - Q1, represents range of middle 50% data",
+        "outlierDesc": "Outliers: data points beyond 1.5x IQR range"
+      }
+    },
+    "dataQualityScoreCard": {
+      "title": "Data Quality Score",
+      "subtitle": "Comprehensive data quality assessment",
+      "overallScore": "Overall Score",
+      "dimensions": {
+        "accuracy": "Accuracy",
+        "timeliness": "Timeliness",
+        "consistency": "Consistency",
+        "completeness": "Completeness",
+        "reliability": "Reliability"
+      },
+      "score": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      },
+      "metrics": {
+        "dataPoints": "Data Points",
+        "updateFrequency": "Update Frequency",
+        "errorRate": "Error Rate",
+        "avgLatency": "Avg Latency"
+      },
+      "tooltip": {
+        "accuracyDesc": "Alignment of price data with actual market prices",
+        "timelinessDesc": "Timeliness of data updates",
+        "consistencyDesc": "Consistency of data across different time points",
+        "completenessDesc": "Data completeness and coverage",
+        "reliabilityDesc": "Reliability of data sources"
+      }
+    },
+    "latencyDistribution": {
+      "title": "Latency Distribution Histogram",
+      "subtitle": "Data update latency distribution",
+      "latencyMs": "Latency (ms)",
+      "frequency": "Frequency",
+      "percentile": "Percentile",
+      "p50": "P50 (Median)",
+      "p95": "P95",
+      "p99": "P99",
+      "avgLatency": "Avg Latency",
+      "minLatency": "Min Latency",
+      "maxLatency": "Max Latency",
+      "stdDev": "Std Dev",
+      "samples": "Samples",
+      "tooltip": {
+        "p50Desc": "50% of requests have latency below this value",
+        "p95Desc": "95% of requests have latency below this value",
+        "p99Desc": "99% of requests have latency below this value"
+      },
+      "ranges": {
+        "fast": "Fast (<100ms)",
+        "normal": "Normal (100-500ms)",
+        "slow": "Slow (500-1000ms)",
+        "verySlow": "Very Slow (>1000ms)"
+      }
+    },
+    "priceCorrelationMatrix": {
+      "title": "Price Correlation Matrix",
+      "subtitle": "Oracle price correlation analysis",
+      "correlation": "Correlation Coefficient",
+      "strongPositive": "Strong Positive",
+      "weakPositive": "Weak Positive",
+      "noCorrelation": "No Correlation",
+      "weakNegative": "Weak Negative",
+      "strongNegative": "Strong Negative",
+      "tooltip": {
+        "correlationDesc": "Correlation coefficient ranges from -1 to 1, where 1 indicates perfect positive correlation, -1 indicates perfect negative correlation, and 0 indicates no correlation",
+        "interpretation": "The closer the coefficient is to 1, the more consistent the price trends of two oracles"
+      },
+      "legend": {
+        "title": "Correlation Coefficient Legend",
+        "range": "Coefficient Range"
+      }
+    },
+    "priceVolatilityChart": {
+      "title": "Price Volatility Chart",
+      "subtitle": "Price volatility trend analysis",
+      "volatility": "Volatility",
+      "volatilityPercent": "Volatility (%)",
+      "rollingVolatility": "Rolling Volatility",
+      "period": "Period",
+      "rollingWindow": "Rolling Window",
+      "avgVolatility": "Avg Volatility",
+      "maxVolatility": "Max Volatility",
+      "minVolatility": "Min Volatility",
+      "volatilityTrend": "Volatility Trend",
+      "tooltip": {
+        "volatilityDesc": "Volatility measures the intensity of price changes",
+        "rollingDesc": "Rolling volatility uses moving window calculation, reflecting short-term volatility trends"
+      },
+      "timeframes": {
+        "hourly": "Hourly",
+        "daily": "Daily",
+        "weekly": "Weekly"
+      }
+    },
+    "oraclePerformanceRanking": {
+      "title": "Oracle Performance Ranking",
+      "subtitle": "Comprehensive performance evaluation ranking",
+      "rank": "Rank",
+      "oracle": "Oracle",
+      "score": "Score",
+      "metrics": {
+        "accuracy": "Accuracy",
+        "latency": "Latency",
+        "uptime": "Uptime",
+        "consistency": "Consistency",
+        "dataPoints": "Data Points"
+      },
+      "change": "Change",
+      "trend": {
+        "improving": "Improving",
+        "declining": "Declining",
+        "stable": "Stable"
+      },
+      "tooltip": {
+        "scoreCalculation": "Overall score is calculated based on weighted multi-dimensional metrics including accuracy, latency, uptime, and consistency",
+        "rankChange": "Rank change compared to previous period"
+      }
+    },
+    "statsMetrics": {
+      "title": "Statistical Metrics",
+      "historicalMin": "Historical Min",
+      "historicalMax": "Historical Max",
+      "historicalAvg": "Historical Average",
+      "currentValue": "Current Value",
+      "healthScore": "Health Score",
+      "healthStatus": {
+        "healthy": "Healthy",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "percentile": "Percentile Value",
+      "percentileDesc": "{p}th percentile value",
+      "changeRate": "Change Rate",
+      "changeRate24h": "24h Change Rate",
+      "volatilityIndex": "Volatility Index",
+      "stabilityScore": "Stability Score",
+      "tooltip": {
+        "historicalMinDesc": "Lowest price in selected time range",
+        "historicalMaxDesc": "Highest price in selected time range",
+        "healthScoreDesc": "Comprehensive health score based on data quality, latency, consistency and other metrics",
+        "stabilityScoreDesc": "Stability score reflecting the stability of price fluctuations"
+      }
+    },
+    "priceTableOptimization": {
+      "title": "Price Data Table",
+      "subtitle": "Real-time price data display",
+      "freshness": "Data Freshness",
+      "freshnessStatus": {
+        "fresh": "Fresh",
+        "stale": "Stale",
+        "unknown": "Unknown"
+      },
+      "timeSinceUpdate": "Time Since Update",
+      "filter": {
+        "title": "Filter",
+        "all": "All",
+        "normal": "Normal",
+        "warning": "Warning",
+        "critical": "Critical",
+        "byDeviation": "Filter by Deviation",
+        "byLatency": "Filter by Latency",
+        "byFreshness": "Filter by Freshness"
+      },
+      "sort": {
+        "title": "Sort",
+        "byPrice": "By Price",
+        "byDeviation": "By Deviation",
+        "byLatency": "By Latency",
+        "byFreshness": "By Freshness",
+        "ascending": "Ascending",
+        "descending": "Descending"
+      },
+      "columns": {
+        "oracle": "Oracle",
+        "price": "Price",
+        "deviation": "Deviation",
+        "latency": "Latency",
+        "freshness": "Freshness",
+        "status": "Status",
+        "lastUpdate": "Last Update"
+      },
+      "tooltip": {
+        "freshnessDesc": "Data freshness indicates time since last update",
+        "filterDesc": "Use filters to quickly locate data with specific status"
+      }
+    },
+    "chartToolbar": {
+      "zoom": "Zoom",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "reset": "Reset",
+      "resetZoom": "Reset Zoom",
+      "pan": "Pan",
+      "export": "Export",
+      "exportPNG": "Export PNG",
+      "exportSVG": "Export SVG",
+      "exportCSV": "Export CSV",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "settings": "Settings",
+      "legend": "Legend",
+      "showLegend": "Show Legend",
+      "hideLegend": "Hide Legend",
+      "grid": "Grid",
+      "showGrid": "Show Grid",
+      "hideGrid": "Hide Grid",
+      "tooltip": {
+        "zoomDesc": "Use mouse wheel or drag to select area for zooming",
+        "panDesc": "Hold and drag chart to pan",
+        "resetDesc": "Reset chart to initial view"
+      }
+    }
   },
   "crossChain": {
     "title": "Cross-Chain Price Comparison",
@@ -190,7 +477,120 @@
     },
     "priceDeviationWarning": "Price Deviation Warning",
     "deviationThreshold": "Threshold: {threshold}%",
-    "deviationAlert": "{count} chain(s) detected with price deviation above threshold"
+    "deviationAlert": "{count} chain(s) detected with price deviation above threshold",
+    "median": "Median Price",
+    "medianDesc": "The middle value in sorted prices, more robust than average",
+    "iqr": "Interquartile Range (IQR)",
+    "iqrDesc": "IQR = Q3 - Q1, reflects dispersion of middle 50% data",
+    "maLine": "Moving Average",
+    "maPeriod": "MA Period",
+    "showMA": "Show MA",
+    "resetChart": "Reset Chart",
+    "technicalIndicators": "Technical Indicators",
+    "highestPriceLabel": "Highest",
+    "lowestPriceLabel": "Lowest",
+    "deviationFromAvg": "Deviation from Avg",
+    "heatmapDetail": "Spread Details",
+    "chainAPrice": "Chain A Price",
+    "chainBPrice": "Chain B Price",
+    "priceDistribution": "Price Distribution",
+    "frequency": "Frequency",
+    "priceRange": "Price Range",
+    "meanLine": "Mean",
+    "medianLine": "Median",
+    "medianPrice": "Median Price",
+    "iqr": "IQR (Interquartile Range)",
+    "skewness": "Skewness",
+    "kurtosis": "Kurtosis",
+    "confidenceInterval95": "95% Confidence Interval",
+    "priceDistribution": "Price Distribution Analysis",
+    "correlationAnalysis": "Cross-Chain Correlation Analysis",
+    "correlationMatrix": "Correlation Matrix",
+    "anomalyDetection": "Anomaly Detection",
+    "anomalyPanel": "Anomaly Detection Panel",
+    "expectedRange": "Expected Range",
+    "deviationDegree": "Deviation Degree",
+    "possibleCause": "Possible Cause",
+    "tooltip": {
+      "averagePrice": "Average of all chain prices, reflecting overall price level",
+      "medianPrice": "Median is the middle value when prices are sorted, more robust than mean",
+      "highestPrice": "Highest and lowest prices among all chains",
+      "priceRange": "Difference between highest and lowest prices, reflecting price volatility range",
+      "iqr": "IQR = Q3 - Q1, reflects the dispersion of price distribution",
+      "standardDeviation": "Standard deviation measures dispersion relative to the mean",
+      "skewness": "Skewness measures symmetry of price distribution, positive means right-skewed",
+      "kurtosis": "Kurtosis measures peakedness of price distribution, positive means more peaked than normal",
+      "confidenceInterval95": "95% CI means there's 95% probability the true price falls within this range",
+      "coefficientOfVariation": "Coefficient of Variation = StdDev/Mean, for comparing dispersion across different scales",
+      "consistencyRating": "Consistency rating based on standard deviation percentage",
+      "dataPoints": "Total number of historical price data points"
+    },
+    "ma7": "MA7 (7-Day Moving Average)",
+    "ma20": "MA20 (20-Day Moving Average)",
+    "priceChange": "Price Change",
+    "sparkline": "Price Trend",
+    "dataIntegrity": "Data Integrity",
+    "priceJumpFrequency": "Price Jump Frequency",
+    "clickToExpand": "Click to expand details",
+    "detailComparison": "Detail Comparison",
+    "priceTrendComparison": "Price Trend Comparison",
+    "historicalSpreadChange": "Historical Spread Change",
+    "spreadPercent": "Spread Percentage",
+    "anomalyPoint": "Anomaly Point",
+    "anomalyDescription": "More than 2 std dev from mean",
+    "stdDevRange": "Standard Deviation Range (±1σ)",
+    "stdDevRangeDesc": "Contains ~68% of price data",
+    "anomalyDetectionPanel": "Anomaly Detection Panel (IQR Method)",
+    "chainName": "Chain Name",
+    "anomalyPrice": "Anomaly Price",
+    "expectedRange": "Expected Range",
+    "deviationDegree": "Deviation Degree",
+    "anomalyCount": "{count} anomalies",
+    "q1Percentile": "Q1 (25th Percentile)",
+    "q3Percentile": "Q3 (75th Percentile)",
+    "iqrLabel": "IQR",
+    "normalRange": "Normal Range",
+    "anomalyType": "Anomaly Type",
+    "belowLowerBound": "Below Lower Bound",
+    "aboveUpperBound": "Above Upper Bound",
+    "iqrExplanationTitle": "IQR Anomaly Detection Explanation",
+    "iqrExplanationDesc": "The IQR (Interquartile Range) method identifies outliers by calculating the 25th percentile (Q1) and 75th percentile (Q3) of the data, and flagging values outside the [Q1 - 1.5×IQR, Q3 + 1.5×IQR] range. This method is robust to extreme values and suitable for price anomaly detection scenarios.",
+    "iqrLowerBound": "IQR Lower Bound",
+    "iqrUpperBound": "IQR Upper Bound",
+    "priceDistributionAnalysis": "Price Distribution Analysis",
+    "priceDistributionHistogram": "Price Distribution Histogram",
+    "frequency": "Frequency",
+    "chainPriceBoxPlot": "Chain Price Box Plot",
+    "minValue": "Min",
+    "maxValue": "Max",
+    "boxQ1Q3": "Box: Q1 - Q3 (IQR)",
+    "medianQ2": "Line: Median (Q2)",
+    "outliersRed": "Red dots: Outliers",
+    "outlierDetection": "Outlier Detection",
+    "outlierDetectionDesc": "Values outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR] range are marked as outliers",
+    "chainCorrelationAnalysis": "Cross-Chain Correlation Analysis",
+    "correlationDesc": "Pearson correlation coefficient measures the linear correlation between two chain price trends. r = 1 means perfect positive correlation, r = -1 means perfect negative correlation, r = 0 means no linear correlation.",
+    "negativeCorrelation": "Negative Correlation",
+    "positiveCorrelation": "Positive Correlation",
+    "perfectPositive": "r = 1 (Perfect Positive)",
+    "noCorrelation": "r = 0 (No Correlation)",
+    "perfectNegative": "r = -1 (Perfect Negative)",
+    "dataIntegrity": "Data Integrity",
+    "priceVolatility": "Price Volatility",
+    "priceJumpFrequency": "Price Jump Frequency",
+    "noAnomalyDetected": "No Anomaly",
+    "normalRangeDesc": "All chain prices are within normal range, no anomalies detected. Cross-chain price consistency is good.",
+    "anomalyReasons": {
+      "priceSignificantlyLower": "Price significantly lower than other chains",
+      "liquidityIssue": "Possible liquidity shortage",
+      "oracleDelay": "Oracle update delay",
+      "priceSignificantlyHigher": "Price significantly higher than other chains",
+      "premiumTrading": "Possible premium trading",
+      "demandSpike": "On-chain demand spike",
+      "severeDeviation": "Severely deviated from normal range, requires immediate attention",
+      "moderateDeviation": "Moderate deviation, recommend monitoring",
+      "highVolatility": "This chain has high price volatility"
+    }
   },
   "chainlink": {
     "title": "Chainlink",

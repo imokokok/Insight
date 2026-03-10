@@ -72,3 +72,35 @@ export { PriceAccuracyStats } from './PriceAccuracyStats';
 export { ExtremeMarketAnalysis } from './ExtremeMarketAnalysis';
 export { AccuracyTrendChart } from './AccuracyTrendChart';
 export { AccuracyAnalysisPanel } from './AccuracyAnalysisPanel';
+export { PriceDistributionBoxPlot } from './PriceDistributionBoxPlot';
+export type { OraclePriceData, BoxPlotStats } from './PriceDistributionBoxPlot';
+export { PriceDeviationHeatmap } from './PriceDeviationHeatmap';
+export type { PriceDeviationDataPoint, TimeRange as PriceDeviationTimeRange } from './PriceDeviationHeatmap';
+export { LatencyDistributionHistogram } from './LatencyDistributionHistogram';
+export type {
+  LatencyDistributionHistogramProps,
+  HistogramBin,
+  LatencyStats as HistogramLatencyStats,
+} from './LatencyDistributionHistogram';
+export { DataQualityScoreCard } from './DataQualityScoreCard';
+export type {
+  DataQualityScoreCardProps,
+  FreshnessData,
+  CompletenessData,
+  ReliabilityData,
+  QualityLevel,
+} from './DataQualityScoreCard';
+export { OraclePerformanceRanking } from './OraclePerformanceRanking';
+export type { OraclePerformanceData, RankingChange } from './OraclePerformanceRanking';
+export { PriceCorrelationMatrix } from './PriceCorrelationMatrix';
+export type {
+  PriceDataPoint,
+  OraclePriceSeries,
+} from './PriceCorrelationMatrix';
+export { PriceVolatilityChart } from './PriceVolatilityChart';
+export type {
+  PriceVolatilityChartProps,
+  OraclePriceHistory,
+  VolatilityResult,
+  VolatilityTrendPoint,
+} from './PriceVolatilityChart';
