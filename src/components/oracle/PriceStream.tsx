@@ -9,12 +9,14 @@ interface PriceUpdate {
   timestamp: Date;
   change: number;
   direction: 'up' | 'down' | 'neutral';
+  confidenceWidth: number;
 }
 
 interface PriceStreamStats {
   updatesPerSecond: number;
   avgLatency: number;
   totalUpdates: number;
+  avgConfidenceWidth: number;
 }
 
 interface PriceStreamProps {
@@ -31,11 +33,13 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     updatesPerSecond: 0,
     avgLatency: 0,
     totalUpdates: 0,
+    avgConfidenceWidth: 0,
   });
   const [pausedPrice, setPausedPrice] = useState<number | null>(null);
 
   const updateCountRef = useRef(0);
   const latencySumRef = useRef(0);
+  const confidenceWidthSumRef = useRef(0);
   const lastSecondCountRef = useRef(0);
   const lastSecondTimeRef = useRef(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,12 +58,14 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     priceRef.current = newPrice;
 
     const latency = Math.random() * 50 + 10;
+    const confidenceWidth = Math.random() * 0.3 + 0.05;
 
     return {
       price: newPrice,
       change,
       direction: direction as 'up' | 'down' | 'neutral',
       latency,
+      confidenceWidth,
     };
   }, []);
 
@@ -75,6 +81,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
       timestamp: now,
       change: update.change,
       direction: update.direction,
+      confidenceWidth: update.confidenceWidth,
     };
 
     setPriceHistory((prev) => {
@@ -84,6 +91,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
 
     updateCountRef.current++;
     latencySumRef.current += update.latency;
+    confidenceWidthSumRef.current += update.confidenceWidth;
 
     const currentTime = Date.now();
     const timeDiff = currentTime - lastSecondTimeRef.current;
@@ -91,11 +99,13 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     if (timeDiff >= 1000) {
       const updatesInLastSecond = updateCountRef.current - lastSecondCountRef.current;
       const avgLatency = latencySumRef.current / updateCountRef.current;
+      const avgConfidenceWidth = confidenceWidthSumRef.current / updateCountRef.current;
 
       setStats({
         updatesPerSecond: updatesInLastSecond,
         avgLatency: Math.round(avgLatency * 100) / 100,
         totalUpdates: updateCountRef.current,
+        avgConfidenceWidth: Math.round(avgConfidenceWidth * 10000) / 10000,
       });
 
       lastSecondCountRef.current = updateCountRef.current;
@@ -217,7 +227,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">每秒更新</p>
             <p className="text-xl font-bold text-blue-700">{stats.updatesPerSecond}</p>
@@ -229,6 +239,10 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-green-600 mb-1">总更新数</p>
             <p className="text-xl font-bold text-green-700">{stats.totalUpdates}</p>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-orange-600 mb-1">平均置信区间</p>
+            <p className="text-xl font-bold text-orange-700">{(stats.avgConfidenceWidth * 100).toFixed(2)}%</p>
           </div>
         </div>
 
@@ -249,46 +263,59 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
                     变化
                   </th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                    置信区间
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {priceHistory.map((update, index) => (
-                  <tr
-                    key={update.id}
-                    className={`transition-colors duration-300 ${
-                      index === 0 && !isPaused
-                        ? update.direction === 'up'
-                          ? 'bg-green-50'
-                          : update.direction === 'down'
-                            ? 'bg-red-50'
-                            : ''
-                        : ''
-                    }`}
-                  >
-                    <td className="px-4 py-2 text-sm font-mono text-gray-600">
-                      {formatTime(update.timestamp)}
-                    </td>
-                    <td className="px-4 py-2 text-sm font-mono text-right text-gray-900">
-                      ${formatPrice(update.price)}
-                    </td>
-                    <td className="px-4 py-2 text-sm font-mono text-right">
-                      <span
-                        className={`inline-flex items-center gap-1 ${
-                          update.direction === 'up'
-                            ? 'text-green-600'
+                {priceHistory.map((update, index) => {
+                  const confidenceColor = 
+                    update.confidenceWidth < 0.15 ? 'text-green-600' :
+                    update.confidenceWidth < 0.25 ? 'text-yellow-600' : 'text-red-600';
+                  return (
+                    <tr
+                      key={update.id}
+                      className={`transition-colors duration-300 ${
+                        index === 0 && !isPaused
+                          ? update.direction === 'up'
+                            ? 'bg-green-50'
                             : update.direction === 'down'
-                              ? 'text-red-600'
-                              : 'text-gray-500'
-                        }`}
-                      >
-                        {update.direction === 'up' && '↑'}
-                        {update.direction === 'down' && '↓'}
-                        {update.change >= 0 ? '+' : ''}
-                        {update.change.toFixed(4)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                              ? 'bg-red-50'
+                              : ''
+                          : ''
+                      }`}
+                    >
+                      <td className="px-4 py-2 text-sm font-mono text-gray-600">
+                        {formatTime(update.timestamp)}
+                      </td>
+                      <td className="px-4 py-2 text-sm font-mono text-right text-gray-900">
+                        ${formatPrice(update.price)}
+                      </td>
+                      <td className="px-4 py-2 text-sm font-mono text-right">
+                        <span
+                          className={`inline-flex items-center gap-1 ${
+                            update.direction === 'up'
+                              ? 'text-green-600'
+                              : update.direction === 'down'
+                                ? 'text-red-600'
+                                : 'text-gray-500'
+                          }`}
+                        >
+                          {update.direction === 'up' && '↑'}
+                          {update.direction === 'down' && '↓'}
+                          {update.change >= 0 ? '+' : ''}
+                          {update.change.toFixed(4)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-sm font-mono text-right">
+                        <span className={`font-medium ${confidenceColor}`}>
+                          {(update.confidenceWidth * 100).toFixed(2)}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

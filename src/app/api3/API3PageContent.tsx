@@ -17,6 +17,9 @@ import { DapiCoveragePanel } from '@/components/oracle/DapiCoveragePanel';
 import { CoveragePoolPanel } from '@/components/oracle/CoveragePoolPanel';
 import { StakingMetricsPanel } from '@/components/oracle/StakingMetricsPanel';
 import { FirstPartyOracleAdvantages } from '@/components/oracle/FirstPartyOracleAdvantages';
+import { DataQualityScoreCard } from '@/components/oracle/DataQualityScoreCard';
+import { LatencyDistributionHistogram } from '@/components/oracle/LatencyDistributionHistogram';
+import { UpdateFrequencyHeatmap } from '@/components/oracle/UpdateFrequencyHeatmap';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -81,15 +84,25 @@ export function API3PageContent() {
     responseTime: number;
   } | null>(null);
 
+  const [latencyData, setLatencyData] = useState<number[]>([]);
+  const [qualityMetrics, setQualityMetrics] = useState<{
+    freshness: { lastUpdated: Date; updateInterval: number };
+    completeness: { successCount: number; totalCount: number };
+    reliability: { historicalAccuracy: number; responseSuccessRate: number; uptime: number };
+  } | null>(null);
+  const [hourlyActivity, setHourlyActivity] = useState<number[]>([]);
+
   const fetchData = useCallback(async () => {
     try {
-      const [price, history, airnodeStats, dapiCoverage, staking, firstParty] = await Promise.all([
+      const [price, history, airnodeStats, dapiCoverage, staking, firstParty, latency, quality] = await Promise.all([
         client.getPrice(config.symbol, config.defaultChain),
         client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
         client.getAirnodeNetworkStats(),
         client.getDapiCoverage(),
         client.getStakingData(),
         client.getFirstPartyOracleData(),
+        client.getLatencyDistribution(),
+        client.getDataQualityMetrics(),
       ]);
 
       setPriceData(price);
@@ -108,6 +121,9 @@ export function API3PageContent() {
       setDapiData(dapiCoverage);
       setStakingData(staking);
       setFirstPartyData(firstParty.advantages);
+      setLatencyData(latency);
+      setQualityMetrics(quality);
+      setHourlyActivity(airnodeStats.hourlyActivity);
     } catch (error) {
       console.error('Error fetching API3 data:', error);
     } finally {
@@ -261,6 +277,16 @@ export function API3PageContent() {
 
           {activeTab === 'market' && (
             <>
+              {qualityMetrics && (
+                <div className="mb-6">
+                  <DataQualityScoreCard
+                    completeness={qualityMetrics.completeness.successCount / qualityMetrics.completeness.totalCount * 100}
+                    timeliness={100}
+                    accuracy={qualityMetrics.reliability.historicalAccuracy}
+                  />
+                </div>
+              )}
+
               <div className="mb-6">
                 <MarketDataPanel
                   client={client}
@@ -316,7 +342,23 @@ export function API3PageContent() {
           )}
 
           {activeTab === 'network' && (
-            <NetworkHealthPanel config={config.networkData} />
+            <div className="space-y-6">
+              <NetworkHealthPanel config={config.networkData} />
+              
+              {latencyData.length > 0 && (
+                <LatencyDistributionHistogram
+                  data={latencyData}
+                  oracleName="API3"
+                />
+              )}
+
+              {hourlyActivity.length > 0 && (
+                <UpdateFrequencyHeatmap
+                  hourlyActivity={hourlyActivity}
+                  updateFrequency={airnodeData?.networkStats.dapiUpdateFrequency || 60}
+                />
+              )}
+            </div>
           )}
 
           {activeTab === 'airnode' && airnodeData && (

@@ -12,6 +12,8 @@ import {
   Cell,
 } from 'recharts';
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
+import { RequestTrendChart } from './RequestTrendChart';
+import { ChainComparison } from './ChainComparison';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -266,6 +268,9 @@ export function CrossChainPanel({
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('24h');
   const [selectedChain, setSelectedChain] = useState<ChainDataRequest | null>(null);
+  const [selectedChainsForComparison, setSelectedChainsForComparison] = useState<
+    ChainDataRequest[]
+  >([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -324,6 +329,21 @@ export function CrossChainPanel({
         `totalRequests${timeRange === '24h' ? '24h' : timeRange === '7d' ? '7d' : '30d'}` as keyof CrossChainStats
       ] as number)
     : 0;
+
+  const toggleChainSelection = useCallback((chain: ChainDataRequest, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setSelectedChainsForComparison((prev) => {
+      const isSelected = prev.some((c) => c.chainId === chain.chainId);
+      if (isSelected) {
+        return prev.filter((c) => c.chainId !== chain.chainId);
+      } else if (prev.length < 5) {
+        return [...prev, chain];
+      }
+      return prev;
+    });
+  }, []);
 
   if (loading && !stats) {
     return (
@@ -451,6 +471,8 @@ export function CrossChainPanel({
         />
       </div>
 
+      <RequestTrendChart client={client} autoUpdate={autoUpdate} updateInterval={updateInterval} />
+
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -509,47 +531,98 @@ export function CrossChainPanel({
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <p className="text-gray-900 text-sm font-semibold mb-4">各链概览</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-gray-900 text-sm font-semibold">各链概览</p>
+          <p className="text-xs text-gray-500">
+            已选择 {selectedChainsForComparison.length}/5 条链进行对比
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {stats?.chains.map((chain, index) => (
-            <div
-              key={chain.chainId}
-              onClick={() => setSelectedChain(chain)}
-              className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: getChainColor(chain.chainName, index) }}
-                />
-                <span className="text-gray-900 font-medium text-sm">{chain.chainName}</span>
+          {stats?.chains.map((chain, index) => {
+            const isSelected = selectedChainsForComparison.some((c) => c.chainId === chain.chainId);
+            const isDisabled = !isSelected && selectedChainsForComparison.length >= 5;
+
+            return (
+              <div
+                key={chain.chainId}
+                onClick={() => setSelectedChain(chain)}
+                className={`bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer group relative ${
+                  isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+                } ${isDisabled ? 'opacity-60' : ''}`}
+              >
+                <div className="absolute top-2 right-2">
+                  <label
+                    className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-500 border-blue-500'
+                        : isDisabled
+                          ? 'border-gray-200 bg-gray-100 cursor-not-allowed'
+                          : 'border-gray-300 hover:border-blue-400'
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      disabled={isDisabled}
+                      onChange={(e) =>
+                        toggleChainSelection(chain, e as unknown as React.MouseEvent)
+                      }
+                      className="sr-only"
+                    />
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 mb-2 pr-6">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: getChainColor(chain.chainName, index) }}
+                  />
+                  <span className="text-gray-900 font-medium text-sm">{chain.chainName}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Gas:</span>
+                  <span className="text-gray-700 font-mono">{chain.avgGasCost.toFixed(4)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs mt-1">
+                  <span className="text-gray-500">代币:</span>
+                  <span className="text-gray-700">
+                    {chain.supportedSymbols.slice(0, 3).join(', ')}
+                    {chain.supportedSymbols.length > 3 ? '...' : ''}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs mt-1">
+                  <span className="text-gray-500">请求:</span>
+                  <span className="text-gray-700 font-medium">
+                    {chain[
+                      TIME_RANGE_CONFIG[timeRange].field as keyof ChainDataRequest
+                    ].toLocaleString()}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500">Gas:</span>
-                <span className="text-gray-700 font-mono">{chain.avgGasCost.toFixed(4)}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-gray-500">代币:</span>
-                <span className="text-gray-700">
-                  {chain.supportedSymbols.slice(0, 3).join(', ')}
-                  {chain.supportedSymbols.length > 3 ? '...' : ''}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-gray-500">请求:</span>
-                <span className="text-gray-700 font-medium">
-                  {chain[
-                    TIME_RANGE_CONFIG[timeRange].field as keyof ChainDataRequest
-                  ].toLocaleString()}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {selectedChain && (
         <ChainDetailModal chain={selectedChain} onClose={() => setSelectedChain(null)} />
+      )}
+
+      {stats && (
+        <ChainComparison
+          chains={stats.chains}
+          selectedChains={selectedChainsForComparison}
+          onSelectionChange={setSelectedChainsForComparison}
+        />
       )}
     </div>
   );

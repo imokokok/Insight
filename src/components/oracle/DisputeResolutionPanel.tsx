@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { UMAClient, DisputeData } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
+import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
 
 const umaClient = new UMAClient();
 
@@ -449,6 +450,8 @@ export function DisputeResolutionPanel() {
         <DisputeTrendChart trends={trends} />
         <DisputeDistributionChart disputes={disputes} />
       </div>
+
+      <DisputeEfficiencyAnalysis />
 
       <DisputeTable disputes={disputes} />
     </div>

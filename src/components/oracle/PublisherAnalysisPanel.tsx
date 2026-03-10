@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Publisher, PublisherStats } from '@/lib/types/oracle';
 import { PublisherList } from './PublisherList';
 import { PublisherReliabilityScore } from './PublisherReliabilityScore';
+import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from './DashboardCard';
 
 const mockPublishers: Publisher[] = [
@@ -170,6 +171,8 @@ export function PublisherAnalysisPanel({
           </div>
         </div>
       </div>
+
+      <PublisherContributionPanel publishers={publishers} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardCard title="Publisher List">

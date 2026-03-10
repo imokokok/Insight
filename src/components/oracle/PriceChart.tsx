@@ -13,14 +13,66 @@ import {
   Brush,
   Cell,
   Legend,
+  Area,
 } from 'recharts';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { BandProtocolClient, HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
 import { Blockchain } from '@/lib/types/oracle';
 import { TimeRange } from './TabNavigation';
+import { AnomalyMarker, AnomalyPoint } from './AnomalyMarker';
+import { AnomalyStatsPanel } from './AnomalyStatsPanel';
+import { ChartExportButton } from './ChartExportButton';
+import { useOptionalTimeRange } from '@/contexts/TimeRangeContext';
+import { ChartExportData } from '@/utils/chartExport';
+
+type ScreenSize = 'mobile' | 'tablet' | 'desktop';
+
+function useScreenSize(): ScreenSize {
+  const [screenSize, setScreenSize] = useState<ScreenSize>('desktop');
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setScreenSize('mobile');
+      } else if (width < 1024) {
+        setScreenSize('tablet');
+      } else {
+        setScreenSize('desktop');
+      }
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return screenSize;
+}
+
+function useResponsiveChartHeight(baseHeight: number, screenSize: ScreenSize): number {
+  return useMemo(() => {
+    switch (screenSize) {
+      case 'mobile':
+        return Math.min(baseHeight, 300);
+      case 'tablet':
+        return Math.min(baseHeight, 350);
+      default:
+        return baseHeight;
+    }
+  }, [baseHeight, screenSize]);
+}
 
 type ChartType = 'line' | 'candlestick';
 type DataGranularity = 'minute' | 'hour' | 'day';
+type ConfidenceLevel = 90 | 95 | 99;
+
+interface PredictionInterval {
+  timestamp: number;
+  upper: number;
+  lower: number;
+  mean: number;
+}
 
 interface ChartDataPoint {
   time: string;
@@ -33,6 +85,9 @@ interface ChartDataPoint {
   close?: number;
   ma7?: number;
   isComparison?: boolean;
+  predictionUpper?: number;
+  predictionLower?: number;
+  predictionMean?: number;
 }
 
 interface TimeRangeOption {
@@ -78,6 +133,50 @@ const GRANULARITY_CONFIG: Record<DataGranularity, { intervalMinutes: number; lab
   hour: { intervalMinutes: 60, label: '小时' },
   day: { intervalMinutes: 1440, label: '天' },
 };
+
+const CONFIDENCE_Z_SCORES: Record<ConfidenceLevel, number> = {
+  90: 1.645,
+  95: 1.96,
+  99: 2.576,
+};
+
+function calculatePredictionIntervals(
+  data: ChartDataPoint[],
+  windowSize: number = 20,
+  confidenceLevel: ConfidenceLevel
+): ChartDataPoint[] {
+  const zScore = CONFIDENCE_Z_SCORES[confidenceLevel];
+
+  return data.map((point, index) => {
+    if (index < windowSize - 1) {
+      return {
+        ...point,
+        predictionUpper: point.price,
+        predictionLower: point.price,
+        predictionMean: point.price,
+      };
+    }
+
+    const windowData = data.slice(index - windowSize + 1, index + 1);
+    const prices = windowData.map((d) => d.price);
+
+    const mean = prices.reduce((sum, p) => sum + p, 0) / windowSize;
+
+    const squaredDiffs = prices.map((p) => Math.pow(p - mean, 2));
+    const variance = squaredDiffs.reduce((sum, diff) => sum + diff, 0) / windowSize;
+    const stdDev = Math.sqrt(variance);
+
+    const upper = mean + zScore * stdDev;
+    const lower = mean - zScore * stdDev;
+
+    return {
+      ...point,
+      predictionUpper: upper,
+      predictionLower: lower,
+      predictionMean: mean,
+    };
+  });
+}
 
 function generateHistoricalData(basePrice: number, timeRange: TimeRange): ChartDataPoint[] {
   const config = TIME_RANGE_CONFIG[timeRange];
@@ -297,6 +396,19 @@ function CustomTooltip({
         </div>
       )}
 
+      {data.predictionUpper !== undefined && data.predictionLower !== undefined && (
+        <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
+          <div className="flex justify-between gap-4 text-xs">
+            <span className="text-gray-500">预测上界:</span>
+            <span className="text-blue-600 font-mono">${data.predictionUpper.toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between gap-4 text-xs">
+            <span className="text-gray-500">预测下界:</span>
+            <span className="text-blue-600 font-mono">${data.predictionLower.toFixed(4)}</span>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between gap-4 text-xs mt-2 pt-2 border-t border-gray-200">
         <span className="text-gray-500">成交量:</span>
         <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
@@ -367,13 +479,19 @@ export function PriceChart({
   showToolbar = true,
   defaultPrice,
 }: PriceChartProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
+  const screenSize = useScreenSize();
+  const responsiveHeight = useResponsiveChartHeight(height, screenSize);
+  const timeRangeContext = useOptionalTimeRange();
+
+  const [localTimeRange, setLocalTimeRange] = useState<TimeRange>(initialTimeRange);
   const [chartType] = useState<ChartType>('line');
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [comparisonData, setComparisonData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [customDateRange, setCustomDateRange] = useState<CustomDateRange>({
@@ -389,8 +507,26 @@ export function PriceChart({
     period2End: '',
   });
   const [showComparisonPanel, setShowComparisonPanel] = useState(false);
+  const [showPredictionInterval, setShowPredictionInterval] = useState(false);
+  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>(95);
+  const [anomalyDetectionEnabled, setAnomalyDetectionEnabled] = useState(true);
+  const [anomalies, setAnomalies] = useState<AnomalyPoint[]>([]);
+  const [showAnomalyStats, setShowAnomalyStats] = useState(false);
+
+  const timeRange = timeRangeContext?.globalTimeRange || localTimeRange;
+  const setTimeRange = useCallback(
+    (range: TimeRange) => {
+      setLocalTimeRange(range);
+      if (timeRangeContext?.syncEnabled) {
+        timeRangeContext.setGlobalTimeRange(range);
+      }
+    },
+    [timeRangeContext]
+  );
 
   const isBandClient = client instanceof BandProtocolClient;
+  const isMobile = screenSize === 'mobile';
+  const isTablet = screenSize === 'tablet';
 
   const fetchData = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -618,9 +754,52 @@ export function PriceChart({
     return { value: change, percent };
   }, [data]);
 
+  const detectedAnomalies = useMemo(() => {
+    if (!anomalyDetectionEnabled || data.length < 10) return [];
+
+    const prices = data.map((d) => d.price);
+    const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+    const squaredDiffs = prices.map((p) => Math.pow(p - mean, 2));
+    const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / prices.length;
+    const stdDev = Math.sqrt(variance);
+
+    const anomalyThreshold = 2 * stdDev;
+
+    const detected: AnomalyPoint[] = [];
+
+    data.forEach((point) => {
+      const deviation = Math.abs(point.price - mean);
+      if (deviation > anomalyThreshold) {
+        const deviationInSigma = deviation / stdDev;
+        const deviationPercent = ((point.price - mean) / mean) * 100;
+
+        detected.push({
+          timestamp: point.timestamp,
+          price: point.price,
+          deviation: deviationInSigma,
+          type: point.price > mean ? 'spike' : 'drop',
+          time: point.time,
+          deviationPercent: Math.abs(deviationPercent),
+          absoluteDeviation: deviation,
+        });
+      }
+    });
+
+    return detected;
+  }, [data, anomalyDetectionEnabled]);
+
+  useEffect(() => {
+    setAnomalies(detectedAnomalies);
+  }, [detectedAnomalies]);
+
+  const dataWithPrediction = useMemo(() => {
+    if (!showPredictionInterval || data.length === 0) return data;
+    return calculatePredictionIntervals(data, 20, confidenceLevel);
+  }, [data, showPredictionInterval, confidenceLevel]);
+
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center" style={{ height }}>
+      <div className="h-full flex items-center justify-center" style={{ height: responsiveHeight }}>
         <div className="flex items-center gap-3 text-gray-400">
           <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
             <circle
@@ -643,14 +822,28 @@ export function PriceChart({
     );
   }
 
+  const exportData: ChartExportData[] = data.map((d) => ({
+    time: d.time,
+    timestamp: d.timestamp,
+    price: d.price,
+    volume: d.volume,
+    open: d.open,
+    high: d.high,
+    low: d.low,
+    close: d.close,
+    ma7: d.ma7,
+  }));
+
   return (
     <div className="h-full flex flex-col">
       {showToolbar && (
-        <div className="flex flex-col gap-4 mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
               <div>
-                <span className="text-2xl font-bold text-gray-900">${currentPrice.toFixed(4)}</span>
+                <span className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}>
+                  ${currentPrice.toFixed(4)}
+                </span>
                 <span
                   className={`ml-2 text-sm font-medium ${
                     priceChange.percent >= 0 ? 'text-green-600' : 'text-red-600'
@@ -663,74 +856,239 @@ export function PriceChart({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowComparisonPanel(!showComparisonPanel)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                  showComparisonPanel || comparison.enabled
-                    ? 'bg-purple-50 text-purple-600 border-purple-200'
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                <span className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                  对比
-                </span>
-              </button>
+              {isMobile ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                      />
+                    </svg>
+                  </button>
+                  {mobileMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      <button
+                        onClick={() => {
+                          setShowComparisonPanel(!showComparisonPanel);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        {comparison.enabled ? '关闭对比' : '开启对比'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAnomalyDetectionEnabled(!anomalyDetectionEnabled);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        {anomalyDetectionEnabled ? '关闭异常检测' : '开启异常检测'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowPredictionInterval(!showPredictionInterval);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        {showPredictionInterval ? '关闭预测区间' : '开启预测区间'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowComparisonPanel(!showComparisonPanel)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      showComparisonPanel || comparison.enabled
+                        ? 'bg-purple-50 text-purple-600 border-purple-200'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      对比
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setAnomalyDetectionEnabled(!anomalyDetectionEnabled)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      anomalyDetectionEnabled
+                        ? 'bg-red-50 text-red-600 border-red-200'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                      异常检测
+                      {anomalyDetectionEnabled && anomalies.length > 0 && (
+                        <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-xs">
+                          {anomalies.length}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+
+                  {anomalyDetectionEnabled && anomalies.length > 0 && (
+                    <button
+                      onClick={() => setShowAnomalyStats(!showAnomalyStats)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                        showAnomalyStats
+                          ? 'bg-orange-50 text-orange-600 border-orange-200'
+                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          />
+                        </svg>
+                        统计
+                      </span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowPredictionInterval(!showPredictionInterval)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      showPredictionInterval
+                        ? 'bg-blue-50 text-blue-600 border-blue-200'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      预测区间
+                    </span>
+                  </button>
+                </>
+              )}
+
+              <ChartExportButton
+                chartRef={chartContainerRef}
+                data={exportData}
+                filename={`${symbol.toLowerCase()}-price-chart`}
+                compact={isMobile}
+              />
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              {TIME_RANGE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleTimeRangeChange(option.value)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    timeRange === option.value && !showCustomDatePicker && !comparison.enabled
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  showCustomDatePicker
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+          <div className="flex flex-wrap items-center gap-2">
+            {isMobile ? (
+              <select
+                value={timeRange}
+                onChange={(e) => handleTimeRangeChange(e.target.value as TimeRange)}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                自定义
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">粒度:</span>
+                {TIME_RANGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+                <option value="custom">自定义</option>
+              </select>
+            ) : (
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                {(Object.keys(GRANULARITY_CONFIG) as DataGranularity[]).map((g) => (
+                {TIME_RANGE_OPTIONS.map((option) => (
                   <button
-                    key={g}
-                    onClick={() => setGranularity(g)}
+                    key={option.value}
+                    onClick={() => handleTimeRangeChange(option.value)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      granularity === g
+                      timeRange === option.value && !showCustomDatePicker && !comparison.enabled
                         ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    {GRANULARITY_CONFIG[g].label}
+                    {option.label}
                   </button>
                 ))}
+                <button
+                  onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    showCustomDatePicker
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  自定义
+                </button>
               </div>
-            </div>
+            )}
+
+            {!isMobile && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">粒度:</span>
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  {(Object.keys(GRANULARITY_CONFIG) as DataGranularity[]).map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => setGranularity(g)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                        granularity === g
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {GRANULARITY_CONFIG[g].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showPredictionInterval && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">置信度:</span>
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setConfidenceLevel(level)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                        confidenceLevel === level
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      {level}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {showCustomDatePicker && (
@@ -859,9 +1217,12 @@ export function PriceChart({
         </div>
       )}
 
-      <div className="flex-1 min-h-0 bg-gray-50 rounded-lg p-4">
-        <ResponsiveContainer width="100%" height={height - (showToolbar ? 180 : 0)}>
-          <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+      <div ref={chartContainerRef} className="flex-1 min-h-0 bg-gray-50 rounded-lg p-2 sm:p-4">
+        <ResponsiveContainer width="100%" height={responsiveHeight - (showToolbar ? (isMobile ? 120 : 150) : 0)}>
+          <ComposedChart
+            data={dataWithPrediction}
+            margin={{ top: 10, right: isMobile ? 5 : 10, left: 0, bottom: 0 }}
+          >
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="#e5e7eb"
@@ -872,21 +1233,21 @@ export function PriceChart({
             <XAxis
               dataKey="time"
               stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: isMobile ? 10 : 11, fill: '#6b7280' }}
               tickLine={false}
               axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
-              minTickGap={30}
+              minTickGap={isMobile ? 50 : 30}
             />
 
             <YAxis
               yAxisId="price"
               stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: isMobile ? 10 : 11, fill: '#6b7280' }}
               tickLine={false}
               axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
               domain={[priceRange.min, priceRange.max]}
               tickFormatter={(value) => `$${Number(value).toFixed(2)}`}
-              width={60}
+              width={isMobile ? 45 : 60}
             />
 
             <YAxis
@@ -939,6 +1300,42 @@ export function PriceChart({
 
             {chartType === 'line' && (
               <>
+                {showPredictionInterval && (
+                  <>
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="predictionUpper"
+                      stroke="#3b82f6"
+                      strokeDasharray="5 5"
+                      strokeWidth={1}
+                      fill="transparent"
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="predictionLower"
+                      stroke="#3b82f6"
+                      strokeDasharray="5 5"
+                      strokeWidth={1}
+                      fill="transparent"
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="predictionUpper"
+                      stroke="none"
+                      fill="#3b82f6"
+                      fillOpacity={0.1}
+                      dot={false}
+                      activeDot={false}
+                    />
+                  </>
+                )}
                 <Line
                   yAxisId="price"
                   type="monotone"
@@ -980,6 +1377,10 @@ export function PriceChart({
               <Bar yAxisId="price" dataKey="high" shape={<CandlestickShape />} fill="transparent" />
             )}
 
+            {anomalyDetectionEnabled && anomalies.length > 0 && (
+              <AnomalyMarker anomalies={anomalies} yAxisId="price" />
+            )}
+
             <Brush
               dataKey="time"
               height={30}
@@ -991,8 +1392,14 @@ export function PriceChart({
         </ResponsiveContainer>
       </div>
 
+      {showAnomalyStats && anomalyDetectionEnabled && anomalies.length > 0 && (
+        <div className="mt-4">
+          <AnomalyStatsPanel anomalies={anomalies} />
+        </div>
+      )}
+
       {chartType === 'line' && (
-        <div className="flex items-center justify-center gap-6 mt-3">
+        <div className="flex items-center justify-center gap-6 mt-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-blue-500 rounded-full" />
             <span className="text-xs text-gray-500">价格</span>
@@ -1013,10 +1420,22 @@ export function PriceChart({
             />
             <span className="text-xs text-gray-500">MA7</span>
           </div>
+          {showPredictionInterval && (
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-blue-500/20 border border-blue-500 border-dashed rounded" />
+              <span className="text-xs text-gray-500">预测区间 ({confidenceLevel}% 置信度)</span>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-green-500/30 rounded" />
             <span className="text-xs text-gray-500">成交量</span>
           </div>
+          {anomalyDetectionEnabled && anomalies.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-500 rounded-full" />
+              <span className="text-xs text-gray-500">异常点 ({anomalies.length})</span>
+            </div>
+          )}
         </div>
       )}
     </div>
