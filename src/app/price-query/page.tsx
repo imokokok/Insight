@@ -175,7 +175,7 @@ const Icons = {
 };
 
 export default function PriceQueryPage() {
-  useI18n();
+  const { t } = useI18n();
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
   ]);
@@ -431,8 +431,8 @@ export default function PriceQueryPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">价格查询</h1>
-          <p className="text-sm text-gray-500 mt-1">灵活查询任意预言机、任意链的价格数据</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('priceQuery.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('priceQuery.description')}</p>
         </div>
         <div className="flex items-center gap-3 mt-4 md:mt-0">
           <button
@@ -441,7 +441,7 @@ export default function PriceQueryPage() {
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Icons.download />
-            CSV
+            {t('priceQuery.export.csv')}
           </button>
           <button
             onClick={exportToJSON}
@@ -449,7 +449,7 @@ export default function PriceQueryPage() {
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Icons.download />
-            JSON
+            {t('priceQuery.export.json')}
           </button>
         </div>
       </div>
@@ -460,7 +460,7 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.currency />
-            <span className="text-sm font-semibold text-gray-700">交易对</span>
+            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.symbol')}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {symbols.map((symbol) => (
@@ -483,7 +483,7 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.oracle />
-            <span className="text-sm font-semibold text-gray-700">预言机</span>
+            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.oracle')}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.values(OracleProvider).map((oracle) => {
@@ -502,7 +502,7 @@ export default function PriceQueryPage() {
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: oracleColors[oracle] }}
                   />
-                  {providerNames[oracle]}
+                  {t(`navbar.${oracle.toLowerCase()}`)}
                 </button>
               );
             })}
@@ -513,7 +513,7 @@ export default function PriceQueryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Icons.blockchain />
-            <span className="text-sm font-semibold text-gray-700">区块链</span>
+            <span className="text-sm font-semibold text-gray-700">{t('priceQuery.selectors.blockchain')}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.values(Blockchain).map((chain) => {
@@ -532,7 +532,7 @@ export default function PriceQueryPage() {
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: chainColors[chain] }}
                   />
-                  {chainNames[chain]}
+                  {t(`blockchain.${chain.toLowerCase()}`)}
                 </button>
               );
             })}
@@ -543,7 +543,7 @@ export default function PriceQueryPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Icons.clock />
-            <span className="text-sm font-semibold text-gray-700 mr-2">时间范围</span>
+            <span className="text-sm font-semibold text-gray-700 mr-2">{t('priceQuery.selectors.timeRange')}</span>
             <div className="flex gap-1">
               {TIME_RANGES.map((range) => (
                 <button
@@ -555,7 +555,7 @@ export default function PriceQueryPage() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {range.label}
+                  {t(`priceQuery.timeRanges.${range.key}`)}
                 </button>
               ))}
             </div>
@@ -570,7 +570,7 @@ export default function PriceQueryPage() {
             ) : (
               <Icons.refresh />
             )}
-            {loading ? '加载中...' : '查询'}
+            {loading ? t('priceQuery.loading') : t('priceQuery.query')}
           </button>
         </div>
       </div>
@@ -579,7 +579,7 @@ export default function PriceQueryPage() {
       {loading ? (
         <div className="py-16 flex flex-col justify-center items-center gap-4 border-b border-gray-200">
           <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin" />
-          <div className="text-sm text-gray-500">加载数据中...</div>
+          <div className="text-sm text-gray-500">{t('priceQuery.loadingData')}</div>
         </div>
       ) : (
         <>
@@ -587,7 +587,7 @@ export default function PriceQueryPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 border-b border-gray-200 mb-8">
             <div className="px-4 border-r border-gray-200 last:border-r-0">
               <StatItem
-                label="平均价格"
+                label={t('priceQuery.stats.avgPrice')}
                 value={
                   avgPrice > 0
                     ? avgPrice.toLocaleString(undefined, {
@@ -601,7 +601,7 @@ export default function PriceQueryPage() {
             </div>
             <div className="px-4 border-r border-gray-200 last:border-r-0">
               <StatItem
-                label="最高价格"
+                label={t('priceQuery.stats.maxPrice')}
                 value={
                   maxPrice > 0
                     ? maxPrice.toLocaleString(undefined, {
@@ -613,14 +613,14 @@ export default function PriceQueryPage() {
                 prefix="$"
                 subValue={
                   minPrice > 0
-                    ? `最低: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    ? `${t('priceQuery.stats.minPrice')}: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     : undefined
                 }
               />
             </div>
             <div className="px-4 border-r border-gray-200 last:border-r-0">
               <StatItem
-                label="价格区间"
+                label={t('priceQuery.stats.priceRange')}
                 value={
                   priceRange > 0
                     ? priceRange.toLocaleString(undefined, {
@@ -634,23 +634,23 @@ export default function PriceQueryPage() {
             </div>
             <div className="px-4 border-r border-gray-200 last:border-r-0">
               <StatItem
-                label="标准差"
+                label={t('priceQuery.stats.standardDeviation')}
                 value={standardDeviation > 0 ? standardDeviationPercent.toFixed(4) : '-'}
                 suffix="%"
                 subValue={
                   standardDeviation > 0
-                    ? `绝对值: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    ? `${t('priceQuery.stats.absoluteValue')}: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     : undefined
                 }
               />
             </div>
             <div className="px-4 border-r border-gray-200 last:border-r-0">
-              <StatItem label="数据点数" value={queryResults.length.toString()} />
+              <StatItem label={t('priceQuery.stats.dataPoints')} value={queryResults.length.toString()} />
             </div>
             <div className="px-4">
               <div className="py-4">
                 <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                  一致性评级
+                  {t('priceQuery.stats.consistencyRating')}
                 </div>
                 <div
                   className={`text-2xl font-bold ${standardDeviationPercent > 0 ? getConsistencyRating(standardDeviationPercent).color : 'text-gray-900'}`}
@@ -667,11 +667,11 @@ export default function PriceQueryPage() {
           <div className="mb-8 pb-8 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Icons.chart />
-              价格查询结果
+              {t('priceQuery.results.title')}
             </h2>
             {queryResults.length === 0 ? (
               <div className="py-12 text-center text-gray-500 text-sm">
-                请选择预言机和区块链进行查询
+                {t('priceQuery.results.empty')}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -679,19 +679,19 @@ export default function PriceQueryPage() {
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        预言机
+                        {t('priceQuery.results.table.oracle')}
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        区块链
+                        {t('priceQuery.results.table.blockchain')}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        价格
+                        {t('priceQuery.results.table.price')}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        时间戳
+                        {t('priceQuery.results.table.timestamp')}
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        来源
+                        {t('priceQuery.results.table.source')}
                       </th>
                     </tr>
                   </thead>
@@ -708,7 +708,7 @@ export default function PriceQueryPage() {
                               style={{ backgroundColor: oracleColors[result.provider] }}
                             />
                             <span className="font-medium text-gray-900">
-                              {providerNames[result.provider]}
+                              {t(`navbar.${result.provider.toLowerCase()}`)}
                             </span>
                           </div>
                         </td>
@@ -719,7 +719,7 @@ export default function PriceQueryPage() {
                               style={{ backgroundColor: chainColors[result.chain] }}
                             />
                             <span className="font-medium text-gray-900">
-                              {chainNames[result.chain]}
+                              {t(`blockchain.${result.chain.toLowerCase()}`)}
                             </span>
                           </div>
                         </td>
@@ -754,9 +754,9 @@ export default function PriceQueryPage() {
           {chartData.length > 0 && (
             <div className="mb-8 pb-8 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Icons.chart />
-                价格趋势图表
-              </h2>
+              <Icons.chart />
+              {t('priceQuery.chart.title')}
+            </h2>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
@@ -810,7 +810,7 @@ export default function PriceQueryPage() {
                     />
                     {queryResults.map(({ provider, chain }) => {
                       const key = `${provider}-${chain}`;
-                      const label = `${providerNames[provider]} (${chainNames[chain]})`;
+                      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                       const color = oracleColors[provider];
                       return (
                         <Line
@@ -833,7 +833,7 @@ export default function PriceQueryPage() {
 
           {/* Quick Links */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">快速跳转</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('priceQuery.quickLinks.title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <a
                 href="/cross-chain"
@@ -845,9 +845,9 @@ export default function PriceQueryPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
-                      跨链比较
+                      {t('priceQuery.quickLinks.crossChain')}
                     </p>
-                    <p className="text-xs text-gray-500">单个预言机在不同链上的价格比较</p>
+                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossChainDesc')}</p>
                   </div>
                 </div>
               </a>
@@ -861,9 +861,9 @@ export default function PriceQueryPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
-                      跨预言机比较
+                      {t('priceQuery.quickLinks.crossOracle')}
                     </p>
-                    <p className="text-xs text-gray-500">多个预言机在同一条链上的价格比较</p>
+                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossOracleDesc')}</p>
                   </div>
                 </div>
               </a>
@@ -877,9 +877,9 @@ export default function PriceQueryPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 group-hover:text-gray-700">
-                      Chainlink
+                      {t('navbar.chainlink')}
                     </p>
-                    <p className="text-xs text-gray-500">去中心化预言机网络</p>
+                    <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.chainlinkDesc')}</p>
                   </div>
                 </div>
               </a>

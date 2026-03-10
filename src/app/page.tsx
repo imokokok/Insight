@@ -37,10 +37,10 @@ const platformStatsBase = [
 ];
 
 const quickStats = [
-  { provider: 'Chainlink', symbol: 'LINK' },
-  { provider: 'Band Protocol', symbol: 'BAND' },
-  { provider: 'Pyth Network', symbol: 'PYTH' },
-  { provider: 'UMA', symbol: 'UMA' },
+  { providerKey: 'navbar.chainlink', symbol: 'LINK' },
+  { providerKey: 'navbar.bandProtocol', symbol: 'BAND' },
+  { providerKey: 'navbar.pythNetwork', symbol: 'PYTH' },
+  { providerKey: 'navbar.uma', symbol: 'UMA' },
 ];
 
 const navigationCardsBase = [
@@ -58,31 +58,31 @@ const navigationCardsBase = [
     },
     {
       href: '/chainlink',
-      titleKey: 'Chainlink',
+      titleKey: 'navbar.chainlink',
       descriptionKey: 'home.navigationCards.chainlink',
       icon: '🔗',
     },
     {
       href: '/band-protocol',
-      titleKey: 'Band Protocol',
+      titleKey: 'navbar.bandProtocol',
       descriptionKey: 'home.navigationCards.bandProtocol',
       icon: '📡',
     },
     {
       href: '/uma',
-      titleKey: 'UMA',
+      titleKey: 'navbar.uma',
       descriptionKey: 'home.navigationCards.uma',
       icon: '⭐',
     },
     {
       href: '/pyth-network',
-      titleKey: 'Pyth Network',
+      titleKey: 'navbar.pythNetwork',
       descriptionKey: 'home.navigationCards.pythNetwork',
       icon: '📊',
     },
     {
       href: '/api3',
-      titleKey: 'API3',
+      titleKey: 'navbar.api3',
       descriptionKey: 'home.navigationCards.api3',
       icon: '🔌',
     },
@@ -180,7 +180,7 @@ export default function Home() {
             >
               <CardContent className="py-4 sm:py-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.provider}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t(stat.providerKey)}</p>
                   <span className="text-base sm:text-lg font-semibold text-gray-500">
                     {stat.symbol}
                   </span>
