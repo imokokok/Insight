@@ -169,7 +169,28 @@
     "percentDifference": "Percent Difference",
     "smallSpread": "Small Spread",
     "mediumSpread": "Medium Spread",
-    "largeSpread": "Large Spread"
+    "largeSpread": "Large Spread",
+    "outlier": "Outlier",
+    "autoRefresh": "Auto:",
+    "autoRefreshOff": "Off",
+    "autoRefresh30s": "30s",
+    "autoRefresh1m": "1m",
+    "autoRefresh5m": "5m",
+    "lastUpdated": "Last updated",
+    "confidence": "Confidence",
+    "selectChains": "Select Chains",
+    "allChains": "All Chains",
+    "heatmapClickHint": "Click for details",
+    "dataPoints": "Data Points",
+    "dataFreshness": "Data Freshness",
+    "freshness": {
+      "excellent": "Fresh",
+      "good": "Good",
+      "slow": "Delayed"
+    },
+    "priceDeviationWarning": "Price Deviation Warning",
+    "deviationThreshold": "Threshold: {threshold}%",
+    "deviationAlert": "{count} chain(s) detected with price deviation above threshold"
   },
   "chainlink": {
     "title": "Chainlink",
@@ -1083,6 +1104,13 @@
   "priceQuery": {
     "title": "Price Query",
     "description": "Flexibly query price data from any oracle on any chain",
+    "filterToggle": "Filter Options",
+    "scrollHint": "← Swipe to view more →",
+    "filter": {
+      "placeholder": "Search oracle or blockchain...",
+      "results": "Showing {count} / {total} results",
+      "noResults": "No matching results found"
+    },
     "export": {
       "csv": "CSV",
       "json": "JSON"
@@ -1102,6 +1130,14 @@
     "query": "Query",
     "loading": "Loading...",
     "loadingData": "Loading data...",
+    "error": {
+      "fetchFailed": "Failed to fetch data, please try again later",
+      "retry": "Retry",
+      "retrying": "Retrying...",
+      "lastSuccessfulFetch": "Last successful fetch",
+      "noSuccessfulFetch": "No successful fetch yet"
+    },
+    "lastUpdated": "Last updated",
     "results": {
       "title": "Price Query Results",
       "empty": "Please select oracles and blockchains to query",
@@ -1111,6 +1147,11 @@
         "price": "Price",
         "timestamp": "Timestamp",
         "source": "Source"
+      },
+      "priceChange": {
+        "up": "Up",
+        "down": "Down",
+        "same": "No Change"
       }
     },
     "stats": {
@@ -1124,7 +1165,15 @@
       "absoluteValue": "Absolute Value"
     },
     "chart": {
-      "title": "Price Trend Chart"
+      "title": "Price Trend Chart",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "reset": "Reset",
+      "exportImage": "Export Image",
+      "tooltip": {
+        "time": "Time",
+        "dataPoints": "Data Points"
+      }
     },
     "quickLinks": {
       "title": "Quick Links",
@@ -1140,6 +1189,15 @@
       "good": "Good",
       "fair": "Fair",
       "poor": "Poor"
+    },
+    "autoRefresh": {
+      "title": "Auto Refresh",
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m",
+      "countdown": "Refresh in {seconds}s",
+      "refreshing": "Refreshing..."
     }
   },
   "language": {

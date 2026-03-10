@@ -79,11 +79,15 @@ const chainColors: Record<Blockchain, string> = {
 };
 
 const TIME_RANGES = [
-  { value: 1, key: 'timeRange1Hour' },
-  { value: 6, key: 'timeRange6Hours' },
-  { value: 24, key: 'timeRange24Hours' },
-  { value: 168, key: 'timeRange7Days' },
+  { value: 1, key: 'timeRange1Hour', label: '1H' },
+  { value: 6, key: 'timeRange6Hours', label: '6H' },
+  { value: 24, key: 'timeRange24Hours', label: '24H' },
+  { value: 168, key: 'timeRange7Days', label: '7D' },
 ];
+
+type RefreshInterval = 0 | 30000 | 60000 | 300000;
+
+const DEVIATION_THRESHOLD = 0.5;
 
 export default function CrossChainPage() {
   const { t } = useI18n();
@@ -98,6 +102,16 @@ export default function CrossChainPage() {
   >({});
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedBaseChain, setSelectedBaseChain] = useState<Blockchain | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [prevStats, setPrevStats] = useState<{
+    avgPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    standardDeviationPercent: number;
+  } | null>(null);
+  const [visibleChains, setVisibleChains] = useState<Blockchain[]>([]);
 
   const generateFilename = (extension: string): string => {
     const now = new Date();
@@ -129,20 +143,17 @@ export default function CrossChainPage() {
     csvLines.push('=== ' + t('historicalPrices') + ' ===');
 
     const allTimestamps = new Set<number>();
-    supportedChains.forEach((chain) => {
+    filteredChains.forEach((chain) => {
       historicalPrices[chain]?.forEach((price) => allTimestamps.add(price.timestamp));
     });
     const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
-    const historicalHeaders = [
-      t('timestamp'),
-      ...supportedChains.map((chain) => chainNames[chain]),
-    ];
+    const historicalHeaders = [t('timestamp'), ...filteredChains.map((chain) => chainNames[chain])];
     csvLines.push(historicalHeaders.join(','));
 
     sortedTimestamps.forEach((timestamp) => {
       const row: string[] = [new Date(timestamp).toLocaleString()];
-      supportedChains.forEach((chain) => {
+      filteredChains.forEach((chain) => {
         const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
         row.push(
           price
@@ -182,7 +193,7 @@ export default function CrossChainPage() {
         difference: item.diff,
         percentDifference: item.diffPercent,
       })),
-      historicalPrices: supportedChains.map((chain) => ({
+      historicalPrices: filteredChains.map((chain) => ({
         blockchain: chainNames[chain],
         prices:
           historicalPrices[chain]?.map((price) => ({
@@ -198,6 +209,7 @@ export default function CrossChainPage() {
         priceRange: priceRange,
         standardDeviationPercent: standardDeviationPercent,
         consistencyRating: getConsistencyRating(standardDeviationPercent),
+        dataPoints: totalDataPoints,
       },
     };
 
@@ -234,6 +246,30 @@ export default function CrossChainPage() {
         historicalMap[chain] = historicalResults[index];
       });
       setHistoricalPrices(historicalMap);
+
+      const validPrices = currentResults.map((d) => d.price).filter((p) => p > 0);
+      const newAvgPrice =
+        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+      const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+      const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+      const newPriceRange = newMaxPrice - newMinPrice;
+      const variance =
+        validPrices.length > 1
+          ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
+            validPrices.length
+          : 0;
+      const stdDev = Math.sqrt(variance);
+      const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
+
+      setPrevStats({
+        avgPrice: newAvgPrice,
+        maxPrice: newMaxPrice,
+        minPrice: newMinPrice,
+        priceRange: newPriceRange,
+        standardDeviationPercent: newStdDevPercent,
+      });
+
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -245,6 +281,22 @@ export default function CrossChainPage() {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProvider, selectedSymbol, selectedTimeRange]);
+
+  useEffect(() => {
+    if (refreshInterval === 0) return;
+
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, refreshInterval);
+
+    return () => clearInterval(intervalId);
+  }, [refreshInterval, fetchData]);
+
+  useEffect(() => {
+    if (supportedChains.length > 0 && visibleChains.length === 0) {
+      setVisibleChains([...supportedChains]);
+    }
+  }, [supportedChains, visibleChains.length]);
 
   useEffect(() => {
     if (supportedChains.length > 0 && !selectedBaseChain) {
@@ -259,10 +311,23 @@ export default function CrossChainPage() {
     }
   }, [supportedChains, selectedBaseChain]);
 
+  const toggleChain = (chain: Blockchain) => {
+    setVisibleChains((prev) => {
+      if (prev.includes(chain)) {
+        return prev.filter((c) => c !== chain);
+      }
+      return [...prev, chain];
+    });
+  };
+
+  const filteredChains = useMemo(() => {
+    return supportedChains.filter((chain) => visibleChains.includes(chain));
+  }, [supportedChains, visibleChains]);
+
   const chartData = useMemo(() => {
     if (Object.keys(historicalPrices).length === 0) return [];
     const timestamps = new Set<number>();
-    supportedChains.forEach((chain) => {
+    filteredChains.forEach((chain) => {
       historicalPrices[chain]?.forEach((price) => timestamps.add(price.timestamp));
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
@@ -282,7 +347,7 @@ export default function CrossChainPage() {
         timestamp,
         time: new Date(timestamp).toLocaleString([], getTimeFormat()),
       };
-      supportedChains.forEach((chain) => {
+      filteredChains.forEach((chain) => {
         const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
         if (price) {
           dataPoint[chain] = price.price;
@@ -290,28 +355,32 @@ export default function CrossChainPage() {
       });
       return dataPoint;
     });
-  }, [historicalPrices, supportedChains, selectedTimeRange]);
+  }, [historicalPrices, filteredChains, selectedTimeRange]);
 
   const priceDifferences = useMemo(() => {
-    if (currentPrices.length < 2 || !selectedBaseChain) return [];
-    const basePriceData = currentPrices.find((p) => p.chain === selectedBaseChain);
+    const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
+    if (filteredPrices.length < 2 || !selectedBaseChain) return [];
+    const basePriceData = filteredPrices.find((p) => p.chain === selectedBaseChain);
     if (!basePriceData) return [];
     const basePrice = basePriceData.price;
-    return currentPrices.map((priceData) => {
+    return filteredPrices.map((priceData) => {
       const diff = priceData.price - basePrice;
       const diffPercent = (diff / basePrice) * 100;
       return {
-        chain: priceData.chain,
+        chain: priceData.chain!,
         price: priceData.price,
         diff,
         diffPercent,
       };
     });
-  }, [currentPrices, selectedBaseChain]);
+  }, [currentPrices, selectedBaseChain, filteredChains]);
 
   const validPrices = useMemo(() => {
-    return currentPrices.map((d) => d.price).filter((p) => p > 0);
-  }, [currentPrices]);
+    return currentPrices
+      .filter((d) => d.chain && filteredChains.includes(d.chain))
+      .map((d) => d.price)
+      .filter((p) => p > 0);
+  }, [currentPrices, filteredChains]);
 
   const avgPrice = useMemo(() => {
     return validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
@@ -355,6 +424,14 @@ export default function CrossChainPage() {
     return avgPrice > 0 ? standardDeviation / avgPrice : 0;
   }, [standardDeviation, avgPrice]);
 
+  const totalDataPoints = useMemo(() => {
+    let count = 0;
+    filteredChains.forEach((chain) => {
+      count += historicalPrices[chain]?.length || 0;
+    });
+    return count;
+  }, [historicalPrices, filteredChains]);
+
   const getConsistencyRating = (stdDevPercent: number): string => {
     if (stdDevPercent < 0.1) return 'excellent';
     if (stdDevPercent < 0.3) return 'good';
@@ -368,9 +445,34 @@ export default function CrossChainPage() {
     return 'unstable';
   };
 
+  const calculateZScore = (price: number, mean: number, stdDev: number): number | null => {
+    if (stdDev === 0) return null;
+    return (price - mean) / stdDev;
+  };
+
+  const isOutlier = (zScore: number | null): boolean => {
+    if (zScore === null) return false;
+    return Math.abs(zScore) > 2;
+  };
+
+  const calculateChangePercent = (current: number, previous: number): number | null => {
+    if (previous === 0 || current === 0) return null;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const renderTrendIndicator = (changePercent: number | null) => {
+    if (changePercent === null) return null;
+    const isPositive = changePercent >= 0;
+    return (
+      <span className={`text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(2)}%
+      </span>
+    );
+  };
+
   const chainVolatility = useMemo(() => {
     const volatility: Partial<Record<Blockchain, number>> = {};
-    supportedChains.forEach((chain) => {
+    filteredChains.forEach((chain) => {
       const prices = historicalPrices[chain]?.map((p) => p.price) || [];
       if (prices.length < 2) {
         volatility[chain] = 0;
@@ -383,17 +485,17 @@ export default function CrossChainPage() {
       volatility[chain] = mean > 0 ? (stdDev / mean) * 100 : 0;
     });
     return volatility;
-  }, [historicalPrices, supportedChains]);
+  }, [historicalPrices, filteredChains]);
 
   const updateDelays = useMemo(() => {
-    if (supportedChains.length === 0) return {};
-    const baseChain = supportedChains[0];
+    if (filteredChains.length === 0) return {};
+    const baseChain = filteredChains[0];
     const delays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>> = {};
 
     const basePrices = historicalPrices[baseChain] || [];
     if (basePrices.length === 0) return delays;
 
-    supportedChains.forEach((chain) => {
+    filteredChains.forEach((chain) => {
       if (chain === baseChain) {
         delays[chain] = { avgDelay: 0, maxDelay: 0 };
         return;
@@ -430,16 +532,25 @@ export default function CrossChainPage() {
     });
 
     return delays;
-  }, [historicalPrices, supportedChains]);
+  }, [historicalPrices, filteredChains]);
+
+  const getDataFreshness = (chain: Blockchain): { status: string; color: string } => {
+    const delay = updateDelays[chain];
+    if (!delay) return { status: 'unknown', color: 'text-gray-400' };
+    if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-green-600' };
+    if (delay.avgDelay < 15) return { status: 'good', color: 'text-yellow-600' };
+    return { status: 'slow', color: 'text-red-600' };
+  };
 
   const heatmapData = useMemo(() => {
-    if (currentPrices.length < 2) return [];
+    const filteredPrices = currentPrices.filter((p) => p.chain && filteredChains.includes(p.chain));
+    if (filteredPrices.length < 2) return [];
     const data: HeatmapData[] = [];
 
-    supportedChains.forEach((xChain) => {
-      supportedChains.forEach((yChain) => {
-        const xPrice = currentPrices.find((p) => p.chain === xChain)?.price || 0;
-        const yPrice = currentPrices.find((p) => p.chain === yChain)?.price || 0;
+    filteredChains.forEach((xChain) => {
+      filteredChains.forEach((yChain) => {
+        const xPrice = filteredPrices.find((p) => p.chain === xChain)?.price || 0;
+        const yPrice = filteredPrices.find((p) => p.chain === yChain)?.price || 0;
         const diff = Math.abs(xPrice - yPrice);
         const percent = xPrice > 0 ? (diff / xPrice) * 100 : 0;
 
@@ -455,7 +566,7 @@ export default function CrossChainPage() {
     });
 
     return data;
-  }, [currentPrices, supportedChains]);
+  }, [currentPrices, filteredChains]);
 
   const maxHeatmapValue = useMemo(() => {
     if (heatmapData.length === 0) return 1;
@@ -496,15 +607,21 @@ export default function CrossChainPage() {
     label: symbol,
   }));
 
-  const timeRangeOptions = TIME_RANGES.map((range) => ({
-    value: range.value,
-    label: t(range.key),
-  }));
+  const refreshOptions = [
+    { value: 0, label: t('crossChain.autoRefreshOff') },
+    { value: 30000, label: t('crossChain.autoRefresh30s') },
+    { value: 60000, label: t('crossChain.autoRefresh1m') },
+    { value: 300000, label: t('crossChain.autoRefresh5m') },
+  ];
 
-  const baseChainOptions = supportedChains.map((chain) => ({
+  const baseChainOptions = filteredChains.map((chain) => ({
     value: chain,
     label: chainNames[chain],
   }));
+
+  const chainsWithHighDeviation = useMemo(() => {
+    return priceDifferences.filter((item) => Math.abs(item.diffPercent) > DEVIATION_THRESHOLD);
+  }, [priceDifferences]);
 
   const statsData = [
     {
@@ -513,7 +630,7 @@ export default function CrossChainPage() {
         avgPrice > 0
           ? `$${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : '-',
-      subValue: null,
+      trend: calculateChangePercent(avgPrice, prevStats?.avgPrice || 0),
     },
     {
       label: t('crossChain.highestPrice'),
@@ -521,6 +638,7 @@ export default function CrossChainPage() {
         maxPrice > 0
           ? `$${maxPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : '-',
+      trend: calculateChangePercent(maxPrice, prevStats?.maxPrice || 0),
       subValue:
         minPrice > 0
           ? `Min: $${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -532,11 +650,15 @@ export default function CrossChainPage() {
         priceRange > 0
           ? `$${priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : '-',
-      subValue: null,
+      trend: calculateChangePercent(priceRange, prevStats?.priceRange || 0),
     },
     {
       label: t('crossChain.standardDeviation'),
       value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-',
+      trend: calculateChangePercent(
+        standardDeviationPercent,
+        prevStats?.standardDeviationPercent || 0
+      ),
       subValue:
         standardDeviation > 0
           ? `$${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -545,7 +667,7 @@ export default function CrossChainPage() {
     {
       label: t('crossChain.coefficientOfVariation'),
       value: coefficientOfVariation > 0 ? `${(coefficientOfVariation * 100).toFixed(4)}%` : '-',
-      subValue: null,
+      trend: null,
     },
     {
       label: t('crossChain.consistencyRating'),
@@ -553,19 +675,23 @@ export default function CrossChainPage() {
         standardDeviationPercent > 0
           ? t(`crossChain.consistency.${getConsistencyRating(standardDeviationPercent)}`)
           : '-',
-      subValue: null,
+      trend: null,
+    },
+    {
+      label: t('crossChain.dataPoints'),
+      value: totalDataPoints.toString(),
+      trend: null,
     },
   ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{t('crossChain.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('crossChain.subtitle')}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2 mt-4 md:mt-0">
+        <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
           <span className="text-sm text-gray-500">{t('crossChain.export')}:</span>
           <button
             onClick={exportToCSV}
@@ -581,10 +707,73 @@ export default function CrossChainPage() {
           >
             JSON
           </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200">
+            <span className="text-sm text-gray-600">{t('crossChain.autoRefresh')}</span>
+            <select
+              value={refreshInterval}
+              onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
+              className="text-sm bg-transparent focus:outline-none border-none"
+            >
+              {refreshOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            )}
+            {loading ? t('crossChain.loading') : t('crossChain.refresh')}
+          </button>
+          {lastUpdated && (
+            <span className="text-xs text-gray-400">
+              {t('crossChain.lastUpdated')} {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Controls */}
+      {chainsWithHighDeviation.length > 0 && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200">
+          <div className="flex items-center gap-2">
+            <svg
+              className="w-5 h-5 text-amber-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <span className="text-sm font-medium text-amber-800">
+              {t('crossChain.deviationAlert').replace(
+                '{count}',
+                chainsWithHighDeviation.length.toString()
+              )}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b border-gray-200">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500 uppercase tracking-wide">
@@ -622,17 +811,21 @@ export default function CrossChainPage() {
           <label className="text-xs text-gray-500 uppercase tracking-wide">
             {t('crossChain.timeRange')}
           </label>
-          <select
-            value={selectedTimeRange}
-            onChange={(e) => setSelectedTimeRange(Number(e.target.value))}
-            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[120px]"
-          >
-            {timeRangeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            {TIME_RANGES.map((range) => (
+              <button
+                key={range.value}
+                onClick={() => setSelectedTimeRange(range.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                  selectedTimeRange === range.value
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {range.label}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-gray-500 uppercase tracking-wide">
@@ -650,25 +843,32 @@ export default function CrossChainPage() {
             ))}
           </select>
         </div>
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-        >
-          {loading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          )}
-          {loading ? t('crossChain.loading') : t('crossChain.refresh')}
-        </button>
+      </div>
+
+      <div className="mb-6 pb-6 border-b border-gray-200">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">{t('crossChain.visibleChains')}</h3>
+        <div className="flex flex-wrap gap-2">
+          {supportedChains.map((chain) => {
+            const isVisible = visibleChains.includes(chain);
+            return (
+              <button
+                key={chain}
+                onClick={() => toggleChain(chain)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isVisible
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: isVisible ? 'white' : chainColors[chain] }}
+                />
+                {chainNames[chain]}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {loading ? (
@@ -678,29 +878,28 @@ export default function CrossChainPage() {
         </div>
       ) : (
         <>
-          {/* Heatmap */}
           <div className="mb-8 pb-8 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
-              {t('crossChain.priceVolatilityHeatmap')}
+              {t('crossChain.priceSpreadHeatmap')}
             </h3>
             <div className="overflow-x-auto">
               <div className="min-w-full">
                 <div className="flex">
                   <div className="w-24 shrink-0" />
-                  {supportedChains.map((chain) => (
+                  {filteredChains.map((chain) => (
                     <div key={chain} className="flex-1 min-w-20 text-center px-1 py-2">
                       <span className="text-xs font-medium text-gray-600">{chainNames[chain]}</span>
                     </div>
                   ))}
                 </div>
-                {supportedChains.map((xChain) => (
+                {filteredChains.map((xChain) => (
                   <div key={xChain} className="flex">
                     <div className="w-24 shrink-0 flex items-center py-1">
                       <span className="text-xs font-medium text-gray-600">
                         {chainNames[xChain]}
                       </span>
                     </div>
-                    {supportedChains.map((yChain) => {
+                    {filteredChains.map((yChain) => {
                       const cell = heatmapData.find(
                         (d) => d.xChain === xChain && d.yChain === yChain
                       );
@@ -737,25 +936,29 @@ export default function CrossChainPage() {
                   </div>
                 ))}
                 <div className="mt-4 flex items-center justify-center gap-2">
-                  <span className="text-xs text-gray-500">{t('crossChain.low')}</span>
+                  <span className="text-xs text-gray-500">{t('crossOracle.low')}</span>
                   <div
                     className="w-32 h-2"
                     style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}
                   />
-                  <span className="text-xs text-gray-500">{t('crossChain.high')}</span>
+                  <span className="text-xs text-gray-500">{t('crossOracle.high')}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 pb-8 border-b border-gray-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-0 mb-8 pb-8 border-b border-gray-200">
             {statsData.map((stat, index) => (
               <div
                 key={index}
                 className={`px-4 py-3 ${index > 0 ? 'border-l border-gray-200' : ''}`}
               >
-                <div className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</div>
+                  {stat.trend !== null &&
+                    stat.trend !== undefined &&
+                    renderTrendIndicator(stat.trend)}
+                </div>
                 <div className="text-lg font-semibold text-gray-900 mt-1">{stat.value}</div>
                 {stat.subValue && (
                   <div className="text-xs text-gray-400 mt-0.5">{stat.subValue}</div>
@@ -764,7 +967,6 @@ export default function CrossChainPage() {
             ))}
           </div>
 
-          {/* Price Comparison Table */}
           <div className="mb-8 pb-8 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
               {t('crossChain.priceComparisonTable')}
@@ -789,45 +991,68 @@ export default function CrossChainPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {priceDifferences.map((item) => (
-                    <tr key={item.chain} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center">
-                          <div
-                            className="w-3 h-3 mr-2"
-                            style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
-                          />
-                          <span className="text-sm font-medium text-gray-900">
-                            {chainNames[item.chain as Blockchain]}
+                  {priceDifferences.map((item) => {
+                    const zScore = calculateZScore(item.price, avgPrice, standardDeviation);
+                    const outlier = isOutlier(zScore);
+                    const highDeviation = Math.abs(item.diffPercent) > DEVIATION_THRESHOLD;
+
+                    return (
+                      <tr
+                        key={item.chain}
+                        className={`border-b border-gray-100 hover:bg-gray-50 ${
+                          outlier ? 'bg-amber-50' : ''
+                        }`}
+                      >
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <div
+                              className="w-3 h-3 mr-2"
+                              style={{ backgroundColor: chainColors[item.chain as Blockchain] }}
+                            />
+                            <span className="text-sm font-medium text-gray-900">
+                              {chainNames[item.chain as Blockchain]}
+                            </span>
+                            {outlier && (
+                              <span className="ml-2 text-amber-600 text-xs font-medium bg-amber-100 px-1.5 py-0.5">
+                                {t('crossChain.outlier')}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
+                          $
+                          {item.price.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
-                        $
-                        {item.price.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono text-sm">
-                        <span className={item.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {item.diff >= 0 ? '+' : ''}${item.diff.toFixed(4)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono text-sm">
-                        <span className={item.diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {item.diffPercent >= 0 ? '+' : ''}
-                          {item.diffPercent.toFixed(4)}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          <span
+                            className={`font-medium ${
+                              highDeviation
+                                ? 'text-amber-600'
+                                : item.diffPercent >= 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                            }`}
+                          >
+                            {item.diffPercent >= 0 ? '+' : ''}
+                            {item.diffPercent.toFixed(4)}%
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Stability Analysis Table */}
           <div className="mb-8 pb-8 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
               {t('crossChain.stabilityAnalysis')}
@@ -846,6 +1071,9 @@ export default function CrossChainPage() {
                       {t('crossChain.stabilityRating')}
                     </th>
                     <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
+                      {t('crossChain.dataFreshness')}
+                    </th>
+                    <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
                       {t('crossChain.averageDelay')}
                     </th>
                     <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
@@ -854,10 +1082,11 @@ export default function CrossChainPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {supportedChains.map((chain) => {
+                  {filteredChains.map((chain) => {
                     const volatility = chainVolatility[chain] ?? 0;
                     const delay = updateDelays[chain];
                     const stabilityRating = getStabilityRating(volatility);
+                    const freshness = getDataFreshness(chain);
 
                     const stabilityColorMap: Record<string, string> = {
                       stable: 'text-green-600',
@@ -888,6 +1117,11 @@ export default function CrossChainPage() {
                             {volatility > 0 ? t(`crossChain.stability.${stabilityRating}`) : '-'}
                           </span>
                         </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className={`text-sm font-medium ${freshness.color}`}>
+                            {t(`crossChain.freshness.${freshness.status}`)}
+                          </span>
+                        </td>
                         <td className="py-3 px-4 text-right font-mono text-sm text-gray-900">
                           {delay ? `${delay.avgDelay.toFixed(2)} ${t('crossChain.seconds')}` : '-'}
                         </td>
@@ -902,7 +1136,6 @@ export default function CrossChainPage() {
             </div>
           </div>
 
-          {/* Price Chart */}
           <div>
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
               {t('crossChain.priceChart')}
@@ -944,7 +1177,7 @@ export default function CrossChainPage() {
                     iconType="line"
                     iconSize={12}
                   />
-                  {supportedChains.map((chain) => (
+                  {filteredChains.map((chain) => (
                     <Line
                       key={chain}
                       type="monotone"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import {
   LineChart,
@@ -93,7 +93,13 @@ interface QueryResult {
 // Icons
 const Icons = {
   currency: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -103,7 +109,13 @@ const Icons = {
     </svg>
   ),
   oracle: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -113,7 +125,13 @@ const Icons = {
     </svg>
   ),
   blockchain: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -123,7 +141,13 @@ const Icons = {
     </svg>
   ),
   clock: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -133,7 +157,13 @@ const Icons = {
     </svg>
   ),
   download: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -143,7 +173,13 @@ const Icons = {
     </svg>
   ),
   refresh: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -153,22 +189,120 @@ const Icons = {
     </svg>
   ),
   arrowUp: () => (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-3 h-3"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7 7 7" />
     </svg>
   ),
   arrowDown: () => (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-3 h-3"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7-7-7" />
     </svg>
   ),
   chart: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+      />
+    </svg>
+  ),
+  search: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
+    </svg>
+  ),
+  zoomIn: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
+      />
+    </svg>
+  ),
+  zoomOut: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
+      />
+    </svg>
+  ),
+  reset: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
+    </svg>
+  ),
+  image: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
       />
     </svg>
   ),
@@ -185,11 +319,118 @@ export default function PriceQueryPage() {
   const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
   const [historicalData, setHistoricalData] = useState<Partial<Record<string, PriceData[]>>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [filterText, setFilterText] = useState<string>('');
+  const [sortField, setSortField] = useState<'oracle' | 'blockchain' | 'price' | 'timestamp'>(
+    'oracle'
+  );
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  const generateFilename = (extension: string): string => {
-    const now = new Date();
-    const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
-    return `price-query-${selectedSymbol}-${timestamp}.${extension}`;
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.2, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.2, 0.5));
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+  };
+
+  const generateFilename = useCallback(
+    (extension: string): string => {
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+      return `price-query-${selectedSymbol}-${timestamp}.${extension}`;
+    },
+    [selectedSymbol]
+  );
+
+  const handleExportChart = useCallback(async () => {
+    if (!chartContainerRef.current) return;
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const chartElement = chartContainerRef.current;
+      const svgElement = chartElement.querySelector('svg');
+      if (!svgElement) return;
+
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width * 2;
+        canvas.height = img.height * 2;
+        ctx.scale(2, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = generateFilename('png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } catch (error) {
+      console.error('Failed to export chart:', error);
+    }
+  }, [selectedSymbol]);
+
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number; color: string; dataKey: string }>;
+    label?: string;
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    return (
+      <div className="bg-white border border-gray-200 shadow-lg p-3 min-w-[200px]">
+        <div className="text-xs font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">
+          {t('priceQuery.chart.tooltip.time')}: {label}
+        </div>
+        <div className="space-y-1.5">
+          {payload.map((entry, index) => {
+            return (
+              <div key={index} className="flex items-start gap-2">
+                <span
+                  className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-gray-900 truncate">{entry.name}</div>
+                  <div className="text-sm font-mono text-gray-700">
+                    $
+                    {Number(entry.value).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 4,
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+          {t('priceQuery.chart.tooltip.dataPoints')}: {payload.length}
+        </div>
+      </div>
+    );
   };
 
   const exportToCSV = () => {
@@ -340,6 +581,55 @@ export default function PriceQueryPage() {
     });
   }, [historicalData, queryResults, selectedTimeRange]);
 
+  const sortedQueryResults = useMemo(() => {
+    return [...queryResults].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case 'oracle':
+          comparison = providerNames[a.provider].localeCompare(providerNames[b.provider]);
+          break;
+        case 'blockchain':
+          comparison = chainNames[a.chain].localeCompare(chainNames[b.chain]);
+          break;
+        case 'price':
+          comparison = a.priceData.price - b.priceData.price;
+          break;
+        case 'timestamp':
+          comparison = a.priceData.timestamp - b.priceData.timestamp;
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [queryResults, sortField, sortDirection]);
+
+  const filteredQueryResults = useMemo(() => {
+    if (!filterText.trim()) return sortedQueryResults;
+    const lowerFilter = filterText.toLowerCase();
+    return sortedQueryResults.filter((result) => {
+      const oracleName = providerNames[result.provider].toLowerCase();
+      const chainName = chainNames[result.chain].toLowerCase();
+      const oracleTranslation = t(`navbar.${result.provider.toLowerCase()}`).toLowerCase();
+      const chainTranslation = t(`blockchain.${result.chain.toLowerCase()}`).toLowerCase();
+      return (
+        oracleName.includes(lowerFilter) ||
+        chainName.includes(lowerFilter) ||
+        oracleTranslation.includes(lowerFilter) ||
+        chainTranslation.includes(lowerFilter)
+      );
+    });
+  }, [sortedQueryResults, filterText, t]);
+
+  const handleSort = (field: 'oracle' | 'blockchain' | 'price' | 'timestamp') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   const validPrices = useMemo(() => {
     return queryResults.map((r) => r.priceData.price).filter((p) => p > 0);
   }, [queryResults]);
@@ -428,6 +718,11 @@ export default function PriceQueryPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div aria-live="polite" className="sr-only">
+        {loading
+          ? t('priceQuery.loadingData')
+          : `${queryResults.length} ${t('priceQuery.results.title')}`}
+      </div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
@@ -438,7 +733,8 @@ export default function PriceQueryPage() {
           <button
             onClick={exportToCSV}
             disabled={loading || queryResults.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label={t('priceQuery.export.csv')}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
           >
             <Icons.download />
             {t('priceQuery.export.csv')}
@@ -446,7 +742,8 @@ export default function PriceQueryPage() {
           <button
             onClick={exportToJSON}
             disabled={loading || queryResults.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label={t('priceQuery.export.json')}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
           >
             <Icons.download />
             {t('priceQuery.export.json')}
@@ -458,18 +755,24 @@ export default function PriceQueryPage() {
       <div className="mb-8 pb-8 border-b border-gray-200">
         {/* Symbol Selector */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+          <div id="symbol-selector-label" className="flex items-center gap-2 mb-3">
             <Icons.currency />
             <span className="text-sm font-semibold text-gray-700">
               {t('priceQuery.selectors.symbol')}
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-labelledby="symbol-selector-label"
+          >
             {symbols.map((symbol) => (
               <button
                 key={symbol}
                 onClick={() => setSelectedSymbol(symbol)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                aria-label={`${t('priceQuery.selectors.symbol')}: ${symbol}`}
+                aria-pressed={selectedSymbol === symbol}
+                className={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${
                   selectedSymbol === symbol
                     ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -483,20 +786,26 @@ export default function PriceQueryPage() {
 
         {/* Oracle Selector */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+          <div id="oracle-selector-label" className="flex items-center gap-2 mb-3">
             <Icons.oracle />
             <span className="text-sm font-semibold text-gray-700">
               {t('priceQuery.selectors.oracle')}
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-labelledby="oracle-selector-label"
+          >
             {Object.values(OracleProvider).map((oracle) => {
               const isSelected = selectedOracles.includes(oracle);
               return (
                 <button
                   key={oracle}
                   onClick={() => toggleOracle(oracle)}
-                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  aria-label={`${t('priceQuery.selectors.oracle')}: ${t(`navbar.${oracle.toLowerCase()}`)}`}
+                  aria-pressed={isSelected}
+                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${
                     isSelected
                       ? 'bg-gray-900 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -505,6 +814,7 @@ export default function PriceQueryPage() {
                   <span
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: oracleColors[oracle] }}
+                    aria-hidden="true"
                   />
                   {t(`navbar.${oracle.toLowerCase()}`)}
                 </button>
@@ -585,8 +895,15 @@ export default function PriceQueryPage() {
 
       {/* Loading State */}
       {loading ? (
-        <div className="py-16 flex flex-col justify-center items-center gap-4 border-b border-gray-200">
-          <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin" />
+        <div
+          className="py-16 flex flex-col justify-center items-center gap-4 border-b border-gray-200"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin"
+            aria-hidden="true"
+          />
           <div className="text-sm text-gray-500">{t('priceQuery.loadingData')}</div>
         </div>
       ) : (
@@ -676,184 +993,379 @@ export default function PriceQueryPage() {
 
           {/* Price Results Table */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Icons.chart />
-              {t('priceQuery.results.title')}
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Icons.chart />
+                {t('priceQuery.results.title')}
+              </h2>
+              {queryResults.length > 0 && (
+                <div className="relative">
+                  <div
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    aria-hidden="true"
+                  >
+                    <Icons.search />
+                  </div>
+                  <input
+                    type="text"
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    placeholder={t('priceQuery.filter.placeholder')}
+                    aria-label={t('priceQuery.filter.placeholder')}
+                    className="w-full sm:w-64 pl-9 pr-4 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                  />
+                </div>
+              )}
+            </div>
             {queryResults.length === 0 ? (
               <div className="py-12 text-center text-gray-500 text-sm">
                 {t('priceQuery.results.empty')}
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        {t('priceQuery.results.table.oracle')}
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        {t('priceQuery.results.table.blockchain')}
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        {t('priceQuery.results.table.price')}
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        {t('priceQuery.results.table.timestamp')}
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50">
-                        {t('priceQuery.results.table.source')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {queryResults.map((result) => (
-                      <tr
-                        key={`${result.provider}-${result.chain}`}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ backgroundColor: oracleColors[result.provider] }}
-                            />
-                            <span className="font-medium text-gray-900">
-                              {t(`navbar.${result.provider.toLowerCase()}`)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ backgroundColor: chainColors[result.chain] }}
-                            />
-                            <span className="font-medium text-gray-900">
-                              {t(`blockchain.${result.chain.toLowerCase()}`)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono text-gray-900">
-                          $
-                          {result.priceData.price.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4,
-                          })}
-                        </td>
-                        <td className="py-3 px-4 text-right text-gray-500">
-                          {new Date(result.priceData.timestamp).toLocaleString()}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          {result.priceData.source ? (
-                            <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100">
-                              {result.priceData.source}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            ) : filteredQueryResults.length === 0 ? (
+              <div className="py-12 text-center text-gray-500 text-sm">
+                {t('priceQuery.filter.noResults')}
               </div>
+            ) : (
+              <>
+                {filterText && (
+                  <div className="mb-3 text-sm text-gray-500">
+                    {t('priceQuery.filter.results')
+                      .replace('{count}', filteredQueryResults.length.toString())
+                      .replace('{total}', queryResults.length.toString())}
+                  </div>
+                )}
+                <div className="overflow-x-auto">
+                  <table
+                    className="w-full text-sm"
+                    role="table"
+                    aria-label={t('priceQuery.results.title')}
+                  >
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th
+                          scope="col"
+                          onClick={() => handleSort('oracle')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSort('oracle');
+                            }
+                          }}
+                          tabIndex={0}
+                          aria-label={`${t('priceQuery.results.table.oracle')}, ${sortField === 'oracle' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
+                          className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                            sortField === 'oracle'
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1">
+                            {t('priceQuery.results.table.oracle')}
+                            {sortField === 'oracle' && (
+                              <span className="text-gray-900" aria-hidden="true">
+                                {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          scope="col"
+                          onClick={() => handleSort('blockchain')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSort('blockchain');
+                            }
+                          }}
+                          tabIndex={0}
+                          aria-label={`${t('priceQuery.results.table.blockchain')}, ${sortField === 'blockchain' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
+                          className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                            sortField === 'blockchain'
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1">
+                            {t('priceQuery.results.table.blockchain')}
+                            {sortField === 'blockchain' && (
+                              <span className="text-gray-900" aria-hidden="true">
+                                {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          scope="col"
+                          onClick={() => handleSort('price')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSort('price');
+                            }
+                          }}
+                          tabIndex={0}
+                          aria-label={`${t('priceQuery.results.table.price')}, ${sortField === 'price' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
+                          className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                            sortField === 'price'
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            {t('priceQuery.results.table.price')}
+                            {sortField === 'price' && (
+                              <span className="text-gray-900" aria-hidden="true">
+                                {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          scope="col"
+                          onClick={() => handleSort('timestamp')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSort('timestamp');
+                            }
+                          }}
+                          tabIndex={0}
+                          aria-label={`${t('priceQuery.results.table.timestamp')}, ${sortField === 'timestamp' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
+                          className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                            sortField === 'timestamp'
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            {t('priceQuery.results.table.timestamp')}
+                            {sortField === 'timestamp' && (
+                              <span className="text-gray-900" aria-hidden="true">
+                                {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          scope="col"
+                          className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
+                        >
+                          {t('priceQuery.results.table.source')}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredQueryResults.map((result) => (
+                        <tr
+                          key={`${result.provider}-${result.chain}`}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: oracleColors[result.provider] }}
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium text-gray-900">
+                                {t(`navbar.${result.provider.toLowerCase()}`)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: chainColors[result.chain] }}
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium text-gray-900">
+                                {t(`blockchain.${result.chain.toLowerCase()}`)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-gray-900">
+                            $
+                            {result.priceData.price.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 4,
+                            })}
+                          </td>
+                          <td className="py-3 px-4 text-right text-gray-500">
+                            {new Date(result.priceData.timestamp).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            {result.priceData.source ? (
+                              <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100">
+                                {result.priceData.source}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="md:hidden mt-2 text-xs text-gray-400 text-center">
+                    {t('priceQuery.scrollHint')}
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
           {/* Chart */}
           {chartData.length > 0 && (
             <div className="mb-8 pb-8 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Icons.chart />
-                {t('priceQuery.chart.title')}
-              </h2>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
-                    <defs>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Icons.chart />
+                  {t('priceQuery.chart.title')}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center border border-gray-300">
+                    <button
+                      onClick={handleZoomOut}
+                      disabled={zoomLevel <= 0.5}
+                      className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title={t('priceQuery.chart.zoomOut')}
+                    >
+                      <Icons.zoomOut />
+                    </button>
+                    <span className="px-3 py-1 text-sm font-medium text-gray-700 border-x border-gray-300 min-w-[60px] text-center">
+                      {Math.round(zoomLevel * 100)}%
+                    </span>
+                    <button
+                      onClick={handleZoomIn}
+                      disabled={zoomLevel >= 3}
+                      className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title={t('priceQuery.chart.zoomIn')}
+                    >
+                      <Icons.zoomIn />
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleResetZoom}
+                    disabled={zoomLevel === 1}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title={t('priceQuery.chart.reset')}
+                  >
+                    <Icons.reset />
+                    {t('priceQuery.chart.reset')}
+                  </button>
+                  <button
+                    onClick={handleExportChart}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                    title={t('priceQuery.chart.exportImage')}
+                  >
+                    <Icons.image />
+                    {t('priceQuery.chart.exportImage')}
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={chartContainerRef}
+                className="overflow-hidden"
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'top left',
+                  width: `${100 / zoomLevel}%`,
+                }}
+              >
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={chartData}
+                      margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                    >
+                      <defs>
+                        {queryResults.map(({ provider, chain }) => {
+                          const key = `${provider}-${chain}`;
+                          const color = oracleColors[provider];
+                          return (
+                            <linearGradient
+                              key={key}
+                              id={`color${key}`}
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop offset="5%" stopColor={color} stopOpacity={0.1} />
+                              <stop offset="95%" stopColor={color} stopOpacity={0} />
+                            </linearGradient>
+                          );
+                        })}
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                      <XAxis
+                        dataKey="time"
+                        stroke="#9ca3af"
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10}
+                      />
+                      <YAxis
+                        domain={['auto', 'auto']}
+                        tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
+                        stroke="#9ca3af"
+                        tick={{ fontSize: 11, fill: '#6b7280' }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={70}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend
+                        wrapperStyle={{
+                          paddingTop: '16px',
+                          fontSize: '12px',
+                        }}
+                        iconType="circle"
+                        iconSize={6}
+                      />
                       {queryResults.map(({ provider, chain }) => {
                         const key = `${provider}-${chain}`;
+                        const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                         const color = oracleColors[provider];
                         return (
-                          <linearGradient key={key} id={`color${key}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={color} stopOpacity={0.1} />
-                            <stop offset="95%" stopColor={color} stopOpacity={0} />
-                          </linearGradient>
+                          <Line
+                            key={key}
+                            type="monotone"
+                            dataKey={label}
+                            name={label}
+                            stroke={color}
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 5, strokeWidth: 0 }}
+                          />
                         );
                       })}
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                    <XAxis
-                      dataKey="time"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      dy={10}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={70}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        padding: '12px',
-                        fontSize: '12px',
-                      }}
-                      formatter={(value) => [`$${Number(value).toFixed(4)}`, '']}
-                      labelStyle={{ color: '#374151', fontWeight: 600, marginBottom: '8px' }}
-                    />
-                    <Legend
-                      wrapperStyle={{
-                        paddingTop: '16px',
-                        fontSize: '12px',
-                      }}
-                      iconType="circle"
-                      iconSize={6}
-                    />
-                    {queryResults.map(({ provider, chain }) => {
-                      const key = `${provider}-${chain}`;
-                      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
-                      const color = oracleColors[provider];
-                      return (
-                        <Line
-                          key={key}
-                          type="monotone"
-                          dataKey={label}
-                          name={label}
-                          stroke={color}
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={{ r: 5, strokeWidth: 0 }}
-                        />
-                      );
-                    })}
-                  </LineChart>
-                </ResponsiveContainer>
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           )}
 
           {/* Quick Links */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 id="quick-links-title" className="text-lg font-semibold text-gray-900 mb-4">
               {t('priceQuery.quickLinks.title')}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              role="navigation"
+              aria-labelledby="quick-links-title"
+            >
               <a
                 href="/cross-chain"
-                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                aria-label={t('priceQuery.quickLinks.crossChain')}
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 text-blue-600">
+                  <div className="p-2 bg-blue-50 text-blue-600" aria-hidden="true">
                     <Icons.blockchain />
                   </div>
                   <div>
@@ -868,10 +1380,11 @@ export default function PriceQueryPage() {
               </a>
               <a
                 href="/cross-oracle"
-                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                aria-label={t('priceQuery.quickLinks.crossOracle')}
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-50 text-purple-600">
+                  <div className="p-2 bg-purple-50 text-purple-600" aria-hidden="true">
                     <Icons.oracle />
                   </div>
                   <div>
@@ -886,10 +1399,11 @@ export default function PriceQueryPage() {
               </a>
               <a
                 href="/chainlink"
-                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                className="group p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                aria-label={t('navbar.chainlink')}
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 text-green-600">
+                  <div className="p-2 bg-green-50 text-green-600" aria-hidden="true">
                     <Icons.currency />
                   </div>
                   <div>
