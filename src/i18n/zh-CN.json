@@ -53,6 +53,7 @@
   },
   "crossOracle": {
     "title": "跨预言机比较",
+    "subtitle": "多预言机价格比对与监控",
     "refresh": "刷新",
     "lastUpdated": "最后更新: {time}",
     "selectSymbol": "选择交易对",
@@ -82,6 +83,30 @@
     "outlier": "异常",
     "weightedAverage": "加权平均",
     "export": "导出",
+    "exportCsv": "导出 CSV",
+    "exportJson": "导出 JSON",
+    "auto": "自动:",
+    "refreshInterval": {
+      "off": "关闭",
+      "30s": "30 秒",
+      "1m": "1 分钟",
+      "5m": "5 分钟"
+    },
+    "timeRange": {
+      "1H": "1 小时",
+      "24H": "24 小时",
+      "7D": "7 天",
+      "30D": "30 天",
+      "90D": "90 天",
+      "1Y": "1 年",
+      "ALL": "全部"
+    },
+    "loading": "加载中...",
+    "updated": "更新时间:",
+    "stdDev": "标准差",
+    "selectSymbolTitle": "选择交易对",
+    "selectOraclesTitle": "选择预言机",
+    "source": "来源",
     "priceVolatilityHeatmap": "价格波动热力图",
     "low": "低",
     "high": "高"
@@ -1055,7 +1080,71 @@
     "networkDistribution": "网络分布",
     "quantifiableSecurityMetrics": "可量化的安全指标"
   },
-  "languageSwitcher": {
+  "priceQuery": {
+    "title": "价格查询",
+    "description": "灵活查询任意预言机、任意链的价格数据",
+    "export": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "selectors": {
+      "symbol": "交易对",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "timeRange": "时间范围"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1小时",
+      "timeRange6Hours": "6小时",
+      "timeRange24Hours": "24小时",
+      "timeRange7Days": "7天"
+    },
+    "query": "查询",
+    "loading": "加载中...",
+    "loadingData": "加载数据中...",
+    "results": {
+      "title": "价格查询结果",
+      "empty": "请选择预言机和区块链进行查询",
+      "table": {
+        "oracle": "预言机",
+        "blockchain": "区块链",
+        "price": "价格",
+        "timestamp": "时间戳",
+        "source": "来源"
+      }
+    },
+    "stats": {
+      "avgPrice": "平均价格",
+      "maxPrice": "最高价格",
+      "minPrice": "最低价格",
+      "priceRange": "价格区间",
+      "standardDeviation": "标准差",
+      "dataPoints": "数据点数",
+      "consistencyRating": "一致性评级",
+      "absoluteValue": "绝对值"
+    },
+    "chart": {
+      "title": "价格趋势图表"
+    },
+    "quickLinks": {
+      "title": "快速跳转",
+      "crossChain": "跨链比较",
+      "crossChainDesc": "单个预言机在不同链上的价格比较",
+      "crossOracle": "跨预言机比较",
+      "crossOracleDesc": "多个预言机在同一条链上的价格比较",
+      "chainlink": "Chainlink",
+      "chainlinkDesc": "去中心化预言机网络"
+    },
+    "consistency": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    }
+  },
+  "language": {
+    "en": "EN",
+    "zh": "中文",
     "english": "English",
     "chinese": "简体中文"
   }

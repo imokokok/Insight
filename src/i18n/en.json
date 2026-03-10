@@ -53,6 +53,7 @@
   },
   "crossOracle": {
     "title": "Cross-Oracle Comparison",
+    "subtitle": "Multi-oracle price comparison and monitoring",
     "refresh": "Refresh",
     "lastUpdated": "Last updated: {time}",
     "selectSymbol": "Select Symbol",
@@ -82,6 +83,30 @@
     "outlier": "Outlier",
     "weightedAverage": "Weighted Average",
     "export": "Export",
+    "exportCsv": "Export CSV",
+    "exportJson": "Export JSON",
+    "auto": "Auto:",
+    "refreshInterval": {
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m"
+    },
+    "timeRange": {
+      "1H": "1H",
+      "24H": "24H",
+      "7D": "7D",
+      "30D": "30D",
+      "90D": "90D",
+      "1Y": "1Y",
+      "ALL": "ALL"
+    },
+    "loading": "Loading...",
+    "updated": "Updated:",
+    "stdDev": "Std Dev",
+    "selectSymbolTitle": "Select Trading Pair",
+    "selectOraclesTitle": "Select Oracles",
+    "source": "Source",
     "priceVolatilityHeatmap": "Price Volatility Heatmap",
     "low": "Low",
     "high": "High"
@@ -1055,7 +1080,71 @@
     "networkDistribution": "Network Distribution",
     "quantifiableSecurityMetrics": "Quantifiable Security Metrics"
   },
-  "languageSwitcher": {
+  "priceQuery": {
+    "title": "Price Query",
+    "description": "Flexibly query price data from any oracle on any chain",
+    "export": {
+      "csv": "CSV",
+      "json": "JSON"
+    },
+    "selectors": {
+      "symbol": "Trading Pair",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "timeRange": "Time Range"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1 Hour",
+      "timeRange6Hours": "6 Hours",
+      "timeRange24Hours": "24 Hours",
+      "timeRange7Days": "7 Days"
+    },
+    "query": "Query",
+    "loading": "Loading...",
+    "loadingData": "Loading data...",
+    "results": {
+      "title": "Price Query Results",
+      "empty": "Please select oracles and blockchains to query",
+      "table": {
+        "oracle": "Oracle",
+        "blockchain": "Blockchain",
+        "price": "Price",
+        "timestamp": "Timestamp",
+        "source": "Source"
+      }
+    },
+    "stats": {
+      "avgPrice": "Average Price",
+      "maxPrice": "Highest Price",
+      "minPrice": "Lowest Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "dataPoints": "Data Points",
+      "consistencyRating": "Consistency Rating",
+      "absoluteValue": "Absolute Value"
+    },
+    "chart": {
+      "title": "Price Trend Chart"
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "crossChain": "Cross-Chain Comparison",
+      "crossChainDesc": "Compare prices of a single oracle across different chains",
+      "crossOracle": "Cross-Oracle Comparison",
+      "crossOracleDesc": "Compare prices of multiple oracles on the same chain",
+      "chainlink": "Chainlink",
+      "chainlinkDesc": "Decentralized oracle network"
+    },
+    "consistency": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    }
+  },
+  "language": {
+    "en": "EN",
+    "zh": "中文",
     "english": "English",
     "chinese": "简体中文"
   }

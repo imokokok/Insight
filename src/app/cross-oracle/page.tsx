@@ -43,6 +43,7 @@ const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
 type SortColumn = 'price' | 'timestamp' | null;
 type SortDirection = 'asc' | 'desc';
 type RefreshInterval = 0 | 30000 | 60000 | 300000;
+type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
@@ -60,6 +61,7 @@ export default function CrossOraclePage() {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [prevStats, setPrevStats] = useState<{
     avgPrice: number;
     weightedAvgPrice: number;
@@ -232,6 +234,29 @@ export default function CrossOraclePage() {
     const prices: PriceData[] = [];
     const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
 
+    const getHoursForTimeRange = (range: TimeRange): number | undefined => {
+      switch (range) {
+        case '1H':
+          return 1;
+        case '24H':
+          return 24;
+        case '7D':
+          return 168;
+        case '30D':
+          return 720;
+        case '90D':
+          return 2160;
+        case '1Y':
+          return 8760;
+        case 'ALL':
+          return undefined;
+        default:
+          return 24;
+      }
+    };
+
+    const hours = getHoursForTimeRange(timeRange);
+
     for (const oracle of selectedOracles) {
       try {
         const client = oracleClients[oracle];
@@ -239,7 +264,7 @@ export default function CrossOraclePage() {
         const history = await client.getHistoricalPrices(
           selectedSymbol.split('/')[0],
           undefined,
-          24
+          hours
         );
         prices.push(price);
         histories[oracle] = history;
@@ -301,7 +326,7 @@ export default function CrossOraclePage() {
     setLastUpdated(new Date());
     setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedOracles, selectedSymbol]);
+  }, [selectedOracles, selectedSymbol, timeRange]);
 
   const calculateChangePercent = (current: number, previous: number): number | null => {
     if (previous === 0 || current === 0) return null;
@@ -334,10 +359,12 @@ export default function CrossOraclePage() {
 
   const refreshOptions = [
     { value: 0, label: '关闭' },
-    { value: 30000, label: '30秒' },
-    { value: 60000, label: '1分钟' },
-    { value: 300000, label: '5分钟' },
+    { value: 30000, label: '30 秒' },
+    { value: 60000, label: '1 分钟' },
+    { value: 300000, label: '5 分钟' },
   ];
+
+  const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
   const toggleOracle = (oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
@@ -384,26 +411,41 @@ export default function CrossOraclePage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t('title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">多预言机价格比对与监控</p>
+          <h1 className="text-2xl font-semibold text-gray-900">{t('crossOracle.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
+          <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-2">
+            {timeRanges.map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                  timeRange === range
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {t(`crossOracle.timeRange.${range}`) || range}
+              </button>
+            ))}
+          </div>
           <button
             onClick={exportToCSV}
             disabled={priceData.length === 0}
             className="px-3 py-1.5 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Export CSV
+            {t('crossOracle.exportCsv')}
           </button>
           <button
             onClick={exportToJSON}
             disabled={priceData.length === 0}
             className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Export JSON
+            {t('crossOracle.exportJson')}
           </button>
           <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200">
-            <span className="text-sm text-gray-600">Auto:</span>
+            <span className="text-sm text-gray-600">{t('crossOracle.auto')}</span>
             <select
               value={refreshInterval}
               onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
@@ -411,7 +453,7 @@ export default function CrossOraclePage() {
             >
               {refreshOptions.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {option.label === '关闭' ? t('crossOracle.refreshInterval.off') : option.label === '30秒' ? t('crossOracle.refreshInterval.30s') : option.label === '1分钟' ? t('crossOracle.refreshInterval.1m') : t('crossOracle.refreshInterval.5m')}
                 </option>
               ))}
             </select>
@@ -433,11 +475,11 @@ export default function CrossOraclePage() {
                 />
               </svg>
             )}
-            {isLoading ? 'Loading...' : 'Refresh'}
+            {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
           </button>
           {lastUpdated && (
             <span className="text-xs text-gray-400">
-              Updated: {lastUpdated.toLocaleTimeString()}
+              {t('crossOracle.updated')} {lastUpdated.toLocaleTimeString()}
             </span>
           )}
         </div>
@@ -449,7 +491,7 @@ export default function CrossOraclePage() {
         <div className="bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('averagePrice')}
+              {t('crossOracle.averagePrice')}
             </span>
             {renderTrendIndicator(calculateChangePercent(avgPrice, lastStats?.avgPrice || 0))}
           </div>
@@ -470,7 +512,7 @@ export default function CrossOraclePage() {
         <div className="bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500 uppercase tracking-wide">
-              {t('highestPrice')}
+              {t('crossOracle.highestPrice')}
             </span>
             {renderTrendIndicator(calculateChangePercent(maxPrice, lastStats?.maxPrice || 0))}
           </div>
@@ -490,7 +532,7 @@ export default function CrossOraclePage() {
         {/* Price Range */}
         <div className="bg-white p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">{t('priceRange')}</span>
+            <span className="text-xs text-gray-500 uppercase tracking-wide">{t('crossOracle.priceRange')}</span>
             {renderTrendIndicator(calculateChangePercent(priceRange, lastStats?.priceRange || 0))}
           </div>
           <p className="text-xl font-semibold text-gray-900">
@@ -506,7 +548,7 @@ export default function CrossOraclePage() {
         {/* Standard Deviation */}
         <div className="bg-white p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">Std Dev</span>
+            <span className="text-xs text-gray-500 uppercase tracking-wide">{t('crossOracle.stdDev')}</span>
             {renderTrendIndicator(
               calculateChangePercent(
                 standardDeviationPercent,
@@ -528,7 +570,7 @@ export default function CrossOraclePage() {
         {/* Variance */}
         <div className="bg-white p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">{t('variance')}</span>
+            <span className="text-xs text-gray-500 uppercase tracking-wide">{t('crossOracle.variance')}</span>
             {renderTrendIndicator(calculateChangePercent(variance, lastStats?.variance || 0))}
           </div>
           <p className="text-xl font-semibold text-gray-900">
@@ -547,7 +589,7 @@ export default function CrossOraclePage() {
         {/* Consistency Rating */}
         <div className="bg-white p-4">
           <span className="text-xs text-gray-500 uppercase tracking-wide block mb-2">
-            {t('consistencyRating')}
+            {t('crossOracle.consistencyRating')}
           </span>
           <div className="flex items-center gap-3">
             <GaugeChart value={standardDeviationPercent} maxValue={1} size={48} />
@@ -563,7 +605,7 @@ export default function CrossOraclePage() {
                         : 'text-red-600'
                 }`}
               >
-                {t(`consistency.${getConsistencyRating(standardDeviationPercent)}`)}
+                {t(`crossOracle.consistency.${getConsistencyRating(standardDeviationPercent)}`)}
               </span>
             )}
           </div>
@@ -573,7 +615,7 @@ export default function CrossOraclePage() {
       {/* Selectors - Flat Design */}
       <div className="mb-8 pb-6 border-b border-gray-200">
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">选择交易对</h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">{t('crossOracle.selectSymbolTitle')}</h3>
           <div className="flex flex-wrap gap-2">
             {symbols.map((symbol) => (
               <button
@@ -591,7 +633,7 @@ export default function CrossOraclePage() {
           </div>
         </div>
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-3">选择预言机</h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">{t('crossOracle.selectOraclesTitle')}</h3>
           <div className="flex flex-wrap gap-2">
             {Object.values(OracleProvider).map((oracle) => {
               const isSelected = selectedOracles.includes(oracle);
@@ -619,7 +661,7 @@ export default function CrossOraclePage() {
 
       {/* Price Comparison Table - Flat Design */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('currentPriceComparison')}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.currentPriceComparison')}</h2>
         {isLoading ? (
           <div className="flex items-center justify-center py-12 border border-gray-200">
             <svg
@@ -642,34 +684,34 @@ export default function CrossOraclePage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    {t('oracle')}
+                    {t('crossOracle.oracle')}
                   </th>
                   <th
                     className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide cursor-pointer hover:text-gray-900 select-none"
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-end gap-1">
-                      {t('price')}
+                      {t('crossOracle.price')}
                       {sortColumn === 'price' && <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                     </div>
                   </th>
                   {validPrices.length > 1 && avgPrice > 0 && (
                     <th className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                      {t('deviation')}
+                      {t('crossOracle.deviation')}
                     </th>
                   )}
                   <th className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    {t('confidence')}
+                    {t('crossOracle.confidence')}
                   </th>
                   <th className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Source
+                    {t('crossOracle.source')}
                   </th>
                   <th
                     className="text-right py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wide cursor-pointer hover:text-gray-900 select-none"
                     onClick={() => handleSort('timestamp')}
                   >
                     <div className="flex items-center justify-end gap-1">
-                      {t('timestamp')}
+                      {t('crossOracle.timestamp')}
                       {sortColumn === 'timestamp' && (
                         <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
                       )}
@@ -703,7 +745,7 @@ export default function CrossOraclePage() {
                           </span>
                           {outlier && (
                             <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1.5 py-0.5">
-                              {t('outlier')}
+                              {t('crossOracle.outlier')}
                             </span>
                           )}
                         </div>
@@ -767,7 +809,14 @@ export default function CrossOraclePage() {
 
       {/* Price Trend Chart - Flat Design */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('priceTrend')}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.priceTrend')}
+          {timeRange !== 'ALL' && (
+            <span className="text-sm text-gray-500 ml-2">
+              ({timeRange === '1H' ? '1 小时' : timeRange === '24H' ? '24 小时' : timeRange === '7D' ? '7 天' : timeRange === '30D' ? '30 天' : timeRange === '90D' ? '90 天' : '1 年'})
+            </span>
+          )}
+        </h2>
         {isLoading ? (
           <div className="flex items-center justify-center py-24 border border-gray-200">
             <svg

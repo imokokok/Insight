@@ -32,12 +32,6 @@ export default function Navbar() {
     return currentPath === href;
   };
 
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,7 +46,7 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center space-x-1 mx-auto">
             {navLinks.map((link) => {
-              const active = mounted && isActive(link.href);
+              const active = isActive(link.href);
               return (
                 <Link
                   key={link.href}
@@ -113,7 +107,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-200 animate-fade-in">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 max-h-96 overflow-y-auto">
             {navLinks.map((link) => {
-              const active = mounted && isActive(link.href);
+              const active = isActive(link.href);
               return (
                 <Link
                   key={link.href}
