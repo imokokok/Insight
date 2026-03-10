@@ -109,7 +109,38 @@
     "source": "来源",
     "priceVolatilityHeatmap": "价格波动热力图",
     "low": "低",
-    "high": "高"
+    "high": "高",
+    "median": "中位数",
+    "cv": "变异系数",
+    "rangeRatio": "极差率",
+    "tooltip": {
+      "median": "中位数是排序后位于中间位置的价格值，比平均值更稳健，不易受极端值影响",
+      "cv": "变异系数（CV）= 标准差/平均值，衡量数据离散程度的相对指标，越小表示数据越一致",
+      "rangeRatio": "极差率 =（最高价 - 最低价）/ 中位数，反映价格波动幅度的相对度量"
+    },
+    "presets": {
+      "title": "预设配置",
+      "mainstream": "主流组合",
+      "mainstreamDesc": "Chainlink + Pyth Network + API3",
+      "decentralized": "去中心化组合",
+      "decentralizedDesc": "Chainlink + Band Protocol + UMA",
+      "highFrequency": "高频数据组合",
+      "highFrequencyDesc": "Pyth Network + API3",
+      "comprehensive": "全面对比",
+      "comprehensiveDesc": "所有 5 个预言机",
+      "active": "当前配置"
+    },
+    "customConfigs": {
+      "title": "自定义配置",
+      "select": "选择已保存的配置",
+      "noSaved": "暂无已保存配置",
+      "saveCurrent": "保存当前配置",
+      "save": "保存",
+      "cancel": "取消",
+      "namePlaceholder": "输入配置名称",
+      "delete": "删除此配置",
+      "clearAll": "清除所有配置"
+    }
   },
   "crossChain": {
     "title": "跨链价格比较",
@@ -169,7 +200,38 @@
     "percentDifference": "差异百分比",
     "smallSpread": "价差小",
     "mediumSpread": "价差中等",
-    "largeSpread": "价差大"
+    "largeSpread": "价差大",
+    "outlier": "异常",
+    "autoRefresh": "自动:",
+    "autoRefreshOff": "关闭",
+    "autoRefresh30s": "30 秒",
+    "autoRefresh1m": "1 分钟",
+    "autoRefresh5m": "5 分钟",
+    "networkError": "网络错误",
+    "dataError": "数据错误",
+    "retry": "重试",
+    "searchChains": "搜索链",
+    "searchPlaceholder": "按链名称搜索...",
+    "selectedChains": "已选择",
+    "clear": "清除",
+    "lastUpdated": "更新时间:",
+    "confidence": "置信度",
+    "selectChains": "选择链",
+    "allChains": "全部链",
+    "heatmapClickHint": "点击查看详情",
+    "visibleChains": "可见链",
+    "difference": "差异",
+    "loadingData": "加载数据中...",
+    "dataPoints": "数据点数",
+    "dataFreshness": "数据新鲜度",
+    "freshness": {
+      "excellent": "新鲜",
+      "good": "良好",
+      "slow": "延迟"
+    },
+    "priceDeviationWarning": "价格偏离预警",
+    "deviationThreshold": "偏离阈值: {threshold}%",
+    "deviationAlert": "检测到 {count} 条链价格偏离超过阈值"
   },
   "chainlink": {
     "title": "Chainlink",
@@ -1083,6 +1145,13 @@
   "priceQuery": {
     "title": "价格查询",
     "description": "灵活查询任意预言机、任意链的价格数据",
+    "filterToggle": "筛选条件",
+    "scrollHint": "← 左右滑动查看更多 →",
+    "filter": {
+      "placeholder": "搜索预言机或区块链...",
+      "results": "显示 {count} / {total} 条结果",
+      "noResults": "未找到匹配的结果"
+    },
     "export": {
       "csv": "CSV",
       "json": "JSON"
@@ -1102,6 +1171,14 @@
     "query": "查询",
     "loading": "加载中...",
     "loadingData": "加载数据中...",
+    "error": {
+      "fetchFailed": "数据获取失败，请稍后重试",
+      "retry": "重试",
+      "retrying": "重试中...",
+      "lastSuccessfulFetch": "上次成功获取",
+      "noSuccessfulFetch": "暂无成功获取记录"
+    },
+    "lastUpdated": "最后更新",
     "results": {
       "title": "价格查询结果",
       "empty": "请选择预言机和区块链进行查询",
@@ -1110,7 +1187,15 @@
         "blockchain": "区块链",
         "price": "价格",
         "timestamp": "时间戳",
-        "source": "来源"
+        "source": "来源",
+        "difference": "差异",
+        "confidence": "置信度",
+        "responseTime": "响应时间"
+      },
+      "priceChange": {
+        "up": "上涨",
+        "down": "下跌",
+        "same": "无变化"
       }
     },
     "stats": {
@@ -1121,10 +1206,20 @@
       "standardDeviation": "标准差",
       "dataPoints": "数据点数",
       "consistencyRating": "一致性评级",
-      "absoluteValue": "绝对值"
+      "absoluteValue": "绝对值",
+      "maxDifference": "最大差异",
+      "avgDifference": "平均差异"
     },
     "chart": {
-      "title": "价格趋势图表"
+      "title": "价格趋势图表",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "reset": "重置",
+      "exportImage": "导出图片",
+      "tooltip": {
+        "time": "时间",
+        "dataPoints": "数据点数"
+      }
     },
     "quickLinks": {
       "title": "快速跳转",
@@ -1140,6 +1235,42 @@
       "good": "良好",
       "fair": "一般",
       "poor": "较差"
+    },
+    "autoRefresh": {
+      "title": "自动刷新",
+      "enable": "启用",
+      "disable": "禁用",
+      "frequency": "刷新频率",
+      "seconds": "秒",
+      "countdown": "下次刷新"
+    },
+    "config": {
+      "save": "保存配置",
+      "load": "加载配置",
+      "name": "配置名称",
+      "saved": "配置已保存",
+      "loaded": "配置已加载",
+      "deleted": "配置已删除",
+      "empty": "暂无保存的配置",
+      "placeholder": "请输入配置名称"
+    },
+    "alert": {
+      "title": "价格预警",
+      "setAlert": "设置预警",
+      "priceThreshold": "价格阈值",
+      "differenceThreshold": "差异阈值",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "triggered": "预警触发"
+    },
+    "autoRefresh": {
+      "title": "自动刷新",
+      "off": "关闭",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟",
+      "countdown": "{seconds}秒后刷新",
+      "refreshing": "刷新中..."
     }
   },
   "language": {
