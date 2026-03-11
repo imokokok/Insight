@@ -1,116 +1,112 @@
-# 首页扁平化重做设计规范
+# 首页重构规格文档
 
 ## Why
-当前首页虽然功能完整，但采用了传统的卡片式布局，视觉上显得较为厚重。参考 Dune Analytics 等顶级数据分析平台的扁平化设计风格，去除冗余的卡片边框和阴影，采用更加简洁、专业、信息密度更高的设计，提升平台的专业感和数据可视化体验。
+当前首页设计较为基础，需要升级为专业且美观的预言机数据分析平台首页。参考 Dune Analytics 的扁平化设计风格，去除卡片样式，打造更符合专业数据平台形象的界面。
 
 ## What Changes
-- **扁平化 Hero 区域**: 去除厚重渐变，采用简洁的深色背景配合微妙的数据可视化元素
-- **无边框实时数据区**: 去除卡片边框，使用留白和分隔线区分内容，类似 Dune 的数据表格风格
-- **极简功能导航**: 采用纯文字+图标的简洁导航，去除背景色和边框
-- **网格化预言机展示**: 使用网格布局展示协议，去除卡片样式，悬停时显示微妙背景变化
-- **数据洞察仪表盘**: 采用仪表盘风格的数字展示，突出数据本身
-- **专业页脚**: 简洁的页脚设计，信息层次分明
-- **精简动画效果**: 去除过度动画，保留必要的微交互
+- 全新 Hero 区域：深色背景 + 数据可视化元素，展示平台核心价值
+- 实时数据展示：扁平化表格设计展示关键预言机数据
+- 功能导航：简洁的网格布局，无卡片阴影
+- 数据统计：大号数字 + 简洁标签的统计展示
+- 预言机概览：横向滚动或网格展示支持的预言机
+- 最新动态/洞察：数据洞察区域
+- 专业配色：参考 Dune 的深色主题 + 强调色
 
 ## Impact
-- Affected specs: 首页布局、视觉风格、组件样式
-- Affected code: src/app/page.tsx, src/components/Card.tsx, src/app/globals.css
+- 受影响文件：`src/app/page.tsx`
+- 新增组件：可能需要新的首页专用组件
+- 样式更新：`globals.css` 可能需要补充首页专用样式
+- i18n：复用现有翻译键，可能需要少量新增
 
 ## ADDED Requirements
 
-### Requirement: 扁平化 Hero 区域
-The system SHALL 提供简洁专业的 Hero 区域。
+### Requirement: 全新 Hero 区域
+The system SHALL provide专业的 Hero 区域，展示平台核心价值主张。
 
-#### Scenario: 页面加载
+#### Scenario: 用户访问首页
 - **WHEN** 用户访问首页
-- **THEN** 显示简洁的深色背景 Hero 区域
-- **AND** 背景包含微妙的数据网格或粒子效果（低饱和度）
-- **AND** 标题使用简洁的白色文字，无渐变效果
-- **AND** 核心统计数据以简洁数字形式展示，无动画计数
+- **THEN** 看到深色背景的 Hero 区域
+- **AND** 包含平台标题、副标题、主要 CTA 按钮
+- **AND** 展示核心数据指标（预言机数量、支持链数、数据源数量）
+- **AND** 背景包含 subtle 的数据可视化元素或网格效果
 
-### Requirement: 无边框实时数据区
-The system SHALL 以扁平化方式展示实时价格数据。
+### Requirement: 实时数据展示区域
+The system SHALL 以扁平化表格形式展示实时预言机数据。
 
-#### Scenario: 数据展示
-- **WHEN** 页面加载完成
-- **THEN** 以表格/列表形式显示预言机价格数据
-- **AND** 去除卡片边框和阴影，使用分隔线区分行
-- **AND** 每个项目显示代币图标、名称、当前价格、24h变化
-- **AND** 悬停时显示微妙背景色变化（如 bg-gray-50）
+#### Scenario: 用户浏览实时数据
+- **WHEN** 用户滚动到实时数据区域
+- **THEN** 看到简洁的表格展示主流预言机代币价格
+- **AND** 表格无卡片边框，使用细线分隔
+- **AND** 显示价格、24h变化、趋势迷你图
+- **AND** 数据实时更新指示器
 
-### Requirement: 极简功能导航
+### Requirement: 功能导航区域
 The system SHALL 提供简洁的功能导航入口。
 
-#### Scenario: 导航交互
-- **WHEN** 用户查看功能区域
-- **THEN** 显示图标+文字形式的导航链接
-- **AND** 去除背景色、边框、阴影
-- **AND** 悬停时仅显示文字颜色变化或下划线
+#### Scenario: 用户寻找功能入口
+- **WHEN** 用户查看功能导航区域
+- **THEN** 看到网格布局的功能入口
+- **AND** 每个入口包含图标、标题、简短描述
+- **AND** 无卡片样式，hover 时有 subtle 背景变化
+- **AND** 包含：跨预言机比较、跨链比较、价格查询、Chainlink 详情
 
-### Requirement: 网格化预言机协议展示
-The system SHALL 以网格形式展示支持的预言机协议。
+### Requirement: 平台统计展示
+The system SHALL 以大号数字形式展示平台核心统计数据。
 
-#### Scenario: 协议展示
-- **WHEN** 用户查看预言机区域
-- **THEN** 以网格布局展示各协议 Logo 和名称
-- **AND** 去除卡片样式，使用简洁的网格项
-- **AND** 悬停时显示微妙背景色和箭头指示
+#### Scenario: 用户了解平台规模
+- **WHEN** 用户查看统计区域
+- **THEN** 看到大字号的核心指标
+- **AND** 包含：集成预言机数、支持区块链数、数据源数量、日均更新次数
+- **AND** 简洁的标签说明
+- **AND** 数字可以有 subtle 的动画效果
 
-### Requirement: 数据洞察仪表盘
-The system SHALL 以仪表盘风格展示核心数据指标。
+### Requirement: 预言机协议展示
+The system SHALL 展示支持的预言机协议。
 
-#### Scenario: 统计展示
+#### Scenario: 用户查看支持的预言机
+- **WHEN** 用户查看预言机展示区域
+- **THEN** 看到横向排列或网格排列的预言机标识
+- **AND** 包含：Chainlink、Band Protocol、UMA、Pyth Network、API3
+- **AND** 每个预言机显示名称、简短描述
+- **AND** 点击可跳转到详情页
+
+### Requirement: 数据洞察区域
+The system SHALL 展示平台的数据洞察能力。
+
+#### Scenario: 用户了解数据分析能力
+- **WHEN** 用户查看洞察区域
+- **THEN** 看到数据洞察卡片（无阴影扁平设计）
+- **AND** 包含：价格异常预警、数据质量评分、市场趋势
+- **AND** 每个洞察显示关键指标和趋势
+
+### Requirement: 专业视觉设计
+The system SHALL 采用 Dune 风格的扁平化专业设计。
+
+#### Scenario: 用户浏览首页
 - **WHEN** 用户浏览首页
-- **THEN** 显示大号数字指标（预言机数、链数、数据 feeds 等）
-- **AND** 数字下方显示简洁标签
-- **AND** 去除装饰性元素，突出数据本身
-
-### Requirement: 响应式设计
-The system SHALL 在各种屏幕尺寸下保持良好的视觉效果。
-
-#### Scenario: 移动端适配
-- **WHEN** 用户在移动设备访问
-- **THEN** 所有元素自动适配屏幕宽度
-- **AND** 保持扁平化设计的简洁性
-- **AND** 移动端优化布局和交互
+- **THEN** 看到深色/浅色协调的配色方案
+- **AND** 无卡片阴影，使用边框或背景色区分区域
+- **AND** 充足的留白空间
+- **AND** 专业的数据可视化元素
+- **AND** 统一的字体层次结构
 
 ## MODIFIED Requirements
 
-### Requirement: 页面布局
-The system SHALL 采用扁平化的单页布局设计。
+### Requirement: 首页布局结构
+**修改内容**: 完全重构 `src/app/page.tsx`，保留数据获取逻辑，重新设计所有 UI 组件
 
-#### Scenario: 布局结构
-- **WHEN** 用户滚动页面
-- **THEN** 按顺序看到: Hero → 实时数据 → 功能导航 → 预言机协议 → 数据洞察 → 页脚
-- **AND** 各区域之间使用留白分隔，去除装饰性分隔线
-
-### Requirement: 视觉风格
-The system SHALL 采用扁平化视觉风格。
-
-#### Scenario: 视觉呈现
-- **WHEN** 用户浏览页面
-- **THEN** 看到统一的扁平化设计
-- **AND** 去除渐变背景、阴影、圆角卡片
-- **AND** 使用简洁的黑白灰配色，配合品牌色点缀
-
-### Requirement: 动画效果
-The system SHALL 提供精简的动画效果。
-
-#### Scenario: 动画交互
-- **WHEN** 页面加载时
-- **THEN** 元素直接显示，无入场动画
-- **AND** 悬停时仅显示颜色变化，无位移或缩放
-- **AND** 保持页面响应速度
+#### Scenario: 首页渲染
+- **WHEN** 首页组件渲染
+- **THEN** 使用新的扁平化设计风格
+- **AND** 保留现有的数据获取 hooks（useOraclePrices）
+- **AND** 保持与现有布局组件（Navbar、Footer）的兼容
 
 ## REMOVED Requirements
-### Requirement: 卡片式组件
-**Reason**: 扁平化设计去除卡片边框和阴影
-**Migration**: 使用留白和分隔线替代卡片容器
 
-### Requirement: 渐变背景
-**Reason**: 扁平化设计采用纯色背景
-**Migration**: Hero 区域使用纯色深色背景
+### Requirement: 旧版卡片样式
+**Reason**: 不符合 Dune 扁平化设计风格
+**Migration**: 完全移除卡片阴影和圆角卡片设计，改用扁平化替代
 
-### Requirement: 动画计数效果
-**Reason**: 扁平化设计追求简洁，去除过度动画
-**Migration**: 直接显示静态数字
+### Requirement: 旧版 Hero 设计
+**Reason**: 需要更专业、更有冲击力的首屏设计
+**Migration**: 完全重新设计 Hero 区域
