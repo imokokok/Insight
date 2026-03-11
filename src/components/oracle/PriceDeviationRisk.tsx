@@ -66,7 +66,9 @@ export function PriceDeviationRisk() {
   const stats = useMemo(() => calculateStats(deviationData), [deviationData]);
 
   const hasWarning = stats.current >= DEVIATION_THRESHOLD;
-  const warningCount = deviationData.filter((d) => Math.abs(d.deviation) >= DEVIATION_THRESHOLD).length;
+  const warningCount = deviationData.filter(
+    (d) => Math.abs(d.deviation) >= DEVIATION_THRESHOLD
+  ).length;
 
   return (
     <DashboardCard title="价格偏差风险分析">
@@ -74,7 +76,12 @@ export function PriceDeviationRisk() {
         {hasWarning && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -85,8 +92,8 @@ export function PriceDeviationRisk() {
               <div>
                 <h4 className="text-sm font-medium text-orange-800">价格偏差警告</h4>
                 <p className="text-sm text-orange-700 mt-1">
-                  当前价格偏差 {stats.current.toFixed(3)}% 超过阈值 {DEVIATION_THRESHOLD}%，
-                  过去 24 小时内共有 {warningCount} 次偏差超标事件。
+                  当前价格偏差 {stats.current.toFixed(3)}% 超过阈值 {DEVIATION_THRESHOLD}%， 过去 24
+                  小时内共有 {warningCount} 次偏差超标事件。
                 </p>
               </div>
             </div>
@@ -96,7 +103,9 @@ export function PriceDeviationRisk() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">当前偏差</p>
-            <p className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}>
+            <p
+              className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}
+            >
               {stats.current.toFixed(3)}%
             </p>
           </div>
@@ -163,7 +172,10 @@ export function PriceDeviationRisk() {
             <span className="text-xs text-gray-600">价格偏差</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-orange-500 border-dashed" style={{ borderTop: '2px dashed #f59e0b' }} />
+            <div
+              className="w-8 h-0.5 bg-orange-500 border-dashed"
+              style={{ borderTop: '2px dashed #f59e0b' }}
+            />
             <span className="text-xs text-gray-600">警告阈值 (±{DEVIATION_THRESHOLD}%)</span>
           </div>
         </div>

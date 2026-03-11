@@ -20,7 +20,7 @@ function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp) return '';
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp) / 1000);
-  
+
   if (diffInSeconds < 60) {
     return `${diffInSeconds}秒前`;
   } else if (diffInSeconds < 3600) {
@@ -231,8 +231,18 @@ function ValidatorTable({
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) {
       return (
-        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        <svg
+          className="w-4 h-4 text-gray-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+          />
         </svg>
       );
     }
@@ -259,7 +269,9 @@ function ValidatorTable({
       community: '社区',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type] || 'bg-gray-100 text-gray-700'}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type] || 'bg-gray-100 text-gray-700'}`}
+      >
         {labels[type] || type}
       </span>
     );
@@ -341,9 +353,7 @@ function ValidatorTable({
               <td className="py-3 px-4">
                 <span
                   className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                    index < 3
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-600'
+                    index < 3 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {index + 1}
@@ -437,14 +447,14 @@ export function ValidatorAnalyticsPanel() {
 
   useEffect(() => {
     if (!lastUpdateTime) return;
-    
+
     const updateTime = () => {
       setRelativeTime(formatRelativeTime(lastUpdateTime));
     };
-    
+
     updateTime();
     const interval = setInterval(updateTime, 1000);
-    
+
     return () => clearInterval(interval);
   }, [lastUpdateTime]);
 
@@ -579,9 +589,7 @@ export function ValidatorAnalyticsPanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {lastUpdateTime && (
-            <span className="text-sm text-gray-500">
-              最后更新: {relativeTime}
-            </span>
+            <span className="text-sm text-gray-500">最后更新: {relativeTime}</span>
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
@@ -595,18 +603,23 @@ export function ValidatorAnalyticsPanel() {
           disabled={isRefreshing}
           className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <svg 
-            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           刷新数据
         </button>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('uma.validatorAnalytics.totalActiveValidators')}
@@ -699,7 +712,12 @@ export function ValidatorAnalyticsPanel() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -726,9 +744,7 @@ export function ValidatorAnalyticsPanel() {
               <option value={50}>50</option>
             </select>
             <span>条</span>
-            <span className="ml-4 text-gray-400">
-              共 {filteredValidators.length} 条记录
-            </span>
+            <span className="ml-4 text-gray-400">共 {filteredValidators.length} 条记录</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -739,7 +755,7 @@ export function ValidatorAnalyticsPanel() {
             >
               上一页
             </button>
-            
+
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum: number;

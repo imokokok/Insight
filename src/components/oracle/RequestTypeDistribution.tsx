@@ -92,7 +92,9 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           <span className="text-gray-500 text-xs">占比</span>
           <span className="text-gray-900 font-mono text-sm">{data.percentage}%</span>
         </div>
-        <p className="text-gray-400 text-xs pt-1 border-t border-gray-100 mt-1">{data.description}</p>
+        <p className="text-gray-400 text-xs pt-1 border-t border-gray-100 mt-1">
+          {data.description}
+        </p>
       </div>
     </div>
   );
@@ -175,14 +177,13 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
               className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-2 mb-1">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="text-xs font-medium text-gray-700">{item.type}</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-sm font-bold text-gray-900">{item.count.toLocaleString()}</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {item.count.toLocaleString()}
+                </span>
                 <span className="text-xs text-gray-500">({item.percentage}%)</span>
               </div>
             </div>

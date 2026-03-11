@@ -71,27 +71,9 @@ function generateMockLatencyData(threshold: number): LatencyDataPoint[] {
 
 function CustomDot({ cx, cy, payload }: any) {
   if (payload.isAnomaly) {
-    return (
-      <Dot
-        cx={cx}
-        cy={cy}
-        r={5}
-        fill="#EF4444"
-        stroke="#FFF"
-        strokeWidth={2}
-      />
-    );
+    return <Dot cx={cx} cy={cy} r={5} fill="#EF4444" stroke="#FFF" strokeWidth={2} />;
   }
-  return (
-    <Dot
-      cx={cx}
-      cy={cy}
-      r={3}
-      fill="#3B82F6"
-      stroke="#FFF"
-      strokeWidth={2}
-    />
-  );
+  return <Dot cx={cx} cy={cy} r={3} fill="#3B82F6" stroke="#FFF" strokeWidth={2} />;
 }
 
 export function LatencyTrendChart({
@@ -104,6 +86,10 @@ export function LatencyTrendChart({
   const data = useMemo(() => {
     return generateMockLatencyData(anomalyThreshold);
   }, [anomalyThreshold]);
+
+  const maxLatency = useMemo(() => {
+    return Math.max(...data.map((d) => d.latency));
+  }, [data]);
 
   const stats = useMemo(() => {
     const latencies = data.map((d) => d.latency);
@@ -187,9 +173,7 @@ export function LatencyTrendChart({
             <span className="text-xs text-gray-500">状态</span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded ${
-                dataPoint.isAnomaly
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
+                dataPoint.isAnomaly ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
               }`}
             >
               {dataPoint.isAnomaly ? '异常' : '正常'}
@@ -207,7 +191,7 @@ export function LatencyTrendChart({
         x1={data[period.start]?.timestamp}
         x2={data[period.end]?.timestamp}
         y1={anomalyThreshold}
-        y2="max"
+        y2={maxLatency}
         fill="#FEE2E2"
         fillOpacity={0.5}
       />
@@ -251,15 +235,24 @@ export function LatencyTrendChart({
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">平均延迟</p>
-            <p className="text-xl font-bold text-blue-700">{stats.avg}<span className="text-sm font-normal ml-1">ms</span></p>
+            <p className="text-xl font-bold text-blue-700">
+              {stats.avg}
+              <span className="text-sm font-normal ml-1">ms</span>
+            </p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-green-600 mb-1">最小延迟</p>
-            <p className="text-xl font-bold text-green-700">{stats.min}<span className="text-sm font-normal ml-1">ms</span></p>
+            <p className="text-xl font-bold text-green-700">
+              {stats.min}
+              <span className="text-sm font-normal ml-1">ms</span>
+            </p>
           </div>
           <div className="bg-orange-50 rounded-lg p-3 text-center">
             <p className="text-xs text-orange-600 mb-1">最大延迟</p>
-            <p className="text-xl font-bold text-orange-700">{stats.max}<span className="text-sm font-normal ml-1">ms</span></p>
+            <p className="text-xl font-bold text-orange-700">
+              {stats.max}
+              <span className="text-sm font-normal ml-1">ms</span>
+            </p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
             <p className="text-xs text-red-600 mb-1">异常次数</p>
@@ -274,10 +267,7 @@ export function LatencyTrendChart({
 
         <div style={{ height: 280 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
+            <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis
                 dataKey="timestamp"
@@ -352,8 +342,9 @@ export function LatencyTrendChart({
               <div>
                 <h4 className="text-sm font-semibold text-red-800 mb-1">检测到延迟异常</h4>
                 <p className="text-xs text-red-700">
-                  在过去1小时内，有 {stats.anomalyCount} 个数据点（{stats.anomalyPercent}%）的延迟超过了 {anomalyThreshold}ms 阈值。
-                  最长异常持续时间为 {stats.longestAnomalyDuration} 分钟。
+                  在过去1小时内，有 {stats.anomalyCount} 个数据点（{stats.anomalyPercent}
+                  %）的延迟超过了 {anomalyThreshold}ms 阈值。 最长异常持续时间为{' '}
+                  {stats.longestAnomalyDuration} 分钟。
                   高延迟可能导致价格更新不及时，影响交易决策的准确性。
                 </p>
               </div>

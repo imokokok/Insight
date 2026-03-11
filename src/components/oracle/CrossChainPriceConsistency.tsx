@@ -138,7 +138,9 @@ export function CrossChainPriceConsistency({
   const basePrice = baseChain?.price || 0;
 
   const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
-  const avgLatency = Math.round(chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length);
+  const avgLatency = Math.round(
+    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
+  );
   const hasWarnings = chainData.some((c) => c.status !== 'normal');
 
   const maxBarDeviation = 0.5;
@@ -220,7 +222,9 @@ export function CrossChainPriceConsistency({
                   <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">链</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">价格</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">偏差</th>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">偏差可视化</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">
+                    偏差可视化
+                  </th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">延迟</th>
                   <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
                 </tr>
@@ -242,11 +246,17 @@ export function CrossChainPriceConsistency({
                       </div>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className="text-sm font-mono text-gray-900">${chain.price.toFixed(4)}</span>
+                      <span className="text-sm font-mono text-gray-900">
+                        ${chain.price.toFixed(4)}
+                      </span>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className={`text-sm font-mono font-medium ${getDeviationColor(chain.deviationPercent)}`}>
-                        {index === 0 ? '-' : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
+                      <span
+                        className={`text-sm font-mono font-medium ${getDeviationColor(chain.deviationPercent)}`}
+                      >
+                        {index === 0
+                          ? '-'
+                          : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
                       </span>
                     </td>
                     <td className="py-3 px-3">
@@ -260,17 +270,25 @@ export function CrossChainPriceConsistency({
                           />
                         </div>
                         <span className="text-xs text-gray-500 w-8">
-                          {Math.min(Math.round((Math.abs(chain.deviationPercent) / maxBarDeviation) * 100), 100)}%
+                          {Math.min(
+                            Math.round((Math.abs(chain.deviationPercent) / maxBarDeviation) * 100),
+                            100
+                          )}
+                          %
                         </span>
                       </div>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className={`text-sm ${chain.latency < 100 ? 'text-green-600' : chain.latency < 200 ? 'text-gray-600' : 'text-yellow-600'}`}>
+                      <span
+                        className={`text-sm ${chain.latency < 100 ? 'text-green-600' : chain.latency < 200 ? 'text-gray-600' : 'text-yellow-600'}`}
+                      >
                         {chain.latency}ms
                       </span>
                     </td>
                     <td className="text-center py-3 px-3">
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadgeColor(chain.status)}`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusBadgeColor(chain.status)}`}
+                      >
                         {getStatusLabel(chain.status)}
                       </span>
                     </td>
@@ -296,15 +314,22 @@ export function CrossChainPriceConsistency({
                     <div
                       className={`h-4 rounded transition-all ${getDeviationBarColor(chain.deviationPercent)}`}
                       style={{
-                        width: `${Math.min(Math.abs(chain.deviationPercent) / maxBarDeviation * 50, 50)}%`,
-                        marginLeft: chain.deviationPercent >= 0 ? '50%' : `${50 - Math.min(Math.abs(chain.deviationPercent) / maxBarDeviation * 50, 50)}%`,
+                        width: `${Math.min((Math.abs(chain.deviationPercent) / maxBarDeviation) * 50, 50)}%`,
+                        marginLeft:
+                          chain.deviationPercent >= 0
+                            ? '50%'
+                            : `${50 - Math.min((Math.abs(chain.deviationPercent) / maxBarDeviation) * 50, 50)}%`,
                       }}
                     />
                   </div>
                 </div>
                 <div className="w-16 text-right">
-                  <span className={`text-xs font-mono ${getDeviationColor(chain.deviationPercent)}`}>
-                    {index === 0 ? '基准' : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
+                  <span
+                    className={`text-xs font-mono ${getDeviationColor(chain.deviationPercent)}`}
+                  >
+                    {index === 0
+                      ? '基准'
+                      : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
                   </span>
                 </div>
               </div>
@@ -361,8 +386,8 @@ export function CrossChainPriceConsistency({
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                Pyth 通过 Wormhole 实现跨链价格传输，Solana 作为主链发布价格，
-                其他链通过 Wormhole 消息接收价格更新。
+                Pyth 通过 Wormhole 实现跨链价格传输，Solana 作为主链发布价格， 其他链通过 Wormhole
+                消息接收价格更新。
               </p>
             </div>
           </div>

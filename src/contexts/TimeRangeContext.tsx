@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  ReactNode,
-  useEffect,
-} from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { TimeRange } from '@/components/oracle/TabNavigation';
 
 const STORAGE_KEYS = {
@@ -111,20 +104,17 @@ export function TimeRangeProvider({
     setIsHydrated(true);
   }, []);
 
-  const setGlobalTimeRange = useCallback(
-    (range: TimeRange) => {
-      setGlobalTimeRangeState(range);
-      setCustomDateRangeState(null);
-      setBrushRangeState(null);
-      try {
-        localStorage.setItem(STORAGE_KEYS.TIME_RANGE, range);
-        localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
-      } catch (error) {
-        console.warn('Failed to save timeRange to localStorage:', error);
-      }
-    },
-    []
-  );
+  const setGlobalTimeRange = useCallback((range: TimeRange) => {
+    setGlobalTimeRangeState(range);
+    setCustomDateRangeState(null);
+    setBrushRangeState(null);
+    try {
+      localStorage.setItem(STORAGE_KEYS.TIME_RANGE, range);
+      localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
+    } catch (error) {
+      console.warn('Failed to save timeRange to localStorage:', error);
+    }
+  }, []);
 
   const setSyncEnabled = useCallback((enabled: boolean) => {
     setSyncEnabledState(enabled);
@@ -135,37 +125,34 @@ export function TimeRangeProvider({
     }
   }, []);
 
-  const setCustomDateRange = useCallback(
-    (range: CustomDateRange | null) => {
-      setCustomDateRangeState(range);
-      if (range) {
-        setGlobalTimeRangeState('ALL');
-        try {
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_DATE_RANGE, JSON.stringify({
+  const setCustomDateRange = useCallback((range: CustomDateRange | null) => {
+    setCustomDateRangeState(range);
+    if (range) {
+      setGlobalTimeRangeState('ALL');
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.CUSTOM_DATE_RANGE,
+          JSON.stringify({
             startDate: range.startDate.toISOString(),
             endDate: range.endDate.toISOString(),
-          }));
-          localStorage.setItem(STORAGE_KEYS.TIME_RANGE, 'ALL');
-        } catch (error) {
-          console.warn('Failed to save customDateRange to localStorage:', error);
-        }
-      } else {
-        try {
-          localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
-        } catch (error) {
-          console.warn('Failed to remove customDateRange from localStorage:', error);
-        }
+          })
+        );
+        localStorage.setItem(STORAGE_KEYS.TIME_RANGE, 'ALL');
+      } catch (error) {
+        console.warn('Failed to save customDateRange to localStorage:', error);
       }
-    },
-    []
-  );
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
+      } catch (error) {
+        console.warn('Failed to remove customDateRange from localStorage:', error);
+      }
+    }
+  }, []);
 
-  const setBrushRange = useCallback(
-    (range: BrushRange | null) => {
-      setBrushRangeState(range);
-    },
-    []
-  );
+  const setBrushRange = useCallback((range: BrushRange | null) => {
+    setBrushRangeState(range);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {

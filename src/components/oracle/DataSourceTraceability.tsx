@@ -85,7 +85,12 @@ const dataSourceTypeConfig = {
     label: '交易所',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+        />
       </svg>
     ),
     bgColor: 'bg-blue-50',
@@ -95,7 +100,12 @@ const dataSourceTypeConfig = {
     label: 'API 提供商',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
       </svg>
     ),
     bgColor: 'bg-purple-50',
@@ -105,7 +115,12 @@ const dataSourceTypeConfig = {
     label: '节点运营商',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+        />
       </svg>
     ),
     bgColor: 'bg-green-50',
@@ -118,7 +133,9 @@ function HealthIndicator({ status }: { status: HealthStatus }) {
   return (
     <div className="flex items-center gap-2">
       <span className={`relative flex h-2.5 w-2.5`}>
-        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseColor} opacity-75`}></span>
+        <span
+          className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseColor} opacity-75`}
+        ></span>
         <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.bgColor}`}></span>
       </span>
       <span className={`text-xs font-medium ${config.textColor}`}>{config.label}</span>
@@ -131,7 +148,9 @@ function DataSourceCard({ source }: { source: DataSource }) {
   const healthConf = healthConfig[source.status];
 
   return (
-    <div className={`bg-white border ${healthConf.borderColor} rounded-xl p-4 hover:shadow-md transition-all duration-200`}>
+    <div
+      className={`bg-white border ${healthConf.borderColor} rounded-xl p-4 hover:shadow-md transition-all duration-200`}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-lg ${typeConfig.bgColor} ${typeConfig.textColor}`}>
@@ -167,16 +186,33 @@ function DataSourceCard({ source }: { source: DataSource }) {
       <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
         <div className="flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
           </svg>
           <span>{source.location}</span>
         </div>
         <div className="flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
-          <span>{source.lastUpdate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          <span>
+            {source.lastUpdate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
       </div>
     </div>
@@ -232,7 +268,12 @@ function AggregationFlowChart() {
                 >
                   {step.status === 'completed' ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     step.id
@@ -280,11 +321,51 @@ function AggregationFlowChart() {
 
 function ValidationMechanism() {
   const validationNodes: ValidationNode[] = [
-    { id: '1', name: 'Node Alpha', status: 'healthy', responseTime: 45, accuracy: 99.98, stake: 125000, reputation: 98 },
-    { id: '2', name: 'Node Beta', status: 'healthy', responseTime: 52, accuracy: 99.95, stake: 98000, reputation: 96 },
-    { id: '3', name: 'Node Gamma', status: 'healthy', responseTime: 48, accuracy: 99.92, stake: 87000, reputation: 95 },
-    { id: '4', name: 'Node Delta', status: 'warning', responseTime: 89, accuracy: 99.85, stake: 75000, reputation: 92 },
-    { id: '5', name: 'Node Epsilon', status: 'healthy', responseTime: 55, accuracy: 99.90, stake: 68000, reputation: 94 },
+    {
+      id: '1',
+      name: 'Node Alpha',
+      status: 'healthy',
+      responseTime: 45,
+      accuracy: 99.98,
+      stake: 125000,
+      reputation: 98,
+    },
+    {
+      id: '2',
+      name: 'Node Beta',
+      status: 'healthy',
+      responseTime: 52,
+      accuracy: 99.95,
+      stake: 98000,
+      reputation: 96,
+    },
+    {
+      id: '3',
+      name: 'Node Gamma',
+      status: 'healthy',
+      responseTime: 48,
+      accuracy: 99.92,
+      stake: 87000,
+      reputation: 95,
+    },
+    {
+      id: '4',
+      name: 'Node Delta',
+      status: 'warning',
+      responseTime: 89,
+      accuracy: 99.85,
+      stake: 75000,
+      reputation: 92,
+    },
+    {
+      id: '5',
+      name: 'Node Epsilon',
+      status: 'healthy',
+      responseTime: 55,
+      accuracy: 99.9,
+      stake: 68000,
+      reputation: 94,
+    },
   ];
 
   return (
@@ -302,8 +383,18 @@ function ValidationMechanism() {
       <div className="grid grid-cols-2 gap-4 mb-5">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <svg
+              className="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
             </svg>
             <span className="text-xs text-gray-600">共识阈值</span>
           </div>
@@ -312,8 +403,18 @@ function ValidationMechanism() {
         </div>
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <svg
+              className="w-5 h-5 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
             <span className="text-xs text-gray-600">验证节点数</span>
           </div>
@@ -325,7 +426,10 @@ function ValidationMechanism() {
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-700 mb-2">验证节点状态</p>
         {validationNodes.map((node) => (
-          <div key={node.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+          <div
+            key={node.id}
+            className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg"
+          >
             <div className="flex items-center gap-3">
               <HealthIndicator status={node.status} />
               <span className="text-sm font-medium text-gray-900">{node.name}</span>
@@ -368,7 +472,12 @@ function GeographicDistribution() {
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span>全球分布</span>
         </div>
@@ -481,12 +590,24 @@ function DependencyAnalysis() {
       <div className="mt-5 pt-4 border-t border-gray-100">
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-start gap-2">
-            <svg className="w-4 h-4 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4 text-blue-600 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div>
               <p className="text-xs font-medium text-blue-900">依赖度建议</p>
-              <p className="text-xs text-blue-700 mt-0.5">前两大数据源占比 50%，建议增加更多数据源以降低集中度风险</p>
+              <p className="text-xs text-blue-700 mt-0.5">
+                前两大数据源占比 50%，建议增加更多数据源以降低集中度风险
+              </p>
             </div>
           </div>
         </div>
@@ -527,12 +648,32 @@ function HealthOverview() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-gray-900">{metric.value}%</span>
                 {metric.status === 'healthy' ? (
-                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-4 h-4 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <svg
+                    className="w-4 h-4 text-yellow-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
                   </svg>
                 )}
               </div>
@@ -601,7 +742,7 @@ export function DataSourceTraceability() {
         type: 'exchange',
         status: 'healthy',
         latency: 48,
-        uptime: 99.90,
+        uptime: 99.9,
         lastUpdate: new Date(),
         location: '美国',
         reliability: 99.88,
@@ -614,10 +755,10 @@ export function DataSourceTraceability() {
         type: 'exchange',
         status: 'warning',
         latency: 89,
-        uptime: 98.50,
+        uptime: 98.5,
         lastUpdate: new Date(),
         location: '香港',
-        reliability: 98.20,
+        reliability: 98.2,
         dataPoints: 650000,
         contribution: 15,
       },
@@ -643,7 +784,7 @@ export function DataSourceTraceability() {
         uptime: 99.95,
         lastUpdate: new Date(),
         location: '南非',
-        reliability: 99.90,
+        reliability: 99.9,
         dataPoints: 920000,
         contribution: 7,
       },
@@ -669,7 +810,7 @@ export function DataSourceTraceability() {
         uptime: 99.88,
         lastUpdate: new Date(),
         location: '日本',
-        reliability: 99.80,
+        reliability: 99.8,
         dataPoints: 380000,
         contribution: 4,
       },
@@ -679,10 +820,10 @@ export function DataSourceTraceability() {
         type: 'exchange',
         status: 'critical',
         latency: 250,
-        uptime: 85.00,
+        uptime: 85.0,
         lastUpdate: new Date(Date.now() - 300000),
         location: '离线',
-        reliability: 75.00,
+        reliability: 75.0,
         dataPoints: 0,
         contribution: 0,
       },
@@ -732,7 +873,12 @@ export function DataSourceTraceability() {
           </div>
           <div className="text-gray-400">|</div>
           <span className="text-gray-500">
-            最后更新: {lastUpdated.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            最后更新:{' '}
+            {lastUpdated.toLocaleTimeString('zh-CN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
           </span>
         </div>
       </div>
@@ -777,4 +923,10 @@ export function DataSourceTraceability() {
   );
 }
 
-export type { DataSource, ValidationNode, AggregationStep, GeographicDistribution, DependencyMetric };
+export type {
+  DataSource,
+  ValidationNode,
+  AggregationStep,
+  GeographicDistribution,
+  DependencyMetric,
+};

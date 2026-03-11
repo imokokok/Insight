@@ -161,21 +161,15 @@ export function PriceDeviationHeatmap({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">平均偏差</p>
-            <p className="text-xl font-bold text-blue-700">
-              {stats.avgDeviation.toFixed(3)}%
-            </p>
+            <p className="text-xl font-bold text-blue-700">{stats.avgDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
             <p className="text-xs text-red-600 mb-1">最大偏差</p>
-            <p className="text-xl font-bold text-red-700">
-              {stats.maxDeviation.toFixed(3)}%
-            </p>
+            <p className="text-xl font-bold text-red-700">{stats.maxDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-green-600 mb-1">最小偏差</p>
-            <p className="text-xl font-bold text-green-700">
-              {stats.minDeviation.toFixed(3)}%
-            </p>
+            <p className="text-xl font-bold text-green-700">{stats.minDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-yellow-50 rounded-lg p-3 text-center">
             <p className="text-xs text-yellow-600 mb-1">异常数据点</p>
@@ -190,10 +184,7 @@ export function PriceDeviationHeatmap({
               <div className="flex-1">
                 <div className="flex gap-1 mb-2">
                   {timestamps.map((ts) => (
-                    <div
-                      key={ts}
-                      className="flex-1 min-w-[40px] text-center text-xs text-gray-500"
-                    >
+                    <div key={ts} className="flex-1 min-w-[40px] text-center text-xs text-gray-500">
                       {formatTimestamp(ts)}
                     </div>
                   ))}
@@ -224,9 +215,7 @@ export function PriceDeviationHeatmap({
                             hasData ? getDeviationTextColor(deviation) : 'bg-gray-100'
                           }`}
                           style={{
-                            backgroundColor: hasData
-                              ? getDeviationColor(deviation)
-                              : '#F3F4F6',
+                            backgroundColor: hasData ? getDeviationColor(deviation) : '#F3F4F6',
                           }}
                           onMouseEnter={() =>
                             hasData &&
@@ -242,7 +231,11 @@ export function PriceDeviationHeatmap({
                           {hasData && Math.abs(deviation) < 0.5 ? (
                             <span className="opacity-0">.</span>
                           ) : hasData ? (
-                            deviation > 0 ? '+' : ''
+                            deviation > 0 ? (
+                              '+'
+                            ) : (
+                              ''
+                            )
                           ) : (
                             '-'
                           )}
@@ -291,10 +284,7 @@ export function PriceDeviationHeatmap({
           <div className="flex flex-wrap items-center gap-2">
             {colorLegend.map((item) => (
               <div key={item.label} className="flex items-center gap-1">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{ backgroundColor: item.color }}
-                />
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: item.color }} />
                 <span className="text-xs text-gray-600">{item.label}</span>
               </div>
             ))}
@@ -391,9 +381,7 @@ export function PriceDeviationHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">
-                  检测到高偏差数据点
-                </h4>
+                <h4 className="text-sm font-semibold text-red-800 mb-1">检测到高偏差数据点</h4>
                 <p className="text-xs text-red-700">
                   发现 {stats.anomalyCount} 个偏差超过 1% 的数据点，建议关注这些异常数据。
                 </p>

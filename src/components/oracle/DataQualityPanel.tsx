@@ -124,18 +124,18 @@ function getStatusFromScore(score: number): QualityStatus {
 
 function generatePriceDeviationData(basePrice: number): PriceDeviationData[] {
   const oracles = ['Chainlink', 'Pyth', 'Band', 'UMA', 'API3'];
-  
+
   return oracles.map((oracle) => {
     const deviationPercent = (Math.random() - 0.5) * 1.5;
     const deviation = basePrice * (deviationPercent / 100);
     const price = basePrice + deviation;
     const trend = (Math.random() - 0.5) * 0.5;
-    
+
     let status: QualityStatus = 'excellent';
     if (Math.abs(deviationPercent) >= 1.0) status = 'critical';
     else if (Math.abs(deviationPercent) >= 0.5) status = 'warning';
     else if (Math.abs(deviationPercent) >= 0.2) status = 'good';
-    
+
     return {
       oracle,
       price,
@@ -204,7 +204,8 @@ function calculateLatencyMetrics(distribution: LatencyDistributionData[]): Laten
   const p95Index = Math.floor(latencies.length * 0.95);
   const p99Index = Math.floor(latencies.length * 0.99);
 
-  const variance = latencies.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / latencies.length;
+  const variance =
+    latencies.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / latencies.length;
   const stdDev = Math.sqrt(variance);
 
   return {
@@ -255,7 +256,8 @@ function calculateQualityScore(
   metrics: LatencyMetrics,
   sources: DataSourceReliability[]
 ): QualityScore {
-  const avgDeviation = deviations.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) / deviations.length;
+  const avgDeviation =
+    deviations.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) / deviations.length;
   const priceAccuracy = Math.max(0, 100 - avgDeviation * 50);
 
   const latencyScore = Math.max(0, 100 - (metrics.avg - 50) / 5);
@@ -273,7 +275,13 @@ function calculateQualityScore(
   };
 }
 
-function PriceDeviationCard({ data, basePrice }: { data: PriceDeviationData[]; basePrice: number }) {
+function PriceDeviationCard({
+  data,
+  basePrice,
+}: {
+  data: PriceDeviationData[];
+  basePrice: number;
+}) {
   const avgDeviation = data.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) / data.length;
   const maxDeviation = Math.max(...data.map((d) => Math.abs(d.deviationPercent)));
 
@@ -285,8 +293,18 @@ function PriceDeviationCard({ data, basePrice }: { data: PriceDeviationData[]; b
           <p className="text-xs text-gray-500 mt-0.5">与其他预言机价格对比分析</p>
         </div>
         <div className="p-2 bg-blue-50 rounded-lg">
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
           </svg>
         </div>
       </div>
@@ -298,13 +316,17 @@ function PriceDeviationCard({ data, basePrice }: { data: PriceDeviationData[]; b
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">平均偏差</p>
-          <p className={`text-lg font-bold ${avgDeviation >= 0.5 ? 'text-orange-600' : 'text-gray-900'}`}>
+          <p
+            className={`text-lg font-bold ${avgDeviation >= 0.5 ? 'text-orange-600' : 'text-gray-900'}`}
+          >
             {avgDeviation.toFixed(3)}%
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">最大偏差</p>
-          <p className={`text-lg font-bold ${maxDeviation >= 1.0 ? 'text-red-600' : 'text-gray-900'}`}>
+          <p
+            className={`text-lg font-bold ${maxDeviation >= 1.0 ? 'text-red-600' : 'text-gray-900'}`}
+          >
             {maxDeviation.toFixed(3)}%
           </p>
         </div>
@@ -328,11 +350,16 @@ function PriceDeviationCard({ data, basePrice }: { data: PriceDeviationData[]; b
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-sm font-mono text-gray-900">${item.price.toFixed(4)}</p>
-                  <p className={`text-xs ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.deviationPercent >= 0 ? '+' : ''}{item.deviationPercent.toFixed(3)}%
+                  <p
+                    className={`text-xs ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {item.deviationPercent >= 0 ? '+' : ''}
+                    {item.deviationPercent.toFixed(3)}%
                   </p>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}
+                >
                   {statusConfig.label}
                 </span>
               </div>
@@ -383,8 +410,11 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">偏差:</span>
-                      <span className={`font-mono ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {item.deviationPercent >= 0 ? '+' : ''}{item.deviationPercent.toFixed(3)}%
+                      <span
+                        className={`font-mono ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                      >
+                        {item.deviationPercent >= 0 ? '+' : ''}
+                        {item.deviationPercent.toFixed(3)}%
                       </span>
                     </div>
                   </div>
@@ -401,7 +431,13 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.status === 'critical' ? '#ef4444' : entry.status === 'warning' ? '#f59e0b' : '#10b981'}
+                fill={
+                  entry.status === 'critical'
+                    ? '#ef4444'
+                    : entry.status === 'warning'
+                      ? '#f59e0b'
+                      : '#10b981'
+                }
               />
             ))}
           </Bar>
@@ -426,7 +462,13 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
   );
 }
 
-function LatencyDistributionChart({ data, metrics }: { data: LatencyDistributionData[]; metrics: LatencyMetrics }) {
+function LatencyDistributionChart({
+  data,
+  metrics,
+}: {
+  data: LatencyDistributionData[];
+  metrics: LatencyMetrics;
+}) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -435,8 +477,18 @@ function LatencyDistributionChart({ data, metrics }: { data: LatencyDistribution
           <p className="text-xs text-gray-500 mt-0.5">响应延迟分布直方图</p>
         </div>
         <div className="p-2 bg-purple-50 rounded-lg">
-          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <svg
+            className="w-5 h-5 text-purple-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
           </svg>
         </div>
       </div>
@@ -444,15 +496,24 @@ function LatencyDistributionChart({ data, metrics }: { data: LatencyDistribution
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-green-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P50</p>
-          <p className="text-lg font-bold text-green-600">{metrics.p50}<span className="text-sm text-gray-500 ml-1">ms</span></p>
+          <p className="text-lg font-bold text-green-600">
+            {metrics.p50}
+            <span className="text-sm text-gray-500 ml-1">ms</span>
+          </p>
         </div>
         <div className="bg-yellow-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P95</p>
-          <p className="text-lg font-bold text-yellow-600">{metrics.p95}<span className="text-sm text-gray-500 ml-1">ms</span></p>
+          <p className="text-lg font-bold text-yellow-600">
+            {metrics.p95}
+            <span className="text-sm text-gray-500 ml-1">ms</span>
+          </p>
         </div>
         <div className="bg-red-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">P99</p>
-          <p className="text-lg font-bold text-red-600">{metrics.p99}<span className="text-sm text-gray-500 ml-1">ms</span></p>
+          <p className="text-lg font-bold text-red-600">
+            {metrics.p99}
+            <span className="text-sm text-gray-500 ml-1">ms</span>
+          </p>
         </div>
       </div>
 
@@ -522,9 +583,10 @@ function LatencyDistributionChart({ data, metrics }: { data: LatencyDistribution
 
 function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability[] }) {
   const avgAvailability = sources.reduce((sum, s) => sum + s.availability, 0) / sources.length;
-  const avgUpdateFrequency = sources.reduce((sum, s) => sum + s.updateFrequency, 0) / sources.length;
-  const mostRecentUpdate = sources.reduce((latest, s) => 
-    s.lastSuccessfulUpdate > latest ? s.lastSuccessfulUpdate : latest, 
+  const avgUpdateFrequency =
+    sources.reduce((sum, s) => sum + s.updateFrequency, 0) / sources.length;
+  const mostRecentUpdate = sources.reduce(
+    (latest, s) => (s.lastSuccessfulUpdate > latest ? s.lastSuccessfulUpdate : latest),
     new Date(0)
   );
 
@@ -545,8 +607,18 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
           <p className="text-xs text-gray-500 mt-0.5">数据源可用性与更新状态</p>
         </div>
         <div className="p-2 bg-green-50 rounded-lg">
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
       </div>
@@ -558,7 +630,10 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">平均更新频率</p>
-          <p className="text-lg font-bold text-gray-900">{avgUpdateFrequency.toFixed(0)}<span className="text-sm text-gray-500 ml-1">秒</span></p>
+          <p className="text-lg font-bold text-gray-900">
+            {avgUpdateFrequency.toFixed(0)}
+            <span className="text-sm text-gray-500 ml-1">秒</span>
+          </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-500 mb-1">最近更新</p>
@@ -577,10 +652,14 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-gray-900 text-sm">{source.name}</span>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-medium ${source.trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-xs font-medium ${source.trend > 0 ? 'text-green-600' : 'text-red-600'}`}
+                  >
                     {source.trend > 0 ? '↑' : '↓'} {Math.abs(source.trend).toFixed(2)}%
                   </span>
-                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}>
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}
+                  >
                     {statusConfig.label}
                   </span>
                 </div>
@@ -622,11 +701,16 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
 
   const getStrokeColor = () => {
     switch (overallStatus) {
-      case 'excellent': return '#10b981';
-      case 'good': return '#3b82f6';
-      case 'warning': return '#f59e0b';
-      case 'critical': return '#ef4444';
-      default: return '#6b7280';
+      case 'excellent':
+        return '#10b981';
+      case 'good':
+        return '#3b82f6';
+      case 'warning':
+        return '#f59e0b';
+      case 'critical':
+        return '#ef4444';
+      default:
+        return '#6b7280';
     }
   };
 
@@ -638,8 +722,18 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
           <p className="text-xs text-gray-500 mt-0.5">数据质量综合评估</p>
         </div>
         <div className={`p-2 rounded-lg ${statusConfig.lightBg}`}>
-          <svg className={`w-5 h-5 ${statusConfig.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          <svg
+            className={`w-5 h-5 ${statusConfig.color}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+            />
           </svg>
         </div>
       </div>
@@ -647,14 +741,7 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
       <div className="flex items-center justify-center mb-6">
         <div className="relative">
           <svg className="w-32 h-32 transform -rotate-90">
-            <circle
-              cx="64"
-              cy="64"
-              r="56"
-              stroke="#e5e7eb"
-              strokeWidth="8"
-              fill="none"
-            />
+            <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="8" fill="none" />
             <circle
               cx="64"
               cy="64"
@@ -784,7 +871,10 @@ export function DataQualityPanel({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PriceDeviationChart data={config.priceDeviations} />
-        <LatencyDistributionChart data={config.latencyDistribution} metrics={config.latencyMetrics} />
+        <LatencyDistributionChart
+          data={config.latencyDistribution}
+          metrics={config.latencyMetrics}
+        />
       </div>
 
       <DataSourceReliabilityCard sources={config.dataSources} />

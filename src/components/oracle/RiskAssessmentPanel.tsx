@@ -45,7 +45,9 @@ function RiskScoreCard({
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-gray-700">{title}</h4>
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${riskLevel.bgColor} ${riskLevel.color}`}>
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${riskLevel.bgColor} ${riskLevel.color}`}
+        >
           {riskLevel.label}
         </span>
       </div>
@@ -97,12 +99,16 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
           <div className="text-right">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">综合风险评分</span>
-              <span className={`px-3 py-1 text-sm font-medium rounded-full ${overallRisk.bgColor} ${overallRisk.color}`}>
+              <span
+                className={`px-3 py-1 text-sm font-medium rounded-full ${overallRisk.bgColor} ${overallRisk.color}`}
+              >
                 {overallRisk.label}
               </span>
             </div>
             <div className="flex items-end justify-end gap-1 mt-2">
-              <span className={`text-4xl font-bold ${overallRisk.color}`}>{riskScores.overall}</span>
+              <span className={`text-4xl font-bold ${overallRisk.color}`}>
+                {riskScores.overall}
+              </span>
               <span className="text-lg text-gray-500 mb-1">/100</span>
             </div>
           </div>

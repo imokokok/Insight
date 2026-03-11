@@ -141,19 +141,18 @@ export function DataQualityScoreCard({
 }: DataQualityScoreCardProps) {
   const { t } = useI18n();
 
-  const completenessValue = typeof completeness === 'number' 
-    ? completeness 
-    : completeness && 'successCount' in completeness
-      ? (completeness.successCount / completeness.totalCount) * 100
-      : 85;
+  const completenessValue =
+    typeof completeness === 'number'
+      ? completeness
+      : completeness && 'successCount' in completeness
+        ? (completeness.successCount / completeness.totalCount) * 100
+        : 85;
 
-  const accuracyValue = typeof accuracy === 'number'
-    ? accuracy
-    : reliability?.historicalAccuracy ?? 88;
+  const accuracyValue =
+    typeof accuracy === 'number' ? accuracy : (reliability?.historicalAccuracy ?? 88);
 
-  const timelinessValue = typeof timeliness === 'number'
-    ? timeliness
-    : reliability?.responseSuccessRate ?? 90;
+  const timelinessValue =
+    typeof timeliness === 'number' ? timeliness : (reliability?.responseSuccessRate ?? 90);
 
   const calculatedOverallScore =
     overallScore ?? completenessValue * 0.35 + timelinessValue * 0.3 + accuracyValue * 0.35;

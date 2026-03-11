@@ -36,14 +36,25 @@ function getScoreColorClass(score: number): string {
   return 'text-red-600';
 }
 
-function CircularProgress({ score, size = 80, strokeWidth = 8 }: { score: number; size?: number; strokeWidth?: number }) {
+function CircularProgress({
+  score,
+  size = 80,
+  strokeWidth = 8,
+}: {
+  score: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (score / 100) * circumference;
   const color = getScoreColor(score);
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}
@@ -95,7 +106,9 @@ function ContributionBar({ contribution, color }: { contribution: number; color:
 
 function DataSourceCard({ source }: { source: DataSourceCredibilityProps['sources'][0] }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const overallScore = Math.round((source.accuracy + source.responseSpeed + source.consistency + source.availability) / 4);
+  const overallScore = Math.round(
+    (source.accuracy + source.responseSpeed + source.consistency + source.availability) / 4
+  );
   const color = getScoreColor(overallScore);
 
   const radarData = [
@@ -114,16 +127,10 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors">
-      <div
-        className="p-4 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+      <div className="p-4 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: color }}
-            />
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
             <h4 className="text-base font-semibold text-gray-900">{source.name}</h4>
           </div>
           <div className="flex items-center gap-3">
@@ -134,7 +141,12 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </div>
         </div>
@@ -170,7 +182,10 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
               <h5 className="text-sm font-medium text-gray-700 mb-3">详细指标</h5>
               <div className="space-y-3">
                 {metrics.map((metric) => (
-                  <div key={metric.label} className="bg-white rounded-lg p-3 border border-gray-200">
+                  <div
+                    key={metric.label}
+                    className="bg-white rounded-lg p-3 border border-gray-200"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{metric.icon}</span>
@@ -201,11 +216,15 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
 }
 
 export function DataSourceCredibility({ sources, className = '' }: DataSourceCredibilityProps) {
-  const averageScore = sources.length > 0
-    ? Math.round(
-        sources.reduce((sum, s) => sum + (s.accuracy + s.responseSpeed + s.consistency + s.availability) / 4, 0) / sources.length
-      )
-    : 0;
+  const averageScore =
+    sources.length > 0
+      ? Math.round(
+          sources.reduce(
+            (sum, s) => sum + (s.accuracy + s.responseSpeed + s.consistency + s.availability) / 4,
+            0
+          ) / sources.length
+        )
+      : 0;
 
   const totalContribution = sources.reduce((sum, s) => sum + s.contribution, 0);
 
@@ -237,8 +256,18 @@ export function DataSourceCredibility({ sources, className = '' }: DataSourceCre
 
         {sources.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <svg
+              className="w-12 h-12 mx-auto mb-3 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
             <p>暂无数据源信息</p>
           </div>

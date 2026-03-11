@@ -85,7 +85,7 @@ export function PriceDeviationHistoryChart({
 
     for (let i = 0; i < maxLength; i++) {
       const prices: { provider: OracleProvider; price: number }[] = [];
-      
+
       selectedOracles.forEach((provider) => {
         const history = priceHistory[provider] || [];
         if (history[i] !== undefined) {
@@ -105,9 +105,10 @@ export function PriceDeviationHistoryChart({
         case 'median': {
           const sorted = [...prices].sort((a, b) => a.price - b.price);
           const mid = Math.floor(sorted.length / 2);
-          baseline = sorted.length % 2 !== 0
-            ? sorted[mid].price
-            : (sorted[mid - 1].price + sorted[mid].price) / 2;
+          baseline =
+            sorted.length % 2 !== 0
+              ? sorted[mid].price
+              : (sorted[mid - 1].price + sorted[mid].price) / 2;
           break;
         }
         case 'chainlink': {
@@ -142,7 +143,10 @@ export function PriceDeviationHistoryChart({
   }, [deviationHistory, timeRange]);
 
   const deviationStats = useMemo((): Record<OracleProvider, DeviationStats> => {
-    const stats: Record<OracleProvider, DeviationStats> = {} as Record<OracleProvider, DeviationStats>;
+    const stats: Record<OracleProvider, DeviationStats> = {} as Record<
+      OracleProvider,
+      DeviationStats
+    >;
 
     selectedOracles.forEach((provider) => {
       const deviations = deviationHistory
@@ -167,7 +171,8 @@ export function PriceDeviationHistoryChart({
       const maxIndex = absDeviations.indexOf(maxAbsDeviation);
       const maxDeviationTime = deviationHistory[maxIndex]?.timestamp || 0;
 
-      const variance = deviations.reduce((sum, d) => sum + Math.pow(d - avgDeviation, 2), 0) / deviations.length;
+      const variance =
+        deviations.reduce((sum, d) => sum + Math.pow(d - avgDeviation, 2), 0) / deviations.length;
       const stdDeviation = Math.sqrt(variance);
 
       stats[provider] = {
@@ -213,19 +218,34 @@ export function PriceDeviationHistoryChart({
     switch (trend) {
       case 'increasing':
         return (
-          <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
           </svg>
         );
       case 'decreasing':
         return (
-          <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         );
       default:
         return (
-          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
           </svg>
         );
@@ -246,7 +266,11 @@ export function PriceDeviationHistoryChart({
   const formatMaxDeviationTime = (timestamp: number): string => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
   };
 
   return (
@@ -264,9 +288,15 @@ export function PriceDeviationHistoryChart({
                 onChange={(e) => setBaselineType(e.target.value as BaselineType)}
                 className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="average">{t('priceDeviationHistory.baselineAverage') || '平均值'}</option>
-                <option value="median">{t('priceDeviationHistory.baselineMedian') || '中位数'}</option>
-                <option value="chainlink">{t('priceDeviationHistory.baselineChainlink') || 'Chainlink'}</option>
+                <option value="average">
+                  {t('priceDeviationHistory.baselineAverage') || '平均值'}
+                </option>
+                <option value="median">
+                  {t('priceDeviationHistory.baselineMedian') || '中位数'}
+                </option>
+                <option value="chainlink">
+                  {t('priceDeviationHistory.baselineChainlink') || 'Chainlink'}
+                </option>
               </select>
             </div>
             <div className="flex items-center gap-2">
@@ -284,7 +314,7 @@ export function PriceDeviationHistoryChart({
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {range === 'all' ? (t('priceDeviationHistory.allData') || '全部') : `${range}`}
+                    {range === 'all' ? t('priceDeviationHistory.allData') || '全部' : `${range}`}
                   </button>
                 ))}
               </div>
@@ -366,13 +396,19 @@ export function PriceDeviationHistoryChart({
         </div>
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-orange-500 border-dashed" style={{ borderTop: '2px dashed #f59e0b' }} />
+            <div
+              className="w-8 h-0.5 bg-orange-500 border-dashed"
+              style={{ borderTop: '2px dashed #f59e0b' }}
+            />
             <span className="text-xs text-gray-600">
               {t('priceDeviationHistory.warningThreshold') || '警告阈值'} (±0.5%)
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 bg-red-500 border-dashed" style={{ borderTop: '2px dashed #ef4444' }} />
+            <div
+              className="w-8 h-0.5 bg-red-500 border-dashed"
+              style={{ borderTop: '2px dashed #ef4444' }}
+            />
             <span className="text-xs text-gray-600">
               {t('priceDeviationHistory.criticalThreshold') || '异常阈值'} (±1.0%)
             </span>
@@ -385,10 +421,7 @@ export function PriceDeviationHistoryChart({
           {selectedOracles.map((provider) => {
             const stats = deviationStats[provider];
             return (
-              <div
-                key={provider}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-              >
+              <div key={provider} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <div
                     className="w-3 h-3 rounded-full"
@@ -401,13 +434,15 @@ export function PriceDeviationHistoryChart({
                     <span className="text-sm text-gray-600">
                       {t('priceDeviationHistory.avgDeviation') || '平均偏离'}
                     </span>
-                    <span className={`text-sm font-medium ${
-                      stats.avgDeviation >= DEVIATION_THRESHOLDS.critical
-                        ? 'text-red-600'
-                        : stats.avgDeviation >= DEVIATION_THRESHOLDS.warning
-                        ? 'text-orange-600'
-                        : 'text-gray-900'
-                    }`}>
+                    <span
+                      className={`text-sm font-medium ${
+                        stats.avgDeviation >= DEVIATION_THRESHOLDS.critical
+                          ? 'text-red-600'
+                          : stats.avgDeviation >= DEVIATION_THRESHOLDS.warning
+                            ? 'text-orange-600'
+                            : 'text-gray-900'
+                      }`}
+                    >
                       {stats.avgDeviation.toFixed(4)}%
                     </span>
                   </div>
@@ -415,14 +450,17 @@ export function PriceDeviationHistoryChart({
                     <span className="text-sm text-gray-600">
                       {t('priceDeviationHistory.maxDeviation') || '最大偏离'}
                     </span>
-                    <span className={`text-sm font-medium ${
-                      Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.critical
-                        ? 'text-red-600'
-                        : Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.warning
-                        ? 'text-orange-600'
-                        : 'text-gray-900'
-                    }`}>
-                      {stats.maxDeviation >= 0 ? '+' : ''}{stats.maxDeviation.toFixed(4)}%
+                    <span
+                      className={`text-sm font-medium ${
+                        Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.critical
+                          ? 'text-red-600'
+                          : Math.abs(stats.maxDeviation) >= DEVIATION_THRESHOLDS.warning
+                            ? 'text-orange-600'
+                            : 'text-gray-900'
+                      }`}
+                    >
+                      {stats.maxDeviation >= 0 ? '+' : ''}
+                      {stats.maxDeviation.toFixed(4)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -437,9 +475,7 @@ export function PriceDeviationHistoryChart({
                     <span className="text-sm text-gray-600">
                       {t('priceDeviationHistory.stdDeviation') || '偏离标准差'}
                     </span>
-                    <span className="text-sm text-gray-900">
-                      {stats.stdDeviation.toFixed(4)}%
-                    </span>
+                    <span className="text-sm text-gray-900">{stats.stdDeviation.toFixed(4)}%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">
@@ -447,10 +483,15 @@ export function PriceDeviationHistoryChart({
                     </span>
                     <div className="flex items-center gap-1">
                       {getTrendIcon(stats.trend)}
-                      <span className={`text-sm ${
-                        stats.trend === 'increasing' ? 'text-red-600' :
-                        stats.trend === 'decreasing' ? 'text-green-600' : 'text-gray-600'
-                      }`}>
+                      <span
+                        className={`text-sm ${
+                          stats.trend === 'increasing'
+                            ? 'text-red-600'
+                            : stats.trend === 'decreasing'
+                              ? 'text-green-600'
+                              : 'text-gray-600'
+                        }`}
+                      >
                         {getTrendLabel(stats.trend)}
                       </span>
                     </div>
@@ -509,36 +550,32 @@ export function PriceDeviationHistoryChart({
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.baselineType') || '当前基准'}
             </p>
-            <p className="text-lg font-semibold text-blue-600">
-              {getBaselineLabel(baselineType)}
-            </p>
+            <p className="text-lg font-semibold text-blue-600">{getBaselineLabel(baselineType)}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.dataPoints') || '数据点数'}
             </p>
-            <p className="text-lg font-semibold text-green-600">
-              {deviationHistory.length}
-            </p>
+            <p className="text-lg font-semibold text-green-600">{deviationHistory.length}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.oracleCount') || '预言机数量'}
             </p>
-            <p className="text-lg font-semibold text-purple-600">
-              {selectedOracles.length}
-            </p>
+            <p className="text-lg font-semibold text-purple-600">{selectedOracles.length}</p>
           </div>
           <div className="bg-orange-50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.warningCount') || '警告次数'}
             </p>
             <p className="text-lg font-semibold text-orange-600">
-              {deviationHistory.filter((d) => 
-                Object.values(d.deviations).some(
-                  (dev) => Math.abs(dev) >= DEVIATION_THRESHOLDS.warning
-                )
-              ).length}
+              {
+                deviationHistory.filter((d) =>
+                  Object.values(d.deviations).some(
+                    (dev) => Math.abs(dev) >= DEVIATION_THRESHOLDS.warning
+                  )
+                ).length
+              }
             </p>
           </div>
         </div>

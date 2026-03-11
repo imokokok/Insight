@@ -110,7 +110,8 @@ function calculateVolatility(
 ): VolatilityResult[] {
   return data.map((oracleData) => {
     const prices = oracleData.prices.map((p) => p.price);
-    const mean = prices.length > 0 ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
+    const mean =
+      prices.length > 0 ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
     const stdDev = calculateStandardDeviation(prices);
     const cv = calculateCoefficientOfVariation(stdDev, mean);
     const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
@@ -154,9 +155,7 @@ function calculateRollingVolatility(
     data.forEach((oracleData) => {
       const windowPrices: number[] = [];
       for (let i = Math.max(0, index - windowSize + 1); i <= index; i++) {
-        const pricePoint = oracleData.prices.find(
-          (p) => p.timestamp === sortedTimestamps[i]
-        );
+        const pricePoint = oracleData.prices.find((p) => p.timestamp === sortedTimestamps[i]);
         if (pricePoint) {
           windowPrices.push(pricePoint.price);
         }
@@ -185,7 +184,10 @@ function calculateMultiScaleVolatility(
   return data.map((oracleData) => {
     const prices = oracleData.prices.map((p) => p.price);
     const windowPrices = prices.slice(-windowSize);
-    const mean = windowPrices.length > 0 ? windowPrices.reduce((sum, price) => sum + price, 0) / windowPrices.length : 0;
+    const mean =
+      windowPrices.length > 0
+        ? windowPrices.reduce((sum, price) => sum + price, 0) / windowPrices.length
+        : 0;
     const stdDev = calculateStandardDeviation(windowPrices);
     const cv = calculateCoefficientOfVariation(stdDev, mean);
     const minPrice = windowPrices.length > 0 ? Math.min(...windowPrices) : 0;
@@ -205,9 +207,7 @@ function calculateMultiScaleVolatility(
   });
 }
 
-function calculateVolatilityDecomposition(
-  data: OraclePriceHistory[]
-): VolatilityDecomposition[] {
+function calculateVolatilityDecomposition(data: OraclePriceHistory[]): VolatilityDecomposition[] {
   if (data.length === 0) return [];
 
   const allTimestamps = new Set<number>();
@@ -222,20 +222,38 @@ function calculateVolatilityDecomposition(
 
   return sortedTimestamps.slice(-20).map((timestamp) => {
     const priceIndex = avgOracle.prices.findIndex((p) => p.timestamp === timestamp);
-    
-    const shortTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 6), priceIndex + 1).map(p => p.price);
-    const midTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 24), priceIndex + 1).map(p => p.price);
-    const longTermPrices = avgOracle.prices.slice(Math.max(0, priceIndex - 168), priceIndex + 1).map(p => p.price);
 
-    const shortTermCV = shortTermPrices.length >= 2 
-      ? calculateCoefficientOfVariation(calculateStandardDeviation(shortTermPrices), shortTermPrices.reduce((a, b) => a + b, 0) / shortTermPrices.length)
-      : 0;
-    const midTermCV = midTermPrices.length >= 2
-      ? calculateCoefficientOfVariation(calculateStandardDeviation(midTermPrices), midTermPrices.reduce((a, b) => a + b, 0) / midTermPrices.length)
-      : 0;
-    const longTermCV = longTermPrices.length >= 2
-      ? calculateCoefficientOfVariation(calculateStandardDeviation(longTermPrices), longTermPrices.reduce((a, b) => a + b, 0) / longTermPrices.length)
-      : 0;
+    const shortTermPrices = avgOracle.prices
+      .slice(Math.max(0, priceIndex - 6), priceIndex + 1)
+      .map((p) => p.price);
+    const midTermPrices = avgOracle.prices
+      .slice(Math.max(0, priceIndex - 24), priceIndex + 1)
+      .map((p) => p.price);
+    const longTermPrices = avgOracle.prices
+      .slice(Math.max(0, priceIndex - 168), priceIndex + 1)
+      .map((p) => p.price);
+
+    const shortTermCV =
+      shortTermPrices.length >= 2
+        ? calculateCoefficientOfVariation(
+            calculateStandardDeviation(shortTermPrices),
+            shortTermPrices.reduce((a, b) => a + b, 0) / shortTermPrices.length
+          )
+        : 0;
+    const midTermCV =
+      midTermPrices.length >= 2
+        ? calculateCoefficientOfVariation(
+            calculateStandardDeviation(midTermPrices),
+            midTermPrices.reduce((a, b) => a + b, 0) / midTermPrices.length
+          )
+        : 0;
+    const longTermCV =
+      longTermPrices.length >= 2
+        ? calculateCoefficientOfVariation(
+            calculateStandardDeviation(longTermPrices),
+            longTermPrices.reduce((a, b) => a + b, 0) / longTermPrices.length
+          )
+        : 0;
 
     const total = shortTermCV + midTermCV + longTermCV;
 
@@ -244,9 +262,9 @@ function calculateVolatilityDecomposition(
         hour: '2-digit',
         minute: '2-digit',
       }),
-      shortTerm: Number((shortTermCV / (total || 1) * 100).toFixed(2)),
-      midTerm: Number((midTermCV / (total || 1) * 100).toFixed(2)),
-      longTerm: Number((longTermCV / (total || 1) * 100).toFixed(2)),
+      shortTerm: Number(((shortTermCV / (total || 1)) * 100).toFixed(2)),
+      midTerm: Number(((midTermCV / (total || 1)) * 100).toFixed(2)),
+      longTerm: Number(((longTermCV / (total || 1)) * 100).toFixed(2)),
       total: Number(total.toFixed(4)),
     };
   });
@@ -285,10 +303,7 @@ export function PriceVolatilityChart({
     [data, showTrend]
   );
 
-  const decompositionData = useMemo(
-    () => calculateVolatilityDecomposition(data),
-    [data]
-  );
+  const decompositionData = useMemo(() => calculateVolatilityDecomposition(data), [data]);
 
   const chartData = useMemo(
     () =>
@@ -333,15 +348,11 @@ export function PriceVolatilityChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">标准差 (σ)</span>
-            <span className="text-sm font-medium text-gray-700">
-              ${result.stdDev.toFixed(4)}
-            </span>
+            <span className="text-sm font-medium text-gray-700">${result.stdDev.toFixed(4)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">平均价格</span>
-            <span className="text-sm font-medium text-gray-700">
-              ${result.mean.toFixed(2)}
-            </span>
+            <span className="text-sm font-medium text-gray-700">${result.mean.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">价格范围</span>
@@ -514,7 +525,10 @@ export function PriceVolatilityChart({
               <h4 className="text-sm font-medium text-gray-700 mb-3">滚动波动率趋势</h4>
               <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <ComposedChart
+                    data={trendData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis
                       dataKey="period"

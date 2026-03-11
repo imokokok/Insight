@@ -357,7 +357,10 @@ export function ChainComparison({
     if (extendedSelectedChains.length === 0) return null;
 
     const totalRequests = extendedSelectedChains.reduce(
-      (sum, c) => (sum + c[TIME_RANGE_CONFIG[timeRange].field]) as number,
+      (sum, c) => {
+        const value = c[TIME_RANGE_CONFIG[timeRange].field];
+        return sum + (typeof value === 'number' ? value : 0);
+      },
       0
     );
     const avgGas =

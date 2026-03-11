@@ -94,7 +94,8 @@ export function DataSourceTrend() {
           <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">环比增长</p>
             <p className="text-xl font-bold text-green-700">
-              {stats.growth >= 0 ? '+' : ''}{stats.growth}%
+              {stats.growth >= 0 ? '+' : ''}
+              {stats.growth}%
             </p>
             <p className="text-xs text-green-600 mt-0.5">较上月</p>
           </div>

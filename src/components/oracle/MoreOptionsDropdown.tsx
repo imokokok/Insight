@@ -111,7 +111,9 @@ export function MoreOptionsDropdown({
             <button
               onClick={() => handleToggle(onToggleAnomalyDetection)}
               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between ${
-                anomalyDetectionEnabled ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:bg-gray-50'
+                anomalyDetectionEnabled
+                  ? 'text-red-600 bg-red-50'
+                  : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -164,7 +166,9 @@ export function MoreOptionsDropdown({
             <button
               onClick={() => handleToggle(onTogglePredictionInterval)}
               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between ${
-                showPredictionInterval ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'
+                showPredictionInterval
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -204,7 +208,11 @@ export function MoreOptionsDropdown({
                   >
                     <span className="pl-6">{level}%</span>
                     {confidenceLevel === level && (
-                      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-4 h-4 text-blue-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -270,7 +278,9 @@ export function MoreOptionsDropdown({
                   >
                     <svg
                       className={`w-4 h-4 ${
-                        comparisonEnabled || showComparisonPanel ? 'text-purple-600' : 'text-gray-600'
+                        comparisonEnabled || showComparisonPanel
+                          ? 'text-purple-600'
+                          : 'text-gray-600'
                       }`}
                       fill="none"
                       stroke="currentColor"
@@ -304,7 +314,9 @@ export function MoreOptionsDropdown({
             <button
               onClick={() => handleToggle(onToggleAnomalyDetection)}
               className={`w-full px-4 py-2.5 text-left transition-colors ${
-                anomalyDetectionEnabled ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:bg-gray-50'
+                anomalyDetectionEnabled
+                  ? 'text-red-600 bg-red-50'
+                  : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -376,7 +388,9 @@ export function MoreOptionsDropdown({
             <button
               onClick={() => handleToggle(onTogglePredictionInterval)}
               className={`w-full px-4 py-2.5 text-left transition-colors ${
-                showPredictionInterval ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'
+                showPredictionInterval
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <div className="flex items-center justify-between">

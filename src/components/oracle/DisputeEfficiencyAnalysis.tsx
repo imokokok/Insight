@@ -37,9 +37,9 @@ export function DisputeEfficiencyAnalysis() {
     );
   }
 
-  const maxCount = Math.max(...stats.resolutionTimeDistribution.map(d => d.count));
-  const maxRate = Math.max(...stats.successRateTrend.map(d => d.rate));
-  const minRate = Math.min(...stats.successRateTrend.map(d => d.rate));
+  const maxCount = Math.max(...stats.resolutionTimeDistribution.map((d) => d.count));
+  const maxRate = Math.max(...stats.successRateTrend.map((d) => d.rate));
+  const minRate = Math.min(...stats.successRateTrend.map((d) => d.rate));
 
   return (
     <div className="space-y-6">
@@ -54,7 +54,9 @@ export function DisputeEfficiencyAnalysis() {
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
             {t('uma.disputeResolution.medianResolutionTime')}
           </p>
-          <p className="text-gray-900 text-2xl font-bold">{stats.medianResolutionTime.toFixed(1)}h</p>
+          <p className="text-gray-900 text-2xl font-bold">
+            {stats.medianResolutionTime.toFixed(1)}h
+          </p>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
@@ -93,7 +95,7 @@ export function DisputeEfficiencyAnalysis() {
         <div className="space-y-4">
           <div className="h-48 relative">
             <div className="absolute inset-0 flex flex-col justify-between text-xs text-gray-400 pointer-events-none">
-              {[0, 1, 2, 3, 4].map(i => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <div key={i} className="border-b border-gray-100 h-0" />
               ))}
             </div>
@@ -108,22 +110,26 @@ export function DisputeEfficiencyAnalysis() {
 
               <path
                 d={`M 0 ${((maxRate - stats.successRateTrend[0].rate) / (maxRate - minRate)) * 100}% 
-                    ${stats.successRateTrend.map((point, index) => {
-                      const x = (index / (stats.successRateTrend.length - 1)) * 100;
-                      const y = ((maxRate - point.rate) / (maxRate - minRate)) * 100;
-                      return `L ${x}% ${y}%`;
-                    }).join(' ')} 
+                    ${stats.successRateTrend
+                      .map((point, index) => {
+                        const x = (index / (stats.successRateTrend.length - 1)) * 100;
+                        const y = ((maxRate - point.rate) / (maxRate - minRate)) * 100;
+                        return `L ${x}% ${y}%`;
+                      })
+                      .join(' ')} 
                     L 100% 100% L 0 100% Z`}
                 fill="url(#successRateGradient)"
               />
 
               <path
                 d={`M 0 ${((maxRate - stats.successRateTrend[0].rate) / (maxRate - minRate)) * 100}% 
-                    ${stats.successRateTrend.map((point, index) => {
-                      const x = (index / (stats.successRateTrend.length - 1)) * 100;
-                      const y = ((maxRate - point.rate) / (maxRate - minRate)) * 100;
-                      return `L ${x}% ${y}%`;
-                    }).join(' ')}`}
+                    ${stats.successRateTrend
+                      .map((point, index) => {
+                        const x = (index / (stats.successRateTrend.length - 1)) * 100;
+                        const y = ((maxRate - point.rate) / (maxRate - minRate)) * 100;
+                        return `L ${x}% ${y}%`;
+                      })
+                      .join(' ')}`}
                 fill="none"
                 stroke="#3B82F6"
                 strokeWidth="2"
@@ -148,9 +154,11 @@ export function DisputeEfficiencyAnalysis() {
           </div>
 
           <div className="flex items-center justify-between text-xs text-gray-500">
-            {stats.successRateTrend.filter((_, i) => i % 2 === 0).map((point, index) => (
-              <span key={index}>{point.date}</span>
-            ))}
+            {stats.successRateTrend
+              .filter((_, i) => i % 2 === 0)
+              .map((point, index) => (
+                <span key={index}>{point.date}</span>
+              ))}
           </div>
         </div>
       </DashboardCard>

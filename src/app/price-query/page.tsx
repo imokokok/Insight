@@ -498,11 +498,7 @@ export default function PriceQueryPage() {
     );
   };
 
-  const CustomLegend = ({
-    payload,
-  }: {
-    payload?: Array<{ value: string; color: string }>;
-  }) => {
+  const CustomLegend = ({ payload }: { payload?: Array<{ value: string; color: string }> }) => {
     if (!payload) return null;
 
     return (
@@ -517,10 +513,7 @@ export default function PriceQueryPage() {
                 isHidden ? 'opacity-40' : 'opacity-100'
               }`}
             >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-xs">{entry.value}</span>
             </button>
           );
@@ -894,10 +887,7 @@ export default function PriceQueryPage() {
             </button>
             {showHistory && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowHistory(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setShowHistory(false)} />
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 shadow-lg z-20">
                   {historyItems.length === 0 ? (
                     <div className="p-4 text-sm text-gray-500 text-center">暂无历史记录</div>
@@ -918,7 +908,9 @@ export default function PriceQueryPage() {
                           >
                             <div className="flex justify-between items-start">
                               <div className="text-sm font-medium text-gray-900">{item.symbol}</div>
-                              <div className="text-xs text-gray-500">{formatHistoryTime(item.timestamp)}</div>
+                              <div className="text-xs text-gray-500">
+                                {formatHistoryTime(item.timestamp)}
+                              </div>
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               {item.oracles.length} 个预言机 · {item.chains.length} 条链

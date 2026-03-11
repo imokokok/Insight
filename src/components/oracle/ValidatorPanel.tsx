@@ -463,7 +463,9 @@ export function ValidatorPanel({
     } else if (quickFilter === 'highStake') {
       const sortedByStake = [...validators].sort((a, b) => b.tokens - a.tokens);
       const top20Percent = Math.ceil(sortedByStake.length * 0.2);
-      const topAddresses = new Set(sortedByStake.slice(0, top20Percent).map((v) => v.operatorAddress));
+      const topAddresses = new Set(
+        sortedByStake.slice(0, top20Percent).map((v) => v.operatorAddress)
+      );
       result = result.filter((v) => topAddresses.has(v.operatorAddress));
     } else if (quickFilter === 'highUptime') {
       result = result.filter((v) => v.uptime >= 99.9);
@@ -583,9 +585,7 @@ export function ValidatorPanel({
               <h3 className="text-lg font-semibold text-gray-900">验证者列表</h3>
               <p className="text-sm text-gray-500 mt-0.5">
                 共 {filteredValidators.length} 个验证者
-                {quickFilter !== 'all' && (
-                  <span className="text-blue-600 ml-1">(已筛选)</span>
-                )}
+                {quickFilter !== 'all' && <span className="text-blue-600 ml-1">(已筛选)</span>}
                 {' • 总质押 '}
                 {formatNumber(
                   validators.reduce((sum, v) => sum + v.tokens, 0),

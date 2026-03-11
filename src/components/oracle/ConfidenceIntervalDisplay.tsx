@@ -113,12 +113,13 @@ export function ConfidenceIntervalDisplay({
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-gray-300 rounded-full" />
             <span className="text-xs text-gray-500">
-              Width: <span className={`font-medium ${isWarning ? 'text-amber-600' : 'text-gray-700'}`}>{widthPercentage.toFixed(4)}%</span>
+              Width:{' '}
+              <span className={`font-medium ${isWarning ? 'text-amber-600' : 'text-gray-700'}`}>
+                {widthPercentage.toFixed(4)}%
+              </span>
             </span>
           </div>
-          <div className="text-xs text-gray-400">
-            Threshold: {warningThreshold}%
-          </div>
+          <div className="text-xs text-gray-400">Threshold: {warningThreshold}%</div>
         </div>
       </div>
     </div>

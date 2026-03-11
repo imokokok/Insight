@@ -130,27 +130,27 @@ function formatDuration(ms: number): string {
 function generateMockData(symbol: string): ConfidenceDataPoint[] {
   const now = Date.now();
   const data: ConfidenceDataPoint[] = [];
-  
+
   for (let i = 60; i >= 0; i--) {
     const timestamp = now - i * 60000;
     const baseWidth = 0.0015;
     const randomVariance = (Math.random() - 0.5) * 0.001;
     let width = baseWidth + randomVariance;
-    
+
     if (i === 30) {
       width = 0.004;
     }
     if (i <= 15 && i >= 5) {
       width = 0.0035 + Math.random() * 0.0005;
     }
-    
+
     data.push({
       timestamp,
       width: Number(width.toFixed(6)),
       symbol,
     });
   }
-  
+
   return data;
 }
 
@@ -197,10 +197,10 @@ export function ConfidenceAlertPanel({
 
       if (previous.width > 0) {
         const expansionPercent = (current.width - previous.width) / previous.width;
-        
+
         if (expansionPercent >= ALERT_CONFIG.suddenExpansion.expansionThreshold) {
           const severity: AlertSeverity = expansionPercent >= 1 ? 'critical' : 'warning';
-          
+
           const alert: ConfidenceAlert = {
             id: generateAlertId(),
             type: 'sudden_expansion',
@@ -245,17 +245,18 @@ export function ConfidenceAlertPanel({
 
       if (current.width > threshold) {
         const startTime = highWidthStartRef.current.get(key);
-        
+
         if (!startTime) {
           highWidthStartRef.current.set(key, current.timestamp);
           return null;
         }
 
         const duration = current.timestamp - startTime;
-        
+
         if (duration >= ALERT_CONFIG.sustainedHigh.duration) {
-          const severity: AlertSeverity = duration >= ALERT_CONFIG.sustainedHigh.duration * 2 ? 'critical' : 'warning';
-          
+          const severity: AlertSeverity =
+            duration >= ALERT_CONFIG.sustainedHigh.duration * 2 ? 'critical' : 'warning';
+
           const alert: ConfidenceAlert = {
             id: generateAlertId(),
             type: 'sustained_high',
@@ -353,9 +354,7 @@ export function ConfidenceAlertPanel({
   }, [alerts]);
 
   const acknowledgeAlert = (id: string) => {
-    setAlerts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a))
-    );
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
   };
 
   const dismissAlert = (id: string) => {
@@ -403,7 +402,9 @@ export function ConfidenceAlertPanel({
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-500 mb-1">当前宽度</p>
-            <p className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}>
+            <p
+              className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}
+            >
               {currentWidth.toFixed(6)}
             </p>
           </div>
@@ -614,9 +615,7 @@ export function ConfidenceAlertPanel({
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500">持续高位</span>
-                <span className="text-sm font-bold text-gray-900">
-                  {stats.sustainedHighCount}
-                </span>
+                <span className="text-sm font-bold text-gray-900">{stats.sustainedHighCount}</span>
               </div>
               <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                 <div
@@ -634,9 +633,7 @@ export function ConfidenceAlertPanel({
           </div>
         </div>
 
-        <div className="text-xs text-gray-400 text-right">
-          上次检测: {formatTime(lastCheck)}
-        </div>
+        <div className="text-xs text-gray-400 text-right">上次检测: {formatTime(lastCheck)}</div>
       </div>
     </DashboardCard>
   );

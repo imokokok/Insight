@@ -51,11 +51,11 @@ interface CalculatedRanking {
 }
 
 const WEIGHTS = {
-  responseTime: 0.30,
-  accuracy: 0.30,
-  stability: 0.20,
-  dataSources: 0.10,
-  supportedChains: 0.10,
+  responseTime: 0.3,
+  accuracy: 0.3,
+  stability: 0.2,
+  dataSources: 0.1,
+  supportedChains: 0.1,
 };
 
 const oracleNames: Record<OracleProvider, string> = {
@@ -302,10 +302,7 @@ export function OraclePerformanceRanking({
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="font-semibold text-gray-900">{item.name}</span>
                   </div>
                   <RankChangeIndicator change={item.rankChange} />
@@ -360,10 +357,7 @@ export function OraclePerformanceRanking({
                   </span>
 
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
 

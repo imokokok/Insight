@@ -19,6 +19,43 @@ interface AccuracyTrendChartProps {
   data: AccuracyTrendPoint[];
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: AccuracyTrendPoint & { displayDate: string } }>;
+  label?: string;
+  t: (key: string) => string;
+}
+
+function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    const dataPoint = payload[0].payload;
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+        <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-sm">
+            <span className="text-gray-500">{t('pyth.trend.accuracy')}:</span>
+            <span className="ml-2 font-bold text-blue-600">{dataPoint.accuracy.toFixed(2)}%</span>
+          </p>
+          <p className="text-sm">
+            <span className="text-gray-500">{t('pyth.trend.deviation')}:</span>
+            <span className="ml-2 font-bold text-red-600">{dataPoint.deviation.toFixed(4)}%</span>
+          </p>
+          {dataPoint.event && (
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <p className="text-sm">
+                <span className="text-gray-500">{t('pyth.trend.event')}:</span>
+                <span className="ml-2 font-medium text-orange-600">{dataPoint.event}</span>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
   const { t } = useI18n();
 
@@ -47,36 +84,6 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
     if (data.length === 0) return 0;
     return Math.max(...data.map((d) => d.accuracy));
   }, [data]);
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = payload[0].payload;
-      return (
-        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-          <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
-          <div className="space-y-1">
-            <p className="text-sm">
-              <span className="text-gray-500">{t('pyth.trend.accuracy')}:</span>
-              <span className="ml-2 font-bold text-blue-600">{dataPoint.accuracy.toFixed(2)}%</span>
-            </p>
-            <p className="text-sm">
-              <span className="text-gray-500">{t('pyth.trend.deviation')}:</span>
-              <span className="ml-2 font-bold text-red-600">{dataPoint.deviation.toFixed(4)}%</span>
-            </p>
-            {dataPoint.event && (
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <p className="text-sm">
-                  <span className="text-gray-500">{t('pyth.trend.event')}:</span>
-                  <span className="ml-2 font-medium text-orange-600">{dataPoint.event}</span>
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -138,7 +145,7 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
               tickFormatter={(value) => `${value.toFixed(2)}%`}
               width={60}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip t={t} />} />
             <Legend />
             <Line
               yAxisId="accuracy"

@@ -218,9 +218,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     ? priceHistory.filter((update) => isAnomaly(update.confidenceWidth))
     : priceHistory;
 
-  const anomalyCount = priceHistory.filter((update) =>
-    isAnomaly(update.confidenceWidth)
-  ).length;
+  const anomalyCount = priceHistory.filter((update) => isAnomaly(update.confidenceWidth)).length;
 
   const handleResetFilters = () => {
     setPreferences((prev) => ({
@@ -258,7 +256,12 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
             </svg>
             筛选
             {anomalyCount > 0 && (
@@ -312,7 +315,12 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                 className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
                 </svg>
                 预警设置
               </button>
@@ -320,9 +328,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-600 mb-1.5">
-                  置信区间阈值 (%)
-                </label>
+                <label className="block text-xs text-gray-600 mb-1.5">置信区间阈值 (%)</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
@@ -343,9 +349,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                     className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md text-center"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  超过此阈值的记录将被标记为异常
-                </p>
+                <p className="text-xs text-gray-500 mt-1">超过此阈值的记录将被标记为异常</p>
               </div>
 
               <div className="flex flex-col justify-between">
@@ -377,9 +381,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                 <h5 className="text-sm font-semibold text-gray-700 mb-3">预警设置</h5>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1.5">
-                      预警阈值 (%)
-                    </label>
+                    <label className="block text-xs text-gray-600 mb-1.5">预警阈值 (%)</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -396,7 +398,9 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                         max="0.5"
                         step="0.01"
                         value={preferences.alertThreshold}
-                        onChange={(e) => handleAlertThresholdChange(parseFloat(e.target.value) || 0.25)}
+                        onChange={(e) =>
+                          handleAlertThresholdChange(parseFloat(e.target.value) || 0.25)
+                        }
                         className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md text-center"
                       />
                     </div>
@@ -431,9 +435,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                 显示 {filteredHistory.length} / {priceHistory.length} 条记录
                 {anomalyCount > 0 && ` · ${anomalyCount} 条异常`}
               </span>
-              <span className="text-gray-400">
-                设置已自动保存
-              </span>
+              <span className="text-gray-400">设置已自动保存</span>
             </div>
           </div>
         )}
@@ -485,7 +487,9 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           </div>
           <div className="bg-orange-50 rounded-lg p-3 text-center">
             <p className="text-xs text-orange-600 mb-1">平均置信区间</p>
-            <p className="text-xl font-bold text-orange-700">{(stats.avgConfidenceWidth * 100).toFixed(2)}%</p>
+            <p className="text-xl font-bold text-orange-700">
+              {(stats.avgConfidenceWidth * 100).toFixed(2)}%
+            </p>
           </div>
         </div>
 
@@ -494,9 +498,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             <h4 className="text-sm font-semibold text-gray-700">
               最近 20 条更新记录
               {preferences.showAnomaliesOnly && (
-                <span className="ml-2 text-xs font-normal text-blue-600">
-                  (仅显示异常)
-                </span>
+                <span className="ml-2 text-xs font-normal text-blue-600">(仅显示异常)</span>
               )}
             </h4>
           </div>
@@ -522,17 +524,18 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                 {filteredHistory.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-sm">
-                      {preferences.showAnomaliesOnly
-                        ? '当前没有异常记录'
-                        : '暂无数据'}
+                      {preferences.showAnomaliesOnly ? '当前没有异常记录' : '暂无数据'}
                     </td>
                   </tr>
                 ) : (
                   filteredHistory.map((update, index) => {
                     const isRecordAnomaly = isAnomaly(update.confidenceWidth);
-                    const confidenceColor = 
-                      update.confidenceWidth < 0.15 ? 'text-green-600' :
-                      update.confidenceWidth < 0.25 ? 'text-yellow-600' : 'text-red-600';
+                    const confidenceColor =
+                      update.confidenceWidth < 0.15
+                        ? 'text-green-600'
+                        : update.confidenceWidth < 0.25
+                          ? 'text-yellow-600'
+                          : 'text-red-600';
                     return (
                       <tr
                         key={update.id}
@@ -562,10 +565,20 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                                 <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
                                   <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
                                     <div className="font-semibold mb-1">异常预警</div>
-                                    <div>置信区间: {(update.confidenceWidth * 100).toFixed(2)}%</div>
-                                    <div>阈值: {(preferences.confidenceThreshold * 100).toFixed(1)}%</div>
+                                    <div>
+                                      置信区间: {(update.confidenceWidth * 100).toFixed(2)}%
+                                    </div>
+                                    <div>
+                                      阈值: {(preferences.confidenceThreshold * 100).toFixed(1)}%
+                                    </div>
                                     <div className="text-red-300 mt-1">
-                                      超出: {((update.confidenceWidth - preferences.confidenceThreshold / 100) * 100).toFixed(2)}%
+                                      超出:{' '}
+                                      {(
+                                        (update.confidenceWidth -
+                                          preferences.confidenceThreshold / 100) *
+                                        100
+                                      ).toFixed(2)}
+                                      %
                                     </div>
                                   </div>
                                 </div>

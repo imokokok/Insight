@@ -11,23 +11,23 @@ interface DataQualityIndicatorProps {
 
 function calculateQualityScore(completeness: number, latency: number, sourceCount: number): number {
   const completenessScore = completeness;
-  
+
   let latencyScore = 100;
   if (latency >= 1000) {
     latencyScore = 0;
   } else if (latency > 100) {
     latencyScore = 100 - ((latency - 100) / 900) * 100;
   }
-  
+
   let sourceScore = 100;
   if (sourceCount < 3) {
     sourceScore = 0;
   } else if (sourceCount < 10) {
     sourceScore = ((sourceCount - 3) / 7) * 100;
   }
-  
+
   const totalScore = completenessScore * 0.4 + latencyScore * 0.3 + sourceScore * 0.3;
-  
+
   return Math.min(100, Math.max(0, totalScore));
 }
 
@@ -101,34 +101,37 @@ function GaugeChart({ value, size = 140 }: { value: number; size?: number }) {
         <span className="text-3xl font-bold" style={{ color }}>
           {clampedValue.toFixed(0)}
         </span>
-        <span className="text-xs font-medium text-gray-500 mt-1">{getScoreLabel(clampedValue)}</span>
+        <span className="text-xs font-medium text-gray-500 mt-1">
+          {getScoreLabel(clampedValue)}
+        </span>
       </div>
     </div>
   );
 }
 
-function ProgressBar({ 
-  label, 
-  value, 
-  maxValue = 100, 
+function ProgressBar({
+  label,
+  value,
+  maxValue = 100,
   unit = '%',
-  showValue = true 
-}: { 
-  label: string; 
-  value: number; 
-  maxValue?: number; 
+  showValue = true,
+}: {
+  label: string;
+  value: number;
+  maxValue?: number;
   unit?: string;
   showValue?: boolean;
 }) {
   const percentage = Math.min((value / maxValue) * 100, 100);
-  
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-600">{label}</span>
         {showValue && (
           <span className="font-medium text-gray-900">
-            {value.toFixed(0)}{unit}
+            {value.toFixed(0)}
+            {unit}
           </span>
         )}
       </div>
@@ -157,22 +160,26 @@ export default function DataQualityIndicator({
   const scoreBgColor = getScoreBgColor(qualityScore);
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm ${className}`}>
+    <div
+      className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm ${className}`}
+    >
       <div className="px-5 py-4 border-b border-gray-100">
         <h3 className="text-sm font-semibold text-gray-900">数据质量指标</h3>
       </div>
-      
+
       <div className="p-5">
         <div className="flex items-start gap-6">
           <div className="flex-shrink-0">
             <GaugeChart value={qualityScore} />
           </div>
-          
+
           <div className="flex-1 space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">数据完整性</span>
-                <span className="text-sm font-medium text-gray-900">{completeness.toFixed(0)}%</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {completeness.toFixed(0)}%
+                </span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
@@ -218,9 +225,7 @@ export default function DataQualityIndicator({
               <div className={`w-2 h-2 rounded-full ${scoreBgColor}`} />
               <span className="text-sm text-gray-600">综合质量评分</span>
             </div>
-            <span className={`text-lg font-bold ${scoreColor}`}>
-              {qualityScore.toFixed(1)} 分
-            </span>
+            <span className={`text-lg font-bold ${scoreColor}`}>{qualityScore.toFixed(1)} 分</span>
           </div>
           <p className="text-xs text-gray-500 mt-2">
             评分基于：完整性（40%）+ 延迟（30%）+ 数据源（30%）

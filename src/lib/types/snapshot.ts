@@ -51,24 +51,24 @@ export function generateSnapshotId(): string {
 
 export function saveSnapshot(snapshot: Omit<OracleSnapshot, 'id'>): OracleSnapshot {
   const snapshots = getSnapshots();
-  
+
   const newSnapshot: OracleSnapshot = {
     ...snapshot,
     id: generateSnapshotId(),
   };
-  
+
   snapshots.unshift(newSnapshot);
-  
+
   if (snapshots.length > MAX_SNAPSHOTS) {
     snapshots.splice(MAX_SNAPSHOTS);
   }
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshots));
   } catch (error) {
     console.error('Failed to save snapshot to localStorage:', error);
   }
-  
+
   return newSnapshot;
 }
 
@@ -76,7 +76,7 @@ export function getSnapshots(): OracleSnapshot[] {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return [];
-    
+
     const snapshots = JSON.parse(data) as OracleSnapshot[];
     return snapshots.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
@@ -87,17 +87,17 @@ export function getSnapshots(): OracleSnapshot[] {
 
 export function getSnapshotById(id: string): OracleSnapshot | null {
   const snapshots = getSnapshots();
-  return snapshots.find(s => s.id === id) || null;
+  return snapshots.find((s) => s.id === id) || null;
 }
 
 export function deleteSnapshot(id: string): boolean {
   const snapshots = getSnapshots();
-  const index = snapshots.findIndex(s => s.id === id);
-  
+  const index = snapshots.findIndex((s) => s.id === id);
+
   if (index === -1) return false;
-  
+
   snapshots.splice(index, 1);
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshots));
     return true;
@@ -127,12 +127,12 @@ export function compareSnapshots(
     if (previous === 0) return 0;
     return current - previous;
   };
-  
+
   const calculateChangePercent = (current: number, previous: number): number => {
     if (previous === 0) return 0;
     return ((current - previous) / previous) * 100;
   };
-  
+
   return {
     snapshotId: snapshot.id,
     snapshotTimestamp: snapshot.timestamp,
@@ -148,7 +148,8 @@ export function compareSnapshots(
     statsChange: {
       priceRange: calculateChange(currentStats.priceRange, snapshot.stats.priceRange),
       priceRangePercent: calculateChangePercent(currentStats.priceRange, snapshot.stats.priceRange),
-      standardDeviationPercent: currentStats.standardDeviationPercent - snapshot.stats.standardDeviationPercent,
+      standardDeviationPercent:
+        currentStats.standardDeviationPercent - snapshot.stats.standardDeviationPercent,
       standardDeviationPercentChange: calculateChangePercent(
         currentStats.standardDeviationPercent,
         snapshot.stats.standardDeviationPercent
@@ -173,11 +174,11 @@ export function formatTimestamp(timestamp: number): string {
 export function getTimeAgo(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (days > 0) return `${days}天前`;
   if (hours > 0) return `${hours}小时前`;
   if (minutes > 0) return `${minutes}分钟前`;

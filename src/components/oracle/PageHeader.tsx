@@ -23,10 +23,10 @@ const TIME_RANGES: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
 function formatLastUpdate(timestamp: number | undefined): string {
   if (!timestamp) return '';
-  
+
   const now = Date.now();
   const diff = now - timestamp;
-  
+
   if (diff < 5000) {
     return '刚刚更新';
   } else if (diff < 60000) {
@@ -121,9 +121,7 @@ export function PageHeader({
                   disabled={isRefreshing}
                   className="relative flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 overflow-hidden"
                 >
-                  {isRefreshing && (
-                    <span className="absolute inset-0 bg-blue-50 animate-pulse" />
-                  )}
+                  {isRefreshing && <span className="absolute inset-0 bg-blue-50 animate-pulse" />}
                   <svg
                     className={`w-4 h-4 transition-transform duration-500 ${isRefreshing ? 'animate-spin' : ''}`}
                     fill="none"
@@ -151,9 +149,7 @@ export function PageHeader({
                 )}
 
                 {!showJustUpdated && lastUpdateTime && displayTime && (
-                  <span className="text-xs text-gray-400">
-                    {displayTime}
-                  </span>
+                  <span className="text-xs text-gray-400">{displayTime}</span>
                 )}
               </div>
 

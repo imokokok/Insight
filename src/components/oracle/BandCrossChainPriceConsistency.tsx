@@ -150,7 +150,10 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
             <tr>
               <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-24">代币</th>
               {chains.map((chain) => (
-                <th key={chain.chainId} className="text-center py-2 px-2 text-xs font-medium text-gray-500 min-w-[80px]">
+                <th
+                  key={chain.chainId}
+                  className="text-center py-2 px-2 text-xs font-medium text-gray-500 min-w-[80px]"
+                >
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-base">{chain.icon}</span>
                     <span className="text-[10px] truncate">{chain.name}</span>
@@ -164,9 +167,14 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
               const chainData = priceDataMap.get(symbol) || [];
               const isSelected = symbol === selectedSymbol;
               return (
-                <tr key={symbol} className={`border-t border-gray-100 ${isSelected ? 'bg-blue-50' : ''}`}>
+                <tr
+                  key={symbol}
+                  className={`border-t border-gray-100 ${isSelected ? 'bg-blue-50' : ''}`}
+                >
                   <td className="py-3 px-3">
-                    <span className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}>
+                    <span
+                      className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}
+                    >
                       {symbol}
                     </span>
                   </td>
@@ -178,7 +186,9 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
                           className={`group relative inline-flex items-center justify-center w-14 h-10 rounded-lg ${intensity.bg} cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all`}
                         >
                           <span className={`text-xs font-mono font-medium ${intensity.text}`}>
-                            {index === 0 ? '-' : `${data.deviationPercent >= 0 ? '+' : ''}${data.deviationPercent.toFixed(2)}%`}
+                            {index === 0
+                              ? '-'
+                              : `${data.deviationPercent >= 0 ? '+' : ''}${data.deviationPercent.toFixed(2)}%`}
                           </span>
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
                             {data.chain}: ${data.price.toFixed(4)}
@@ -208,7 +218,9 @@ export function BandCrossChainPriceConsistency({
   const basePrice = baseChain?.price || 0;
 
   const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
-  const avgLatency = Math.round(chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length);
+  const avgLatency = Math.round(
+    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
+  );
   const hasWarnings = chainData.some((c) => c.status !== 'normal');
 
   return (
@@ -297,7 +309,9 @@ export function BandCrossChainPriceConsistency({
                 <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">链</th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">价格</th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">偏差</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">偏差可视化</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">
+                  偏差可视化
+                </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">延迟</th>
                 <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
               </tr>
@@ -321,11 +335,17 @@ export function BandCrossChainPriceConsistency({
                       </div>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className="text-sm font-mono text-gray-900">${chain.price.toFixed(4)}</span>
+                      <span className="text-sm font-mono text-gray-900">
+                        ${chain.price.toFixed(4)}
+                      </span>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className={`text-sm font-mono font-medium ${getDeviationColor(chain.deviationPercent)}`}>
-                        {index === 0 ? '-' : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
+                      <span
+                        className={`text-sm font-mono font-medium ${getDeviationColor(chain.deviationPercent)}`}
+                      >
+                        {index === 0
+                          ? '-'
+                          : `${chain.deviationPercent >= 0 ? '+' : ''}${chain.deviationPercent.toFixed(3)}%`}
                       </span>
                     </td>
                     <td className="py-3 px-3">
@@ -345,12 +365,18 @@ export function BandCrossChainPriceConsistency({
                           />
                         </div>
                         <span className="text-xs text-gray-500 w-8">
-                          {Math.min(Math.round((Math.abs(chain.deviationPercent) / 0.5) * 100), 100)}%
+                          {Math.min(
+                            Math.round((Math.abs(chain.deviationPercent) / 0.5) * 100),
+                            100
+                          )}
+                          %
                         </span>
                       </div>
                     </td>
                     <td className="text-right py-3 px-3">
-                      <span className={`text-sm ${chain.latency < 100 ? 'text-green-600' : 'text-gray-600'}`}>
+                      <span
+                        className={`text-sm ${chain.latency < 100 ? 'text-green-600' : 'text-gray-600'}`}
+                      >
                         {chain.latency}ms
                       </span>
                     </td>
@@ -364,7 +390,11 @@ export function BandCrossChainPriceConsistency({
                               : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {chain.status === 'normal' ? '正常' : chain.status === 'warning' ? '警告' : '异常'}
+                        {chain.status === 'normal'
+                          ? '正常'
+                          : chain.status === 'warning'
+                            ? '警告'
+                            : '异常'}
                       </span>
                     </td>
                   </tr>

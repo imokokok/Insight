@@ -161,12 +161,13 @@ function generateChainLatencyData(): ChainLatencyData[] {
   const chains = ['Ethereum', 'Arbitrum', 'Optimism', 'Polygon'];
 
   return chains.map((chain) => {
-    const baseLatency = {
-      Ethereum: 200,
-      Arbitrum: 150,
-      Optimism: 120,
-      Polygon: 180,
-    }[chain] || 150;
+    const baseLatency =
+      {
+        Ethereum: 200,
+        Arbitrum: 150,
+        Optimism: 120,
+        Polygon: 180,
+      }[chain] || 150;
 
     const variance = baseLatency * 0.2;
     const avgLatency = baseLatency + (Math.random() - 0.5) * variance;
@@ -262,7 +263,8 @@ function calculateStats(distribution: LatencyDataPoint[]): LatencyStats {
   const p95Index = Math.floor(latencies.length * 0.95);
   const p99Index = Math.floor(latencies.length * 0.99);
 
-  const variance = latencies.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / latencies.length;
+  const variance =
+    latencies.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / latencies.length;
   const stdDev = Math.sqrt(variance);
 
   return {
@@ -283,8 +285,12 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">{t('latencyAnalysis.distribution.title')}</h3>
-        <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.distribution.description')}</p>
+        <h3 className="text-sm font-semibold text-gray-900">
+          {t('latencyAnalysis.distribution.title')}
+        </h3>
+        <p className="text-xs text-gray-500 mt-1">
+          {t('latencyAnalysis.distribution.description')}
+        </p>
       </div>
 
       <ResponsiveContainer width="100%" height={250}>
@@ -310,9 +316,15 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
               const data = payload[0].payload as LatencyDataPoint;
               return (
                 <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
-                  <p className="text-xs text-gray-600 font-medium">{t('latencyAnalysis.distribution.range')}: {data.range}ms</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('latencyAnalysis.distribution.percentage')}: {data.percentage.toFixed(1)}%</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('latencyAnalysis.distribution.count')}: {data.count}</p>
+                  <p className="text-xs text-gray-600 font-medium">
+                    {t('latencyAnalysis.distribution.range')}: {data.range}ms
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('latencyAnalysis.distribution.percentage')}: {data.percentage.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('latencyAnalysis.distribution.count')}: {data.count}
+                  </p>
                 </div>
               );
             }}
@@ -355,18 +367,41 @@ function PercentileCards({ stats }: { stats: LatencyStats }) {
   const { t } = useI18n();
 
   const percentiles = [
-    { label: 'P50', value: stats.p50, color: 'text-green-600', bgColor: 'bg-green-50', desc: t('latencyAnalysis.percentiles.p50Desc') },
-    { label: 'P95', value: stats.p95, color: 'text-yellow-600', bgColor: 'bg-yellow-50', desc: t('latencyAnalysis.percentiles.p95Desc') },
-    { label: 'P99', value: stats.p99, color: 'text-red-600', bgColor: 'bg-red-50', desc: t('latencyAnalysis.percentiles.p99Desc') },
+    {
+      label: 'P50',
+      value: stats.p50,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      desc: t('latencyAnalysis.percentiles.p50Desc'),
+    },
+    {
+      label: 'P95',
+      value: stats.p95,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      desc: t('latencyAnalysis.percentiles.p95Desc'),
+    },
+    {
+      label: 'P99',
+      value: stats.p99,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      desc: t('latencyAnalysis.percentiles.p99Desc'),
+    },
   ];
 
   return (
     <div className="grid grid-cols-3 gap-4">
       {percentiles.map((p) => (
-        <div key={p.label} className={`bg-white border border-gray-200 rounded-xl p-4 ${p.bgColor}`}>
+        <div
+          key={p.label}
+          className={`bg-white border border-gray-200 rounded-xl p-4 ${p.bgColor}`}
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500 uppercase tracking-wider">{p.label}</span>
-            <span className={`text-xs font-semibold ${p.color}`}>{t('latencyAnalysis.percentiles.latency')}</span>
+            <span className={`text-xs font-semibold ${p.color}`}>
+              {t('latencyAnalysis.percentiles.latency')}
+            </span>
           </div>
           <div className="flex items-baseline gap-1">
             <span className={`text-2xl font-bold ${p.color}`}>{p.value}</span>
@@ -386,7 +421,9 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('latencyAnalysis.trend.title')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('latencyAnalysis.trend.title')}
+          </h3>
           <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.trend.description')}</p>
         </div>
       </div>
@@ -483,7 +520,9 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">{t('latencyAnalysis.crossChain.title')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900">
+          {t('latencyAnalysis.crossChain.title')}
+        </h3>
         <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.crossChain.description')}</p>
       </div>
 
@@ -504,10 +543,14 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
                   <span className="font-medium text-gray-900">{chain.chain}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}
+                  >
                     {statusConfig.label}
                   </span>
-                  <span className={`text-xs font-medium ${chain.trend > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <span
+                    className={`text-xs font-medium ${chain.trend > 0 ? 'text-red-600' : 'text-green-600'}`}
+                  >
                     {chain.trend > 0 ? '↑' : '↓'} {Math.abs(chain.trend)}%
                   </span>
                 </div>
@@ -515,7 +558,9 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
 
               <div className="grid grid-cols-4 gap-3 text-center">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">{t('latencyAnalysis.crossChain.avgLatency')}</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t('latencyAnalysis.crossChain.avgLatency')}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900">{chain.avgLatency}ms</p>
                 </div>
                 <div>
@@ -534,7 +579,10 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
 
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                  <span>{t('latencyAnalysis.crossChain.latencyRange')}: {chain.minLatency}ms - {chain.maxLatency}ms</span>
+                  <span>
+                    {t('latencyAnalysis.crossChain.latencyRange')}: {chain.minLatency}ms -{' '}
+                    {chain.maxLatency}ms
+                  </span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -558,9 +606,24 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
   const { t } = useI18n();
 
   const severityConfig = {
-    low: { color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', label: t('latencyAnalysis.anomalies.severity.low') },
-    medium: { color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', label: t('latencyAnalysis.anomalies.severity.medium') },
-    high: { color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', label: t('latencyAnalysis.anomalies.severity.high') },
+    low: {
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      label: t('latencyAnalysis.anomalies.severity.low'),
+    },
+    medium: {
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+      label: t('latencyAnalysis.anomalies.severity.medium'),
+    },
+    high: {
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
+      label: t('latencyAnalysis.anomalies.severity.high'),
+    },
   };
 
   const typeConfig = {
@@ -573,7 +636,9 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('latencyAnalysis.anomalies.title')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('latencyAnalysis.anomalies.title')}
+          </h3>
           <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.anomalies.description')}</p>
         </div>
         <span className="px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full">
@@ -597,7 +662,9 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-900">{type.label}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${severity.bgColor} ${severity.color}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${severity.bgColor} ${severity.color}`}
+                      >
                         {severity.label}
                       </span>
                     </div>
@@ -626,13 +693,20 @@ function StatsOverview({ stats }: { stats: LatencyStats }) {
     { label: t('latencyAnalysis.stats.min'), value: `${stats.min}ms`, icon: '⬇️' },
     { label: t('latencyAnalysis.stats.max'), value: `${stats.max}ms`, icon: '⬆️' },
     { label: t('latencyAnalysis.stats.stdDev'), value: `${stats.stdDev}ms`, icon: '📐' },
-    { label: t('latencyAnalysis.stats.samples'), value: stats.totalSamples.toLocaleString(), icon: '🔢' },
+    {
+      label: t('latencyAnalysis.stats.samples'),
+      value: stats.totalSamples.toLocaleString(),
+      icon: '🔢',
+    },
   ];
 
   return (
     <div className="grid grid-cols-5 gap-3">
       {statItems.map((item) => (
-        <div key={item.label} className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+        <div
+          key={item.label}
+          className="bg-white border border-gray-200 rounded-xl p-4 text-center"
+        >
           <span className="text-2xl mb-2 block">{item.icon}</span>
           <p className="text-xs text-gray-500 mb-1">{item.label}</p>
           <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -647,7 +721,10 @@ interface LatencyAnalysisProps {
   updateInterval?: number;
 }
 
-export function LatencyAnalysis({ autoUpdate = true, updateInterval = 30000 }: LatencyAnalysisProps) {
+export function LatencyAnalysis({
+  autoUpdate = true,
+  updateInterval = 30000,
+}: LatencyAnalysisProps) {
   const { t } = useI18n();
   const [distribution, setDistribution] = useState<LatencyDataPoint[]>([]);
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);

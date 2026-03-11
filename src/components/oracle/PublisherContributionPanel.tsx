@@ -1,7 +1,19 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { Publisher } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
 
@@ -36,9 +48,10 @@ const COLORS = [
 function calculateContributionWeight(publisher: Publisher): number {
   const reliabilityFactor = publisher.reliabilityScore / 100;
   const latencyFactor = Math.max(0, 1 - publisher.latency / 200);
-  const statusFactor = publisher.status === 'active' ? 1 : publisher.status === 'degraded' ? 0.7 : 0.3;
+  const statusFactor =
+    publisher.status === 'active' ? 1 : publisher.status === 'degraded' ? 0.7 : 0.3;
   const accuracyFactor = (publisher.accuracy ?? 95) / 100;
-  
+
   return reliabilityFactor * 0.4 + latencyFactor * 0.2 + statusFactor * 0.2 + accuracyFactor * 0.2;
 }
 
@@ -57,9 +70,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
       publisher: p,
       rawWeight: calculateContributionWeight(p),
     }));
-    
+
     const totalWeight = weights.reduce((sum, w) => sum + w.rawWeight, 0);
-    
+
     return weights.map((w, index) => ({
       id: w.publisher.id,
       name: w.publisher.name,
@@ -94,16 +107,24 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
   }));
 
   const totalWeight = contributionData.reduce((sum, d) => sum + d.weightPercentage, 0);
-  const avgReliability = publishers.reduce((sum, p) => sum + p.reliabilityScore, 0) / publishers.length;
+  const avgReliability =
+    publishers.reduce((sum, p) => sum + p.reliabilityScore, 0) / publishers.length;
   const avgLatency = publishers.reduce((sum, p) => sum + p.latency, 0) / publishers.length;
 
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string } }> }) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number; payload: { color: string } }>;
+  }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-900">{payload[0].name}</p>
           <p className="text-sm text-gray-600">
-            贡献权重: <span className="font-medium text-purple-600">{payload[0].value.toFixed(2)}%</span>
+            贡献权重:{' '}
+            <span className="font-medium text-purple-600">{payload[0].value.toFixed(2)}%</span>
           </p>
         </div>
       );
@@ -212,11 +233,21 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Rank</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Publisher</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Weight %</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Reliability</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Latency</th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Publisher
+                </th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
+                  Weight %
+                </th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
+                  Reliability
+                </th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
+                  Latency
+                </th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -224,16 +255,23 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 <tr
                   key={publisher.id}
                   className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    publisher.id === topContributor?.id ? 'bg-purple-50 border-l-4 border-l-purple-500' : ''
+                    publisher.id === topContributor?.id
+                      ? 'bg-purple-50 border-l-4 border-l-purple-500'
+                      : ''
                   }`}
                 >
                   <td className="py-3 px-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                      index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                      index === 1 ? 'bg-gray-300 text-gray-700' :
-                      index === 2 ? 'bg-amber-600 text-white' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                        index === 0
+                          ? 'bg-yellow-400 text-yellow-900'
+                          : index === 1
+                            ? 'bg-gray-300 text-gray-700'
+                            : index === 2
+                              ? 'bg-amber-600 text-white'
+                              : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
                       {index + 1}
                     </div>
                   </td>
@@ -322,8 +360,18 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <span className="font-semibold text-gray-900">可靠性分数</span>
@@ -335,8 +383,18 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <span className="font-semibold text-gray-900">延迟因子</span>
@@ -348,8 +406,18 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <span className="font-semibold text-gray-900">状态因子</span>
@@ -361,8 +429,18 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               </div>
               <span className="font-semibold text-gray-900">准确度因子</span>
