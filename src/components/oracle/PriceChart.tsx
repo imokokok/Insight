@@ -22,8 +22,68 @@ import { TimeRange } from './TabNavigation';
 import { AnomalyMarker, AnomalyPoint } from './AnomalyMarker';
 import { AnomalyStatsPanel } from './AnomalyStatsPanel';
 import { ChartExportButton } from './ChartExportButton';
-import { useOptionalTimeRange } from '@/contexts/TimeRangeContext';
+import { MoreOptionsDropdown } from './MoreOptionsDropdown';
+import { useTimeRange } from '@/contexts/TimeRangeContext';
 import { ChartExportData } from '@/utils/chartExport';
+
+const CHART_SETTINGS_STORAGE_KEY = 'priceChart_settings';
+
+interface ChartSettings {
+  anomalyDetectionEnabled: boolean;
+  showPredictionInterval: boolean;
+  confidenceLevel: ConfidenceLevel;
+  comparisonEnabled: boolean;
+}
+
+function loadChartSettings(): ChartSettings | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(CHART_SETTINGS_STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Failed to load chart settings:', e);
+  }
+  return null;
+}
+
+function saveChartSettings(settings: ChartSettings): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CHART_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch (e) {
+    console.warn('Failed to save chart settings:', e);
+  }
+}
+
+function useChartSettings() {
+  const [settings, setSettings] = useState<ChartSettings>({
+    anomalyDetectionEnabled: true,
+    showPredictionInterval: false,
+    confidenceLevel: 95,
+    comparisonEnabled: false,
+  });
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = loadChartSettings();
+    if (saved) {
+      setSettings(saved);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  const updateSettings = useCallback((updates: Partial<ChartSettings>) => {
+    setSettings((prev) => {
+      const newSettings = { ...prev, ...updates };
+      saveChartSettings(newSettings);
+      return newSettings;
+    });
+  }, []);
+
+  return { settings, updateSettings, isLoaded };
+}
 
 type ScreenSize = 'mobile' | 'tablet' | 'desktop';
 
@@ -464,7 +524,6 @@ interface PriceChartProps {
   client: BaseOracleClient;
   symbol: string;
   chain?: Blockchain;
-  initialTimeRange?: TimeRange;
   height?: number;
   showToolbar?: boolean;
   defaultPrice?: number;
@@ -474,16 +533,15 @@ export function PriceChart({
   client,
   symbol,
   chain,
-  initialTimeRange = '24H',
   height = 400,
   showToolbar = true,
   defaultPrice,
 }: PriceChartProps) {
   const screenSize = useScreenSize();
   const responsiveHeight = useResponsiveChartHeight(height, screenSize);
-  const timeRangeContext = useOptionalTimeRange();
+  const { globalTimeRange } = useTimeRange();
+  const { settings, updateSettings, isLoaded } = useChartSettings();
 
-  const [localTimeRange, setLocalTimeRange] = useState<TimeRange>(initialTimeRange);
   const [chartType] = useState<ChartType>('line');
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [comparisonData, setComparisonData] = useState<ChartDataPoint[]>([]);
@@ -491,13 +549,7 @@ export function PriceChart({
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
-  const [customDateRange, setCustomDateRange] = useState<CustomDateRange>({
-    startDate: '',
-    endDate: '',
-  });
   const [granularity, setGranularity] = useState<DataGranularity>('hour');
   const [comparison, setComparison] = useState<ComparisonPeriod>({
     enabled: false,
@@ -507,22 +559,16 @@ export function PriceChart({
     period2End: '',
   });
   const [showComparisonPanel, setShowComparisonPanel] = useState(false);
-  const [showPredictionInterval, setShowPredictionInterval] = useState(false);
-  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>(95);
-  const [anomalyDetectionEnabled, setAnomalyDetectionEnabled] = useState(true);
   const [anomalies, setAnomalies] = useState<AnomalyPoint[]>([]);
   const [showAnomalyStats, setShowAnomalyStats] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [chartOpacity, setChartOpacity] = useState(1);
 
-  const timeRange = timeRangeContext?.globalTimeRange || localTimeRange;
-  const setTimeRange = useCallback(
-    (range: TimeRange) => {
-      setLocalTimeRange(range);
-      if (timeRangeContext?.syncEnabled) {
-        timeRangeContext.setGlobalTimeRange(range);
-      }
-    },
-    [timeRangeContext]
-  );
+  const anomalyDetectionEnabled = settings.anomalyDetectionEnabled;
+  const showPredictionInterval = settings.showPredictionInterval;
+  const confidenceLevel = settings.confidenceLevel;
+
+  const timeRange = globalTimeRange;
 
   const isBandClient = client instanceof BandProtocolClient;
   const isMobile = screenSize === 'mobile';
@@ -536,6 +582,8 @@ export function PriceChart({
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
+    setIsRefreshing(true);
+    setChartOpacity(0.3);
     setLoading(true);
     try {
       const priceData = await client.getPrice(symbol, chain);
@@ -572,54 +620,11 @@ export function PriceChart({
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
+        setChartOpacity(1);
+        setTimeout(() => setIsRefreshing(false), 300);
       }
     }
   }, [chain, client, symbol, timeRange, defaultPrice, isBandClient]);
-
-  const fetchCustomRangeData = useCallback(async () => {
-    if (!customDateRange.startDate || !customDateRange.endDate) return;
-
-    setLoading(true);
-    try {
-      const priceData = await client.getPrice(symbol, chain);
-      setCurrentPrice(priceData.price);
-
-      const startDate = new Date(customDateRange.startDate);
-      const endDate = new Date(customDateRange.endDate);
-
-      if (isBandClient && symbol.toUpperCase() === 'BAND') {
-        const bandClient = client as BandProtocolClient;
-        const diffDays = Math.ceil(
-          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        let period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d';
-        if (diffDays <= 1) period = '1d';
-        else if (diffDays <= 7) period = '7d';
-        else if (diffDays <= 30) period = '30d';
-        else if (diffDays <= 90) period = '90d';
-        else period = '1y';
-
-        const historicalPoints = await bandClient.getHistoricalBandPrices(period);
-        const filteredPoints = historicalPoints.filter(
-          (p) => p.timestamp >= startDate.getTime() && p.timestamp <= endDate.getTime()
-        );
-        const chartData = convertHistoricalPricePoints(filteredPoints);
-        setData(chartData);
-      } else {
-        const chartData = generateDataWithGranularity(
-          priceData.price,
-          startDate,
-          endDate,
-          granularity
-        );
-        setData(chartData);
-      }
-    } catch (error) {
-      console.error('Error fetching custom range data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [customDateRange, client, symbol, chain, granularity, isBandClient]);
 
   const fetchComparisonData = useCallback(async () => {
     if (
@@ -681,9 +686,7 @@ export function PriceChart({
   }, [comparison, client, symbol, chain, granularity, isBandClient]);
 
   useEffect(() => {
-    if (showCustomDatePicker && customDateRange.startDate && customDateRange.endDate) {
-      fetchCustomRangeData();
-    } else if (comparison.enabled) {
+    if (comparison.enabled) {
       fetchComparisonData();
     } else {
       fetchData();
@@ -696,25 +699,9 @@ export function PriceChart({
     };
   }, [
     fetchData,
-    fetchCustomRangeData,
     fetchComparisonData,
-    showCustomDatePicker,
     comparison.enabled,
-    customDateRange.startDate,
-    customDateRange.endDate,
   ]);
-
-  const handleTimeRangeChange = (newRange: TimeRange) => {
-    setTimeRange(newRange);
-    setShowCustomDatePicker(false);
-    setComparison((prev) => ({ ...prev, enabled: false }));
-  };
-
-  const handleCustomDateApply = () => {
-    if (customDateRange.startDate && customDateRange.endDate) {
-      setShowCustomDatePicker(true);
-    }
-  };
 
   const handleComparisonApply = () => {
     if (
@@ -856,146 +843,24 @@ export function PriceChart({
             </div>
 
             <div className="flex items-center gap-2">
-              {isMobile ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </button>
-                  {mobileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                      <button
-                        onClick={() => {
-                          setShowComparisonPanel(!showComparisonPanel);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        {comparison.enabled ? '关闭对比' : '开启对比'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setAnomalyDetectionEnabled(!anomalyDetectionEnabled);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        {anomalyDetectionEnabled ? '关闭异常检测' : '开启异常检测'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowPredictionInterval(!showPredictionInterval);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        {showPredictionInterval ? '关闭预测区间' : '开启预测区间'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowComparisonPanel(!showComparisonPanel)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                      showComparisonPanel || comparison.enabled
-                        ? 'bg-purple-50 text-purple-600 border-purple-200'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                        />
-                      </svg>
-                      对比
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setAnomalyDetectionEnabled(!anomalyDetectionEnabled)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                      anomalyDetectionEnabled
-                        ? 'bg-red-50 text-red-600 border-red-200'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                      异常检测
-                      {anomalyDetectionEnabled && anomalies.length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-xs">
-                          {anomalies.length}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-
-                  {anomalyDetectionEnabled && anomalies.length > 0 && (
-                    <button
-                      onClick={() => setShowAnomalyStats(!showAnomalyStats)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                        showAnomalyStats
-                          ? 'bg-orange-50 text-orange-600 border-orange-200'
-                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                        统计
-                      </span>
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowPredictionInterval(!showPredictionInterval)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                      showPredictionInterval
-                        ? 'bg-blue-50 text-blue-600 border-blue-200'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                        />
-                      </svg>
-                      预测区间
-                    </span>
-                  </button>
-                </>
-              )}
+              <MoreOptionsDropdown
+                showComparisonPanel={showComparisonPanel}
+                comparisonEnabled={comparison.enabled}
+                anomalyDetectionEnabled={anomalyDetectionEnabled}
+                showPredictionInterval={showPredictionInterval}
+                confidenceLevel={confidenceLevel}
+                anomaliesCount={anomalies.length}
+                onToggleComparison={() => setShowComparisonPanel(!showComparisonPanel)}
+                onToggleAnomalyDetection={() =>
+                  updateSettings({ anomalyDetectionEnabled: !anomalyDetectionEnabled })
+                }
+                onTogglePredictionInterval={() =>
+                  updateSettings({ showPredictionInterval: !showPredictionInterval })
+                }
+                onConfidenceLevelChange={(level) => updateSettings({ confidenceLevel: level })}
+                onShowAnomalyStats={() => setShowAnomalyStats(!showAnomalyStats)}
+                compact={isMobile}
+              />
 
               <ChartExportButton
                 chartRef={chartContainerRef}
@@ -1007,47 +872,6 @@ export function PriceChart({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {isMobile ? (
-              <select
-                value={timeRange}
-                onChange={(e) => handleTimeRangeChange(e.target.value as TimeRange)}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {TIME_RANGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-                <option value="custom">自定义</option>
-              </select>
-            ) : (
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                {TIME_RANGE_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleTimeRangeChange(option.value)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      timeRange === option.value && !showCustomDatePicker && !comparison.enabled
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                    showCustomDatePicker
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  自定义
-                </button>
-              </div>
-            )}
-
             {!isMobile && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">粒度:</span>
@@ -1068,71 +892,7 @@ export function PriceChart({
                 </div>
               </div>
             )}
-
-            {showPredictionInterval && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">置信度:</span>
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                  {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => setConfidenceLevel(level)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                        confidenceLevel === level
-                          ? 'bg-white text-blue-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      {level}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-
-          {showCustomDatePicker && (
-            <div className="flex flex-wrap items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-600">开始日期:</label>
-                <input
-                  type="date"
-                  value={customDateRange.startDate}
-                  onChange={(e) =>
-                    setCustomDateRange((prev) => ({ ...prev, startDate: e.target.value }))
-                  }
-                  className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-600">结束日期:</label>
-                <input
-                  type="date"
-                  value={customDateRange.endDate}
-                  onChange={(e) =>
-                    setCustomDateRange((prev) => ({ ...prev, endDate: e.target.value }))
-                  }
-                  className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <button
-                onClick={handleCustomDateApply}
-                disabled={!customDateRange.startDate || !customDateRange.endDate}
-                className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                应用
-              </button>
-              <button
-                onClick={() => {
-                  setShowCustomDatePicker(false);
-                  setCustomDateRange({ startDate: '', endDate: '' });
-                }}
-                className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
-              >
-                取消
-              </button>
-            </div>
-          )}
 
           {showComparisonPanel && (
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
@@ -1217,7 +977,11 @@ export function PriceChart({
         </div>
       )}
 
-      <div ref={chartContainerRef} className="flex-1 min-h-0 bg-gray-50 rounded-lg p-2 sm:p-4">
+      <div 
+        ref={chartContainerRef} 
+        className={`flex-1 min-h-0 bg-gray-50 rounded-lg p-2 sm:p-4 transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}
+        style={{ opacity: chartOpacity }}
+      >
         <ResponsiveContainer width="100%" height={responsiveHeight - (showToolbar ? (isMobile ? 120 : 150) : 0)}>
           <ComposedChart
             data={dataWithPrediction}

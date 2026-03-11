@@ -1,12 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { UMAClient, DisputeData } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
 
 const umaClient = new UMAClient();
+
+function formatRelativeTime(timestamp: number | null): string {
+  if (!timestamp) return '';
+  const now = Date.now();
+  const diffInSeconds = Math.floor((now - timestamp) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds}秒前`;
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes}分钟前`;
+  } else {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours}小时前`;
+  }
+}
 
 interface DisputeOverview {
   totalDisputes: number;
@@ -256,10 +272,14 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'timestamp' | 'reward'>('timestamp');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchId, setSearchId] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   const filteredDisputes = disputes.filter((dispute) => {
-    if (filter === 'all') return true;
-    return dispute.status === filter;
+    if (filter !== 'all' && dispute.status !== filter) return false;
+    if (searchId.trim() && dispute.id !== searchId.trim()) return false;
+    return true;
   });
 
   const sortedDisputes = [...filteredDisputes].sort((a, b) => {
@@ -269,6 +289,56 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     }
     return (a.reward - b.reward) * multiplier;
   });
+
+  const totalPages = Math.ceil(sortedDisputes.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, sortedDisputes.length);
+  const paginatedDisputes = sortedDisputes.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, sortBy, sortOrder, searchId]);
+
+  const goToPage = (page: number) => {
+    const validPage = Math.max(1, Math.min(page, totalPages));
+    setCurrentPage(validPage);
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages + 2) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) {
+          pages.push(i);
+        }
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      if (!pages.includes(totalPages)) {
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleString('zh-CN', {
@@ -335,6 +405,25 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
           </div>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <label className="text-sm text-gray-600">搜索ID:</label>
+            <input
+              type="text"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              placeholder="输入争议ID"
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+            />
+            {searchId && (
+              <button
+                onClick={() => setSearchId('')}
+                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                清除
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -356,7 +445,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               </tr>
             </thead>
             <tbody>
-              {sortedDisputes.slice(0, 10).map((dispute) => (
+              {paginatedDisputes.map((dispute) => (
                 <tr
                   key={dispute.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
@@ -383,9 +472,91 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
           </div>
         )}
 
-        {sortedDisputes.length > 10 && (
-          <div className="text-center text-sm text-gray-500 pt-2">
-            {`Showing first 10 of ${sortedDisputes.length} disputes`}
+        {sortedDisputes.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="text-sm text-gray-500">
+              显示 {startIndex + 1}-{endIndex} 条，共 {sortedDisputes.length} 条
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  首页
+                </button>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  上一页
+                </button>
+
+                <div className="flex items-center gap-1 mx-2">
+                  {getPageNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span key={`ellipsis-${index}`} className="px-2 text-gray-400">...</span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page as number)}
+                        className={`w-8 h-8 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  下一页
+                </button>
+                <button
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  末页
+                </button>
+
+                <div className="flex items-center gap-2 ml-3">
+                  <span className="text-sm text-gray-600">跳转至</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value)) {
+                        goToPage(value);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = parseInt((e.target as HTMLInputElement).value);
+                        if (!isNaN(value)) {
+                          goToPage(value);
+                        }
+                      }
+                    }}
+                    className="w-14 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                  />
+                  <span className="text-sm text-gray-600">页</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -399,51 +570,104 @@ export function DisputeResolutionPanel() {
   const [disputes, setDisputes] = useState<DisputeData[]>([]);
   const [trends, setTrends] = useState<DisputeTrend[]>([]);
   const [overview, setOverview] = useState<DisputeOverview | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
+  const [relativeTime, setRelativeTime] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const [disputesData, trendsData] = await Promise.all([
+        umaClient.getDisputes(),
+        umaClient.getDisputeTrends(),
+      ]);
+
+      setDisputes(disputesData);
+      setTrends(trendsData);
+
+      const activeDisputes = disputesData.filter((d) => d.status === 'active').length;
+      const resolvedDisputes = disputesData.filter((d) => d.status === 'resolved');
+      const successRate =
+        disputesData.length > 0
+          ? (resolvedDisputes.length / disputesData.length) * 100
+          : 0;
+
+      const avgResolutionTime =
+        resolvedDisputes.length > 0
+          ? resolvedDisputes.reduce((sum, d) => sum + (d.resolutionTime || 0), 0) /
+            resolvedDisputes.length
+          : 0;
+
+      setOverview({
+        totalDisputes: disputesData.length,
+        activeDisputes,
+        successRate,
+        avgResolutionTime,
+      });
+      
+      setLastUpdateTime(Date.now());
+    } catch (error) {
+      console.error('Failed to fetch dispute data:', error);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        const [disputesData, trendsData] = await Promise.all([
-          umaClient.getDisputes(),
-          umaClient.getDisputeTrends(),
-        ]);
-
-        setDisputes(disputesData);
-        setTrends(trendsData);
-
-        const activeDisputes = disputesData.filter((d) => d.status === 'active').length;
-        const resolvedDisputes = disputesData.filter((d) => d.status === 'resolved');
-        const successRate =
-          disputesData.length > 0
-            ? (resolvedDisputes.length / disputesData.length) * 100
-            : 0;
-
-        const avgResolutionTime =
-          resolvedDisputes.length > 0
-            ? resolvedDisputes.reduce((sum, d) => sum + (d.resolutionTime || 0), 0) /
-              resolvedDisputes.length
-            : 0;
-
-        setOverview({
-          totalDisputes: disputesData.length,
-          activeDisputes,
-          successRate,
-          avgResolutionTime,
-        });
-      } catch (error) {
-        console.error('Failed to fetch dispute data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (!lastUpdateTime) return;
+    
+    const updateTime = () => {
+      setRelativeTime(formatRelativeTime(lastUpdateTime));
+    };
+    
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lastUpdateTime]);
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {lastUpdateTime && (
+            <span className="text-sm text-gray-500">
+              最后更新: {relativeTime}
+            </span>
+          )}
+          {isRefreshing && (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
+              <span className="text-sm text-blue-600">刷新中...</span>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => fetchData(true)}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg 
+            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          刷新数据
+        </button>
+      </div>
+      
       <DisputeOverviewCard overview={overview} loading={loading} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

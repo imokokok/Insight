@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 interface KPIDashboardProps {
   price: number;
@@ -10,6 +10,33 @@ interface KPIDashboardProps {
   networkHealth: 'healthy' | 'warning' | 'critical';
   dataQualityScore: number;
   className?: string;
+}
+
+function ScrollIndicator({
+  totalItems,
+  currentIndex,
+  onIndicatorClick,
+}: {
+  totalItems: number;
+  currentIndex: number;
+  onIndicatorClick: (index: number) => void;
+}) {
+  return (
+    <div className="flex justify-center gap-1.5 mt-3 md:hidden">
+      {Array.from({ length: totalItems }).map((_, index) => (
+        <button
+          key={index}
+          onClick={() => onIndicatorClick(index)}
+          className={`h-1.5 rounded-full transition-all duration-300 ${
+            index === currentIndex
+              ? 'w-6 bg-blue-600'
+              : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+          }`}
+          aria-label={`跳转到第 ${index + 1} 页`}
+        />
+      ))}
+    </div>
+  );
 }
 
 interface UpdateInterval {
@@ -79,19 +106,25 @@ function PriceCard({
   previousPrice: number | null;
 }) {
   const [isFlashing, setIsFlashing] = useState(false);
+  const [borderFlash, setBorderFlash] = useState(false);
   const prevPriceRef = useRef(previousPrice);
 
   useEffect(() => {
     if (prevPriceRef.current !== null && prevPriceRef.current !== price) {
       setIsFlashing(true);
+      setBorderFlash(true);
       const timer = setTimeout(() => setIsFlashing(false), 300);
-      return () => clearTimeout(timer);
+      const borderTimer = setTimeout(() => setBorderFlash(false), 600);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(borderTimer);
+      };
     }
     prevPriceRef.current = price;
   }, [price]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all duration-200">
+    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">实时价格</p>
@@ -135,13 +168,25 @@ function PriceChangeCard({
   priceChange24h: number;
   priceChangePercent: number;
 }) {
+  const [borderFlash, setBorderFlash] = useState(false);
+  const prevPercentRef = useRef(priceChangePercent);
+
+  useEffect(() => {
+    if (prevPercentRef.current !== priceChangePercent) {
+      setBorderFlash(true);
+      const timer = setTimeout(() => setBorderFlash(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevPercentRef.current = priceChangePercent;
+  }, [priceChangePercent]);
+
   const isPositive = priceChangePercent >= 0;
   const colorClass = isPositive ? 'text-green-600' : 'text-red-600';
   const bgClass = isPositive ? 'bg-green-50' : 'bg-red-50';
   const arrow = isPositive ? '↑' : '↓';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all duration-200">
+    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">24h 价格变化</p>
@@ -178,13 +223,25 @@ function UpdateFrequencyCard({
   frequency: number;
   intervals: UpdateInterval[];
 }) {
+  const [borderFlash, setBorderFlash] = useState(false);
+  const prevFreqRef = useRef(frequency);
+
+  useEffect(() => {
+    if (prevFreqRef.current !== frequency) {
+      setBorderFlash(true);
+      const timer = setTimeout(() => setBorderFlash(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevFreqRef.current = frequency;
+  }, [frequency]);
+
   const maxInterval = useMemo(() => {
     if (intervals.length === 0) return 1000;
     return Math.max(...intervals.map((i) => i.interval), 100);
   }, [intervals]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all duration-200">
+    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">更新频率</p>
@@ -234,10 +291,22 @@ function UpdateFrequencyCard({
 }
 
 function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critical' }) {
+  const [borderFlash, setBorderFlash] = useState(false);
+  const prevHealthRef = useRef(health);
+
+  useEffect(() => {
+    if (prevHealthRef.current !== health) {
+      setBorderFlash(true);
+      const timer = setTimeout(() => setBorderFlash(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevHealthRef.current = health;
+  }, [health]);
+
   const config = healthConfig[health];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all duration-200">
+    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">网络健康</p>
@@ -270,6 +339,18 @@ function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critic
 }
 
 function DataQualityGauge({ score }: { score: number }) {
+  const [borderFlash, setBorderFlash] = useState(false);
+  const prevScoreRef = useRef(score);
+
+  useEffect(() => {
+    if (prevScoreRef.current !== score) {
+      setBorderFlash(true);
+      const timer = setTimeout(() => setBorderFlash(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevScoreRef.current = score;
+  }, [score]);
+
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -277,7 +358,7 @@ function DataQualityGauge({ score }: { score: number }) {
   const level = getQualityLevel(score);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all duration-200">
+    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">数据质量</p>
@@ -342,6 +423,43 @@ export function KPIDashboard({
   const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [intervals, setIntervals] = useState<UpdateInterval[]>([]);
   const lastUpdateRef = useRef<number>(Date.now());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const kpiCards = useMemo(() => [
+    { id: 'price', component: <PriceCard key="price" price={price} previousPrice={previousPrice} /> },
+    { id: 'priceChange', component: <PriceChangeCard key="priceChange" priceChange24h={priceChange24h} priceChangePercent={priceChangePercent} /> },
+    { id: 'updateFrequency', component: <UpdateFrequencyCard key="updateFrequency" frequency={updateFrequency} intervals={intervals} /> },
+    { id: 'networkHealth', component: <NetworkHealthCard key="networkHealth" health={networkHealth} /> },
+    { id: 'dataQuality', component: <DataQualityGauge key="dataQuality" score={dataQualityScore} /> },
+  ], [price, previousPrice, priceChange24h, priceChangePercent, updateFrequency, intervals, networkHealth, dataQualityScore]);
+
+  const totalPages = Math.ceil(kpiCards.length / 2);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const scrollLeft = scrollContainerRef.current.scrollLeft;
+    const cardWidth = scrollContainerRef.current.offsetWidth;
+    const pageIndex = Math.round(scrollLeft / cardWidth);
+    setCurrentPage(pageIndex);
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
+  const scrollToPage = useCallback((pageIndex: number) => {
+    if (!scrollContainerRef.current) return;
+    const cardWidth = scrollContainerRef.current.offsetWidth;
+    scrollContainerRef.current.scrollTo({
+      left: cardWidth * pageIndex,
+      behavior: 'smooth',
+    });
+  }, []);
 
   useEffect(() => {
     const now = Date.now();
@@ -363,16 +481,25 @@ export function KPIDashboard({
 
   return (
     <div className={className}>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <PriceCard price={price} previousPrice={previousPrice} />
-        <PriceChangeCard
-          priceChange24h={priceChange24h}
-          priceChangePercent={priceChangePercent}
-        />
-        <UpdateFrequencyCard frequency={updateFrequency} intervals={intervals} />
-        <NetworkHealthCard health={networkHealth} />
-        <DataQualityGauge score={dataQualityScore} />
+      <div
+        ref={scrollContainerRef}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:grid md:grid-cols-3 lg:grid-cols-5"
+        style={{ scrollSnapType: 'x mandatory' }}
+      >
+        {kpiCards.map((card, index) => (
+          <div
+            key={card.id}
+            className="flex-shrink-0 w-[calc(50%-0.5rem)] md:w-auto snap-start"
+          >
+            {card.component}
+          </div>
+        ))}
       </div>
+      <ScrollIndicator
+        totalItems={totalPages}
+        currentIndex={currentPage}
+        onIndicatorClick={scrollToPage}
+      />
     </div>
   );
 }

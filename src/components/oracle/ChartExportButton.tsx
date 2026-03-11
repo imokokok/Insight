@@ -8,6 +8,8 @@ import {
   ExportProgress,
   ChartExportData,
   getSupportedExportFormats,
+  Resolution,
+  RESOLUTION_CONFIG,
 } from '@/utils/chartExport';
 
 interface ChartExportButtonProps {
@@ -23,6 +25,8 @@ interface ChartExportButtonProps {
     data: ChartExportData[];
     name: string;
   }>;
+  chartTitle?: string;
+  dataSource?: string;
 }
 
 export function ChartExportButton({
@@ -34,8 +38,13 @@ export function ChartExportButton({
   disabled = false,
   compact = false,
   multipleCharts,
+  chartTitle,
+  dataSource,
 }: ChartExportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showResolutionPicker, setShowResolutionPicker] = useState(false);
+  const [selectedResolution, setSelectedResolution] = useState<Resolution>('standard');
+  const [pendingFormat, setPendingFormat] = useState<ExportOptions['format'] | null>(null);
   const [progress, setProgress] = useState<ExportProgress>({
     status: 'idle',
     progress: 0,
@@ -59,18 +68,36 @@ export function ChartExportButton({
     setProgress(p);
   }, []);
 
-  const handleExport = useCallback(
-    async (format: ExportOptions['format']) => {
+  const handleFormatSelect = useCallback(
+    (format: ExportOptions['format']) => {
+      if (format === 'png' || format === 'svg') {
+        setPendingFormat(format);
+        setShowResolutionPicker(true);
+        setIsOpen(false);
+      } else {
+        executeExport(format, 'standard');
+      }
+    },
+    []
+  );
+
+  const executeExport = useCallback(
+    async (format: ExportOptions['format'], resolution: Resolution) => {
       if (progress.status === 'exporting') return;
 
       setProgress({ status: 'preparing', progress: 0, message: '准备导出...' });
-      setIsOpen(false);
+      setShowResolutionPicker(false);
+      setPendingFormat(null);
 
       try {
         const options: ExportOptions = {
           format,
           filename,
           includeMetadata: true,
+          resolution,
+          chartTitle,
+          dataSource,
+          showTimestamp: true,
         };
 
         if (multipleCharts && multipleCharts.length > 0) {
@@ -102,7 +129,16 @@ export function ChartExportButton({
         }, 3000);
       }
     },
-    [progress.status, chartRef, data, filename, multipleCharts, handleProgress, onExportComplete, onExportError]
+    [progress.status, chartRef, data, filename, multipleCharts, handleProgress, onExportComplete, onExportError, chartTitle, dataSource]
+  );
+
+  const handleResolutionSelect = useCallback(
+    (resolution: Resolution) => {
+      if (pendingFormat) {
+        executeExport(pendingFormat, resolution);
+      }
+    },
+    [pendingFormat, executeExport]
   );
 
   const getProgressColor = () => {
@@ -174,6 +210,27 @@ export function ChartExportButton({
           </div>
         )}
 
+        {showResolutionPicker && (
+          <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <div className="px-3 py-1.5 border-b border-gray-100">
+              <span className="text-xs font-medium text-gray-700">选择分辨率</span>
+            </div>
+            {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
+              <button
+                key={res}
+                onClick={() => handleResolutionSelect(res)}
+                className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                  selectedResolution === res
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {RESOLUTION_CONFIG[res].label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {isOpen && (
           <div className="absolute top-full mt-2 right-0 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
             {supportedFormats.map((format) => {
@@ -182,7 +239,7 @@ export function ChartExportButton({
               return (
                 <button
                   key={format.format}
-                  onClick={() => handleExport(format.format)}
+                  onClick={() => handleFormatSelect(format.format)}
                   disabled={isDisabled}
                   className={`w-full px-4 py-2.5 text-left transition-colors ${
                     isDisabled
@@ -270,6 +327,37 @@ export function ChartExportButton({
         </div>
       )}
 
+      {showResolutionPicker && (
+        <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          <div className="px-4 py-2 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-900">选择分辨率</h3>
+            <p className="text-xs text-gray-500 mt-0.5">选择导出图片的分辨率</p>
+          </div>
+          <div className="py-1">
+            {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
+              <button
+                key={res}
+                onClick={() => handleResolutionSelect(res)}
+                className={`w-full px-4 py-3 text-left transition-colors ${
+                  selectedResolution === res
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{RESOLUTION_CONFIG[res].label}</span>
+                  {selectedResolution === res && (
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isOpen && (
         <div className="absolute top-full mt-2 right-0 w-72 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
@@ -281,7 +369,7 @@ export function ChartExportButton({
             return (
               <button
                 key={format.format}
-                onClick={() => handleExport(format.format)}
+                onClick={() => handleFormatSelect(format.format)}
                 disabled={isDisabled}
                 className={`w-full px-4 py-3 text-left transition-colors ${
                   isDisabled

@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/lib/types/oracle';
 import { PublisherList } from './PublisherList';
 import { PublisherReliabilityScore } from './PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from './DashboardCard';
+
+interface AnomalyInfo {
+  isPriceDeviationAnomaly: boolean;
+  isLatencyAnomaly: boolean;
+  anomalyTypes: string[];
+}
 
 const mockPublishers: Publisher[] = [
   {
@@ -125,6 +131,8 @@ export function PublisherAnalysisPanel({
   const [selectedPublisherId, setSelectedPublisherId] = useState<string | undefined>(
     publishers[0]?.id
   );
+  const [anomalyCount, setAnomalyCount] = useState<number>(0);
+  const [anomalyDetails, setAnomalyDetails] = useState<Record<string, AnomalyInfo>>({});
 
   const selectedPublisher = publishers.find((p) => p.id === selectedPublisherId);
   const selectedStats = selectedPublisherId ? publisherStats[selectedPublisherId] : undefined;
@@ -134,8 +142,63 @@ export function PublisherAnalysisPanel({
     publishers.reduce((sum, p) => sum + p.reliabilityScore, 0) / publishers.length;
   const avgLatency = publishers.reduce((sum, p) => sum + p.latency, 0) / publishers.length;
 
+  const anomalyTypeStats = useMemo(() => {
+    const stats = {
+      priceDeviation: 0,
+      latency: 0,
+    };
+
+    Object.values(anomalyDetails).forEach((info) => {
+      if (info.isPriceDeviationAnomaly) stats.priceDeviation++;
+      if (info.isLatencyAnomaly) stats.latency++;
+    });
+
+    return stats;
+  }, [anomalyDetails]);
+
+  const handleAnomalyDetected = (count: number, details: Record<string, AnomalyInfo>) => {
+    setAnomalyCount(count);
+    setAnomalyDetails(details);
+  };
+
   return (
     <div className="space-y-6">
+      {anomalyCount > 0 && (
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-yellow-800">
+                检测到 {anomalyCount} 个异常 Publisher
+              </h4>
+              <p className="text-sm text-yellow-700 mt-1">
+                异常类型分布：
+                {anomalyTypeStats.priceDeviation > 0 && (
+                  <span className="ml-1">价格偏差异常 {anomalyTypeStats.priceDeviation} 个</span>
+                )}
+                {anomalyTypeStats.priceDeviation > 0 && anomalyTypeStats.latency > 0 && (
+                  <span className="mx-1">|</span>
+                )}
+                {anomalyTypeStats.latency > 0 && (
+                  <span>响应延迟异常 {anomalyTypeStats.latency} 个</span>
+                )}
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                请检查异常 Publisher 的运行状态和数据质量
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-white/20 rounded-lg">
@@ -180,6 +243,7 @@ export function PublisherAnalysisPanel({
             publishers={publishers}
             selectedPublisherId={selectedPublisherId}
             onPublisherSelect={setSelectedPublisherId}
+            onAnomalyDetected={handleAnomalyDetected}
           />
         </DashboardCard>
 

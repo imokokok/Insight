@@ -1,0 +1,643 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { DashboardCard } from './DashboardCard';
+
+export type AlertType = 'sudden_expansion' | 'sustained_high';
+export type AlertSeverity = 'warning' | 'critical';
+
+export interface ConfidenceAlert {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  timestamp: number;
+  symbol: string;
+  details: {
+    previousWidth?: number;
+    currentWidth: number;
+    expansionPercent?: number;
+    duration?: number;
+    threshold: number;
+  };
+  message: string;
+  acknowledged: boolean;
+}
+
+interface ConfidenceDataPoint {
+  timestamp: number;
+  width: number;
+  symbol: string;
+}
+
+interface AlertStats {
+  totalAlerts: number;
+  warningCount: number;
+  criticalCount: number;
+  suddenExpansionCount: number;
+  sustainedHighCount: number;
+  acknowledgedCount: number;
+  unacknowledgedCount: number;
+}
+
+interface ConfidenceAlertPanelProps {
+  symbol?: string;
+  threshold?: number;
+  data?: ConfidenceDataPoint[];
+  className?: string;
+  checkInterval?: number;
+  onAlert?: (alert: ConfidenceAlert) => void;
+}
+
+const ALERT_CONFIG = {
+  suddenExpansion: {
+    timeWindow: 5 * 60 * 1000,
+    expansionThreshold: 0.5,
+  },
+  sustainedHigh: {
+    duration: 10 * 60 * 1000,
+    threshold: 0.003,
+  },
+};
+
+const SEVERITY_CONFIG = {
+  warning: {
+    label: '警告',
+    bgColor: 'bg-yellow-100',
+    textColor: 'text-yellow-700',
+    borderColor: 'border-yellow-300',
+    iconBg: 'bg-yellow-500',
+  },
+  critical: {
+    label: '严重',
+    bgColor: 'bg-red-100',
+    textColor: 'text-red-700',
+    borderColor: 'border-red-300',
+    iconBg: 'bg-red-500',
+  },
+};
+
+const ALERT_TYPE_CONFIG = {
+  sudden_expansion: {
+    label: '突然扩大',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+        />
+      </svg>
+    ),
+  },
+  sustained_high: {
+    label: '持续高位',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
+  },
+};
+
+function generateAlertId(): string {
+  return `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function formatTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+function formatDuration(ms: number): string {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  if (minutes > 0) {
+    return `${minutes}分${seconds}秒`;
+  }
+  return `${seconds}秒`;
+}
+
+function generateMockData(symbol: string): ConfidenceDataPoint[] {
+  const now = Date.now();
+  const data: ConfidenceDataPoint[] = [];
+  
+  for (let i = 60; i >= 0; i--) {
+    const timestamp = now - i * 60000;
+    const baseWidth = 0.0015;
+    const randomVariance = (Math.random() - 0.5) * 0.001;
+    let width = baseWidth + randomVariance;
+    
+    if (i === 30) {
+      width = 0.004;
+    }
+    if (i <= 15 && i >= 5) {
+      width = 0.0035 + Math.random() * 0.0005;
+    }
+    
+    data.push({
+      timestamp,
+      width: Number(width.toFixed(6)),
+      symbol,
+    });
+  }
+  
+  return data;
+}
+
+export function ConfidenceAlertPanel({
+  symbol = 'BTC/USD',
+  threshold = 0.003,
+  data: propData,
+  className,
+  checkInterval = 60000,
+  onAlert,
+}: ConfidenceAlertPanelProps) {
+  const [alerts, setAlerts] = useState<ConfidenceAlert[]>([]);
+  const [data, setData] = useState<ConfidenceDataPoint[]>([]);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastCheck, setLastCheck] = useState<number>(Date.now());
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previousWidthRef = useRef<Map<string, { width: number; timestamp: number }>>(new Map());
+  const highWidthStartRef = useRef<Map<string, number>>(new Map());
+
+  const detectSuddenExpansion = useCallback(
+    (currentData: ConfidenceDataPoint[]): ConfidenceAlert | null => {
+      if (currentData.length < 2) return null;
+
+      const current = currentData[currentData.length - 1];
+      const key = current.symbol;
+      const previous = previousWidthRef.current.get(key);
+
+      if (!previous) {
+        previousWidthRef.current.set(key, {
+          width: current.width,
+          timestamp: current.timestamp,
+        });
+        return null;
+      }
+
+      const timeDiff = current.timestamp - previous.timestamp;
+      if (timeDiff > ALERT_CONFIG.suddenExpansion.timeWindow) {
+        previousWidthRef.current.set(key, {
+          width: current.width,
+          timestamp: current.timestamp,
+        });
+        return null;
+      }
+
+      if (previous.width > 0) {
+        const expansionPercent = (current.width - previous.width) / previous.width;
+        
+        if (expansionPercent >= ALERT_CONFIG.suddenExpansion.expansionThreshold) {
+          const severity: AlertSeverity = expansionPercent >= 1 ? 'critical' : 'warning';
+          
+          const alert: ConfidenceAlert = {
+            id: generateAlertId(),
+            type: 'sudden_expansion',
+            severity,
+            timestamp: current.timestamp,
+            symbol: current.symbol,
+            details: {
+              previousWidth: previous.width,
+              currentWidth: current.width,
+              expansionPercent: expansionPercent * 100,
+              threshold: ALERT_CONFIG.suddenExpansion.expansionThreshold * 100,
+            },
+            message: `${current.symbol} 置信区间在 ${formatDuration(timeDiff)} 内扩大了 ${(expansionPercent * 100).toFixed(1)}%`,
+            acknowledged: false,
+          };
+
+          previousWidthRef.current.set(key, {
+            width: current.width,
+            timestamp: current.timestamp,
+          });
+
+          return alert;
+        }
+      }
+
+      previousWidthRef.current.set(key, {
+        width: current.width,
+        timestamp: current.timestamp,
+      });
+
+      return null;
+    },
+    []
+  );
+
+  const detectSustainedHigh = useCallback(
+    (currentData: ConfidenceDataPoint[]): ConfidenceAlert | null => {
+      if (currentData.length < 2) return null;
+
+      const current = currentData[currentData.length - 1];
+      const key = current.symbol;
+
+      if (current.width > threshold) {
+        const startTime = highWidthStartRef.current.get(key);
+        
+        if (!startTime) {
+          highWidthStartRef.current.set(key, current.timestamp);
+          return null;
+        }
+
+        const duration = current.timestamp - startTime;
+        
+        if (duration >= ALERT_CONFIG.sustainedHigh.duration) {
+          const severity: AlertSeverity = duration >= ALERT_CONFIG.sustainedHigh.duration * 2 ? 'critical' : 'warning';
+          
+          const alert: ConfidenceAlert = {
+            id: generateAlertId(),
+            type: 'sustained_high',
+            severity,
+            timestamp: current.timestamp,
+            symbol: current.symbol,
+            details: {
+              currentWidth: current.width,
+              duration,
+              threshold,
+            },
+            message: `${current.symbol} 置信区间已连续 ${formatDuration(duration)} 超过阈值 ${threshold.toFixed(4)}`,
+            acknowledged: false,
+          };
+
+          return alert;
+        }
+      } else {
+        highWidthStartRef.current.delete(key);
+      }
+
+      return null;
+    },
+    [threshold]
+  );
+
+  const runDetection = useCallback(() => {
+    const currentData = data;
+    if (currentData.length === 0) return;
+
+    const newAlerts: ConfidenceAlert[] = [];
+
+    const suddenAlert = detectSuddenExpansion(currentData);
+    if (suddenAlert) {
+      newAlerts.push(suddenAlert);
+    }
+
+    const sustainedAlert = detectSustainedHigh(currentData);
+    if (sustainedAlert) {
+      newAlerts.push(sustainedAlert);
+    }
+
+    if (newAlerts.length > 0) {
+      setAlerts((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const uniqueNewAlerts = newAlerts.filter((a) => !existingIds.has(a.id));
+        return [...uniqueNewAlerts, ...prev].slice(0, 100);
+      });
+
+      newAlerts.forEach((alert) => {
+        onAlert?.(alert);
+      });
+    }
+
+    setLastCheck(Date.now());
+  }, [data, detectSuddenExpansion, detectSustainedHigh, onAlert]);
+
+  const refreshData = useCallback(() => {
+    const newData = propData || generateMockData(symbol);
+    setData(newData);
+  }, [propData, symbol]);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      runDetection();
+    }
+  }, [data, runDetection]);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(refreshData, checkInterval);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [autoRefresh, checkInterval, refreshData]);
+
+  const stats = useMemo<AlertStats>(() => {
+    return {
+      totalAlerts: alerts.length,
+      warningCount: alerts.filter((a) => a.severity === 'warning').length,
+      criticalCount: alerts.filter((a) => a.severity === 'critical').length,
+      suddenExpansionCount: alerts.filter((a) => a.type === 'sudden_expansion').length,
+      sustainedHighCount: alerts.filter((a) => a.type === 'sustained_high').length,
+      acknowledgedCount: alerts.filter((a) => a.acknowledged).length,
+      unacknowledgedCount: alerts.filter((a) => !a.acknowledged).length,
+    };
+  }, [alerts]);
+
+  const acknowledgeAlert = (id: string) => {
+    setAlerts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a))
+    );
+  };
+
+  const dismissAlert = (id: string) => {
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const clearAllAlerts = () => {
+    setAlerts([]);
+  };
+
+  const currentWidth = data.length > 0 ? data[data.length - 1].width : 0;
+  const isAboveThreshold = currentWidth > threshold;
+
+  return (
+    <DashboardCard
+      title="置信区间实时预警"
+      headerAction={
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">自动刷新</span>
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  autoRefresh ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <button
+            onClick={refreshData}
+            className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium"
+          >
+            刷新
+          </button>
+        </div>
+      }
+      className={className}
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-gray-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-gray-500 mb-1">当前宽度</p>
+            <p className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}>
+              {currentWidth.toFixed(6)}
+            </p>
+          </div>
+          <div className="bg-red-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-red-600 mb-1">严重预警</p>
+            <p className="text-xl font-bold text-red-700">{stats.criticalCount}</p>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-yellow-600 mb-1">警告预警</p>
+            <p className="text-xl font-bold text-yellow-700">{stats.warningCount}</p>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-blue-600 mb-1">未确认</p>
+            <p className="text-xl font-bold text-blue-700">{stats.unacknowledgedCount}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span>严重: 扩大≥100% 或 持续≥20分钟</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-yellow-500" />
+            <span>警告: 扩大≥50% 或 持续≥10分钟</span>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-blue-600">阈值: {threshold.toFixed(4)}</span>
+            <span className="text-xs text-blue-600">
+              当前: {isAboveThreshold ? '超出' : '正常'}
+            </span>
+          </div>
+          <div className="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                isAboveThreshold ? 'bg-red-500' : 'bg-blue-500'
+              }`}
+              style={{
+                width: `${Math.min((currentWidth / threshold) * 100, 100)}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-gray-900">预警列表</h4>
+            {alerts.length > 0 && (
+              <button
+                onClick={clearAllAlerts}
+                className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+              >
+                清除全部
+              </button>
+            )}
+          </div>
+
+          {alerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <svg
+                className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-sm">暂无预警</p>
+              <p className="text-xs text-gray-400 mt-1">系统正在监控置信区间变化</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {alerts.map((alert) => {
+                const severityConfig = SEVERITY_CONFIG[alert.severity];
+                const typeConfig = ALERT_TYPE_CONFIG[alert.type];
+
+                return (
+                  <div
+                    key={alert.id}
+                    className={`border-2 rounded-lg p-3 ${
+                      severityConfig.borderColor
+                    } ${alert.acknowledged ? 'opacity-60' : ''}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-2">
+                        <div
+                          className={`p-1.5 rounded ${severityConfig.iconBg} text-white flex-shrink-0`}
+                        >
+                          {typeConfig.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`px-2 py-0.5 text-xs font-medium rounded ${
+                                severityConfig.bgColor
+                              } ${severityConfig.textColor}`}
+                            >
+                              {severityConfig.label}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {typeConfig.label}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-1">{alert.message}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span>{alert.symbol}</span>
+                            <span>{formatTime(alert.timestamp)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {!alert.acknowledged && (
+                          <button
+                            onClick={() => acknowledgeAlert(alert.id)}
+                            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          >
+                            确认
+                          </button>
+                        )}
+                        <button
+                          onClick={() => dismissAlert(alert.id)}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+                        >
+                          忽略
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">当前宽度:</span>
+                          <span className="ml-1 font-medium text-gray-900">
+                            {alert.details.currentWidth.toFixed(6)}
+                          </span>
+                        </div>
+                        {alert.details.previousWidth !== undefined && (
+                          <div>
+                            <span className="text-gray-500">之前宽度:</span>
+                            <span className="ml-1 font-medium text-gray-900">
+                              {alert.details.previousWidth.toFixed(6)}
+                            </span>
+                          </div>
+                        )}
+                        {alert.details.expansionPercent !== undefined && (
+                          <div>
+                            <span className="text-gray-500">扩大幅度:</span>
+                            <span className="ml-1 font-medium text-red-600">
+                              +{alert.details.expansionPercent.toFixed(1)}%
+                            </span>
+                          </div>
+                        )}
+                        {alert.details.duration !== undefined && (
+                          <div>
+                            <span className="text-gray-500">持续时间:</span>
+                            <span className="ml-1 font-medium text-orange-600">
+                              {formatDuration(alert.details.duration)}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-gray-500">阈值:</span>
+                          <span className="ml-1 font-medium text-gray-900">
+                            {alert.details.threshold.toFixed(4)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">预警统计</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">突然扩大</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {stats.suddenExpansionCount}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-orange-500 rounded-full"
+                  style={{
+                    width: `${
+                      stats.totalAlerts > 0
+                        ? (stats.suddenExpansionCount / stats.totalAlerts) * 100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">持续高位</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {stats.sustainedHighCount}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{
+                    width: `${
+                      stats.totalAlerts > 0
+                        ? (stats.sustainedHighCount / stats.totalAlerts) * 100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-400 text-right">
+          上次检测: {formatTime(lastCheck)}
+        </div>
+      </div>
+    </DashboardCard>
+  );
+}

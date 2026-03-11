@@ -10,6 +10,12 @@ import {
 } from 'react';
 import { TimeRange } from '@/components/oracle/TabNavigation';
 
+const STORAGE_KEYS = {
+  TIME_RANGE: 'insight_timeRange',
+  SYNC_ENABLED: 'insight_syncEnabled',
+  CUSTOM_DATE_RANGE: 'insight_customDateRange',
+} as const;
+
 export interface TimeRangeContextValue {
   globalTimeRange: TimeRange;
   setGlobalTimeRange: (range: TimeRange) => void;
@@ -41,62 +47,151 @@ interface TimeRangeProviderProps {
   defaultSyncEnabled?: boolean;
 }
 
+function getStoredTimeRange(defaultValue: TimeRange): TimeRange {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.TIME_RANGE);
+    if (stored && ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'].includes(stored)) {
+      return stored as TimeRange;
+    }
+  } catch (error) {
+    console.warn('Failed to read timeRange from localStorage:', error);
+  }
+  return defaultValue;
+}
+
+function getStoredSyncEnabled(defaultValue: boolean): boolean {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.SYNC_ENABLED);
+    if (stored !== null) {
+      return stored === 'true';
+    }
+  } catch (error) {
+    console.warn('Failed to read syncEnabled from localStorage:', error);
+  }
+  return defaultValue;
+}
+
+function getStoredCustomDateRange(): CustomDateRange | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        startDate: new Date(parsed.startDate),
+        endDate: new Date(parsed.endDate),
+      };
+    }
+  } catch (error) {
+    console.warn('Failed to read customDateRange from localStorage:', error);
+  }
+  return null;
+}
+
 export function TimeRangeProvider({
   children,
   defaultTimeRange = '24H',
   defaultSyncEnabled = true,
 }: TimeRangeProviderProps) {
-  const [globalTimeRange, setGlobalTimeRangeState] = useState<TimeRange>(defaultTimeRange);
-  const [syncEnabled, setSyncEnabledState] = useState(defaultSyncEnabled);
-  const [customDateRange, setCustomDateRangeState] = useState<CustomDateRange | null>(null);
+  const [globalTimeRange, setGlobalTimeRangeState] = useState<TimeRange>(() =>
+    getStoredTimeRange(defaultTimeRange)
+  );
+  const [syncEnabled, setSyncEnabledState] = useState<boolean>(() =>
+    getStoredSyncEnabled(defaultSyncEnabled)
+  );
+  const [customDateRange, setCustomDateRangeState] = useState<CustomDateRange | null>(() =>
+    getStoredCustomDateRange()
+  );
   const [brushRange, setBrushRangeState] = useState<BrushRange | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const setGlobalTimeRange = useCallback(
     (range: TimeRange) => {
-      if (syncEnabled) {
-        setGlobalTimeRangeState(range);
-        setCustomDateRangeState(null);
-        setBrushRangeState(null);
+      setGlobalTimeRangeState(range);
+      setCustomDateRangeState(null);
+      setBrushRangeState(null);
+      try {
+        localStorage.setItem(STORAGE_KEYS.TIME_RANGE, range);
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
+      } catch (error) {
+        console.warn('Failed to save timeRange to localStorage:', error);
       }
     },
-    [syncEnabled]
+    []
   );
 
   const setSyncEnabled = useCallback((enabled: boolean) => {
     setSyncEnabledState(enabled);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SYNC_ENABLED, String(enabled));
+    } catch (error) {
+      console.warn('Failed to save syncEnabled to localStorage:', error);
+    }
   }, []);
 
   const setCustomDateRange = useCallback(
     (range: CustomDateRange | null) => {
-      if (syncEnabled) {
-        setCustomDateRangeState(range);
-        if (range) {
-          setGlobalTimeRangeState('ALL');
+      setCustomDateRangeState(range);
+      if (range) {
+        setGlobalTimeRangeState('ALL');
+        try {
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_DATE_RANGE, JSON.stringify({
+            startDate: range.startDate.toISOString(),
+            endDate: range.endDate.toISOString(),
+          }));
+          localStorage.setItem(STORAGE_KEYS.TIME_RANGE, 'ALL');
+        } catch (error) {
+          console.warn('Failed to save customDateRange to localStorage:', error);
+        }
+      } else {
+        try {
+          localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
+        } catch (error) {
+          console.warn('Failed to remove customDateRange from localStorage:', error);
         }
       }
     },
-    [syncEnabled]
+    []
   );
 
   const setBrushRange = useCallback(
     (range: BrushRange | null) => {
-      if (syncEnabled) {
-        setBrushRangeState(range);
-      }
+      setBrushRangeState(range);
     },
-    [syncEnabled]
+    []
   );
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'globalTimeRange' && e.newValue && syncEnabled) {
-        setGlobalTimeRangeState(e.newValue as TimeRange);
+      if (e.key === STORAGE_KEYS.TIME_RANGE && e.newValue) {
+        const validRanges = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
+        if (validRanges.includes(e.newValue)) {
+          setGlobalTimeRangeState(e.newValue as TimeRange);
+        }
+      } else if (e.key === STORAGE_KEYS.SYNC_ENABLED && e.newValue !== null) {
+        setSyncEnabledState(e.newValue === 'true');
+      } else if (e.key === STORAGE_KEYS.CUSTOM_DATE_RANGE && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setCustomDateRangeState({
+            startDate: new Date(parsed.startDate),
+            endDate: new Date(parsed.endDate),
+          });
+        } catch (error) {
+          console.warn('Failed to parse customDateRange from storage event:', error);
+        }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [syncEnabled]);
+  }, []);
 
   const value: TimeRangeContextValue = {
     globalTimeRange,
@@ -129,11 +224,11 @@ export function useGlobalTimeRange(): {
   timeRange: TimeRange;
   setTimeRange: (range: TimeRange) => void;
 } {
-  const { globalTimeRange, setGlobalTimeRange, syncEnabled } = useTimeRange();
+  const { globalTimeRange, setGlobalTimeRange } = useTimeRange();
 
   return {
     timeRange: globalTimeRange,
-    setTimeRange: syncEnabled ? setGlobalTimeRange : () => {},
+    setTimeRange: setGlobalTimeRange,
   };
 }
 

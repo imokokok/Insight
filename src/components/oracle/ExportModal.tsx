@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import { ExportFormat, DataType, ExportOptions } from '@/hooks/useUtils';
+import { ExportFormat, DataType, ExportOptions, ExportScope, Resolution } from '@/hooks/useUtils';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -10,6 +10,9 @@ interface ExportModalProps {
   onExport: (options: ExportOptions) => void;
   defaultTimeRange?: string;
   availableDataTypes?: DataType[];
+  showBatchExport?: boolean;
+  chartTitle?: string;
+  dataSource?: string;
 }
 
 const DEFAULT_DATA_TYPES: DataType[] = ['all', 'price', 'historical', 'network'];
@@ -20,6 +23,9 @@ export function ExportModal({
   onExport,
   defaultTimeRange = '24H',
   availableDataTypes = DEFAULT_DATA_TYPES,
+  showBatchExport = false,
+  chartTitle,
+  dataSource,
 }: ExportModalProps) {
   const { t } = useI18n();
   const [format, setFormat] = useState<ExportFormat>('json');
@@ -31,6 +37,10 @@ export function ExportModal({
     start: '',
     end: '',
   });
+  const [scope, setScope] = useState<ExportScope>('current');
+  const [resolution, setResolution] = useState<Resolution>('standard');
+  const [batchExport, setBatchExport] = useState(false);
+  const [showTimestamp, setShowTimestamp] = useState(true);
 
   useEffect(() => {
     setTimeRange(defaultTimeRange);
@@ -57,10 +67,16 @@ export function ExportModal({
       timeRange,
       includeMetadata,
       dateRange: showCustomDateRange ? dateRange : undefined,
+      scope,
+      resolution,
+      batchExport,
+      chartTitle,
+      dataSource,
+      showTimestamp,
     };
     onExport(options);
     onClose();
-  }, [format, dataType, timeRange, includeMetadata, showCustomDateRange, dateRange, onExport, onClose]);
+  }, [format, dataType, timeRange, includeMetadata, showCustomDateRange, dateRange, scope, resolution, batchExport, chartTitle, dataSource, showTimestamp, onExport, onClose]);
 
   const dataTypeLabels: Record<DataType, string> = {
     all: t('chainlink.exportModal.dataTypes.all'),
@@ -72,6 +88,18 @@ export function ExportModal({
   const formatLabels: Record<ExportFormat, string> = {
     json: 'JSON',
     csv: 'CSV',
+    excel: 'Excel',
+  };
+
+  const scopeLabels: Record<ExportScope, string> = {
+    current: '当前视图',
+    all: '全部数据',
+    custom: '自定义范围',
+  };
+
+  const resolutionLabels: Record<Resolution, string> = {
+    standard: '标准 (2x)',
+    high: '高清 (4x)',
   };
 
   if (!isOpen) return null;
@@ -84,7 +112,7 @@ export function ExportModal({
           onClick={onClose}
         />
         
-        <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+        <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 transform transition-all max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">
               {t('chainlink.exportModal.title')}
@@ -104,7 +132,7 @@ export function ExportModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('chainlink.exportModal.format')}
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(formatLabels) as ExportFormat[]).map((fmt) => (
                   <button
                     key={fmt}
@@ -120,6 +148,50 @@ export function ExportModal({
                 ))}
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                导出范围
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(scopeLabels) as ExportScope[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setScope(s)}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      scope === s
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {scopeLabels[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(format === 'png' || format === 'svg') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  分辨率
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(Object.keys(resolutionLabels) as Resolution[]).map((res) => (
+                    <button
+                      key={res}
+                      onClick={() => setResolution(res)}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        resolution === res
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {resolutionLabels[res]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -205,17 +277,49 @@ export function ExportModal({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="includeMetadata"
-                checked={includeMetadata}
-                onChange={(e) => setIncludeMetadata(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="includeMetadata" className="text-sm text-gray-700">
-                {t('chainlink.exportModal.includeMetadata')}
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="includeMetadata"
+                  checked={includeMetadata}
+                  onChange={(e) => setIncludeMetadata(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="includeMetadata" className="text-sm text-gray-700">
+                  {t('chainlink.exportModal.includeMetadata')}
+                </label>
+              </div>
+
+              {(format === 'png' || format === 'svg') && (
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="showTimestamp"
+                    checked={showTimestamp}
+                    onChange={(e) => setShowTimestamp(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="showTimestamp" className="text-sm text-gray-700">
+                    包含时间戳和数据来源
+                  </label>
+                </div>
+              )}
+
+              {showBatchExport && (
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="batchExport"
+                    checked={batchExport}
+                    onChange={(e) => setBatchExport(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="batchExport" className="text-sm text-gray-700">
+                    批量导出所有数据
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 

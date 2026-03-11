@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
@@ -189,6 +189,11 @@ export function TabNavigation({
   provider,
 }: TabNavigationProps) {
   const { t } = useI18n();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const displayTabs = useMemo(() => {
     if (tabs) return tabs;
@@ -198,27 +203,114 @@ export function TabNavigation({
     return [];
   }, [tabs, customTabs, defaultTabs, provider, t]);
 
+  const scrollToActiveTab = useCallback(() => {
+    const activeIndex = displayTabs.findIndex((tab) => tab.id === activeTab);
+    if (activeIndex === -1 || !tabRefs.current[activeIndex] || !containerRef.current) return;
+
+    const tabElement = tabRefs.current[activeIndex];
+    const container = containerRef.current;
+    const tabLeft = tabElement.offsetLeft;
+    const tabWidth = tabElement.offsetWidth;
+    const containerWidth = container.offsetWidth;
+    const scrollPosition = tabLeft - containerWidth / 2 + tabWidth / 2;
+
+    container.scrollTo({
+      left: Math.max(0, scrollPosition),
+      behavior: 'smooth',
+    });
+  }, [activeTab, displayTabs]);
+
+  useEffect(() => {
+    scrollToActiveTab();
+  }, [activeTab, scrollToActiveTab]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - containerRef.current.offsetLeft);
+    setScrollLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    const x = e.touches[0].pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    containerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleTabClick = (tabId: string) => {
+    onTabChange(tabId);
+  };
+
   return (
     <div className="border-b border-gray-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
-          {displayTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`
-                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
-                ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
+        <nav
+          ref={containerRef}
+          className="flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+          aria-label="Tabs"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {displayTabs.map((tab, index) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => {
+                  tabRefs.current[index] = el;
+                }}
+                onClick={() => handleTabClick(tab.id)}
+                className={`
+                  flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
+                  ${
+                    isActive
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                <span className={`${isActive ? '' : 'lg:inline'}`}>
+                  {tab.icon}
+                </span>
+                <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
         </nav>
       </div>
     </div>
