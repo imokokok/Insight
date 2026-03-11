@@ -119,3 +119,5 @@ export { ValidatorComparison } from './ValidatorComparison';
 export type { ValidatorComparisonProps } from './ValidatorComparison';
 export { ChainComparison } from './ChainComparison';
 export type { ChainComparisonProps } from './ChainComparison';
+export { SnapshotManager } from './SnapshotManager';
+export { SnapshotComparison } from './SnapshotComparison';

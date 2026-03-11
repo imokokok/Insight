@@ -1758,6 +1758,8 @@
     "query": "查询",
     "loading": "加载中...",
     "loadingData": "加载数据中...",
+    "querying": "正在查询",
+    "progress": "进度",
     "error": {
       "fetchFailed": "数据获取失败，请稍后重试",
       "retry": "重试",
@@ -1795,7 +1797,8 @@
       "consistencyRating": "一致性评级",
       "absoluteValue": "绝对值",
       "maxDifference": "最大差异",
-      "avgDifference": "平均差异"
+      "avgDifference": "平均差异",
+      "queryDuration": "查询耗时"
     },
     "chart": {
       "title": "价格趋势图表",
