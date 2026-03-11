@@ -22,6 +22,14 @@ import {
   PythNetworkClient,
   API3Client,
 } from '@/lib/oracles';
+import {
+  saveQueryHistory,
+  getQueryHistory,
+  clearQueryHistory,
+  formatHistoryTime,
+  QueryHistoryItem,
+} from '@/utils/queryHistory';
+import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -83,6 +91,8 @@ const TIME_RANGES = [
   { value: 24, key: 'timeRange24Hours', label: '24小时' },
   { value: 168, key: 'timeRange7Days', label: '7天' },
 ];
+
+const DEVIATION_THRESHOLD = 0.01;
 
 interface QueryResult {
   provider: OracleProvider;
@@ -325,7 +335,50 @@ export default function PriceQueryPage() {
   );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [queryStartTime, setQueryStartTime] = useState<number | null>(null);
+  const [queryDuration, setQueryDuration] = useState<number | null>(null);
+  const [queryProgress, setQueryProgress] = useState<{ completed: number; total: number }>({
+    completed: 0,
+    total: 0,
+  });
+  const [currentQueryTarget, setCurrentQueryTarget] = useState<{
+    oracle: OracleProvider | null;
+    chain: Blockchain | null;
+  }>({ oracle: null, chain: null });
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyItems, setHistoryItems] = useState<QueryHistoryItem[]>([]);
+  const isInitialized = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const config = parseQueryParams(window.location.search);
+    if (config.oracles && config.oracles.length > 0) {
+      setSelectedOracles(config.oracles);
+    }
+    if (config.chains && config.chains.length > 0) {
+      setSelectedChains(config.chains);
+    }
+    if (config.symbol) {
+      setSelectedSymbol(config.symbol);
+    }
+    if (config.timeRange) {
+      setSelectedTimeRange(config.timeRange);
+    }
+    isInitialized.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized.current) return;
+    const config: QueryConfig = {
+      oracles: selectedOracles,
+      chains: selectedChains,
+      symbol: selectedSymbol,
+      timeRange: selectedTimeRange,
+    };
+    updateUrlParams(config);
+  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange]);
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.2, 3));
@@ -337,6 +390,18 @@ export default function PriceQueryPage() {
 
   const handleResetZoom = () => {
     setZoomLevel(1);
+  };
+
+  const toggleSeries = (seriesName: string) => {
+    setHiddenSeries((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(seriesName)) {
+        newSet.delete(seriesName);
+      } else {
+        newSet.add(seriesName);
+      }
+      return newSet;
+    });
   };
 
   const generateFilename = useCallback(
@@ -433,6 +498,37 @@ export default function PriceQueryPage() {
     );
   };
 
+  const CustomLegend = ({
+    payload,
+  }: {
+    payload?: Array<{ value: string; color: string }>;
+  }) => {
+    if (!payload) return null;
+
+    return (
+      <div className="flex flex-wrap justify-center gap-4 pt-4">
+        {payload.map((entry, index) => {
+          const isHidden = hiddenSeries.has(entry.value);
+          return (
+            <button
+              key={index}
+              onClick={() => toggleSeries(entry.value)}
+              className={`flex items-center gap-2 px-2 py-1 transition-opacity cursor-pointer ${
+                isHidden ? 'opacity-40' : 'opacity-100'
+              }`}
+            >
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-xs">{entry.value}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   const exportToCSV = () => {
     const csvLines: string[] = [];
     csvLines.push('=== 价格查询结果 ===');
@@ -496,9 +592,28 @@ export default function PriceQueryPage() {
 
   const fetchQueryData = async () => {
     setLoading(true);
+    const startTime = Date.now();
+    setQueryStartTime(startTime);
+    setQueryDuration(null);
+    setQueryProgress({ completed: 0, total: 0 });
+    setCurrentQueryTarget({ oracle: null, chain: null });
+
+    let totalQueries = 0;
+    for (const provider of selectedOracles) {
+      const client = oracleClients[provider];
+      const supportedChains = client.supportedChains;
+      for (const chain of selectedChains) {
+        if (supportedChains.includes(chain)) {
+          totalQueries++;
+        }
+      }
+    }
+    setQueryProgress({ completed: 0, total: totalQueries });
+
     try {
       const results: QueryResult[] = [];
       const histories: Partial<Record<string, PriceData[]>> = {};
+      let completedQueries = 0;
 
       for (const provider of selectedOracles) {
         const client = oracleClients[provider];
@@ -506,6 +621,7 @@ export default function PriceQueryPage() {
 
         for (const chain of selectedChains) {
           if (supportedChains.includes(chain)) {
+            setCurrentQueryTarget({ oracle: provider, chain: chain });
             try {
               const price = await client.getPrice(selectedSymbol, chain);
               results.push({
@@ -524,16 +640,30 @@ export default function PriceQueryPage() {
             } catch (error) {
               console.error(`Error fetching ${provider} on ${chain}:`, error);
             }
+            completedQueries++;
+            setQueryProgress({ completed: completedQueries, total: totalQueries });
           }
         }
       }
 
       setQueryResults(results);
       setHistoricalData(histories);
+
+      if (results.length > 0) {
+        saveQueryHistory({
+          oracles: selectedOracles,
+          chains: selectedChains,
+          symbol: selectedSymbol,
+          timeRange: selectedTimeRange,
+        });
+        setHistoryItems(getQueryHistory());
+      }
     } catch (error) {
       console.error('Error fetching query data:', error);
     } finally {
       setLoading(false);
+      setQueryDuration(Date.now() - startTime);
+      setCurrentQueryTarget({ oracle: null, chain: null });
     }
   };
 
@@ -541,6 +671,10 @@ export default function PriceQueryPage() {
     fetchQueryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange]);
+
+  useEffect(() => {
+    setHistoryItems(getQueryHistory());
+  }, []);
 
   const chartData = useMemo(() => {
     if (Object.keys(historicalData).length === 0) return [];
@@ -679,6 +813,11 @@ export default function PriceQueryPage() {
     return { label: '较差', color: 'text-red-600' };
   };
 
+  const calculateDeviation = (price: number, avg: number): number => {
+    if (avg === 0) return 0;
+    return ((price - avg) / avg) * 100;
+  };
+
   const toggleOracle = (oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
       prev.includes(oracle) ? prev.filter((o) => o !== oracle) : [...prev, oracle]
@@ -689,6 +828,21 @@ export default function PriceQueryPage() {
     setSelectedChains((prev) =>
       prev.includes(chain) ? prev.filter((c) => c !== chain) : [...prev, chain]
     );
+  };
+
+  const supportedChainsBySelectedOracles = useMemo(() => {
+    if (selectedOracles.length === 0) return new Set<Blockchain>();
+    const supported = new Set<Blockchain>();
+    selectedOracles.forEach((oracle) => {
+      const client = oracleClients[oracle];
+      client.supportedChains.forEach((chain) => supported.add(chain));
+    });
+    return supported;
+  }, [selectedOracles]);
+
+  const isChainSupported = (chain: Blockchain): boolean => {
+    if (selectedOracles.length === 0) return true;
+    return supportedChainsBySelectedOracles.has(chain);
   };
 
   // Stat Item Component
@@ -730,6 +884,64 @@ export default function PriceQueryPage() {
           <p className="text-sm text-gray-500 mt-1">{t('priceQuery.description')}</p>
         </div>
         <div className="flex items-center gap-3 mt-4 md:mt-0">
+          <div className="relative">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <Icons.clock />
+              历史记录
+            </button>
+            {showHistory && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowHistory(false)}
+                />
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 shadow-lg z-20">
+                  {historyItems.length === 0 ? (
+                    <div className="p-4 text-sm text-gray-500 text-center">暂无历史记录</div>
+                  ) : (
+                    <>
+                      <div className="max-h-80 overflow-y-auto">
+                        {historyItems.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => {
+                              setSelectedOracles(item.oracles);
+                              setSelectedChains(item.chains);
+                              setSelectedSymbol(item.symbol);
+                              setSelectedTimeRange(item.timeRange);
+                              setShowHistory(false);
+                            }}
+                            className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="text-sm font-medium text-gray-900">{item.symbol}</div>
+                              <div className="text-xs text-gray-500">{formatHistoryTime(item.timestamp)}</div>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {item.oracles.length} 个预言机 · {item.chains.length} 条链
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          clearQueryHistory();
+                          setHistoryItems([]);
+                          setShowHistory(false);
+                        }}
+                        className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-200 transition-colors"
+                      >
+                        清除历史记录
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <button
             onClick={exportToCSV}
             disabled={loading || queryResults.length === 0}
@@ -786,11 +998,27 @@ export default function PriceQueryPage() {
 
         {/* Oracle Selector */}
         <div className="mb-6">
-          <div id="oracle-selector-label" className="flex items-center gap-2 mb-3">
-            <Icons.oracle />
-            <span className="text-sm font-semibold text-gray-700">
-              {t('priceQuery.selectors.oracle')}
-            </span>
+          <div id="oracle-selector-label" className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Icons.oracle />
+              <span className="text-sm font-semibold text-gray-700">
+                {t('priceQuery.selectors.oracle')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedOracles(Object.values(OracleProvider))}
+                className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                全选
+              </button>
+              <button
+                onClick={() => setSelectedOracles([])}
+                className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                取消全选
+              </button>
+            </div>
           </div>
           <div
             className="flex flex-wrap gap-2"
@@ -825,23 +1053,54 @@ export default function PriceQueryPage() {
 
         {/* Chain Selector */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Icons.blockchain />
-            <span className="text-sm font-semibold text-gray-700">
-              {t('priceQuery.selectors.blockchain')}
-            </span>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Icons.blockchain />
+              <span className="text-sm font-semibold text-gray-700">
+                {t('priceQuery.selectors.blockchain')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const supportedChains = Array.from(supportedChainsBySelectedOracles);
+                  if (supportedChains.length > 0) {
+                    setSelectedChains(supportedChains);
+                  } else {
+                    setSelectedChains(Object.values(Blockchain));
+                  }
+                }}
+                className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                全选
+              </button>
+              <button
+                onClick={() => setSelectedChains([])}
+                className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                取消全选
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.values(Blockchain).map((chain) => {
               const isSelected = selectedChains.includes(chain);
+              const isSupported = isChainSupported(chain);
               return (
                 <button
                   key={chain}
-                  onClick={() => toggleChain(chain)}
+                  onClick={() => {
+                    if (isSupported) {
+                      toggleChain(chain);
+                    }
+                  }}
+                  disabled={!isSupported}
                   className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
-                    isSelected
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    !isSupported
+                      ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400'
+                      : isSelected
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <span
@@ -905,11 +1164,36 @@ export default function PriceQueryPage() {
             aria-hidden="true"
           />
           <div className="text-sm text-gray-500">{t('priceQuery.loadingData')}</div>
+          {currentQueryTarget.oracle && currentQueryTarget.chain && (
+            <div className="flex flex-col items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="font-medium">{t('priceQuery.querying')}:</span>
+                <span className="flex items-center gap-1">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: oracleColors[currentQueryTarget.oracle] }}
+                  />
+                  {t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}
+                </span>
+                <span className="text-gray-400">/</span>
+                <span className="flex items-center gap-1">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: chainColors[currentQueryTarget.chain] }}
+                  />
+                  {t(`blockchain.${currentQueryTarget.chain.toLowerCase()}`)}
+                </span>
+              </div>
+              <div className="text-sm text-gray-500">
+                {t('priceQuery.progress')}: {queryProgress.completed} / {queryProgress.total}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <>
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 border-b border-gray-200 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-0 border-b border-gray-200 mb-8">
             <div className="px-4 border-r border-gray-200 last:border-r-0">
               <StatItem
                 label={t('priceQuery.stats.avgPrice')}
@@ -973,6 +1257,13 @@ export default function PriceQueryPage() {
               <StatItem
                 label={t('priceQuery.stats.dataPoints')}
                 value={queryResults.length.toString()}
+              />
+            </div>
+            <div className="px-4 border-r border-gray-200 last:border-r-0">
+              <StatItem
+                label={t('priceQuery.stats.queryDuration')}
+                value={queryDuration !== null ? queryDuration.toString() : '-'}
+                suffix=" ms"
               />
             </div>
             <div className="px-4">
@@ -1155,56 +1446,79 @@ export default function PriceQueryPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredQueryResults.map((result) => (
-                        <tr
-                          key={`${result.provider}-${result.chain}`}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full"
-                                style={{ backgroundColor: oracleColors[result.provider] }}
-                                aria-hidden="true"
-                              />
-                              <span className="font-medium text-gray-900">
-                                {t(`navbar.${result.provider.toLowerCase()}`)}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full"
-                                style={{ backgroundColor: chainColors[result.chain] }}
-                                aria-hidden="true"
-                              />
-                              <span className="font-medium text-gray-900">
-                                {t(`blockchain.${result.chain.toLowerCase()}`)}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right font-mono text-gray-900">
-                            $
-                            {result.priceData.price.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 4,
-                            })}
-                          </td>
-                          <td className="py-3 px-4 text-right text-gray-500">
-                            {new Date(result.priceData.timestamp).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            {result.priceData.source ? (
-                              <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100">
-                                {result.priceData.source}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                      {filteredQueryResults.map((result) => {
+                        const deviation = calculateDeviation(result.priceData.price, avgPrice);
+                        const isHighDeviation = Math.abs(deviation) > DEVIATION_THRESHOLD * 100;
+
+                        return (
+                          <tr
+                            key={`${result.provider}-${result.chain}`}
+                            className={`hover:bg-gray-50 transition-colors ${
+                              isHighDeviation ? 'bg-amber-50' : ''
+                            }`}
+                          >
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full"
+                                  style={{ backgroundColor: oracleColors[result.provider] }}
+                                  aria-hidden="true"
+                                />
+                                <span className="font-medium text-gray-900">
+                                  {t(`navbar.${result.provider.toLowerCase()}`)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full"
+                                  style={{ backgroundColor: chainColors[result.chain] }}
+                                  aria-hidden="true"
+                                />
+                                <span className="font-medium text-gray-900">
+                                  {t(`blockchain.${result.chain.toLowerCase()}`)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right font-mono text-gray-900">
+                              <div className="flex items-center justify-end gap-2">
+                                <span>
+                                  $
+                                  {result.priceData.price.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 4,
+                                  })}
+                                </span>
+                                {isHighDeviation && (
+                                  <span
+                                    className={`text-xs px-1.5 py-0.5 rounded ${
+                                      deviation > 0
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-green-100 text-green-700'
+                                    }`}
+                                  >
+                                    {deviation > 0 ? '+' : ''}
+                                    {deviation.toFixed(2)}%
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right text-gray-500">
+                              {new Date(result.priceData.timestamp).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              {result.priceData.source ? (
+                                <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100">
+                                  {result.priceData.source}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   <div className="md:hidden mt-2 text-xs text-gray-400 text-center">
@@ -1317,28 +1631,22 @@ export default function PriceQueryPage() {
                         width={70}
                       />
                       <Tooltip content={<CustomTooltip />} />
-                      <Legend
-                        wrapperStyle={{
-                          paddingTop: '16px',
-                          fontSize: '12px',
-                        }}
-                        iconType="circle"
-                        iconSize={6}
-                      />
+                      <Legend content={<CustomLegend />} />
                       {queryResults.map(({ provider, chain }) => {
                         const key = `${provider}-${chain}`;
                         const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                         const color = oracleColors[provider];
+                        const isHidden = hiddenSeries.has(label);
                         return (
                           <Line
                             key={key}
                             type="monotone"
                             dataKey={label}
                             name={label}
-                            stroke={color}
+                            stroke={isHidden ? 'transparent' : color}
                             strokeWidth={2}
                             dot={false}
-                            activeDot={{ r: 5, strokeWidth: 0 }}
+                            activeDot={isHidden ? false : { r: 5, strokeWidth: 0 }}
                           />
                         );
                       })}

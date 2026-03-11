@@ -208,6 +208,11 @@ export default function CrossChainPage() {
     yChain: Blockchain;
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [focusedChain, setFocusedChain] = useState<Blockchain | null>(null);
+  const [tableFilter, setTableFilter] = useState<'all' | 'abnormal' | 'normal'>('all');
+  const [recommendedBaseChain, setRecommendedBaseChain] = useState<Blockchain | null>(null);
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
 
   const generateFilename = (extension: string): string => {
     const now = new Date();
@@ -325,6 +330,7 @@ export default function CrossChainPage() {
   const supportedChains = currentClient.supportedChains;
 
   const fetchData = useCallback(async () => {
+    setRefreshStatus('refreshing');
     setLoading(true);
     try {
       const currentPromises = supportedChains.map((chain) =>
@@ -365,9 +371,22 @@ export default function CrossChainPage() {
         standardDeviationPercent: newStdDevPercent,
       });
 
+      if (supportedChains.length > 0) {
+        const chainWithMostData = supportedChains.reduce((best, chain) => {
+          const bestLen = historicalMap[best]?.length || 0;
+          const chainLen = historicalMap[chain]?.length || 0;
+          return chainLen > bestLen ? chain : best;
+        }, supportedChains[0]);
+        setRecommendedBaseChain(chainWithMostData);
+      }
+
       setLastUpdated(new Date());
+      setRefreshStatus('success');
+      setShowRefreshSuccess(true);
+      setTimeout(() => setShowRefreshSuccess(false), 2000);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setRefreshStatus('error');
     } finally {
       setLoading(false);
     }
@@ -396,16 +415,18 @@ export default function CrossChainPage() {
 
   useEffect(() => {
     if (supportedChains.length > 0 && !selectedBaseChain) {
-      setSelectedBaseChain(supportedChains[0]);
+      const defaultChain = recommendedBaseChain || supportedChains[0];
+      setSelectedBaseChain(defaultChain);
     }
     if (
       supportedChains.length > 0 &&
       selectedBaseChain &&
       !supportedChains.includes(selectedBaseChain)
     ) {
-      setSelectedBaseChain(supportedChains[0]);
+      const defaultChain = recommendedBaseChain || supportedChains[0];
+      setSelectedBaseChain(defaultChain);
     }
-  }, [supportedChains, selectedBaseChain]);
+  }, [supportedChains, selectedBaseChain, recommendedBaseChain]);
 
   const toggleChain = (chain: Blockchain) => {
     setVisibleChains((prev) => {
@@ -510,8 +531,18 @@ export default function CrossChainPage() {
   };
 
   const sortedPriceDifferences = useMemo(() => {
-    const sorted = [...priceDifferences];
-    sorted.sort((a, b) => {
+    let filtered = [...priceDifferences];
+    
+    if (tableFilter === 'abnormal') {
+      filtered = filtered.filter((item) => Math.abs(item.diffPercent) > DEVIATION_THRESHOLD);
+    } else if (tableFilter === 'normal') {
+      filtered = filtered.filter((item) => Math.abs(item.diffPercent) <= DEVIATION_THRESHOLD);
+    }
+    
+    const baseChainItem = filtered.find((item) => item.chain === selectedBaseChain);
+    const otherItems = filtered.filter((item) => item.chain !== selectedBaseChain);
+    
+    otherItems.sort((a, b) => {
       let comparison = 0;
       switch (sortColumn) {
         case 'chain':
@@ -531,8 +562,12 @@ export default function CrossChainPage() {
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    return sorted;
-  }, [priceDifferences, sortColumn, sortDirection]);
+    
+    if (baseChainItem) {
+      return [baseChainItem, ...otherItems];
+    }
+    return otherItems;
+  }, [priceDifferences, sortColumn, sortDirection, selectedBaseChain, tableFilter]);
 
   const validPrices = useMemo(() => {
     return currentPrices
@@ -770,6 +805,22 @@ export default function CrossChainPage() {
         }
         return newSet;
       });
+    }
+  };
+
+  const handleLegendDoubleClick = (chain: Blockchain) => {
+    if (focusedChain === chain) {
+      setFocusedChain(null);
+      setHiddenLines(new Set());
+    } else {
+      setFocusedChain(chain);
+      const newHidden = new Set<string>();
+      filteredChains.forEach((c) => {
+        if (c !== chain) {
+          newHidden.add(c);
+        }
+      });
+      setHiddenLines(newHidden);
     }
   };
 
@@ -1660,11 +1711,25 @@ export default function CrossChainPage() {
           </div>
           <button
             onClick={fetchData}
-            disabled={loading}
-            className="px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            disabled={refreshStatus === 'refreshing'}
+            className={`px-4 py-2 text-sm text-white transition-colors flex items-center gap-2 ${
+              refreshStatus === 'error' 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : refreshStatus === 'success' && showRefreshSuccess
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gray-900 hover:bg-gray-800'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {loading ? (
+            {refreshStatus === 'refreshing' ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
+            ) : refreshStatus === 'error' ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            ) : showRefreshSuccess ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             ) : (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -1675,7 +1740,7 @@ export default function CrossChainPage() {
                 />
               </svg>
             )}
-            {loading ? t('crossChain.loading') : t('crossChain.refresh')}
+            {refreshStatus === 'refreshing' ? t('crossChain.loading') : showRefreshSuccess ? t('crossChain.refreshSuccess') : t('crossChain.refresh')}
           </button>
           {lastUpdated && (
             <span className="text-xs text-gray-400">
@@ -1765,8 +1830,13 @@ export default function CrossChainPage() {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 uppercase tracking-wide">
+          <label className="text-xs text-gray-500 uppercase tracking-wide flex items-center gap-2">
             {t('crossChain.baseChain')}
+            {recommendedBaseChain && selectedBaseChain === recommendedBaseChain && (
+              <span className="text-xs text-blue-500 font-normal">
+                ({t('crossChain.recommended')})
+              </span>
+            )}
           </label>
           <select
             value={selectedBaseChain || ''}
@@ -1776,6 +1846,7 @@ export default function CrossChainPage() {
             {baseChainOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
+                {option.value === recommendedBaseChain ? ` (${t('crossChain.recommended')})` : ''}
               </option>
             ))}
           </select>

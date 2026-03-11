@@ -1670,6 +1670,8 @@
     "query": "Query",
     "loading": "Loading...",
     "loadingData": "Loading data...",
+    "querying": "Querying",
+    "progress": "Progress",
     "error": {
       "fetchFailed": "Failed to fetch data, please try again later",
       "retry": "Retry",
@@ -1702,7 +1704,8 @@
       "standardDeviation": "Standard Deviation",
       "dataPoints": "Data Points",
       "consistencyRating": "Consistency Rating",
-      "absoluteValue": "Absolute Value"
+      "absoluteValue": "Absolute Value",
+      "queryDuration": "Query Duration"
     },
     "chart": {
       "title": "Price Trend Chart",
