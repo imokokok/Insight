@@ -43,7 +43,7 @@ export function useRefresh(options: UseRefreshOptions = {}): UseRefreshReturn {
   };
 }
 
-export type ExportFormat = 'json' | 'csv' | 'excel';
+export type ExportFormat = 'json' | 'csv' | 'excel' | 'png' | 'svg';
 export type DataType = 'all' | 'price' | 'historical' | 'network';
 export type ExportScope = 'current' | 'all' | 'custom';
 export type Resolution = 'standard' | 'high';
@@ -62,6 +62,7 @@ export interface ExportOptions {
   batchExport?: boolean;
   chartTitle?: string;
   dataSource?: string;
+  showTimestamp?: boolean;
 }
 
 interface UseExportOptions<T> {
@@ -84,26 +85,26 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
       const now = new Date();
       const dateStr = now.toISOString().slice(0, 10);
       const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-      
+
       const parts: string[] = [];
-      
+
       if (filename) {
         parts.push(filename);
       } else {
         parts.push('export');
       }
-      
+
       parts.push(dateStr);
       parts.push(timeStr);
-      
+
       if (opts?.timeRange) {
         parts.push(opts.timeRange.toLowerCase());
       }
-      
+
       if (opts?.dataType && opts.dataType !== 'all') {
         parts.push(opts.dataType);
       }
-      
+
       const extension = formatType === 'excel' ? 'xlsx' : formatType;
       return `${parts.join('-')}.${extension}`;
     },
@@ -150,9 +151,10 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
         downloadBlob(blob, finalFilename);
       } else if (mergedOptions.format === 'csv' || mergedOptions.format === 'excel') {
         const csvContent = convertToCSV(data, mergedOptions);
-        const mimeType = mergedOptions.format === 'excel' 
-          ? 'application/vnd.ms-excel;charset=utf-8;' 
-          : 'text/csv;charset=utf-8;';
+        const mimeType =
+          mergedOptions.format === 'excel'
+            ? 'application/vnd.ms-excel;charset=utf-8;'
+            : 'text/csv;charset=utf-8;';
         const blob = new Blob([csvContent], { type: mimeType });
         downloadBlob(blob, finalFilename);
       }
@@ -201,7 +203,7 @@ function convertToCSV<T>(data: T, options?: ExportOptions): string {
         return String(value);
       })
     );
-    
+
     const metadataRows: string[] = [];
     if (options?.includeMetadata) {
       metadataRows.push('# Oracle Data Export');
@@ -214,7 +216,7 @@ function convertToCSV<T>(data: T, options?: ExportOptions): string {
       }
       metadataRows.push('#');
     }
-    
+
     return [...metadataRows, headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
   }
 
@@ -226,7 +228,7 @@ function convertToCSV<T>(data: T, options?: ExportOptions): string {
       }
       return `${key},"${String(value).replace(/"/g, '""')}"`;
     });
-    
+
     const metadataRows: string[] = [];
     if (options?.includeMetadata) {
       metadataRows.push('# Oracle Data Export');
@@ -236,7 +238,7 @@ function convertToCSV<T>(data: T, options?: ExportOptions): string {
       }
       metadataRows.push('#');
     }
-    
+
     return [...metadataRows, 'Key,Value', ...rows].join('\n');
   }
 

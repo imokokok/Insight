@@ -37,7 +37,9 @@ function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical'
   const { bg, text, dot, label } = config[status];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
       {label}
     </span>
@@ -49,7 +51,12 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
         </svg>
         <span className="text-xs">扩大</span>
       </div>
@@ -60,7 +67,12 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
         </svg>
         <span className="text-xs">缩小</span>
       </div>
@@ -170,7 +182,9 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
                     <span className="text-gray-900 font-mono">${formatPrice(item.dapiPrice)}</span>
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <span className="text-gray-600 font-mono">${formatPrice(item.marketPrice)}</span>
+                    <span className="text-gray-600 font-mono">
+                      ${formatPrice(item.marketPrice)}
+                    </span>
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex justify-center">
@@ -183,8 +197,8 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
                         item.deviation > 0.5
                           ? 'text-red-600'
                           : item.deviation >= 0.3
-                          ? 'text-yellow-600'
-                          : 'text-green-600'
+                            ? 'text-yellow-600'
+                            : 'text-green-600'
                       }`}
                     >
                       {item.deviation.toFixed(2)}%

@@ -6,12 +6,17 @@ import { useI18n } from '@/lib/i18n/context';
 
 function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   const { t } = useI18n();
-  
+
   if (trend === 'up') {
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
         </svg>
         <span className="text-xs">{t('uma.dataQuality.improving')}</span>
       </div>
@@ -22,7 +27,12 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
         </svg>
         <span className="text-xs">{t('uma.dataQuality.declining')}</span>
       </div>
@@ -125,9 +135,7 @@ export function UMADataQualityScoreCard() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {t('uma.dataQuality.title')}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('uma.dataQuality.title')}</h3>
             <p className="text-sm text-gray-500 mt-1">{t('uma.dataQuality.subtitle')}</p>
           </div>
           <div className="text-right">
@@ -145,7 +153,12 @@ export function UMADataQualityScoreCard() {
           score={data.networkHealth.score}
           trend={data.networkHealth.trend}
           icon={
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -161,7 +174,12 @@ export function UMADataQualityScoreCard() {
           score={data.dataIntegrity.score}
           trend={data.dataIntegrity.trend}
           icon={
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -177,7 +195,12 @@ export function UMADataQualityScoreCard() {
           score={data.responseTime.score}
           trend={data.responseTime.trend}
           icon={
-            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -193,7 +216,12 @@ export function UMADataQualityScoreCard() {
           score={data.validatorActivity.score}
           trend={data.validatorActivity.trend}
           icon={
-            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

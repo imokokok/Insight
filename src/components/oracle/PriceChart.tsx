@@ -697,11 +697,7 @@ export function PriceChart({
         abortControllerRef.current.abort();
       }
     };
-  }, [
-    fetchData,
-    fetchComparisonData,
-    comparison.enabled,
-  ]);
+  }, [fetchData, fetchComparisonData, comparison.enabled]);
 
   const handleComparisonApply = () => {
     if (
@@ -977,12 +973,15 @@ export function PriceChart({
         </div>
       )}
 
-      <div 
-        ref={chartContainerRef} 
+      <div
+        ref={chartContainerRef}
         className={`flex-1 min-h-0 bg-gray-50 rounded-lg p-2 sm:p-4 transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}`}
         style={{ opacity: chartOpacity }}
       >
-        <ResponsiveContainer width="100%" height={responsiveHeight - (showToolbar ? (isMobile ? 120 : 150) : 0)}>
+        <ResponsiveContainer
+          width="100%"
+          height={responsiveHeight - (showToolbar ? (isMobile ? 120 : 150) : 0)}
+        >
           <ComposedChart
             data={dataWithPrediction}
             margin={{ top: 10, right: isMobile ? 5 : 10, left: 0, bottom: 0 }}

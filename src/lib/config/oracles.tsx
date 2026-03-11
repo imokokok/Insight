@@ -10,6 +10,8 @@ import { MarketDataConfig } from '@/components/oracle/MarketDataPanel';
 import { NetworkDataConfig } from '@/components/oracle/NetworkHealthPanel';
 import { ReactNode } from 'react';
 
+import { ConfidenceInterval } from '@/lib/types/oracle';
+
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
@@ -19,7 +21,7 @@ export interface OracleConfig {
   client: InstanceType<typeof ChainlinkClient>;
   icon: ReactNode;
   iconBgColor: string;
-  marketData: MarketDataConfig;
+  marketData: MarketDataConfig & { change24hPercent?: number };
   networkData: NetworkDataConfig;
   features: {
     hasNodeAnalytics: boolean;

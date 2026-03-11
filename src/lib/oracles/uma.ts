@@ -370,9 +370,10 @@ export class UMAClient extends BaseOracleClient {
         const baseResponseTime = validator.responseTime;
         const variation = Math.sin((hour / 24) * Math.PI * 2) * 20 + Math.random() * 10 - 5;
         const responseTime = Math.max(50, baseResponseTime + variation);
-        
+
         const baseSuccessRate = validator.successRate;
-        const successVariation = Math.cos((hour / 24) * Math.PI * 2) * 0.3 + Math.random() * 0.2 - 0.1;
+        const successVariation =
+          Math.cos((hour / 24) * Math.PI * 2) * 0.3 + Math.random() * 0.2 - 0.1;
         const successRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
 
         hourlyData.push({
@@ -392,25 +393,28 @@ export class UMAClient extends BaseOracleClient {
     return heatmapData;
   }
 
-  async getValidatorPerformanceHeatmapByDays(days: number = 7): Promise<ValidatorPerformanceHeatmapDataByDay[]> {
+  async getValidatorPerformanceHeatmapByDays(
+    days: number = 7
+  ): Promise<ValidatorPerformanceHeatmapDataByDay[]> {
     const validators = await this.getValidators();
     const heatmapData: ValidatorPerformanceHeatmapDataByDay[] = [];
     const now = new Date();
 
     for (const validator of validators.slice(0, 8)) {
       const dailyData = [];
-      
+
       for (let dayIndex = 0; dayIndex < days; dayIndex++) {
         const date = new Date(now);
         date.setDate(date.getDate() - (days - 1 - dayIndex));
         const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
-        
+
         const baseResponseTime = validator.responseTime;
         const dayVariation = Math.sin((dayIndex / days) * Math.PI) * 15 + Math.random() * 10 - 5;
         const avgResponseTime = Math.max(50, baseResponseTime + dayVariation);
-        
+
         const baseSuccessRate = validator.successRate;
-        const successVariation = Math.cos((dayIndex / days) * Math.PI) * 0.2 + Math.random() * 0.15 - 0.075;
+        const successVariation =
+          Math.cos((dayIndex / days) * Math.PI) * 0.2 + Math.random() * 0.15 - 0.075;
         const avgSuccessRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
 
         dailyData.push({
@@ -434,22 +438,24 @@ export class UMAClient extends BaseOracleClient {
   // 获取争议解决效率统计
   async getDisputeEfficiencyStats(): Promise<DisputeEfficiencyStats> {
     const disputes = await this.getDisputes();
-    const resolvedDisputes = disputes.filter(d => d.status === 'resolved' && d.resolutionTime);
+    const resolvedDisputes = disputes.filter((d) => d.status === 'resolved' && d.resolutionTime);
 
-    const resolutionTimes = resolvedDisputes.map(d => d.resolutionTime!);
-    
-    const avgResolutionTime = resolutionTimes.length > 0
-      ? resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length
-      : 0;
+    const resolutionTimes = resolvedDisputes.map((d) => d.resolutionTime!);
+
+    const avgResolutionTime =
+      resolutionTimes.length > 0
+        ? resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length
+        : 0;
 
     const sortedTimes = [...resolutionTimes].sort((a, b) => a - b);
-    const medianResolutionTime = sortedTimes.length > 0
-      ? sortedTimes[Math.floor(sortedTimes.length / 2)]
-      : 0;
+    const medianResolutionTime =
+      sortedTimes.length > 0 ? sortedTimes[Math.floor(sortedTimes.length / 2)] : 0;
 
-    const variance = resolutionTimes.length > 0
-      ? resolutionTimes.reduce((sum, time) => sum + Math.pow(time - avgResolutionTime, 2), 0) / resolutionTimes.length
-      : 0;
+    const variance =
+      resolutionTimes.length > 0
+        ? resolutionTimes.reduce((sum, time) => sum + Math.pow(time - avgResolutionTime, 2), 0) /
+          resolutionTimes.length
+        : 0;
     const stdDeviation = Math.sqrt(variance);
 
     const successRateTrend = [];
@@ -464,12 +470,18 @@ export class UMAClient extends BaseOracleClient {
     }
 
     const resolutionTimeDistribution = [
-      { range: '0-2h', count: Math.floor(resolutionTimes.filter(t => t <= 2).length) },
-      { range: '2-6h', count: Math.floor(resolutionTimes.filter(t => t > 2 && t <= 6).length) },
-      { range: '6-12h', count: Math.floor(resolutionTimes.filter(t => t > 6 && t <= 12).length) },
-      { range: '12-24h', count: Math.floor(resolutionTimes.filter(t => t > 12 && t <= 24).length) },
-      { range: '24-48h', count: Math.floor(resolutionTimes.filter(t => t > 24 && t <= 48).length) },
-      { range: '48h+', count: Math.floor(resolutionTimes.filter(t => t > 48).length) },
+      { range: '0-2h', count: Math.floor(resolutionTimes.filter((t) => t <= 2).length) },
+      { range: '2-6h', count: Math.floor(resolutionTimes.filter((t) => t > 2 && t <= 6).length) },
+      { range: '6-12h', count: Math.floor(resolutionTimes.filter((t) => t > 6 && t <= 12).length) },
+      {
+        range: '12-24h',
+        count: Math.floor(resolutionTimes.filter((t) => t > 12 && t <= 24).length),
+      },
+      {
+        range: '24-48h',
+        count: Math.floor(resolutionTimes.filter((t) => t > 24 && t <= 48).length),
+      },
+      { range: '48h+', count: Math.floor(resolutionTimes.filter((t) => t > 48).length) },
     ];
 
     return {
@@ -484,28 +496,28 @@ export class UMAClient extends BaseOracleClient {
   // 获取数据质量评分
   async getDataQualityScore(): Promise<DataQualityScore> {
     const networkStats = await this.getNetworkStats();
-    
-    const networkHealthScore = Math.min(100, 
-      (networkStats.validatorUptime / 100) * 50 + 
-      (networkStats.activeValidators / 1000) * 25 + 
-      (networkStats.disputeSuccessRate / 100) * 25
+
+    const networkHealthScore = Math.min(
+      100,
+      (networkStats.validatorUptime / 100) * 50 +
+        (networkStats.activeValidators / 1000) * 25 +
+        (networkStats.disputeSuccessRate / 100) * 25
     );
 
     const dataIntegrityScore = 85 + Math.random() * 10;
 
     const responseTimeScore = Math.max(0, 100 - (networkStats.avgResponseTime - 100) / 2);
 
-    const validatorActivityScore = Math.min(100, 
-      (networkStats.activeValidators / 850) * 70 + 
-      (networkStats.totalStaked / 30000000) * 30
+    const validatorActivityScore = Math.min(
+      100,
+      (networkStats.activeValidators / 850) * 70 + (networkStats.totalStaked / 30000000) * 30
     );
 
-    const overallScore = (
+    const overallScore =
       networkHealthScore * 0.3 +
       dataIntegrityScore * 0.25 +
       responseTimeScore * 0.25 +
-      validatorActivityScore * 0.2
-    );
+      validatorActivityScore * 0.2;
 
     const getTrend = (): 'up' | 'down' | 'stable' => {
       const rand = Math.random();

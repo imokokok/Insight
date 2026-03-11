@@ -27,7 +27,7 @@ interface CorrelationCell {
 
 const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
   const n = Math.min(x.length, y.length);
-  
+
   if (n < 2) {
     return 0;
   }
@@ -53,23 +53,23 @@ const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
   }
 
   const denominator = Math.sqrt(denominatorX * denominatorY);
-  
+
   if (denominator === 0) {
     return 0;
   }
 
   const correlation = numerator / denominator;
-  
+
   return Math.max(-1, Math.min(1, correlation));
 };
 
 const getCorrelationColor = (correlation: number): string => {
   const normalizedCorrelation = (correlation + 1) / 2;
-  
+
   const r = Math.round(normalizedCorrelation * 220);
   const g = Math.round((1 - Math.abs(normalizedCorrelation - 0.5) * 2) * 100);
   const b = Math.round((1 - normalizedCorrelation) * 220);
-  
+
   return `rgb(${r}, ${g}, ${b})`;
 };
 
@@ -106,16 +106,19 @@ export function PriceCorrelationMatrix({
   const [hoveredCell, setHoveredCell] = useState<CorrelationCell | null>(null);
 
   const { correlationMatrix, oracleIds, priceArrays } = useMemo(() => {
-    const ids = data.map(d => d.oracleId);
+    const ids = data.map((d) => d.oracleId);
     const priceArraysMap = new Map<string, number[]>();
-    
-    data.forEach(series => {
+
+    data.forEach((series) => {
       const sortedData = [...series.data].sort((a, b) => a.timestamp - b.timestamp);
-      priceArraysMap.set(series.oracleId, sortedData.map(d => d.price));
+      priceArraysMap.set(
+        series.oracleId,
+        sortedData.map((d) => d.price)
+      );
     });
 
     const matrix: CorrelationCell[][] = [];
-    
+
     ids.forEach((id1, i) => {
       const row: CorrelationCell[] = [];
       ids.forEach((id2, j) => {
@@ -160,7 +163,7 @@ export function PriceCorrelationMatrix({
     const avgCorrelation = correlations.reduce((a, b) => a + b, 0) / correlations.length;
     const maxCorrelation = Math.max(...correlations);
     const minCorrelation = Math.min(...correlations);
-    const highCorrelationCount = correlations.filter(c => Math.abs(c) >= 0.7).length;
+    const highCorrelationCount = correlations.filter((c) => Math.abs(c) >= 0.7).length;
 
     return {
       avgCorrelation,
@@ -197,27 +200,19 @@ export function PriceCorrelationMatrix({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">平均相关系数</p>
-            <p className="text-xl font-bold text-blue-700">
-              {stats.avgCorrelation.toFixed(3)}
-            </p>
+            <p className="text-xl font-bold text-blue-700">{stats.avgCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-green-600 mb-1">最高相关系数</p>
-            <p className="text-xl font-bold text-green-700">
-              {stats.maxCorrelation.toFixed(3)}
-            </p>
+            <p className="text-xl font-bold text-green-700">{stats.maxCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
             <p className="text-xs text-red-600 mb-1">最低相关系数</p>
-            <p className="text-xl font-bold text-red-700">
-              {stats.minCorrelation.toFixed(3)}
-            </p>
+            <p className="text-xl font-bold text-red-700">{stats.minCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">高相关对数量</p>
-            <p className="text-xl font-bold text-purple-700">
-              {stats.highCorrelationCount}
-            </p>
+            <p className="text-xl font-bold text-purple-700">{stats.highCorrelationCount}</p>
           </div>
         </div>
 
@@ -259,7 +254,9 @@ export function PriceCorrelationMatrix({
                           key={`${oracleIds[i]}-${oracleIds[j]}`}
                           className={`flex-1 min-w-[60px] aspect-square rounded-md flex items-center justify-center text-xs font-medium cursor-pointer transition-all hover:scale-110 hover:z-10 hover:ring-2 hover:ring-gray-400 ${getCorrelationTextColor(correlation)}`}
                           style={{
-                            backgroundColor: isDiagonal ? '#F3F4F6' : getCorrelationColor(correlation),
+                            backgroundColor: isDiagonal
+                              ? '#F3F4F6'
+                              : getCorrelationColor(correlation),
                           }}
                           onMouseEnter={() =>
                             !isDiagonal &&
@@ -274,9 +271,7 @@ export function PriceCorrelationMatrix({
                           {isDiagonal ? (
                             <span className="text-gray-400">-</span>
                           ) : (
-                            <span className="font-mono">
-                              {correlation.toFixed(2)}
-                            </span>
+                            <span className="font-mono">{correlation.toFixed(2)}</span>
                           )}
                         </div>
                       );
@@ -308,7 +303,11 @@ export function PriceCorrelationMatrix({
                 <div className="flex justify-between">
                   <span className="text-gray-400">相关方向:</span>
                   <span>
-                    {hoveredCell.correlation > 0 ? '正相关' : hoveredCell.correlation < 0 ? '负相关' : '无相关'}
+                    {hoveredCell.correlation > 0
+                      ? '正相关'
+                      : hoveredCell.correlation < 0
+                        ? '负相关'
+                        : '无相关'}
                   </span>
                 </div>
               </div>
@@ -423,12 +422,10 @@ export function PriceCorrelationMatrix({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">
-                皮尔逊相关系数说明
-              </h4>
+              <h4 className="text-sm font-semibold text-blue-800 mb-1">皮尔逊相关系数说明</h4>
               <p className="text-xs text-blue-700">
-                皮尔逊相关系数衡量两个预言机价格序列之间的线性相关程度。
-                系数范围从 -1 到 1，其中 1 表示完全正相关，-1 表示完全负相关，0 表示无线性相关。
+                皮尔逊相关系数衡量两个预言机价格序列之间的线性相关程度。 系数范围从 -1 到 1，其中 1
+                表示完全正相关，-1 表示完全负相关，0 表示无线性相关。
                 高相关系数表明预言机价格走势高度一致，数据质量可靠。
               </p>
             </div>

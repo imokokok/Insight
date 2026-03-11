@@ -161,7 +161,8 @@ export function PublisherList({
 
     const avgDeviation = priceDeviations.reduce((sum, d) => sum + d, 0) / priceDeviations.length;
     const stdDeviation = Math.sqrt(
-      priceDeviations.reduce((sum, d) => sum + Math.pow(d - avgDeviation, 2), 0) / priceDeviations.length
+      priceDeviations.reduce((sum, d) => sum + Math.pow(d - avgDeviation, 2), 0) /
+        priceDeviations.length
     );
 
     const avgLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
@@ -283,7 +284,9 @@ export function PublisherList({
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500 text-xs">Latency</p>
-                  <p className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-red-600' : 'text-gray-900'}`}>
+                  <p
+                    className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-red-600' : 'text-gray-900'}`}
+                  >
                     {publisher.latency}ms
                     {anomalyInfo?.isLatencyAnomaly && <span className="ml-1">⚠️</span>}
                   </p>

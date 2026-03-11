@@ -302,12 +302,8 @@ export function TabNavigation({
                   }
                 `}
               >
-                <span className={`${isActive ? '' : 'lg:inline'}`}>
-                  {tab.icon}
-                </span>
-                <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>
-                  {tab.label}
-                </span>
+                <span className={`${isActive ? '' : 'lg:inline'}`}>{tab.icon}</span>
+                <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>{tab.label}</span>
               </button>
             );
           })}

@@ -271,7 +271,9 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
           <p className="text-sm text-gray-600">{t('uma.validatorComparison.selectHint')}</p>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t('uma.validatorComparison.quickSelect')}:</span>
+            <span className="text-sm text-gray-600">
+              {t('uma.validatorComparison.quickSelect')}:
+            </span>
             <button
               onClick={selectTop3}
               className="px-3 py-1.5 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"

@@ -68,19 +68,6 @@ export function ChartExportButton({
     setProgress(p);
   }, []);
 
-  const handleFormatSelect = useCallback(
-    (format: ExportOptions['format']) => {
-      if (format === 'png' || format === 'svg') {
-        setPendingFormat(format);
-        setShowResolutionPicker(true);
-        setIsOpen(false);
-      } else {
-        executeExport(format, 'standard');
-      }
-    },
-    []
-  );
-
   const executeExport = useCallback(
     async (format: ExportOptions['format'], resolution: Resolution) => {
       if (progress.status === 'exporting') return;
@@ -129,7 +116,31 @@ export function ChartExportButton({
         }, 3000);
       }
     },
-    [progress.status, chartRef, data, filename, multipleCharts, handleProgress, onExportComplete, onExportError, chartTitle, dataSource]
+    [
+      progress.status,
+      chartRef,
+      data,
+      filename,
+      multipleCharts,
+      handleProgress,
+      onExportComplete,
+      onExportError,
+      chartTitle,
+      dataSource,
+    ]
+  );
+
+  const handleFormatSelect = useCallback(
+    (format: ExportOptions['format']) => {
+      if (format === 'png' || format === 'svg') {
+        setPendingFormat(format);
+        setShowResolutionPicker(true);
+        setIsOpen(false);
+      } else {
+        executeExport(format, 'standard');
+      }
+    },
+    [executeExport]
   );
 
   const handleResolutionSelect = useCallback(
@@ -303,7 +314,12 @@ export function ChartExportButton({
             </svg>
             <span>导出</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </>
         )}
@@ -347,8 +363,18 @@ export function ChartExportButton({
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{RESOLUTION_CONFIG[res].label}</span>
                   {selectedResolution === res && (
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </div>
@@ -380,7 +406,9 @@ export function ChartExportButton({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">{format.format.toUpperCase()}</span>
+                      <span className="text-xs font-bold text-gray-600">
+                        {format.format.toUpperCase()}
+                      </span>
                     </div>
                     <div>
                       <span className="font-medium text-gray-900">{format.label}</span>
@@ -388,8 +416,18 @@ export function ChartExportButton({
                     </div>
                   </div>
                   {!isDisabled && (
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   )}
                 </div>

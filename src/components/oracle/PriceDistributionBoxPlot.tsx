@@ -64,32 +64,32 @@ function calculateBoxPlotStats(prices: number[]): BoxPlotStats {
   const sorted = [...prices].sort((a, b) => a - b);
   const n = sorted.length;
 
-  const median = n % 2 === 0
-    ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
-    : sorted[Math.floor(n / 2)];
+  const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
 
   const lowerHalf = sorted.slice(0, Math.floor(n / 2));
   const upperHalf = n % 2 === 0 ? sorted.slice(n / 2) : sorted.slice(Math.floor(n / 2) + 1);
 
-  const q1 = lowerHalf.length > 0
-    ? lowerHalf.length % 2 === 0
-      ? (lowerHalf[lowerHalf.length / 2 - 1] + lowerHalf[lowerHalf.length / 2]) / 2
-      : lowerHalf[Math.floor(lowerHalf.length / 2)]
-    : sorted[0];
+  const q1 =
+    lowerHalf.length > 0
+      ? lowerHalf.length % 2 === 0
+        ? (lowerHalf[lowerHalf.length / 2 - 1] + lowerHalf[lowerHalf.length / 2]) / 2
+        : lowerHalf[Math.floor(lowerHalf.length / 2)]
+      : sorted[0];
 
-  const q3 = upperHalf.length > 0
-    ? upperHalf.length % 2 === 0
-      ? (upperHalf[upperHalf.length / 2 - 1] + upperHalf[upperHalf.length / 2]) / 2
-      : upperHalf[Math.floor(upperHalf.length / 2)]
-    : sorted[sorted.length - 1];
+  const q3 =
+    upperHalf.length > 0
+      ? upperHalf.length % 2 === 0
+        ? (upperHalf[upperHalf.length / 2 - 1] + upperHalf[upperHalf.length / 2]) / 2
+        : upperHalf[Math.floor(upperHalf.length / 2)]
+      : sorted[sorted.length - 1];
 
   const iqr = q3 - q1;
   const lowerBound = q1 - 1.5 * iqr;
   const upperBound = q3 + 1.5 * iqr;
 
-  const outliers = sorted.filter(p => p < lowerBound || p > upperBound);
+  const outliers = sorted.filter((p) => p < lowerBound || p > upperBound);
 
-  const nonOutliers = sorted.filter(p => p >= lowerBound && p <= upperBound);
+  const nonOutliers = sorted.filter((p) => p >= lowerBound && p <= upperBound);
   const whiskerMin = nonOutliers.length > 0 ? Math.min(...nonOutliers) : q1;
   const whiskerMax = nonOutliers.length > 0 ? Math.max(...nonOutliers) : q3;
 
@@ -125,13 +125,7 @@ function BoxPlotShape({ x = 0, width = 0, payload }: BoxPlotShapeProps) {
   const centerX = x + width / 2;
   const boxWidth = Math.max(width * 0.6, 20);
 
-  const allValues = [
-    stats.whiskerMin,
-    stats.q1,
-    stats.median,
-    stats.q3,
-    stats.whiskerMax,
-  ];
+  const allValues = [stats.whiskerMin, stats.q1, stats.median, stats.q3, stats.whiskerMax];
   const minVal = Math.min(...allValues);
   const maxVal = Math.max(...allValues);
   const range = maxVal - minVal || 1;
@@ -151,14 +145,7 @@ function BoxPlotShape({ x = 0, width = 0, payload }: BoxPlotShapeProps) {
 
   return (
     <g>
-      <line
-        x1={centerX}
-        y1={whiskerMinY}
-        x2={centerX}
-        y2={q1Y}
-        stroke={color}
-        strokeWidth={2}
-      />
+      <line x1={centerX} y1={whiskerMinY} x2={centerX} y2={q1Y} stroke={color} strokeWidth={2} />
       <line
         x1={centerX - boxWidth / 4}
         y1={whiskerMinY}
@@ -186,14 +173,7 @@ function BoxPlotShape({ x = 0, width = 0, payload }: BoxPlotShapeProps) {
         stroke={color}
         strokeWidth={3}
       />
-      <line
-        x1={centerX}
-        y1={q3Y}
-        x2={centerX}
-        y2={whiskerMaxY}
-        stroke={color}
-        strokeWidth={2}
-      />
+      <line x1={centerX} y1={q3Y} x2={centerX} y2={whiskerMaxY} stroke={color} strokeWidth={2} />
       <line
         x1={centerX - boxWidth / 4}
         y1={whiskerMaxY}
@@ -225,10 +205,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-xl max-w-xs">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: color }}
-        />
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
         <span className="font-semibold text-gray-900">{name}</span>
       </div>
       <div className="space-y-2 text-sm">
@@ -276,9 +253,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
                   ${v.toFixed(2)}
                 </span>
               ))}
-              {stats.outliers.length > 5 && (
-                <span className="text-gray-400">...</span>
-              )}
+              {stats.outliers.length > 5 && <span className="text-gray-400">...</span>}
             </div>
           </div>
         )}
@@ -362,9 +337,7 @@ export function PriceDistributionBoxPlot({
   if (!data || data.length === 0) {
     return (
       <DashboardCard title={title} className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">
-          暂无数据
-        </div>
+        <div className="h-80 flex items-center justify-center text-gray-400">暂无数据</div>
       </DashboardCard>
     );
   }
@@ -406,20 +379,14 @@ export function PriceDistributionBoxPlot({
               <ZAxis type="number" range={[100, 100]} />
               <Tooltip content={<CustomTooltip />} />
 
-              <Scatter
-                data={chartData}
-                shape={<BoxPlotShape />}
-              >
+              <Scatter data={chartData} shape={<BoxPlotShape />}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Scatter>
 
               {outliersData.length > 0 && (
-                <Scatter
-                  data={outliersData}
-                  shape="circle"
-                >
+                <Scatter data={outliersData} shape="circle">
                   {outliersData.map((entry, index) => (
                     <Cell
                       key={`outlier-${index}`}

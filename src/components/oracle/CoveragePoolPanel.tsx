@@ -52,9 +52,7 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
             </svg>
             <span className="text-sm text-gray-600">保险池总价值</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">
-            {formatCurrency(data.totalValue)}
-          </span>
+          <span className="text-xl font-bold text-gray-900">{formatCurrency(data.totalValue)}</span>
         </div>
 
         <div className="py-3 border-b border-gray-100">
@@ -148,9 +146,7 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
         <button className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md">
           参与保险池
         </button>
-        <p className="text-xs text-gray-400 text-center">
-          为预言机数据提供保障，获取稳定收益
-        </p>
+        <p className="text-xs text-gray-400 text-center">为预言机数据提供保障，获取稳定收益</p>
       </div>
     </DashboardCard>
   );

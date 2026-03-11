@@ -86,7 +86,9 @@ export function updateUrlParams(config: QueryConfig): void {
   }
 
   const queryString = buildQueryParams(config);
-  const newUrl = queryString ? `${window.location.pathname}${queryString}` : window.location.pathname;
+  const newUrl = queryString
+    ? `${window.location.pathname}${queryString}`
+    : window.location.pathname;
 
   window.history.replaceState({}, '', newUrl);
 }

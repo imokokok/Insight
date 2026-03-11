@@ -280,11 +280,18 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
             {locale === 'zh-CN' ? '综合置信度评分' : 'Overall Confidence Score'}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {locale === 'zh-CN' ? '基于多维度数据质量评估' : 'Multi-dimensional data quality assessment'}
+            {locale === 'zh-CN'
+              ? '基于多维度数据质量评估'
+              : 'Multi-dimensional data quality assessment'}
           </p>
         </div>
         <div className={`p-2 rounded-lg ${levelConfig.lightBg}`}>
-          <svg className={`w-5 h-5 ${levelConfig.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className={`w-5 h-5 ${levelConfig.color}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -313,9 +320,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className={`text-4xl font-bold ${levelConfig.color}`}>{score}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {locale === 'zh-CN' ? '总分' : 'Score'}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{locale === 'zh-CN' ? '总分' : 'Score'}</p>
             </div>
           </div>
         </div>
@@ -348,22 +353,17 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
           {locale === 'zh-CN' ? '维度评分雷达图' : 'Dimension Score Radar'}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {locale === 'zh-CN' ? '各维度评分可视化展示' : 'Visual representation of dimension scores'}
+          {locale === 'zh-CN'
+            ? '各维度评分可视化展示'
+            : 'Visual representation of dimension scores'}
         </p>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
         <RadarChart data={radarData}>
           <PolarGrid stroke="#e5e7eb" />
-          <PolarAngleAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
-          />
-          <PolarRadiusAxis
-            angle={90}
-            domain={[0, 100]}
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
-          />
+          <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} />
+          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
           <Radar
             name={locale === 'zh-CN' ? '评分' : 'Score'}
             dataKey="score"
@@ -395,7 +395,9 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
           {locale === 'zh-CN' ? '各维度评分详情' : 'Dimension Score Details'}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {locale === 'zh-CN' ? '详细评分数据与基准对比' : 'Detailed scores with benchmark comparison'}
+          {locale === 'zh-CN'
+            ? '详细评分数据与基准对比'
+            : 'Detailed scores with benchmark comparison'}
         </p>
       </div>
 
@@ -405,7 +407,9 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-gray-900 text-sm">{dim.name}</span>
-                <span className="text-xs text-gray-400">权重: {(dim.weight * 100).toFixed(0)}%</span>
+                <span className="text-xs text-gray-400">
+                  权重: {(dim.weight * 100).toFixed(0)}%
+                </span>
               </div>
               <span className="text-lg font-bold" style={{ color: getScoreColor(dim.score) }}>
                 {dim.score.toFixed(1)}
@@ -434,10 +438,12 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>
-                {locale === 'zh-CN' ? '当前值' : 'Current'}: {dim.details.value.toFixed(1)} {dim.details.unit}
+                {locale === 'zh-CN' ? '当前值' : 'Current'}: {dim.details.value.toFixed(1)}{' '}
+                {dim.details.unit}
               </span>
               <span>
-                {locale === 'zh-CN' ? '基准' : 'Benchmark'}: {dim.details.benchmark} {dim.details.unit}
+                {locale === 'zh-CN' ? '基准' : 'Benchmark'}: {dim.details.benchmark}{' '}
+                {dim.details.unit}
               </span>
             </div>
           </div>
@@ -496,27 +502,39 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
                   </p>
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '综合评分' : 'Overall'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '综合评分' : 'Overall'}:
+                      </span>
                       <span className="text-gray-900 font-semibold">{data.score.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '节点数量' : 'Nodes'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '节点数量' : 'Nodes'}:
+                      </span>
                       <span className="text-gray-900">{data.nodeScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '共识度' : 'Consensus'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '共识度' : 'Consensus'}:
+                      </span>
                       <span className="text-gray-900">{data.consensusScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '多样性' : 'Diversity'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '多样性' : 'Diversity'}:
+                      </span>
                       <span className="text-gray-900">{data.diversityScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '新鲜度' : 'Freshness'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '新鲜度' : 'Freshness'}:
+                      </span>
                       <span className="text-gray-900">{data.freshnessScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">{locale === 'zh-CN' ? '准确率' : 'Accuracy'}:</span>
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '准确率' : 'Accuracy'}:
+                      </span>
                       <span className="text-gray-900">{data.accuracyScore.toFixed(1)}</span>
                     </div>
                   </div>
@@ -556,15 +574,21 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
       <div className="flex items-center justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-blue-500" />
-          <span className="text-xs text-gray-500">{locale === 'zh-CN' ? '综合评分' : 'Overall'}</span>
+          <span className="text-xs text-gray-500">
+            {locale === 'zh-CN' ? '综合评分' : 'Overall'}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-purple-500" style={{ borderStyle: 'dashed' }} />
-          <span className="text-xs text-gray-500">{locale === 'zh-CN' ? '共识度' : 'Consensus'}</span>
+          <span className="text-xs text-gray-500">
+            {locale === 'zh-CN' ? '共识度' : 'Consensus'}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-green-500" style={{ borderStyle: 'dashed' }} />
-          <span className="text-xs text-gray-500">{locale === 'zh-CN' ? '准确率' : 'Accuracy'}</span>
+          <span className="text-xs text-gray-500">
+            {locale === 'zh-CN' ? '准确率' : 'Accuracy'}
+          </span>
         </div>
       </div>
     </div>
@@ -582,11 +606,18 @@ function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
             {locale === 'zh-CN' ? '改进建议' : 'Improvement Suggestions'}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {locale === 'zh-CN' ? '基于当前评分的优化建议' : 'Optimization suggestions based on current scores'}
+            {locale === 'zh-CN'
+              ? '基于当前评分的优化建议'
+              : 'Optimization suggestions based on current scores'}
           </p>
         </div>
         <div className="p-2 bg-blue-50 rounded-lg">
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -619,7 +650,10 @@ interface ConfidenceScoreProps {
   updateInterval?: number;
 }
 
-export function ConfidenceScore({ autoUpdate = true, updateInterval = 30000 }: ConfidenceScoreProps) {
+export function ConfidenceScore({
+  autoUpdate = true,
+  updateInterval = 30000,
+}: ConfidenceScoreProps) {
   const { locale } = useI18n();
   const [data, setData] = useState<ConfidenceData | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -670,7 +704,8 @@ export function ConfidenceScore({ autoUpdate = true, updateInterval = 30000 }: C
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '最后更新' : 'Last updated'}: {lastUpdated.toLocaleTimeString('zh-CN')}
+            {locale === 'zh-CN' ? '最后更新' : 'Last updated'}:{' '}
+            {lastUpdated.toLocaleTimeString('zh-CN')}
           </span>
           <button
             onClick={updateData}
@@ -698,4 +733,10 @@ export function ConfidenceScore({ autoUpdate = true, updateInterval = 30000 }: C
   );
 }
 
-export type { ConfidenceScoreProps, ConfidenceData, DimensionScore, TrendDataPoint, ConfidenceLevel };
+export type {
+  ConfidenceScoreProps,
+  ConfidenceData,
+  DimensionScore,
+  TrendDataPoint,
+  ConfidenceLevel,
+};

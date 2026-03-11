@@ -211,7 +211,9 @@ export default function CrossChainPage() {
   const [focusedChain, setFocusedChain] = useState<Blockchain | null>(null);
   const [tableFilter, setTableFilter] = useState<'all' | 'abnormal' | 'normal'>('all');
   const [recommendedBaseChain, setRecommendedBaseChain] = useState<Blockchain | null>(null);
-  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>(
+    'idle'
+  );
   const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
 
   const generateFilename = (extension: string): string => {
@@ -532,16 +534,16 @@ export default function CrossChainPage() {
 
   const sortedPriceDifferences = useMemo(() => {
     let filtered = [...priceDifferences];
-    
+
     if (tableFilter === 'abnormal') {
       filtered = filtered.filter((item) => Math.abs(item.diffPercent) > DEVIATION_THRESHOLD);
     } else if (tableFilter === 'normal') {
       filtered = filtered.filter((item) => Math.abs(item.diffPercent) <= DEVIATION_THRESHOLD);
     }
-    
+
     const baseChainItem = filtered.find((item) => item.chain === selectedBaseChain);
     const otherItems = filtered.filter((item) => item.chain !== selectedBaseChain);
-    
+
     otherItems.sort((a, b) => {
       let comparison = 0;
       switch (sortColumn) {
@@ -562,7 +564,7 @@ export default function CrossChainPage() {
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    
+
     if (baseChainItem) {
       return [baseChainItem, ...otherItems];
     }
@@ -1027,7 +1029,8 @@ export default function CrossChainPage() {
 
       const priceValues = prices.map((p) => p.price);
       const mean = priceValues.reduce((a, b) => a + b, 0) / priceValues.length;
-      const variance = priceValues.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / priceValues.length;
+      const variance =
+        priceValues.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / priceValues.length;
       const stdDev = Math.sqrt(variance);
 
       if (stdDev === 0) return;
@@ -1456,7 +1459,9 @@ export default function CrossChainPage() {
             />
           ))}
         </div>
-        <span className="text-xs font-mono text-gray-600">{count} {t('crossChain.frequency')}</span>
+        <span className="text-xs font-mono text-gray-600">
+          {count} {t('crossChain.frequency')}
+        </span>
       </div>
     );
   };
@@ -2178,7 +2183,9 @@ export default function CrossChainPage() {
                       return (
                         <>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">{t('crossChain.deviationFromAvg')}</span>
+                            <span className="text-gray-600">
+                              {t('crossChain.deviationFromAvg')}
+                            </span>
                             <span
                               className={`font-mono font-medium ${
                                 deviationFromAvg > 0 ? 'text-orange-600' : 'text-blue-600'
@@ -2191,8 +2198,18 @@ export default function CrossChainPage() {
                           {isArbitrageOpportunity && (
                             <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs">
                               <div className="flex items-center gap-1.5 text-amber-700 font-medium">
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                <svg
+                                  className="w-3.5 h-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                  />
                                 </svg>
                                 {t('crossChain.arbitrageOpportunity')}
                               </div>
@@ -2584,7 +2601,9 @@ export default function CrossChainPage() {
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-3">
-                    <div className="text-xs text-gray-500 mb-1">{t('crossChain.standardDeviation')}</div>
+                    <div className="text-xs text-gray-500 mb-1">
+                      {t('crossChain.standardDeviation')}
+                    </div>
                     <div className="text-lg font-semibold text-purple-600">
                       ${standardDeviation.toFixed(4)}
                     </div>
@@ -2596,7 +2615,9 @@ export default function CrossChainPage() {
                     <div className="text-sm font-mono text-blue-900">
                       ${stdDevBinRange.lower.toFixed(4)} - ${stdDevBinRange.upper.toFixed(4)}
                     </div>
-                    <div className="text-xs text-blue-600 mt-1">{t('crossChain.stdDevRangeDesc')}</div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      {t('crossChain.stdDevRangeDesc')}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2659,8 +2680,18 @@ export default function CrossChainPage() {
                           iconType="rect"
                           iconSize={12}
                         />
-                        <Bar dataKey="min" name={t('crossChain.minValue')} fill="transparent" stroke="transparent" />
-                        <Bar dataKey="max" name={t('crossChain.maxValue')} fill="transparent" stroke="transparent" />
+                        <Bar
+                          dataKey="min"
+                          name={t('crossChain.minValue')}
+                          fill="transparent"
+                          stroke="transparent"
+                        />
+                        <Bar
+                          dataKey="max"
+                          name={t('crossChain.maxValue')}
+                          fill="transparent"
+                          stroke="transparent"
+                        />
                         {boxPlotData.map((data, index) => (
                           <Scatter
                             key={`box-${index}`}
@@ -3283,7 +3314,9 @@ export default function CrossChainPage() {
                               <div
                                 key={`legend-${index}`}
                                 className={`flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded transition-all ${
-                                  isFocused ? 'bg-blue-100 ring-2 ring-blue-400' : 'hover:bg-gray-100'
+                                  isFocused
+                                    ? 'bg-blue-100 ring-2 ring-blue-400'
+                                    : 'hover:bg-gray-100'
                                 } ${isHidden ? 'opacity-40' : ''}`}
                                 onClick={() => handleLegendClick({ dataKey: chain })}
                                 onDoubleClick={() => handleLegendDoubleClick(chain)}
@@ -3524,7 +3557,9 @@ export default function CrossChainPage() {
                                 : 'bg-orange-100 text-orange-700'
                             }`}
                           >
-                            {outlier.boundType === 'lower' ? t('crossChain.belowLowerBound') : t('crossChain.aboveUpperBound')}
+                            {outlier.boundType === 'lower'
+                              ? t('crossChain.belowLowerBound')
+                              : t('crossChain.aboveUpperBound')}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
@@ -3556,7 +3591,9 @@ export default function CrossChainPage() {
                     />
                   </svg>
                   <div>
-                    <h4 className="text-sm font-medium text-amber-800">{t('crossChain.iqrExplanationTitle')}</h4>
+                    <h4 className="text-sm font-medium text-amber-800">
+                      {t('crossChain.iqrExplanationTitle')}
+                    </h4>
                     <p className="text-xs text-amber-700 mt-1">
                       {t('crossChain.iqrExplanationDesc')}
                     </p>

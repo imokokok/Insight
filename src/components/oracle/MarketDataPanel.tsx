@@ -201,9 +201,7 @@ function EMADisplay({
       {selectedEMA && (
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-purple-600 mb-1">
-              {`${selectedEMA.period}D EMA`}
-            </p>
+            <p className="text-xs text-purple-600 mb-1">{`${selectedEMA.period}D EMA`}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-purple-900">
                 ${selectedEMA.value.toFixed(2)}

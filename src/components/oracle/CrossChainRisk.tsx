@@ -115,7 +115,9 @@ export function CrossChainRisk() {
   const chainData = useMemo(() => generateMockChainData(), []);
   const arbitrageOpportunities = useMemo(() => findArbitrageOpportunities(chainData), [chainData]);
 
-  const avgLatency = Math.round(chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length);
+  const avgLatency = Math.round(
+    chainData.reduce((sum, c) => sum + c.latency, 0) / chainData.length
+  );
   const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
   const warningCount = chainData.filter((c) => c.status !== 'normal').length;
 
@@ -125,7 +127,12 @@ export function CrossChainRisk() {
         {arbitrageOpportunities.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -136,8 +143,8 @@ export function CrossChainRisk() {
               <div>
                 <h4 className="text-sm font-medium text-yellow-800">发现跨链套利机会</h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  检测到 {arbitrageOpportunities.length} 个价差超过 {ARBITRAGE_THRESHOLD}% 的跨链套利机会，
-                  这可能表示跨链价格不一致。
+                  检测到 {arbitrageOpportunities.length} 个价差超过 {ARBITRAGE_THRESHOLD}%
+                  的跨链套利机会， 这可能表示跨链价格不一致。
                 </p>
               </div>
             </div>
@@ -155,13 +162,17 @@ export function CrossChainRisk() {
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">最大价差</p>
-            <p className={`text-xl font-bold ${maxDeviation >= 1 ? 'text-red-600' : maxDeviation >= ARBITRAGE_THRESHOLD ? 'text-yellow-600' : 'text-gray-900'}`}>
+            <p
+              className={`text-xl font-bold ${maxDeviation >= 1 ? 'text-red-600' : maxDeviation >= ARBITRAGE_THRESHOLD ? 'text-yellow-600' : 'text-gray-900'}`}
+            >
               {maxDeviation.toFixed(3)}%
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">异常链数</p>
-            <p className={`text-xl font-bold ${warningCount > 0 ? 'text-yellow-600' : 'text-gray-900'}`}>
+            <p
+              className={`text-xl font-bold ${warningCount > 0 ? 'text-yellow-600' : 'text-gray-900'}`}
+            >
               {warningCount}
             </p>
           </div>
@@ -177,7 +188,9 @@ export function CrossChainRisk() {
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">价格</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">偏差</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">延迟</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">更新时间</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    更新时间
+                  </th>
                   <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
                 </tr>
               </thead>
@@ -190,14 +203,25 @@ export function CrossChainRisk() {
                         <span className="text-xs text-gray-400">#{chain.chainId || 'N/A'}</span>
                       </div>
                     </td>
-                    <td className="text-right py-2 px-3 text-sm font-mono text-gray-900">${chain.price.toFixed(4)}</td>
-                    <td className={`text-right py-2 px-3 text-sm font-mono ${chain.deviation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {chain.deviation >= 0 ? '+' : ''}{chain.deviationPercent.toFixed(3)}%
+                    <td className="text-right py-2 px-3 text-sm font-mono text-gray-900">
+                      ${chain.price.toFixed(4)}
                     </td>
-                    <td className="text-right py-2 px-3 text-sm text-gray-600">{chain.latency}ms</td>
-                    <td className="text-right py-2 px-3 text-sm text-gray-500">{chain.lastUpdate}</td>
+                    <td
+                      className={`text-right py-2 px-3 text-sm font-mono ${chain.deviation >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {chain.deviation >= 0 ? '+' : ''}
+                      {chain.deviationPercent.toFixed(3)}%
+                    </td>
+                    <td className="text-right py-2 px-3 text-sm text-gray-600">
+                      {chain.latency}ms
+                    </td>
+                    <td className="text-right py-2 px-3 text-sm text-gray-500">
+                      {chain.lastUpdate}
+                    </td>
                     <td className="text-center py-2 px-3">
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(chain.status)}`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(chain.status)}`}
+                      >
                         {getStatusLabel(chain.status)}
                       </span>
                     </td>
@@ -213,12 +237,25 @@ export function CrossChainRisk() {
             <h4 className="text-sm font-medium text-gray-700 mb-3">跨链套利机会</h4>
             <div className="space-y-2">
               {arbitrageOpportunities.map((opp, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-3 flex items-center justify-between">
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-lg p-3 flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <span className="text-sm font-medium text-gray-900">{opp.buyChain}</span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
                       </svg>
                       <span className="text-sm font-medium text-gray-900">{opp.sellChain}</span>
                     </div>
@@ -227,7 +264,9 @@ export function CrossChainRisk() {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-xs text-gray-500">价差</p>
-                      <p className="text-sm font-medium text-yellow-600">{opp.priceDiffPercent.toFixed(3)}%</p>
+                      <p className="text-sm font-medium text-yellow-600">
+                        {opp.priceDiffPercent.toFixed(3)}%
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">预估收益</p>
@@ -250,11 +289,15 @@ export function CrossChainRisk() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">最大延迟</span>
-                <span className="text-sm font-medium text-gray-900">{Math.max(...chainData.map((c) => c.latency))}ms</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {Math.max(...chainData.map((c) => c.latency))}ms
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">最小延迟</span>
-                <span className="text-sm font-medium text-gray-900">{Math.min(...chainData.map((c) => c.latency))}ms</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {Math.min(...chainData.map((c) => c.latency))}ms
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div

@@ -54,9 +54,7 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
           <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md">
             立即质押
           </button>
-          <p className="text-xs text-gray-400 text-center mt-2">
-            参与 API3 质押，获取稳定收益
-          </p>
+          <p className="text-xs text-gray-400 text-center mt-2">参与 API3 质押，获取稳定收益</p>
         </div>
       </div>
     </DashboardCard>

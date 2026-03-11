@@ -28,9 +28,7 @@ function ScrollIndicator({
           key={index}
           onClick={() => onIndicatorClick(index)}
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            index === currentIndex
-              ? 'w-6 bg-blue-600'
-              : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+            index === currentIndex ? 'w-6 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
           }`}
           aria-label={`跳转到第 ${index + 1} 页`}
         />
@@ -98,13 +96,7 @@ function formatPrice(price: number): string {
   return price.toFixed(6);
 }
 
-function PriceCard({
-  price,
-  previousPrice,
-}: {
-  price: number;
-  previousPrice: number | null;
-}) {
+function PriceCard({ price, previousPrice }: { price: number; previousPrice: number | null }) {
   const [isFlashing, setIsFlashing] = useState(false);
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPriceRef = useRef(previousPrice);
@@ -124,7 +116,9 @@ function PriceCard({
   }, [price]);
 
   return (
-    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">实时价格</p>
@@ -186,7 +180,9 @@ function PriceChangeCard({
   const arrow = isPositive ? '↑' : '↓';
 
   return (
-    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">24h 价格变化</p>
@@ -197,7 +193,9 @@ function PriceChangeCard({
           </div>
           <div className={`inline-flex items-center gap-1 mt-2 px-2 py-1 rounded ${bgClass}`}>
             <span className={`text-xs font-medium ${colorClass}`}>
-              {isPositive ? '+' : ''}{priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(4)}
+              {isPositive ? '+' : ''}
+              {priceChange24h >= 0 ? '+' : ''}
+              {priceChange24h.toFixed(4)}
             </span>
           </div>
         </div>
@@ -241,7 +239,9 @@ function UpdateFrequencyCard({
   }, [intervals]);
 
   return (
-    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">更新频率</p>
@@ -306,7 +306,9 @@ function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critic
   const config = healthConfig[health];
 
   return (
-    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">网络健康</p>
@@ -358,21 +360,16 @@ function DataQualityGauge({ score }: { score: number }) {
   const level = getQualityLevel(score);
 
   return (
-    <div className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">数据质量</p>
           <div className="flex items-center gap-3">
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-16 h-16 transform -rotate-90">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r={radius}
-                  stroke="#e5e7eb"
-                  strokeWidth="5"
-                  fill="none"
-                />
+                <circle cx="32" cy="32" r={radius} stroke="#e5e7eb" strokeWidth="5" fill="none" />
                 <circle
                   cx="32"
                   cy="32"
@@ -426,13 +423,52 @@ export function KPIDashboard({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const kpiCards = useMemo(() => [
-    { id: 'price', component: <PriceCard key="price" price={price} previousPrice={previousPrice} /> },
-    { id: 'priceChange', component: <PriceChangeCard key="priceChange" priceChange24h={priceChange24h} priceChangePercent={priceChangePercent} /> },
-    { id: 'updateFrequency', component: <UpdateFrequencyCard key="updateFrequency" frequency={updateFrequency} intervals={intervals} /> },
-    { id: 'networkHealth', component: <NetworkHealthCard key="networkHealth" health={networkHealth} /> },
-    { id: 'dataQuality', component: <DataQualityGauge key="dataQuality" score={dataQualityScore} /> },
-  ], [price, previousPrice, priceChange24h, priceChangePercent, updateFrequency, intervals, networkHealth, dataQualityScore]);
+  const kpiCards = useMemo(
+    () => [
+      {
+        id: 'price',
+        component: <PriceCard key="price" price={price} previousPrice={previousPrice} />,
+      },
+      {
+        id: 'priceChange',
+        component: (
+          <PriceChangeCard
+            key="priceChange"
+            priceChange24h={priceChange24h}
+            priceChangePercent={priceChangePercent}
+          />
+        ),
+      },
+      {
+        id: 'updateFrequency',
+        component: (
+          <UpdateFrequencyCard
+            key="updateFrequency"
+            frequency={updateFrequency}
+            intervals={intervals}
+          />
+        ),
+      },
+      {
+        id: 'networkHealth',
+        component: <NetworkHealthCard key="networkHealth" health={networkHealth} />,
+      },
+      {
+        id: 'dataQuality',
+        component: <DataQualityGauge key="dataQuality" score={dataQualityScore} />,
+      },
+    ],
+    [
+      price,
+      previousPrice,
+      priceChange24h,
+      priceChangePercent,
+      updateFrequency,
+      intervals,
+      networkHealth,
+      dataQualityScore,
+    ]
+  );
 
   const totalPages = Math.ceil(kpiCards.length / 2);
 
@@ -487,10 +523,7 @@ export function KPIDashboard({
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {kpiCards.map((card, index) => (
-          <div
-            key={card.id}
-            className="flex-shrink-0 w-[calc(50%-0.5rem)] md:w-auto snap-start"
-          >
+          <div key={card.id} className="flex-shrink-0 w-[calc(50%-0.5rem)] md:w-auto snap-start">
             {card.component}
           </div>
         ))}

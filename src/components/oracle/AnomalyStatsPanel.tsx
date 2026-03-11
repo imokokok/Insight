@@ -179,7 +179,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number | string) => [value, '数量']}
+                  formatter={(value) => [value, '数量']}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
@@ -217,7 +217,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [value, '数量']}
+                  formatter={(value) => [value, '数量']}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',

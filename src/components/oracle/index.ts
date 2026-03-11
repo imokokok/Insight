@@ -116,7 +116,10 @@ export type {
 export { CrossChainPriceConsistency } from './CrossChainPriceConsistency';
 export type { ChainPriceData, CrossChainPriceConsistencyProps } from './CrossChainPriceConsistency';
 export { BandCrossChainPriceConsistency } from './BandCrossChainPriceConsistency';
-export type { BandChainPriceData, BandCrossChainPriceConsistencyProps } from './BandCrossChainPriceConsistency';
+export type {
+  BandChainPriceData,
+  BandCrossChainPriceConsistencyProps,
+} from './BandCrossChainPriceConsistency';
 export { RequestTypeDistribution } from './RequestTypeDistribution';
 export type { RequestTypeData, RequestTypeDistributionProps } from './RequestTypeDistribution';
 export { ConfidenceIntervalChart } from './ConfidenceIntervalChart';

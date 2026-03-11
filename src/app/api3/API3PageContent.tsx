@@ -102,7 +102,19 @@ export function API3PageContent() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [price, history, airnodeStats, dapiCoverage, staking, firstParty, latency, quality, deviations, sourceTrace, poolEvents] = await Promise.all([
+      const [
+        price,
+        history,
+        airnodeStats,
+        dapiCoverage,
+        staking,
+        firstParty,
+        latency,
+        quality,
+        deviations,
+        sourceTrace,
+        poolEvents,
+      ] = await Promise.all([
         client.getPrice(config.symbol, config.defaultChain),
         client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
         client.getAirnodeNetworkStats(),

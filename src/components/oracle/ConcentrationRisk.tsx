@@ -33,7 +33,7 @@ function generateMockPublishers(): PublisherData[] {
 function calculateConcentrationMetrics(publishers: PublisherData[]): ConcentrationMetrics {
   const herfindahlIndex = publishers.reduce((sum, p) => sum + Math.pow(p.weight, 2), 0);
   const topPublisherWeight = Math.max(...publishers.map((p) => p.weight));
-  
+
   let diversityScore = 100;
   if (herfindahlIndex > 2500) {
     diversityScore = Math.max(0, 100 - (herfindahlIndex - 1000) / 25);
@@ -65,7 +65,11 @@ function getDiversityLevel(score: number): { label: string; color: string } {
   return { label: '较差', color: 'text-red-600' };
 }
 
-function getImpactLevel(impact: 'low' | 'medium' | 'high'): { label: string; color: string; bgColor: string } {
+function getImpactLevel(impact: 'low' | 'medium' | 'high'): {
+  label: string;
+  color: string;
+  bgColor: string;
+} {
   switch (impact) {
     case 'low':
       return { label: '低', color: 'text-green-600', bgColor: 'bg-green-100' };
@@ -130,10 +134,14 @@ export function ConcentrationRisk() {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">数据源多样性评分</span>
-                <span className={`text-sm font-medium ${diversityLevel.color}`}>{diversityLevel.label}</span>
+                <span className={`text-sm font-medium ${diversityLevel.color}`}>
+                  {diversityLevel.label}
+                </span>
               </div>
               <div className="flex items-end gap-2">
-                <span className={`text-3xl font-bold ${diversityLevel.color}`}>{metrics.diversityScore}</span>
+                <span className={`text-3xl font-bold ${diversityLevel.color}`}>
+                  {metrics.diversityScore}
+                </span>
                 <span className="text-sm text-gray-500 mb-1">/100</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -168,13 +176,19 @@ export function ConcentrationRisk() {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">单一 Publisher 故障影响</span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${impactLevel.bgColor} ${impactLevel.color}`}>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${impactLevel.bgColor} ${impactLevel.color}`}
+                >
                   {impactLevel.label}风险
                 </span>
               </div>
               <p className="text-xs text-gray-500">
                 当最大权重 Publisher 发生故障时，可能对价格准确性产生{' '}
-                {metrics.singleFailureImpact === 'high' ? '显著' : metrics.singleFailureImpact === 'medium' ? '一定' : '轻微'}{' '}
+                {metrics.singleFailureImpact === 'high'
+                  ? '显著'
+                  : metrics.singleFailureImpact === 'medium'
+                    ? '一定'
+                    : '轻微'}{' '}
                 影响。
               </p>
             </div>
@@ -189,7 +203,9 @@ export function ConcentrationRisk() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">名称</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">权重</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">提交次数</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    提交次数
+                  </th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">可靠性</th>
                   <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
                 </tr>
@@ -206,9 +222,15 @@ export function ConcentrationRisk() {
                         <span className="text-sm text-gray-900">{publisher.name}</span>
                       </div>
                     </td>
-                    <td className="text-right py-2 px-3 text-sm text-gray-900">{publisher.weight}%</td>
-                    <td className="text-right py-2 px-3 text-sm text-gray-600">{publisher.submissions.toLocaleString()}</td>
-                    <td className="text-right py-2 px-3 text-sm text-gray-600">{publisher.reliability}%</td>
+                    <td className="text-right py-2 px-3 text-sm text-gray-900">
+                      {publisher.weight}%
+                    </td>
+                    <td className="text-right py-2 px-3 text-sm text-gray-600">
+                      {publisher.submissions.toLocaleString()}
+                    </td>
+                    <td className="text-right py-2 px-3 text-sm text-gray-600">
+                      {publisher.reliability}%
+                    </td>
                     <td className="text-center py-2 px-3">
                       <span
                         className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
@@ -219,7 +241,11 @@ export function ConcentrationRisk() {
                               : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {publisher.status === 'active' ? '正常' : publisher.status === 'degraded' ? '降级' : '离线'}
+                        {publisher.status === 'active'
+                          ? '正常'
+                          : publisher.status === 'degraded'
+                            ? '降级'
+                            : '离线'}
                       </span>
                     </td>
                   </tr>

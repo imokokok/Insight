@@ -12,7 +12,7 @@ function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp) return '';
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp) / 1000);
-  
+
   if (diffInSeconds < 60) {
     return `${diffInSeconds}秒前`;
   } else if (diffInSeconds < 3600) {
@@ -50,10 +50,7 @@ function DisputeOverviewCard({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="bg-white border border-gray-200 rounded-xl p-5 animate-pulse"
-          >
+          <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-20 mb-3"></div>
             <div className="h-8 bg-gray-200 rounded w-24"></div>
           </div>
@@ -130,9 +127,7 @@ function DisputeOverviewCard({
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
-                {stat.label}
-              </p>
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{stat.label}</p>
               <p className="text-gray-900 text-2xl font-bold">{stat.value}</p>
             </div>
             <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{stat.icon}</div>
@@ -158,11 +153,15 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
         <div className="flex items-center gap-6 mb-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">{t('uma.disputeResolution.filedDisputes')}</span>
+            <span className="text-sm text-gray-600">
+              {t('uma.disputeResolution.filedDisputes')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">{t('uma.disputeResolution.resolvedDisputes')}</span>
+            <span className="text-sm text-gray-600">
+              {t('uma.disputeResolution.resolvedDisputes')}
+            </span>
           </div>
         </div>
 
@@ -375,7 +374,9 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">{t('uma.disputeResolution.filterByStatus')}:</label>
+            <label className="text-sm text-gray-600">
+              {t('uma.disputeResolution.filterByStatus')}:
+            </label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -450,9 +451,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                   key={dispute.id}
                   className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                 >
-                  <td className="py-3 px-4 text-sm font-mono text-gray-900">
-                    {dispute.id}
-                  </td>
+                  <td className="py-3 px-4 text-sm font-mono text-gray-900">{dispute.id}</td>
                   <td className="py-3 px-4 text-sm text-gray-600">
                     {formatDate(dispute.timestamp)}
                   </td>
@@ -496,9 +495,11 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 </button>
 
                 <div className="flex items-center gap-1 mx-2">
-                  {getPageNumbers().map((page, index) => (
+                  {getPageNumbers().map((page, index) =>
                     page === '...' ? (
-                      <span key={`ellipsis-${index}`} className="px-2 text-gray-400">...</span>
+                      <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                        ...
+                      </span>
                     ) : (
                       <button
                         key={page}
@@ -512,7 +513,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                         {page}
                       </button>
                     )
-                  ))}
+                  )}
                 </div>
 
                 <button
@@ -592,9 +593,7 @@ export function DisputeResolutionPanel() {
       const activeDisputes = disputesData.filter((d) => d.status === 'active').length;
       const resolvedDisputes = disputesData.filter((d) => d.status === 'resolved');
       const successRate =
-        disputesData.length > 0
-          ? (resolvedDisputes.length / disputesData.length) * 100
-          : 0;
+        disputesData.length > 0 ? (resolvedDisputes.length / disputesData.length) * 100 : 0;
 
       const avgResolutionTime =
         resolvedDisputes.length > 0
@@ -608,7 +607,7 @@ export function DisputeResolutionPanel() {
         successRate,
         avgResolutionTime,
       });
-      
+
       setLastUpdateTime(Date.now());
     } catch (error) {
       console.error('Failed to fetch dispute data:', error);
@@ -624,14 +623,14 @@ export function DisputeResolutionPanel() {
 
   useEffect(() => {
     if (!lastUpdateTime) return;
-    
+
     const updateTime = () => {
       setRelativeTime(formatRelativeTime(lastUpdateTime));
     };
-    
+
     updateTime();
     const interval = setInterval(updateTime, 1000);
-    
+
     return () => clearInterval(interval);
   }, [lastUpdateTime]);
 
@@ -640,9 +639,7 @@ export function DisputeResolutionPanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {lastUpdateTime && (
-            <span className="text-sm text-gray-500">
-              最后更新: {relativeTime}
-            </span>
+            <span className="text-sm text-gray-500">最后更新: {relativeTime}</span>
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
@@ -656,18 +653,23 @@ export function DisputeResolutionPanel() {
           disabled={isRefreshing}
           className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <svg 
-            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           刷新数据
         </button>
       </div>
-      
+
       <DisputeOverviewCard overview={overview} loading={loading} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

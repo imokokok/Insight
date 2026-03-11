@@ -27,7 +27,7 @@ interface AlertLevel {
 
 function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel {
   const ratio = currentVolatility / threshold;
-  
+
   if (ratio < 1) {
     return {
       level: 'low',
@@ -61,17 +61,17 @@ function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel
 function generateHistoricalEvents(currentVolatility: number): HistoricalEvent[] {
   const events: HistoricalEvent[] = [];
   const baseDate = new Date();
-  
+
   const eventConfigs = [
     { daysAgo: 7, volatilityMultiplier: 1.1, duration: '2小时', impact: '价格回调3%' },
     { daysAgo: 14, volatilityMultiplier: 1.3, duration: '4小时', impact: '价格波动5%' },
     { daysAgo: 30, volatilityMultiplier: 0.9, duration: '1小时', impact: '价格回调2%' },
   ];
-  
+
   eventConfigs.forEach((config) => {
     const eventDate = new Date(baseDate);
     eventDate.setDate(eventDate.getDate() - config.daysAgo);
-    
+
     events.push({
       date: eventDate.toLocaleDateString('zh-CN', {
         month: 'short',
@@ -84,15 +84,11 @@ function generateHistoricalEvents(currentVolatility: number): HistoricalEvent[] 
       impact: config.impact,
     });
   });
-  
+
   return events;
 }
 
-export function VolatilityAlert({
-  threshold,
-  currentVolatility,
-  className,
-}: VolatilityAlertProps) {
+export function VolatilityAlert({ threshold, currentVolatility, className }: VolatilityAlertProps) {
   const alertLevel = useMemo(
     () => getAlertLevel(currentVolatility, threshold),
     [currentVolatility, threshold]

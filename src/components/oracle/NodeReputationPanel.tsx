@@ -62,46 +62,56 @@ const NODE_TYPE_COLORS: Record<NodeType, string> = {
 
 function generateMockNodes(): NodeReputationData[] {
   const nodeNames = [
-    'AlphaNode', 'BetaValidator', 'GammaProvider', 'DeltaAggregator',
-    'EpsilonNode', 'ZetaValidator', 'EtaProvider', 'ThetaAggregator',
-    'IotaNode', 'KappaValidator',
+    'AlphaNode',
+    'BetaValidator',
+    'GammaProvider',
+    'DeltaAggregator',
+    'EpsilonNode',
+    'ZetaValidator',
+    'EtaProvider',
+    'ThetaAggregator',
+    'IotaNode',
+    'KappaValidator',
   ];
 
   const nodeTypes: NodeType[] = ['data_provider', 'validator', 'aggregator'];
 
-  return nodeNames.map((name, index) => {
-    const type = nodeTypes[index % 3];
-    const reputationScore = Math.floor(Math.random() * 30) + 70;
-    const avgResponseTime = Math.floor(Math.random() * 200) + 50;
+  return nodeNames
+    .map((name, index) => {
+      const type = nodeTypes[index % 3];
+      const reputationScore = Math.floor(Math.random() * 30) + 70;
+      const avgResponseTime = Math.floor(Math.random() * 200) + 50;
 
-    const responseTimeData = [
-      { range: '0-50ms', count: Math.floor(Math.random() * 100) + 50 },
-      { range: '50-100ms', count: Math.floor(Math.random() * 150) + 100 },
-      { range: '100-150ms', count: Math.floor(Math.random() * 120) + 80 },
-      { range: '150-200ms', count: Math.floor(Math.random() * 80) + 40 },
-      { range: '200ms+', count: Math.floor(Math.random() * 50) + 20 },
-    ];
+      const responseTimeData = [
+        { range: '0-50ms', count: Math.floor(Math.random() * 100) + 50 },
+        { range: '50-100ms', count: Math.floor(Math.random() * 150) + 100 },
+        { range: '100-150ms', count: Math.floor(Math.random() * 120) + 80 },
+        { range: '150-200ms', count: Math.floor(Math.random() * 80) + 40 },
+        { range: '200ms+', count: Math.floor(Math.random() * 50) + 20 },
+      ];
 
-    return {
-      id: `node-${index}`,
-      name,
-      type,
-      reputationScore,
-      accuracyDaily: Math.min(99.9, reputationScore + Math.random() * 5),
-      accuracyWeekly: Math.min(99.5, reputationScore - Math.random() * 2),
-      accuracyMonthly: Math.min(99, reputationScore - Math.random() * 5),
-      responseTimeData,
-      avgResponseTime,
-      stakedAmount: Math.floor(Math.random() * 500000) + 50000,
-      earnings: Math.floor(Math.random() * 50000) + 5000,
-      apr: Math.random() * 10 + 5,
-      uptime: Math.min(99.99, 95 + Math.random() * 5),
+      return {
+        id: `node-${index}`,
+        name,
+        type,
+        reputationScore,
+        accuracyDaily: Math.min(99.9, reputationScore + Math.random() * 5),
+        accuracyWeekly: Math.min(99.5, reputationScore - Math.random() * 2),
+        accuracyMonthly: Math.min(99, reputationScore - Math.random() * 5),
+        responseTimeData,
+        avgResponseTime,
+        stakedAmount: Math.floor(Math.random() * 500000) + 50000,
+        earnings: Math.floor(Math.random() * 50000) + 5000,
+        apr: Math.random() * 10 + 5,
+        uptime: Math.min(99.99, 95 + Math.random() * 5),
+        rank: index + 1,
+      };
+    })
+    .sort((a, b) => b.reputationScore - a.reputationScore)
+    .map((node, index) => ({
+      ...node,
       rank: index + 1,
-    };
-  }).sort((a, b) => b.reputationScore - a.reputationScore).map((node, index) => ({
-    ...node,
-    rank: index + 1,
-  }));
+    }));
 }
 
 function ReputationScoreGauge({ score }: { score: number }) {
@@ -136,14 +146,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
       <div className="flex items-center justify-center">
         <div className="relative w-32 h-32">
           <svg className="w-full h-full transform -rotate-90">
-            <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="#E5E7EB"
-              strokeWidth="10"
-              fill="none"
-            />
+            <circle cx="64" cy="64" r="45" stroke="#E5E7EB" strokeWidth="10" fill="none" />
             <circle
               cx="64"
               cy="64"
@@ -174,22 +177,34 @@ function ReputationScoreGauge({ score }: { score: number }) {
 
       <div className="mt-4 grid grid-cols-4 gap-2 text-center">
         <div>
-          <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS.excellent }}></div>
+          <div
+            className="w-3 h-3 rounded-full mx-auto mb-1"
+            style={{ backgroundColor: COLORS.excellent }}
+          ></div>
           <p className="text-xs text-gray-500">优秀</p>
           <p className="text-xs text-gray-400">90+</p>
         </div>
         <div>
-          <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS.good }}></div>
+          <div
+            className="w-3 h-3 rounded-full mx-auto mb-1"
+            style={{ backgroundColor: COLORS.good }}
+          ></div>
           <p className="text-xs text-gray-500">良好</p>
           <p className="text-xs text-gray-400">80-89</p>
         </div>
         <div>
-          <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS.fair }}></div>
+          <div
+            className="w-3 h-3 rounded-full mx-auto mb-1"
+            style={{ backgroundColor: COLORS.fair }}
+          ></div>
           <p className="text-xs text-gray-500">一般</p>
           <p className="text-xs text-gray-400">70-79</p>
         </div>
         <div>
-          <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS.poor }}></div>
+          <div
+            className="w-3 h-3 rounded-full mx-auto mb-1"
+            style={{ backgroundColor: COLORS.poor }}
+          ></div>
           <p className="text-xs text-gray-500">较差</p>
           <p className="text-xs text-gray-400">&lt;70</p>
         </div>
@@ -198,7 +213,15 @@ function ReputationScoreGauge({ score }: { score: number }) {
   );
 }
 
-function AccuracyStats({ daily, weekly, monthly }: { daily: number; weekly: number; monthly: number }) {
+function AccuracyStats({
+  daily,
+  weekly,
+  monthly,
+}: {
+  daily: number;
+  weekly: number;
+  monthly: number;
+}) {
   const data = [
     { period: '日', accuracy: daily },
     { period: '周', accuracy: weekly },
@@ -231,9 +254,14 @@ function AccuracyStats({ daily, weekly, monthly }: { daily: number; weekly: numb
             />
             <Bar dataKey="accuracy" fill="#3B82F6" radius={[0, 4, 4, 0]}>
               {data.map((entry, index) => {
-                const color = entry.accuracy >= 99 ? COLORS.excellent : 
-                              entry.accuracy >= 98 ? COLORS.good : 
-                              entry.accuracy >= 97 ? COLORS.fair : COLORS.poor;
+                const color =
+                  entry.accuracy >= 99
+                    ? COLORS.excellent
+                    : entry.accuracy >= 98
+                      ? COLORS.good
+                      : entry.accuracy >= 97
+                        ? COLORS.fair
+                        : COLORS.poor;
                 return <Cell key={`cell-${index}`} fill={color} />;
               })}
             </Bar>
@@ -259,7 +287,13 @@ function AccuracyStats({ daily, weekly, monthly }: { daily: number; weekly: numb
   );
 }
 
-function ResponseTimeDistribution({ data, avgTime }: { data: { range: string; count: number }[]; avgTime: number }) {
+function ResponseTimeDistribution({
+  data,
+  avgTime,
+}: {
+  data: { range: string; count: number }[];
+  avgTime: number;
+}) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
@@ -290,9 +324,12 @@ function ResponseTimeDistribution({ data, avgTime }: { data: { range: string; co
             />
             <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => {
-                if (entry.range === '0-50ms') return <Cell key={`cell-${index}`} fill={COLORS.excellent} />;
-                if (entry.range === '50-100ms') return <Cell key={`cell-${index}`} fill={COLORS.good} />;
-                if (entry.range === '100-150ms') return <Cell key={`cell-${index}`} fill={COLORS.fair} />;
+                if (entry.range === '0-50ms')
+                  return <Cell key={`cell-${index}`} fill={COLORS.excellent} />;
+                if (entry.range === '50-100ms')
+                  return <Cell key={`cell-${index}`} fill={COLORS.good} />;
+                if (entry.range === '100-150ms')
+                  return <Cell key={`cell-${index}`} fill={COLORS.fair} />;
                 return <Cell key={`cell-${index}`} fill={COLORS.poor} />;
               })}
             </Bar>
@@ -303,7 +340,10 @@ function ResponseTimeDistribution({ data, avgTime }: { data: { range: string; co
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.excellent }}></div>
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: COLORS.excellent }}
+            ></div>
             <span>优秀 (&lt;50ms)</span>
           </div>
           <div className="flex items-center gap-1">
@@ -353,8 +393,18 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
               <p className="text-xl font-bold text-gray-900">{formatCurrency(staked)}</p>
             </div>
             <div className="p-3 bg-blue-500 rounded-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -403,10 +453,13 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 }
 
 function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
-  const typeCounts = nodes.reduce((acc, node) => {
-    acc[node.type] = (acc[node.type] || 0) + 1;
-    return acc;
-  }, {} as Record<NodeType, number>);
+  const typeCounts = nodes.reduce(
+    (acc, node) => {
+      acc[node.type] = (acc[node.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<NodeType, number>
+  );
 
   const data = Object.entries(typeCounts).map(([type, count]) => ({
     name: NODE_TYPE_LABELS[type as NodeType],
@@ -462,7 +515,10 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
       <div className="mt-4 grid grid-cols-3 gap-2">
         {data.map((item, index) => (
           <div key={item.type} className="text-center p-2 bg-gray-50 rounded-lg">
-            <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS_MAP[index] }}></div>
+            <div
+              className="w-3 h-3 rounded-full mx-auto mb-1"
+              style={{ backgroundColor: COLORS_MAP[index] }}
+            ></div>
             <p className="text-xs text-gray-500">{item.name}</p>
             <p className="text-sm font-bold text-gray-900">{item.value}</p>
           </div>
@@ -540,7 +596,7 @@ export function NodeReputationPanel({
     if (!selectedNode) {
       setSelectedNode(mockNodes[0]);
     } else {
-      const updatedNode = mockNodes.find(n => n.id === selectedNode.id);
+      const updatedNode = mockNodes.find((n) => n.id === selectedNode.id);
       if (updatedNode) {
         setSelectedNode(updatedNode);
       }
