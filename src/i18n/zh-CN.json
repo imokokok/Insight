@@ -14,11 +14,34 @@
     "copyright": "© 2026 Insight。保留所有权利。",
     "documentation": "文档",
     "github": "GitHub",
-    "contact": "联系我们"
+    "contact": "联系我们",
+    "api": "API",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "description": "全面分析和比较主流预言机协议，助力 Web3 开发者和分析师做出明智决策。",
+    "links": {
+      "platform": "平台",
+      "resources": "资源",
+      "oracles": "预言机",
+      "community": "社区"
+    }
   },
   "home": {
     "title": "Insight",
     "subtitle": "您的预言机分析和比较工具的综合中心。探索领先的预言机解决方案，分析跨区块链的性能，并做出数据驱动的决策。",
+    "hero": {
+      "badge": "专业预言机数据平台",
+      "title": "洞察预言机数据",
+      "titleHighlight": "驱动智能决策",
+      "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth Network、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
+      "ctaPrimary": "开始探索",
+      "ctaSecondary": "查看文档",
+      "stats": {
+        "oracles": "集成预言机",
+        "chains": "支持区块链",
+        "feeds": "数据 Feeds"
+      }
+    },
     "platformStats": {
       "oraclesIntegrated": "集成预言机",
       "blockchains": "区块链",
@@ -29,8 +52,105 @@
       "growing": "增长中",
       "available": "可用"
     },
+    "livePrices": {
+      "title": "实时价格监控",
+      "subtitle": "主流预言机代币实时行情",
+      "price": "价格",
+      "change24h": "24小时",
+      "marketCap": "市值",
+      "volume24h": "24小时交易量",
+      "trend": "趋势",
+      "oracles": "个预言机",
+      "viewAll": "查看全部"
+    },
     "quickStats": "快速预言机统计",
-    "exploreFeatures": "探索功能",
+    "exploreFeatures": "探索",
+    "features": {
+      "title": "核心功能",
+      "subtitle": "全方位的预言机数据分析工具",
+      "crossOracle": {
+        "title": "跨预言机比较",
+        "description": "对比不同预言机的价格数据、延迟、准确性等关键指标"
+      },
+      "crossChain": {
+        "title": "跨链比较",
+        "description": "分析同一预言机在不同区块链上的性能表现"
+      },
+      "priceQuery": {
+        "title": "价格查询",
+        "description": "灵活查询任意预言机、任意链的实时和历史价格数据"
+      },
+      "analytics": {
+        "title": "深度分析",
+        "description": "查看详细的市场数据、网络健康度、风险评估等分析"
+      },
+      "chainlinkDetails": {
+        "title": "Chainlink 详情",
+        "description": "探索 Chainlink 去中心化预言机网络、市场数据和网络健康度"
+      }
+    },
+    "oracles": {
+      "title": "支持的预言机协议",
+      "subtitle": "全面覆盖主流预言机解决方案",
+      "chainlink": {
+        "name": "Chainlink",
+        "description": "行业领先的去中心化预言机网络",
+        "feature1": "多链支持",
+        "feature2": "安全可靠",
+        "feature3": "市场领导者"
+      },
+      "band": {
+        "name": "Band Protocol",
+        "description": "基于 Cosmos 的跨链数据预言机",
+        "feature1": "跨链互操作",
+        "feature2": "高性能",
+        "feature3": "Cosmos生态"
+      },
+      "uma": {
+        "name": "UMA",
+        "description": "乐观预言机协议",
+        "feature1": "争议解决",
+        "feature2": "合成资产",
+        "feature3": "乐观验证"
+      },
+      "pyth": {
+        "name": "Pyth Network",
+        "description": "高频金融数据预言机",
+        "feature1": "亚秒级延迟",
+        "feature2": "第一方数据",
+        "feature3": "高频更新"
+      },
+      "api3": {
+        "name": "API3",
+        "description": "第一方预言机网络",
+        "feature1": "去中心化 API",
+        "feature2": "可量化安全",
+        "feature3": "Airnode"
+      }
+    },
+    "stats": {
+      "title": "平台数据",
+      "subtitle": "实时统计平台核心指标",
+      "oracles": "集成预言机数量",
+      "chains": "支持区块链数量",
+      "feeds": "数据源数量",
+      "updates": "日均更新次数"
+    },
+    "insights": {
+      "title": "数据洞察",
+      "subtitle": "实时市场分析与预警",
+      "priceAlert": "价格异常预警",
+      "dataQuality": "数据质量评分",
+      "marketTrend": "市场趋势",
+      "anomaliesDetected": "个异常",
+      "statusWarning": "警告",
+      "statusRising": "上涨",
+      "statusFalling": "下跌",
+      "statusStable": "稳定",
+      "vsLastHour": "较上小时",
+      "vsYesterday": "较昨日",
+      "vsLastWeek": "较上周"
+    },
     "aboutTitle": "关于 Insight",
     "aboutDescription": "Insight 提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth Network 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",
     "builtWith": "采用现代技术构建，为 Web3 领域的开发者和分析师设计。",

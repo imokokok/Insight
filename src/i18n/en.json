@@ -14,11 +14,34 @@
     "copyright": "© 2026 Insight. All rights reserved.",
     "documentation": "Documentation",
     "github": "GitHub",
-    "contact": "Contact"
+    "contact": "Contact",
+    "api": "API",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "description": "Comprehensive analysis and comparison of mainstream oracle protocols, empowering Web3 developers and analysts to make informed decisions.",
+    "links": {
+      "platform": "Platform",
+      "resources": "Resources",
+      "oracles": "Oracles",
+      "community": "Community"
+    }
   },
   "home": {
     "title": "Insight",
     "subtitle": "Your comprehensive hub for oracle analytics and comparison tools. Explore leading oracle solutions, analyze performance across blockchains, and make data-driven decisions.",
+    "hero": {
+      "badge": "Professional Oracle Data Platform",
+      "title": "Insight Oracle Data",
+      "titleHighlight": "Power Smart Decisions",
+      "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
+      "ctaPrimary": "Start Exploring",
+      "ctaSecondary": "View Documentation",
+      "stats": {
+        "oracles": "Integrated Oracles",
+        "chains": "Supported Blockchains",
+        "feeds": "Data Feeds"
+      }
+    },
     "platformStats": {
       "oraclesIntegrated": "Oracles Integrated",
       "blockchains": "Blockchains",
@@ -29,8 +52,105 @@
       "growing": "Growing",
       "available": "Available"
     },
+    "livePrices": {
+      "title": "Live Price Monitoring",
+      "subtitle": "Real-time quotes for mainstream oracle tokens",
+      "price": "Price",
+      "change24h": "24h",
+      "marketCap": "Market Cap",
+      "volume24h": "24h Volume",
+      "trend": "Trend",
+      "oracles": "Oracles",
+      "viewAll": "View All"
+    },
     "quickStats": "Quick Oracle Stats",
-    "exploreFeatures": "Explore Features",
+    "exploreFeatures": "Explore",
+    "features": {
+      "title": "Core Features",
+      "subtitle": "Comprehensive oracle data analysis tools",
+      "crossOracle": {
+        "title": "Cross-Oracle Comparison",
+        "description": "Compare price data, latency, accuracy and other key metrics across different oracles"
+      },
+      "crossChain": {
+        "title": "Cross-Chain Comparison",
+        "description": "Analyze performance of the same oracle across different blockchains"
+      },
+      "priceQuery": {
+        "title": "Price Query",
+        "description": "Flexibly query real-time and historical price data from any oracle on any chain"
+      },
+      "analytics": {
+        "title": "Deep Analytics",
+        "description": "View detailed market data, network health, risk assessment and more"
+      },
+      "chainlinkDetails": {
+        "title": "Chainlink Details",
+        "description": "Explore Chainlink's decentralized oracle network, market data and network health"
+      }
+    },
+    "oracles": {
+      "title": "Supported Oracle Protocols",
+      "subtitle": "Comprehensive coverage of mainstream oracle solutions",
+      "chainlink": {
+        "name": "Chainlink",
+        "description": "Industry-leading decentralized oracle network",
+        "feature1": "Multi-chain Support",
+        "feature2": "Secure & Reliable",
+        "feature3": "Market Leader"
+      },
+      "band": {
+        "name": "Band Protocol",
+        "description": "Cross-chain data oracle based on Cosmos",
+        "feature1": "Cross-chain Interop",
+        "feature2": "High Performance",
+        "feature3": "Cosmos Ecosystem"
+      },
+      "uma": {
+        "name": "UMA",
+        "description": "Optimistic oracle protocol",
+        "feature1": "Dispute Resolution",
+        "feature2": "Synthetic Assets",
+        "feature3": "Optimistic Verification"
+      },
+      "pyth": {
+        "name": "Pyth Network",
+        "description": "High-frequency financial data oracle",
+        "feature1": "Sub-second Latency",
+        "feature2": "First-party Data",
+        "feature3": "High Frequency"
+      },
+      "api3": {
+        "name": "API3",
+        "description": "First-party oracle network",
+        "feature1": "Decentralized APIs",
+        "feature2": "Quantifiable Security",
+        "feature3": "Airnode"
+      }
+    },
+    "stats": {
+      "title": "Platform Statistics",
+      "subtitle": "Real-time statistics of core platform metrics",
+      "oracles": "Oracles Integrated",
+      "chains": "Blockchains Supported",
+      "feeds": "Data Sources",
+      "updates": "Daily Updates"
+    },
+    "insights": {
+      "title": "Data Insights",
+      "subtitle": "Real-time Market Analysis & Alerts",
+      "priceAlert": "Price Anomaly Alert",
+      "dataQuality": "Data Quality Score",
+      "marketTrend": "Market Trend",
+      "anomaliesDetected": "anomalies",
+      "statusWarning": "Warning",
+      "statusRising": "Rising",
+      "statusFalling": "Falling",
+      "statusStable": "Stable",
+      "vsLastHour": "vs last hour",
+      "vsYesterday": "vs yesterday",
+      "vsLastWeek": "vs last week"
+    },
     "aboutTitle": "About Insight",
     "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
     "builtWith": "Built with modern technologies, designed for developers and analysts in the Web3 space.",
