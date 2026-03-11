@@ -1,0 +1,236 @@
+'use client';
+
+import { useI18n } from '@/lib/i18n/context';
+import { OracleProvider, Blockchain } from '@/lib/oracles';
+import {
+  TIME_RANGES,
+  RefreshInterval,
+  providerNames,
+  chainNames,
+  symbols,
+} from '../constants';
+import { useCrossChainData } from '../useCrossChainData';
+
+interface CrossChainFiltersProps {
+  data: ReturnType<typeof useCrossChainData>;
+}
+
+export function CrossChainFilters({ data }: CrossChainFiltersProps) {
+  const { t } = useI18n();
+  const {
+    selectedProvider,
+    setSelectedProvider,
+    selectedSymbol,
+    setSelectedSymbol,
+    selectedTimeRange,
+    setSelectedTimeRange,
+    selectedBaseChain,
+    setSelectedBaseChain,
+    supportedChains,
+    visibleChains,
+    toggleChain,
+    showMA,
+    setShowMA,
+    maPeriod,
+    setMaPeriod,
+    setChartKey,
+    refreshInterval,
+    setRefreshInterval,
+    fetchData,
+    refreshStatus,
+    showRefreshSuccess,
+    lastUpdated,
+    recommendedBaseChain,
+  } = data;
+
+  const providerOptions = Object.values(OracleProvider).map((provider) => ({
+    value: provider,
+    label: providerNames[provider],
+  }));
+
+  const symbolOptions = symbols.map((symbol) => ({
+    value: symbol,
+    label: symbol,
+  }));
+
+  const refreshOptions = [
+    { value: 0, label: t('crossChain.autoRefreshOff') },
+    { value: 30000, label: t('crossChain.autoRefresh30s') },
+    { value: 60000, label: t('crossChain.autoRefresh1m') },
+    { value: 300000, label: t('crossChain.autoRefresh5m') },
+  ];
+
+  const filteredChains = supportedChains.filter((chain) => visibleChains.includes(chain));
+  const baseChainOptions = filteredChains.map((chain) => ({
+    value: chain,
+    label: chainNames[chain],
+  }));
+
+  const chainColors: Record<Blockchain, string> = {
+    [Blockchain.ETHEREUM]: '#6366F1',
+    [Blockchain.ARBITRUM]: '#06B6D4',
+    [Blockchain.OPTIMISM]: '#EF4444',
+    [Blockchain.POLYGON]: '#A855F7',
+    [Blockchain.SOLANA]: '#10B981',
+    [Blockchain.AVALANCHE]: '#E84133',
+    [Blockchain.FANTOM]: '#1969FF',
+    [Blockchain.CRONOS]: '#002D74',
+    [Blockchain.JUNO]: '#DC1FFF',
+    [Blockchain.COSMOS]: '#2E3148',
+    [Blockchain.OSMOSIS]: '#FAAB3B',
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b border-gray-200">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.oracleProvider')}
+          </label>
+          <select
+            value={selectedProvider}
+            onChange={(e) => setSelectedProvider(e.target.value as OracleProvider)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
+          >
+            {providerOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.symbol')}
+          </label>
+          <select
+            value={selectedSymbol}
+            onChange={(e) => setSelectedSymbol(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[100px]"
+          >
+            {symbolOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide">
+            {t('crossChain.timeRange')}
+          </label>
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            {TIME_RANGES.map((range) => (
+              <button
+                key={range.value}
+                onClick={() => setSelectedTimeRange(range.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                  selectedTimeRange === range.value
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            {t('crossChain.baseChain')}
+            {recommendedBaseChain && selectedBaseChain === recommendedBaseChain && (
+              <span className="text-xs text-blue-500 font-normal">
+                ({t('crossChain.recommended')})
+              </span>
+            )}
+          </label>
+          <select
+            value={selectedBaseChain || ''}
+            onChange={(e) => setSelectedBaseChain(e.target.value as Blockchain)}
+            className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
+          >
+            {baseChainOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+                {option.value === recommendedBaseChain ? ` (${t('crossChain.recommended')})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="mb-6 pb-6 border-b border-gray-200">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">{t('crossChain.visibleChains')}</h3>
+        <div className="flex flex-wrap gap-2">
+          {supportedChains.map((chain) => {
+            const isVisible = visibleChains.includes(chain);
+            return (
+              <button
+                key={chain}
+                onClick={() => toggleChain(chain)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isVisible
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: isVisible ? 'white' : chainColors[chain] }}
+                />
+                {chainNames[chain]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mb-6 pb-6 border-b border-gray-200">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">
+          {t('crossChain.technicalIndicators')}
+        </h3>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showMA}
+                onChange={(e) => setShowMA(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">{t('crossChain.showMA')}</span>
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('crossChain.maPeriod')}:
+            </label>
+            <select
+              value={maPeriod}
+              onChange={(e) => setMaPeriod(Number(e.target.value))}
+              disabled={!showMA}
+              className="px-3 py-1.5 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value={7}>7</option>
+              <option value={25}>25</option>
+              <option value={99}>99</option>
+            </select>
+          </div>
+          <button
+            onClick={() => {
+              setShowMA(false);
+              setMaPeriod(7);
+              setChartKey((prev) => prev + 1);
+            }}
+            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            {t('crossChain.resetChart')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
