@@ -131,9 +131,7 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
           <span className="text-xs text-gray-500">状态</span>
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded ${
-              dataPoint.isAboveThreshold
-                ? 'bg-red-100 text-red-700'
-                : 'bg-green-100 text-green-700'
+              dataPoint.isAboveThreshold ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
             }`}
           >
             {dataPoint.isAboveThreshold ? '超出阈值' : '正常'}

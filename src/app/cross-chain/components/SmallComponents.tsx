@@ -35,7 +35,13 @@ export function Sparkline({ data, color, width = 80, height = 20 }: SparklinePro
   );
 }
 
-export function ProgressBar({ value, color, max = 100, showValue = true, suffix = '%' }: ProgressBarProps) {
+export function ProgressBar({
+  value,
+  color,
+  max = 100,
+  showValue = true,
+  suffix = '%',
+}: ProgressBarProps) {
   const percentage = Math.min((value / max) * 100, 100);
   return (
     <div className="flex items-center gap-2">
@@ -50,7 +56,8 @@ export function ProgressBar({ value, color, max = 100, showValue = true, suffix 
       </div>
       {showValue && (
         <span className="text-xs font-mono text-gray-600 min-w-[45px] text-right">
-          {value.toFixed(1)}{suffix}
+          {value.toFixed(1)}
+          {suffix}
         </span>
       )}
     </div>
@@ -79,9 +86,7 @@ export function JumpIndicator({ count }: JumpIndicatorProps) {
           />
         ))}
       </div>
-      <span className="text-xs font-mono text-gray-600">
-        {count}
-      </span>
+      <span className="text-xs font-mono text-gray-600">{count}</span>
     </div>
   );
 }

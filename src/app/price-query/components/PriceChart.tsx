@@ -2,20 +2,13 @@
 
 import { useRef, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Icons } from './Icons';
 import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
 import { QueryResult, oracleColors } from '../constants';
 
-interface ChartDataPoint {
+export interface ChartDataPoint {
   timestamp: number;
   time: string;
   [key: string]: string | number;

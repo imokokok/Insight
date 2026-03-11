@@ -7,4 +7,5 @@ export { Selectors } from './Selectors';
 export { StatsGrid } from './StatsGrid';
 export { PriceResultsTable } from './PriceResultsTable';
 export { PriceChart } from './PriceChart';
+export type { ChartDataPoint } from './PriceChart';
 export { QuickLinks } from './QuickLinks';

@@ -3,7 +3,14 @@
 import { useI18n } from '@/lib/i18n/context';
 import { Icons } from './Icons';
 import { OracleProvider } from '@/lib/oracles';
-import { QueryResult, oracleColors, chainColors, providerNames, chainNames, DEVIATION_THRESHOLD } from '../constants';
+import {
+  QueryResult,
+  oracleColors,
+  chainColors,
+  providerNames,
+  chainNames,
+  DEVIATION_THRESHOLD,
+} from '../constants';
 
 interface PriceResultsTableProps {
   results: QueryResult[];
@@ -96,7 +103,9 @@ export function PriceResultsTable({
                     tabIndex={0}
                     aria-label={`${t('priceQuery.results.table.oracle')}, ${sortField === 'oracle' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
                     className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                      sortField === 'oracle' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
+                      sortField === 'oracle'
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'bg-gray-50 text-gray-700'
                     }`}
                   >
                     <div className="flex items-center gap-1">
@@ -120,7 +129,9 @@ export function PriceResultsTable({
                     tabIndex={0}
                     aria-label={`${t('priceQuery.results.table.blockchain')}, ${sortField === 'blockchain' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
                     className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                      sortField === 'blockchain' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
+                      sortField === 'blockchain'
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'bg-gray-50 text-gray-700'
                     }`}
                   >
                     <div className="flex items-center gap-1">
@@ -144,7 +155,9 @@ export function PriceResultsTable({
                     tabIndex={0}
                     aria-label={`${t('priceQuery.results.table.price')}, ${sortField === 'price' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
                     className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                      sortField === 'price' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
+                      sortField === 'price'
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'bg-gray-50 text-gray-700'
                     }`}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -168,7 +181,9 @@ export function PriceResultsTable({
                     tabIndex={0}
                     aria-label={`${t('priceQuery.results.table.timestamp')}, ${sortField === 'timestamp' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
                     className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                      sortField === 'timestamp' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
+                      sortField === 'timestamp'
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'bg-gray-50 text-gray-700'
                     }`}
                   >
                     <div className="flex items-center justify-end gap-1">

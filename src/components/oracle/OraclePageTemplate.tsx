@@ -56,12 +56,12 @@ interface LoadingStateProps {
   message?: string;
 }
 
-export function OraclePageTemplate({ 
-  config, 
+export function OraclePageTemplate({
+  config,
   showLoading: externalLoading,
   loadingComponent,
   errorComponent,
-  customLayout 
+  customLayout,
 }: OraclePageTemplateProps) {
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
@@ -520,7 +520,7 @@ export function OraclePageTemplate({
             <KPIDashboard
               price={kpiData.price}
               priceChange24h={kpiData.priceChange24h}
-              priceChangePercent={kpiData.priceChangePercent}
+              priceChangePercent={kpiData.priceChangePercent ?? 0}
               updateFrequency={kpiData.updateFrequency}
               networkHealth={kpiData.networkHealth}
               dataQualityScore={kpiData.dataQualityScore}
@@ -568,7 +568,7 @@ export function OraclePageTemplate({
                   <DataQualityScorePanel symbol={config.symbol} />
                 </div>
                 <div className="mb-6">
-                  <ConfidenceIntervalChart symbol={config.symbol} />
+                  <ConfidenceIntervalChart />
                 </div>
                 <div className="mb-6">
                   <ConfidenceAlertPanel symbol={config.symbol} />

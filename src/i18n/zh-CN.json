@@ -1345,18 +1345,6 @@
       "page": "页",
       "refreshing": "刷新中...",
       "lastUpdate": "最后更新"
-    },
-    "dataQuality": {
-      "title": "数据质量评分",
-      "subtitle": "综合网络健康状态评估",
-      "overallScore": "综合评分",
-      "networkHealth": "网络健康",
-      "dataIntegrity": "数据完整性",
-      "responseTime": "响应时间",
-      "validatorActivity": "验证者活跃度",
-      "improving": "上升",
-      "declining": "下降",
-      "stable": "稳定"
     }
   },
   "pythNetwork": {

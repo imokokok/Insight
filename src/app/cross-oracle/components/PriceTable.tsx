@@ -11,7 +11,7 @@ import {
   isOutlier,
   SortColumn,
   SortDirection,
-} from '../constants.tsx';
+} from '../constants';
 
 interface PriceTableProps {
   priceData: PriceData[];
@@ -58,8 +58,18 @@ export function PriceTable({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12 border border-gray-200">
-        <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          className="w-6 h-6 text-gray-400 animate-spin"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
       </div>
     );
@@ -80,9 +90,7 @@ export function PriceTable({
               >
                 <div className="flex items-center justify-end gap-1">
                   {t('crossOracle.price')}
-                  {sortColumn === 'price' && (
-                    <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
+                  {sortColumn === 'price' && <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                 </div>
               </th>
               {validPrices.length > 1 && avgPrice > 0 && (
@@ -102,9 +110,7 @@ export function PriceTable({
               >
                 <div className="flex items-center justify-end gap-1">
                   新鲜度
-                  {sortColumn === 'timestamp' && (
-                    <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
+                  {sortColumn === 'timestamp' && <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>}
                 </div>
               </th>
             </tr>
@@ -124,9 +130,7 @@ export function PriceTable({
               const isHighest = data.price === maxPrice && maxPrice !== minPrice;
               const isLowest = data.price === minPrice && maxPrice !== minPrice;
               const barWidth =
-                deviationPercent !== null
-                  ? Math.min(Math.abs(deviationPercent) * 10, 100)
-                  : 0;
+                deviationPercent !== null ? Math.min(Math.abs(deviationPercent) * 10, 100) : 0;
 
               return (
                 <>
@@ -180,7 +184,12 @@ export function PriceTable({
                           stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </div>
                     </td>
@@ -201,17 +210,28 @@ export function PriceTable({
                             opacity: 0.3,
                           }}
                         />
-                        <span className={`relative font-mono text-sm ${outlier ? 'text-amber-700' : 'text-gray-900'}`}>
-                          ${data.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <span
+                          className={`relative font-mono text-sm ${outlier ? 'text-amber-700' : 'text-gray-900'}`}
+                        >
+                          $
+                          {data.price.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </span>
                       </div>
                     </td>
                     {validPrices.length > 1 && avgPrice > 0 && (
                       <td className="py-3 px-4 text-right">
                         {deviationPercent !== null ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getDeviationColorClass(deviationPercent)}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getDeviationBgClass(deviationPercent)}`} />
-                            {deviationPercent >= 0 ? '+' : ''}{deviationPercent.toFixed(3)}%
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getDeviationColorClass(deviationPercent)}`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getDeviationBgClass(deviationPercent)}`}
+                            />
+                            {deviationPercent >= 0 ? '+' : ''}
+                            {deviationPercent.toFixed(3)}%
                           </span>
                         ) : (
                           <span className="text-gray-400 text-sm">-</span>
@@ -221,9 +241,14 @@ export function PriceTable({
                     <td className="py-3 px-4 text-right hidden sm:table-cell">
                       {data.confidence ? (
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-sm text-gray-700">{(data.confidence * 100).toFixed(1)}%</span>
+                          <span className="text-sm text-gray-700">
+                            {(data.confidence * 100).toFixed(1)}%
+                          </span>
                           <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${data.confidence * 100}%` }} />
+                            <div
+                              className="h-full bg-blue-500 rounded-full"
+                              style={{ width: `${data.confidence * 100}%` }}
+                            />
                           </div>
                         </div>
                       ) : (
@@ -235,7 +260,9 @@ export function PriceTable({
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <span className={`w-2 h-2 rounded-full ${getFreshnessDotColor(freshness.seconds)}`} />
+                        <span
+                          className={`w-2 h-2 rounded-full ${getFreshnessDotColor(freshness.seconds)}`}
+                        />
                         <span className={`text-sm ${freshness.colorClass}`}>{freshness.text}</span>
                       </div>
                     </td>
@@ -249,27 +276,43 @@ export function PriceTable({
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-500">价格</span>
-                              <span className="font-mono text-gray-900">${data.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              <span className="font-mono text-gray-900">
+                                $
+                                {data.price.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">偏差</span>
-                              <span className={`font-medium ${deviationPercent !== null && deviationPercent >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {deviationPercent !== null ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%` : '-'}
+                              <span
+                                className={`font-medium ${deviationPercent !== null && deviationPercent >= 0 ? 'text-red-600' : 'text-green-600'}`}
+                              >
+                                {deviationPercent !== null
+                                  ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%`
+                                  : '-'}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">置信度</span>
-                              <span className="text-gray-900">{data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}</span>
+                              <span className="text-gray-900">
+                                {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">Z-Score</span>
-                              <span className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}>
+                              <span
+                                className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
+                              >
                                 {zScore !== null ? zScore.toFixed(3) : '-'}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">状态</span>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                              >
                                 {outlier ? '异常值' : '正常'}
                               </span>
                             </div>
@@ -284,21 +327,35 @@ export function PriceTable({
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-gray-500 block">预言机</span>
-                            <span className="font-medium text-gray-900">{oracleNames[data.provider]}</span>
+                            <span className="font-medium text-gray-900">
+                              {oracleNames[data.provider]}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">价格</span>
-                            <span className="font-mono text-gray-900">${data.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-mono text-gray-900">
+                              $
+                              {data.price.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">偏离度</span>
-                            <span className={`font-medium ${getDeviationColorClass(deviationPercent).split(' ')[0]}`}>
-                              {deviationPercent !== null ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%` : '-'}
+                            <span
+                              className={`font-medium ${getDeviationColorClass(deviationPercent).split(' ')[0]}`}
+                            >
+                              {deviationPercent !== null
+                                ? `${deviationPercent >= 0 ? '+' : ''}${deviationPercent.toFixed(4)}%`
+                                : '-'}
                             </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">置信度</span>
-                            <span className="text-gray-900">{data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}</span>
+                            <span className="text-gray-900">
+                              {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">数据来源</span>
@@ -306,17 +363,23 @@ export function PriceTable({
                           </div>
                           <div>
                             <span className="text-gray-500 block">更新时间</span>
-                            <span className="text-gray-900">{new Date(data.timestamp).toLocaleString()}</span>
+                            <span className="text-gray-900">
+                              {new Date(data.timestamp).toLocaleString()}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">Z-Score</span>
-                            <span className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}>
+                            <span
+                              className={`font-medium ${zScore !== null && Math.abs(zScore) > 2 ? 'text-amber-600' : 'text-gray-900'}`}
+                            >
                               {zScore !== null ? zScore.toFixed(3) : '-'}
                             </span>
                           </div>
                           <div>
                             <span className="text-gray-500 block">状态</span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                            >
                               {outlier ? '异常值' : '正常'}
                             </span>
                           </div>

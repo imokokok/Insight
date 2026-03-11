@@ -86,7 +86,9 @@ export const getFreshnessDotColor = (seconds: number): string => {
   return 'bg-red-500';
 };
 
-export const calculateWeightedAverage = (prices: { price: number; confidence?: number | null | undefined }[]): number => {
+export const calculateWeightedAverage = (
+  prices: { price: number; confidence?: number | null | undefined }[]
+): number => {
   const validData = prices.filter((d) => d.price > 0);
   if (validData.length === 0) return 0;
 
@@ -244,7 +246,13 @@ export interface ExportRow {
 }
 
 export const exportToCSV = (
-  priceData: { provider: OracleProvider; price: number; confidence?: number | null | undefined; source?: string; timestamp: number }[],
+  priceData: {
+    provider: OracleProvider;
+    price: number;
+    confidence?: number | null | undefined;
+    source?: string;
+    timestamp: number;
+  }[],
   oracleNamesMap: Record<OracleProvider, string>,
   avgPrice: number,
   validPrices: number[]
@@ -284,7 +292,14 @@ export const exportToCSV = (
 };
 
 export const exportToJSON = (
-  priceData: { provider: OracleProvider; price: number; confidence?: number | null | undefined; source?: string; timestamp: number; symbol?: string }[],
+  priceData: {
+    provider: OracleProvider;
+    price: number;
+    confidence?: number | null | undefined;
+    source?: string;
+    timestamp: number;
+    symbol?: string;
+  }[],
   oracleNamesMap: Record<OracleProvider, string>,
   avgPrice: number,
   validPrices: number[]

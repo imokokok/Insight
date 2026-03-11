@@ -1,28 +1,6 @@
 import { OracleProvider, Blockchain } from './oracle';
 
-export enum OracleProvider {
-  CHAINLINK = 'chainlink',
-  BAND_PROTOCOL = 'band-protocol',
-  UMA = 'uma',
-  PYTH_NETWORK = 'pyth-network',
-  API3 = 'api3',
-}
-
-export enum Blockchain {
-  ETHEREUM = 'ethereum',
-  ARBITRUM = 'arbitrum',
-  OPTIMISM = 'optimism',
-  POLYGON = 'polygon',
-  SOLANA = 'solana',
-  AVALANCHE = 'avalanche',
-  FANTOM = 'fantom',
-  CRONOS = 'cronos',
-  JUNO = 'juno',
-  COSMOS = 'cosmos',
-  OSMOSIS = 'osmosis',
-  BINANCE = 'binance',
-  BASE = 'base',
-}
+export { OracleProvider, Blockchain };
 
 export enum TimeRange {
   '1H' = 3600,
@@ -301,7 +279,12 @@ export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
   [OracleProvider.API3]: {
     provider: OracleProvider.API3,
     name: 'API3',
-    supportedChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM, Blockchain.POLYGON],
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+    ],
     description: 'First-party oracle infrastructure',
     website: 'https://api3.org',
     active: true,

@@ -68,8 +68,7 @@ export { IntegratedProtocols } from './IntegratedProtocols';
 export { DataSourceCoverage } from './DataSourceCoverage';
 export { DataSourceTrend } from './DataSourceTrend';
 export { CrossOracleComparison } from './CrossOracleComparison';
-export { ExportModal } from './ExportModal';
-export type { ExportOptions, ExportFormat, DataType } from '@/hooks/useUtils';
+export type { ExportOptions, DataType } from '@/hooks/useUtils';
 export { PriceAccuracyStats } from './PriceAccuracyStats';
 export { ExtremeMarketAnalysis } from './ExtremeMarketAnalysis';
 export { AccuracyTrendChart } from './AccuracyTrendChart';
@@ -147,4 +146,9 @@ export { DapiPriceDeviationMonitor } from './DapiPriceDeviationMonitor';
 export { DataSourceTraceabilityPanel } from './DataSourceTraceabilityPanel';
 export { CoveragePoolTimeline } from './CoveragePoolTimeline';
 export { FilterPanel, QuickFilterTags } from './FilterPanel';
-export { DataExportButton, ExportModal, type ExportOption, type ExportFormat } from './DataExportButton';
+export {
+  DataExportButton,
+  ExportModal,
+  type ExportOption,
+  type ExportFormat,
+} from './DataExportButton';

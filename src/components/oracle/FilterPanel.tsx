@@ -86,14 +86,15 @@ export function FilterPanel({
     onFilterChange(emptyFilters);
   }, [sections, onFilterChange]);
 
-  const filteredSections = showSearch && searchQuery
-    ? sections.map((section) => ({
-        ...section,
-        options: section.options.filter((option) =>
-          option.label.toLowerCase().includes(searchQuery.toLowerCase())
-        ),
-      }))
-    : sections;
+  const filteredSections =
+    showSearch && searchQuery
+      ? sections.map((section) => ({
+          ...section,
+          options: section.options.filter((option) =>
+            option.label.toLowerCase().includes(searchQuery.toLowerCase())
+          ),
+        }))
+      : sections;
 
   const hasActiveFilters = Object.values(filters).some((arr) => arr.length > 0);
 
@@ -242,9 +243,7 @@ export function QuickFilterTags({
             key={option.value}
             onClick={() => handleClick(option.value)}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
-              isSelected
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             {option.label}

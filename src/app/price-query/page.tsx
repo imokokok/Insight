@@ -19,13 +19,7 @@ import {
   QueryHistoryItem,
 } from '@/utils/queryHistory';
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
-import {
-  QueryResult,
-  providerNames,
-  chainNames,
-  oracleColors,
-  chainColors,
-} from './constants';
+import { QueryResult, providerNames, chainNames, oracleColors, chainColors } from './constants';
 import {
   PageHeader,
   Selectors,
@@ -33,6 +27,7 @@ import {
   PriceResultsTable,
   PriceChart,
   QuickLinks,
+  ChartDataPoint,
 } from './components';
 
 const oracleClients = {
@@ -284,7 +279,7 @@ export default function PriceQueryPage() {
     setHistoryItems(getQueryHistory());
   }, []);
 
-  const chartData = useMemo(() => {
+  const chartData = useMemo((): ChartDataPoint[] => {
     if (Object.keys(historicalData).length === 0) return [];
 
     const timestamps = new Set<number>();
@@ -304,7 +299,7 @@ export default function PriceQueryPage() {
     };
 
     return sortedTimestamps.map((timestamp) => {
-      const dataPoint: Record<string, string | number> = {
+      const dataPoint: ChartDataPoint = {
         timestamp,
         time: new Date(timestamp).toLocaleString([], getTimeFormat()),
       };

@@ -339,11 +339,13 @@ export function PriceDeviationHistoryChart({
                 domain={['auto', 'auto']}
               />
               <Tooltip
-                formatter={(value: number, name: string) => {
-                  const provider = name as OracleProvider;
+                formatter={(value, name) => {
+                  const numValue = typeof value === 'number' ? value : 0;
+                  const strName = typeof name === 'string' ? name : '';
+                  const provider = strName as OracleProvider;
                   return [
-                    `${value >= 0 ? '+' : ''}${value.toFixed(4)}%`,
-                    oracleNames[provider] || name,
+                    `${numValue >= 0 ? '+' : ''}${numValue.toFixed(4)}%`,
+                    oracleNames[provider] || strName,
                   ];
                 }}
                 labelFormatter={(label) => `${t('priceDeviationHistory.time') || '时间'}: ${label}`}
@@ -520,11 +522,13 @@ export function PriceDeviationHistoryChart({
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
               <Tooltip
-                formatter={(value: number, name: string) => {
-                  const provider = name as OracleProvider;
+                formatter={(value, name) => {
+                  const numValue = typeof value === 'number' ? value : 0;
+                  const strName = typeof name === 'string' ? name : '';
+                  const provider = strName as OracleProvider;
                   return [
-                    `${value >= 0 ? '+' : ''}${value.toFixed(4)}%`,
-                    oracleNames[provider] || name,
+                    `${numValue >= 0 ? '+' : ''}${numValue.toFixed(4)}%`,
+                    oracleNames[provider] || strName,
                   ];
                 }}
               />
@@ -532,7 +536,7 @@ export function PriceDeviationHistoryChart({
                 <Area
                   key={provider}
                   type="monotone"
-                  dataKey={provider}
+                  dataKey={provider as string}
                   stroke={oracleColors[provider]}
                   fill={oracleColors[provider]}
                   fillOpacity={0.1}

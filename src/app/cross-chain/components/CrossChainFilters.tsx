@@ -2,13 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
-import {
-  TIME_RANGES,
-  RefreshInterval,
-  providerNames,
-  chainNames,
-  symbols,
-} from '../constants';
+import { TIME_RANGES, RefreshInterval, providerNames, chainNames, symbols } from '../constants';
 import { useCrossChainData } from '../useCrossChainData';
 
 interface CrossChainFiltersProps {
@@ -33,6 +27,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     setShowMA,
     maPeriod,
     setMaPeriod,
+    chartKey,
     setChartKey,
     refreshInterval,
     setRefreshInterval,
@@ -78,6 +73,8 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     [Blockchain.JUNO]: '#DC1FFF',
     [Blockchain.COSMOS]: '#2E3148',
     [Blockchain.OSMOSIS]: '#FAAB3B',
+    [Blockchain.BINANCE]: '#F3BA2F',
+    [Blockchain.BASE]: '#0052FF',
   };
 
   return (
@@ -223,7 +220,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             onClick={() => {
               setShowMA(false);
               setMaPeriod(7);
-              setChartKey((prev) => prev + 1);
+              setChartKey(chartKey + 1);
             }}
             className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
           >
