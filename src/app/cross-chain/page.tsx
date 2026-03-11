@@ -2758,9 +2758,44 @@ export default function CrossChainPage() {
           </div>
 
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
-              {t('crossChain.priceComparisonTable')}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
+                {t('crossChain.priceComparisonTable')}
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">{t('crossChain.filter')}:</span>
+                <button
+                  onClick={() => setTableFilter('all')}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    tableFilter === 'all'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {t('crossChain.filterAll')}
+                </button>
+                <button
+                  onClick={() => setTableFilter('abnormal')}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    tableFilter === 'abnormal'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {t('crossChain.filterAbnormal')}
+                </button>
+                <button
+                  onClick={() => setTableFilter('normal')}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    tableFilter === 'normal'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {t('crossChain.filterNormal')}
+                </button>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -3207,6 +3242,36 @@ export default function CrossChainPage() {
                     iconType="line"
                     iconSize={12}
                     onClick={handleLegendClick}
+                    content={({ payload }) => {
+                      if (!payload) return null;
+                      return (
+                        <div className="flex items-center justify-center gap-4 pt-4 flex-wrap">
+                          {payload.map((entry: any, index: number) => {
+                            const chain = entry.dataKey as Blockchain;
+                            const isFocused = focusedChain === chain;
+                            const isHidden = hiddenLines.has(chain);
+                            if (chain === 'ma' || chain.includes('_MA')) return null;
+                            return (
+                              <div
+                                key={`legend-${index}`}
+                                className={`flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded transition-all ${
+                                  isFocused ? 'bg-blue-100 ring-2 ring-blue-400' : 'hover:bg-gray-100'
+                                } ${isHidden ? 'opacity-40' : ''}`}
+                                onClick={() => handleLegendClick({ dataKey: chain })}
+                                onDoubleClick={() => handleLegendDoubleClick(chain)}
+                                title={t('crossChain.legendDoubleClickHint')}
+                              >
+                                <span
+                                  className="w-3 h-0.5 rounded"
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <span className="text-xs text-gray-700">{entry.value}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }}
                   />
                   <Brush
                     dataKey="time"

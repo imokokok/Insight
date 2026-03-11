@@ -77,7 +77,10 @@ export { AccuracyAnalysisPanel } from './AccuracyAnalysisPanel';
 export { PriceDistributionBoxPlot } from './PriceDistributionBoxPlot';
 export type { OraclePriceData, BoxPlotStats } from './PriceDistributionBoxPlot';
 export { PriceDeviationHeatmap } from './PriceDeviationHeatmap';
-export type { PriceDeviationDataPoint, TimeRange as PriceDeviationTimeRange } from './PriceDeviationHeatmap';
+export type {
+  PriceDeviationDataPoint,
+  TimeRange as PriceDeviationTimeRange,
+} from './PriceDeviationHeatmap';
 export { LatencyDistributionHistogram } from './LatencyDistributionHistogram';
 export type {
   LatencyDistributionHistogramProps,
@@ -95,10 +98,7 @@ export type {
 export { OraclePerformanceRanking } from './OraclePerformanceRanking';
 export type { OraclePerformanceData, RankingChange } from './OraclePerformanceRanking';
 export { PriceCorrelationMatrix } from './PriceCorrelationMatrix';
-export type {
-  PriceDataPoint,
-  OraclePriceSeries,
-} from './PriceCorrelationMatrix';
+export type { PriceDataPoint, OraclePriceSeries } from './PriceCorrelationMatrix';
 export { PriceVolatilityChart } from './PriceVolatilityChart';
 export type {
   PriceVolatilityChartProps,
@@ -112,7 +112,10 @@ export { ConfidenceIntervalChart } from './ConfidenceIntervalChart';
 export { RequestTrendChart } from './RequestTrendChart';
 export { DataSourceCredibility } from './DataSourceCredibility';
 export { StakingDistributionChart } from './StakingDistributionChart';
-export type { StakingDistributionChartProps, ConcentrationMetrics } from './StakingDistributionChart';
+export type {
+  StakingDistributionChartProps,
+  ConcentrationMetrics,
+} from './StakingDistributionChart';
 export { PerformanceGauge, PerformanceGaugeGroup } from './PerformanceGauge';
 export type { PerformanceGaugeProps } from './PerformanceGauge';
 export { ValidatorComparison } from './ValidatorComparison';
@@ -121,3 +124,5 @@ export { ChainComparison } from './ChainComparison';
 export type { ChainComparisonProps } from './ChainComparison';
 export { SnapshotManager } from './SnapshotManager';
 export { SnapshotComparison } from './SnapshotComparison';
+export { FloatingActionButton } from './FloatingActionButton';
+export type { FloatingActionButtonProps } from './FloatingActionButton';
