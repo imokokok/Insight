@@ -1713,8 +1713,8 @@ export default function CrossChainPage() {
             onClick={fetchData}
             disabled={refreshStatus === 'refreshing'}
             className={`px-4 py-2 text-sm text-white transition-colors flex items-center gap-2 ${
-              refreshStatus === 'error' 
-                ? 'bg-red-600 hover:bg-red-700' 
+              refreshStatus === 'error'
+                ? 'bg-red-600 hover:bg-red-700'
                 : refreshStatus === 'success' && showRefreshSuccess
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-gray-900 hover:bg-gray-800'
@@ -1724,11 +1724,21 @@ export default function CrossChainPage() {
               <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin" />
             ) : refreshStatus === 'error' ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             ) : showRefreshSuccess ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             ) : (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1740,7 +1750,11 @@ export default function CrossChainPage() {
                 />
               </svg>
             )}
-            {refreshStatus === 'refreshing' ? t('crossChain.loading') : showRefreshSuccess ? t('crossChain.refreshSuccess') : t('crossChain.refresh')}
+            {refreshStatus === 'refreshing'
+              ? t('crossChain.loading')
+              : showRefreshSuccess
+                ? t('crossChain.refreshSuccess')
+                : t('crossChain.refresh')}
           </button>
           {lastUpdated && (
             <span className="text-xs text-gray-400">
@@ -2160,18 +2174,31 @@ export default function CrossChainPage() {
                         heatmapData.reduce((sum, d) => sum + d.percent, 0) / heatmapData.length;
                       const deviationFromAvg =
                         avgPercent > 0 ? ((cellData.percent - avgPercent) / avgPercent) * 100 : 0;
+                      const isArbitrageOpportunity = cellData.percent > 0.5;
                       return (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">{t('crossChain.deviationFromAvg')}</span>
-                          <span
-                            className={`font-mono font-medium ${
-                              deviationFromAvg > 0 ? 'text-orange-600' : 'text-blue-600'
-                            }`}
-                          >
-                            {deviationFromAvg >= 0 ? '+' : ''}
-                            {deviationFromAvg.toFixed(2)}%
-                          </span>
-                        </div>
+                        <>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">{t('crossChain.deviationFromAvg')}</span>
+                            <span
+                              className={`font-mono font-medium ${
+                                deviationFromAvg > 0 ? 'text-orange-600' : 'text-blue-600'
+                              }`}
+                            >
+                              {deviationFromAvg >= 0 ? '+' : ''}
+                              {deviationFromAvg.toFixed(2)}%
+                            </span>
+                          </div>
+                          {isArbitrageOpportunity && (
+                            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs">
+                              <div className="flex items-center gap-1.5 text-amber-700 font-medium">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                                {t('crossChain.arbitrageOpportunity')}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       );
                     })()}
                   </div>
@@ -3247,10 +3274,11 @@ export default function CrossChainPage() {
                       return (
                         <div className="flex items-center justify-center gap-4 pt-4 flex-wrap">
                           {payload.map((entry: any, index: number) => {
-                            const chain = entry.dataKey as Blockchain;
+                            const dataKey = entry.dataKey;
+                            const chain = dataKey as Blockchain;
                             const isFocused = focusedChain === chain;
-                            const isHidden = hiddenLines.has(chain);
-                            if (chain === 'ma' || chain.includes('_MA')) return null;
+                            const isHidden = hiddenLines.has(dataKey);
+                            if (dataKey === 'ma' || dataKey.includes('_MA')) return null;
                             return (
                               <div
                                 key={`legend-${index}`}
