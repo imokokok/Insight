@@ -1,0 +1,396 @@
+'use client';
+
+import React from 'react';
+import { OracleProvider } from '@/lib/types/oracle';
+import {
+  ChainlinkClient,
+  BandProtocolClient,
+  UMAClient,
+  PythNetworkClient,
+  API3Client,
+} from '@/lib/oracles';
+
+export const oracleClients = {
+  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
+  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
+  [OracleProvider.UMA]: new UMAClient(),
+  [OracleProvider.PYTH_NETWORK]: new PythNetworkClient(),
+  [OracleProvider.API3]: new API3Client(),
+};
+
+export const oracleNames = {
+  [OracleProvider.CHAINLINK]: 'Chainlink',
+  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+  [OracleProvider.UMA]: 'UMA',
+  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.API3]: 'API3',
+};
+
+export const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
+
+export type SortColumn = 'price' | 'timestamp' | null;
+export type SortDirection = 'asc' | 'desc';
+export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
+export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
+
+export const getDeviationColorClass = (deviationPercent: number | null): string => {
+  if (deviationPercent === null) return 'text-gray-400';
+  const absDeviation = Math.abs(deviationPercent);
+  if (absDeviation < 0.1) return 'text-green-600 bg-green-50';
+  if (absDeviation < 0.5) return 'text-yellow-600 bg-yellow-50';
+  if (absDeviation < 1.0) return 'text-orange-600 bg-orange-50';
+  return 'text-red-600 bg-red-50';
+};
+
+export const getDeviationBgClass = (deviationPercent: number | null): string => {
+  if (deviationPercent === null) return '';
+  const absDeviation = Math.abs(deviationPercent);
+  if (absDeviation < 0.1) return 'bg-green-500';
+  if (absDeviation < 0.5) return 'bg-yellow-500';
+  if (absDeviation < 1.0) return 'bg-orange-500';
+  return 'bg-red-500';
+};
+
+export const getFreshnessInfo = (
+  timestamp: number
+): { text: string; colorClass: string; seconds: number } => {
+  const now = Date.now();
+  const seconds = Math.floor((now - timestamp) / 1000);
+
+  let text: string;
+  let colorClass: string;
+
+  if (seconds < 30) {
+    text = seconds <= 1 ? '刚刚' : `${seconds}秒前`;
+    colorClass = 'text-green-600';
+  } else if (seconds < 60) {
+    text = `${seconds}秒前`;
+    colorClass = 'text-yellow-600';
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    text = `${minutes}分钟前`;
+    colorClass = 'text-red-600';
+  } else {
+    const hours = Math.floor(seconds / 3600);
+    text = `${hours}小时前`;
+    colorClass = 'text-red-600';
+  }
+
+  return { text, colorClass, seconds };
+};
+
+export const getFreshnessDotColor = (seconds: number): string => {
+  if (seconds < 30) return 'bg-green-500';
+  if (seconds < 60) return 'bg-yellow-500';
+  return 'bg-red-500';
+};
+
+export const calculateWeightedAverage = (prices: { price: number; confidence?: number | null | undefined }[]): number => {
+  const validData = prices.filter((d) => d.price > 0);
+  if (validData.length === 0) return 0;
+
+  let weightedSum = 0;
+  let weightSum = 0;
+
+  validData.forEach((data) => {
+    const weight = data.confidence && data.confidence > 0 ? data.confidence : 1;
+    weightedSum += data.price * weight;
+    weightSum += weight;
+  });
+
+  return weightSum > 0 ? weightedSum / weightSum : 0;
+};
+
+export const calculateVariance = (prices: number[], mean: number): number => {
+  if (prices.length < 2) return 0;
+  const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);
+  return sumSquaredDiff / prices.length;
+};
+
+export const calculateStandardDeviation = (variance: number): number => {
+  return Math.sqrt(variance);
+};
+
+export const getConsistencyRating = (stdDevPercent: number): string => {
+  if (stdDevPercent < 0.1) return 'excellent';
+  if (stdDevPercent < 0.3) return 'good';
+  if (stdDevPercent < 0.5) return 'fair';
+  return 'poor';
+};
+
+export type HealthColorType = 'price' | 'deviation' | 'range';
+export type HealthIndicator = 'success' | 'warning' | 'danger' | 'neutral';
+
+export interface HealthColor {
+  bg: string;
+  text: string;
+  border: string;
+  indicator: HealthIndicator;
+}
+
+export const getHealthColor = (
+  type: HealthColorType,
+  value: number,
+  avgValue?: number
+): HealthColor => {
+  if (type === 'deviation') {
+    if (value < 0.1)
+      return {
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-700',
+        border: 'border-emerald-200',
+        indicator: 'success',
+      };
+    if (value < 0.3)
+      return {
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        indicator: 'success',
+      };
+    if (value < 0.5)
+      return {
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200',
+        indicator: 'warning',
+      };
+    return {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      indicator: 'danger',
+    };
+  }
+  if (type === 'range' && avgValue) {
+    const rangePercent = (value / avgValue) * 100;
+    if (rangePercent < 0.5)
+      return {
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-700',
+        border: 'border-emerald-200',
+        indicator: 'success',
+      };
+    if (rangePercent < 1)
+      return {
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        indicator: 'success',
+      };
+    if (rangePercent < 2)
+      return {
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200',
+        indicator: 'warning',
+      };
+    return {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      indicator: 'danger',
+    };
+  }
+  return {
+    bg: 'bg-gray-50',
+    text: 'text-gray-700',
+    border: 'border-gray-200',
+    indicator: 'neutral',
+  };
+};
+
+export const getTrendIcon = (changePercent: number | null) => {
+  if (changePercent === null) return null;
+  const isPositive = changePercent >= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
+    >
+      {isPositive ? (
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        </svg>
+      ) : (
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
+      {Math.abs(changePercent).toFixed(2)}%
+    </span>
+  );
+};
+
+export const calculateZScore = (price: number, mean: number, stdDev: number): number | null => {
+  if (stdDev === 0) return null;
+  return (price - mean) / stdDev;
+};
+
+export const isOutlier = (zScore: number | null): boolean => {
+  if (zScore === null) return false;
+  return Math.abs(zScore) > 2;
+};
+
+export interface ExportRow {
+  oracle: string;
+  provider: string;
+  symbol: string;
+  price: number;
+  deviationPercent: number | null;
+  confidence: number | null;
+  source: string;
+  timestamp: string;
+}
+
+export const exportToCSV = (
+  priceData: { provider: OracleProvider; price: number; confidence?: number | null | undefined; source?: string; timestamp: number }[],
+  oracleNamesMap: Record<OracleProvider, string>,
+  avgPrice: number,
+  validPrices: number[]
+) => {
+  const headers = ['Oracle', 'Price', 'Deviation (%)', 'Confidence', 'Source', 'Timestamp'];
+  const rows = priceData.map((data) => {
+    let deviationPercent: number | null = null;
+    if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
+      deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
+    }
+    return [
+      oracleNamesMap[data.provider],
+      data.price.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      deviationPercent !== null ? deviationPercent.toFixed(2) : '',
+      data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '',
+      data.source || '',
+      new Date(data.timestamp).toLocaleString(),
+    ];
+  });
+
+  const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute(
+    'download',
+    `oracle-prices-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+  );
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const exportToJSON = (
+  priceData: { provider: OracleProvider; price: number; confidence?: number | null | undefined; source?: string; timestamp: number; symbol?: string }[],
+  oracleNamesMap: Record<OracleProvider, string>,
+  avgPrice: number,
+  validPrices: number[]
+) => {
+  const exportData = priceData.map((data) => {
+    let deviationPercent: number | null = null;
+    if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
+      deviationPercent = ((data.price - avgPrice) / avgPrice) * 100;
+    }
+    return {
+      oracle: oracleNamesMap[data.provider],
+      provider: data.provider,
+      symbol: data.symbol,
+      price: data.price,
+      deviationPercent: deviationPercent,
+      confidence: data.confidence,
+      source: data.source,
+      timestamp: new Date(data.timestamp).toISOString(),
+    };
+  });
+
+  const jsonContent = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([jsonContent], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute(
+    'download',
+    `oracle-prices-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+  );
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
+
+export const refreshOptions: { value: RefreshInterval; label: string }[] = [
+  { value: 0, label: '关闭' },
+  { value: 30000, label: '30秒' },
+  { value: 60000, label: '1分钟' },
+  { value: 300000, label: '5分钟' },
+];
+
+export interface HistoryMinMax {
+  avgPrice: { min: number; max: number };
+  weightedAvgPrice: { min: number; max: number };
+  maxPrice: { min: number; max: number };
+  minPrice: { min: number; max: number };
+  priceRange: { min: number; max: number };
+  standardDeviationPercent: { min: number; max: number };
+  variance: { min: number; max: number };
+}
+
+export const initialHistoryMinMax: HistoryMinMax = {
+  avgPrice: { min: Infinity, max: -Infinity },
+  weightedAvgPrice: { min: Infinity, max: -Infinity },
+  maxPrice: { min: Infinity, max: -Infinity },
+  minPrice: { min: Infinity, max: -Infinity },
+  priceRange: { min: Infinity, max: -Infinity },
+  standardDeviationPercent: { min: Infinity, max: -Infinity },
+  variance: { min: Infinity, max: -Infinity },
+};
+
+export const updateHistoryMinMax = (
+  setHistoryMinMax: React.Dispatch<React.SetStateAction<HistoryMinMax>>,
+  currentStats: {
+    avgPrice: number;
+    weightedAvgPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    standardDeviationPercent: number;
+    variance: number;
+  } | null
+) => {
+  if (!currentStats) return;
+  setHistoryMinMax((prev) => ({
+    avgPrice: {
+      min: Math.min(prev.avgPrice.min, currentStats.avgPrice),
+      max: Math.max(prev.avgPrice.max, currentStats.avgPrice),
+    },
+    weightedAvgPrice: {
+      min: Math.min(prev.weightedAvgPrice.min, currentStats.weightedAvgPrice),
+      max: Math.max(prev.weightedAvgPrice.max, currentStats.weightedAvgPrice),
+    },
+    maxPrice: {
+      min: Math.min(prev.maxPrice.min, currentStats.maxPrice),
+      max: Math.max(prev.maxPrice.max, currentStats.maxPrice),
+    },
+    minPrice: {
+      min: Math.min(prev.minPrice.min, currentStats.minPrice),
+      max: Math.max(prev.minPrice.max, currentStats.minPrice),
+    },
+    priceRange: {
+      min: Math.min(prev.priceRange.min, currentStats.priceRange),
+      max: Math.max(prev.priceRange.max, currentStats.priceRange),
+    },
+    standardDeviationPercent: {
+      min: Math.min(prev.standardDeviationPercent.min, currentStats.standardDeviationPercent),
+      max: Math.max(prev.standardDeviationPercent.max, currentStats.standardDeviationPercent),
+    },
+    variance: {
+      min: Math.min(prev.variance.min, currentStats.variance),
+      max: Math.max(prev.variance.max, currentStats.variance),
+    },
+  }));
+};
