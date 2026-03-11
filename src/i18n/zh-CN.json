@@ -600,7 +600,15 @@
       "severeDeviation": "严重偏离正常范围，需立即关注",
       "moderateDeviation": "偏离程度较大，建议监控",
       "highVolatility": "该链价格波动性较高"
-    }
+    },
+    "recommended": "推荐",
+    "refreshSuccess": "刷新成功",
+    "filter": "筛选",
+    "filterAll": "全部",
+    "filterAbnormal": "仅异常",
+    "filterNormal": "仅正常",
+    "arbitrageOpportunity": "潜在套利机会",
+    "legendDoubleClickHint": "双击聚焦单链，再次双击恢复全部"
   },
   "chainlink": {
     "title": "Chainlink",

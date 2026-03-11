@@ -590,7 +590,15 @@
       "severeDeviation": "Severely deviated from normal range, requires immediate attention",
       "moderateDeviation": "Moderate deviation, recommend monitoring",
       "highVolatility": "This chain has high price volatility"
-    }
+    },
+    "recommended": "Recommended",
+    "refreshSuccess": "Refreshed",
+    "filter": "Filter",
+    "filterAll": "All",
+    "filterAbnormal": "Abnormal Only",
+    "filterNormal": "Normal Only",
+    "arbitrageOpportunity": "Potential Arbitrage Opportunity",
+    "legendDoubleClickHint": "Double-click to focus, again to restore"
   },
   "chainlink": {
     "title": "Chainlink",
