@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { PriceData, Blockchain } from '@/lib/types/oracle';
@@ -16,6 +14,7 @@ interface UsePriceDataReturn {
   previousPrice: number | null;
   isLoading: boolean;
   error: Error | null;
+  lastUpdated: number | null;
   refetch: () => Promise<void>;
 }
 
@@ -29,6 +28,7 @@ export function usePriceData(
   const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -51,6 +51,7 @@ export function usePriceData(
         price?.price !== priceData.price ? (price?.price ?? null) : prev
       );
       setPrice(priceData);
+      setLastUpdated(Date.now());
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setError(err instanceof Error ? err : new Error('Failed to fetch price'));
@@ -83,6 +84,7 @@ export function usePriceData(
     previousPrice,
     isLoading,
     error,
+    lastUpdated,
     refetch: fetchPrice,
   };
 }
@@ -97,6 +99,7 @@ interface UseHistoricalPricesReturn {
   prices: PriceData[];
   isLoading: boolean;
   error: Error | null;
+  lastUpdated: number | null;
   refetch: () => Promise<void>;
 }
 
@@ -109,6 +112,7 @@ export function useHistoricalPrices(
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -127,6 +131,7 @@ export function useHistoricalPrices(
       if (abortController.signal.aborted) return;
 
       setPrices(historicalPrices);
+      setLastUpdated(Date.now());
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setError(err instanceof Error ? err : new Error('Failed to fetch historical prices'));
@@ -154,6 +159,7 @@ export function useHistoricalPrices(
     prices,
     isLoading,
     error,
+    lastUpdated,
     refetch: fetchPrices,
   };
 }
@@ -167,6 +173,7 @@ interface UseMultiplePricesReturn {
   prices: Record<string, PriceData>;
   isLoading: boolean;
   errors: Record<string, Error>;
+  lastUpdated: number | null;
   refetch: () => Promise<void>;
 }
 
@@ -179,6 +186,7 @@ export function useMultiplePrices(
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, Error>>({});
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -219,6 +227,7 @@ export function useMultiplePrices(
 
     setPrices(newPrices);
     setErrors(newErrors);
+    setLastUpdated(Date.now());
     setIsLoading(false);
   }, [clients, symbols, chain]);
 
@@ -239,6 +248,7 @@ export function useMultiplePrices(
     prices,
     isLoading,
     errors,
+    lastUpdated,
     refetch: fetchPrices,
   };
 }

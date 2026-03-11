@@ -43,6 +43,25 @@ export interface ExtremeMarketEvent {
   description: string;
 }
 
+interface UsePriceHistoryOptions {
+  maxDataPoints?: number;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+}
+
+interface UsePriceHistoryReturn {
+  priceHistory: PriceHistoryPoint[];
+  stats: AccuracyStats;
+  extremeEvents: ExtremeMarketEvent[];
+  accuracyTrend: AccuracyTrendPoint[];
+  recentTrend: 'improving' | 'stable' | 'declining';
+  isLoading: boolean;
+  error: Error | null;
+  lastUpdated: number | null;
+  addPricePoint: (point: Omit<PriceHistoryPoint, 'timestamp'>) => void;
+  refetch: () => void;
+}
+
 function generateMarketCondition(): 'normal' | 'volatile' | 'extreme' {
   const rand = Math.random();
   if (rand > 0.95) return 'extreme';
@@ -173,22 +192,45 @@ function generateAccuracyTrend(days: number = 30): AccuracyTrendPoint[] {
   return data;
 }
 
-export function usePriceHistory(maxDataPoints: number = 100) {
+export function usePriceHistory(options: UsePriceHistoryOptions = {}): UsePriceHistoryReturn {
+  const {
+    maxDataPoints = 100,
+    autoRefresh = false,
+    refreshInterval = 60000
+  } = options;
+
   const [priceHistory, setPriceHistory] = useState<PriceHistoryPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
-  useEffect(() => {
-    const loadData = () => {
-      setIsLoading(true);
+  const loadData = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
       setTimeout(() => {
         const data = generatePriceHistory(maxDataPoints);
         setPriceHistory(data);
+        setLastUpdated(Date.now());
         setIsLoading(false);
       }, 300);
-    };
-
-    loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load price history'));
+      setIsLoading(false);
+    }
   }, [maxDataPoints]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(loadData, refreshInterval);
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval, loadData]);
 
   const addPricePoint = useCallback(
     (point: Omit<PriceHistoryPoint, 'timestamp'>) => {
@@ -279,6 +321,9 @@ export function usePriceHistory(maxDataPoints: number = 100) {
     accuracyTrend,
     recentTrend,
     isLoading,
+    error,
+    lastUpdated,
     addPricePoint,
+    refetch: loadData,
   };
 }
