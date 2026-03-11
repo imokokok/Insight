@@ -45,6 +45,7 @@ import {
 import { SnapshotManager } from '@/components/oracle/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/SnapshotComparison';
 import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/lib/types/snapshot';
+import { FloatingActionButton } from '@/components/oracle/FloatingActionButton';
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -966,8 +967,13 @@ export default function CrossOraclePage() {
   }, [sortedPriceData, oracleFilter, deviationFilter, validPrices, avgPrice]);
 
   const outlierStats = useMemo(() => {
-    const outliers: { index: number; provider: OracleProvider; zScore: number; deviation: number }[] = [];
-    
+    const outliers: {
+      index: number;
+      provider: OracleProvider;
+      zScore: number;
+      deviation: number;
+    }[] = [];
+
     filteredPriceData.forEach((data, index) => {
       const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
       if (isOutlier(zScore)) {
@@ -981,31 +987,30 @@ export default function CrossOraclePage() {
       }
     });
 
-    const avgDeviation = outliers.length > 0
-      ? outliers.reduce((sum, o) => sum + o.deviation, 0) / outliers.length
-      : 0;
+    const avgDeviation =
+      outliers.length > 0 ? outliers.reduce((sum, o) => sum + o.deviation, 0) / outliers.length : 0;
 
     return {
       count: outliers.length,
       avgDeviation,
       outliers,
-      oracleNames: outliers.map(o => oracleNames[o.provider]),
+      oracleNames: outliers.map((o) => oracleNames[o.provider]),
     };
   }, [filteredPriceData, avgPrice, standardDeviation]);
 
   const scrollToOutlier = useCallback(() => {
     if (outlierStats.outliers.length === 0) return;
-    
+
     const firstOutlier = outlierStats.outliers[0];
     setHighlightedOutlierIndex(firstOutlier.index);
-    
+
     setTimeout(() => {
       const rowElement = document.getElementById(`outlier-row-${firstOutlier.index}`);
       if (rowElement) {
         rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 100);
-    
+
     setTimeout(() => {
       setHighlightedOutlierIndex(null);
     }, 3000);
@@ -1137,7 +1142,8 @@ export default function CrossOraclePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style jsx>{`
         @keyframes pulse-highlight {
-          0%, 100% {
+          0%,
+          100% {
             box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
           }
           50% {
@@ -1148,21 +1154,29 @@ export default function CrossOraclePage() {
           animation: pulse-highlight 1s ease-in-out 3;
         }
       `}</style>
-      
+
       {outlierStats.count > 0 && (
         <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm overflow-hidden">
           <div className="p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
-                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-5 h-5 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-amber-800">
-                    检测到价格异常值
-                  </h3>
+                  <h3 className="text-sm font-semibold text-amber-800">检测到价格异常值</h3>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                     {outlierStats.count} 个异常
                   </span>
@@ -1172,7 +1186,8 @@ export default function CrossOraclePage() {
                     <span className="text-amber-600 font-medium">异常预言机:</span>
                     <span className="font-medium">
                       {outlierStats.oracleNames.slice(0, 3).join('、')}
-                      {outlierStats.oracleNames.length > 3 && ` 等${outlierStats.oracleNames.length}个`}
+                      {outlierStats.oracleNames.length > 3 &&
+                        ` 等${outlierStats.oracleNames.length}个`}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1191,7 +1206,7 @@ export default function CrossOraclePage() {
           </div>
         </div>
       )}
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200">
         <div>
@@ -3251,6 +3266,15 @@ export default function CrossOraclePage() {
           <OraclePerformanceRanking performanceData={performanceData} />
         </div>
       )}
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        onRefresh={fetchPriceData}
+        onExportCSV={exportToCSV}
+        onExportJSON={exportToJSON}
+        onExportExcel={exportToCSV}
+        isLoading={isLoading}
+      />
     </div>
   );
 }
