@@ -356,13 +356,10 @@ export function ChainComparison({
   const comparisonStats = useMemo(() => {
     if (extendedSelectedChains.length === 0) return null;
 
-    const totalRequests = extendedSelectedChains.reduce(
-      (sum, c) => {
-        const value = c[TIME_RANGE_CONFIG[timeRange].field];
-        return sum + (typeof value === 'number' ? value : 0);
-      },
-      0
-    );
+    const totalRequests = extendedSelectedChains.reduce((sum, c) => {
+      const value = c[TIME_RANGE_CONFIG[timeRange].field];
+      return sum + (typeof value === 'number' ? value : 0);
+    }, 0);
     const avgGas =
       extendedSelectedChains.reduce((sum, c) => sum + c.avgGasCost, 0) /
       extendedSelectedChains.length;

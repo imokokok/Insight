@@ -69,6 +69,59 @@ function generateMockLatencyData(threshold: number): LatencyDataPoint[] {
   return data;
 }
 
+function downsampleLatencyData(
+  data: LatencyDataPoint[],
+  targetPoints: number = 50
+): LatencyDataPoint[] {
+  if (data.length <= targetPoints) {
+    return data;
+  }
+
+  const step = Math.ceil(data.length / targetPoints);
+  const result: LatencyDataPoint[] = [];
+
+  for (let i = 0; i < data.length; i += step) {
+    const chunk = data.slice(i, Math.min(i + step, data.length));
+
+    let maxLatencyPoint = chunk[0];
+    let minLatencyPoint = chunk[0];
+
+    for (const point of chunk) {
+      if (point.latency > maxLatencyPoint.latency) {
+        maxLatencyPoint = point;
+      }
+      if (point.latency < minLatencyPoint.latency) {
+        minLatencyPoint = point;
+      }
+    }
+
+    if (!result.includes(maxLatencyPoint)) {
+      result.push(maxLatencyPoint);
+    }
+
+    if (
+      chunk.length > 2 &&
+      minLatencyPoint !== maxLatencyPoint &&
+      !result.includes(minLatencyPoint)
+    ) {
+      result.push(minLatencyPoint);
+    }
+
+    const middleIndex = Math.floor(chunk.length / 2);
+    const middlePoint = chunk[middleIndex];
+    if (middlePoint && !result.includes(middlePoint) && result.length < targetPoints) {
+      result.push(middlePoint);
+    }
+  }
+
+  const lastPoint = data[data.length - 1];
+  if (!result.includes(lastPoint)) {
+    result.push(lastPoint);
+  }
+
+  return result.sort((a, b) => a.fullTimestamp.getTime() - b.fullTimestamp.getTime());
+}
+
 function CustomDot({ cx, cy, payload }: any) {
   if (payload.isAnomaly) {
     return <Dot cx={cx} cy={cy} r={5} fill="#EF4444" stroke="#FFF" strokeWidth={2} />;
@@ -84,7 +137,8 @@ export function LatencyTrendChart({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const data = useMemo(() => {
-    return generateMockLatencyData(anomalyThreshold);
+    const rawData = generateMockLatencyData(anomalyThreshold);
+    return downsampleLatencyData(rawData, 50);
   }, [anomalyThreshold]);
 
   const maxLatency = useMemo(() => {

@@ -59,7 +59,9 @@ export interface UseCrossChainDataReturn {
   tableFilter: 'all' | 'abnormal' | 'normal';
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
   hoveredCell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null;
-  setHoveredCell: (cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null) => void;
+  setHoveredCell: (
+    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
+  ) => void;
   selectedCell: { xChain: Blockchain; yChain: Blockchain } | null;
   setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
   tooltipPosition: { x: number; y: number };
@@ -101,7 +103,12 @@ export interface UseCrossChainDataReturn {
   kurtosis: number;
   confidenceInterval95: { lower: number; upper: number };
   iqrOutliers: IqrOutliers;
-  stdDevHistoricalOutliers: { timestamp: number; chain: Blockchain; price: number; deviation: number }[];
+  stdDevHistoricalOutliers: {
+    timestamp: number;
+    chain: Blockchain;
+    price: number;
+    deviation: number;
+  }[];
   scatterData: any[];
   correlationMatrix: Partial<Record<Blockchain, Partial<Record<Blockchain, number>>>>;
   chainVolatility: Partial<Record<Blockchain, number>>;
@@ -113,7 +120,13 @@ export interface UseCrossChainDataReturn {
   medianBinIndex: number;
   stdDevBinRange: { lower: number; upper: number } | null;
   chainsWithHighDeviation: PriceDifference[];
-  prevStats: { avgPrice: number; maxPrice: number; minPrice: number; priceRange: number; standardDeviationPercent: number } | null;
+  prevStats: {
+    avgPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    standardDeviationPercent: number;
+  } | null;
   sortColumn: string;
   setSortColumn: (column: string) => void;
   sortDirection: 'asc' | 'desc';
@@ -125,30 +138,50 @@ export interface UseCrossChainDataReturn {
 }
 
 export function useCrossChainData(): UseCrossChainDataReturn {
-  const [selectedProvider, setSelectedProvider] = useState<OracleProvider>(OracleProvider.CHAINLINK);
+  const [selectedProvider, setSelectedProvider] = useState<OracleProvider>(
+    OracleProvider.CHAINLINK
+  );
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedTimeRange, setSelectedTimeRange] = useState<number>(24);
   const [currentPrices, setCurrentPrices] = useState<PriceData[]>([]);
-  const [historicalPrices, setHistoricalPrices] = useState<Partial<Record<Blockchain, PriceData[]>>>({});
+  const [historicalPrices, setHistoricalPrices] = useState<
+    Partial<Record<Blockchain, PriceData[]>>
+  >({});
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedBaseChain, setSelectedBaseChain] = useState<Blockchain | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [prevStats, setPrevStats] = useState<{ avgPrice: number; maxPrice: number; minPrice: number; priceRange: number; standardDeviationPercent: number } | null>(null);
+  const [prevStats, setPrevStats] = useState<{
+    avgPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    priceRange: number;
+    standardDeviationPercent: number;
+  } | null>(null);
   const [visibleChains, setVisibleChains] = useState<Blockchain[]>([]);
   const [showMA, setShowMA] = useState<boolean>(false);
   const [maPeriod, setMaPeriod] = useState<number>(7);
   const [chartKey, setChartKey] = useState<number>(0);
   const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
-  const [hoveredCell, setHoveredCell] = useState<{ xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<{
+    xChain: Blockchain;
+    yChain: Blockchain;
+    x: number;
+    y: number;
+  } | null>(null);
   const [sortColumn, setSortColumn] = useState<string>('chain');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedCell, setSelectedCell] = useState<{ xChain: Blockchain; yChain: Blockchain } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{
+    xChain: Blockchain;
+    yChain: Blockchain;
+  } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [focusedChain, setFocusedChain] = useState<Blockchain | null>(null);
   const [tableFilter, setTableFilter] = useState<'all' | 'abnormal' | 'normal'>('all');
   const [recommendedBaseChain, setRecommendedBaseChain] = useState<Blockchain | null>(null);
-  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>(
+    'idle'
+  );
   const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
 
   const currentClient = oracleClients[selectedProvider];
@@ -175,13 +208,16 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       setHistoricalPrices(historicalMap);
 
       const validPrices = currentResults.map((d) => d.price).filter((p) => p > 0);
-      const newAvgPrice = validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+      const newAvgPrice =
+        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
       const newMaxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
       const newMinPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
       const newPriceRange = newMaxPrice - newMinPrice;
-      const variance = validPrices.length > 1
-        ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) / validPrices.length
-        : 0;
+      const variance =
+        validPrices.length > 1
+          ? validPrices.reduce((sum, price) => sum + Math.pow(price - newAvgPrice, 2), 0) /
+            validPrices.length
+          : 0;
       const stdDev = Math.sqrt(variance);
       const newStdDevPercent = newAvgPrice > 0 ? (stdDev / newAvgPrice) * 100 : 0;
 
@@ -237,7 +273,11 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       const defaultChain = recommendedBaseChain || supportedChains[0];
       setSelectedBaseChain(defaultChain);
     }
-    if (supportedChains.length > 0 && selectedBaseChain && !supportedChains.includes(selectedBaseChain)) {
+    if (
+      supportedChains.length > 0 &&
+      selectedBaseChain &&
+      !supportedChains.includes(selectedBaseChain)
+    ) {
       const defaultChain = recommendedBaseChain || supportedChains[0];
       setSelectedBaseChain(defaultChain);
     }
@@ -274,7 +314,11 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       }
     };
 
-    const calculateMA = (prices: (number | undefined)[], period: number, index: number): number | null => {
+    const calculateMA = (
+      prices: (number | undefined)[],
+      period: number,
+      index: number
+    ): number | null => {
       if (index < period - 1) return null;
       const slice = prices.slice(index - period + 1, index + 1);
       const validPrices = slice.filter((p): p is number => p !== undefined);
@@ -328,14 +372,17 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     });
   }, [currentPrices, selectedBaseChain, filteredChains]);
 
-  const handleSort = useCallback((column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  }, [sortColumn, sortDirection]);
+  const handleSort = useCallback(
+    (column: string) => {
+      if (sortColumn === column) {
+        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortColumn(column);
+        setSortDirection('asc');
+      }
+    },
+    [sortColumn, sortDirection]
+  );
 
   const sortedPriceDifferences = useMemo(() => {
     const DEVIATION_THRESHOLD = 0.5;
@@ -515,7 +562,13 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     const lowerBound = q1 - 1.5 * iqr;
     const upperBound = q3 + 1.5 * iqr;
 
-    const outliers: { chain: Blockchain; price: number; deviationPercent: number; boundType: 'lower' | 'upper'; expectedRange: string }[] = [];
+    const outliers: {
+      chain: Blockchain;
+      price: number;
+      deviationPercent: number;
+      boundType: 'lower' | 'upper';
+      expectedRange: string;
+    }[] = [];
 
     currentPrices.forEach((priceData) => {
       if (!priceData.chain || !filteredChains.includes(priceData.chain)) return;
@@ -546,7 +599,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
       const priceValues = prices.map((p) => p.price);
       const mean = priceValues.reduce((a, b) => a + b, 0) / priceValues.length;
-      const variance = priceValues.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / priceValues.length;
+      const variance =
+        priceValues.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / priceValues.length;
       const stdDev = Math.sqrt(variance);
 
       if (stdDev === 0) return;
@@ -614,7 +668,8 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         return;
       }
       const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
-      const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+      const variance =
+        prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
       const stdDev = Math.sqrt(variance);
       volatility[chain] = mean > 0 ? (stdDev / mean) * 100 : 0;
     });
@@ -652,7 +707,9 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         });
 
         if (closestChainPrice) {
-          matchedDelays.push(Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000);
+          matchedDelays.push(
+            Math.abs((closestChainPrice as PriceData).timestamp - basePrice.timestamp) / 1000
+          );
         }
       });
 
@@ -755,7 +812,13 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     const range = max - min;
     const binWidth = range > 0 ? range / numBins : 1;
 
-    const bins: { range: string; count: number; minPrice: number; maxPrice: number; midPrice: number }[] = [];
+    const bins: {
+      range: string;
+      count: number;
+      minPrice: number;
+      maxPrice: number;
+      midPrice: number;
+    }[] = [];
 
     for (let i = 0; i < numBins; i++) {
       const binMin = min + i * binWidth;
@@ -772,7 +835,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
     validPrices.forEach((price) => {
       for (let i = 0; i < bins.length; i++) {
-        if (price >= bins[i].minPrice && (price < bins[i].maxPrice || (i === bins.length - 1 && price <= bins[i].maxPrice))) {
+        if (
+          price >= bins[i].minPrice &&
+          (price < bins[i].maxPrice || (i === bins.length - 1 && price <= bins[i].maxPrice))
+        ) {
           bins[i].count++;
           break;
         }
@@ -880,7 +946,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     priceDifferences.forEach((item) => {
       const row = [
         chainNames[item.chain],
-        item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+        item.price.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 4,
+        }),
         item.diff.toFixed(4),
         item.diffPercent.toFixed(4) + '%',
       ];
@@ -903,7 +972,14 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       const row: string[] = [new Date(timestamp).toLocaleString()];
       filteredChains.forEach((chain) => {
         const price = historicalPrices[chain]?.find((p) => p.timestamp === timestamp);
-        row.push(price ? price.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '');
+        row.push(
+          price
+            ? price.price.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4,
+              })
+            : ''
+        );
       });
       csvLines.push(row.join(','));
     });
@@ -913,7 +989,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+    link.setAttribute(
+      'download',
+      `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+    );
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -951,11 +1030,12 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       })),
       historicalPrices: filteredChains.map((chain) => ({
         blockchain: chainNames[chain],
-        prices: historicalPrices[chain]?.map((price) => ({
-          price: price.price,
-          timestamp: new Date(price.timestamp).toISOString(),
-          source: price.source,
-        })) || [],
+        prices:
+          historicalPrices[chain]?.map((price) => ({
+            price: price.price,
+            timestamp: new Date(price.timestamp).toISOString(),
+            source: price.source,
+          })) || [],
       })),
       summary: {
         averagePrice: avgPrice,
@@ -973,12 +1053,28 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`);
+    link.setAttribute(
+      'download',
+      `cross-chain-${selectedSymbol}-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    );
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [selectedProvider, selectedSymbol, selectedBaseChain, priceDifferences, historicalPrices, filteredChains, avgPrice, maxPrice, minPrice, priceRange, standardDeviationPercent, totalDataPoints]);
+  }, [
+    selectedProvider,
+    selectedSymbol,
+    selectedBaseChain,
+    priceDifferences,
+    historicalPrices,
+    filteredChains,
+    avgPrice,
+    maxPrice,
+    minPrice,
+    priceRange,
+    standardDeviationPercent,
+    totalDataPoints,
+  ]);
 
   return {
     selectedProvider,

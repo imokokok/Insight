@@ -1,12 +1,7 @@
 'use client';
 
 import { OracleProvider } from '@/lib/types/oracle';
-import {
-  oracleNames,
-  TimeRange,
-  DeviationFilter,
-  timeRanges,
-} from '../constants.tsx';
+import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
 
 interface FilterPanelProps {
   isOpen: boolean;

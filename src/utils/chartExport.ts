@@ -345,9 +345,13 @@ export async function exportToSVG(
           for (let j = 0; j < rules.length; j++) {
             cssText += rules[j].cssText + '\n';
           }
-        } catch {}
+        } catch (e) {
+          console.warn('Failed to access stylesheet rules:', e);
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Failed to extract stylesheets:', e);
+    }
 
     if (cssText) {
       const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');

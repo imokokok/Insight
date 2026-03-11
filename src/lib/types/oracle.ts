@@ -18,6 +18,8 @@ export enum Blockchain {
   JUNO = 'juno',
   COSMOS = 'cosmos',
   OSMOSIS = 'osmosis',
+  BINANCE = 'binance',
+  BASE = 'base',
 }
 
 export interface ConfidenceInterval {

@@ -28,6 +28,8 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.JUNO]: 'Juno',
   [Blockchain.COSMOS]: 'Cosmos',
   [Blockchain.OSMOSIS]: 'Osmosis',
+  [Blockchain.BINANCE]: 'Binance',
+  [Blockchain.BASE]: 'Base',
 };
 
 export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
@@ -44,6 +46,8 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.JUNO]: '#DC1FFF',
   [Blockchain.COSMOS]: '#2E3148',
   [Blockchain.OSMOSIS]: '#FAAB3B',
+  [Blockchain.BINANCE]: '#F3BA2F',
+  [Blockchain.BASE]: '#0052FF',
 };
 
 export const oracleColors: Record<OracleProvider, string> = {

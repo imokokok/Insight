@@ -36,6 +36,8 @@ export abstract class BaseOracleClient {
       [Blockchain.JUNO]: 0.025,
       [Blockchain.COSMOS]: 0.022,
       [Blockchain.OSMOSIS]: 0.028,
+      [Blockchain.BINANCE]: 0.02,
+      [Blockchain.BASE]: 0.022,
     };
     const volatility = chain ? chainVolatility[chain] : 0.02;
     const randomChange = (Math.random() - 0.5) * 2 * volatility;

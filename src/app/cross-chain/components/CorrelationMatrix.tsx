@@ -18,7 +18,8 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
         链间相关性分析
       </h3>
       <p className="text-xs text-gray-500 mb-4">
-        Pearson 相关系数衡量两条链价格走势的线性相关程度。r = 1 表示完全正相关，r = -1 表示完全负相关，r = 0 表示无线性相关。
+        Pearson 相关系数衡量两条链价格走势的线性相关程度。r = 1 表示完全正相关，r = -1
+        表示完全负相关，r = 0 表示无线性相关。
       </p>
       <div className="overflow-x-auto">
         <div className="min-w-full">
@@ -47,7 +48,9 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     style={{ backgroundColor: bgColor }}
                     title={`${chainNames[chainX]} vs ${chainNames[chainY]}: r = ${correlation.toFixed(4)}`}
                   >
-                    <span className={`text-xs font-medium ${textColor}`}>{correlation.toFixed(2)}</span>
+                    <span className={`text-xs font-medium ${textColor}`}>
+                      {correlation.toFixed(2)}
+                    </span>
                   </div>
                 );
               })}
@@ -56,7 +59,10 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">负相关</span>
-              <div className="w-32 h-3" style={{ background: 'linear-gradient(to right, #dc2626, #ffffff, #1e40af)' }} />
+              <div
+                className="w-32 h-3"
+                style={{ background: 'linear-gradient(to right, #dc2626, #ffffff, #1e40af)' }}
+              />
               <span className="text-xs text-gray-500">正相关</span>
             </div>
           </div>

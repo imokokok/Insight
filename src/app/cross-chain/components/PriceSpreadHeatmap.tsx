@@ -94,7 +94,8 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
           <div className="flex">
             <div className="w-24 shrink-0" />
             {filteredChains.map((chain) => {
-              const isHighlighted = hoveredCell && (hoveredCell.xChain === chain || hoveredCell.yChain === chain);
+              const isHighlighted =
+                hoveredCell && (hoveredCell.xChain === chain || hoveredCell.yChain === chain);
               return (
                 <div
                   key={chain}
@@ -132,8 +133,10 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                 const cell = heatmapData.find((d) => d.xChain === xChain && d.yChain === yChain);
                 const percent = cell?.percent || 0;
                 const isDiagonal = xChain === yChain;
-                const isHovered = hoveredCell && hoveredCell.xChain === xChain && hoveredCell.yChain === yChain;
-                const isSelected = selectedCell && selectedCell.xChain === xChain && selectedCell.yChain === yChain;
+                const isHovered =
+                  hoveredCell && hoveredCell.xChain === xChain && hoveredCell.yChain === yChain;
+                const isSelected =
+                  selectedCell && selectedCell.xChain === xChain && selectedCell.yChain === yChain;
 
                 return (
                   <div
@@ -142,14 +145,21 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                       isDiagonal ? '' : 'hover:ring-2 hover:ring-gray-400 hover:ring-inset'
                     } ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
                     style={{
-                      backgroundColor: isDiagonal ? '#f3f4f6' : getHeatmapColor(percent, maxHeatmapValue),
+                      backgroundColor: isDiagonal
+                        ? '#f3f4f6'
+                        : getHeatmapColor(percent, maxHeatmapValue),
                       transform: isHovered && !isDiagonal ? 'scale(1.05)' : 'scale(1)',
                       zIndex: isHovered ? 10 : 1,
                     }}
                     onMouseEnter={(e) => {
                       if (!isDiagonal) {
                         const rect = e.currentTarget.getBoundingClientRect();
-                        setHoveredCell({ xChain, yChain, x: rect.left + rect.width / 2, y: rect.top });
+                        setHoveredCell({
+                          xChain,
+                          yChain,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        });
                         setTooltipPosition({ x: e.clientX, y: e.clientY });
                       }
                     }}
@@ -172,7 +182,9 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                     {isDiagonal ? (
                       <span className="text-gray-300 text-sm">—</span>
                     ) : (
-                      <span className={`text-xs font-medium ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}>
+                      <span
+                        className={`text-xs font-medium ${percent > maxHeatmapValue * 0.5 ? 'text-white' : 'text-gray-900'}`}
+                      >
                         {percent.toFixed(2)}%
                       </span>
                     )}
@@ -183,7 +195,10 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
           ))}
           <div className="mt-4 flex items-center justify-center gap-2">
             <span className="text-xs text-gray-500">{t('crossOracle.low')}</span>
-            <div className="w-32 h-2" style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }} />
+            <div
+              className="w-32 h-2"
+              style={{ background: 'linear-gradient(to right, #4CAF50, #F59E0B, #EF4444)' }}
+            />
             <span className="text-xs text-gray-500">{t('crossOracle.high')}</span>
           </div>
         </div>
@@ -204,28 +219,52 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">{chainNames[hoveredCell.xChain]}</span>
               <span className="font-mono text-gray-900 font-medium">
-                ${currentPrices.find((p) => p.chain === hoveredCell.xChain)?.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) || '-'}
+                $
+                {currentPrices
+                  .find((p) => p.chain === hoveredCell.xChain)
+                  ?.price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4,
+                  }) || '-'}
               </span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">{chainNames[hoveredCell.yChain]}</span>
               <span className="font-mono text-gray-900 font-medium">
-                ${currentPrices.find((p) => p.chain === hoveredCell.yChain)?.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) || '-'}
+                $
+                {currentPrices
+                  .find((p) => p.chain === hoveredCell.yChain)
+                  ?.price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4,
+                  }) || '-'}
               </span>
             </div>
             <div className="pt-2 border-t border-gray-100">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">{t('crossChain.priceDifference')}</span>
                 <span className="font-mono font-medium text-gray-900">
-                  ${heatmapData.find((d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain)?.value.toFixed(4) || '-'}
+                  $
+                  {heatmapData
+                    .find((d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain)
+                    ?.value.toFixed(4) || '-'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">{t('crossChain.percentDifference')}</span>
-                <span className={`font-mono font-medium ${
-                  (heatmapData.find((d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain)?.percent || 0) > 0.5 ? 'text-red-600' : 'text-green-600'
-                }`}>
-                  {heatmapData.find((d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain)?.percent.toFixed(4) || '-'}%
+                <span
+                  className={`font-mono font-medium ${
+                    (heatmapData.find(
+                      (d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain
+                    )?.percent || 0) > 0.5
+                      ? 'text-red-600'
+                      : 'text-green-600'
+                  }`}
+                >
+                  {heatmapData
+                    .find((d) => d.xChain === hoveredCell.xChain && d.yChain === hoveredCell.yChain)
+                    ?.percent.toFixed(4) || '-'}
+                  %
                 </span>
               </div>
             </div>
@@ -240,7 +279,15 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
 
 function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainData> }) {
   const { t } = useI18n();
-  const { selectedCell, setSelectedCell, heatmapData, currentPrices, chartData, historicalPrices, filteredChains } = data;
+  const {
+    selectedCell,
+    setSelectedCell,
+    heatmapData,
+    currentPrices,
+    chartData,
+    historicalPrices,
+    filteredChains,
+  } = data;
 
   if (!selectedCell) return null;
 
@@ -249,12 +296,26 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
-            {chainNames[selectedCell.xChain]} vs {chainNames[selectedCell.yChain]} {t('crossChain.detailComparison')}
+            {chainNames[selectedCell.xChain]} vs {chainNames[selectedCell.yChain]}{' '}
+            {t('crossChain.detailComparison')}
           </span>
         </div>
-        <button onClick={() => setSelectedCell(null)} className="p-1 hover:bg-gray-200 rounded transition-colors">
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <button
+          onClick={() => setSelectedCell(null)}
+          className="p-1 hover:bg-gray-200 rounded transition-colors"
+        >
+          <svg
+            className="w-5 h-5 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -282,24 +343,57 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
               {t('crossChain.priceDifference')}
             </div>
             <div className="text-2xl font-semibold font-mono">
-              <span className={heatmapData.find((d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain)?.percent ? 'text-red-600' : 'text-green-600'}>
-                ${heatmapData.find((d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain)?.value.toFixed(4) || '-'}
+              <span
+                className={
+                  heatmapData.find(
+                    (d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain
+                  )?.percent
+                    ? 'text-red-600'
+                    : 'text-green-600'
+                }
+              >
+                $
+                {heatmapData
+                  .find((d) => d.xChain === selectedCell.xChain && d.yChain === selectedCell.yChain)
+                  ?.value.toFixed(4) || '-'}
               </span>
             </div>
           </div>
         </div>
 
         <div className="mb-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">{t('crossChain.priceTrendComparison')}</div>
+          <div className="text-sm font-medium text-gray-700 mb-2">
+            {t('crossChain.priceTrendComparison')}
+          </div>
           <div className="h-48 bg-gray-50 rounded-lg p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
                 <XAxis dataKey="time" stroke="#9ca3af" tick={{ fontSize: 10 }} />
-                <YAxis domain={['auto', 'auto']} tickFormatter={(v) => `$${Number(v).toFixed(2)}`} stroke="#9ca3af" tick={{ fontSize: 10 }} width={60} />
+                <YAxis
+                  domain={['auto', 'auto']}
+                  tickFormatter={(v) => `$${Number(v).toFixed(2)}`}
+                  stroke="#9ca3af"
+                  tick={{ fontSize: 10 }}
+                  width={60}
+                />
                 <Tooltip formatter={(v) => [`$${Number(v).toFixed(4)}`, '']} />
-                <Line type="monotone" dataKey={selectedCell.xChain} name={chainNames[selectedCell.xChain]} stroke={chainColors[selectedCell.xChain]} strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey={selectedCell.yChain} name={chainNames[selectedCell.yChain]} stroke={chainColors[selectedCell.yChain]} strokeWidth={2} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey={selectedCell.xChain}
+                  name={chainNames[selectedCell.xChain]}
+                  stroke={chainColors[selectedCell.xChain]}
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={selectedCell.yChain}
+                  name={chainNames[selectedCell.yChain]}
+                  stroke={chainColors[selectedCell.yChain]}
+                  strokeWidth={2}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 
 interface DashboardCardProps {
   title?: string;
@@ -69,6 +69,20 @@ export function StatCard({ title, value, change, changeType, icon }: StatCardPro
   );
 }
 
+const MemoizedStatCard = memo(
+  StatCard,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.title === nextProps.title &&
+      prevProps.value === nextProps.value &&
+      prevProps.change === nextProps.change &&
+      prevProps.changeType === nextProps.changeType
+    );
+  }
+);
+
+export { MemoizedStatCard };
+
 interface MetricCardProps {
   label: string;
   value: string;
@@ -90,3 +104,7 @@ export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
     </div>
   );
 }
+
+const MemoizedMetricCard = memo(MetricCard);
+
+export { MemoizedMetricCard };

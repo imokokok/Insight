@@ -11,20 +11,20 @@ export const chartColors = {
   grid: '#e5e7eb',
   text: '#374151',
   background: '#ffffff',
-  
+
   price: '#3b82f6',
   volume: '#8b5cf6',
   ma7: '#f59e0b',
   ma20: '#ec4899',
   ma50: '#14b8a6',
-  
+
   up: '#22c55e',
   down: '#ef4444',
-  
+
   anomaly: '#ef4444',
   prediction: '#3b82f6',
   predictionFill: 'rgba(59, 130, 246, 0.1)',
-  
+
   heatmap: {
     low: '#22c55e',
     medium: '#f59e0b',
@@ -74,7 +74,7 @@ export const getDeviationColor = (deviationPercent: number): string => {
 export const getHeatmapColor = (value: number, min: number, max: number): string => {
   const range = max - min;
   const normalized = range === 0 ? 0.5 : (value - min) / range;
-  
+
   if (normalized < 0.33) return chartColors.heatmap.low;
   if (normalized < 0.66) return chartColors.heatmap.medium;
   return chartColors.heatmap.high;
@@ -123,17 +123,20 @@ export const formatPercentage = (value: number, decimals: number = 2): string =>
   return `${sign}${value.toFixed(decimals)}%`;
 };
 
-export const formatTimestamp = (timestamp: number, format: 'time' | 'date' | 'datetime' = 'datetime'): string => {
+export const formatTimestamp = (
+  timestamp: number,
+  format: 'time' | 'date' | 'datetime' = 'datetime'
+): string => {
   const date = new Date(timestamp);
-  
+
   if (format === 'time') {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   }
-  
+
   if (format === 'date') {
     return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
   }
-  
+
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: 'short',
@@ -145,19 +148,19 @@ export const formatTimestamp = (timestamp: number, format: 'time' | 'date' | 'da
 
 export const calculateStandardDeviation = (values: number[]): number => {
   if (values.length === 0) return 0;
-  
+
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-  const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
+  const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
   const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
-  
+
   return Math.sqrt(variance);
 };
 
 export const calculateMovingAverage = (values: number[], period: number): number[] => {
   if (values.length < period) return values;
-  
+
   const result: number[] = [];
-  
+
   for (let i = 0; i < values.length; i++) {
     if (i < period - 1) {
       result.push(values[i]);
@@ -167,7 +170,7 @@ export const calculateMovingAverage = (values: number[], period: number): number
       result.push(avg);
     }
   }
-  
+
   return result;
 };
 
@@ -176,13 +179,13 @@ export const detectAnomalies = (
   threshold: number = 2
 ): { index: number; value: number; deviation: number }[] => {
   if (values.length < 3) return [];
-  
+
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
   const stdDev = calculateStandardDeviation(values);
   const anomalyThreshold = stdDev * threshold;
-  
+
   const anomalies: { index: number; value: number; deviation: number }[] = [];
-  
+
   values.forEach((value, index) => {
     const deviation = Math.abs(value - mean);
     if (deviation > anomalyThreshold) {
@@ -193,7 +196,7 @@ export const detectAnomalies = (
       });
     }
   });
-  
+
   return anomalies;
 };
 
@@ -201,19 +204,19 @@ export const interpolateMissingValues = (
   data: { timestamp: number; value: number | null }[]
 ): { timestamp: number; value: number }[] => {
   const result: { timestamp: number; value: number }[] = [];
-  
+
   for (let i = 0; i < data.length; i++) {
     if (data[i].value !== null) {
       result.push({ timestamp: data[i].timestamp, value: data[i].value as number });
     } else {
       let prevIndex = i - 1;
       let nextIndex = i + 1;
-      
+
       while (prevIndex >= 0 && data[prevIndex].value === null) prevIndex--;
       while (nextIndex < data.length && data[nextIndex].value === null) nextIndex++;
-      
+
       let interpolatedValue: number;
-      
+
       if (prevIndex < 0 && nextIndex >= data.length) {
         interpolatedValue = 0;
       } else if (prevIndex < 0) {
@@ -222,14 +225,14 @@ export const interpolateMissingValues = (
         interpolatedValue = data[prevIndex].value as number;
       } else {
         const t = (i - prevIndex) / (nextIndex - prevIndex);
-        interpolatedValue = (data[prevIndex].value as number) * (1 - t) + 
-                          (data[nextIndex].value as number) * t;
+        interpolatedValue =
+          (data[prevIndex].value as number) * (1 - t) + (data[nextIndex].value as number) * t;
       }
-      
+
       result.push({ timestamp: data[i].timestamp, value: interpolatedValue });
     }
   }
-  
+
   return result;
 };
 
@@ -238,18 +241,18 @@ export const aggregateByTimeGranularity = (
   granularity: 'hour' | 'day' | 'week'
 ): { timestamp: number; value: number; count: number }[] => {
   const aggregated = new Map<number, { sum: number; count: number }>();
-  
+
   const msMap = {
     hour: 3600000,
     day: 86400000,
     week: 604800000,
   };
-  
+
   const granularityMs = msMap[granularity];
-  
-  data.forEach(point => {
+
+  data.forEach((point) => {
     const bucket = Math.floor(point.timestamp / granularityMs) * granularityMs;
-    
+
     if (aggregated.has(bucket)) {
       const existing = aggregated.get(bucket)!;
       existing.sum += point.value;
@@ -258,7 +261,7 @@ export const aggregateByTimeGranularity = (
       aggregated.set(bucket, { sum: point.value, count: 1 });
     }
   });
-  
+
   return Array.from(aggregated.entries()).map(([timestamp, { sum, count }]) => ({
     timestamp,
     value: sum / count,
@@ -268,21 +271,23 @@ export const aggregateByTimeGranularity = (
 
 export const downloadAsCSV = (data: Record<string, unknown>[], filename: string): void => {
   if (data.length === 0) return;
-  
+
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),
-    ...data.map(row => 
-      headers.map(header => {
-        const value = row[header];
-        if (typeof value === 'string' && value.includes(',')) {
-          return `"${value}"`;
-        }
-        return value;
-      }).join(',')
-    )
+    ...data.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header];
+          if (typeof value === 'string' && value.includes(',')) {
+            return `"${value}"`;
+          }
+          return value;
+        })
+        .join(',')
+    ),
   ].join('\n');
-  
+
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
@@ -306,14 +311,13 @@ export const exportChartAsImage = async (
   filename: string
 ): Promise<void> => {
   if (!chartRef.current) return;
-  
+
   const html2canvas = (await import('html2canvas')).default;
-  
+
   const canvas = await html2canvas(chartRef.current, {
-    backgroundColor: '#ffffff',
-    scale: 2,
+    background: '#ffffff',
   });
-  
+
   const link = document.createElement('a');
   link.href = canvas.toDataURL('image/png');
   link.download = `${filename}.png`;

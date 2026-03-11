@@ -32,7 +32,9 @@ export const getDiffTextColor = (diffPercent: number): string => {
   }
 };
 
-export const getDiffColorGradientWithStyle = (diffPercent: number): { bg: string; text: string } => {
+export const getDiffColorGradientWithStyle = (
+  diffPercent: number
+): { bg: string; text: string } => {
   if (diffPercent > 0.5) {
     const intensity = Math.min((diffPercent - 0.5) / 2, 1);
     const r = Math.floor(254 + (239 - 254) * intensity);
@@ -206,7 +208,9 @@ export const getVolatilityColor = (value: number): string => {
   return '#EF4444';
 };
 
-export const getDataFreshness = (delay: { avgDelay: number; maxDelay: number } | undefined): { status: string; color: string } => {
+export const getDataFreshness = (
+  delay: { avgDelay: number; maxDelay: number } | undefined
+): { status: string; color: string } => {
   if (!delay) return { status: 'unknown', color: 'text-gray-400' };
   if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-green-600' };
   if (delay.avgDelay < 15) return { status: 'good', color: 'text-yellow-600' };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
@@ -395,6 +396,16 @@ export function ValidatorPanel({
     new Set()
   );
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowHeight = 64;
+
+  const virtualizer = useVirtualizer({
+    count: filteredValidators.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 5,
+  });
 
   const convertToValidatorData = useCallback((validator: ValidatorInfo): ValidatorData => {
     const types: ('institution' | 'independent' | 'community')[] = [
@@ -727,38 +738,62 @@ export function ValidatorPanel({
                 <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
               </tr>
             </thead>
-            <tbody>
-              {filteredValidators.map((validator) => (
-                <ValidatorRow
-                  key={validator.operatorAddress}
-                  validator={validator}
-                  onClick={() => handleValidatorClick(validator)}
-                  isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
-                  onToggleSelect={(e) => handleToggleSelect(e, validator.operatorAddress)}
-                />
-              ))}
-            </tbody>
           </table>
-        </div>
-
-        {filteredValidators.length === 0 && (
-          <div className="py-12 text-center text-gray-500">
-            <svg
-              className="w-12 h-12 mx-auto mb-3 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p>没有找到匹配的验证者</p>
+          <div ref={parentRef} className="overflow-auto max-h-[500px] relative">
+            <table className="w-full">
+              <tbody className="block">
+                {filteredValidators.length === 0 ? (
+                  <tr className="hidden"></tr>
+                ) : (
+                  <tr className="block">
+                    <td className="block p-0" style={{ height: virtualizer.getTotalSize() }}>
+                      {virtualizer.getVirtualItems().map((virtualRow) => {
+                        const validator = filteredValidators[virtualRow.index];
+                        return (
+                          <div
+                            key={validator.operatorAddress}
+                            className="absolute w-full"
+                            style={{
+                              height: virtualRow.size,
+                              transform: `translateY(${virtualRow.start}px)`,
+                            }}
+                          >
+                            <ValidatorRow
+                              validator={validator}
+                              onClick={() => handleValidatorClick(validator)}
+                              isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
+                              onToggleSelect={(e) =>
+                                handleToggleSelect(e, validator.operatorAddress)
+                              }
+                            />
+                          </div>
+                        );
+                      })}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+          {filteredValidators.length === 0 && (
+            <div className="py-12 text-center text-gray-500">
+              <svg
+                className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p>没有找到匹配的验证者</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedValidatorsData.length > 0 && (

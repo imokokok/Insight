@@ -335,6 +335,98 @@ function convertHistoricalPricePoints(
   });
 }
 
+function downsampleData(data: ChartDataPoint[]): ChartDataPoint[] {
+  const dataCount = data.length;
+  if (dataCount <= 200) {
+    return data;
+  }
+
+  let targetCount: number;
+  if (dataCount <= 500) {
+    targetCount = 125;
+  } else if (dataCount <= 1000) {
+    targetCount = 175;
+  } else {
+    targetCount = 250;
+  }
+
+  if (targetCount >= dataCount) {
+    return data;
+  }
+
+  const result: ChartDataPoint[] = [];
+  result.push({ ...data[0] });
+
+  const step = (dataCount - 1) / (targetCount - 1);
+
+  const buckets: ChartDataPoint[][] = [];
+  for (let i = 0; i < targetCount; i++) {
+    buckets.push([]);
+  }
+
+  for (let i = 1; i < dataCount - 1; i++) {
+    const bucketIndex = Math.min(
+      Math.floor((i - 1) / step),
+      targetCount - 2
+    );
+    buckets[bucketIndex + 1].push(data[i]);
+  }
+
+  for (let i = 1; i < targetCount - 1; i++) {
+    const bucket = buckets[i];
+    if (bucket.length === 0) {
+      const originalIndex = Math.round(i * step);
+      if (originalIndex > 0 && originalIndex < dataCount - 1) {
+        result.push({ ...data[originalIndex] });
+      }
+      continue;
+    }
+
+    let maxPoint = bucket[0];
+    let minPoint = bucket[0];
+    let sumPrice = 0;
+    let sumVolume = 0;
+    let avgTimestamp = 0;
+    let count = 0;
+
+    for (const point of bucket) {
+      if (point.price > maxPoint.price) maxPoint = point;
+      if (point.price < minPoint.price) minPoint = point;
+      sumPrice += point.price;
+      sumVolume += point.volume;
+      avgTimestamp += point.timestamp;
+      count++;
+    }
+
+    const avgPrice = sumPrice / count;
+    const avgVolume = sumVolume / count;
+    const avgTime = new Date(avgTimestamp / count).toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const midPoint: ChartDataPoint = {
+      time: avgTime,
+      timestamp: Math.round(avgTimestamp / count),
+      price: avgPrice,
+      volume: avgVolume,
+    };
+
+    const distanceToMax = Math.abs(midPoint.price - maxPoint.price);
+    const distanceToMin = Math.abs(midPoint.price - minPoint.price);
+
+    if (distanceToMax > distanceToMin) {
+      result.push({ ...maxPoint });
+    } else {
+      result.push({ ...minPoint });
+    }
+  }
+
+  result.push({ ...data[dataCount - 1] });
+
+  return result;
+}
+
 function generateDataWithGranularity(
   basePrice: number,
   startDate: Date,
@@ -605,10 +697,12 @@ export function PriceChart({
         };
         const historicalPoints = await bandClient.getHistoricalBandPrices(periodMap[timeRange]);
         const chartData = convertHistoricalPricePoints(historicalPoints);
-        setData(chartData);
+        const downsampledData = downsampleData(chartData);
+        setData(downsampledData);
       } else {
         const historicalData = generateHistoricalData(priceData.price, timeRange);
-        setData(historicalData);
+        const downsampledData = downsampleData(historicalData);
+        setData(downsampledData);
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
@@ -616,7 +710,8 @@ export function PriceChart({
       console.error('Error fetching price data:', error);
       const fallbackPrice = defaultPrice || 100;
       setCurrentPrice(fallbackPrice);
-      setData(generateHistoricalData(fallbackPrice, timeRange));
+      const fallbackData = generateHistoricalData(fallbackPrice, timeRange);
+      setData(downsampleData(fallbackData));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
@@ -659,8 +754,8 @@ export function PriceChart({
         const period1Data = convertHistoricalPricePoints(period1Points, false);
         const period2Data = convertHistoricalPricePoints(period2Points, true);
 
-        setData(period1Data);
-        setComparisonData(period2Data);
+        setData(downsampleData(period1Data));
+        setComparisonData(downsampleData(period2Data));
       } else {
         const period1Data = generateDataWithGranularity(
           priceData.price,
@@ -675,8 +770,8 @@ export function PriceChart({
           granularity
         );
 
-        setData(period1Data);
-        setComparisonData(period2Data.map((d) => ({ ...d, isComparison: true })));
+        setData(downsampleData(period1Data));
+        setComparisonData(downsampleData(period2Data.map((d) => ({ ...d, isComparison: true }))));
       }
     } catch (error) {
       console.error('Error fetching comparison data:', error);

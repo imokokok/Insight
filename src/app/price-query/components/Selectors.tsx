@@ -64,11 +64,7 @@ export function Selectors({
             {t('priceQuery.selectors.symbol')}
           </span>
         </div>
-        <div
-          className="flex flex-wrap gap-2"
-          role="group"
-          aria-labelledby="symbol-selector-label"
-        >
+        <div className="flex flex-wrap gap-2" role="group" aria-labelledby="symbol-selector-label">
           {symbols.map((symbol) => (
             <button
               key={symbol}
@@ -110,11 +106,7 @@ export function Selectors({
             </button>
           </div>
         </div>
-        <div
-          className="flex flex-wrap gap-2"
-          role="group"
-          aria-labelledby="oracle-selector-label"
-        >
+        <div className="flex flex-wrap gap-2" role="group" aria-labelledby="oracle-selector-label">
           {Object.values(OracleProvider).map((oracle) => {
             const isSelected = selectedOracles.includes(oracle);
             return (

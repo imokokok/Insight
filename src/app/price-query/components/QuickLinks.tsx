@@ -29,9 +29,7 @@ export function QuickLinks() {
               <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                 {t('priceQuery.quickLinks.crossChain')}
               </p>
-              <p className="text-xs text-gray-500">
-                {t('priceQuery.quickLinks.crossChainDesc')}
-              </p>
+              <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossChainDesc')}</p>
             </div>
           </div>
         </a>
@@ -48,9 +46,7 @@ export function QuickLinks() {
               <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                 {t('priceQuery.quickLinks.crossOracle')}
               </p>
-              <p className="text-xs text-gray-500">
-                {t('priceQuery.quickLinks.crossOracleDesc')}
-              </p>
+              <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.crossOracleDesc')}</p>
             </div>
           </div>
         </a>
@@ -67,9 +63,7 @@ export function QuickLinks() {
               <p className="font-semibold text-gray-900 group-hover:text-gray-700">
                 {t('navbar.chainlink')}
               </p>
-              <p className="text-xs text-gray-500">
-                {t('priceQuery.quickLinks.chainlinkDesc')}
-              </p>
+              <p className="text-xs text-gray-500">{t('priceQuery.quickLinks.chainlinkDesc')}</p>
             </div>
           </div>
         </a>
