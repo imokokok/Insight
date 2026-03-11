@@ -13,7 +13,6 @@ import {
   Legend,
   ResponsiveContainer,
   Area,
-  ReferenceDot,
 } from 'recharts';
 import {
   PriceDeviationHeatmap,
@@ -51,21 +50,20 @@ import {
   calculateVariance,
   calculateStandardDeviation,
   getConsistencyRating,
-  getFreshnessInfo,
   calculateZScore,
   isOutlier,
   exportToCSV,
   exportToJSON,
   timeRanges,
-  refreshOptions,
   HistoryMinMax,
   initialHistoryMinMax,
   updateHistoryMinMax,
 } from './constants';
-import { FilterPanel, StatsCards, MobileStatsCards, PriceTable } from './components';
+import { FilterPanel, StatsCards, MobileStatsCards, PriceTable, TabNavigation, useTabNavigation, TabId } from './components';
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
+  const { activeTab, handleTabChange } = useTabNavigation();
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
     OracleProvider.BAND_PROTOCOL,
@@ -90,10 +88,6 @@ export default function CrossOraclePage() {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
-  const [statsScrollPosition, setStatsScrollPosition] = useState(0);
-  const statsScrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
   const [historyMinMax, setHistoryMinMax] = useState<HistoryMinMax>(initialHistoryMinMax);
   const [selectedSnapshot, setSelectedSnapshot] = useState<OracleSnapshot | null>(null);
   const [showComparison, setShowComparison] = useState(false);
@@ -521,29 +515,6 @@ export default function CrossOraclePage() {
   const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev / 1.5, 0.5));
   const handleResetZoom = () => setZoomLevel(1);
 
-  const checkScrollButtons = useCallback(() => {
-    if (statsScrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = statsScrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
-    }
-  }, []);
-
-  const handleStatsScroll = useCallback((direction: 'left' | 'right') => {
-    if (statsScrollRef.current) {
-      const scrollAmount = 280;
-      const newScrollLeft =
-        statsScrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-      statsScrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-    }
-  }, []);
-
-  useEffect(() => {
-    checkScrollButtons();
-    window.addEventListener('resize', checkScrollButtons);
-    return () => window.removeEventListener('resize', checkScrollButtons);
-  }, [checkScrollButtons]);
-
   const filteredPriceData = useMemo(() => {
     return sortedPriceData.filter((data) => {
       if (oracleFilter !== 'all' && data.provider !== oracleFilter) return false;
@@ -591,6 +562,7 @@ export default function CrossOraclePage() {
     if (outlierStats.outliers.length === 0) return;
     const firstOutlier = outlierStats.outliers[0];
     setHighlightedOutlierIndex(firstOutlier.index);
+    handleTabChange('overview');
     setTimeout(() => {
       const rowElement = document.getElementById(`outlier-row-${firstOutlier.index}`);
       if (rowElement) {
@@ -600,7 +572,7 @@ export default function CrossOraclePage() {
     setTimeout(() => {
       setHighlightedOutlierIndex(null);
     }, 3000);
-  }, [outlierStats.outliers]);
+  }, [outlierStats.outliers, handleTabChange]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -665,8 +637,7 @@ export default function CrossOraclePage() {
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-gray-600">平均价格</span>
               <span className="font-semibold text-gray-900">
-                $
-                {avgValue.toLocaleString(undefined, {
+                ${avgValue.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -676,8 +647,7 @@ export default function CrossOraclePage() {
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>标准差</span>
                 <span>
-                  ±$
-                  {stdDevValue.toLocaleString(undefined, {
+                  ±${stdDevValue.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -701,8 +671,7 @@ export default function CrossOraclePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-gray-900">
-                    $
-                    {entry.value.toLocaleString(undefined, {
+                    ${entry.value.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -724,245 +693,14 @@ export default function CrossOraclePage() {
     );
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <style jsx>{`
-        @keyframes pulse-highlight {
-          0%,
-          100% {
-            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
-          }
-          50% {
-            box-shadow: 0 0 0 8px rgba(251, 191, 36, 0);
-          }
-        }
-        .outlier-highlight-pulse {
-          animation: pulse-highlight 1s ease-in-out 3;
-        }
-      `}</style>
-
-      {outlierStats.count > 0 && (
-        <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm overflow-hidden">
-          <div className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-0.5">
-                <svg
-                  className="w-5 h-5 text-amber-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-amber-800">检测到价格异常值</h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    {outlierStats.count} 个异常
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-amber-700">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-amber-600 font-medium">异常预言机:</span>
-                    <span className="font-medium">
-                      {outlierStats.oracleNames.slice(0, 3).join('、')}
-                      {outlierStats.oracleNames.length > 3 &&
-                        ` 等${outlierStats.oracleNames.length}个`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-amber-600 font-medium">平均偏差:</span>
-                    <span className="font-medium">{outlierStats.avgDeviation.toFixed(3)}%</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={scrollToOutlier}
-                className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors border border-amber-200"
-              >
-                查看详情
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b border-gray-200">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t('crossOracle.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
-          <div className="relative" ref={filterPanelRef}>
-            <button
-              onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-sm border transition-colors ${
-                isFilterPanelOpen || activeFilterCount > 0
-                  ? 'bg-blue-50 border-blue-300 text-blue-700'
-                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                />
-              </svg>
-              <span>筛选</span>
-              {activeFilterCount > 0 && (
-                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium bg-blue-600 text-white rounded-full">
-                  {activeFilterCount}
-                </span>
-              )}
-              <svg
-                className={`w-4 h-4 transition-transform ${isFilterPanelOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-            <FilterPanel
-              isOpen={isFilterPanelOpen}
-              onClose={() => setIsFilterPanelOpen(false)}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              deviationFilter={deviationFilter}
-              onDeviationFilterChange={setDeviationFilter}
-              oracleFilter={oracleFilter}
-              onOracleFilterChange={setOracleFilter}
-              activeFilterCount={activeFilterCount}
-              onClearFilters={handleClearFilters}
-              getFilterSummary={getFilterSummary}
-              t={t}
-            />
-          </div>
-
-          <button
-            onClick={handleExportCSV}
-            disabled={priceData.length === 0}
-            className="px-3 py-1.5 text-sm bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {t('crossOracle.exportCsv')}
-          </button>
-          <button
-            onClick={handleExportJSON}
-            disabled={priceData.length === 0}
-            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {t('crossOracle.exportJson')}
-          </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200">
-            <span className="text-sm text-gray-600">{t('crossOracle.auto')}</span>
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
-              className="text-sm bg-transparent focus:outline-none border-none"
-            >
-              {refreshOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.value === 0
-                    ? t('crossOracle.refreshInterval.off')
-                    : option.value === 30000
-                      ? t('crossOracle.refreshInterval.30s')
-                      : option.value === 60000
-                        ? t('crossOracle.refreshInterval.1m')
-                        : t('crossOracle.refreshInterval.5m')}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            onClick={fetchPriceData}
-            disabled={isLoading}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? (
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            )}
-            {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
-          </button>
-          {lastUpdated && (
-            <span className="text-xs text-gray-400">
-              {t('crossOracle.updated')} {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      </div>
-
+  const renderOverviewTab = () => (
+    <>
       <div className="mb-8">
         <DataQualityScoreCard
           freshness={qualityScoreData.freshness}
           completeness={qualityScoreData.completeness}
           reliability={qualityScoreData.reliability}
         />
-      </div>
-
-      <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <SnapshotManager
-            onSaveSnapshot={handleSaveSnapshot}
-            onSelectSnapshot={handleSelectSnapshot}
-            selectedSnapshotId={selectedSnapshot?.id}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          {showComparison && selectedSnapshot ? (
-            <SnapshotComparison
-              currentStats={currentStats}
-              currentPriceData={priceData}
-              currentSymbol={selectedSymbol}
-              selectedSnapshot={selectedSnapshot}
-              onClose={() => {
-                setShowComparison(false);
-                setSelectedSnapshot(null);
-              }}
-            />
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 border-dashed rounded-lg h-full min-h-[200px] flex items-center justify-center">
-              <div className="text-center">
-                <svg
-                  className="w-12 h-12 mx-auto text-gray-300 mb-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-                <p className="text-sm text-gray-500">选择一个快照进行对比</p>
-                <p className="text-xs text-gray-400 mt-1">从左侧快照列表中选择一个历史快照</p>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="mb-8">
@@ -1063,8 +801,7 @@ export default function CrossOraclePage() {
             {t('crossOracle.priceTrend')}
             {timeRange !== 'ALL' && (
               <span className="text-sm text-gray-500 ml-2">
-                (
-                {timeRange === '1H'
+                ({timeRange === '1H'
                   ? '1 小时'
                   : timeRange === '24H'
                     ? '24 小时'
@@ -1074,8 +811,7 @@ export default function CrossOraclePage() {
                         ? '30 天'
                         : timeRange === '90D'
                           ? '90 天'
-                          : '1 年'}
-                )
+                          : '1 年'})
               </span>
             )}
           </h2>
@@ -1129,19 +865,6 @@ export default function CrossOraclePage() {
             >
               重置
             </button>
-            <div className="h-4 w-px bg-gray-200 mx-1 hidden sm:block" />
-            <div className="flex items-center gap-1 text-xs text-gray-500 hidden sm:flex">
-              <span
-                className="w-3 h-3 rounded"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-              />
-              <span>±1σ</span>
-              <span
-                className="w-3 h-3 rounded ml-2"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
-              />
-              <span>±2σ</span>
-            </div>
           </div>
         </div>
 
@@ -1266,36 +989,426 @@ export default function CrossOraclePage() {
                 ))}
               </LineChart>
             </ResponsiveContainer>
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-4 h-0.5 bg-indigo-500"
-                  style={{ borderTop: '2px dashed #6366f1' }}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  const renderChartsTab = () => (
+    <>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">价格趋势详细分析</h2>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-gray-100 rounded-md p-0.5">
+              <button
+                onClick={handleZoomOut}
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                title="缩小"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+              </button>
+              <span className="px-2 text-xs text-gray-600 min-w-[3rem] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                onClick={handleZoomIn}
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                title="放大"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+            <button
+              onClick={handleResetZoom}
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              重置
+            </button>
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-lg p-4">
+          <ResponsiveContainer width="100%" height={400 * zoomLevel}>
+            <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <defs>
+                <linearGradient id="stdDevGradient1Charts" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="stdDevGradient2Charts" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.05} />
+                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.01} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis dataKey="timestamp" stroke="#6B7280" fontSize={12} tickLine={false} />
+              <YAxis
+                stroke="#6B7280"
+                fontSize={12}
+                tickLine={false}
+                domain={['auto', 'auto']}
+                tickFormatter={(value) => `$${value.toLocaleString()}`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Area
+                type="monotone"
+                dataKey="upperBound2"
+                stroke="none"
+                fill="url(#stdDevGradient2Charts)"
+                fillOpacity={1}
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="lowerBound2"
+                stroke="none"
+                fill="#ffffff"
+                fillOpacity={1}
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="upperBound1"
+                stroke="none"
+                fill="url(#stdDevGradient1Charts)"
+                fillOpacity={1}
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="lowerBound1"
+                stroke="none"
+                fill="#ffffff"
+                fillOpacity={1}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="avgPrice"
+                stroke="#6366f1"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                activeDot={false}
+                name="平均价格"
+              />
+              {selectedOracles.map((oracle) => (
+                <Line
+                  key={oracle}
+                  type="monotone"
+                  dataKey={oracleNames[oracle]}
+                  stroke={chartColors[oracle]}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 2,
+                    stroke: '#ffffff',
+                    fill: chartColors[oracle],
+                  }}
                 />
-                <span>平均价格线</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 border border-white shadow-sm" />
-                <span>数据更新点</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-4 h-2.5 rounded"
-                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.15)' }}
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {heatmapData.length > 0 && (
+        <div className="mb-8">
+          <PriceDeviationHeatmap data={heatmapData} />
+        </div>
+      )}
+
+      {boxPlotData.some((d) => d.prices.length > 0) && (
+        <div className="mb-8">
+          <PriceDistributionBoxPlot data={boxPlotData} oracleNames={oracleNames} />
+        </div>
+      )}
+
+      {volatilityData.some((d) => d.prices.length > 0) && (
+        <div className="mb-8">
+          <PriceVolatilityChart data={volatilityData} oracleNames={oracleNames} />
+        </div>
+      )}
+    </>
+  );
+
+  const renderSnapshotsTab = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-1">
+        <SnapshotManager
+          onSaveSnapshot={handleSaveSnapshot}
+          onSelectSnapshot={handleSelectSnapshot}
+          selectedSnapshotId={selectedSnapshot?.id}
+        />
+      </div>
+      <div className="lg:col-span-2">
+        {showComparison && selectedSnapshot ? (
+          <SnapshotComparison
+            currentStats={currentStats}
+            currentPriceData={priceData}
+            currentSymbol={selectedSymbol}
+            selectedSnapshot={selectedSnapshot}
+            onClose={() => {
+              setShowComparison(false);
+              setSelectedSnapshot(null);
+            }}
+          />
+        ) : (
+          <div className="bg-gray-50 border border-gray-200 border-dashed rounded-lg h-full min-h-[200px] flex items-center justify-center">
+            <div className="text-center">
+              <svg
+                className="w-12 h-12 mx-auto text-gray-300 mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
-                <span>±1 标准差范围</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-4 h-2.5 rounded"
-                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
-                />
-                <span>±2 标准差范围</span>
-              </div>
+              </svg>
+              <p className="text-sm text-gray-500">选择一个快照进行对比</p>
+              <p className="text-xs text-gray-400 mt-1">从左侧快照列表中选择一个历史快照</p>
             </div>
           </div>
         )}
       </div>
+    </div>
+  );
+
+  const renderPerformanceTab = () => (
+    <>
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">性能对比分析</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <LatencyDistributionHistogram data={latencyData} oracleName="所有预言机" />
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">预言机性能摘要</h3>
+            <div className="space-y-3">
+              {performanceData.map((data) => (
+                <div
+                  key={data.provider}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
+                    <span className="font-medium text-gray-900">{data.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                    <div className="text-center">
+                      <p className="text-gray-400">响应时间</p>
+                      <p className="font-semibold text-gray-900">{data.responseTime}ms</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400">准确率</p>
+                      <p className="font-semibold text-green-600">{data.accuracy.toFixed(1)}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-gray-400">稳定性</p>
+                      <p className="font-semibold text-blue-600">{data.stability.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">高级分析</h2>
+        {correlationData.length >= 2 && (
+          <div className="mb-6">
+            <PriceCorrelationMatrix data={correlationData} oracleNames={oracleNames} />
+          </div>
+        )}
+      </div>
+
+      {performanceData.length > 0 && (
+        <div className="mb-8">
+          <OraclePerformanceRanking performanceData={performanceData} />
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <style jsx>{`
+        @keyframes pulse-highlight {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+          }
+          50% {
+            box-shadow: 0 0 0 8px rgba(251, 191, 36, 0);
+          }
+        }
+        .outlier-highlight-pulse {
+          animation: pulse-highlight 1s ease-in-out 3;
+        }
+      `}</style>
+
+      {outlierStats.count > 0 && (
+        <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <svg
+                  className="w-5 h-5 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-amber-800">检测到价格异常值</h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    {outlierStats.count} 个异常
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-amber-700">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-amber-600 font-medium">异常预言机:</span>
+                    <span className="font-medium">
+                      {outlierStats.oracleNames.slice(0, 3).join('、')}
+                      {outlierStats.oracleNames.length > 3 &&
+                        ` 等${outlierStats.oracleNames.length}个`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-amber-600 font-medium">平均偏差:</span>
+                    <span className="font-medium">{outlierStats.avgDeviation.toFixed(3)}%</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={scrollToOutlier}
+                className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors border border-amber-200"
+              >
+                查看详情
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">{t('crossOracle.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
+        </div>
+        <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
+          <div className="relative" ref={filterPanelRef}>
+            <button
+              onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)}
+              className={`flex items-center gap-2 px-3 py-1.5 text-sm border transition-colors ${
+                isFilterPanelOpen || activeFilterCount > 0
+                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              <span>筛选</span>
+              {activeFilterCount > 0 && (
+                <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium bg-blue-600 text-white rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
+              <svg
+                className={`w-4 h-4 transition-transform ${isFilterPanelOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            <FilterPanel
+              isOpen={isFilterPanelOpen}
+              onClose={() => setIsFilterPanelOpen(false)}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
+              deviationFilter={deviationFilter}
+              onDeviationFilterChange={setDeviationFilter}
+              oracleFilter={oracleFilter}
+              onOracleFilterChange={setOracleFilter}
+              activeFilterCount={activeFilterCount}
+              onClearFilters={handleClearFilters}
+              getFilterSummary={getFilterSummary}
+              t={t}
+            />
+          </div>
+
+          <button
+            onClick={fetchPriceData}
+            disabled={isLoading}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? (
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            )}
+            {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
+          </button>
+          {lastUpdated && (
+            <span className="text-xs text-gray-400">
+              {t('crossOracle.updated')} {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {activeTab === 'overview' && renderOverviewTab()}
+      {activeTab === 'charts' && renderChartsTab()}
+      {activeTab === 'snapshots' && renderSnapshotsTab()}
+      {activeTab === 'performance' && renderPerformanceTab()}
 
       {isChartFullscreen && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
@@ -1474,83 +1587,11 @@ export default function CrossOraclePage() {
         </div>
       )}
 
-      {heatmapData.length > 0 && (
-        <div className="mb-8">
-          <PriceDeviationHeatmap data={heatmapData} />
-        </div>
-      )}
-
-      {boxPlotData.some((d) => d.prices.length > 0) && (
-        <div className="mb-8">
-          <PriceDistributionBoxPlot data={boxPlotData} oracleNames={oracleNames} />
-        </div>
-      )}
-
-      {volatilityData.some((d) => d.prices.length > 0) && (
-        <div className="mb-8">
-          <PriceVolatilityChart data={volatilityData} oracleNames={oracleNames} />
-        </div>
-      )}
-
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">性能对比分析</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <LatencyDistributionHistogram data={latencyData} oracleName="所有预言机" />
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">预言机性能摘要</h3>
-            <div className="space-y-3">
-              {performanceData.map((data) => (
-                <div
-                  key={data.provider}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
-                    <span className="font-medium text-gray-900">{data.name}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-600">
-                    <div className="text-center">
-                      <p className="text-gray-400">响应时间</p>
-                      <p className="font-semibold text-gray-900">{data.responseTime}ms</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400">准确率</p>
-                      <p className="font-semibold text-green-600">{data.accuracy.toFixed(1)}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-400">稳定性</p>
-                      <p className="font-semibold text-blue-600">{data.stability.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">高级分析</h2>
-        {correlationData.length >= 2 && (
-          <div className="mb-6">
-            <PriceCorrelationMatrix data={correlationData} oracleNames={oracleNames} />
-          </div>
-        )}
-      </div>
-
-      {performanceData.length > 0 && (
-        <div className="mb-8">
-          <OraclePerformanceRanking performanceData={performanceData} />
-        </div>
-      )}
-
       <FloatingActionButton
-        onRefresh={fetchPriceData}
         onExportCSV={handleExportCSV}
         onExportJSON={handleExportJSON}
         onExportExcel={handleExportCSV}
+        onSaveSnapshot={handleSaveSnapshot}
         isLoading={isLoading}
       />
     </div>

@@ -3,23 +3,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface FloatingActionButtonProps {
-  onRefresh: () => void;
   onExportCSV: () => void;
   onExportJSON: () => void;
   onExportExcel?: () => void;
+  onSaveSnapshot?: () => void;
   isLoading?: boolean;
 }
 
 export function FloatingActionButton({
-  onRefresh,
   onExportCSV,
   onExportJSON,
   onExportExcel,
+  onSaveSnapshot,
   isLoading = false,
 }: FloatingActionButtonProps) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showSnapshotMenu, setShowSnapshotMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const snapshotMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +36,9 @@ export function FloatingActionButton({
     const handleClickOutside = (event: MouseEvent) => {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
+      }
+      if (snapshotMenuRef.current && !snapshotMenuRef.current.contains(event.target as Node)) {
+        setShowSnapshotMenu(false);
       }
     };
 
@@ -62,8 +67,15 @@ export function FloatingActionButton({
     [onExportCSV, onExportJSON, onExportExcel]
   );
 
+  const handleSaveSnapshotClick = useCallback(() => {
+    setShowSnapshotMenu(false);
+    if (onSaveSnapshot) {
+      onSaveSnapshot();
+    }
+  }, [onSaveSnapshot]);
+
   return (
-    <div className="fixed bottom-20 right-5 z-50 flex flex-col gap-3">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
       {showScrollTop && (
         <button
           onClick={scrollToTop}
@@ -84,6 +96,59 @@ export function FloatingActionButton({
             />
           </svg>
         </button>
+      )}
+
+      {onSaveSnapshot && (
+        <div className="relative" ref={snapshotMenuRef}>
+          <button
+            onClick={() => setShowSnapshotMenu(!showSnapshotMenu)}
+            disabled={isLoading}
+            className={`w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+            }`}
+            title="保存快照"
+          >
+            <svg
+              className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
+          {showSnapshotMenu && (
+            <div className="absolute bottom-full right-0 mb-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-200">
+              <div className="py-1">
+                <button
+                  onClick={handleSaveSnapshotClick}
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                    />
+                  </svg>
+                  保存当前数据快照
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       <div className="relative" ref={exportMenuRef}>
@@ -180,29 +245,6 @@ export function FloatingActionButton({
           </div>
         )}
       </div>
-
-      <button
-        onClick={onRefresh}
-        disabled={isLoading}
-        className={`w-12 h-12 bg-blue-600 border border-blue-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-        }`}
-        title="刷新数据"
-      >
-        <svg
-          className={`w-5 h-5 text-white transition-all ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
-      </button>
     </div>
   );
 }
