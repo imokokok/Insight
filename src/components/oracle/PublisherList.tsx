@@ -1,12 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Publisher, PublisherStatus } from '@/lib/types/oracle';
+
+interface AnomalyInfo {
+  isPriceDeviationAnomaly: boolean;
+  isLatencyAnomaly: boolean;
+  anomalyTypes: string[];
+}
 
 interface PublisherListProps {
   publishers: Publisher[];
   selectedPublisherId?: string;
   onPublisherSelect?: (publisherId: string) => void;
+  onAnomalyDetected?: (anomalyCount: number, anomalyDetails: Record<string, AnomalyInfo>) => void;
 }
 
 const mockPublishers: Publisher[] = [
@@ -140,8 +147,56 @@ export function PublisherList({
   publishers = mockPublishers,
   selectedPublisherId,
   onPublisherSelect,
+  onAnomalyDetected,
 }: PublisherListProps) {
   const [filter, setFilter] = useState<string>('all');
+
+  const anomalyDetection = useMemo(() => {
+    if (publishers.length === 0) {
+      return { anomalyDetails: {} as Record<string, AnomalyInfo>, anomalyCount: 0 };
+    }
+
+    const priceDeviations = publishers.map((p) => p.priceDeviation ?? 0);
+    const latencies = publishers.map((p) => p.latency);
+
+    const avgDeviation = priceDeviations.reduce((sum, d) => sum + d, 0) / priceDeviations.length;
+    const stdDeviation = Math.sqrt(
+      priceDeviations.reduce((sum, d) => sum + Math.pow(d - avgDeviation, 2), 0) / priceDeviations.length
+    );
+
+    const avgLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
+
+    const anomalyDetails: Record<string, AnomalyInfo> = {};
+    let anomalyCount = 0;
+
+    publishers.forEach((p) => {
+      const deviation = p.priceDeviation ?? 0;
+      const latency = p.latency;
+
+      const isPriceDeviationAnomaly = deviation > avgDeviation + 2 * stdDeviation;
+      const isLatencyAnomaly = latency > avgLatency * 2;
+
+      const anomalyTypes: string[] = [];
+      if (isPriceDeviationAnomaly) anomalyTypes.push('价格偏差');
+      if (isLatencyAnomaly) anomalyTypes.push('响应延迟');
+
+      if (anomalyTypes.length > 0) {
+        anomalyCount++;
+      }
+
+      anomalyDetails[p.id] = {
+        isPriceDeviationAnomaly,
+        isLatencyAnomaly,
+        anomalyTypes,
+      };
+    });
+
+    return { anomalyDetails, anomalyCount };
+  }, [publishers]);
+
+  useMemo(() => {
+    onAnomalyDetected?.(anomalyDetection.anomalyCount, anomalyDetection.anomalyDetails);
+  }, [anomalyDetection, onAnomalyDetected]);
 
   const filteredPublishers = publishers.filter((pub) => {
     if (filter === 'all') return true;
@@ -174,59 +229,79 @@ export function PublisherList({
       </div>
 
       <div className="space-y-2">
-        {sortedPublishers.map((publisher) => (
-          <div
-            key={publisher.id}
-            onClick={() => onPublisherSelect?.(publisher.id)}
-            className={`p-4 rounded-lg border transition-all cursor-pointer ${
-              selectedPublisherId === publisher.id
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-            }`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
-                  {publisher.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
-                    <StatusBadge status={publisher.status} />
+        {sortedPublishers.map((publisher) => {
+          const anomalyInfo = anomalyDetection.anomalyDetails[publisher.id];
+          const hasAnomaly = anomalyInfo && anomalyInfo.anomalyTypes.length > 0;
+
+          return (
+            <div
+              key={publisher.id}
+              onClick={() => onPublisherSelect?.(publisher.id)}
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                hasAnomaly
+                  ? 'border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-100'
+                  : selectedPublisherId === publisher.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                    {publisher.name.slice(0, 2).toUpperCase()}
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {publisher.submissionCount.toLocaleString()} submissions
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
+                      <StatusBadge status={publisher.status} />
+                      {hasAnomaly && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-300">
+                          异常
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {publisher.submissionCount.toLocaleString()} submissions
+                    </p>
+                    {hasAnomaly && (
+                      <p className="text-xs text-red-600 mt-1">
+                        异常类型: {anomalyInfo.anomalyTypes.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1 justify-end">
+                    <span className="text-lg font-bold text-gray-900">
+                      {publisher.reliabilityScore.toFixed(1)}%
+                    </span>
+                  </div>
+                  <ReliabilityStars score={publisher.reliabilityScore} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500 text-xs">Latency</p>
+                  <p className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-red-600' : 'text-gray-900'}`}>
+                    {publisher.latency}ms
+                    {anomalyInfo?.isLatencyAnomaly && <span className="ml-1">⚠️</span>}
                   </p>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1 justify-end">
-                  <span className="text-lg font-bold text-gray-900">
-                    {publisher.reliabilityScore.toFixed(1)}%
-                  </span>
+                <div>
+                  <p className="text-gray-500 text-xs">Accuracy</p>
+                  <p className="font-medium text-gray-900">
+                    {publisher.accuracy?.toFixed(1) ?? '-'}%
+                  </p>
                 </div>
-                <ReliabilityStars score={publisher.reliabilityScore} />
+                <div>
+                  <p className="text-gray-500 text-xs">Last Update</p>
+                  <p className="font-medium text-gray-900">{formatTimeAgo(publisher.lastUpdate)}</p>
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500 text-xs">Latency</p>
-                <p className="font-medium text-gray-900">{publisher.latency}ms</p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-xs">Accuracy</p>
-                <p className="font-medium text-gray-900">
-                  {publisher.accuracy?.toFixed(1) ?? '-'}%
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-xs">Last Update</p>
-                <p className="font-medium text-gray-900">{formatTimeAgo(publisher.lastUpdate)}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredPublishers.length === 0 && (

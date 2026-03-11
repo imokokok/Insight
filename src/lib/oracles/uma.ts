@@ -65,6 +65,20 @@ export interface ValidatorPerformanceHeatmapData {
   }[];
 }
 
+// 验证者性能热力图数据（按天）
+export interface ValidatorPerformanceHeatmapDataByDay {
+  validatorId: string;
+  validatorName: string;
+  dailyData: {
+    date: string;
+    dayIndex: number;
+    avgResponseTime: number;
+    avgSuccessRate: number;
+  }[];
+}
+
+export type TimeRange = '24H' | '7D';
+
 // 争议解决效率统计
 export interface DisputeEfficiencyStats {
   avgResolutionTime: number;
@@ -372,6 +386,45 @@ export class UMAClient extends BaseOracleClient {
         validatorId: validator.id,
         validatorName: validator.name,
         hourlyData,
+      });
+    }
+
+    return heatmapData;
+  }
+
+  async getValidatorPerformanceHeatmapByDays(days: number = 7): Promise<ValidatorPerformanceHeatmapDataByDay[]> {
+    const validators = await this.getValidators();
+    const heatmapData: ValidatorPerformanceHeatmapDataByDay[] = [];
+    const now = new Date();
+
+    for (const validator of validators.slice(0, 8)) {
+      const dailyData = [];
+      
+      for (let dayIndex = 0; dayIndex < days; dayIndex++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - (days - 1 - dayIndex));
+        const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
+        
+        const baseResponseTime = validator.responseTime;
+        const dayVariation = Math.sin((dayIndex / days) * Math.PI) * 15 + Math.random() * 10 - 5;
+        const avgResponseTime = Math.max(50, baseResponseTime + dayVariation);
+        
+        const baseSuccessRate = validator.successRate;
+        const successVariation = Math.cos((dayIndex / days) * Math.PI) * 0.2 + Math.random() * 0.15 - 0.075;
+        const avgSuccessRate = Math.min(100, Math.max(95, baseSuccessRate + successVariation));
+
+        dailyData.push({
+          date: dateStr,
+          dayIndex,
+          avgResponseTime: Math.round(avgResponseTime),
+          avgSuccessRate: parseFloat(avgSuccessRate.toFixed(2)),
+        });
+      }
+
+      heatmapData.push({
+        validatorId: validator.id,
+        validatorName: validator.name,
+        dailyData,
       });
     }
 

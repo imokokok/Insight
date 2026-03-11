@@ -250,6 +250,18 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
     });
   };
 
+  const selectTop3 = () => {
+    const sortedByReputation = [...validators].sort((a, b) => b.reputation - a.reputation);
+    const top3Ids = sortedByReputation.slice(0, 3).map((v) => v.id);
+    setSelectedValidators(top3Ids);
+  };
+
+  const selectRandom = () => {
+    const shuffled = [...validators].sort(() => Math.random() - 0.5);
+    const randomIds = shuffled.slice(0, 4).map((v) => v.id);
+    setSelectedValidators(randomIds);
+  };
+
   const comparedValidators = validators.filter((v) => selectedValidators.includes(v.id));
 
   return (
@@ -257,6 +269,22 @@ export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
       <DashboardCard title={t('uma.validatorComparison.selectValidators')}>
         <div className="space-y-4">
           <p className="text-sm text-gray-600">{t('uma.validatorComparison.selectHint')}</p>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">{t('uma.validatorComparison.quickSelect')}:</span>
+            <button
+              onClick={selectTop3}
+              className="px-3 py-1.5 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+            >
+              Top 3
+            </button>
+            <button
+              onClick={selectRandom}
+              className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              {t('uma.validatorComparison.randomSelect')}
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             {validators.slice(0, 10).map((validator) => {

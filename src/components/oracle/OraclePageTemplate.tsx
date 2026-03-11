@@ -28,6 +28,11 @@ import {
   ConfidenceIntervalChart,
   PublisherContributionPanel,
   CrossChainPriceConsistency,
+  BandCrossChainPriceConsistency,
+  RequestTypeDistribution,
+  ConfidenceAlertPanel,
+  DataQualityScorePanel,
+  LatencyTrendChart,
 } from '@/components/oracle';
 import { useRefresh, useExport, ExportOptions } from '@/hooks';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -482,8 +487,6 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
           title={`${config.name} ${t('chainlink.analytics')}`}
           subtitle={t('chainlink.platform')}
           icon={config.icon}
-          timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
           onRefresh={refresh}
           onExport={handleExport}
           isRefreshing={isRefreshing}
@@ -539,7 +542,13 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                   />
                 </div>
                 <div className="mb-6">
+                  <DataQualityScorePanel symbol={config.symbol} />
+                </div>
+                <div className="mb-6">
                   <ConfidenceIntervalChart symbol={config.symbol} />
+                </div>
+                <div className="mb-6">
+                  <ConfidenceAlertPanel symbol={config.symbol} />
                 </div>
               </>
             )}
@@ -575,15 +584,23 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                       />
                     </div>
                     <div className="mb-6">
+                      <LatencyTrendChart symbol={config.symbol} />
+                    </div>
+                    <div className="mb-6">
                       <CrossChainPriceConsistency symbol={config.symbol} />
                     </div>
                   </>
                 )}
                 {config.provider === OracleProvider.BAND_PROTOCOL &&
                   config.client instanceof BandProtocolClient && (
-                    <div className="mb-6">
-                      <ValidatorPanel client={config.client} />
-                    </div>
+                    <>
+                      <div className="mb-6">
+                        <ValidatorPanel client={config.client} />
+                      </div>
+                      <div className="mb-6">
+                        <BandCrossChainPriceConsistency />
+                      </div>
+                    </>
                   )}
               </>
             )}
@@ -694,7 +711,6 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
                         client={config.client}
                         symbol={config.symbol}
                         chain={config.defaultChain}
-                        initialTimeRange={timeRange}
                         height={320}
                         showToolbar={true}
                         defaultPrice={config.marketData.change24hValue}

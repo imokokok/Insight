@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
-import { UMAClient, ValidatorPerformanceHeatmapData } from '@/lib/oracles/uma';
+import { UMAClient, ValidatorPerformanceHeatmapData, ValidatorPerformanceHeatmapDataByDay, TimeRange } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/context';
 
 type ViewMode = 'responseTime' | 'successRate';
 
 interface TooltipData {
   validatorName: string;
-  hour: number;
+  hour?: number;
+  date?: string;
   value: number;
   type: ViewMode;
   x: number;
@@ -19,8 +20,10 @@ interface TooltipData {
 export function ValidatorPerformanceHeatmap() {
   const { t } = useI18n();
   const [data, setData] = useState<ValidatorPerformanceHeatmapData[]>([]);
+  const [dataByDay, setDataByDay] = useState<ValidatorPerformanceHeatmapDataByDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('responseTime');
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
   useEffect(() => {
@@ -28,8 +31,14 @@ export function ValidatorPerformanceHeatmap() {
       try {
         setLoading(true);
         const client = new UMAClient();
-        const heatmapData = await client.getValidatorPerformanceHeatmap();
-        setData(heatmapData);
+        
+        if (timeRange === '24H') {
+          const heatmapData = await client.getValidatorPerformanceHeatmap();
+          setData(heatmapData);
+        } else {
+          const heatmapDataByDay = await client.getValidatorPerformanceHeatmapByDays(7);
+          setDataByDay(heatmapDataByDay);
+        }
       } catch (error) {
         console.error('Failed to fetch heatmap data:', error);
       } finally {
@@ -38,7 +47,7 @@ export function ValidatorPerformanceHeatmap() {
     };
 
     fetchData();
-  }, []);
+  }, [timeRange]);
 
   const getColor = (value: number, type: ViewMode): string => {
     if (type === 'responseTime') {
@@ -64,19 +73,30 @@ export function ValidatorPerformanceHeatmap() {
 
   const handleCellHover = (
     validatorName: string,
-    hour: number,
+    hourOrDate: number | string,
     value: number,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    setTooltip({
-      validatorName,
-      hour,
-      value,
-      type: viewMode,
-      x: rect.left + rect.width / 2,
-      y: rect.top,
-    });
+    if (timeRange === '24H') {
+      setTooltip({
+        validatorName,
+        hour: hourOrDate as number,
+        value,
+        type: viewMode,
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    } else {
+      setTooltip({
+        validatorName,
+        date: hourOrDate as string,
+        value,
+        type: viewMode,
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+    }
   };
 
   const handleCellLeave = () => {
@@ -94,12 +114,34 @@ export function ValidatorPerformanceHeatmap() {
   }
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const days = dataByDay.length > 0 ? dataByDay[0].dailyData.map(d => d.date) : [];
 
   return (
     <DashboardCard title={t('uma.validatorAnalytics.performanceHeatmap')}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTimeRange('24H')}
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                timeRange === '24H'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              24H
+            </button>
+            <button
+              onClick={() => setTimeRange('7D')}
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                timeRange === '7D'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              7D
+            </button>
+            <div className="w-px h-6 bg-gray-300 mx-2" />
             <button
               onClick={() => setViewMode('responseTime')}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -147,51 +189,99 @@ export function ValidatorPerformanceHeatmap() {
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
             <div className="flex mb-2 pl-32">
-              {hours.map((hour) => (
-                <div
-                  key={hour}
-                  className="flex-1 text-center text-xs text-gray-500"
-                  style={{ minWidth: '24px' }}
-                >
-                  {hour}
-                </div>
-              ))}
+              {timeRange === '24H' ? (
+                hours.map((hour) => (
+                  <div
+                    key={hour}
+                    className="flex-1 text-center text-xs text-gray-500"
+                    style={{ minWidth: '24px' }}
+                  >
+                    {hour}
+                  </div>
+                ))
+              ) : (
+                days.map((day) => (
+                  <div
+                    key={day}
+                    className="flex-1 text-center text-xs text-gray-500"
+                    style={{ minWidth: '60px' }}
+                  >
+                    {day}
+                  </div>
+                ))
+              )}
             </div>
 
             <div className="space-y-1">
-              {data.map((validator) => (
-                <div key={validator.validatorId} className="flex items-center gap-2">
-                  <div className="w-32 text-sm text-gray-700 truncate">
-                    {validator.validatorName}
-                  </div>
-                  <div className="flex-1 flex gap-0.5">
-                    {validator.hourlyData.map((hourData) => {
-                      const value =
-                        viewMode === 'responseTime'
-                          ? hourData.responseTime
-                          : hourData.successRate;
-                      const color = getColor(value, viewMode);
-                      const opacity = getOpacity(value, viewMode);
+              {timeRange === '24H' ? (
+                data.map((validator) => (
+                  <div key={validator.validatorId} className="flex items-center gap-2">
+                    <div className="w-32 text-sm text-gray-700 truncate">
+                      {validator.validatorName}
+                    </div>
+                    <div className="flex-1 flex gap-0.5">
+                      {validator.hourlyData.map((hourData) => {
+                        const value =
+                          viewMode === 'responseTime'
+                            ? hourData.responseTime
+                            : hourData.successRate;
+                        const color = getColor(value, viewMode);
+                        const opacity = getOpacity(value, viewMode);
 
-                      return (
-                        <div
-                          key={hourData.hour}
-                          className="flex-1 h-6 rounded cursor-pointer transition-transform hover:scale-110 hover:z-10"
-                          style={{
-                            backgroundColor: color,
-                            opacity,
-                            minWidth: '24px',
-                          }}
-                          onMouseEnter={(e) =>
-                            handleCellHover(validator.validatorName, hourData.hour, value, e)
-                          }
-                          onMouseLeave={handleCellLeave}
-                        />
-                      );
-                    })}
+                        return (
+                          <div
+                            key={hourData.hour}
+                            className="flex-1 h-6 rounded cursor-pointer transition-transform hover:scale-110 hover:z-10"
+                            style={{
+                              backgroundColor: color,
+                              opacity,
+                              minWidth: '24px',
+                            }}
+                            onMouseEnter={(e) =>
+                              handleCellHover(validator.validatorName, hourData.hour, value, e)
+                            }
+                            onMouseLeave={handleCellLeave}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                dataByDay.map((validator) => (
+                  <div key={validator.validatorId} className="flex items-center gap-2">
+                    <div className="w-32 text-sm text-gray-700 truncate">
+                      {validator.validatorName}
+                    </div>
+                    <div className="flex-1 flex gap-0.5">
+                      {validator.dailyData.map((dayData) => {
+                        const value =
+                          viewMode === 'responseTime'
+                            ? dayData.avgResponseTime
+                            : dayData.avgSuccessRate;
+                        const color = getColor(value, viewMode);
+                        const opacity = getOpacity(value, viewMode);
+
+                        return (
+                          <div
+                            key={dayData.dayIndex}
+                            className="flex-1 h-6 rounded cursor-pointer transition-transform hover:scale-110 hover:z-10"
+                            style={{
+                              backgroundColor: color,
+                              opacity,
+                              minWidth: '60px',
+                            }}
+                            onMouseEnter={(e) =>
+                              handleCellHover(validator.validatorName, dayData.date, value, e)
+                            }
+                            onMouseLeave={handleCellLeave}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -206,9 +296,15 @@ export function ValidatorPerformanceHeatmap() {
             }}
           >
             <div className="font-semibold">{tooltip.validatorName}</div>
-            <div>
-              {t('uma.validatorAnalytics.hour')}: {tooltip.hour}:00
-            </div>
+            {tooltip.hour !== undefined ? (
+              <div>
+                {t('uma.validatorAnalytics.hour')}: {tooltip.hour}:00
+              </div>
+            ) : (
+              <div>
+                {t('uma.validatorAnalytics.date')}: {tooltip.date}
+              </div>
+            )}
             <div>
               {tooltip.type === 'responseTime'
                 ? `${t('uma.validatorAnalytics.responseTime')}: ${tooltip.value}ms`

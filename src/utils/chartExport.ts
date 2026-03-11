@@ -1,8 +1,19 @@
 export interface ExportOptions {
-  format: 'csv' | 'json' | 'png' | 'svg';
+  format: 'csv' | 'json' | 'png' | 'svg' | 'excel';
   filename?: string;
   includeMetadata?: boolean;
+  resolution?: 'standard' | 'high';
+  chartTitle?: string;
+  dataSource?: string;
+  showTimestamp?: boolean;
 }
+
+export type Resolution = 'standard' | 'high';
+
+export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; label: string }> = {
+  standard: { scale: 2, label: '标准 (2x)' },
+  high: { scale: 4, label: '高清 (4x)' },
+};
 
 export interface ChartExportData {
   [key: string]: string | number | undefined;
@@ -153,10 +164,23 @@ export async function exportToPNG(
     backgroundColor?: string;
     scale?: number;
     padding?: number;
+    resolution?: Resolution;
+    chartTitle?: string;
+    dataSource?: string;
+    showTimestamp?: boolean;
   } = {},
   onProgress?: ExportProgressCallback
 ): Promise<void> {
-  const { backgroundColor = '#ffffff', scale = 2, padding = 20 } = options;
+  const { 
+    backgroundColor = '#ffffff', 
+    padding = 20,
+    resolution = 'standard',
+    chartTitle,
+    dataSource,
+    showTimestamp = true,
+  } = options;
+  
+  const scale = RESOLUTION_CONFIG[resolution].scale;
 
   onProgress?.({ status: 'preparing', progress: 10, message: '准备图表截图...' });
 
@@ -170,13 +194,19 @@ export async function exportToPNG(
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
   const svgRect = svgElement.getBoundingClientRect();
 
+  const headerHeight = chartTitle ? 60 : 0;
+  const footerHeight = showTimestamp ? 40 : 0;
+  
+  const totalWidth = svgRect.width + padding * 2;
+  const totalHeight = svgRect.height + padding * 2 + headerHeight + footerHeight;
+
   clone.setAttribute('width', String(svgRect.width * scale));
   clone.setAttribute('height', String(svgRect.height * scale));
   clone.style.backgroundColor = backgroundColor;
 
   const canvas = document.createElement('canvas');
-  canvas.width = (svgRect.width + padding * 2) * scale;
-  canvas.height = (svgRect.height + padding * 2) * scale;
+  canvas.width = totalWidth * scale;
+  canvas.height = totalHeight * scale;
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
@@ -185,6 +215,13 @@ export async function exportToPNG(
 
   ctx.fillStyle = backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (chartTitle) {
+    ctx.fillStyle = '#1f2937';
+    ctx.font = `bold ${24 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(chartTitle, (totalWidth * scale) / 2, padding * scale + 30 * scale);
+  }
 
   onProgress?.({ status: 'exporting', progress: 40, message: '序列化 SVG...' });
 
@@ -198,7 +235,30 @@ export async function exportToPNG(
     const img = new Image();
     img.onload = () => {
       try {
-        ctx.drawImage(img, padding * scale, padding * scale, svgRect.width * scale, svgRect.height * scale);
+        const chartY = padding * scale + headerHeight * scale;
+        ctx.drawImage(img, padding * scale, chartY, svgRect.width * scale, svgRect.height * scale);
+
+        if (showTimestamp) {
+          const timestampY = chartY + svgRect.height * scale + 25 * scale;
+          ctx.fillStyle = '#6b7280';
+          ctx.font = `${12 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+          ctx.textAlign = 'left';
+          
+          const timestamp = new Date().toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          ctx.fillText(`导出时间: ${timestamp}`, padding * scale, timestampY);
+          
+          if (dataSource) {
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = `${10 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.fillText(`数据来源: ${dataSource}`, padding * scale, timestampY + 18 * scale);
+          }
+        }
 
         onProgress?.({ status: 'exporting', progress: 80, message: '生成 PNG 文件...' });
 
@@ -238,10 +298,13 @@ export async function exportToSVG(
   options: {
     backgroundColor?: string;
     includeStyles?: boolean;
+    chartTitle?: string;
+    dataSource?: string;
+    showTimestamp?: boolean;
   } = {},
   onProgress?: ExportProgressCallback
 ): Promise<void> {
-  const { backgroundColor = '#ffffff', includeStyles = true } = options;
+  const { backgroundColor = '#ffffff', includeStyles = true, chartTitle, dataSource, showTimestamp = true } = options;
 
   onProgress?.({ status: 'preparing', progress: 10, message: '准备 SVG 导出...' });
 
@@ -253,6 +316,17 @@ export async function exportToSVG(
   onProgress?.({ status: 'exporting', progress: 30, message: '克隆 SVG 元素...' });
 
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
+  const svgRect = svgElement.getBoundingClientRect();
+
+  const headerHeight = chartTitle ? 60 : 0;
+  const footerHeight = showTimestamp ? 40 : 0;
+  const padding = 20;
+
+  const totalWidth = svgRect.width + padding * 2;
+  const totalHeight = svgRect.height + padding * 2 + headerHeight + footerHeight;
+
+  clone.setAttribute('width', String(totalWidth));
+  clone.setAttribute('height', String(totalHeight));
 
   if (includeStyles) {
     const styleSheets = document.styleSheets;
@@ -266,11 +340,9 @@ export async function exportToSVG(
             cssText += rules[j].cssText + '\n';
           }
         } catch {
-          // Skip cross-origin stylesheets
         }
       }
     } catch {
-      // Ignore stylesheet errors
     }
 
     if (cssText) {
@@ -280,11 +352,76 @@ export async function exportToSVG(
     }
   }
 
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  rect.setAttribute('width', '100%');
-  rect.setAttribute('height', '100%');
-  rect.setAttribute('fill', backgroundColor);
-  clone.insertBefore(rect, clone.firstChild);
+  const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bgRect.setAttribute('width', '100%');
+  bgRect.setAttribute('height', '100%');
+  bgRect.setAttribute('fill', backgroundColor);
+  clone.insertBefore(bgRect, clone.firstChild);
+
+  if (chartTitle) {
+    const titleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    titleGroup.setAttribute('class', 'export-title');
+    
+    const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    titleText.setAttribute('x', String(totalWidth / 2));
+    titleText.setAttribute('y', String(padding + 30));
+    titleText.setAttribute('text-anchor', 'middle');
+    titleText.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif');
+    titleText.setAttribute('font-size', '24');
+    titleText.setAttribute('font-weight', 'bold');
+    titleText.setAttribute('fill', '#1f2937');
+    titleText.textContent = chartTitle;
+    titleGroup.appendChild(titleText);
+    clone.appendChild(titleGroup);
+  }
+
+  const contentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  contentGroup.setAttribute('transform', `translate(${padding}, ${padding + headerHeight})`);
+  
+  const children = Array.from(clone.childNodes).filter(
+    (node) => node !== bgRect && !(node as Element).classList?.contains('export-title')
+  );
+  children.forEach((child) => {
+    if (child !== contentGroup) {
+      contentGroup.appendChild(child);
+    }
+  });
+  clone.appendChild(contentGroup);
+
+  if (showTimestamp) {
+    const footerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    footerGroup.setAttribute('class', 'export-footer');
+    
+    const timestamp = new Date().toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    
+    const timestampText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    timestampText.setAttribute('x', String(padding));
+    timestampText.setAttribute('y', String(totalHeight - padding - (dataSource ? 18 : 0)));
+    timestampText.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif');
+    timestampText.setAttribute('font-size', '12');
+    timestampText.setAttribute('fill', '#6b7280');
+    timestampText.textContent = `导出时间: ${timestamp}`;
+    footerGroup.appendChild(timestampText);
+    
+    if (dataSource) {
+      const sourceText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      sourceText.setAttribute('x', String(padding));
+      sourceText.setAttribute('y', String(totalHeight - padding));
+      sourceText.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif');
+      sourceText.setAttribute('font-size', '10');
+      sourceText.setAttribute('fill', '#9ca3af');
+      sourceText.textContent = `数据来源: ${dataSource}`;
+      footerGroup.appendChild(sourceText);
+    }
+    
+    clone.appendChild(footerGroup);
+  }
 
   onProgress?.({ status: 'exporting', progress: 60, message: '序列化 SVG...' });
 
@@ -309,12 +446,21 @@ export async function exportChart(
   options: ExportOptions,
   onProgress?: ExportProgressCallback
 ): Promise<void> {
-  const { format, filename = 'chart-export', includeMetadata = true } = options;
+  const { 
+    format, 
+    filename = 'chart-export', 
+    includeMetadata = true,
+    resolution = 'standard',
+    chartTitle,
+    dataSource,
+    showTimestamp = true,
+  } = options;
 
   const metadata: ExportMetadata | undefined = includeMetadata
     ? {
         exportedAt: new Date().toISOString(),
         totalRecords: data.length,
+        dataSource,
       }
     : undefined;
 
@@ -325,17 +471,29 @@ export async function exportChart(
     case 'json':
       await exportToJSON(data, filename, metadata, onProgress);
       break;
+    case 'excel':
+      await exportToCSV(data, filename, metadata, onProgress);
+      break;
     case 'png':
       if (!chartRef) {
         throw new Error('Chart element reference is required for PNG export');
       }
-      await exportToPNG(chartRef, filename, {}, onProgress);
+      await exportToPNG(chartRef, filename, { 
+        resolution, 
+        chartTitle, 
+        dataSource, 
+        showTimestamp 
+      }, onProgress);
       break;
     case 'svg':
       if (!chartRef) {
         throw new Error('Chart element reference is required for SVG export');
       }
-      await exportToSVG(chartRef, filename, {}, onProgress);
+      await exportToSVG(chartRef, filename, { 
+        chartTitle, 
+        dataSource, 
+        showTimestamp 
+      }, onProgress);
       break;
     default:
       throw new Error(`Unsupported export format: ${format}`);
@@ -388,6 +546,12 @@ export function getSupportedExportFormats(): Array<{
       format: 'json',
       label: 'JSON',
       description: '结构化数据格式，适合程序处理',
+      requiresChartRef: false,
+    },
+    {
+      format: 'excel',
+      label: 'Excel',
+      description: 'Excel 兼容格式，适合表格处理',
       requiresChartRef: false,
     },
     {

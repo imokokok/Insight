@@ -10,6 +10,7 @@ import { ValidatorComparison } from './ValidatorComparison';
 type SortField = 'tokens' | 'commissionRate' | 'uptime' | 'rank';
 type SortDirection = 'asc' | 'desc';
 type FilterStatus = 'all' | 'active' | 'jailed';
+type QuickFilter = 'all' | 'lowCommission' | 'highStake' | 'highUptime';
 
 interface ValidatorPanelProps {
   client: BandProtocolClient;
@@ -387,6 +388,7 @@ export function ValidatorPanel({
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
   const [selectedValidator, setSelectedValidator] = useState<ValidatorInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedValidatorAddresses, setSelectedValidatorAddresses] = useState<Set<string>>(
@@ -456,6 +458,17 @@ export function ValidatorPanel({
       result = result.filter((v) => v.jailed);
     }
 
+    if (quickFilter === 'lowCommission') {
+      result = result.filter((v) => v.commissionRate < 0.05);
+    } else if (quickFilter === 'highStake') {
+      const sortedByStake = [...validators].sort((a, b) => b.tokens - a.tokens);
+      const top20Percent = Math.ceil(sortedByStake.length * 0.2);
+      const topAddresses = new Set(sortedByStake.slice(0, top20Percent).map((v) => v.operatorAddress));
+      result = result.filter((v) => topAddresses.has(v.operatorAddress));
+    } else if (quickFilter === 'highUptime') {
+      result = result.filter((v) => v.uptime >= 99.9);
+    }
+
     result.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
@@ -477,7 +490,7 @@ export function ValidatorPanel({
     });
 
     setFilteredValidators(result);
-  }, [validators, sortField, sortDirection, filterStatus]);
+  }, [validators, sortField, sortDirection, filterStatus, quickFilter]);
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -569,7 +582,11 @@ export function ValidatorPanel({
             <div>
               <h3 className="text-lg font-semibold text-gray-900">验证者列表</h3>
               <p className="text-sm text-gray-500 mt-0.5">
-                共 {validators.length} 个验证者 • 总质押{' '}
+                共 {filteredValidators.length} 个验证者
+                {quickFilter !== 'all' && (
+                  <span className="text-blue-600 ml-1">(已筛选)</span>
+                )}
+                {' • 总质押 '}
                 {formatNumber(
                   validators.reduce((sum, v) => sum + v.tokens, 0),
                   true
@@ -612,6 +629,7 @@ export function ValidatorPanel({
 
         <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-500 mr-1">状态:</span>
             <FilterButton
               status="all"
               currentStatus={filterStatus}
@@ -633,6 +651,52 @@ export function ValidatorPanel({
               label="监禁"
               count={jailedCount}
             />
+          </div>
+        </div>
+
+        <div className="px-5 py-3 bg-purple-50 border-b border-gray-100">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-purple-600 mr-1">快速筛选:</span>
+            <button
+              onClick={() => setQuickFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                quickFilter === 'all'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+              }`}
+            >
+              全部
+            </button>
+            <button
+              onClick={() => setQuickFilter('lowCommission')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                quickFilter === 'lowCommission'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+              }`}
+            >
+              低佣金 (&lt;5%)
+            </button>
+            <button
+              onClick={() => setQuickFilter('highStake')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                quickFilter === 'highStake'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+              }`}
+            >
+              高质押 (Top 20%)
+            </button>
+            <button
+              onClick={() => setQuickFilter('highUptime')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                quickFilter === 'highUptime'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+              }`}
+            >
+              高在线率 (≥99.9%)
+            </button>
             {selectedValidatorAddresses.size > 0 && (
               <span className="ml-2 text-sm text-blue-600 font-medium">
                 已选择 {selectedValidatorAddresses.size} 个验证者进行对比

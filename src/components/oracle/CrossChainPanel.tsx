@@ -14,6 +14,7 @@ import {
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { RequestTrendChart } from './RequestTrendChart';
 import { ChainComparison } from './ChainComparison';
+import { RequestTypeDistribution } from './RequestTypeDistribution';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -472,6 +473,8 @@ export function CrossChainPanel({
       </div>
 
       <RequestTrendChart client={client} autoUpdate={autoUpdate} updateInterval={updateInterval} />
+
+      <RequestTypeDistribution />
 
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">

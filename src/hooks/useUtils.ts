@@ -43,8 +43,10 @@ export function useRefresh(options: UseRefreshOptions = {}): UseRefreshReturn {
   };
 }
 
-export type ExportFormat = 'json' | 'csv';
+export type ExportFormat = 'json' | 'csv' | 'excel';
 export type DataType = 'all' | 'price' | 'historical' | 'network';
+export type ExportScope = 'current' | 'all' | 'custom';
+export type Resolution = 'standard' | 'high';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -55,6 +57,11 @@ export interface ExportOptions {
     start: string;
     end: string;
   };
+  scope?: ExportScope;
+  resolution?: Resolution;
+  batchExport?: boolean;
+  chartTitle?: string;
+  dataSource?: string;
 }
 
 interface UseExportOptions<T> {
@@ -97,7 +104,8 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
         parts.push(opts.dataType);
       }
       
-      return `${parts.join('-')}.${formatType}`;
+      const extension = formatType === 'excel' ? 'xlsx' : formatType;
+      return `${parts.join('-')}.${extension}`;
     },
     [filename]
   );
@@ -112,6 +120,11 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
         timeRange: customOptions?.timeRange || exportOptions.timeRange,
         includeMetadata: customOptions?.includeMetadata ?? exportOptions.includeMetadata ?? true,
         dateRange: customOptions?.dateRange || exportOptions.dateRange,
+        scope: customOptions?.scope || exportOptions.scope || 'current',
+        resolution: customOptions?.resolution || exportOptions.resolution || 'standard',
+        batchExport: customOptions?.batchExport ?? exportOptions.batchExport ?? false,
+        chartTitle: customOptions?.chartTitle || exportOptions.chartTitle,
+        dataSource: customOptions?.dataSource || exportOptions.dataSource,
       };
 
       const finalFilename = generateFilename(mergedOptions.format, mergedOptions);
@@ -124,6 +137,8 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
                 timeRange: mergedOptions.timeRange,
                 dataType: mergedOptions.dataType,
                 dateRange: mergedOptions.dateRange,
+                scope: mergedOptions.scope,
+                dataSource: mergedOptions.dataSource,
               },
               data: data,
             }
@@ -133,9 +148,12 @@ export function useExport<T>(options: UseExportOptions<T>): UseExportReturn {
           type: 'application/json',
         });
         downloadBlob(blob, finalFilename);
-      } else if (mergedOptions.format === 'csv') {
+      } else if (mergedOptions.format === 'csv' || mergedOptions.format === 'excel') {
         const csvContent = convertToCSV(data, mergedOptions);
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const mimeType = mergedOptions.format === 'excel' 
+          ? 'application/vnd.ms-excel;charset=utf-8;' 
+          : 'text/csv;charset=utf-8;';
+        const blob = new Blob([csvContent], { type: mimeType });
         downloadBlob(blob, finalFilename);
       }
     },
