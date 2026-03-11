@@ -35,13 +35,13 @@ import {
   LatencyTrendChart,
 } from '@/components/oracle';
 import { useRefresh, useExport, ExportOptions } from '@/hooks';
+import { useGlobalTimeRange } from '@/contexts/TimeRangeContext';
 import { UMAClient } from '@/lib/oracles/uma';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMADataQualityScoreCard } from './UMADataQualityScoreCard';
 import { KPIDashboard } from './KPIDashboard';
 import DataQualityIndicator from './DataQualityIndicator';
 import { DataSourceCredibility } from './DataSourceCredibility';
-import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 
 interface OraclePageTemplateProps {
   config: OracleConfig;
@@ -64,7 +64,7 @@ export function OraclePageTemplate({
   customLayout,
 }: OraclePageTemplateProps) {
   const { t } = useI18n();
-  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
+  const { timeRange, setTimeRange } = useGlobalTimeRange();
   const [activeTab, setActiveTab] = useState('market');
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
@@ -504,8 +504,7 @@ export function OraclePageTemplate({
   }, [config]);
 
   return (
-    <TimeRangeProvider defaultTimeRange={timeRange}>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         <PageHeader
           title={`${config.name} ${t('chainlink.analytics')}`}
           subtitle={t('chainlink.platform')}
@@ -832,6 +831,5 @@ export function OraclePageTemplate({
           </div>
         </main>
       </div>
-    </TimeRangeProvider>
   );
 }

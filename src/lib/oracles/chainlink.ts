@@ -1,13 +1,5 @@
-import { BaseOracleClient } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
-
-const BASE_PRICES: Record<string, number> = {
-  BTC: 68000,
-  ETH: 3500,
-  SOL: 180,
-  LINK: 18,
-  USDC: 1,
-};
 
 export class ChainlinkClient extends BaseOracleClient {
   name = OracleProvider.CHAINLINK;
@@ -20,7 +12,7 @@ export class ChainlinkClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockPrice(symbol, basePrice, chain);
     } catch (error) {
       throw this.createError(
@@ -36,7 +28,7 @@ export class ChainlinkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
     } catch (error) {
       throw this.createError(

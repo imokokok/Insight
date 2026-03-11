@@ -1,13 +1,5 @@
-import { BaseOracleClient } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
-
-const BASE_PRICES: Record<string, number> = {
-  BTC: 67850,
-  ETH: 3480,
-  SOL: 178,
-  BAND: 2.5,
-  USDC: 1,
-};
 
 // Band Protocol 市场数据类型
 export interface BandMarketData {
@@ -43,7 +35,7 @@ export interface ValidatorInfo {
 }
 
 // 网络统计类型
-export interface NetworkStats {
+export interface BandNetworkStats {
   activeValidators: number;
   totalValidators: number;
   bondedTokens: number;
@@ -92,7 +84,7 @@ export class BandProtocolClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockPrice(symbol, basePrice, chain);
     } catch (error) {
       throw this.createError(
@@ -108,7 +100,7 @@ export class BandProtocolClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
     } catch (error) {
       throw this.createError(
@@ -123,7 +115,7 @@ export class BandProtocolClient extends BaseOracleClient {
   // 获取 BAND 代币市场数据
   async getBandMarketData(): Promise<BandMarketData> {
     try {
-      const basePrice = BASE_PRICES.BAND || 2.5;
+      const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
       const priceChange = (Math.random() - 0.5) * 0.5;
       const priceChangePercentage = (priceChange / basePrice) * 100;
       const currentPrice = basePrice + priceChange;
@@ -244,7 +236,7 @@ export class BandProtocolClient extends BaseOracleClient {
   }
 
   // 获取网络统计信息
-  async getNetworkStats(): Promise<NetworkStats> {
+  async getNetworkStats(): Promise<BandNetworkStats> {
     try {
       const totalValidators = 72 + Math.floor(Math.random() * 15);
       const activeValidators = 65 + Math.floor(Math.random() * 10);
@@ -373,7 +365,7 @@ export class BandProtocolClient extends BaseOracleClient {
     period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
   ): Promise<HistoricalPricePoint[]> {
     try {
-      const basePrice = BASE_PRICES.BAND || 2.5;
+      const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
       const prices: HistoricalPricePoint[] = [];
 
       const periodConfig: Record<string, { points: number; intervalHours: number }> = {
