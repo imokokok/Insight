@@ -337,7 +337,11 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
 };
 
 export function getOracleConfig(provider: OracleProvider): OracleConfig {
-  return oracleConfigs[provider];
+  const config = oracleConfigs[provider];
+  if (!config) {
+    throw new Error(`Oracle configuration not found for provider: ${provider}`);
+  }
+  return config;
 }
 
 export function getAllOracleConfigs(): OracleConfig[] {

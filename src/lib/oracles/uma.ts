@@ -1,13 +1,5 @@
-import { BaseOracleClient } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
-
-const BASE_PRICES: Record<string, number> = {
-  BTC: 68100,
-  ETH: 3520,
-  SOL: 182,
-  UMA: 8.5,
-  USDC: 1,
-};
 
 // 验证者数据类型
 export interface ValidatorData {
@@ -32,7 +24,7 @@ export interface DisputeData {
 }
 
 // 网络统计数据类型
-export interface NetworkStats {
+export interface UMAMetworkStats {
   activeValidators: number;
   validatorUptime: number;
   avgResponseTime: number;
@@ -121,7 +113,7 @@ export class UMAClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockPrice(symbol, basePrice, chain);
     } catch (error) {
       throw this.createError(
@@ -137,7 +129,7 @@ export class UMAClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
     } catch (error) {
       throw this.createError(
@@ -285,7 +277,7 @@ export class UMAClient extends BaseOracleClient {
   }
 
   // 获取网络统计
-  async getNetworkStats(): Promise<NetworkStats> {
+  async getNetworkStats(): Promise<UMAMetworkStats> {
     return {
       activeValidators: 850,
       validatorUptime: 99.5,
@@ -469,19 +461,23 @@ export class UMAClient extends BaseOracleClient {
       });
     }
 
+    const distribution = { '0-2h': 0, '2-6h': 0, '6-12h': 0, '12-24h': 0, '24-48h': 0, '48h+': 0 };
+    for (const time of resolutionTimes) {
+      if (time <= 2) distribution['0-2h']++;
+      else if (time <= 6) distribution['2-6h']++;
+      else if (time <= 12) distribution['6-12h']++;
+      else if (time <= 24) distribution['12-24h']++;
+      else if (time <= 48) distribution['24-48h']++;
+      else distribution['48h+']++;
+    }
+
     const resolutionTimeDistribution = [
-      { range: '0-2h', count: Math.floor(resolutionTimes.filter((t) => t <= 2).length) },
-      { range: '2-6h', count: Math.floor(resolutionTimes.filter((t) => t > 2 && t <= 6).length) },
-      { range: '6-12h', count: Math.floor(resolutionTimes.filter((t) => t > 6 && t <= 12).length) },
-      {
-        range: '12-24h',
-        count: Math.floor(resolutionTimes.filter((t) => t > 12 && t <= 24).length),
-      },
-      {
-        range: '24-48h',
-        count: Math.floor(resolutionTimes.filter((t) => t > 24 && t <= 48).length),
-      },
-      { range: '48h+', count: Math.floor(resolutionTimes.filter((t) => t > 48).length) },
+      { range: '0-2h', count: distribution['0-2h'] },
+      { range: '2-6h', count: distribution['2-6h'] },
+      { range: '6-12h', count: distribution['6-12h'] },
+      { range: '12-24h', count: distribution['12-24h'] },
+      { range: '24-48h', count: distribution['24-48h'] },
+      { range: '48h+', count: distribution['48h+'] },
     ];
 
     return {

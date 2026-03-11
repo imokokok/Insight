@@ -32,6 +32,20 @@ export function usePriceData(
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previousPriceRef = useRef<number | null>(null);
+  const clientRef = useRef(client);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    clientRef.current = client;
+  }, [client]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchPrice = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -43,24 +57,24 @@ export function usePriceData(
 
     try {
       setError(null);
-      const priceData = await client.getPrice(symbol, chain);
+      const priceData = await clientRef.current.getPrice(symbol, chain);
 
-      if (abortController.signal.aborted) return;
+      if (abortController.signal.aborted || !isMountedRef.current) return;
 
-      setPreviousPrice((prev) =>
-        price?.price !== priceData.price ? (price?.price ?? null) : prev
-      );
+      setPreviousPrice(previousPriceRef.current);
+      previousPriceRef.current = priceData.price;
       setPrice(priceData);
       setLastUpdated(Date.now());
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
+      if (!isMountedRef.current) return;
       setError(err instanceof Error ? err : new Error('Failed to fetch price'));
     } finally {
-      if (!abortController.signal.aborted) {
+      if (!abortController.signal.aborted && isMountedRef.current) {
         setIsLoading(false);
       }
     }
-  }, [client, symbol, chain, price?.price]);
+  }, [symbol, chain]);
 
   useEffect(() => {
     fetchPrice();
@@ -115,6 +129,19 @@ export function useHistoricalPrices(
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const clientRef = useRef(client);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    clientRef.current = client;
+  }, [client]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchPrices = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -126,21 +153,22 @@ export function useHistoricalPrices(
 
     try {
       setError(null);
-      const historicalPrices = await client.getHistoricalPrices(symbol, chain, period);
+      const historicalPrices = await clientRef.current.getHistoricalPrices(symbol, chain, period);
 
-      if (abortController.signal.aborted) return;
+      if (abortController.signal.aborted || !isMountedRef.current) return;
 
       setPrices(historicalPrices);
       setLastUpdated(Date.now());
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
+      if (!isMountedRef.current) return;
       setError(err instanceof Error ? err : new Error('Failed to fetch historical prices'));
     } finally {
-      if (!abortController.signal.aborted) {
+      if (!abortController.signal.aborted && isMountedRef.current) {
         setIsLoading(false);
       }
     }
-  }, [client, symbol, chain, period]);
+  }, [symbol, chain, period]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -189,6 +217,19 @@ export function useMultiplePrices(
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const clientsRef = useRef(clients);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    clientsRef.current = clients;
+  }, [clients]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchPrices = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -203,14 +244,14 @@ export function useMultiplePrices(
 
     const results = await Promise.allSettled(
       symbols.map(async (symbol) => {
-        const client = clients[symbol];
+        const client = clientsRef.current[symbol];
         if (!client) throw new Error(`No client for symbol: ${symbol}`);
         const price = await client.getPrice(symbol, chain);
         return { symbol, price };
       })
     );
 
-    if (abortController.signal.aborted) return;
+    if (abortController.signal.aborted || !isMountedRef.current) return;
 
     const newPrices: Record<string, PriceData> = {};
     const newErrors: Record<string, Error> = {};
@@ -229,7 +270,7 @@ export function useMultiplePrices(
     setErrors(newErrors);
     setLastUpdated(Date.now());
     setIsLoading(false);
-  }, [clients, symbols, chain]);
+  }, [symbols, chain]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

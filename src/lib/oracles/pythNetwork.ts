@@ -1,13 +1,5 @@
-import { BaseOracleClient } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
 import { PriceData, OracleProvider, Blockchain, ConfidenceInterval } from '@/lib/types/oracle';
-
-const BASE_PRICES: Record<string, number> = {
-  BTC: 67950,
-  ETH: 3495,
-  SOL: 179.5,
-  PYTH: 1.2,
-  USDC: 1,
-};
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,
@@ -43,7 +35,7 @@ export class PythNetworkClient extends BaseOracleClient {
 
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       const priceData = this.generateMockPrice(symbol, basePrice, chain);
       const confidenceInterval = this.generateConfidenceInterval(priceData.price, symbol);
 
@@ -65,7 +57,7 @@ export class PythNetworkClient extends BaseOracleClient {
     period: number = 24
   ): Promise<PriceData[]> {
     try {
-      const basePrice = BASE_PRICES[symbol.toUpperCase()] || 100;
+      const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
       return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
     } catch (error) {
       throw this.createError(
