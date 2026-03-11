@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData, OracleProvider } from '@/lib/types/oracle';
@@ -45,16 +45,35 @@ import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 
 interface OraclePageTemplateProps {
   config: OracleConfig;
+  showLoading?: boolean;
+  loadingComponent?: ReactNode;
+  errorComponent?: ReactNode;
+  customLayout?: ReactNode;
 }
 
-export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
+interface LoadingStateProps {
+  show: boolean;
+  message?: string;
+}
+
+export function OraclePageTemplate({ 
+  config, 
+  showLoading: externalLoading,
+  loadingComponent,
+  errorComponent,
+  customLayout 
+}: OraclePageTemplateProps) {
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState('market');
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
+  const [loadingState, setLoadingState] = useState<LoadingStateProps>({ show: true });
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchData = useCallback(async () => {
+    setLoadingState({ show: true });
+    setError(null);
     try {
       const [price, history] = await Promise.all([
         config.client.getPrice(config.symbol, config.defaultChain),
@@ -62,7 +81,11 @@ export function OraclePageTemplate({ config }: OraclePageTemplateProps) {
       ]);
       setPriceData(price);
       setHistoricalData(history);
-    } catch (error) {
+      setLoadingState({ show: false });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch data');
+      setError(error);
+      setLoadingState({ show: false });
       console.error(`Error fetching ${config.name} data:`, error);
     }
   }, [config]);
