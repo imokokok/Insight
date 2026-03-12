@@ -41,19 +41,19 @@ const generatePriceData = (pair: TradingPair): PriceData => {
   const dataPoints = 24;
   const sparklineData: PriceDataPoint[] = [];
   let currentPrice = pair.basePrice;
-  
+
   // 生成24小时的历史数据
   for (let i = 0; i < dataPoints; i++) {
     const change = (Math.random() - 0.5) * pair.volatility;
     currentPrice = currentPrice * (1 + change);
     sparklineData.push({ value: currentPrice });
   }
-  
+
   // 计算24小时变化
   const startPrice = sparklineData[0].value;
   const endPrice = sparklineData[sparklineData.length - 1].value;
   const change24h = ((endPrice - startPrice) / startPrice) * 100;
-  
+
   return {
     currentPrice: endPrice,
     change24h,
@@ -89,7 +89,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
   const isZh = locale === 'zh-CN';
   const isPositive = priceData.change24h >= 0;
   const color = isPositive ? '#10b981' : '#ef4444';
-  
+
   return (
     <div className="flex items-center gap-4 px-6 py-3 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50 hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 min-w-[280px]">
       {/* 币种图标和名称 */}
@@ -102,22 +102,20 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
           <div className="text-xs text-gray-500">{isZh ? pair.name : pair.name}</div>
         </div>
       </div>
-      
+
       {/* 价格 */}
       <div className="min-w-[90px]">
         <div className="font-bold text-gray-900 text-base">
           ${formatPrice(priceData.currentPrice)}
         </div>
-        <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-          {isPositive ? (
-            <TrendingUp className="w-3 h-3" />
-          ) : (
-            <TrendingDown className="w-3 h-3" />
-          )}
+        <div
+          className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}
+        >
+          {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           <span>{formatChange(priceData.change24h)}</span>
         </div>
       </div>
-      
+
       {/* 迷你走势图 */}
       <div className="w-16 h-10">
         <ResponsiveContainer width="100%" height="100%">
@@ -142,22 +140,22 @@ export default function LivePriceTicker() {
   const isZh = locale === 'zh-CN';
   const [isPaused, setIsPaused] = useState(false);
   const [priceDataMap, setPriceDataMap] = useState<Map<string, PriceData>>(new Map());
-  
+
   // 初始化价格数据
   useEffect(() => {
     const initialData = new Map<string, PriceData>();
-    TRADING_PAIRS.forEach(pair => {
+    TRADING_PAIRS.forEach((pair) => {
       initialData.set(pair.symbol, generatePriceData(pair));
     });
     setPriceDataMap(initialData);
   }, []);
-  
+
   // 模拟实时更新
   useEffect(() => {
     const interval = setInterval(() => {
-      setPriceDataMap(prev => {
+      setPriceDataMap((prev) => {
         const newMap = new Map(prev);
-        TRADING_PAIRS.forEach(pair => {
+        TRADING_PAIRS.forEach((pair) => {
           const currentData = newMap.get(pair.symbol);
           if (currentData) {
             const change = (Math.random() - 0.48) * pair.volatility * 0.1;
@@ -165,7 +163,7 @@ export default function LivePriceTicker() {
             const newSparkline = [...currentData.sparklineData.slice(1), { value: newPrice }];
             const startPrice = newSparkline[0].value;
             const newChange24h = ((newPrice - startPrice) / startPrice) * 100;
-            
+
             newMap.set(pair.symbol, {
               currentPrice: newPrice,
               change24h: newChange24h,
@@ -176,13 +174,13 @@ export default function LivePriceTicker() {
         return newMap;
       });
     }, 3000);
-    
+
     return () => clearInterval(interval);
   }, []);
-  
+
   // 复制数据以实现无缝滚动
   const duplicatedPairs = useMemo(() => [...TRADING_PAIRS, ...TRADING_PAIRS], []);
-  
+
   return (
     <div className="w-full bg-gradient-to-r from-slate-50 via-white to-slate-50 border-y border-gray-200/50 py-4 overflow-hidden">
       {/* 标题 */}
@@ -197,9 +195,9 @@ export default function LivePriceTicker() {
           </span>
         </div>
       </div>
-      
+
       {/* 滚动容器 */}
-      <div 
+      <div
         className="relative overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -207,9 +205,9 @@ export default function LivePriceTicker() {
         {/* 渐变遮罩 */}
         <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
-        
+
         {/* 滚动内容 */}
-        <div 
+        <div
           className={`flex gap-4 ${isPaused ? '' : 'animate-scroll-ticker'}`}
           style={{
             animationPlayState: isPaused ? 'paused' : 'running',
@@ -218,18 +216,12 @@ export default function LivePriceTicker() {
           {duplicatedPairs.map((pair, index) => {
             const priceData = priceDataMap.get(pair.symbol);
             if (!priceData) return null;
-            
-            return (
-              <TickerItem 
-                key={`${pair.symbol}-${index}`} 
-                pair={pair} 
-                priceData={priceData} 
-              />
-            );
+
+            return <TickerItem key={`${pair.symbol}-${index}`} pair={pair} priceData={priceData} />;
           })}
         </div>
       </div>
-      
+
       {/* CSS 动画 */}
       <style jsx>{`
         @keyframes scroll-ticker {
@@ -240,7 +232,7 @@ export default function LivePriceTicker() {
             transform: translateX(-50%);
           }
         }
-        
+
         .animate-scroll-ticker {
           animation: scroll-ticker 40s linear infinite;
         }

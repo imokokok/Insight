@@ -1,5 +1,5 @@
 import { Blockchain } from '@/lib/oracles';
-import { chainNames, chainColors, HeatmapData } from './constants';
+import { chainNames, chainColors } from './constants';
 
 export const getDiffColorGradient = (diffPercent: number): string => {
   const absPercent = Math.abs(diffPercent);

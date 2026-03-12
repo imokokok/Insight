@@ -44,7 +44,7 @@ export default function Navbar() {
             {navigationConfig.map((navItem) => {
               if ('items' in navItem) {
                 const group = navItem as NavGroup;
-                const isGroupActive = group.items.some(item => isActive(item.href));
+                const isGroupActive = group.items.some((item) => isActive(item.href));
 
                 return (
                   <DropdownMenu

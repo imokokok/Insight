@@ -85,17 +85,14 @@ export default function MarketOverviewPage() {
           <p className="font-medium text-gray-900 mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
                 {activeChart === 'pie'
                   ? `${entry.value}%`
                   : activeChart === 'bar'
-                  ? `${entry.value} chains`
-                  : `$${entry.value}B`}
+                    ? `${entry.value} chains`
+                    : `$${entry.value}B`}
               </span>
             </div>
           ))}
@@ -125,9 +122,7 @@ export default function MarketOverviewPage() {
               fill="#8884d8"
               dataKey="share"
               paddingAngle={2}
-              onMouseEnter={(_, index) =>
-                setHoveredItem(sortedOracleData[index]?.name)
-              }
+              onMouseEnter={(_, index) => setHoveredItem(sortedOracleData[index]?.name)}
               onMouseLeave={() => setHoveredItem(null)}
               onClick={(_, index) => {
                 const name = sortedOracleData[index]?.name;
@@ -153,11 +148,7 @@ export default function MarketOverviewPage() {
           <LineChart data={trendData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
             <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-            <YAxis
-              stroke="#9ca3af"
-              fontSize={12}
-              tickFormatter={(v) => `$${v}B`}
-            />
+            <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(v) => `$${v}B`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line
@@ -205,19 +196,9 @@ export default function MarketOverviewPage() {
       case 'bar':
         return (
           <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical">
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#f3f4f6"
-              horizontal={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
             <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-            <YAxis
-              dataKey="name"
-              type="category"
-              stroke="#9ca3af"
-              fontSize={12}
-              width={100}
-            />
+            <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]}>
               {CHAIN_SUPPORT_DATA.map((entry, index) => (
@@ -237,8 +218,8 @@ export default function MarketOverviewPage() {
       activeChart === 'pie'
         ? sortedOracleData
         : activeChart === 'bar'
-        ? CHAIN_SUPPORT_DATA
-        : sortedOracleData;
+          ? CHAIN_SUPPORT_DATA
+          : sortedOracleData;
 
     return (
       <div className="h-full overflow-auto">
@@ -254,12 +235,12 @@ export default function MarketOverviewPage() {
                     ? '市场份额'
                     : 'Market Share'
                   : activeChart === 'bar'
-                  ? locale === 'zh-CN'
-                    ? '支持链数'
-                    : 'Chains'
-                  : locale === 'zh-CN'
-                  ? 'TVS'
-                  : 'TVS'}
+                    ? locale === 'zh-CN'
+                      ? '支持链数'
+                      : 'Chains'
+                    : locale === 'zh-CN'
+                      ? 'TVS'
+                      : 'TVS'}
               </th>
               {activeChart === 'bar' && (
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -285,30 +266,19 @@ export default function MarketOverviewPage() {
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
                   selectedItem === item.name ? 'bg-blue-50' : ''
                 }`}
-                onClick={() =>
-                  setSelectedItem(
-                    item.name === selectedItem ? null : item.name
-                  )
-                }
+                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
                 onMouseEnter={() => setHoveredItem(item.name)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="font-medium text-gray-900">
-                      {item.name}
-                    </span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-semibold text-gray-900">
-                    {activeChart === 'pie'
-                      ? `${item.share}%`
-                      : item.chains}
+                    {activeChart === 'pie' ? `${item.share}%` : item.chains}
                   </span>
                 </td>
                 {activeChart === 'bar' && (
@@ -324,9 +294,7 @@ export default function MarketOverviewPage() {
                     <td className="px-4 py-3 text-right">
                       <span
                         className={`font-medium ${
-                          item.change24h >= 0
-                            ? 'text-green-600'
-                            : 'text-red-600'
+                          item.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
                         {item.change24h >= 0 ? '+' : ''}
@@ -347,9 +315,7 @@ export default function MarketOverviewPage() {
   const getChartTitle = () => {
     switch (activeChart) {
       case 'pie':
-        return locale === 'zh-CN'
-          ? '市场份额分布'
-          : 'Market Share Distribution';
+        return locale === 'zh-CN' ? '市场份额分布' : 'Market Share Distribution';
       case 'trend':
         return locale === 'zh-CN' ? 'TVS 趋势分析' : 'TVS Trend Analysis';
       case 'bar':
@@ -452,26 +418,24 @@ export default function MarketOverviewPage() {
                 refreshStatus === 'error'
                   ? 'bg-red-600 hover:bg-red-700'
                   : refreshStatus === 'success' && showRefreshSuccess
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-900 hover:bg-gray-800'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-900 hover:bg-gray-800'
               } disabled:opacity-50`}
             >
               <RefreshCw
-                className={`w-4 h-4 ${
-                  refreshStatus === 'refreshing' ? 'animate-spin' : ''
-                }`}
+                className={`w-4 h-4 ${refreshStatus === 'refreshing' ? 'animate-spin' : ''}`}
               />
               {refreshStatus === 'refreshing'
                 ? locale === 'zh-CN'
                   ? '刷新中...'
                   : 'Refreshing...'
                 : showRefreshSuccess
-                ? locale === 'zh-CN'
-                  ? '已更新'
-                  : 'Updated'
-                : locale === 'zh-CN'
-                ? '刷新'
-                : 'Refresh'}
+                  ? locale === 'zh-CN'
+                    ? '已更新'
+                    : 'Updated'
+                  : locale === 'zh-CN'
+                    ? '刷新'
+                    : 'Refresh'}
             </button>
 
             {lastUpdated && (
@@ -492,11 +456,16 @@ export default function MarketOverviewPage() {
                 <DollarSign className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
+                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-gray-900">{totalTVS}</span>
-                  <span className={`text-xs ${marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {marketStats.change24h >= 0 ? '+' : ''}{marketStats.change24h.toFixed(2)}%
+                  <span
+                    className={`text-xs ${marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {marketStats.change24h >= 0 ? '+' : ''}
+                    {marketStats.change24h.toFixed(2)}%
                   </span>
                 </div>
               </div>
@@ -510,7 +479,9 @@ export default function MarketOverviewPage() {
                 <Globe className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '支持链数' : 'Chains'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{totalChains}</p>
               </div>
             </div>
@@ -523,7 +494,9 @@ export default function MarketOverviewPage() {
                 <Layers className="w-5 h-5 text-cyan-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
               </div>
             </div>
@@ -536,7 +509,9 @@ export default function MarketOverviewPage() {
                 <Activity className="w-5 h-5 text-pink-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '市场主导' : 'Dominance'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
               </div>
             </div>
@@ -549,7 +524,9 @@ export default function MarketOverviewPage() {
                 <Zap className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '平均延迟' : 'Latency'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '平均延迟' : 'Latency'}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
               </div>
             </div>
@@ -562,7 +539,9 @@ export default function MarketOverviewPage() {
                 <Shield className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '预言机数' : 'Oracles'}</p>
+                <p className="text-xs text-gray-500">
+                  {locale === 'zh-CN' ? '预言机数' : 'Oracles'}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
               </div>
             </div>
@@ -664,9 +643,7 @@ export default function MarketOverviewPage() {
             {/* 主图表 */}
             <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {getChartTitle()}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
                 {selectedItem && (
                   <button
                     onClick={() => setSelectedItem(null)}
@@ -689,11 +666,7 @@ export default function MarketOverviewPage() {
                 </div>
               ) : (
                 <>
-                  <div
-                    className={`${
-                      viewType === 'table' ? 'h-[360px]' : 'h-[400px]'
-                    }`}
-                  >
+                  <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
                     <ResponsiveContainer width="100%" height="100%">
                       {renderChart()}
                     </ResponsiveContainer>
@@ -732,11 +705,7 @@ export default function MarketOverviewPage() {
                     selectedItem === item.name
                       ? 'border-blue-500 shadow-md ring-1 ring-blue-500'
                       : 'border-gray-200 hover:border-gray-300'
-                  } ${
-                    hoveredItem && hoveredItem !== item.name
-                      ? 'opacity-60'
-                      : 'opacity-100'
-                  }`}
+                  } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
                   onMouseEnter={() => setHoveredItem(item.name)}
                   onMouseLeave={() => setHoveredItem(null)}
                   onClick={(e) => {
@@ -753,14 +722,10 @@ export default function MarketOverviewPage() {
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="font-medium text-gray-900">
-                        {item.name}
-                      </span>
+                      <span className="font-medium text-gray-900">{item.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900">
-                        {item.share}%
-                      </span>
+                      <span className="text-lg font-bold text-gray-900">{item.share}%</span>
                       <ArrowUpRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
@@ -776,25 +741,19 @@ export default function MarketOverviewPage() {
                   <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
                     <div>
                       <span className="block text-gray-400">TVS</span>
-                      <span className="font-medium text-gray-700">
-                        {item.tvs}
-                      </span>
+                      <span className="font-medium text-gray-700">{item.tvs}</span>
                     </div>
                     <div>
                       <span className="block text-gray-400">
                         {locale === 'zh-CN' ? '链' : 'Chains'}
                       </span>
-                      <span className="font-medium text-gray-700">
-                        {item.chains}
-                      </span>
+                      <span className="font-medium text-gray-700">{item.chains}</span>
                     </div>
                     <div>
                       <span className="block text-gray-400">24h</span>
                       <span
                         className={`font-medium ${
-                          item.change24h >= 0
-                            ? 'text-green-600'
-                            : 'text-red-600'
+                          item.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
                         {item.change24h >= 0 ? '+' : ''}
@@ -853,15 +812,10 @@ export default function MarketOverviewPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {assets.map((asset) => (
-                    <tr
-                      key={asset.symbol}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
+                    <tr key={asset.symbol} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-gray-900">
-                            {asset.symbol}
-                          </span>
+                          <span className="font-semibold text-gray-900">{asset.symbol}</span>
                           <span className="text-xs text-gray-400">
                             {formatNumber(asset.marketCap)}
                           </span>
@@ -875,9 +829,7 @@ export default function MarketOverviewPage() {
                       <td className="px-6 py-4 text-right">
                         <span
                           className={`font-medium ${
-                            asset.change24h >= 0
-                              ? 'text-green-600'
-                              : 'text-red-600'
+                            asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
                           {asset.change24h >= 0 ? '+' : ''}
@@ -887,9 +839,7 @@ export default function MarketOverviewPage() {
                       <td className="px-6 py-4 text-right">
                         <span
                           className={`font-medium ${
-                            asset.change7d >= 0
-                              ? 'text-green-600'
-                              : 'text-red-600'
+                            asset.change7d >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
                           {asset.change7d >= 0 ? '+' : ''}
@@ -897,9 +847,7 @@ export default function MarketOverviewPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="text-gray-600">
-                          ${formatNumber(asset.volume24h)}
-                        </span>
+                        <span className="text-gray-600">${formatNumber(asset.volume24h)}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">

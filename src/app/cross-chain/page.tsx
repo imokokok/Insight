@@ -26,9 +26,7 @@ import { Blockchain } from '@/lib/types/oracle';
 import {
   chainNames,
   chainColors,
-  getDiffTextColor,
   getIntegrityColor,
-  getJumpColor,
   getVolatilityColor,
   getDataFreshness,
   getConsistencyRating,
@@ -241,7 +239,9 @@ export default function CrossChainPage() {
           <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm font-medium text-gray-900">{chainNames[entry.dataKey as Blockchain]}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {chainNames[entry.dataKey as Blockchain]}
+              </span>
             </div>
             <div className="text-sm text-gray-700 pl-5 font-mono">
               ${Number(entry.value).toFixed(4)}

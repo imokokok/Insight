@@ -21,7 +21,9 @@ export interface UseOracleDataSWRReturn<T> {
   refetch: () => Promise<void>;
 }
 
-export function useOracleDataSWR<T>(options: UseOracleDataSWROptions<T>): UseOracleDataSWRReturn<T> {
+export function useOracleDataSWR<T>(
+  options: UseOracleDataSWROptions<T>
+): UseOracleDataSWRReturn<T> {
   const {
     key,
     staleTime = 30000,
@@ -38,10 +40,13 @@ export function useOracleDataSWR<T>(options: UseOracleDataSWROptions<T>): UseOra
     ...(refreshInterval ? { refreshInterval } : {}),
   };
 
-  const { data, error, isLoading, isValidating, mutate: swrMutate } = useSWR<T>(
-    enabled ? key : null,
-    swrOptions
-  );
+  const {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate: swrMutate,
+  } = useSWR<T>(enabled ? key : null, swrOptions);
 
   const handleMutate = useCallback(
     async (newData?: T) => {

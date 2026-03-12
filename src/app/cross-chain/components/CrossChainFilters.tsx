@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { TIME_RANGES, RefreshInterval, providerNames, chainNames, symbols } from '../constants';
+import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useCrossChainData } from '../useCrossChainData';
 
 interface CrossChainFiltersProps {

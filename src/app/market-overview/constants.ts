@@ -2,12 +2,12 @@ import { OracleMarketData, AssetData, TVSTrendData, ChainSupportData } from './t
 
 // 专业配色方案
 export const ORACLE_COLORS = {
-  chainlink: '#375BD2',    // Chainlink 蓝
-  pyth: '#E6B800',         // Pyth 金
-  band: '#516BEB',         // Band 青蓝
-  api3: '#7CE3CB',         // API3 青绿
-  uma: '#FF4A8D',          // UMA 粉
-  others: '#9CA3AF',       // 灰色
+  chainlink: '#375BD2', // Chainlink 蓝
+  pyth: '#E6B800', // Pyth 金
+  band: '#516BEB', // Band 青蓝
+  api3: '#7CE3CB', // API3 青绿
+  uma: '#FF4A8D', // UMA 粉
+  others: '#9CA3AF', // 灰色
 } as const;
 
 // 模拟市场数据 - 实际项目中应从API获取
@@ -95,28 +95,29 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
   const now = Date.now();
   const interval = hours <= 24 ? 3600000 : 86400000; // 1小时或1天
   const points = hours === 0 ? 365 : Math.min(hours, 365);
-  
+
   let chainlinkBase = 35;
   let pythBase = 8;
   let bandBase = 3.5;
   let api3Base = 2.5;
   let umaBase = 2;
-  
+
   for (let i = points; i >= 0; i--) {
     const timestamp = now - i * interval;
     const date = new Date(timestamp);
-    const dateStr = hours <= 24 
-      ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-      : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
+    const dateStr =
+      hours <= 24
+        ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
     // 添加随机波动
     const volatility = 0.02;
-    chainlinkBase *= (1 + (Math.random() - 0.48) * volatility);
-    pythBase *= (1 + (Math.random() - 0.45) * volatility);
-    bandBase *= (1 + (Math.random() - 0.5) * volatility);
-    api3Base *= (1 + (Math.random() - 0.5) * volatility);
-    umaBase *= (1 + (Math.random() - 0.5) * volatility);
-    
+    chainlinkBase *= 1 + (Math.random() - 0.48) * volatility;
+    pythBase *= 1 + (Math.random() - 0.45) * volatility;
+    bandBase *= 1 + (Math.random() - 0.5) * volatility;
+    api3Base *= 1 + (Math.random() - 0.5) * volatility;
+    umaBase *= 1 + (Math.random() - 0.5) * volatility;
+
     data.push({
       timestamp,
       date: dateStr,
@@ -128,7 +129,7 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
       total: Number((chainlinkBase + pythBase + bandBase + api3Base + umaBase).toFixed(2)),
     });
   }
-  
+
   return data;
 }
 
@@ -143,16 +144,116 @@ export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
 
 // 模拟资产数据
 export const MOCK_ASSETS: AssetData[] = [
-  { symbol: 'BTC', price: 67432.5, change24h: 2.4, change7d: 5.2, volume24h: 28500000000, marketCap: 1320000000000, primaryOracle: 'Chainlink', oracleCount: 5, priceSources: [] },
-  { symbol: 'ETH', price: 3521.8, change24h: -1.2, change7d: 3.8, volume24h: 15200000000, marketCap: 423000000000, primaryOracle: 'Pyth Network', oracleCount: 5, priceSources: [] },
-  { symbol: 'SOL', price: 142.3, change24h: 5.6, change7d: 12.4, volume24h: 3200000000, marketCap: 64000000000, primaryOracle: 'Chainlink', oracleCount: 4, priceSources: [] },
-  { symbol: 'AVAX', price: 35.4, change24h: -0.8, change7d: 2.1, volume24h: 890000000, marketCap: 13400000000, primaryOracle: 'API3', oracleCount: 4, priceSources: [] },
-  { symbol: 'LINK', price: 18.2, change24h: 1.5, change7d: 8.9, volume24h: 450000000, marketCap: 11200000000, primaryOracle: 'Chainlink', oracleCount: 5, priceSources: [] },
-  { symbol: 'MATIC', price: 0.65, change24h: -3.2, change7d: -5.4, volume24h: 280000000, marketCap: 6500000000, primaryOracle: 'Pyth Network', oracleCount: 4, priceSources: [] },
-  { symbol: 'ARB', price: 1.85, change24h: 0.9, change7d: 4.2, volume24h: 320000000, marketCap: 5900000000, primaryOracle: 'Chainlink', oracleCount: 4, priceSources: [] },
-  { symbol: 'OP', price: 2.45, change24h: -2.1, change7d: 1.8, volume24h: 180000000, marketCap: 2600000000, primaryOracle: 'Band Protocol', oracleCount: 3, priceSources: [] },
-  { symbol: 'UNI', price: 9.8, change24h: 3.4, change7d: 7.5, volume24h: 220000000, marketCap: 5900000000, primaryOracle: 'Chainlink', oracleCount: 5, priceSources: [] },
-  { symbol: 'AAVE', price: 125.4, change24h: -1.8, change7d: 4.5, volume24h: 150000000, marketCap: 1900000000, primaryOracle: 'API3', oracleCount: 4, priceSources: [] },
+  {
+    symbol: 'BTC',
+    price: 67432.5,
+    change24h: 2.4,
+    change7d: 5.2,
+    volume24h: 28500000000,
+    marketCap: 1320000000000,
+    primaryOracle: 'Chainlink',
+    oracleCount: 5,
+    priceSources: [],
+  },
+  {
+    symbol: 'ETH',
+    price: 3521.8,
+    change24h: -1.2,
+    change7d: 3.8,
+    volume24h: 15200000000,
+    marketCap: 423000000000,
+    primaryOracle: 'Pyth Network',
+    oracleCount: 5,
+    priceSources: [],
+  },
+  {
+    symbol: 'SOL',
+    price: 142.3,
+    change24h: 5.6,
+    change7d: 12.4,
+    volume24h: 3200000000,
+    marketCap: 64000000000,
+    primaryOracle: 'Chainlink',
+    oracleCount: 4,
+    priceSources: [],
+  },
+  {
+    symbol: 'AVAX',
+    price: 35.4,
+    change24h: -0.8,
+    change7d: 2.1,
+    volume24h: 890000000,
+    marketCap: 13400000000,
+    primaryOracle: 'API3',
+    oracleCount: 4,
+    priceSources: [],
+  },
+  {
+    symbol: 'LINK',
+    price: 18.2,
+    change24h: 1.5,
+    change7d: 8.9,
+    volume24h: 450000000,
+    marketCap: 11200000000,
+    primaryOracle: 'Chainlink',
+    oracleCount: 5,
+    priceSources: [],
+  },
+  {
+    symbol: 'MATIC',
+    price: 0.65,
+    change24h: -3.2,
+    change7d: -5.4,
+    volume24h: 280000000,
+    marketCap: 6500000000,
+    primaryOracle: 'Pyth Network',
+    oracleCount: 4,
+    priceSources: [],
+  },
+  {
+    symbol: 'ARB',
+    price: 1.85,
+    change24h: 0.9,
+    change7d: 4.2,
+    volume24h: 320000000,
+    marketCap: 5900000000,
+    primaryOracle: 'Chainlink',
+    oracleCount: 4,
+    priceSources: [],
+  },
+  {
+    symbol: 'OP',
+    price: 2.45,
+    change24h: -2.1,
+    change7d: 1.8,
+    volume24h: 180000000,
+    marketCap: 2600000000,
+    primaryOracle: 'Band Protocol',
+    oracleCount: 3,
+    priceSources: [],
+  },
+  {
+    symbol: 'UNI',
+    price: 9.8,
+    change24h: 3.4,
+    change7d: 7.5,
+    volume24h: 220000000,
+    marketCap: 5900000000,
+    primaryOracle: 'Chainlink',
+    oracleCount: 5,
+    priceSources: [],
+  },
+  {
+    symbol: 'AAVE',
+    price: 125.4,
+    change24h: -1.8,
+    change7d: 4.5,
+    volume24h: 150000000,
+    marketCap: 1900000000,
+    primaryOracle: 'API3',
+    oracleCount: 4,
+    priceSources: [],
+  },
 ];
 
 // 刷新间隔选项

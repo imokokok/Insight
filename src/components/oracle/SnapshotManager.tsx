@@ -139,7 +139,7 @@ export function SnapshotManager({
                 />
               </svg>
               <p className="text-sm text-gray-500">暂无快照</p>
-              <p className="text-xs text-gray-400 mt-1">点击"保存快照"按钮保存当前数据</p>
+              <p className="text-xs text-gray-400 mt-1">点击「保存快照」按钮保存当前数据</p>
             </div>
           ) : (
             <>

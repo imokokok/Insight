@@ -21,7 +21,7 @@ import { DataQualityScoreCard } from '@/components/oracle/DataQualityScoreCard';
 import { LatencyDistributionHistogram } from '@/components/oracle/LatencyDistributionHistogram';
 import { UpdateFrequencyHeatmap } from '@/components/oracle/UpdateFrequencyHeatmap';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider, Blockchain, PriceData } from '@/lib/types/oracle';
+import { OracleProvider, PriceData } from '@/lib/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { DapiPriceDeviationMonitor } from '@/components/oracle/DapiPriceDeviationMonitor';

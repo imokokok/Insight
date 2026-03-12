@@ -10,8 +10,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  LineChart,
-  Line,
   Legend,
   RadarChart,
   PolarGrid,

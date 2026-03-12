@@ -10,8 +10,6 @@ import { MarketDataConfig } from '@/components/oracle/MarketDataPanel';
 import { NetworkDataConfig } from '@/components/oracle/NetworkHealthPanel';
 import { ReactNode } from 'react';
 
-import { ConfidenceInterval } from '@/lib/types/oracle';
-
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;

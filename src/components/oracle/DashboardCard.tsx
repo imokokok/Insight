@@ -69,17 +69,14 @@ export function StatCard({ title, value, change, changeType, icon }: StatCardPro
   );
 }
 
-const MemoizedStatCard = memo(
-  StatCard,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.title === nextProps.title &&
-      prevProps.value === nextProps.value &&
-      prevProps.change === nextProps.change &&
-      prevProps.changeType === nextProps.changeType
-    );
-  }
-);
+const MemoizedStatCard = memo(StatCard, (prevProps, nextProps) => {
+  return (
+    prevProps.title === nextProps.title &&
+    prevProps.value === nextProps.value &&
+    prevProps.change === nextProps.change &&
+    prevProps.changeType === nextProps.changeType
+  );
+});
 
 export { MemoizedStatCard };
 

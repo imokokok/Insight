@@ -365,10 +365,7 @@ function downsampleData(data: ChartDataPoint[]): ChartDataPoint[] {
   }
 
   for (let i = 1; i < dataCount - 1; i++) {
-    const bucketIndex = Math.min(
-      Math.floor((i - 1) / step),
-      targetCount - 2
-    );
+    const bucketIndex = Math.min(Math.floor((i - 1) / step), targetCount - 2);
     buckets[bucketIndex + 1].push(data[i]);
   }
 

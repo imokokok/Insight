@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
+import {
+  PieChart,
+  Pie,
+  Cell,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -15,29 +15,29 @@ import {
   Tooltip,
   BarChart,
   Bar,
-  ReferenceLine
+  ReferenceLine,
 } from 'recharts';
-import { 
-  PieChart as PieChartIcon, 
-  TrendingUp, 
-  BarChart3, 
+import {
+  PieChart as PieChartIcon,
+  TrendingUp,
+  BarChart3,
   Table as TableIcon,
   Activity,
   DollarSign,
   Layers,
   Globe,
   ChevronRight,
-  Info
+  Info,
 } from 'lucide-react';
 
 // 专业配色方案
 const COLORS = {
-  chainlink: '#1E3A8A',    // 深蓝
-  pyth: '#3B82F6',         // 亮蓝
-  band: '#06B6D4',         // 青色
-  api3: '#8B5CF6',         // 紫色
-  uma: '#EC4899',          // 粉色
-  others: '#9CA3AF',       // 灰色
+  chainlink: '#1E3A8A', // 深蓝
+  pyth: '#3B82F6', // 亮蓝
+  band: '#06B6D4', // 青色
+  api3: '#8B5CF6', // 紫色
+  uma: '#EC4899', // 粉色
+  others: '#9CA3AF', // 灰色
 };
 
 const marketShareData = [
@@ -93,10 +93,10 @@ export default function OracleMarketOverview() {
       const tvsValue = parseFloat(item.tvs.replace(/[$B]/g, ''));
       return acc + tvsValue;
     }, 0);
-    
+
     const totalChains = chainSupportData.reduce((acc, item) => acc + item.chains, 0);
     const totalProtocols = chainSupportData.reduce((acc, item) => acc + item.protocols, 0);
-    const avgDominance = (marketShareData[0]?.value || 0);
+    const avgDominance = marketShareData[0]?.value || 0;
 
     return {
       totalTVS: `$${totalTVS.toFixed(1)}B`,
@@ -114,12 +114,12 @@ export default function OracleMarketOverview() {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central" 
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
         className="text-xs font-medium"
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -134,13 +134,11 @@ export default function OracleMarketOverview() {
           <p className="font-semibold text-gray-900 mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: entry.color }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
-                {entry.value}{activeChart === 'pie' ? '%' : activeChart === 'bar' ? ' chains' : 'B'}
+                {entry.value}
+                {activeChart === 'pie' ? '%' : activeChart === 'bar' ? ' chains' : 'B'}
               </span>
             </div>
           ))}
@@ -172,11 +170,17 @@ export default function OracleMarketOverview() {
               paddingAngle={2}
               onMouseEnter={(_, index) => setHoveredItem(marketShareData[index]?.name)}
               onMouseLeave={() => setHoveredItem(null)}
-              onClick={(_, index) => setSelectedItem(marketShareData[index]?.name === selectedItem ? null : marketShareData[index]?.name)}
+              onClick={(_, index) =>
+                setSelectedItem(
+                  marketShareData[index]?.name === selectedItem
+                    ? null
+                    : marketShareData[index]?.name
+                )
+              }
             >
               {marketShareData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
+                <Cell
+                  key={`cell-${index}`}
                   fill={entry.color}
                   stroke={selectedItem === entry.name ? '#fff' : 'none'}
                   strokeWidth={selectedItem === entry.name ? 3 : 0}
@@ -196,65 +200,65 @@ export default function OracleMarketOverview() {
             <YAxis stroke="#9ca3af" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke="#e5e7eb" />
-            <Line 
-              type="monotone" 
-              dataKey="chainlink" 
-              name="Chainlink" 
-              stroke={COLORS.chainlink} 
-              strokeWidth={hoveredItem === 'Chainlink' || !hoveredItem ? 3 : 2} 
-              dot={{ r: hoveredItem === 'Chainlink' ? 6 : 4, fill: COLORS.chainlink }} 
+            <Line
+              type="monotone"
+              dataKey="chainlink"
+              name="Chainlink"
+              stroke={COLORS.chainlink}
+              strokeWidth={hoveredItem === 'Chainlink' || !hoveredItem ? 3 : 2}
+              dot={{ r: hoveredItem === 'Chainlink' ? 6 : 4, fill: COLORS.chainlink }}
               activeDot={{ r: 8 }}
               opacity={hoveredItem && hoveredItem !== 'Chainlink' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Chainlink')}
               onMouseLeave={() => setHoveredItem(null)}
             />
-            <Line 
-              type="monotone" 
-              dataKey="pyth" 
-              name="Pyth Network" 
-              stroke={COLORS.pyth} 
-              strokeWidth={hoveredItem === 'Pyth Network' || !hoveredItem ? 3 : 2} 
-              dot={{ r: hoveredItem === 'Pyth Network' ? 6 : 4, fill: COLORS.pyth }} 
+            <Line
+              type="monotone"
+              dataKey="pyth"
+              name="Pyth Network"
+              stroke={COLORS.pyth}
+              strokeWidth={hoveredItem === 'Pyth Network' || !hoveredItem ? 3 : 2}
+              dot={{ r: hoveredItem === 'Pyth Network' ? 6 : 4, fill: COLORS.pyth }}
               activeDot={{ r: 8 }}
               opacity={hoveredItem && hoveredItem !== 'Pyth Network' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Pyth Network')}
               onMouseLeave={() => setHoveredItem(null)}
             />
-            <Line 
-              type="monotone" 
-              dataKey="band" 
-              name="Band Protocol" 
-              stroke={COLORS.band} 
-              strokeWidth={hoveredItem === 'Band Protocol' || !hoveredItem ? 2 : 1.5} 
-              dot={{ r: hoveredItem === 'Band Protocol' ? 5 : 3, fill: COLORS.band }} 
+            <Line
+              type="monotone"
+              dataKey="band"
+              name="Band Protocol"
+              stroke={COLORS.band}
+              strokeWidth={hoveredItem === 'Band Protocol' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'Band Protocol' ? 5 : 3, fill: COLORS.band }}
               activeDot={{ r: 7 }}
               opacity={hoveredItem && hoveredItem !== 'Band Protocol' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('Band Protocol')}
               onMouseLeave={() => setHoveredItem(null)}
             />
-            <Line 
-              type="monotone" 
-              dataKey="api3" 
-              name="API3" 
-              stroke={COLORS.api3} 
-              strokeWidth={hoveredItem === 'API3' || !hoveredItem ? 2 : 1.5} 
-              dot={{ r: hoveredItem === 'API3' ? 5 : 3, fill: COLORS.api3 }} 
+            <Line
+              type="monotone"
+              dataKey="api3"
+              name="API3"
+              stroke={COLORS.api3}
+              strokeWidth={hoveredItem === 'API3' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'API3' ? 5 : 3, fill: COLORS.api3 }}
               activeDot={{ r: 7 }}
               opacity={hoveredItem && hoveredItem !== 'API3' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('API3')}
               onMouseLeave={() => setHoveredItem(null)}
             />
-            <Line 
-              type="monotone" 
-              dataKey="uma" 
-              name="UMA" 
-              stroke={COLORS.uma} 
-              strokeWidth={hoveredItem === 'UMA' || !hoveredItem ? 2 : 1.5} 
-              dot={{ r: hoveredItem === 'UMA' ? 5 : 3, fill: COLORS.uma }} 
+            <Line
+              type="monotone"
+              dataKey="uma"
+              name="UMA"
+              stroke={COLORS.uma}
+              strokeWidth={hoveredItem === 'UMA' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'UMA' ? 5 : 3, fill: COLORS.uma }}
               activeDot={{ r: 7 }}
               opacity={hoveredItem && hoveredItem !== 'UMA' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
@@ -270,17 +274,23 @@ export default function OracleMarketOverview() {
             <XAxis type="number" stroke="#9ca3af" fontSize={12} />
             <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar 
-              dataKey="chains" 
+            <Bar
+              dataKey="chains"
               name="Supported Chains"
               radius={[0, 8, 8, 0]}
               onMouseEnter={(_, index) => setHoveredItem(chainSupportData[index]?.name)}
               onMouseLeave={() => setHoveredItem(null)}
-              onClick={(_, index) => setSelectedItem(chainSupportData[index]?.name === selectedItem ? null : chainSupportData[index]?.name)}
+              onClick={(_, index) =>
+                setSelectedItem(
+                  chainSupportData[index]?.name === selectedItem
+                    ? null
+                    : chainSupportData[index]?.name
+                )
+              }
             >
               {chainSupportData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
+                <Cell
+                  key={`cell-${index}`}
                   fill={entry.color}
                   opacity={hoveredItem && hoveredItem !== entry.name ? 0.5 : 1}
                   stroke={selectedItem === entry.name ? entry.color : 'none'}
@@ -297,8 +307,13 @@ export default function OracleMarketOverview() {
   };
 
   const renderTable = () => {
-    const data = activeChart === 'pie' ? marketShareData : activeChart === 'bar' ? chainSupportData : marketShareData;
-    
+    const data =
+      activeChart === 'pie'
+        ? marketShareData
+        : activeChart === 'bar'
+          ? chainSupportData
+          : marketShareData;
+
     return (
       <div className="h-full overflow-auto">
         <table className="w-full">
@@ -308,12 +323,17 @@ export default function OracleMarketOverview() {
                 {locale === 'zh-CN' ? '预言机' : 'Oracle'}
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {activeChart === 'pie' 
-                  ? (locale === 'zh-CN' ? '市场份额' : 'Market Share')
+                {activeChart === 'pie'
+                  ? locale === 'zh-CN'
+                    ? '市场份额'
+                    : 'Market Share'
                   : activeChart === 'bar'
-                  ? (locale === 'zh-CN' ? '支持链数' : 'Chains')
-                  : (locale === 'zh-CN' ? 'TVS' : 'TVS')
-                }
+                    ? locale === 'zh-CN'
+                      ? '支持链数'
+                      : 'Chains'
+                    : locale === 'zh-CN'
+                      ? 'TVS'
+                      : 'TVS'}
               </th>
               {activeChart === 'bar' && (
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -329,7 +349,7 @@ export default function OracleMarketOverview() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {data.map((item: any, index: number) => (
-              <tr 
+              <tr
                 key={item.name}
                 className={`hover:bg-blue-50 transition-colors cursor-pointer ${
                   selectedItem === item.name ? 'bg-blue-50' : ''
@@ -340,10 +360,7 @@ export default function OracleMarketOverview() {
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
                 </td>
@@ -399,8 +416,8 @@ export default function OracleMarketOverview() {
               {locale === 'zh-CN' ? '预言机市场分析' : 'Oracle Market Analysis'}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl">
-              {locale === 'zh-CN' 
-                ? '全面分析预言机市场份额、TVS趋势和链支持情况' 
+              {locale === 'zh-CN'
+                ? '全面分析预言机市场份额、TVS趋势和链支持情况'
                 : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
             </p>
           </div>
@@ -577,8 +594,8 @@ export default function OracleMarketOverview() {
             {viewType === 'chart' && (
               <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
                 <Info className="w-4 h-4" />
-                {locale === 'zh-CN' 
-                  ? '悬停查看详情，点击选中项目' 
+                {locale === 'zh-CN'
+                  ? '悬停查看详情，点击选中项目'
                   : 'Hover for details, click to select'}
               </div>
             )}
@@ -597,11 +614,11 @@ export default function OracleMarketOverview() {
             </div>
 
             {marketShareData.map((item) => (
-              <div 
+              <div
                 key={item.name}
                 className={`bg-white rounded-xl border p-4 transition-all cursor-pointer group ${
-                  selectedItem === item.name 
-                    ? 'border-blue-500 shadow-md ring-1 ring-blue-500' 
+                  selectedItem === item.name
+                    ? 'border-blue-500 shadow-md ring-1 ring-blue-500'
                     : 'border-gray-200 hover:shadow-lg hover:border-gray-300'
                 } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
                 onMouseEnter={() => setHoveredItem(item.name)}
@@ -610,20 +627,17 @@ export default function OracleMarketOverview() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
                   <span className="text-lg font-bold text-gray-900">{item.value}%</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
-                  <div 
+                  <div
                     className="h-full rounded-full transition-all duration-500"
-                    style={{ 
+                    style={{
                       backgroundColor: item.color,
-                      width: `${item.value}%`
+                      width: `${item.value}%`,
                     }}
                   />
                 </div>
@@ -641,7 +655,9 @@ export default function OracleMarketOverview() {
               </div>
               <div className="text-2xl font-bold text-gray-900">100%</div>
               <div className="text-xs text-gray-500 mt-1">
-                {locale === 'zh-CN' ? `覆盖 ${stats.oracleCount} 个主要预言机` : `Covering ${stats.oracleCount} major oracles`}
+                {locale === 'zh-CN'
+                  ? `覆盖 ${stats.oracleCount} 个主要预言机`
+                  : `Covering ${stats.oracleCount} major oracles`}
               </div>
             </div>
           </div>

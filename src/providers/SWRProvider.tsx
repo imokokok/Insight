@@ -9,10 +9,6 @@ interface CacheData {
   staleTime: number;
 }
 
-interface StorageCache {
-  [key: string]: CacheData;
-}
-
 const MEMORY_CACHE = new Map<string, CacheData>();
 
 const STALE_TIME_CONFIG = {
@@ -102,7 +98,7 @@ const swrConfig = {
   errorRetryInterval: 5000,
   dedupingInterval: 5000,
   provider: () => cacheStorage,
-  isOnline: () => typeof navigator !== 'undefined' ? navigator.onLine : true,
+  isOnline: () => (typeof navigator !== 'undefined' ? navigator.onLine : true),
 };
 
 interface SWRContextValue {
@@ -169,9 +165,7 @@ export function SWRProvider({ children }: SWRProviderProps) {
 
   return (
     <SWRContext.Provider value={{ prefetch, mutate: globalMutate }}>
-      <SWRConfig value={swrConfig}>
-        {children}
-      </SWRConfig>
+      <SWRConfig value={swrConfig}>{children}</SWRConfig>
     </SWRContext.Provider>
   );
 }

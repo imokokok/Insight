@@ -1,5 +1,3 @@
-import { ChartThemeColors, DEFAULT_CHART_THEME } from '@/lib/types/oracleTypes';
-
 export const chartColors = {
   primary: '#3b82f6',
   secondary: '#6b7280',

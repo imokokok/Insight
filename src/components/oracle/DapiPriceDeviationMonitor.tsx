@@ -6,12 +6,6 @@ interface DapiPriceDeviationMonitorProps {
   data: DapiPriceDeviation[];
 }
 
-function getDeviationStatus(deviation: number): 'normal' | 'warning' | 'critical' {
-  if (deviation > 0.5) return 'critical';
-  if (deviation >= 0.3) return 'warning';
-  return 'normal';
-}
-
 function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical' }) {
   const config = {
     normal: {
