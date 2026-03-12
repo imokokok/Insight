@@ -150,7 +150,7 @@ const colorMap: Record<string, { bg: string; border: string; text: string; gradi
 
 // Mini Live Ticker Component
 function MiniLiveTicker() {
-  const { language } = useI18n();
+  const { locale } = useI18n();
   const [isPaused, setIsPaused] = useState(false);
 
   return (
@@ -165,7 +165,7 @@ function MiniLiveTicker() {
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
         </div>
         <span className="text-xs font-medium text-gray-600">
-          {language === 'zh' ? '实时价格' : 'Live Prices'}
+          {locale === 'zh-CN' ? '实时价格' : 'Live Prices'}
         </span>
       </div>
       <div className="relative py-2">
@@ -200,7 +200,7 @@ function MiniLiveTicker() {
 
 // Live Indicator Badge
 function LiveIndicator() {
-  const { language } = useI18n();
+  const { locale } = useI18n();
   
   return (
     <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-green-50 border border-green-200 rounded-full">
@@ -209,14 +209,14 @@ function LiveIndicator() {
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
       </span>
       <span className="text-[10px] font-medium text-green-700 uppercase tracking-wide">
-        {language === 'zh' ? '实时' : 'Live'}
+        {locale === 'zh-CN' ? '实时' : 'Live'}
       </span>
     </div>
   );
 }
 
 export default function BentoMetricsGrid() {
-  const { t, language } = useI18n();
+  const { t, locale } = useI18n();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -226,6 +226,8 @@ export default function BentoMetricsGrid() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const langCode = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
 
   const renderChart = (card: MetricCard) => {
     if (!card.chart || !card.chartData) return null;
@@ -279,14 +281,14 @@ export default function BentoMetricsGrid() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-4">
             <BarChart3 className="w-4 h-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-600">
-              {language === 'zh' ? '平台指标' : 'Platform Metrics'}
+              {locale === 'zh-CN' ? '平台指标' : 'Platform Metrics'}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {language === 'zh' ? '核心数据指标' : 'Key Metrics'}
+            {locale === 'zh-CN' ? '核心数据指标' : 'Key Metrics'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {language === 'zh' 
+            {locale === 'zh-CN' 
               ? '实时监控平台核心指标，全面了解预言机生态健康状况' 
               : 'Real-time monitoring of core platform metrics'}
           </p>
@@ -367,7 +369,7 @@ export default function BentoMetricsGrid() {
                     <div className="mt-3 flex items-center gap-1.5 text-[10px] text-gray-400">
                       <Clock className="w-3 h-3" />
                       <span>
-                        {language === 'zh' ? '更新于' : 'Updated'} {currentTime.toLocaleTimeString(language === 'zh' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {locale === 'zh-CN' ? '更新于' : 'Updated'} {currentTime.toLocaleTimeString(langCode, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                   )}
