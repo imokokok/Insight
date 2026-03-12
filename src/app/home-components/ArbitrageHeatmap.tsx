@@ -61,7 +61,8 @@ const getDeviationIntensity = (deviation: number): string => {
 };
 
 export default function ArbitrageHeatmap() {
-  const { t, language } = useI18n();
+  const { t, locale } = useI18n();
+  const isZh = locale === 'zh-CN';
   const [selectedPair, setSelectedPair] = useState('BTC/USD');
   const [hoveredChain, setHoveredChain] = useState<string | null>(null);
 
@@ -78,15 +79,15 @@ export default function ArbitrageHeatmap() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-full mb-4">
             <ArrowRightLeft className="w-4 h-4 text-amber-600" />
             <span className="text-sm font-medium text-amber-600">
-              {language === 'zh' ? '跨链套利' : 'Cross-Chain Arbitrage'}
+              {isZh ? '跨链套利' : 'Cross-Chain Arbitrage'}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {language === 'zh' ? '价格差异热力图' : 'Price Spread Heatmap'}
+            {isZh ? '价格差异热力图' : 'Price Spread Heatmap'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {language === 'zh' 
-              ? '实时监控同一交易对在不同区块链上的价格差异，发现潜在套利机会' 
+            {isZh
+              ? '实时监控同一交易对在不同区块链上的价格差异，发现潜在套利机会'
               : 'Monitor price differences across major chains in real-time and discover arbitrage opportunities'}
           </p>
         </div>
@@ -112,7 +113,7 @@ export default function ArbitrageHeatmap() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
             <div className="text-sm text-blue-600 mb-1">
-              {language === 'zh' ? '平均价格' : 'Average Price'}
+              {isZh ? '平均价格' : 'Average Price'}
             </div>
             <div className="text-2xl font-bold text-gray-900">
               ${avgPrice.toFixed(2)}
@@ -120,7 +121,7 @@ export default function ArbitrageHeatmap() {
           </div>
           <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
             <div className="text-sm text-amber-600 mb-1">
-              {language === 'zh' ? '最大偏差' : 'Max Deviation'}
+              {isZh ? '最大偏差' : 'Max Deviation'}
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {maxDeviation.toFixed(3)}%
@@ -134,7 +135,7 @@ export default function ArbitrageHeatmap() {
             <div className={`text-sm mb-1 ${
               arbitrageCount > 0 ? 'text-red-600' : 'text-emerald-600'
             }`}>
-              {language === 'zh' ? '套利机会' : 'Arbitrage Opportunities'}
+              {isZh ? '套利机会' : 'Arbitrage Opportunities'}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-2xl font-bold text-gray-900">
@@ -210,19 +211,19 @@ export default function ArbitrageHeatmap() {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-emerald-500" />
               <span className="text-sm text-gray-600">
-                {language === 'zh' ? '低偏差 (<0.1%)' : 'Low (<0.1%)'}
+                {isZh ? '低偏差 (<0.1%)' : 'Low (<0.1%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
               <span className="text-sm text-gray-600">
-                {language === 'zh' ? '中偏差 (0.1-0.3%)' : 'Medium (0.1-0.3%)'}
+                {isZh ? '中偏差 (0.1-0.3%)' : 'Medium (0.1-0.3%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <span className="text-sm text-gray-600">
-                {language === 'zh' ? '高偏差 (>0.3%)' : 'High (>0.3%)'}
+                {isZh ? '高偏差 (>0.3%)' : 'High (>0.3%)'}
               </span>
             </div>
           </div>
@@ -236,13 +237,13 @@ export default function ArbitrageHeatmap() {
             </div>
             <div>
               <div className="font-semibold text-red-900">
-                {language === 'zh' 
-                  ? `检测到 ${arbitrageCount} 个潜在套利机会` 
+                {isZh
+                  ? `检测到 ${arbitrageCount} 个潜在套利机会`
                   : `${arbitrageCount} potential arbitrage opportunities detected`}
               </div>
               <div className="text-sm text-red-700">
-                {language === 'zh' 
-                  ? '部分链上价格偏差超过 0.1%，可能存在套利空间' 
+                {isZh
+                  ? '部分链上价格偏差超过 0.1%，可能存在套利空间'
                   : 'Price deviation exceeds 0.1% on some chains'}
               </div>
             </div>

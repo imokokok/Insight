@@ -52,7 +52,7 @@ const timeRanges = [
 ];
 
 export default function OracleMarketOverview() {
-  const { t, language } = useI18n();
+  const { t, locale } = useI18n();
   const [selectedRange, setSelectedRange] = useState('30D');
   const [activeChart, setActiveChart] = useState<'pie' | 'trend' | 'bar'>('pie');
 
@@ -78,14 +78,14 @@ export default function OracleMarketOverview() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-4">
               <PieChartIcon className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-600">
-                {language === 'zh' ? '市场概览' : 'Market Overview'}
+                {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              {language === 'zh' ? '预言机市场分析' : 'Oracle Market Analysis'}
+              {locale === 'zh-CN' ? '预言机市场分析' : 'Oracle Market Analysis'}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl">
-              {language === 'zh' 
+              {locale === 'zh-CN' 
                 ? '全面分析预言机市场份额、TVS趋势和链支持情况' 
                 : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
             </p>
@@ -120,7 +120,7 @@ export default function OracleMarketOverview() {
             }`}
           >
             <PieChartIcon className="w-4 h-4" />
-            {language === 'zh' ? '市场份额' : 'Market Share'}
+            {locale === 'zh-CN' ? '市场份额' : 'Market Share'}
           </button>
           <button
             onClick={() => setActiveChart('trend')}
@@ -131,7 +131,7 @@ export default function OracleMarketOverview() {
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            {language === 'zh' ? 'TVS趋势' : 'TVS Trend'}
+            {locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend'}
           </button>
           <button
             onClick={() => setActiveChart('bar')}
@@ -142,7 +142,7 @@ export default function OracleMarketOverview() {
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            {language === 'zh' ? '链支持' : 'Chain Support'}
+            {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
           </button>
         </div>
 
@@ -256,11 +256,11 @@ export default function OracleMarketOverview() {
             {/* Summary Stats */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4">
               <div className="text-sm text-blue-600 mb-1">
-                {language === 'zh' ? '总市场份额' : 'Total Market Share'}
+                {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
               </div>
               <div className="text-2xl font-bold text-gray-900">100%</div>
               <div className="text-xs text-gray-500 mt-1">
-                {language === 'zh' ? '覆盖 5 个主要预言机' : 'Covering 5 major oracles'}
+                {locale === 'zh-CN' ? '覆盖 5 个主要预言机' : 'Covering 5 major oracles'}
               </div>
             </div>
           </div>
