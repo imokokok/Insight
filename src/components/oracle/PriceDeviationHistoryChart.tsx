@@ -14,7 +14,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
 

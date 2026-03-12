@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface CustomTooltipProps {
   active?: boolean;

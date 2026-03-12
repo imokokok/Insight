@@ -313,7 +313,7 @@ export const exportChartAsImage = async (
   const html2canvas = (await import('html2canvas')).default;
 
   const canvas = await html2canvas(chartRef.current, {
-    background: '#ffffff',
+    backgroundColor: '#ffffff' as any,
   });
 
   const link = document.createElement('a');

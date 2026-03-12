@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from '../useCrossChainData';
 import { chainNames, getCorrelationColor } from '../utils';
 

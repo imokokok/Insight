@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { TimeRange } from './TabNavigation';
 import { ExportModal } from './ExportModal';
 import { ExportOptions } from '@/hooks';

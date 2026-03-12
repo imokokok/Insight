@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 
 export default function ProfessionalCTA() {

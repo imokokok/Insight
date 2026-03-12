@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { usePriceHistory } from '@/hooks';
 import { PriceAccuracyStats } from './PriceAccuracyStats';
 import { ExtremeMarketAnalysis } from './ExtremeMarketAnalysis';

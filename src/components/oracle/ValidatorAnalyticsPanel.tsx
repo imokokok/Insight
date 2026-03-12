@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, ValidatorData } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { ValidatorPerformanceHeatmap } from './ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from './ValidatorComparison';
 

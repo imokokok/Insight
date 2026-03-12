@@ -6,7 +6,7 @@ import { Blockchain, OracleProvider, ConfidenceInterval } from '@/lib/types/orac
 import { MetricCard } from './DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 type EMAPeriod = 7 | 14 | 30;
 

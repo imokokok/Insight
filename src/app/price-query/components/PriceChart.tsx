@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useCallback, useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import {
   LineChart,
   Line,

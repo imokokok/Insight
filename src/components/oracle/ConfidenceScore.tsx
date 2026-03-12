@@ -15,7 +15,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
 

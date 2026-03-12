@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 
 export function QuickLinks() {

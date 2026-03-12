@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, ReactNode } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface FilterOption {
   value: string;

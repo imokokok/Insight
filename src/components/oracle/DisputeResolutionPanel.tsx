@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { UMAClient, DisputeData } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';

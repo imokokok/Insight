@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeEfficiencyStats } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 export function DisputeEfficiencyAnalysis() {
   const { t } = useI18n();
