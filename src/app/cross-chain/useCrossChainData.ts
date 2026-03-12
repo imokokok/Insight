@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import {
   ChainlinkClient,
@@ -26,6 +26,7 @@ import {
   calculatePearsonCorrelation,
   calculateSMA,
 } from './utils';
+import { useCrossChainStore } from '@/stores/crossChainStore';
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -138,51 +139,60 @@ export interface UseCrossChainDataReturn {
 }
 
 export function useCrossChainData(): UseCrossChainDataReturn {
-  const [selectedProvider, setSelectedProvider] = useState<OracleProvider>(
-    OracleProvider.CHAINLINK
-  );
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
-  const [selectedTimeRange, setSelectedTimeRange] = useState<number>(24);
-  const [currentPrices, setCurrentPrices] = useState<PriceData[]>([]);
-  const [historicalPrices, setHistoricalPrices] = useState<
-    Partial<Record<Blockchain, PriceData[]>>
-  >({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedBaseChain, setSelectedBaseChain] = useState<Blockchain | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [prevStats, setPrevStats] = useState<{
-    avgPrice: number;
-    maxPrice: number;
-    minPrice: number;
-    priceRange: number;
-    standardDeviationPercent: number;
-  } | null>(null);
-  const [visibleChains, setVisibleChains] = useState<Blockchain[]>([]);
-  const [showMA, setShowMA] = useState<boolean>(false);
-  const [maPeriod, setMaPeriod] = useState<number>(7);
-  const [chartKey, setChartKey] = useState<number>(0);
-  const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
-  const [hoveredCell, setHoveredCell] = useState<{
-    xChain: Blockchain;
-    yChain: Blockchain;
-    x: number;
-    y: number;
-  } | null>(null);
-  const [sortColumn, setSortColumn] = useState<string>('chain');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedCell, setSelectedCell] = useState<{
-    xChain: Blockchain;
-    yChain: Blockchain;
-  } | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [focusedChain, setFocusedChain] = useState<Blockchain | null>(null);
-  const [tableFilter, setTableFilter] = useState<'all' | 'abnormal' | 'normal'>('all');
-  const [recommendedBaseChain, setRecommendedBaseChain] = useState<Blockchain | null>(null);
-  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>(
-    'idle'
-  );
-  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
+  const {
+    selectedProvider,
+    selectedSymbol,
+    selectedTimeRange,
+    selectedBaseChain,
+    visibleChains,
+    showMA,
+    maPeriod,
+    chartKey,
+    hiddenLines,
+    focusedChain,
+    tableFilter,
+    hoveredCell,
+    selectedCell,
+    tooltipPosition,
+    refreshInterval,
+    lastUpdated,
+    currentPrices,
+    historicalPrices,
+    loading,
+    refreshStatus,
+    showRefreshSuccess,
+    recommendedBaseChain,
+    prevStats,
+    sortColumn,
+    sortDirection,
+    setSelectedProvider,
+    setSelectedSymbol,
+    setSelectedTimeRange,
+    setSelectedBaseChain,
+    setVisibleChains,
+    setShowMA,
+    setMaPeriod,
+    setChartKey,
+    setHiddenLines,
+    setFocusedChain,
+    setTableFilter,
+    setHoveredCell,
+    setSelectedCell,
+    setTooltipPosition,
+    setRefreshInterval,
+    setCurrentPrices,
+    setHistoricalPrices,
+    setLoading,
+    setRefreshStatus,
+    setShowRefreshSuccess,
+    setLastUpdated,
+    setPrevStats,
+    setRecommendedBaseChain,
+    setSortColumn,
+    setSortDirection,
+    toggleChain,
+    handleSort,
+  } = useCrossChainStore();
 
   const currentClient = oracleClients[selectedProvider];
   const supportedChains = currentClient.supportedChains;
@@ -283,15 +293,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     }
   }, [supportedChains, selectedBaseChain, recommendedBaseChain]);
 
-  const toggleChain = useCallback((chain: Blockchain) => {
-    setVisibleChains((prev) => {
-      if (prev.includes(chain)) {
-        return prev.filter((c) => c !== chain);
-      }
-      return [...prev, chain];
-    });
-  }, []);
-
   const filteredChains = useMemo(() => {
     return supportedChains.filter((chain) => visibleChains.includes(chain));
   }, [supportedChains, visibleChains]);
@@ -371,18 +372,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       };
     });
   }, [currentPrices, selectedBaseChain, filteredChains]);
-
-  const handleSort = useCallback(
-    (column: string) => {
-      if (sortColumn === column) {
-        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-      } else {
-        setSortColumn(column);
-        setSortDirection('asc');
-      }
-    },
-    [sortColumn, sortDirection]
-  );
 
   const sortedPriceDifferences = useMemo(() => {
     const DEVIATION_THRESHOLD = 0.5;
