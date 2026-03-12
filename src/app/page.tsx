@@ -28,15 +28,6 @@ interface OracleData {
   color: string;
 }
 
-interface ActivityItem {
-  id: string;
-  time: string;
-  oracle: string;
-  price: string;
-  chain: string;
-  txHash: string;
-}
-
 // Oracle configuration
 const oracleConfig: Record<string, { name: string; color: string }> = {
   LINK: { name: 'Chainlink', color: '#3B82F6' },
@@ -448,80 +439,109 @@ function ChartsSection() {
   );
 }
 
-// Activity Feed Component - Light theme
-function ActivityFeed() {
-  const [activities, setActivities] = useState<ActivityItem[]>(() => {
-    const chains = ['Ethereum', 'BSC', 'Polygon', 'Arbitrum', 'Optimism'];
-    const generateActivity = (): ActivityItem => {
-      const oracleKeys = Object.keys(oracleConfig);
-      const oracle = oracleKeys[Math.floor(Math.random() * oracleKeys.length)];
-      const chain = chains[Math.floor(Math.random() * chains.length)];
-      const price = (Math.random() * 50 + 1).toFixed(2);
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        time: new Date().toLocaleTimeString('zh-CN'),
-        oracle: oracleConfig[oracle].name,
-        price: `$${price}`,
-        chain,
-        txHash: `0x${Math.random().toString(16).substr(2, 40)}`,
-      };
-    };
-    return Array.from({ length: 5 }, generateActivity);
-  });
+// Quick Links Section - Replaces Activity Feed with actual project features
+function QuickLinksSection({ t }: { t: (key: string) => string }) {
+  const quickLinks = [
+    {
+      href: '/price-query',
+      title: t('navbar.priceQuery'),
+      description: t('home.features.priceQuery.description'),
+      color: '#3B82F6',
+    },
+    {
+      href: '/cross-oracle',
+      title: t('navbar.crossOracle'),
+      description: t('home.features.crossOracle.description'),
+      color: '#8B5CF6',
+    },
+    {
+      href: '/cross-chain',
+      title: t('navbar.crossChain'),
+      description: t('home.features.crossChain.description'),
+      color: '#10B981',
+    },
+  ];
 
-  useEffect(() => {
-    const chains = ['Ethereum', 'BSC', 'Polygon', 'Arbitrum', 'Optimism'];
-    const generateActivity = (): ActivityItem => {
-      const oracleKeys = Object.keys(oracleConfig);
-      const oracle = oracleKeys[Math.floor(Math.random() * oracleKeys.length)];
-      const chain = chains[Math.floor(Math.random() * chains.length)];
-      const price = (Math.random() * 50 + 1).toFixed(2);
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        time: new Date().toLocaleTimeString('zh-CN'),
-        oracle: oracleConfig[oracle].name,
-        price: `$${price}`,
-        chain,
-        txHash: `0x${Math.random().toString(16).substr(2, 40)}`,
-      };
-    };
-
-    // Add new activity every 3 seconds
-    const interval = setInterval(() => {
-      setActivities((prev) => [generateActivity(), ...prev].slice(0, 10));
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const oracleLinks = [
+    { href: '/chainlink', name: 'Chainlink', color: '#3B82F6' },
+    { href: '/band-protocol', name: 'Band Protocol', color: '#10B981' },
+    { href: '/uma', name: 'UMA', color: '#F59E0B' },
+    { href: '/pyth-network', name: 'Pyth Network', color: '#8B5CF6' },
+    { href: '/api3', name: 'API3', color: '#EC4899' },
+  ];
 
   return (
     <div className="px-8 pb-8">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">最新活动</h2>
-          <Link href="/activity" className="text-sm text-blue-600 hover:text-blue-700">
-            查看全部 →
-          </Link>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Links */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">{t('home.features.title')}</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {quickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: link.color }}
+                  />
+                  <div>
+                    <div className="text-gray-900 font-medium group-hover:text-blue-600 transition-colors">
+                      {link.title}
+                    </div>
+                    <div className="text-gray-500 text-sm">{link.description}</div>
+                  </div>
+                </div>
+                <svg
+                  className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-all group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="divide-y divide-gray-100">
-          {activities.map((activity, index) => (
-            <div
-              key={activity.id}
-              className={`px-6 py-4 flex items-center justify-between transition-all duration-500 ${
-                index === 0 ? 'bg-blue-50/50' : ''
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-gray-500 text-sm w-20">{activity.time}</div>
-                <div className="text-gray-900 font-medium w-32">{activity.oracle}</div>
-                <div className="text-emerald-600 font-mono w-24">{activity.price}</div>
-                <div className="text-gray-500 text-sm">{activity.chain}</div>
-              </div>
-              <div className="text-gray-400 text-xs font-mono truncate max-w-[200px]">
-                {activity.txHash}
-              </div>
-            </div>
-          ))}
+
+        {/* Oracle Links */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">{t('home.oracles.title')}</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {oracleLinks.map((oracle) => (
+              <Link
+                key={oracle.href}
+                href={oracle.href}
+                className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: oracle.color }}
+                  />
+                  <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
+                    {oracle.name}
+                  </span>
+                </div>
+                <svg
+                  className="w-4 h-4 text-gray-300 group-hover:text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -542,7 +562,7 @@ function Dashboard({
       <MetricsSection />
       <OracleTable prices={prices} />
       <ChartsSection />
-      <ActivityFeed />
+      <QuickLinksSection t={t} />
     </div>
   );
 }
@@ -550,7 +570,7 @@ function Dashboard({
 // Main Page Component
 export default function Home() {
   const { t } = useI18n();
-  const { prices, loading } = useOraclePrices();
+  const { prices } = useOraclePrices();
 
   return (
     <div className="min-h-screen bg-gray-50">
