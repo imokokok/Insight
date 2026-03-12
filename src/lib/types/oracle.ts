@@ -18,9 +18,21 @@ export enum Blockchain {
   JUNO = 'juno',
   COSMOS = 'cosmos',
   OSMOSIS = 'osmosis',
-  BINANCE = 'binance',
+  BNB_CHAIN = 'bnb-chain',
   BASE = 'base',
+  SCROLL = 'scroll',
+  ZKSYNC = 'zksync',
+  APTOS = 'aptos',
+  SUI = 'sui',
+  GNOSIS = 'gnosis',
+  MANTLE = 'mantle',
+  LINEA = 'linea',
+  CELESTIA = 'celestia',
+  INJECTIVE = 'injective',
+  SEI = 'sei',
 }
+
+export const BINANCE = Blockchain.BNB_CHAIN;
 
 export interface ConfidenceInterval {
   bid: number;
