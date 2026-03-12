@@ -1,19 +1,31 @@
 'use client';
 
 import ProfessionalHero from './home-components/ProfessionalHero';
-import FeatureCards from './home-components/FeatureCards';
+import LivePriceTicker from './home-components/LivePriceTicker';
+import BentoMetricsGrid from './home-components/BentoMetricsGrid';
+import OracleMarketOverview from './home-components/OracleMarketOverview';
+import ArbitrageHeatmap from './home-components/ArbitrageHeatmap';
 import ProfessionalCTA from './home-components/ProfessionalCTA';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      {/* 1. Hero Section - Value proposition, search, 3 core metrics */}
+      {/* 1. Hero Section - Value proposition, search, 3 core metrics with animated background */}
       <ProfessionalHero />
 
-      {/* 2. Feature Cards - 4 feature entry points */}
-      <FeatureCards />
+      {/* 2. Live Price Ticker - Real-time scrolling price data */}
+      <LivePriceTicker />
 
-      {/* 3. CTA Section - Clean call to action */}
+      {/* 3. Bento Metrics Grid - Key platform metrics with charts */}
+      <BentoMetricsGrid />
+
+      {/* 4. Oracle Market Overview - Market share, trends, chain support */}
+      <OracleMarketOverview />
+
+      {/* 5. Arbitrage Heatmap - Cross-chain price differences */}
+      <ArbitrageHeatmap />
+
+      {/* 6. CTA Section - Single primary action */}
       <ProfessionalCTA />
     </main>
   );
