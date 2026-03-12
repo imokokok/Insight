@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/context';
-import { AlertTriangle, TrendingUp, ArrowRightLeft } from 'lucide-react';
+import { TrendingUp, Activity, Globe } from 'lucide-react';
 
 interface ChainData {
   name: string;
@@ -60,8 +60,15 @@ const getDeviationIntensity = (deviation: number): string => {
   return 'bg-red-500';
 };
 
-export default function ArbitrageHeatmap() {
-  const { t, locale } = useI18n();
+const getConsistencyStatus = (deviation: number): string => {
+  const absDeviation = Math.abs(deviation);
+  if (absDeviation < 0.1) return 'high';
+  if (absDeviation < 0.3) return 'medium';
+  return 'low';
+};
+
+export default function CrossChainPriceMonitor() {
+  const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
   const [selectedPair, setSelectedPair] = useState('BTC/USD');
   const [hoveredChain, setHoveredChain] = useState<string | null>(null);
@@ -69,26 +76,27 @@ export default function ArbitrageHeatmap() {
   const currentData = chainDataMap[selectedPair];
   const avgPrice = currentData.reduce((sum, chain) => sum + chain.price, 0) / currentData.length;
   const maxDeviation = Math.max(...currentData.map(c => Math.abs(c.deviation)));
-  const arbitrageCount = currentData.filter(c => Math.abs(c.deviation) > 0.1).length;
+  const highConsistencyCount = currentData.filter(c => Math.abs(c.deviation) < 0.1).length;
+  const consistencyRate = (highConsistencyCount / currentData.length) * 100;
 
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-full mb-4">
-            <ArrowRightLeft className="w-4 h-4 text-amber-600" />
-            <span className="text-sm font-medium text-amber-600">
-              {isZh ? '跨链套利' : 'Cross-Chain Arbitrage'}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-4">
+            <Globe className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-600">
+              {isZh ? '跨链监控' : 'Cross-Chain Monitor'}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {isZh ? '价格差异热力图' : 'Price Spread Heatmap'}
+            {isZh ? '跨链价格一致性' : 'Cross-Chain Price Consistency'}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {isZh
-              ? '实时监控同一交易对在不同区块链上的价格差异，发现潜在套利机会'
-              : 'Monitor price differences across major chains in real-time and discover arbitrage opportunities'}
+              ? '监控同一交易对在不同区块链上的价格一致性，评估预言机数据质量'
+              : 'Monitor price consistency of the same trading pair across different blockchains and assess oracle data quality'}
           </p>
         </div>
 
@@ -113,7 +121,7 @@ export default function ArbitrageHeatmap() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
             <div className="text-sm text-blue-600 mb-1">
-              {isZh ? '平均价格' : 'Average Price'}
+              {isZh ? '参考价格' : 'Reference Price'}
             </div>
             <div className="text-2xl font-bold text-gray-900">
               ${avgPrice.toFixed(2)}
@@ -127,33 +135,25 @@ export default function ArbitrageHeatmap() {
               {maxDeviation.toFixed(3)}%
             </div>
           </div>
-          <div className={`rounded-xl p-4 border ${
-            arbitrageCount > 0 
-              ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-200' 
-              : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200'
-          }`}>
-            <div className={`text-sm mb-1 ${
-              arbitrageCount > 0 ? 'text-red-600' : 'text-emerald-600'
-            }`}>
-              {isZh ? '套利机会' : 'Arbitrage Opportunities'}
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+            <div className="text-sm text-emerald-600 mb-1">
+              {isZh ? '一致性率' : 'Consistency Rate'}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-2xl font-bold text-gray-900">
-                {arbitrageCount}
+                {consistencyRate.toFixed(0)}%
               </div>
-              {arbitrageCount > 0 && (
-                <AlertTriangle className="w-5 h-5 text-red-500 animate-pulse" />
-              )}
+              <Activity className="w-5 h-5 text-emerald-500" />
             </div>
           </div>
         </div>
 
-        {/* Heatmap Grid - Simplified to 4 major chains */}
+        {/* Price Consistency Grid */}
         <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentData.map((chain) => {
               const isHovered = hoveredChain === chain.name;
-              const isArbitrage = Math.abs(chain.deviation) > 0.1;
+              const consistencyStatus = getConsistencyStatus(chain.deviation);
               
               return (
                 <div
@@ -162,20 +162,19 @@ export default function ArbitrageHeatmap() {
                     relative rounded-xl border-2 p-4 cursor-pointer transition-all duration-300
                     ${getDeviationColor(chain.deviation)}
                     ${isHovered ? 'scale-105 shadow-xl' : 'shadow-sm'}
-                    ${isArbitrage ? 'animate-pulse' : ''}
                   `}
                   onMouseEnter={() => setHoveredChain(chain.name)}
                   onMouseLeave={() => setHoveredChain(null)}
                 >
-                  {/* Flashing indicator for arbitrage */}
-                  {isArbitrage && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+                  {/* Consistency indicator */}
+                  {consistencyStatus === 'high' && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full" />
                   )}
                   
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-semibold">{chain.name}</span>
-                    {isArbitrage && (
-                      <TrendingUp className="w-4 h-4" />
+                    {consistencyStatus === 'high' && (
+                      <Activity className="w-4 h-4 text-emerald-500" />
                     )}
                   </div>
                   
@@ -211,44 +210,42 @@ export default function ArbitrageHeatmap() {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-emerald-500" />
               <span className="text-sm text-gray-600">
-                {isZh ? '低偏差 (<0.1%)' : 'Low (<0.1%)'}
+                {isZh ? '高一致性 (<0.1%)' : 'High Consistency (<0.1%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
               <span className="text-sm text-gray-600">
-                {isZh ? '中偏差 (0.1-0.3%)' : 'Medium (0.1-0.3%)'}
+                {isZh ? '中等一致性 (0.1-0.3%)' : 'Medium Consistency (0.1-0.3%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <span className="text-sm text-gray-600">
-                {isZh ? '高偏差 (>0.3%)' : 'High (>0.3%)'}
+                {isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Alert Banner */}
-        {arbitrageCount > 0 && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-4">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+        {/* Info Banner */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-4">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <div className="font-semibold text-blue-900">
+              {isZh
+                ? '价格一致性分析'
+                : 'Price Consistency Analysis'}
             </div>
-            <div>
-              <div className="font-semibold text-red-900">
-                {isZh
-                  ? `检测到 ${arbitrageCount} 个潜在套利机会`
-                  : `${arbitrageCount} potential arbitrage opportunities detected`}
-              </div>
-              <div className="text-sm text-red-700">
-                {isZh
-                  ? '部分链上价格偏差超过 0.1%，可能存在套利空间'
-                  : 'Price deviation exceeds 0.1% on some chains'}
-              </div>
+            <div className="text-sm text-blue-700">
+              {isZh
+                ? '偏差值反映不同链上预言机价格的差异程度，低偏差表示数据质量高、一致性好'
+                : 'Deviation values reflect the difference in oracle prices across chains. Low deviation indicates high data quality and consistency'}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { I18nProvider } from '@/lib/i18n/context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SWRProvider } from '@/providers/SWRProvider';
+import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,11 +35,13 @@ export default function RootLayout({
       >
         <I18nProvider>
           <SWRProvider>
-            <ErrorBoundary>
-              <Navbar />
-              <main className="flex-1 bg-gray-50">{children}</main>
-              <Footer />
-            </ErrorBoundary>
+            <TimeRangeProvider>
+              <ErrorBoundary>
+                <Navbar />
+                <main className="flex-1 bg-gray-50">{children}</main>
+                <Footer />
+              </ErrorBoundary>
+            </TimeRangeProvider>
           </SWRProvider>
         </I18nProvider>
       </body>

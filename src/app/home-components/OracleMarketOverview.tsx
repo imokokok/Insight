@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { 
   PieChart, 
@@ -14,16 +14,38 @@ import {
   CartesianGrid,
   Tooltip,
   BarChart,
-  Bar
+  Bar,
+  ReferenceLine
 } from 'recharts';
-import { PieChart as PieChartIcon, TrendingUp, BarChart3 } from 'lucide-react';
+import { 
+  PieChart as PieChartIcon, 
+  TrendingUp, 
+  BarChart3, 
+  Table as TableIcon,
+  Activity,
+  DollarSign,
+  Layers,
+  Globe,
+  ChevronRight,
+  Info
+} from 'lucide-react';
+
+// 专业配色方案
+const COLORS = {
+  chainlink: '#1E3A8A',    // 深蓝
+  pyth: '#3B82F6',         // 亮蓝
+  band: '#06B6D4',         // 青色
+  api3: '#8B5CF6',         // 紫色
+  uma: '#EC4899',          // 粉色
+  others: '#9CA3AF',       // 灰色
+};
 
 const marketShareData = [
-  { name: 'Chainlink', value: 65, color: '#3b82f6' },
-  { name: 'Pyth Network', value: 15, color: '#8b5cf6' },
-  { name: 'Band Protocol', value: 8, color: '#10b981' },
-  { name: 'API3', value: 7, color: '#f59e0b' },
-  { name: 'UMA', value: 5, color: '#ec4899' },
+  { name: 'Chainlink', value: 65, color: COLORS.chainlink, tvs: '$42.1B', chains: 15 },
+  { name: 'Pyth Network', value: 15, color: COLORS.pyth, tvs: '$15.2B', chains: 20 },
+  { name: 'Band Protocol', value: 8, color: COLORS.band, tvs: '$4.1B', chains: 12 },
+  { name: 'API3', value: 7, color: COLORS.api3, tvs: '$3.5B', chains: 10 },
+  { name: 'UMA', value: 5, color: COLORS.uma, tvs: '$2.5B', chains: 8 },
 ];
 
 const tvsTrendData = [
@@ -37,24 +59,53 @@ const tvsTrendData = [
 ];
 
 const chainSupportData = [
-  { name: 'Chainlink', chains: 15, color: '#3b82f6' },
-  { name: 'Pyth Network', chains: 20, color: '#8b5cf6' },
-  { name: 'Band Protocol', chains: 12, color: '#10b981' },
-  { name: 'API3', chains: 10, color: '#f59e0b' },
-  { name: 'UMA', chains: 8, color: '#ec4899' },
+  { name: 'Chainlink', chains: 15, color: COLORS.chainlink, protocols: 450 },
+  { name: 'Pyth Network', chains: 20, color: COLORS.pyth, protocols: 280 },
+  { name: 'Band Protocol', chains: 12, color: COLORS.band, protocols: 120 },
+  { name: 'API3', chains: 10, color: COLORS.api3, protocols: 85 },
+  { name: 'UMA', chains: 8, color: COLORS.uma, protocols: 45 },
 ];
 
 const timeRanges = [
-  { key: '1D', label: '1D' },
+  { key: '1H', label: '1H' },
+  { key: '24H', label: '24H' },
   { key: '7D', label: '7D' },
   { key: '30D', label: '30D' },
+  { key: '90D', label: '90D' },
+  { key: '1Y', label: '1Y' },
   { key: 'ALL', label: 'ALL' },
 ];
+
+type ChartType = 'pie' | 'trend' | 'bar';
+type ViewType = 'chart' | 'table';
 
 export default function OracleMarketOverview() {
   const { t, locale } = useI18n();
   const [selectedRange, setSelectedRange] = useState('30D');
-  const [activeChart, setActiveChart] = useState<'pie' | 'trend' | 'bar'>('pie');
+  const [activeChart, setActiveChart] = useState<ChartType>('pie');
+  const [viewType, setViewType] = useState<ViewType>('chart');
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+
+  // 计算统计数据
+  const stats = useMemo(() => {
+    const totalTVS = marketShareData.reduce((acc, item) => {
+      const tvsValue = parseFloat(item.tvs.replace(/[$B]/g, ''));
+      return acc + tvsValue;
+    }, 0);
+    
+    const totalChains = chainSupportData.reduce((acc, item) => acc + item.chains, 0);
+    const totalProtocols = chainSupportData.reduce((acc, item) => acc + item.protocols, 0);
+    const avgDominance = (marketShareData[0]?.value || 0);
+
+    return {
+      totalTVS: `$${totalTVS.toFixed(1)}B`,
+      totalChains,
+      totalProtocols,
+      avgDominance: `${avgDominance}%`,
+      oracleCount: marketShareData.length,
+    };
+  }, []);
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const RADIAN = Math.PI / 180;
@@ -63,10 +114,273 @@ export default function OracleMarketOverview() {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-medium">
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central" 
+        className="text-xs font-medium"
+      >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
+          <p className="font-semibold text-gray-900 mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-gray-600">{entry.name}:</span>
+              <span className="font-medium text-gray-900">
+                {entry.value}{activeChart === 'pie' ? '%' : activeChart === 'bar' ? ' chains' : 'B'}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderChart = () => {
+    if (viewType === 'table') {
+      return renderTable();
+    }
+
+    switch (activeChart) {
+      case 'pie':
+        return (
+          <PieChart>
+            <Pie
+              data={marketShareData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={140}
+              innerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+              paddingAngle={2}
+              onMouseEnter={(_, index) => setHoveredItem(marketShareData[index]?.name)}
+              onMouseLeave={() => setHoveredItem(null)}
+              onClick={(_, index) => setSelectedItem(marketShareData[index]?.name === selectedItem ? null : marketShareData[index]?.name)}
+            >
+              {marketShareData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.color}
+                  stroke={selectedItem === entry.name ? '#fff' : 'none'}
+                  strokeWidth={selectedItem === entry.name ? 3 : 0}
+                  opacity={hoveredItem && hoveredItem !== entry.name ? 0.6 : 1}
+                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        );
+      case 'trend':
+        return (
+          <LineChart data={tvsTrendData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+            <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
+            <YAxis stroke="#9ca3af" fontSize={12} />
+            <Tooltip content={<CustomTooltip />} />
+            <ReferenceLine y={0} stroke="#e5e7eb" />
+            <Line 
+              type="monotone" 
+              dataKey="chainlink" 
+              name="Chainlink" 
+              stroke={COLORS.chainlink} 
+              strokeWidth={hoveredItem === 'Chainlink' || !hoveredItem ? 3 : 2} 
+              dot={{ r: hoveredItem === 'Chainlink' ? 6 : 4, fill: COLORS.chainlink }} 
+              activeDot={{ r: 8 }}
+              opacity={hoveredItem && hoveredItem !== 'Chainlink' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('Chainlink')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="pyth" 
+              name="Pyth Network" 
+              stroke={COLORS.pyth} 
+              strokeWidth={hoveredItem === 'Pyth Network' || !hoveredItem ? 3 : 2} 
+              dot={{ r: hoveredItem === 'Pyth Network' ? 6 : 4, fill: COLORS.pyth }} 
+              activeDot={{ r: 8 }}
+              opacity={hoveredItem && hoveredItem !== 'Pyth Network' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('Pyth Network')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="band" 
+              name="Band Protocol" 
+              stroke={COLORS.band} 
+              strokeWidth={hoveredItem === 'Band Protocol' || !hoveredItem ? 2 : 1.5} 
+              dot={{ r: hoveredItem === 'Band Protocol' ? 5 : 3, fill: COLORS.band }} 
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'Band Protocol' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('Band Protocol')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="api3" 
+              name="API3" 
+              stroke={COLORS.api3} 
+              strokeWidth={hoveredItem === 'API3' || !hoveredItem ? 2 : 1.5} 
+              dot={{ r: hoveredItem === 'API3' ? 5 : 3, fill: COLORS.api3 }} 
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'API3' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('API3')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="uma" 
+              name="UMA" 
+              stroke={COLORS.uma} 
+              strokeWidth={hoveredItem === 'UMA' || !hoveredItem ? 2 : 1.5} 
+              dot={{ r: hoveredItem === 'UMA' ? 5 : 3, fill: COLORS.uma }} 
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'UMA' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('UMA')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+          </LineChart>
+        );
+      case 'bar':
+        return (
+          <BarChart data={chainSupportData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
+            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+            <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar 
+              dataKey="chains" 
+              name="Supported Chains"
+              radius={[0, 8, 8, 0]}
+              onMouseEnter={(_, index) => setHoveredItem(chainSupportData[index]?.name)}
+              onMouseLeave={() => setHoveredItem(null)}
+              onClick={(_, index) => setSelectedItem(chainSupportData[index]?.name === selectedItem ? null : chainSupportData[index]?.name)}
+            >
+              {chainSupportData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.color}
+                  opacity={hoveredItem && hoveredItem !== entry.name ? 0.5 : 1}
+                  stroke={selectedItem === entry.name ? entry.color : 'none'}
+                  strokeWidth={selectedItem === entry.name ? 2 : 0}
+                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderTable = () => {
+    const data = activeChart === 'pie' ? marketShareData : activeChart === 'bar' ? chainSupportData : marketShareData;
+    
+    return (
+      <div className="h-full overflow-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 sticky top-0">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                {activeChart === 'pie' 
+                  ? (locale === 'zh-CN' ? '市场份额' : 'Market Share')
+                  : activeChart === 'bar'
+                  ? (locale === 'zh-CN' ? '支持链数' : 'Chains')
+                  : (locale === 'zh-CN' ? 'TVS' : 'TVS')
+                }
+              </th>
+              {activeChart === 'bar' && (
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? '协议数' : 'Protocols'}
+                </th>
+              )}
+              {activeChart === 'pie' && (
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? 'TVS' : 'TVS'}
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.map((item: any, index: number) => (
+              <tr 
+                key={item.name}
+                className={`hover:bg-blue-50 transition-colors cursor-pointer ${
+                  selectedItem === item.name ? 'bg-blue-50' : ''
+                }`}
+                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span className="font-semibold text-gray-900">
+                    {activeChart === 'pie' ? `${item.value}%` : item.chains}
+                  </span>
+                </td>
+                {activeChart === 'bar' && (
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-gray-600">{item.protocols}</span>
+                  </td>
+                )}
+                {activeChart === 'pie' && (
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-gray-600">{item.tvs}</span>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const getChartTitle = () => {
+    switch (activeChart) {
+      case 'pie':
+        return locale === 'zh-CN' ? '市场份额分布' : 'Market Share Distribution';
+      case 'trend':
+        return locale === 'zh-CN' ? 'TVS 趋势分析' : 'TVS Trend Analysis';
+      case 'bar':
+        return locale === 'zh-CN' ? '链支持情况' : 'Chain Support Overview';
+      default:
+        return '';
+    }
   };
 
   return (
@@ -92,12 +406,12 @@ export default function OracleMarketOverview() {
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl">
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto max-w-full">
             {timeRanges.map((range) => (
               <button
                 key={range.key}
                 onClick={() => setSelectedRange(range.key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                   selectedRange === range.key
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -109,129 +423,192 @@ export default function OracleMarketOverview() {
           </div>
         </div>
 
-        {/* Chart Tabs */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => setActiveChart('pie')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-              activeChart === 'pie'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
-          >
-            <PieChartIcon className="w-4 h-4" />
-            {locale === 'zh-CN' ? '市场份额' : 'Market Share'}
-          </button>
-          <button
-            onClick={() => setActiveChart('trend')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-              activeChart === 'trend'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            {locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend'}
-          </button>
-          <button
-            onClick={() => setActiveChart('bar')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
-              activeChart === 'bar'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
-          </button>
+        {/* Summary Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                <DollarSign className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-500">
+                {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{stats.totalTVS}</div>
+            <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" />
+              +12.5%
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
+                <Globe className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="text-sm text-gray-500">
+                {locale === 'zh-CN' ? '支持链数' : 'Total Chains'}
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{stats.totalChains}</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {locale === 'zh-CN' ? '跨链覆盖' : 'Cross-chain'}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-cyan-50 rounded-lg group-hover:bg-cyan-100 transition-colors">
+                <Layers className="w-4 h-4 text-cyan-600" />
+              </div>
+              <span className="text-sm text-gray-500">
+                {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{stats.totalProtocols}+</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {locale === 'zh-CN' ? '集成项目' : 'Integrations'}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-pink-50 rounded-lg group-hover:bg-pink-100 transition-colors">
+                <Activity className="w-4 h-4 text-pink-600" />
+              </div>
+              <span className="text-sm text-gray-500">
+                {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
+              </span>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{stats.avgDominance}</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {locale === 'zh-CN' ? 'Chainlink 份额' : 'Chainlink Share'}
+            </div>
+          </div>
+        </div>
+
+        {/* Chart Controls */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          {/* Chart Tabs */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setActiveChart('pie')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeChart === 'pie'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <PieChartIcon className="w-4 h-4" />
+              {locale === 'zh-CN' ? '市场份额' : 'Market Share'}
+            </button>
+            <button
+              onClick={() => setActiveChart('trend')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeChart === 'trend'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              {locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend'}
+            </button>
+            <button
+              onClick={() => setActiveChart('bar')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                activeChart === 'bar'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
+            </button>
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setViewType('chart')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewType === 'chart'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <PieChartIcon className="w-4 h-4" />
+              {locale === 'zh-CN' ? '图表' : 'Chart'}
+            </button>
+            <button
+              onClick={() => setViewType('table')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewType === 'table'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <TableIcon className="w-4 h-4" />
+              {locale === 'zh-CN' ? '表格' : 'Table'}
+            </button>
+          </div>
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Chart */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-            <div className="h-[400px]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
+              {selectedItem && (
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  {locale === 'zh-CN' ? '清除选择' : 'Clear Selection'}
+                  <ChevronRight className="w-4 h-4 rotate-90" />
+                </button>
+              )}
+            </div>
+            <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
               <ResponsiveContainer width="100%" height="100%">
-                {activeChart === 'pie' && (
-                  <PieChart>
-                    <Pie
-                      data={marketShareData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                      outerRadius={140}
-                      innerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      paddingAngle={2}
-                    >
-                      {marketShareData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                  </PieChart>
-                )}
-                {activeChart === 'trend' && (
-                  <LineChart data={tvsTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
-                    <YAxis stroke="#9ca3af" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="chainlink" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="pyth" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4 }} />
-                    <Line type="monotone" dataKey="band" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="api3" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="uma" stroke="#ec4899" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                )}
-                {activeChart === 'bar' && (
-                  <BarChart data={chainSupportData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-                    <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-                    <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Bar dataKey="chains" radius={[0, 8, 8, 0]}>
-                      {chainSupportData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                )}
+                {renderChart()}
               </ResponsiveContainer>
             </div>
+            {viewType === 'chart' && (
+              <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                <Info className="w-4 h-4" />
+                {locale === 'zh-CN' 
+                  ? '悬停查看详情，点击选中项目' 
+                  : 'Hover for details, click to select'}
+              </div>
+            )}
           </div>
 
           {/* Stats Cards */}
           <div className="space-y-4">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 text-white">
+              <div className="text-sm text-blue-100 mb-1">
+                {locale === 'zh-CN' ? '选中时间范围' : 'Selected Time Range'}
+              </div>
+              <div className="text-2xl font-bold">{selectedRange}</div>
+              <div className="text-xs text-blue-200 mt-1">
+                {locale === 'zh-CN' ? '数据已更新' : 'Data updated'}
+              </div>
+            </div>
+
             {marketShareData.map((item) => (
               <div 
                 key={item.name}
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all cursor-pointer group"
+                className={`bg-white rounded-xl border p-4 transition-all cursor-pointer group ${
+                  selectedItem === item.name 
+                    ? 'border-blue-500 shadow-md ring-1 ring-blue-500' 
+                    : 'border-gray-200 hover:shadow-lg hover:border-gray-300'
+                } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-3 h-3 rounded-full"
@@ -241,26 +618,30 @@ export default function OracleMarketOverview() {
                   </div>
                   <span className="text-lg font-bold text-gray-900">{item.value}%</span>
                 </div>
-                <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
                   <div 
-                    className="h-full rounded-full transition-all duration-500 group-hover:opacity-80"
+                    className="h-full rounded-full transition-all duration-500"
                     style={{ 
                       backgroundColor: item.color,
                       width: `${item.value}%`
                     }}
                   />
                 </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>TVS: {item.tvs}</span>
+                  <span>{item.chains} chains</span>
+                </div>
               </div>
             ))}
 
             {/* Summary Stats */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4">
-              <div className="text-sm text-blue-600 mb-1">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-4">
+              <div className="text-sm text-gray-600 mb-1">
                 {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
               </div>
               <div className="text-2xl font-bold text-gray-900">100%</div>
               <div className="text-xs text-gray-500 mt-1">
-                {locale === 'zh-CN' ? '覆盖 5 个主要预言机' : 'Covering 5 major oracles'}
+                {locale === 'zh-CN' ? `覆盖 ${stats.oracleCount} 个主要预言机` : `Covering ${stats.oracleCount} major oracles`}
               </div>
             </div>
           </div>
