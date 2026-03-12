@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
+import { formatCompactNumberV2 } from '@/lib/utils/format';
 
 type TimeRange = '24h' | '7d' | '30d';
 
@@ -87,16 +88,6 @@ const generateMockTrendData = (range: TimeRange): TrendDataPoint[] => {
   }
 
   return data;
-};
-
-const formatNumber = (num: number): string => {
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
-  }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
-  }
-  return num.toString();
 };
 
 const getTimeUnit = (range: TimeRange): string => {
@@ -176,7 +167,7 @@ export function RequestTrendChart({
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">请求数</span>
               <span className="text-xs font-semibold text-blue-600">
-                {formatNumber(dataPoint.requests)}
+                {formatCompactNumberV2(dataPoint.requests)}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -227,12 +218,16 @@ export function RequestTrendChart({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">平均请求</p>
-            <p className="text-xl font-bold text-blue-700">{formatNumber(stats.avgRequests)}</p>
+            <p className="text-xl font-bold text-blue-700">
+              {formatCompactNumberV2(stats.avgRequests)}
+            </p>
             <p className="text-xs text-blue-600 mt-0.5">每{getTimeUnit(timeRange)}</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">峰值请求</p>
-            <p className="text-xl font-bold text-purple-700">{formatNumber(stats.peakRequests)}</p>
+            <p className="text-xl font-bold text-purple-700">
+              {formatCompactNumberV2(stats.peakRequests)}
+            </p>
             <p className="text-xs text-purple-600 mt-0.5">最高记录</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
@@ -245,7 +240,9 @@ export function RequestTrendChart({
           </div>
           <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">总请求数</p>
-            <p className="text-xl font-bold text-orange-700">{formatNumber(stats.totalRequests)}</p>
+            <p className="text-xl font-bold text-orange-700">
+              {formatCompactNumberV2(stats.totalRequests)}
+            </p>
             <p className="text-xs text-orange-600 mt-0.5">累计请求</p>
           </div>
         </div>
@@ -279,7 +276,7 @@ export function RequestTrendChart({
                   tick={{ fontSize: 11, fill: '#6B7280' }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(value) => formatNumber(value)}
+                  tickFormatter={(value) => formatCompactNumberV2(value)}
                   width={50}
                 />
                 <Tooltip content={<CustomTooltip />} />

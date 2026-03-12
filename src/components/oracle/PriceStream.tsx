@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
+
+const formatPriceValue = (price: number): string => formatPrice(price).replace('$', '');
 
 interface PriceUpdate {
   id: number;
@@ -194,10 +197,6 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
   const handleResume = () => {
     setIsPaused(false);
     setPausedPrice(null);
-  };
-
-  const formatPrice = (price: number) => {
-    return price.toFixed(4);
   };
 
   const formatTime = (date: Date) => {
@@ -451,7 +450,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                 />
               </svg>
               <span className="text-yellow-800 text-sm font-medium">
-                价格流已暂停 - 当前快照: ${formatPrice(pausedPrice)}
+                价格流已暂停 - 当前快照: ${formatPriceValue(pausedPrice)}
               </span>
             </div>
           </div>
@@ -460,7 +459,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
         <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
           <div>
             <p className="text-sm text-gray-500 mb-1">{symbol}/USD</p>
-            <p className="text-3xl font-bold text-gray-900">${formatPrice(currentPrice)}</p>
+            <p className="text-3xl font-bold text-gray-900">${formatPriceValue(currentPrice)}</p>
           </div>
           <div className="flex items-center gap-2">
             <span
@@ -584,7 +583,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                                 </div>
                               </div>
                             )}
-                            ${formatPrice(update.price)}
+                            ${formatPriceValue(update.price)}
                           </div>
                         </td>
                         <td className="px-4 py-2 text-sm font-mono text-right">

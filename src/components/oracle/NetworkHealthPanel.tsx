@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { PerformanceGaugeGroup } from './PerformanceGauge';
 import { DataQualityScoreCard } from './DataQualityScoreCard';
+import { formatCompactNumber } from '@/lib/utils/format';
 
 type NetworkStatus = 'online' | 'warning' | 'offline';
 
@@ -251,19 +252,6 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
 }
 
 function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) {
-  const formatNumber = (num: number) => {
-    if (num >= 1000000000) {
-      return `${(num / 1000000000).toFixed(2)}B`;
-    }
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(2)}M`;
-    }
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(2)}K`;
-    }
-    return num.toLocaleString();
-  };
-
   const tokenSymbol = metrics.tokenSymbol || 'BAND';
 
   return (
@@ -337,7 +325,7 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
-              {formatNumber(metrics.stakedAmount)} {tokenSymbol}
+              {formatCompactNumber(metrics.stakedAmount)} {tokenSymbol}
             </p>
             <p className="text-xs text-gray-400">质押率 {metrics.stakingRate.toFixed(1)}%</p>
           </div>
@@ -410,7 +398,7 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
-              {formatNumber(metrics.communityPoolBalance)} {tokenSymbol}
+              {formatCompactNumber(metrics.communityPoolBalance)} {tokenSymbol}
             </p>
             <p className="text-xs text-gray-400">社区资金池</p>
           </div>

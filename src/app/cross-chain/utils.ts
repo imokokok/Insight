@@ -1,5 +1,14 @@
 import { Blockchain } from '@/lib/oracles';
-import { chainNames, chainColors } from './constants';
+import { chainNames, chainColors } from '@/lib/constants';
+import {
+  getHeatmapColor as getHeatmapColorUtil,
+  calculateStandardDeviation as calculateStdDev,
+  calculateMovingAverage,
+  formatPrice as formatPriceUtil,
+} from '@/lib/utils/chartSharedUtils';
+
+export { chainNames, chainColors };
+export type { Blockchain };
 
 export const getDiffColorGradient = (diffPercent: number): string => {
   const absPercent = Math.abs(diffPercent);
@@ -58,27 +67,7 @@ export const getDiffColorGradientWithStyle = (
 };
 
 export const getHeatmapColor = (percent: number, maxPercent: number): string => {
-  const normalized = Math.min(percent / Math.max(maxPercent, 0.1), 1);
-
-  if (normalized < 0.33) {
-    const t = normalized / 0.33;
-    const r = Math.floor(76 + (251 - 76) * t);
-    const g = Math.floor(191 + (191 - 191) * t);
-    const b = Math.floor(109 + (45 - 109) * t);
-    return `rgb(${r}, ${g}, ${b})`;
-  } else if (normalized < 0.66) {
-    const t = (normalized - 0.33) / 0.33;
-    const r = Math.floor(251 + (245 - 251) * t);
-    const g = Math.floor(191 + (158 - 191) * t);
-    const b = Math.floor(45 + (11 - 45) * t);
-    return `rgb(${r}, ${g}, ${b})`;
-  } else {
-    const t = (normalized - 0.66) / 0.34;
-    const r = Math.floor(245 + (239 - 245) * t);
-    const g = Math.floor(158 + (68 - 158) * t);
-    const b = Math.floor(11 + (68 - 11) * t);
-    return `rgb(${r}, ${g}, ${b})`;
-  }
+  return getHeatmapColorUtil(percent, 0, maxPercent);
 };
 
 export const getCorrelationColor = (correlation: number): string => {
@@ -131,6 +120,10 @@ export const calculateStandardDeviation = (variance: number): number => {
   return Math.sqrt(variance);
 };
 
+export const calculateStandardDeviationFromValues = (prices: number[]): number => {
+  return calculateStdDev(prices);
+};
+
 export const calculateVariance = (prices: number[], mean: number): number => {
   if (prices.length < 2) return 0;
   const sumSquaredDiff = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0);
@@ -149,17 +142,8 @@ export const calculatePercentile = (sortedPrices: number[], percentile: number):
 };
 
 export const calculateSMA = (data: number[], period: number): (number | null)[] => {
-  if (data.length < period) return data.map(() => null);
-  const result: (number | null)[] = [];
-  for (let i = 0; i < data.length; i++) {
-    if (i < period - 1) {
-      result.push(null);
-    } else {
-      const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-      result.push(sum / period);
-    }
-  }
-  return result;
+  const result = calculateMovingAverage(data, period);
+  return result.map(v => v);
 };
 
 export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
@@ -218,17 +202,11 @@ export const getDataFreshness = (
 };
 
 export const formatPrice = (price: number, decimals = 4): string => {
-  return price.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: decimals,
-  });
+  return formatPriceUtil(price, decimals);
 };
 
 export const formatPriceValue = (price: number): string => {
-  return price.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  });
+  return formatPriceUtil(price, 4);
 };
 
 export const generateFilename = (symbol: string, extension: string): string => {
@@ -236,6 +214,3 @@ export const generateFilename = (symbol: string, extension: string): string => {
   const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
   return `cross-chain-${symbol}-${timestamp}.${extension}`;
 };
-
-export { chainNames, chainColors };
-export type { Blockchain };

@@ -9,6 +9,13 @@ import {
   PythNetworkClient,
   API3Client,
 } from '@/lib/oracles';
+import { providerNames, type RefreshInterval } from '@/lib/constants';
+import {
+  getDeviationColor,
+  calculateStandardDeviation as calcStdDev,
+} from '@/lib/utils/chartSharedUtils';
+
+export { type RefreshInterval };
 
 export const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -18,29 +25,22 @@ export const oracleClients = {
   [OracleProvider.API3]: new API3Client(),
 };
 
-export const oracleNames = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
-  [OracleProvider.API3]: 'API3',
-};
+export const oracleNames = providerNames;
 
 export const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
 
 export type SortColumn = 'price' | 'timestamp' | null;
 export type SortDirection = 'asc' | 'desc';
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
 
 export const getDeviationColorClass = (deviationPercent: number | null): string => {
   if (deviationPercent === null) return 'text-gray-400';
-  const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return 'text-green-600 bg-green-50';
-  if (absDeviation < 0.5) return 'text-yellow-600 bg-yellow-50';
-  if (absDeviation < 1.0) return 'text-orange-600 bg-orange-50';
-  return 'text-red-600 bg-red-50';
+  const color = getDeviationColor(deviationPercent);
+  if (color === '#22c55e') return 'text-green-600 bg-green-50';
+  if (color === '#f59e0b') return 'text-yellow-600 bg-yellow-50';
+  if (color === '#ef4444') return 'text-red-600 bg-red-50';
+  return 'text-orange-600 bg-orange-50';
 };
 
 export const getDeviationBgClass = (deviationPercent: number | null): string => {
@@ -112,6 +112,10 @@ export const calculateVariance = (prices: number[], mean: number): number => {
 
 export const calculateStandardDeviation = (variance: number): number => {
   return Math.sqrt(variance);
+};
+
+export const calculateStandardDeviationFromValues = (values: number[]): number => {
+  return calcStdDev(values);
 };
 
 export const getConsistencyRating = (stdDevPercent: number): string => {

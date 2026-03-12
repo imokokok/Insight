@@ -4,6 +4,8 @@ import { useI18n } from '@/lib/i18n/context';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { REFRESH_OPTIONS, CHAIN_SUPPORT_DATA } from './constants';
 import { ChartType, ViewType, TIME_RANGES } from './types';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { formatCompactNumber } from '@/lib/utils/format';
 import {
   PieChart,
   Pie,
@@ -323,24 +325,6 @@ export default function MarketOverviewPage() {
       default:
         return '';
     }
-  };
-
-  // 格式化价格
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: price < 1 ? 4 : 2,
-      maximumFractionDigits: price < 1 ? 4 : 2,
-    }).format(price);
-  };
-
-  // 格式化大数字
-  const formatNumber = (num: number) => {
-    if (num >= 1e9) return `${(num / 1e9).toFixed(1)}B`;
-    if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
-    if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K`;
-    return num.toString();
   };
 
   return (
@@ -817,7 +801,7 @@ export default function MarketOverviewPage() {
                         <div className="flex items-center gap-3">
                           <span className="font-semibold text-gray-900">{asset.symbol}</span>
                           <span className="text-xs text-gray-400">
-                            {formatNumber(asset.marketCap)}
+                            {formatCompactNumber(asset.marketCap)}
                           </span>
                         </div>
                       </td>
@@ -847,7 +831,9 @@ export default function MarketOverviewPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="text-gray-600">${formatNumber(asset.volume24h)}</span>
+                        <span className="text-gray-600">
+                          ${formatCompactNumber(asset.volume24h)}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
