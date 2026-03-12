@@ -30,9 +30,7 @@ export default function ProfessionalCTA() {
 
             {/* Title */}
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-2xl mx-auto leading-tight">
-              {isZh
-                ? '开始探索预言机数据'
-                : 'Start Exploring Oracle Data'}
+              {isZh ? '开始探索预言机数据' : 'Start Exploring Oracle Data'}
             </h2>
 
             {/* Description */}

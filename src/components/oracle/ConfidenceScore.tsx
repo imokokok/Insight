@@ -14,7 +14,6 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  Legend,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/context';
 

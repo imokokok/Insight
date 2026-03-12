@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { useCrossChainData } from '../useCrossChainData';
-import { chainNames, chainColors, getCorrelationColor } from '../utils';
+import { chainNames, getCorrelationColor } from '../utils';
 
 interface CorrelationMatrixProps {
   data: ReturnType<typeof useCrossChainData>;

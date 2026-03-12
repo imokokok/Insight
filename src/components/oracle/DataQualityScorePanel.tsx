@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { Publisher } from '@/lib/types/oracle';
 
@@ -76,20 +76,6 @@ function getScoreBgColor(score: number): string {
       return 'bg-yellow-50';
     case 'poor':
       return 'bg-red-50';
-  }
-}
-
-function getScoreGradient(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'excellent':
-      return 'from-green-500 to-green-400';
-    case 'good':
-      return 'from-blue-500 to-blue-400';
-    case 'fair':
-      return 'from-yellow-500 to-yellow-400';
-    case 'poor':
-      return 'from-red-500 to-red-400';
   }
 }
 

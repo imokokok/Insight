@@ -1,7 +1,6 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n/context';
-import { Blockchain, PriceData } from '@/lib/oracles';
 import {
   LineChart,
   Line,

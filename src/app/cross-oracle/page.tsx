@@ -59,7 +59,15 @@ import {
   initialHistoryMinMax,
   updateHistoryMinMax,
 } from './constants';
-import { FilterPanel, StatsCards, MobileStatsCards, PriceTable, TabNavigation, useTabNavigation, TabId } from './components';
+import {
+  FilterPanel,
+  StatsCards,
+  MobileStatsCards,
+  PriceTable,
+  TabNavigation,
+  useTabNavigation,
+  TabId,
+} from './components';
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
@@ -637,7 +645,8 @@ export default function CrossOraclePage() {
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-gray-600">平均价格</span>
               <span className="font-semibold text-gray-900">
-                ${avgValue.toLocaleString(undefined, {
+                $
+                {avgValue.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -647,7 +656,8 @@ export default function CrossOraclePage() {
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>标准差</span>
                 <span>
-                  ±${stdDevValue.toLocaleString(undefined, {
+                  ±$
+                  {stdDevValue.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -671,7 +681,8 @@ export default function CrossOraclePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-gray-900">
-                    ${entry.value.toLocaleString(undefined, {
+                    $
+                    {entry.value.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -801,7 +812,8 @@ export default function CrossOraclePage() {
             {t('crossOracle.priceTrend')}
             {timeRange !== 'ALL' && (
               <span className="text-sm text-gray-500 ml-2">
-                ({timeRange === '1H'
+                (
+                {timeRange === '1H'
                   ? '1 小时'
                   : timeRange === '24H'
                     ? '24 小时'
@@ -811,7 +823,8 @@ export default function CrossOraclePage() {
                         ? '30 天'
                         : timeRange === '90D'
                           ? '90 天'
-                          : '1 年'})
+                          : '1 年'}
+                )
               </span>
             )}
           </h2>

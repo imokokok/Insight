@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -15,6 +13,7 @@ import {
   Cell,
   ComposedChart,
   Area,
+  Line,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/context';
 

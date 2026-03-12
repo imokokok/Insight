@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { DashboardCard } from './DashboardCard';
 import { IntegratedProtocols } from './IntegratedProtocols';
 import { DataSourceCoverage } from './DataSourceCoverage';
 import { DataSourceTrend } from './DataSourceTrend';

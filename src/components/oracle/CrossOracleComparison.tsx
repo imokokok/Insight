@@ -26,7 +26,7 @@ import {
   PythNetworkClient,
   API3Client,
 } from '@/lib/oracles';
-import { OracleProvider, PriceData, Blockchain } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain } from '@/lib/types/oracle';
 import { DashboardCard, MetricCard } from './DashboardCard';
 import { PriceDeviationHistoryChart } from './PriceDeviationHistoryChart';
 

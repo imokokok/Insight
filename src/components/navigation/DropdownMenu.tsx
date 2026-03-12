@@ -58,7 +58,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
     }
   };
 
-  const isGroupActive = group.items.some(item => item.href === currentPath);
+  const isGroupActive = group.items.some((item) => item.href === currentPath);
   const GroupIcon = group.icon;
 
   return (
@@ -109,9 +109,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                   onItemClick?.();
                 }}
                 className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 group ${
-                  isItemActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'hover:bg-gray-50 text-gray-700'
+                  isItemActive ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 text-gray-700'
                 }`}
                 role="menuitem"
               >
@@ -120,7 +118,9 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                     className={`p-2 rounded-lg transition-colors ${
                       isItemActive ? 'bg-blue-100' : 'bg-gray-100 group-hover:bg-white'
                     }`}
-                    style={accentColor && !isItemActive ? { backgroundColor: `${accentColor}15` } : {}}
+                    style={
+                      accentColor && !isItemActive ? { backgroundColor: `${accentColor}15` } : {}
+                    }
                   >
                     <ItemIcon
                       className="w-4 h-4"
@@ -136,9 +136,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                     </div>
                   )}
                 </div>
-                {isItemActive && (
-                  <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2" />
-                )}
+                {isItemActive && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2" />}
               </Link>
             );
           })}

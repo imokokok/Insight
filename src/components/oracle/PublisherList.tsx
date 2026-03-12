@@ -240,10 +240,7 @@ export function PublisherList({
       </div>
 
       {sortedPublishers.length > 0 ? (
-        <div
-          ref={parentRef}
-          className="h-[500px] overflow-auto space-y-2"
-        >
+        <div ref={parentRef} className="h-[500px] overflow-auto space-y-2">
           <div
             style={{
               height: `${virtualizer.getTotalSize()}px`,
@@ -332,7 +329,9 @@ export function PublisherList({
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Last Update</p>
-                        <p className="font-medium text-gray-900">{formatTimeAgo(publisher.lastUpdate)}</p>
+                        <p className="font-medium text-gray-900">
+                          {formatTimeAgo(publisher.lastUpdate)}
+                        </p>
                       </div>
                     </div>
                   </div>

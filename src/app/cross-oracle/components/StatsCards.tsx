@@ -1,6 +1,5 @@
 'use client';
 
-import { OracleProvider, PriceData } from '@/lib/types/oracle';
 import { getTrendIcon, getHealthColor, HistoryMinMax } from '../constants';
 
 interface StatsCardsProps {

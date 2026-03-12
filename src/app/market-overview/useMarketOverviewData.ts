@@ -1,18 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { 
-  OracleMarketData, 
-  AssetData, 
-  TVSTrendData, 
+import {
+  OracleMarketData,
+  AssetData,
+  TVSTrendData,
   MarketStats,
   ChartType,
   ViewType,
   TIME_RANGES,
 } from './types';
-import { 
-  MOCK_ORACLE_DATA, 
-  MOCK_ASSETS, 
+import {
+  MOCK_ORACLE_DATA,
+  MOCK_ASSETS,
   generateTVSTrendData,
   CHAIN_SUPPORT_DATA,
   RefreshInterval,
@@ -26,7 +26,7 @@ export interface UseMarketOverviewDataReturn {
   marketStats: MarketStats;
   loading: boolean;
   lastUpdated: Date | null;
-  
+
   // UI状态
   selectedTimeRange: string;
   setSelectedTimeRange: (range: string) => void;
@@ -40,16 +40,16 @@ export interface UseMarketOverviewDataReturn {
   setSelectedItem: (item: string | null) => void;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (interval: RefreshInterval) => void;
-  
+
   // 刷新状态
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
   showRefreshSuccess: boolean;
-  
+
   // 操作方法
   fetchData: () => Promise<void>;
   exportToCSV: () => void;
   exportToJSON: () => void;
-  
+
   // 计算属性
   sortedOracleData: OracleMarketData[];
   topGainers: AssetData[];
@@ -66,7 +66,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
   const [trendData, setTrendData] = useState<TVSTrendData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   // UI状态
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('30D');
   const [activeChart, setActiveChart] = useState<ChartType>('pie');
@@ -74,26 +74,28 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
-  
+
   // 刷新状态
-  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'refreshing' | 'success' | 'error'>(
+    'idle'
+  );
   const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
 
   // 使用ref来存储最新数据，避免循环依赖
   const oracleDataRef = useRef(oracleData);
   const assetsRef = useRef(assets);
-  
+
   useEffect(() => {
     oracleDataRef.current = oracleData;
   }, [oracleData]);
-  
+
   useEffect(() => {
     assetsRef.current = assets;
   }, [assets]);
 
   // 获取时间范围对应的小时数
   const getTimeRangeHours = useCallback((rangeKey: string): number => {
-    const range = TIME_RANGES.find(r => r.key === rangeKey);
+    const range = TIME_RANGES.find((r) => r.key === rangeKey);
     return range?.hours || 720;
   }, []);
 
@@ -101,28 +103,28 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
   const fetchData = useCallback(async () => {
     setRefreshStatus('refreshing');
     setLoading(true);
-    
+
     try {
       // 模拟API延迟
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       // 生成趋势数据
       const hours = getTimeRangeHours(selectedTimeRange);
       const newTrendData = generateTVSTrendData(hours);
-      
+
       // 模拟数据变化（添加随机波动）- 使用ref获取最新数据
-      const updatedOracleData = oracleDataRef.current.map(oracle => ({
+      const updatedOracleData = oracleDataRef.current.map((oracle) => ({
         ...oracle,
         change24h: oracle.change24h + (Math.random() - 0.5) * 0.5,
         tvsValue: oracle.tvsValue * (1 + (Math.random() - 0.5) * 0.01),
       }));
-      
-      const updatedAssets = assetsRef.current.map(asset => ({
+
+      const updatedAssets = assetsRef.current.map((asset) => ({
         ...asset,
         price: asset.price * (1 + (Math.random() - 0.5) * 0.005),
         change24h: asset.change24h + (Math.random() - 0.5) * 0.3,
       }));
-      
+
       setTrendData(newTrendData);
       setOracleData(updatedOracleData);
       setAssets(updatedAssets);
@@ -166,10 +168,12 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
     const totalTVS = oracleData.reduce((sum, oracle) => sum + oracle.tvsValue, 0);
     const totalChains = oracleData.reduce((sum, oracle) => sum + oracle.chains, 0);
     const totalProtocols = oracleData.reduce((sum, oracle) => sum + oracle.protocols, 0);
-    const avgLatency = oracleData.reduce((sum, oracle) => sum + oracle.avgLatency, 0) / oracleData.length;
+    const avgLatency =
+      oracleData.reduce((sum, oracle) => sum + oracle.avgLatency, 0) / oracleData.length;
     const marketDominance = oracleData[0]?.share || 0;
-    const totalChange24h = oracleData.reduce((sum, oracle) => sum + (oracle.change24h * oracle.share), 0) / 100;
-    
+    const totalChange24h =
+      oracleData.reduce((sum, oracle) => sum + oracle.change24h * oracle.share, 0) / 100;
+
     return {
       totalTVS,
       totalChains,
@@ -191,8 +195,8 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
   const { topGainers, topLosers } = useMemo(() => {
     const sorted = [...assets].sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h));
     return {
-      topGainers: sorted.filter(a => a.change24h > 0).slice(0, 5),
-      topLosers: sorted.filter(a => a.change24h < 0).slice(0, 5),
+      topGainers: sorted.filter((a) => a.change24h > 0).slice(0, 5),
+      topLosers: sorted.filter((a) => a.change24h < 0).slice(0, 5),
     };
   }, [assets]);
 
@@ -207,44 +211,65 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
   // 导出CSV
   const exportToCSV = useCallback(() => {
     const csvLines: string[] = [];
-    
+
     // Oracle数据
     csvLines.push('Oracle Market Data');
-    csvLines.push(['Name', 'Market Share (%)', 'TVS', 'Chains', 'Protocols', '24h Change (%)', 'Accuracy (%)'].join(','));
-    oracleData.forEach(oracle => {
-      csvLines.push([
-        oracle.name,
-        oracle.share.toFixed(1),
-        oracle.tvs,
-        oracle.chains,
-        oracle.protocols,
-        oracle.change24h.toFixed(2),
-        oracle.accuracy.toFixed(1),
-      ].join(','));
+    csvLines.push(
+      [
+        'Name',
+        'Market Share (%)',
+        'TVS',
+        'Chains',
+        'Protocols',
+        '24h Change (%)',
+        'Accuracy (%)',
+      ].join(',')
+    );
+    oracleData.forEach((oracle) => {
+      csvLines.push(
+        [
+          oracle.name,
+          oracle.share.toFixed(1),
+          oracle.tvs,
+          oracle.chains,
+          oracle.protocols,
+          oracle.change24h.toFixed(2),
+          oracle.accuracy.toFixed(1),
+        ].join(',')
+      );
     });
-    
+
     csvLines.push('');
-    
+
     // 资产数据
     csvLines.push('Asset Data');
-    csvLines.push(['Symbol', 'Price', '24h Change (%)', 'Volume (24h)', 'Market Cap', 'Primary Oracle'].join(','));
-    assets.forEach(asset => {
-      csvLines.push([
-        asset.symbol,
-        asset.price.toFixed(4),
-        asset.change24h.toFixed(2),
-        asset.volume24h.toString(),
-        asset.marketCap.toString(),
-        asset.primaryOracle,
-      ].join(','));
+    csvLines.push(
+      ['Symbol', 'Price', '24h Change (%)', 'Volume (24h)', 'Market Cap', 'Primary Oracle'].join(
+        ','
+      )
+    );
+    assets.forEach((asset) => {
+      csvLines.push(
+        [
+          asset.symbol,
+          asset.price.toFixed(4),
+          asset.change24h.toFixed(2),
+          asset.volume24h.toString(),
+          asset.marketCap.toString(),
+          asset.primaryOracle,
+        ].join(',')
+      );
     });
-    
+
     const csvContent = csvLines.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `market-overview-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+    link.setAttribute(
+      'download',
+      `market-overview-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+    );
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -271,7 +296,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
         avgUpdateLatency: marketStats.avgUpdateLatency,
         marketDominance: marketStats.marketDominance,
       },
-      oracleData: oracleData.map(oracle => ({
+      oracleData: oracleData.map((oracle) => ({
         name: oracle.name,
         share: oracle.share,
         tvs: oracle.tvs,
@@ -285,7 +310,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
         change7d: oracle.change7d,
         change30d: oracle.change30d,
       })),
-      assets: assets.map(asset => ({
+      assets: assets.map((asset) => ({
         symbol: asset.symbol,
         price: asset.price,
         change24h: asset.change24h,
@@ -296,13 +321,16 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
         oracleCount: asset.oracleCount,
       })),
     };
-    
+
     const jsonContent = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `market-overview-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`);
+    link.setAttribute(
+      'download',
+      `market-overview-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    );
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

@@ -13,7 +13,9 @@ type TrendType = 'improving' | 'stable' | 'declining';
 export function AccuracyAnalysisPanel() {
   const { t } = useI18n();
   const [activeView, setActiveView] = useState<ViewMode>('stats');
-  const { stats, extremeEvents, accuracyTrend, recentTrend, isLoading } = usePriceHistory({ maxDataPoints: 100 });
+  const { stats, extremeEvents, accuracyTrend, recentTrend, isLoading } = usePriceHistory({
+    maxDataPoints: 100,
+  });
 
   const viewTabs: { key: ViewMode; label: string; icon: React.JSX.Element }[] = [
     {

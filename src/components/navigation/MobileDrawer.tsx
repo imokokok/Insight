@@ -19,15 +19,13 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev =>
-      prev.includes(groupId)
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
+    setExpandedGroups((prev) =>
+      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
     );
   };
 
   const isGroupActive = (group: NavGroup) => {
-    return group.items.some(item => item.href === currentPath);
+    return group.items.some((item) => item.href === currentPath);
   };
 
   if (!isOpen) return null;
@@ -69,9 +67,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                     <button
                       onClick={() => toggleGroup(group.id)}
                       className={`w-full flex items-center justify-between px-4 py-3 mx-2 rounded-lg transition-colors ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-700 hover:bg-gray-50'
+                        isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -147,16 +143,12 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                   href={item.href}
                   onClick={onClose}
                   className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
-                    isItemActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                    isItemActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
                   <span className="font-medium">{t(item.label)}</span>
-                  {isItemActive && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-blue-600 rounded-full" />
-                  )}
+                  {isItemActive && <div className="ml-auto w-1.5 h-1.5 bg-blue-600 rounded-full" />}
                 </Link>
               );
             })}

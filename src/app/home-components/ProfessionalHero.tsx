@@ -165,8 +165,14 @@ export default function ProfessionalHero() {
 
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div
+          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: '4s' }}
+        />
+        <div
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: '5s', animationDelay: '1s' }}
+        />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-blue-100/30 to-transparent rounded-full" />
       </div>
 
@@ -217,16 +223,22 @@ export default function ProfessionalHero() {
             {/* Search Box with glow effect on focus */}
             <div className="max-w-2xl mx-auto mb-10">
               <div className="relative group">
-                <div 
+                <div
                   className={`absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 rounded-2xl blur transition-all duration-500 ${
-                    isSearchFocused ? 'opacity-60 scale-[1.02]' : 'opacity-25 group-hover:opacity-40'
+                    isSearchFocused
+                      ? 'opacity-60 scale-[1.02]'
+                      : 'opacity-25 group-hover:opacity-40'
                   }`}
                 />
-                <div className={`relative flex items-center bg-white rounded-2xl shadow-xl shadow-blue-900/5 border overflow-hidden transition-all duration-300 ${
-                  isSearchFocused ? 'border-blue-400 shadow-blue-500/20' : 'border-gray-200/50'
-                }`}>
+                <div
+                  className={`relative flex items-center bg-white rounded-2xl shadow-xl shadow-blue-900/5 border overflow-hidden transition-all duration-300 ${
+                    isSearchFocused ? 'border-blue-400 shadow-blue-500/20' : 'border-gray-200/50'
+                  }`}
+                >
                   <div className="pl-6">
-                    <Search className={`w-5 h-5 transition-colors duration-300 ${isSearchFocused ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <Search
+                      className={`w-5 h-5 transition-colors duration-300 ${isSearchFocused ? 'text-blue-500' : 'text-gray-400'}`}
+                    />
                   </div>
                   <input
                     type="text"
@@ -234,7 +246,11 @@ export default function ProfessionalHero() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    placeholder={isZh ? '搜索交易对、预言机或区块链...' : 'Search trading pairs, oracles, or blockchains...'}
+                    placeholder={
+                      isZh
+                        ? '搜索交易对、预言机或区块链...'
+                        : 'Search trading pairs, oracles, or blockchains...'
+                    }
                     className="flex-1 px-4 py-5 text-base text-gray-900 placeholder-gray-400 bg-transparent outline-none"
                   />
                   <button className="mr-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300">
@@ -266,14 +282,16 @@ export default function ProfessionalHero() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
               {metrics.map((metric, index) => {
                 const Icon = metric.icon;
-                const isPositive = metric.trend[metric.trend.length - 1].value >= metric.trend[0].value;
-                const percentChange = ((metric.trend[metric.trend.length - 1].value / metric.trend[0].value - 1) * 100);
-                
+                const isPositive =
+                  metric.trend[metric.trend.length - 1].value >= metric.trend[0].value;
+                const percentChange =
+                  (metric.trend[metric.trend.length - 1].value / metric.trend[0].value - 1) * 100;
+
                 return (
                   <div
                     key={metric.label}
                     className="group bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/60 p-5 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300"
-                    style={{ 
+                    style={{
                       animationDelay: `${index * 100}ms`,
                       animation: 'fadeInUp 0.6s ease-out forwards',
                       opacity: 0,
@@ -281,7 +299,7 @@ export default function ProfessionalHero() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div 
+                        <div
                           className="p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110"
                           style={{ backgroundColor: `${metric.color}15` }}
                         >
@@ -289,24 +307,33 @@ export default function ProfessionalHero() {
                         </div>
                         <span className="text-sm font-medium text-gray-500">{metric.subLabel}</span>
                       </div>
-                      <div 
+                      <div
                         className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
-                          isPositive 
-                            ? 'text-emerald-600 bg-emerald-50' 
-                            : 'text-red-600 bg-red-50'
+                          isPositive ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'
                         }`}
                       >
                         <TrendingUp className={`w-3 h-3 ${!isPositive && 'rotate-180'}`} />
-                        <span>{isPositive ? '+' : ''}{percentChange.toFixed(1)}%</span>
+                        <span>
+                          {isPositive ? '+' : ''}
+                          {percentChange.toFixed(1)}%
+                        </span>
                       </div>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">{metric.value}</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">
+                      {metric.value}
+                    </div>
                     {/* Enhanced Mini Trend Chart */}
                     <div className="h-12 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={metric.trend}>
                           <defs>
-                            <linearGradient id={`gradient-${metric.label}`} x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient
+                              id={`gradient-${metric.label}`}
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
                               <stop offset="5%" stopColor={metric.color} stopOpacity={0.4} />
                               <stop offset="95%" stopColor={metric.color} stopOpacity={0.05} />
                             </linearGradient>
@@ -343,16 +370,17 @@ export default function ProfessionalHero() {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes gradient {
-          0%, 100% {
+          0%,
+          100% {
             background-position: 0% 50%;
           }
           50% {
             background-position: 100% 50%;
           }
         }
-        
+
         .animate-gradient {
           background-size: 200% 200%;
           animation: gradient 8s ease infinite;

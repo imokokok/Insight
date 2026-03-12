@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { DashboardCard } from './DashboardCard';
 
 export interface BandChainPriceData {
   chain: string;
@@ -89,17 +88,6 @@ function getDeviationColor(deviation: number): string {
     return 'text-yellow-600';
   }
   return 'text-red-600';
-}
-
-function getDeviationBgColor(deviation: number): string {
-  const absDeviation = Math.abs(deviation);
-  if (absDeviation < DEVIATION_THRESHOLDS.normal) {
-    return 'bg-green-100';
-  }
-  if (absDeviation < DEVIATION_THRESHOLDS.warning) {
-    return 'bg-yellow-100';
-  }
-  return 'bg-red-100';
 }
 
 function getChainInfo(chainName: string) {

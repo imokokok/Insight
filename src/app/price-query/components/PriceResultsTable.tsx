@@ -2,7 +2,6 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { Icons } from './Icons';
-import { OracleProvider } from '@/lib/oracles';
 import {
   QueryResult,
   oracleColors,
