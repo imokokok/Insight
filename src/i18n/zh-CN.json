@@ -134,7 +134,87 @@
       "oracles": "集成预言机数量",
       "chains": "支持区块链数量",
       "feeds": "数据源数量",
-      "updates": "日均更新次数"
+      "updates": "日均更新次数",
+      "tvs": "保障总价值"
+    },
+    "professional": {
+      "hero": {
+        "searchPlaceholder": "搜索交易对、预言机或区块链...",
+        "search": "搜索"
+      },
+      "ticker": {
+        "title": "实时数据流",
+        "subtitle": "最新价格、异常警报和大额交易",
+        "realtime": "实时更新"
+      },
+      "metrics": {
+        "title": "平台指标",
+        "subtitle": "核心数据指标",
+        "description": "实时监控平台核心指标，全面了解预言机生态健康状况",
+        "tvs": "保障总价值",
+        "oracles": "活跃预言机",
+        "sources": "数据源",
+        "updates": "日更新次数",
+        "latency": "平均延迟",
+        "accuracy": "准确率"
+      },
+      "market": {
+        "title": "市场概览",
+        "subtitle": "预言机市场分析",
+        "description": "全面分析预言机市场份额、TVS趋势和链支持情况",
+        "marketShare": "市场份额",
+        "tvsTrend": "TVS趋势",
+        "chainSupport": "链支持",
+        "totalMarketShare": "总市场份额"
+      },
+      "heatmap": {
+        "title": "跨链套利",
+        "subtitle": "价格差异热力图",
+        "description": "实时监控同一交易对在不同区块链上的价格差异，发现潜在套利机会",
+        "avgPrice": "平均价格",
+        "maxDeviation": "最大偏差",
+        "arbitrageOpportunities": "套利机会",
+        "lowDeviation": "低偏差 (<0.1%)",
+        "mediumDeviation": "中偏差 (0.1-0.3%)",
+        "highDeviation": "高偏差 (>0.3%)",
+        "alert": "检测到 {count} 个潜在套利机会",
+        "alertDesc": "部分链上价格偏差超过 0.1%，可能存在套利空间"
+      },
+      "dashboards": {
+        "title": "精选仪表板",
+        "subtitle": "热门数据仪表板",
+        "description": "探索社区创建的最受欢迎的数据分析和监控仪表板",
+        "viewAll": "查看全部",
+        "viewDashboard": "查看仪表板"
+      },
+      "features": {
+        "title": "核心功能",
+        "subtitle": "全方位数据分析能力",
+        "description": "提供专业的预言机数据分析工具，助力您做出明智的决策",
+        "learnMore": "了解更多",
+        "moreFeatures": "还有更多功能等你探索"
+      },
+      "ecosystem": {
+        "title": "生态系统",
+        "subtitle": "社区与生态",
+        "description": "加入不断增长的 Insight 社区，与全球开发者和分析师共同探索预言机数据",
+        "partners": "合作伙伴",
+        "partnersDesc": "与主流预言机和区块链网络深度合作",
+        "activeUsers": "活跃用户",
+        "supportedChains": "支持链数",
+        "dailyRequests": "日请求量"
+      },
+      "cta": {
+        "badge": "开始您的数据之旅",
+        "title": "准备好探索预言机数据了吗？",
+        "description": "立即开始使用 Insight 平台，获取全面、准确、实时的预言机数据分析",
+        "getStarted": "免费开始使用",
+        "contactSales": "联系销售",
+        "documentation": "文档中心",
+        "community": "社区讨论",
+        "privacy": "隐私政策",
+        "terms": "服务条款"
+      }
     },
     "insights": {
       "title": "数据洞察",
@@ -150,6 +230,211 @@
       "vsLastHour": "较上小时",
       "vsYesterday": "较昨日",
       "vsLastWeek": "较上周"
+    },
+    "newHome": {
+      "simplified": {
+        "hero": {
+          "title": "洞察预言机数据",
+          "titleHighlight": "驱动智能决策",
+          "badge": "专业预言机数据平台",
+          "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth Network、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
+          "ctaPrimary": "开始探索",
+          "ctaSecondary": "查看文档",
+          "metrics": {
+            "oracles": "Oracles",
+            "chains": "Chains",
+            "feeds": "Feeds",
+            "tvs": "TVS"
+          }
+        },
+        "priceMonitor": {
+          "title": "实时价格监控",
+          "subtitle": "主流预言机代币实时行情"
+        },
+        "features": {
+          "title": "核心功能",
+          "subtitle": "全方位的预言机数据分析工具",
+          "priceQuery": "价格查询",
+          "priceQueryDesc": "灵活查询任意预言机、任意链的实时和历史价格数据",
+          "crossOracle": "跨预言机比较",
+          "crossOracleDesc": "对比不同预言机的价格数据、延迟、准确性等关键指标",
+          "crossChain": "跨链比较",
+          "crossChainDesc": "分析同一预言机在不同区块链上的性能表现",
+          "historical": "历史分析",
+          "historicalDesc": "查看详细的历史价格数据、趋势分析和回测结果"
+        },
+        "crossChainHeatmap": {
+          "title": "跨链价格差异",
+          "subtitle": "BTC/USD 在不同链上的价格分布",
+          "badge": "跨链监控",
+          "avgPrice": "平均价格",
+          "maxDeviation": "最大偏差",
+          "arbitrageAlert": "检测到 {count} 个套利机会",
+          "arbitrageDesc": "部分链上价格偏差超过 0.1%，可能存在套利空间",
+          "lowDeviation": "低偏差",
+          "mediumDeviation": "中偏差",
+          "highDeviation": "高偏差",
+          "chainDetails": "链详情"
+        },
+        "dataOverview": {
+          "title": "平台数据概览",
+          "subtitle": "实时监控平台数据质量和异常状态",
+          "badge": "数据概览",
+          "qualityScore": "数据质量评分",
+          "qualityDesc": "基于多维度指标评估",
+          "overallScore": "综合评分",
+          "accuracy": "准确性",
+          "availability": "可用性",
+          "recentAlerts": "最近异常",
+          "alertsDesc": "最近 24 小时的异常事件",
+          "supportedChains": "支持的区块链",
+          "chainsDesc": "{count}+ 条主流链"
+        },
+        "cta": {
+          "title": "准备好探索预言机数据了吗？",
+          "subtitle": "立即开始使用 Insight 平台，获取全面、准确、实时的预言机数据分析",
+          "getStarted": "免费开始使用",
+          "viewDocs": "查看文档",
+          "privacy": "隐私政策",
+          "terms": "服务条款",
+          "api": "API 文档"
+        }
+      },
+      "priceMonitor": {
+        "title": "实时价格监控",
+        "subtitle": "主流交易对实时行情",
+        "updateInterval": "数据每 3 秒自动更新",
+        "viewAll": "查看全部",
+        "feedsCount": "1,200+ 数据 Feeds"
+      },
+      "ecosystemMap": {
+        "title": "预言机生态系统全景图",
+        "subtitle": "全面了解主流预言机协议的市场份额、TVS 对比和链支持情况",
+        "badge": "生态系统概览",
+        "marketShare": "市场份额分布",
+        "tvsComparison": "TVS 对比",
+        "chainSupport": "链支持数",
+        "totalMarketShare": "市场总份额",
+        "avgTVS": "平均 TVS",
+        "totalChains": "支持链总数"
+      },
+      "crossChainHeatmap": {
+        "title": "跨链价格差异热力图",
+        "subtitle": "实时监控同一交易对在不同区块链上的价格差异，发现潜在套利机会",
+        "badge": "跨链价格监控",
+        "monitoredChains": "监控链数",
+        "arbitrageOpportunities": "套利机会",
+        "maxDeviation": "最大偏差",
+        "lowDeviation": "低偏差 (<0.1%)",
+        "mediumDeviation": "中偏差 (0.1-0.3%)",
+        "highDeviation": "高偏差 (>0.3%)",
+        "arbitrageAlert": "检测到 {count} 个潜在套利机会",
+        "arbitrageDescription": "部分链上价格偏差超过 0.2%，可能存在套利空间"
+      },
+      "dataQuality": {
+        "title": "数据质量评分面板",
+        "subtitle": "基于多维度指标的综合数据质量评估体系，实时监控预言机数据质量",
+        "badge": "数据质量评估",
+        "overallScore": "综合质量评分",
+        "rating": "评级",
+        "excellent": "优秀",
+        "updateTime": "更新时间",
+        "dataSamples": "数据样本",
+        "radarTitle": "五维质量雷达",
+        "dimensionDetails": "维度详情",
+        "accuracy": "准确性",
+        "timeliness": "及时性",
+        "consistency": "一致性",
+        "completeness": "完整性",
+        "reliability": "可靠性",
+        "normalSources": "正常数据源",
+        "needsAttention": "需关注",
+        "qualityImprovement": "质量提升",
+        "complianceRate": "达标率"
+      },
+      "anomalyMonitor": {
+        "title": "异常检测监控",
+        "subtitle": "实时检测和预警预言机数据异常，保障数据可靠性",
+        "badge": "实时监控",
+        "highRisk": "高风险",
+        "mediumRisk": "中风险",
+        "lowRisk": "低风险",
+        "filter": "筛选",
+        "all": "全部",
+        "noAnomalies": "暂无异常",
+        "noAnomaliesDesc": "当前筛选条件下没有异常告警",
+        "timeAgo": "{time}前",
+        "priceAnomaly": "价格异常波动",
+        "dataDelay": "数据延迟警告",
+        "sourceSwitch": "数据源切换",
+        "priceDeviation": "价格偏差",
+        "nodeOffline": "节点离线",
+        "crossChainDiff": "跨链价格差异"
+      },
+      "featureGrid": {
+        "title": "探索平台功能",
+        "subtitle": "全方位的预言机数据分析工具，助力您做出明智的决策",
+        "badge": "核心功能",
+        "priceQuery": "价格查询",
+        "priceQueryDesc": "灵活查询任意预言机、任意链的实时和历史价格数据",
+        "crossOracle": "跨预言机比较",
+        "crossOracleDesc": "对比不同预言机的价格数据、延迟、准确性等关键指标",
+        "crossChain": "跨链比较",
+        "crossChainDesc": "分析同一预言机在不同区块链上的性能表现",
+        "historicalAnalysis": "历史分析",
+        "historicalAnalysisDesc": "查看详细的历史价格数据、趋势分析和回测结果",
+        "nodeReputation": "节点声誉",
+        "nodeReputationDesc": "综合评估节点性能、可靠性和历史表现",
+        "dataTraceability": "数据源追溯",
+        "dataTraceabilityDesc": "追踪数据从源头到链上的完整流程和验证机制",
+        "learnMore": "了解更多"
+      },
+      "insightsReports": {
+        "title": "行业洞察与报告",
+        "subtitle": "获取最新的预言机行业分析、研究报告和使用教程",
+        "badge": "洞察与资源",
+        "filter": "筛选",
+        "all": "全部",
+        "reports": "报告",
+        "news": "动态",
+        "tutorials": "教程",
+        "changelogs": "更新",
+        "readMore": "阅读更多",
+        "download": "下载",
+        "viewAll": "查看全部资源"
+      },
+      "techCapabilities": {
+        "title": "平台技术实力",
+        "subtitle": "高性能数据处理引擎，支持多链数据聚合与实时分析",
+        "badge": "技术能力",
+        "supportedChains": "支持的区块链网络",
+        "dataProcessing": "数据处理量",
+        "avgResponseTime": "平均响应时间",
+        "apiCalls": "API 调用量",
+        "serviceAvailability": "服务可用性",
+        "slaTitle": "服务等级协议 (SLA)",
+        "slaSubtitle": "我们承诺提供企业级的服务质量保障",
+        "systemStatus": "所有系统正常运行",
+        "dataAccuracy": "数据准确性",
+        "dataFreshness": "数据新鲜度",
+        "apiAvailability": "API 可用性",
+        "recoveryTime": "故障恢复"
+      },
+      "cta": {
+        "title": "准备好探索预言机数据了吗？",
+        "subtitle": "立即开始使用 Insight 平台，获取全面、准确、实时的预言机数据分析",
+        "badge": "开始您的数据之旅",
+        "getStarted": "免费开始使用",
+        "contactSales": "联系销售",
+        "documentation": "文档中心",
+        "documentationDesc": "全面的 API 文档和使用指南",
+        "community": "社区讨论",
+        "communityDesc": "加入我们的开发者社区",
+        "support": "技术支持",
+        "supportDesc": "获取专业的技术支持",
+        "privacyPolicy": "隐私政策",
+        "termsOfService": "服务条款"
+      }
     },
     "aboutTitle": "关于 Insight",
     "aboutDescription": "Insight 提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth Network 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",

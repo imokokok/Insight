@@ -134,7 +134,87 @@
       "oracles": "Oracles Integrated",
       "chains": "Blockchains Supported",
       "feeds": "Data Sources",
-      "updates": "Daily Updates"
+      "updates": "Daily Updates",
+      "tvs": "Total Value Secured"
+    },
+    "professional": {
+      "hero": {
+        "searchPlaceholder": "Search trading pairs, oracles, or blockchains...",
+        "search": "Search"
+      },
+      "ticker": {
+        "title": "Live Data Feed",
+        "subtitle": "Latest prices, alerts and large transactions",
+        "realtime": "Real-time"
+      },
+      "metrics": {
+        "title": "Platform Metrics",
+        "subtitle": "Key Metrics",
+        "description": "Real-time monitoring of core platform metrics",
+        "tvs": "Total Value Secured",
+        "oracles": "Active Oracles",
+        "sources": "Data Sources",
+        "updates": "Daily Updates",
+        "latency": "Avg Latency",
+        "accuracy": "Accuracy Rate"
+      },
+      "market": {
+        "title": "Market Overview",
+        "subtitle": "Oracle Market Analysis",
+        "description": "Comprehensive analysis of oracle market share, TVS trends and chain support",
+        "marketShare": "Market Share",
+        "tvsTrend": "TVS Trend",
+        "chainSupport": "Chain Support",
+        "totalMarketShare": "Total Market Share"
+      },
+      "heatmap": {
+        "title": "Cross-Chain Arbitrage",
+        "subtitle": "Price Spread Heatmap",
+        "description": "Monitor price differences across chains in real-time and discover arbitrage opportunities",
+        "avgPrice": "Average Price",
+        "maxDeviation": "Max Deviation",
+        "arbitrageOpportunities": "Arbitrage Opportunities",
+        "lowDeviation": "Low (<0.1%)",
+        "mediumDeviation": "Medium (0.1-0.3%)",
+        "highDeviation": "High (>0.3%)",
+        "alert": "{count} potential arbitrage opportunities detected",
+        "alertDesc": "Price deviation exceeds 0.1% on some chains"
+      },
+      "dashboards": {
+        "title": "Featured Dashboards",
+        "subtitle": "Popular Dashboards",
+        "description": "Explore the most popular analytics and monitoring dashboards created by the community",
+        "viewAll": "View All",
+        "viewDashboard": "View Dashboard"
+      },
+      "features": {
+        "title": "Core Features",
+        "subtitle": "Comprehensive Data Analytics",
+        "description": "Professional oracle data analysis tools to help you make informed decisions",
+        "learnMore": "Learn More",
+        "moreFeatures": "More features to explore"
+      },
+      "ecosystem": {
+        "title": "Ecosystem",
+        "subtitle": "Community & Ecosystem",
+        "description": "Join the growing Insight community, explore oracle data with developers and analysts worldwide",
+        "partners": "Partners",
+        "partnersDesc": "Deep integration with leading oracles and blockchain networks",
+        "activeUsers": "Active Users",
+        "supportedChains": "Supported Chains",
+        "dailyRequests": "Daily Requests"
+      },
+      "cta": {
+        "badge": "Start Your Data Journey",
+        "title": "Ready to Explore Oracle Data?",
+        "description": "Start using the Insight platform today for comprehensive, accurate, and real-time oracle data analysis",
+        "getStarted": "Get Started Free",
+        "contactSales": "Contact Sales",
+        "documentation": "Documentation",
+        "community": "Community",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
     },
     "insights": {
       "title": "Data Insights",
@@ -150,6 +230,211 @@
       "vsLastHour": "vs last hour",
       "vsYesterday": "vs yesterday",
       "vsLastWeek": "vs last week"
+    },
+    "newHome": {
+      "simplified": {
+        "hero": {
+          "title": "Insight Oracle Data",
+          "titleHighlight": "Power Smart Decisions",
+          "badge": "Professional Oracle Data Platform",
+          "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
+          "ctaPrimary": "Start Exploring",
+          "ctaSecondary": "View Documentation",
+          "metrics": {
+            "oracles": "Oracles",
+            "chains": "Chains",
+            "feeds": "Feeds",
+            "tvs": "TVS"
+          }
+        },
+        "priceMonitor": {
+          "title": "Live Price Monitoring",
+          "subtitle": "Real-time quotes for mainstream oracle tokens"
+        },
+        "features": {
+          "title": "Core Features",
+          "subtitle": "Comprehensive oracle data analysis tools",
+          "priceQuery": "Price Query",
+          "priceQueryDesc": "Flexibly query real-time and historical price data from any oracle on any chain",
+          "crossOracle": "Cross-Oracle Compare",
+          "crossOracleDesc": "Compare price data, latency, accuracy and other key metrics across different oracles",
+          "crossChain": "Cross-Chain Compare",
+          "crossChainDesc": "Analyze performance of the same oracle across different blockchains",
+          "historical": "Historical Analysis",
+          "historicalDesc": "View detailed historical price data, trend analysis and backtesting results"
+        },
+        "crossChainHeatmap": {
+          "title": "Cross-Chain Price Differences",
+          "subtitle": "BTC/USD price distribution across different chains",
+          "badge": "Cross-Chain Monitoring",
+          "avgPrice": "Average Price",
+          "maxDeviation": "Max Deviation",
+          "arbitrageAlert": "{count} arbitrage opportunities detected",
+          "arbitrageDesc": "Price deviation exceeds 0.1% on some chains, potential arbitrage space available",
+          "lowDeviation": "Low Deviation",
+          "mediumDeviation": "Medium Deviation",
+          "highDeviation": "High Deviation",
+          "chainDetails": "Chain Details"
+        },
+        "dataOverview": {
+          "title": "Platform Data Overview",
+          "subtitle": "Real-time monitoring of platform data quality and anomaly status",
+          "badge": "Data Overview",
+          "qualityScore": "Data Quality Score",
+          "qualityDesc": "Based on multi-dimensional metrics",
+          "overallScore": "Overall Score",
+          "accuracy": "Accuracy",
+          "availability": "Availability",
+          "recentAlerts": "Recent Alerts",
+          "alertsDesc": "Anomaly events in the last 24 hours",
+          "supportedChains": "Supported Blockchains",
+          "chainsDesc": "{count}+ major chains"
+        },
+        "cta": {
+          "title": "Ready to Explore Oracle Data?",
+          "subtitle": "Start using the Insight platform today for comprehensive, accurate, and real-time oracle data analysis",
+          "getStarted": "Get Started Free",
+          "viewDocs": "View Documentation",
+          "privacy": "Privacy Policy",
+          "terms": "Terms of Service",
+          "api": "API Documentation"
+        }
+      },
+      "priceMonitor": {
+        "title": "Live Price Monitoring",
+        "subtitle": "Real-time quotes for mainstream trading pairs",
+        "updateInterval": "Data updates every 3 seconds",
+        "viewAll": "View All",
+        "feedsCount": "1,200+ Data Feeds"
+      },
+      "ecosystemMap": {
+        "title": "Oracle Ecosystem Map",
+        "subtitle": "Comprehensive overview of market share, TVS comparison and chain support",
+        "badge": "Ecosystem Overview",
+        "marketShare": "Market Share Distribution",
+        "tvsComparison": "TVS Comparison",
+        "chainSupport": "Chain Support",
+        "totalMarketShare": "Total Market Share",
+        "avgTVS": "Average TVS",
+        "totalChains": "Total Chains"
+      },
+      "crossChainHeatmap": {
+        "title": "Cross-Chain Price Heatmap",
+        "subtitle": "Monitor price differences across chains in real-time and discover arbitrage opportunities",
+        "badge": "Cross-Chain Monitoring",
+        "monitoredChains": "Monitored Chains",
+        "arbitrageOpportunities": "Arbitrage Opportunities",
+        "maxDeviation": "Max Deviation",
+        "lowDeviation": "Low (<0.1%)",
+        "mediumDeviation": "Medium (0.1-0.3%)",
+        "highDeviation": "High (>0.3%)",
+        "arbitrageAlert": "{count} potential arbitrage opportunities detected",
+        "arbitrageDescription": "Price deviation exceeds 0.2% on some chains, potential arbitrage space available"
+      },
+      "dataQuality": {
+        "title": "Data Quality Dashboard",
+        "subtitle": "Multi-dimensional data quality assessment system with real-time monitoring",
+        "badge": "Quality Assessment",
+        "overallScore": "Overall Quality Score",
+        "rating": "Rating",
+        "excellent": "Excellent",
+        "updateTime": "Updated",
+        "dataSamples": "Data Samples",
+        "radarTitle": "Five-Dimension Radar",
+        "dimensionDetails": "Dimension Details",
+        "accuracy": "Accuracy",
+        "timeliness": "Timeliness",
+        "consistency": "Consistency",
+        "completeness": "Completeness",
+        "reliability": "Reliability",
+        "normalSources": "Normal Sources",
+        "needsAttention": "Needs Attention",
+        "qualityImprovement": "Quality Improvement",
+        "complianceRate": "Compliance Rate"
+      },
+      "anomalyMonitor": {
+        "title": "Anomaly Detection Monitor",
+        "subtitle": "Real-time detection and alerts for oracle data anomalies",
+        "badge": "Real-time Monitoring",
+        "highRisk": "High Risk",
+        "mediumRisk": "Medium Risk",
+        "lowRisk": "Low Risk",
+        "filter": "Filter",
+        "all": "All",
+        "noAnomalies": "No Anomalies",
+        "noAnomaliesDesc": "No anomaly alerts for current filter conditions",
+        "timeAgo": "{time} ago",
+        "priceAnomaly": "Price Anomaly",
+        "dataDelay": "Data Delay Warning",
+        "sourceSwitch": "Source Switch",
+        "priceDeviation": "Price Deviation",
+        "nodeOffline": "Node Offline",
+        "crossChainDiff": "Cross-Chain Price Difference"
+      },
+      "featureGrid": {
+        "title": "Explore Platform Features",
+        "subtitle": "Comprehensive oracle data analysis tools to help you make informed decisions",
+        "badge": "Core Features",
+        "priceQuery": "Price Query",
+        "priceQueryDesc": "Flexibly query real-time and historical price data from any oracle on any chain",
+        "crossOracle": "Cross-Oracle Compare",
+        "crossOracleDesc": "Compare price data, latency, accuracy and other key metrics across different oracles",
+        "crossChain": "Cross-Chain Compare",
+        "crossChainDesc": "Analyze performance of the same oracle across different blockchains",
+        "historicalAnalysis": "Historical Analysis",
+        "historicalAnalysisDesc": "View detailed historical price data, trend analysis and backtesting results",
+        "nodeReputation": "Node Reputation",
+        "nodeReputationDesc": "Comprehensive evaluation of node performance, reliability and historical performance",
+        "dataTraceability": "Data Source Traceability",
+        "dataTraceabilityDesc": "Track the complete flow of data from source to blockchain with verification mechanisms",
+        "learnMore": "Learn More"
+      },
+      "insightsReports": {
+        "title": "Industry Insights & Reports",
+        "subtitle": "Get the latest oracle industry analysis, research reports and tutorials",
+        "badge": "Insights & Resources",
+        "filter": "Filter",
+        "all": "All",
+        "reports": "Reports",
+        "news": "News",
+        "tutorials": "Tutorials",
+        "changelogs": "Changelogs",
+        "readMore": "Read More",
+        "download": "Download",
+        "viewAll": "View All Resources"
+      },
+      "techCapabilities": {
+        "title": "Platform Technical Capabilities",
+        "subtitle": "High-performance data processing engine supporting multi-chain aggregation and real-time analysis",
+        "badge": "Technical Capabilities",
+        "supportedChains": "Supported Blockchain Networks",
+        "dataProcessing": "Data Processing Volume",
+        "avgResponseTime": "Average Response Time",
+        "apiCalls": "API Calls",
+        "serviceAvailability": "Service Availability",
+        "slaTitle": "Service Level Agreement (SLA)",
+        "slaSubtitle": "We are committed to providing enterprise-grade service quality",
+        "systemStatus": "All Systems Operational",
+        "dataAccuracy": "Data Accuracy",
+        "dataFreshness": "Data Freshness",
+        "apiAvailability": "API Availability",
+        "recoveryTime": "Recovery Time"
+      },
+      "cta": {
+        "title": "Ready to Explore Oracle Data?",
+        "subtitle": "Start using the Insight platform today for comprehensive, accurate, and real-time oracle data analysis",
+        "badge": "Start Your Data Journey",
+        "getStarted": "Get Started Free",
+        "contactSales": "Contact Sales",
+        "documentation": "Documentation",
+        "documentationDesc": "Comprehensive API documentation and user guides",
+        "community": "Community",
+        "communityDesc": "Join our developer community",
+        "support": "Support",
+        "supportDesc": "Get professional technical support",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service"
+      }
     },
     "aboutTitle": "About Insight",
     "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
