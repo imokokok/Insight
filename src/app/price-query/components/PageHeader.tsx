@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { formatHistoryTime } from '@/utils/queryHistory';

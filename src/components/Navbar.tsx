@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
 import { NavGroup } from './navigation/types';

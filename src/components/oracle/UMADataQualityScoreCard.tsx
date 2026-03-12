@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   const { t } = useI18n();

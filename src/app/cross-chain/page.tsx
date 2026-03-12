@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from './useCrossChainData';
 import { CrossChainFilters } from './components/CrossChainFilters';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';

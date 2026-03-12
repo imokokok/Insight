@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import GaugeChart from '@/components/GaugeChart';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { AccuracyStats } from '@/hooks/usePriceHistory';
 
 interface PriceAccuracyStatsProps {

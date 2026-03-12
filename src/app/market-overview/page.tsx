@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { REFRESH_OPTIONS, CHAIN_SUPPORT_DATA } from './constants';
 import { ChartType, ViewType, TIME_RANGES } from './types';

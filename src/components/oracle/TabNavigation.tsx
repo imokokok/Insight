@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 

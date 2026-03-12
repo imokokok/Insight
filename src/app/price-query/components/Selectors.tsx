@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES } from '../constants';

@@ -15,7 +15,7 @@ import {
   Area,
   Line,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/context';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface LatencyDataPoint {
   range: string;
