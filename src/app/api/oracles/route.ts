@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -7,6 +7,13 @@ import {
   API3Client,
 } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import {
+  createErrorResponse,
+  createCachedJsonResponse,
+  handleApiError,
+  ErrorCodes,
+  CacheConfig,
+} from '@/lib/api/utils';
 
 const clients: Record<OracleProvider, InstanceType<typeof ChainlinkClient>> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -17,81 +24,106 @@ const clients: Record<OracleProvider, InstanceType<typeof ChainlinkClient>> = {
 };
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const provider = searchParams.get('provider') as OracleProvider | null;
-  const symbol = searchParams.get('symbol');
-  const chain = searchParams.get('chain') as Blockchain | null;
-  const period = searchParams.get('period');
-
-  if (!provider || !symbol) {
-    return NextResponse.json(
-      { error: 'Missing required parameters: provider, symbol' },
-      { status: 400 }
-    );
-  }
-
-  if (!Object.values(OracleProvider).includes(provider)) {
-    return NextResponse.json(
-      {
-        error: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
-      },
-      { status: 400 }
-    );
-  }
-
-  const client = clients[provider];
-  if (!client) {
-    return NextResponse.json(
-      { error: `Client not found for provider: ${provider}` },
-      { status: 500 }
-    );
-  }
-
-  const chainValue = chain ? (chain as Blockchain) : undefined;
-
   try {
-    if (period) {
-      const periodNum = parseInt(period, 10);
-      if (isNaN(periodNum) || periodNum < 1) {
-        return NextResponse.json(
-          { error: 'Invalid period. Must be a positive integer.' },
-          { status: 400 }
-        );
-      }
+    const searchParams = request.nextUrl.searchParams;
+    const provider = searchParams.get('provider') as OracleProvider | null;
+    const symbol = searchParams.get('symbol');
+    const chain = searchParams.get('chain') as Blockchain | null;
+    const period = searchParams.get('period');
 
-      const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
-
-      return NextResponse.json({
-        provider,
-        symbol,
-        chain: chain || null,
-        period: periodNum,
-        data: historicalPrices,
-        count: historicalPrices.length,
-        timestamp: Date.now(),
+    if (!provider || !symbol) {
+      return createErrorResponse({
+        code: ErrorCodes.MISSING_PARAMS,
+        message: 'Missing required parameters: provider, symbol',
+        retryable: false,
+        statusCode: 400,
       });
     }
 
-    const priceData = await client.getPrice(symbol, chainValue);
+    if (!Object.values(OracleProvider).includes(provider)) {
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_PROVIDER,
+        message: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+        retryable: false,
+        statusCode: 400,
+      });
+    }
 
-    return NextResponse.json({
-      provider,
-      symbol,
-      chain: chain || null,
-      data: priceData,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    console.error(`Error fetching data from ${provider}:`, error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch oracle data',
-        message: error instanceof Error ? error.message : 'Unknown error',
+    const client = clients[provider];
+    if (!client) {
+      return createErrorResponse({
+        code: ErrorCodes.CLIENT_NOT_FOUND,
+        message: `Client not found for provider: ${provider}`,
+        retryable: false,
+        statusCode: 500,
+      });
+    }
+
+    const chainValue = chain ? (chain as Blockchain) : undefined;
+
+    if (period) {
+      const periodNum = parseInt(period, 10);
+      if (isNaN(periodNum) || periodNum < 1) {
+        return createErrorResponse({
+          code: ErrorCodes.INVALID_PARAMS,
+          message: 'Invalid period. Must be a positive integer.',
+          retryable: false,
+          statusCode: 400,
+        });
+      }
+
+      try {
+        const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
+
+        return createCachedJsonResponse(
+          {
+            provider,
+            symbol,
+            chain: chain || null,
+            period: periodNum,
+            data: historicalPrices,
+            count: historicalPrices.length,
+            timestamp: Date.now(),
+          },
+          CacheConfig.HISTORY
+        );
+      } catch (error) {
+        return handleApiError(error, {
+          provider,
+          symbol,
+          operation: 'fetch historical prices',
+        });
+      }
+    }
+
+    try {
+      const priceData = await client.getPrice(symbol, chainValue);
+
+      return createCachedJsonResponse(
+        {
+          provider,
+          symbol,
+          chain: chain || null,
+          data: priceData,
+          timestamp: Date.now(),
+        },
+        CacheConfig.PRICE
+      );
+    } catch (error) {
+      return handleApiError(error, {
         provider,
         symbol,
-      },
-      { status: 500 }
-    );
+        operation: 'fetch price',
+      });
+    }
+  } catch (error) {
+    console.error('Unexpected error in GET /api/oracles:', error);
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      message: 'An unexpected error occurred',
+      retryable: true,
+      statusCode: 500,
+    });
   }
 }
 
@@ -101,10 +133,12 @@ export async function POST(request: NextRequest) {
     const { requests } = body;
 
     if (!Array.isArray(requests)) {
-      return NextResponse.json(
-        { error: 'Invalid request body. Expected { requests: [...] }' },
-        { status: 400 }
-      );
+      return createErrorResponse({
+        code: ErrorCodes.INVALID_PARAMS,
+        message: 'Invalid request body. Expected { requests: [...] }',
+        retryable: false,
+        statusCode: 400,
+      });
     }
 
     const results = await Promise.allSettled(
@@ -130,18 +164,20 @@ export async function POST(request: NextRequest) {
       error: result.status === 'rejected' ? result.reason : null,
     }));
 
-    return NextResponse.json({
-      timestamp: Date.now(),
-      results: data,
-    });
+    return createCachedJsonResponse(
+      {
+        timestamp: Date.now(),
+        results: data,
+      },
+      CacheConfig.PRICE
+    );
   } catch (error) {
     console.error('Error processing batch request:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to process batch request',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse({
+      code: ErrorCodes.BATCH_REQUEST_FAILED,
+      message: error instanceof Error ? error.message : 'Failed to process batch request',
+      retryable: true,
+      statusCode: 500,
+    });
   }
 }

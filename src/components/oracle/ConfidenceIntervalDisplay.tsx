@@ -1,5 +1,3 @@
-'use client';
-
 import { ConfidenceInterval } from '@/lib/types/oracle';
 
 interface ConfidenceIntervalDisplayProps {

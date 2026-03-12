@@ -7,6 +7,8 @@ import { I18nProvider } from '@/lib/i18n/context';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SWRProvider } from '@/providers/SWRProvider';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -44,6 +46,8 @@ export default function RootLayout({
             </TimeRangeProvider>
           </SWRProvider>
         </I18nProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

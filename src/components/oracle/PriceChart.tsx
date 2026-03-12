@@ -25,6 +25,8 @@ import { ChartExportButton } from './ChartExportButton';
 import { MoreOptionsDropdown } from './MoreOptionsDropdown';
 import { useTimeRange } from '@/contexts/TimeRangeContext';
 import { ChartExportData } from '@/utils/chartExport';
+import { downsampleData, downsampleDataForChart } from '@/utils/downsampling';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 
 const CHART_SETTINGS_STORAGE_KEY = 'priceChart_settings';
 
@@ -335,94 +337,7 @@ function convertHistoricalPricePoints(
   });
 }
 
-function downsampleData(data: ChartDataPoint[]): ChartDataPoint[] {
-  const dataCount = data.length;
-  if (dataCount <= 200) {
-    return data;
-  }
 
-  let targetCount: number;
-  if (dataCount <= 500) {
-    targetCount = 125;
-  } else if (dataCount <= 1000) {
-    targetCount = 175;
-  } else {
-    targetCount = 250;
-  }
-
-  if (targetCount >= dataCount) {
-    return data;
-  }
-
-  const result: ChartDataPoint[] = [];
-  result.push({ ...data[0] });
-
-  const step = (dataCount - 1) / (targetCount - 1);
-
-  const buckets: ChartDataPoint[][] = [];
-  for (let i = 0; i < targetCount; i++) {
-    buckets.push([]);
-  }
-
-  for (let i = 1; i < dataCount - 1; i++) {
-    const bucketIndex = Math.min(Math.floor((i - 1) / step), targetCount - 2);
-    buckets[bucketIndex + 1].push(data[i]);
-  }
-
-  for (let i = 1; i < targetCount - 1; i++) {
-    const bucket = buckets[i];
-    if (bucket.length === 0) {
-      const originalIndex = Math.round(i * step);
-      if (originalIndex > 0 && originalIndex < dataCount - 1) {
-        result.push({ ...data[originalIndex] });
-      }
-      continue;
-    }
-
-    let maxPoint = bucket[0];
-    let minPoint = bucket[0];
-    let sumPrice = 0;
-    let sumVolume = 0;
-    let avgTimestamp = 0;
-    let count = 0;
-
-    for (const point of bucket) {
-      if (point.price > maxPoint.price) maxPoint = point;
-      if (point.price < minPoint.price) minPoint = point;
-      sumPrice += point.price;
-      sumVolume += point.volume;
-      avgTimestamp += point.timestamp;
-      count++;
-    }
-
-    const avgPrice = sumPrice / count;
-    const avgVolume = sumVolume / count;
-    const avgTime = new Date(avgTimestamp / count).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    const midPoint: ChartDataPoint = {
-      time: avgTime,
-      timestamp: Math.round(avgTimestamp / count),
-      price: avgPrice,
-      volume: avgVolume,
-    };
-
-    const distanceToMax = Math.abs(midPoint.price - maxPoint.price);
-    const distanceToMin = Math.abs(midPoint.price - minPoint.price);
-
-    if (distanceToMax > distanceToMin) {
-      result.push({ ...maxPoint });
-    } else {
-      result.push({ ...minPoint });
-    }
-  }
-
-  result.push({ ...data[dataCount - 1] });
-
-  return result;
-}
 
 function generateDataWithGranularity(
   basePrice: number,
@@ -694,11 +609,11 @@ export function PriceChart({
         };
         const historicalPoints = await bandClient.getHistoricalBandPrices(periodMap[timeRange]);
         const chartData = convertHistoricalPricePoints(historicalPoints);
-        const downsampledData = downsampleData(chartData);
+        const downsampledData = downsampleData(chartData, { preservePeaks: true, preserveTrends: true });
         setData(downsampledData);
       } else {
         const historicalData = generateHistoricalData(priceData.price, timeRange);
-        const downsampledData = downsampleData(historicalData);
+        const downsampledData = downsampleData(historicalData, { preservePeaks: true, preserveTrends: true });
         setData(downsampledData);
       }
     } catch (error) {
@@ -708,7 +623,7 @@ export function PriceChart({
       const fallbackPrice = defaultPrice || 100;
       setCurrentPrice(fallbackPrice);
       const fallbackData = generateHistoricalData(fallbackPrice, timeRange);
-      setData(downsampleData(fallbackData));
+      setData(downsampleData(fallbackData, { preservePeaks: true, preserveTrends: true }));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
@@ -751,8 +666,8 @@ export function PriceChart({
         const period1Data = convertHistoricalPricePoints(period1Points, false);
         const period2Data = convertHistoricalPricePoints(period2Points, true);
 
-        setData(downsampleData(period1Data));
-        setComparisonData(downsampleData(period2Data));
+        setData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
+        setComparisonData(downsampleData(period2Data, { preservePeaks: true, preserveTrends: true }));
       } else {
         const period1Data = generateDataWithGranularity(
           priceData.price,
@@ -767,8 +682,8 @@ export function PriceChart({
           granularity
         );
 
-        setData(downsampleData(period1Data));
-        setComparisonData(downsampleData(period2Data.map((d) => ({ ...d, isComparison: true }))));
+        setData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
+        setComparisonData(downsampleData(period2Data.map((d) => ({ ...d, isComparison: true })), { preservePeaks: true, preserveTrends: true }));
       }
     } catch (error) {
       console.error('Error fetching comparison data:', error);
@@ -874,26 +789,11 @@ export function PriceChart({
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center" style={{ height: responsiveHeight }}>
-        <div className="flex items-center gap-3 text-gray-400">
-          <svg className="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-          <span className="text-sm">加载图表数据...</span>
-        </div>
-      </div>
+      <ChartSkeleton
+        height={responsiveHeight}
+        showToolbar={showToolbar}
+        variant="price"
+      />
     );
   }
 
