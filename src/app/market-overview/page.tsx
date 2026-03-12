@@ -483,117 +483,88 @@ export default function MarketOverviewPage() {
           </div>
         </div>
 
-        {/* 关键指标卡片 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {/* 总TVS */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
+        {/* 关键指标统计栏 - 简洁横向布局 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* TVS */}
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-50 rounded-lg">
-                <DollarSign className="w-4 h-4 text-blue-600" />
+                <DollarSign className="w-5 h-5 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
-              </span>
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-900">{totalTVS}</span>
+                  <span className={`text-xs ${marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {marketStats.change24h >= 0 ? '+' : ''}{marketStats.change24h.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{totalTVS}</div>
-            <div
-              className={`text-xs mt-1 flex items-center gap-1 ${
-                marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {marketStats.change24h >= 0 ? (
-                <ArrowUpRight className="w-3 h-3" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3" />
-              )}
-              {marketStats.change24h >= 0 ? '+' : ''}
-              {marketStats.change24h.toFixed(2)}%
-            </div>
-          </div>
 
-          {/* 支持链数 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+
+            {/* 支持链数 */}
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-50 rounded-lg">
-                <Globe className="w-4 h-4 text-purple-600" />
+                <Globe className="w-5 h-5 text-purple-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '支持链数' : 'Total Chains'}
-              </span>
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '支持链数' : 'Chains'}</p>
+                <p className="text-lg font-bold text-gray-900">{totalChains}</p>
+              </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{totalChains}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {locale === 'zh-CN' ? '跨链覆盖' : 'Cross-chain'}
-            </div>
-          </div>
 
-          {/* 协议数量 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+
+            {/* 协议数量 */}
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-cyan-50 rounded-lg">
-                <Layers className="w-4 h-4 text-cyan-600" />
+                <Layers className="w-5 h-5 text-cyan-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
-              </span>
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}</p>
+                <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
+              </div>
             </div>
-            <div className="text-2xl font-bold text-gray-900">
-              {totalProtocols}+
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {locale === 'zh-CN' ? '集成项目' : 'Integrations'}
-            </div>
-          </div>
 
-          {/* 市场主导 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+
+            {/* 市场主导 */}
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-pink-50 rounded-lg">
-                <Activity className="w-4 h-4 text-pink-600" />
+                <Activity className="w-5 h-5 text-pink-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-gray-900">
-              {marketStats.marketDominance}%
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Chainlink</div>
-          </div>
-
-          {/* 平均延迟 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <Zap className="w-4 h-4 text-yellow-600" />
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '市场主导' : 'Dominance'}</p>
+                <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '平均延迟' : 'Avg Latency'}
-              </span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">
-              {marketStats.avgUpdateLatency}ms
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {locale === 'zh-CN' ? '更新速度' : 'Update Speed'}
-            </div>
-          </div>
 
-          {/* 预言机数量 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+
+            {/* 平均延迟 */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-50 rounded-lg">
+                <Zap className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '平均延迟' : 'Latency'}</p>
+                <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+              </div>
+            </div>
+
+            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
+
+            {/* 预言机数 */}
+            <div className="flex items-center gap-3">
               <div className="p-2 bg-green-50 rounded-lg">
-                <Shield className="w-4 h-4 text-green-600" />
+                <Shield className="w-5 h-5 text-green-600" />
               </div>
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '预言机数' : 'Oracles'}
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-gray-900">
-              {marketStats.oracleCount}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {locale === 'zh-CN' ? '活跃服务' : 'Active Services'}
+              <div>
+                <p className="text-xs text-gray-500">{locale === 'zh-CN' ? '预言机数' : 'Oracles'}</p>
+                <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
+              </div>
             </div>
           </div>
         </div>
