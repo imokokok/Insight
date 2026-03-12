@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
 
-// 交易对数据类型
 interface TradingPair {
   symbol: string;
   name: string;
@@ -13,7 +13,6 @@ interface TradingPair {
   volatility: number;
 }
 
-// 8个交易对配置
 const TRADING_PAIRS: TradingPair[] = [
   { symbol: 'BTC', name: 'Bitcoin', basePrice: 67432.15, volatility: 0.02 },
   { symbol: 'ETH', name: 'Ethereum', basePrice: 3521.87, volatility: 0.025 },
@@ -25,7 +24,6 @@ const TRADING_PAIRS: TradingPair[] = [
   { symbol: 'AAVE', name: 'Aave', basePrice: 112.45, volatility: 0.027 },
 ];
 
-// 生成模拟价格数据
 interface PriceDataPoint {
   value: number;
 }
@@ -36,20 +34,17 @@ interface PriceData {
   sparklineData: PriceDataPoint[];
 }
 
-// 生成价格数据
 const generatePriceData = (pair: TradingPair): PriceData => {
   const dataPoints = 24;
   const sparklineData: PriceDataPoint[] = [];
   let currentPrice = pair.basePrice;
 
-  // 生成24小时的历史数据
   for (let i = 0; i < dataPoints; i++) {
     const change = (Math.random() - 0.5) * pair.volatility;
     currentPrice = currentPrice * (1 + change);
     sparklineData.push({ value: currentPrice });
   }
 
-  // 计算24小时变化
   const startPrice = sparklineData[0].value;
   const endPrice = sparklineData[sparklineData.length - 1].value;
   const change24h = ((endPrice - startPrice) / startPrice) * 100;
@@ -61,18 +56,6 @@ const generatePriceData = (pair: TradingPair): PriceData => {
   };
 };
 
-// 格式化价格
-const formatPrice = (price: number): string => {
-  if (price >= 1000) {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  } else if (price >= 1) {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  } else {
-    return price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
-  }
-};
-
-// 格式化变化百分比
 const formatChange = (change: number): string => {
   const sign = change >= 0 ? '+' : '';
   return `${sign}${change.toFixed(2)}%`;

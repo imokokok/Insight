@@ -1,6 +1,7 @@
-import { OracleProvider, Blockchain } from './oracle';
+import { OracleProvider, Blockchain, ConfidenceInterval, PriceData, PublisherStatus } from './oracle';
 
 export { OracleProvider, Blockchain };
+export type { ConfidenceInterval, PriceData, PublisherStatus };
 
 export enum TimeRange {
   '1H' = 3600,
@@ -25,25 +26,15 @@ export enum TrendDirection {
   SHRINKING = 'shrinking',
 }
 
-export type PublisherStatus = 'active' | 'inactive' | 'degraded';
+export type PublisherStatusType = 'active' | 'inactive' | 'degraded';
 
-export interface ConfidenceInterval {
+export interface ConfidenceIntervalData {
   bid: number;
   ask: number;
   widthPercentage: number;
 }
 
-export interface GenericHistoricalPrice {
-  timestamp: number;
-  price: number;
-  volume?: number;
-  high?: number;
-  low?: number;
-  open?: number;
-  close?: number;
-}
-
-export interface PriceData {
+export interface PriceDataExtended {
   provider: OracleProvider;
   chain?: Blockchain;
   symbol: string;

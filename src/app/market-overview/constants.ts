@@ -1,13 +1,13 @@
 import { OracleMarketData, AssetData, TVSTrendData, ChainSupportData } from './types';
+import { oracleColors } from '@/lib/constants';
 
-// 专业配色方案
 export const ORACLE_COLORS = {
-  chainlink: '#375BD2', // Chainlink 蓝
-  pyth: '#E6B800', // Pyth 金
-  band: '#516BEB', // Band 青蓝
-  api3: '#7CE3CB', // API3 青绿
-  uma: '#FF4A8D', // UMA 粉
-  others: '#9CA3AF', // 灰色
+  chainlink: oracleColors['chainlink'] || '#375BD2',
+  pyth: oracleColors['pyth-network'] || '#E6B800',
+  band: oracleColors['band-protocol'] || '#516BEB',
+  api3: oracleColors['api3'] || '#7CE3CB',
+  uma: oracleColors['uma'] || '#FF4A8D',
+  others: '#9CA3AF',
 } as const;
 
 // 模拟市场数据 - 实际项目中应从API获取
@@ -256,8 +256,9 @@ export const MOCK_ASSETS: AssetData[] = [
   },
 ];
 
-// 刷新间隔选项
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
+import { type RefreshInterval } from '@/lib/constants';
+
+export { type RefreshInterval };
 
 export const REFRESH_OPTIONS = [
   { value: 0, label: 'Off' },

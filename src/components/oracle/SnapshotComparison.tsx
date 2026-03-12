@@ -9,14 +9,12 @@ import {
   formatTimestamp,
 } from '@/lib/types/snapshot';
 import { PriceData, OracleProvider } from '@/lib/types/oracle';
+import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { providerNames } from '@/lib/constants';
 
-const oracleNames: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
-  [OracleProvider.API3]: 'API3',
-};
+const formatPriceValue = (value: number): string => formatPrice(value).replace('$', '');
+
+const oracleNames = providerNames;
 
 interface SnapshotComparisonProps {
   currentStats: SnapshotStats;
@@ -70,13 +68,6 @@ export function SnapshotComparison({
         />
       </svg>
     );
-  };
-
-  const formatPrice = (value: number): string => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
   };
 
   return (
@@ -135,7 +126,7 @@ export function SnapshotComparison({
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-gray-900">
-                ${formatPrice(currentStats.avgPrice)}
+                ${formatPriceValue(currentStats.avgPrice)}
               </span>
               <span
                 className={`text-sm font-medium ${getChangeColor(comparison.priceChange.avgPricePercent)}`}
@@ -145,10 +136,10 @@ export function SnapshotComparison({
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span>快照均价: ${formatPrice(selectedSnapshot.stats.avgPrice)}</span>
+              <span>快照均价: ${formatPriceValue(selectedSnapshot.stats.avgPrice)}</span>
               <span className={getChangeColor(comparison.priceChange.avgPrice)}>
                 {comparison.priceChange.avgPrice >= 0 ? '+' : ''}$
-                {formatPrice(Math.abs(comparison.priceChange.avgPrice))}
+                {formatPriceValue(Math.abs(comparison.priceChange.avgPrice))}
               </span>
             </div>
           </div>
@@ -162,7 +153,7 @@ export function SnapshotComparison({
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-gray-900">
-                ${formatPrice(currentStats.maxPrice)}
+                ${formatPriceValue(currentStats.maxPrice)}
               </span>
               <span
                 className={`text-sm font-medium ${getChangeColor(comparison.priceChange.maxPricePercent)}`}
@@ -172,10 +163,10 @@ export function SnapshotComparison({
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span>快照最高: ${formatPrice(selectedSnapshot.stats.maxPrice)}</span>
+              <span>快照最高: ${formatPriceValue(selectedSnapshot.stats.maxPrice)}</span>
               <span className={getChangeColor(comparison.priceChange.maxPrice)}>
                 {comparison.priceChange.maxPrice >= 0 ? '+' : ''}$
-                {formatPrice(Math.abs(comparison.priceChange.maxPrice))}
+                {formatPriceValue(Math.abs(comparison.priceChange.maxPrice))}
               </span>
             </div>
           </div>
@@ -189,7 +180,7 @@ export function SnapshotComparison({
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-gray-900">
-                ${formatPrice(currentStats.minPrice)}
+                ${formatPriceValue(currentStats.minPrice)}
               </span>
               <span
                 className={`text-sm font-medium ${getChangeColor(comparison.priceChange.minPricePercent)}`}
@@ -199,10 +190,10 @@ export function SnapshotComparison({
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span>快照最低: ${formatPrice(selectedSnapshot.stats.minPrice)}</span>
+              <span>快照最低: ${formatPriceValue(selectedSnapshot.stats.minPrice)}</span>
               <span className={getChangeColor(comparison.priceChange.minPrice)}>
                 {comparison.priceChange.minPrice >= 0 ? '+' : ''}$
-                {formatPrice(Math.abs(comparison.priceChange.minPrice))}
+                {formatPriceValue(Math.abs(comparison.priceChange.minPrice))}
               </span>
             </div>
           </div>
@@ -216,7 +207,7 @@ export function SnapshotComparison({
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-gray-900">
-                ${formatPrice(currentStats.priceRange)}
+                ${formatPriceValue(currentStats.priceRange)}
               </span>
               <span
                 className={`text-sm font-medium ${getChangeColor(comparison.statsChange.priceRangePercent, false)}`}
@@ -226,10 +217,10 @@ export function SnapshotComparison({
               </span>
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span>快照范围: ${formatPrice(selectedSnapshot.stats.priceRange)}</span>
+              <span>快照范围: ${formatPriceValue(selectedSnapshot.stats.priceRange)}</span>
               <span className={getChangeColor(comparison.statsChange.priceRange, false)}>
                 {comparison.statsChange.priceRange >= 0 ? '+' : ''}$
-                {formatPrice(Math.abs(comparison.statsChange.priceRange))}
+                {formatPriceValue(Math.abs(comparison.statsChange.priceRange))}
               </span>
             </div>
           </div>
@@ -316,10 +307,10 @@ export function SnapshotComparison({
                         </span>
                       </td>
                       <td className="py-2 px-3 text-right text-gray-600 font-mono">
-                        ${formatPrice(snapshotItem.price)}
+                        ${formatPriceValue(snapshotItem.price)}
                       </td>
                       <td className="py-2 px-3 text-right text-gray-900 font-mono">
-                        {currentOracle ? `$${formatPrice(currentOracle.price)}` : '-'}
+                        {currentOracle ? `$${formatPriceValue(currentOracle.price)}` : '-'}
                       </td>
                       <td className="py-2 px-3 text-right">
                         {change !== null ? (
@@ -349,7 +340,7 @@ export function SnapshotComparison({
                       </td>
                       <td className="py-2 px-3 text-right text-gray-400">-</td>
                       <td className="py-2 px-3 text-right text-gray-900 font-mono">
-                        ${formatPrice(currentOracle.price)}
+                        ${formatPriceValue(currentOracle.price)}
                       </td>
                       <td className="py-2 px-3 text-right">
                         <span className="text-gray-400">-</span>

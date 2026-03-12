@@ -97,7 +97,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
           {group.items.map((item) => {
             const ItemIcon = item.icon;
             const isItemActive = currentPath === item.href;
-            const oracleKey = item.href.replace('/', '');
+            const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
             const accentColor = oracleColors[oracleKey];
 
             return (

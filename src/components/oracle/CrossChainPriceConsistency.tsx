@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 
 export interface ChainPriceData {
   chain: string;
@@ -69,24 +70,16 @@ function generateMockPriceData(symbol: string): ChainPriceData[] {
 }
 
 function getDeviationColor(deviation: number): string {
-  const absDeviation = Math.abs(deviation);
-  if (absDeviation < DEVIATION_THRESHOLDS.normal) {
-    return 'text-green-600';
-  }
-  if (absDeviation < DEVIATION_THRESHOLDS.warning) {
-    return 'text-yellow-600';
-  }
+  const color = getDeviationColorUtil(deviation);
+  if (color === '#22c55e') return 'text-green-600';
+  if (color === '#f59e0b') return 'text-yellow-600';
   return 'text-red-600';
 }
 
 function getDeviationBarColor(deviation: number): string {
-  const absDeviation = Math.abs(deviation);
-  if (absDeviation < DEVIATION_THRESHOLDS.normal) {
-    return 'bg-green-500';
-  }
-  if (absDeviation < DEVIATION_THRESHOLDS.warning) {
-    return 'bg-yellow-500';
-  }
+  const color = getDeviationColorUtil(deviation);
+  if (color === '#22c55e') return 'bg-green-500';
+  if (color === '#f59e0b') return 'bg-yellow-500';
   return 'bg-red-500';
 }
 

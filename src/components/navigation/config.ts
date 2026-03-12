@@ -11,15 +11,14 @@ import {
   Activity,
 } from 'lucide-react';
 import { NavStructure } from './types';
+import { oracleColors } from '@/lib/constants';
 
 export const navigationConfig: NavStructure = [
-  // 首页 - 单独一个
   {
     href: '/',
     label: 'navbar.home',
     icon: LayoutDashboard,
   },
-  // 市场 - 包含市场概览和价格查询
   {
     id: 'market',
     label: 'navbar.market',
@@ -39,7 +38,6 @@ export const navigationConfig: NavStructure = [
       },
     ],
   },
-  // 数据分析
   {
     id: 'analysis',
     label: 'navbar.dataAnalysis',
@@ -59,7 +57,6 @@ export const navigationConfig: NavStructure = [
       },
     ],
   },
-  // 预言机详情
   {
     id: 'oracles',
     label: 'navbar.oracleDetails',
@@ -99,10 +96,4 @@ export const navigationConfig: NavStructure = [
   },
 ];
 
-export const oracleColors: Record<string, string> = {
-  chainlink: '#375BD2',
-  'band-protocol': '#516BEB',
-  'pyth-network': '#E6B800',
-  api3: '#7CE3CB',
-  uma: '#FF4A8D',
-};
+export { oracleColors };

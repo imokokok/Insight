@@ -1,56 +1,22 @@
-import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { Blockchain, OracleProvider } from '@/lib/oracles';
+import {
+  TIME_RANGES,
+  DEVIATION_THRESHOLD,
+  symbols,
+  providerNames,
+  chainNames,
+  chainColors,
+  type RefreshInterval,
+} from '@/lib/constants';
 
-export const TIME_RANGES = [
-  { value: 1, key: 'timeRange1Hour', label: '1H' },
-  { value: 6, key: 'timeRange6Hours', label: '6H' },
-  { value: 24, key: 'timeRange24Hours', label: '24H' },
-  { value: 168, key: 'timeRange7Days', label: '7D' },
-];
-
-export type RefreshInterval = 0 | 30000 | 60000 | 300000;
-
-export const DEVIATION_THRESHOLD = 0.5;
-
-export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
-
-export const providerNames: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
-  [OracleProvider.API3]: 'API3',
-};
-
-export const chainNames: Record<Blockchain, string> = {
-  [Blockchain.ETHEREUM]: 'Ethereum',
-  [Blockchain.ARBITRUM]: 'Arbitrum',
-  [Blockchain.OPTIMISM]: 'Optimism',
-  [Blockchain.POLYGON]: 'Polygon',
-  [Blockchain.SOLANA]: 'Solana',
-  [Blockchain.AVALANCHE]: 'Avalanche',
-  [Blockchain.FANTOM]: 'Fantom',
-  [Blockchain.CRONOS]: 'Cronos',
-  [Blockchain.JUNO]: 'Juno',
-  [Blockchain.COSMOS]: 'Cosmos',
-  [Blockchain.OSMOSIS]: 'Osmosis',
-  [Blockchain.BINANCE]: 'Binance',
-  [Blockchain.BASE]: 'Base',
-};
-
-export const chainColors: Record<Blockchain, string> = {
-  [Blockchain.ETHEREUM]: '#6366F1',
-  [Blockchain.ARBITRUM]: '#06B6D4',
-  [Blockchain.OPTIMISM]: '#EF4444',
-  [Blockchain.POLYGON]: '#A855F7',
-  [Blockchain.SOLANA]: '#10B981',
-  [Blockchain.AVALANCHE]: '#E84133',
-  [Blockchain.FANTOM]: '#1969FF',
-  [Blockchain.CRONOS]: '#002D74',
-  [Blockchain.JUNO]: '#DC1FFF',
-  [Blockchain.COSMOS]: '#2E3148',
-  [Blockchain.OSMOSIS]: '#FAAB3B',
-  [Blockchain.BINANCE]: '#F3BA2F',
-  [Blockchain.BASE]: '#0052FF',
+export {
+  TIME_RANGES,
+  DEVIATION_THRESHOLD,
+  symbols,
+  providerNames,
+  chainNames,
+  chainColors,
+  type RefreshInterval,
 };
 
 export interface HeatmapData {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 
 export interface BandChainPriceData {
   chain: string;
@@ -80,13 +81,9 @@ function generateMockPriceData(): Map<string, BandChainPriceData[]> {
 }
 
 function getDeviationColor(deviation: number): string {
-  const absDeviation = Math.abs(deviation);
-  if (absDeviation < DEVIATION_THRESHOLDS.normal) {
-    return 'text-green-600';
-  }
-  if (absDeviation < DEVIATION_THRESHOLDS.warning) {
-    return 'text-yellow-600';
-  }
+  const color = getDeviationColorUtil(deviation);
+  if (color === '#22c55e') return 'text-green-600';
+  if (color === '#f59e0b') return 'text-yellow-600';
   return 'text-red-600';
 }
 

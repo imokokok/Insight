@@ -86,7 +86,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                         {group.items.map((item) => {
                           const ItemIcon = item.icon;
                           const isItemActive = currentPath === item.href;
-                          const oracleKey = item.href.replace('/', '');
+                          const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
                           const accentColor = oracleColors[oracleKey];
 
                           return (
