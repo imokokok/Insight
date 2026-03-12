@@ -240,7 +240,7 @@ export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
       Blockchain.ETHEREUM,
       Blockchain.COSMOS,
       Blockchain.OSMOSIS,
-      Blockchain.BINANCE,
+      Blockchain.BNB_CHAIN,
     ],
     description: 'Cross-chain data oracle platform',
     website: 'https://bandprotocol.com',

@@ -20,8 +20,18 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.JUNO]: 'Juno',
   [Blockchain.COSMOS]: 'Cosmos',
   [Blockchain.OSMOSIS]: 'Osmosis',
-  [Blockchain.BINANCE]: 'Binance',
+  [Blockchain.BNB_CHAIN]: 'BNB Chain',
   [Blockchain.BASE]: 'Base',
+  [Blockchain.SCROLL]: 'Scroll',
+  [Blockchain.ZKSYNC]: 'zkSync Era',
+  [Blockchain.APTOS]: 'Aptos',
+  [Blockchain.SUI]: 'Sui',
+  [Blockchain.GNOSIS]: 'Gnosis',
+  [Blockchain.MANTLE]: 'Mantle',
+  [Blockchain.LINEA]: 'Linea',
+  [Blockchain.CELESTIA]: 'Celestia',
+  [Blockchain.INJECTIVE]: 'Injective',
+  [Blockchain.SEI]: 'Sei',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -36,8 +46,18 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.JUNO]: '#DC1FFF',
   [Blockchain.COSMOS]: '#2E3148',
   [Blockchain.OSMOSIS]: '#FAAB3B',
-  [Blockchain.BINANCE]: '#F3BA2F',
+  [Blockchain.BNB_CHAIN]: '#F3BA2F',
   [Blockchain.BASE]: '#0052FF',
+  [Blockchain.SCROLL]: '#EEDFF0',
+  [Blockchain.ZKSYNC]: '#8C8DFC',
+  [Blockchain.APTOS]: '#4CD7D0',
+  [Blockchain.SUI]: '#6FBCF0',
+  [Blockchain.GNOSIS]: '#04795B',
+  [Blockchain.MANTLE]: '#000000',
+  [Blockchain.LINEA]: '#000000',
+  [Blockchain.CELESTIA]: '#2B2B2B',
+  [Blockchain.INJECTIVE]: '#00F2FE',
+  [Blockchain.SEI]: '#B100CD',
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
