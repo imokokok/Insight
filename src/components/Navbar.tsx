@@ -14,6 +14,7 @@ export default function Navbar() {
   const navLinks = useMemo(
     () => [
       { href: '/', label: t('navbar.home') },
+      { href: '/market-overview', label: t('navbar.marketOverview') },
       { href: '/price-query', label: t('navbar.priceQuery') },
       { href: '/cross-oracle', label: t('navbar.crossOracle') },
       { href: '/cross-chain', label: t('navbar.crossChain') },
