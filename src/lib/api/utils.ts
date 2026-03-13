@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createLogger } from '@/lib/utils/logger';
+import { ApiResponseBuilder } from './types';
 
 const logger = createLogger('api-utils');
 

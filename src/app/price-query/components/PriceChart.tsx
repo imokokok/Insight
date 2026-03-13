@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, useMemo } from 'react';
+import { useRef, useCallback, useMemo, useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   LineChart,
@@ -17,6 +17,7 @@ import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
 import { QueryResult, oracleColors } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
+import { addTechnicalIndicators } from '../utils/technicalIndicators';
 
 const logger = createLogger('price-query-PriceChart');
 
@@ -51,6 +52,8 @@ export function PriceChart({
 }: PriceChartProps) {
   const { t } = useI18n();
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [showMA7, setShowMA7] = useState(false);
+  const [showMA30, setShowMA30] = useState(false);
 
   const generateFilename = useCallback((extension: string): string => {
     const now = new Date();
@@ -108,6 +111,21 @@ export function PriceChart({
     });
   }, [queryResults, t]);
 
+  // Add technical indicators to chart data
+  const enhancedChartData = useMemo(() => {
+    if (chartData.length === 0) return chartData;
+
+    let enhanced = [...chartData];
+
+    // Add MA indicators for each series
+    queryResults.forEach(({ provider, chain }) => {
+      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      enhanced = addTechnicalIndicators(enhanced, label);
+    });
+
+    return enhanced;
+  }, [chartData, queryResults, t]);
+
   if (chartData.length === 0) return null;
 
   return (
@@ -158,6 +176,29 @@ export function PriceChart({
           </button>
         </div>
       </div>
+      <div className="flex items-center gap-4 mb-4">
+        <span className="text-sm font-medium text-gray-700">
+          {t('priceQuery.chart.indicators')}:
+        </span>
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMA7}
+            onChange={(e) => setShowMA7(e.target.checked)}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-600">MA7</span>
+        </label>
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMA30}
+            onChange={(e) => setShowMA30(e.target.checked)}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-600">MA30</span>
+        </label>
+      </div>
       <div
         ref={chartContainerRef}
         className="overflow-hidden"
@@ -169,7 +210,10 @@ export function PriceChart({
       >
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+            <LineChart
+              data={enhancedChartData}
+              margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+            >
               <defs>
                 {queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}`;
@@ -228,6 +272,50 @@ export function PriceChart({
                   />
                 );
               })}
+              {/* MA7 Lines */}
+              {showMA7 &&
+                queryResults.map(({ provider, chain }) => {
+                  const key = `${provider}-${chain}-MA7`;
+                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const maKey = `${label}_MA7`;
+                  const color = oracleColors[provider];
+                  const isHidden = hiddenSeries.has(label);
+                  return (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={maKey}
+                      name={`${label} MA7`}
+                      stroke={isHidden ? 'transparent' : color}
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      activeDot={false}
+                    />
+                  );
+                })}
+              {/* MA30 Lines */}
+              {showMA30 &&
+                queryResults.map(({ provider, chain }) => {
+                  const key = `${provider}-${chain}-MA30`;
+                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const maKey = `${label}_MA30`;
+                  const color = oracleColors[provider];
+                  const isHidden = hiddenSeries.has(label);
+                  return (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={maKey}
+                      name={`${label} MA30`}
+                      stroke={isHidden ? 'transparent' : color}
+                      strokeWidth={1}
+                      strokeDasharray="10 5"
+                      dot={false}
+                      activeDot={false}
+                    />
+                  );
+                })}
             </LineChart>
           </ResponsiveContainer>
         </div>

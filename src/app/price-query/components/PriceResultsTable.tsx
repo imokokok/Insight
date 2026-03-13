@@ -2,6 +2,8 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
+import { FreshnessIndicator } from './FreshnessIndicator';
+import { ConfidenceBadge } from './ConfidenceBadge';
 import {
   QueryResult,
   oracleColors,
@@ -198,7 +200,19 @@ export function PriceResultsTable({
                     scope="col"
                     className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
                   >
-                    {t('priceQuery.results.table.source')}
+                    {t('priceQuery.results.table.change24h')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
+                  >
+                    {t('priceQuery.results.table.freshness')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
+                  >
+                    {t('priceQuery.results.table.confidence')}
                   </th>
                 </tr>
               </thead>
@@ -206,6 +220,7 @@ export function PriceResultsTable({
                 {filteredResults.map((result) => {
                   const deviation = calculateDeviation(result.priceData.price, avgPrice);
                   const isHighDeviation = Math.abs(deviation) > DEVIATION_THRESHOLD * 100;
+                  const change24hPercent = result.priceData.change24hPercent ?? 0;
 
                   return (
                     <tr
@@ -266,8 +281,23 @@ export function PriceResultsTable({
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-500">
-                        {new Date(result.priceData.timestamp).toLocaleString()}
+                      <td className="py-3 px-4 text-right">
+                        <FreshnessIndicator timestamp={result.priceData.timestamp} />
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono">
+                        {result.priceData.change24hPercent !== undefined ? (
+                          <span
+                            className={change24hPercent >= 0 ? 'text-green-600' : 'text-red-600'}
+                          >
+                            {change24hPercent >= 0 ? '+' : ''}
+                            {change24hPercent.toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <ConfidenceBadge score={result.priceData.confidence} />
                       </td>
                       <td className="py-3 px-4 text-right">
                         {result.priceData.source ? (

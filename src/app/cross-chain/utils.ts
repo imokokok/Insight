@@ -174,6 +174,127 @@ export const calculatePearsonCorrelation = (x: number[], y: number[]): number =>
   return numerator / denominator;
 };
 
+export interface CorrelationResult {
+  correlation: number;
+  pValue: number;
+  sampleSize: number;
+  isSignificant: boolean;
+  significanceLevel: '***' | '**' | '*' | '';
+}
+
+export const calculatePearsonCorrelationWithSignificance = (
+  x: number[],
+  y: number[]
+): CorrelationResult => {
+  const n = Math.min(x.length, y.length);
+  if (n < 3) {
+    return {
+      correlation: 0,
+      pValue: 1,
+      sampleSize: n,
+      isSignificant: false,
+      significanceLevel: '',
+    };
+  }
+
+  const xSlice = x.slice(0, n);
+  const ySlice = y.slice(0, n);
+
+  const xMean = xSlice.reduce((a, b) => a + b, 0) / n;
+  const yMean = ySlice.reduce((a, b) => a + b, 0) / n;
+
+  let numerator = 0;
+  let xDenominator = 0;
+  let yDenominator = 0;
+
+  for (let i = 0; i < n; i++) {
+    const xDiff = xSlice[i] - xMean;
+    const yDiff = ySlice[i] - yMean;
+    numerator += xDiff * yDiff;
+    xDenominator += xDiff * xDiff;
+    yDenominator += yDiff * yDiff;
+  }
+
+  const denominator = Math.sqrt(xDenominator * yDenominator);
+  if (denominator === 0) {
+    return {
+      correlation: 0,
+      pValue: 1,
+      sampleSize: n,
+      isSignificant: false,
+      significanceLevel: '',
+    };
+  }
+
+  const correlation = numerator / denominator;
+
+  // Calculate t-statistic: t = r * sqrt((n-2)/(1-r^2))
+  const tStatistic = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
+
+  // Approximate p-value using t-distribution with n-2 degrees of freedom
+  // Using a simplified approximation for the t-distribution CDF
+  const df = n - 2;
+  const pValue = approximatePValue(Math.abs(tStatistic), df);
+
+  // Determine significance level
+  let significanceLevel: '***' | '**' | '*' | '' = '';
+  if (pValue < 0.001) {
+    significanceLevel = '***';
+  } else if (pValue < 0.01) {
+    significanceLevel = '**';
+  } else if (pValue < 0.05) {
+    significanceLevel = '*';
+  }
+
+  return {
+    correlation,
+    pValue,
+    sampleSize: n,
+    isSignificant: pValue < 0.05,
+    significanceLevel,
+  };
+};
+
+// Approximate the p-value from t-statistic using a simplified t-distribution CDF
+// This is a reasonable approximation for df > 10
+const approximatePValue = (t: number, df: number): number => {
+  if (df <= 0) return 1;
+
+  // Use a simplified approximation based on the normal distribution for large df
+  // For small df, use a rough approximation
+  if (df > 30) {
+    // Normal approximation for large degrees of freedom
+    // Two-tailed test: p = 2 * (1 - CDF(|t|))
+    const z = t;
+    const p = 2 * (1 - normalCDF(z));
+    return Math.min(p, 1);
+  }
+
+  // For smaller df, use a rough approximation
+  // This is not exact but provides a reasonable estimate for significance testing
+  const adjustedT = t * Math.sqrt(df / (df - 2));
+  const p = 2 * (1 - normalCDF(adjustedT));
+  return Math.min(Math.max(p, 0), 1);
+};
+
+// Standard normal CDF approximation using error function
+const normalCDF = (x: number): number => {
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const p = 0.3275911;
+
+  const sign = x < 0 ? -1 : 1;
+  const absX = Math.abs(x) / Math.sqrt(2);
+
+  const t = 1 / (1 + p * absX);
+  const y = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+
+  return 0.5 * (1 + sign * y);
+};
+
 export const getIntegrityColor = (value: number): string => {
   if (value >= 95) return '#10B981';
   if (value >= 90) return '#F59E0B';
@@ -213,4 +334,97 @@ export const generateFilename = (symbol: string, extension: string): string => {
   const now = new Date();
   const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
   return `cross-chain-${symbol}-${timestamp}.${extension}`;
+};
+
+// Dynamic Threshold Types
+export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
+
+export interface ThresholdConfig {
+  type: ThresholdType;
+  fixedThreshold: number;
+  atrMultiplier: number;
+  volatilityWindow: number;
+}
+
+// Calculate Average True Range (ATR) for dynamic threshold
+export const calculateATR = (prices: number[], period: number = 14): number => {
+  if (prices.length < period + 1) {
+    // Not enough data, return simple standard deviation as fallback
+    const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const variance =
+      prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
+    return Math.sqrt(variance);
+  }
+
+  const trueRanges: number[] = [];
+
+  for (let i = 1; i < prices.length; i++) {
+    const currentPrice = prices[i];
+    const previousPrice = prices[i - 1];
+
+    // True Range = max(|current - previous|, |current - previous_high|, |current - previous_low|)
+    // Simplified version using just price changes
+    const priceChange = Math.abs(currentPrice - previousPrice);
+    trueRanges.push(priceChange);
+  }
+
+  // Calculate Simple Moving Average of True Ranges
+  const atrValues: number[] = [];
+  for (let i = period - 1; i < trueRanges.length; i++) {
+    const slice = trueRanges.slice(i - period + 1, i + 1);
+    const atr = slice.reduce((a, b) => a + b, 0) / period;
+    atrValues.push(atr);
+  }
+
+  // Return the most recent ATR
+  return atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0;
+};
+
+// Calculate dynamic threshold based on historical volatility
+export const calculateDynamicThreshold = (prices: number[], config: ThresholdConfig): number => {
+  if (prices.length < 2) {
+    return config.fixedThreshold;
+  }
+
+  switch (config.type) {
+    case 'fixed':
+      return config.fixedThreshold;
+
+    case 'atr': {
+      const atr = calculateATR(prices, config.volatilityWindow);
+      const currentPrice = prices[prices.length - 1];
+      if (currentPrice === 0) return config.fixedThreshold;
+      // Convert ATR to percentage
+      const atrPercent = (atr / currentPrice) * 100;
+      return atrPercent * config.atrMultiplier;
+    }
+
+    case 'dynamic': {
+      // Calculate rolling standard deviation
+      const windowSize = Math.min(config.volatilityWindow, prices.length);
+      const recentPrices = prices.slice(-windowSize);
+      const mean = recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length;
+      const variance =
+        recentPrices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) /
+        recentPrices.length;
+      const stdDev = Math.sqrt(variance);
+
+      if (mean === 0) return config.fixedThreshold;
+
+      // Use coefficient of variation (CV) as dynamic threshold base
+      const cv = (stdDev / mean) * 100;
+      return Math.max(cv * config.atrMultiplier, config.fixedThreshold * 0.1);
+    }
+
+    default:
+      return config.fixedThreshold;
+  }
+};
+
+// Default threshold configuration
+export const defaultThresholdConfig: ThresholdConfig = {
+  type: 'fixed',
+  fixedThreshold: 0.5, // 0.5%
+  atrMultiplier: 2.0,
+  volatilityWindow: 14,
 };

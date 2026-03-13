@@ -1,0 +1,22 @@
+- [x] DisputeData 接口已更新，包含 type 和 transactionHash 字段
+- [x] ValidatorData 接口已更新，包含 address 字段
+- [x] 争议类型枚举已定义
+- [x] UMAClient 已添加 getDisputesWithType() 方法
+- [x] UMAClient 已添加 getValidatorHistory() 方法
+- [x] UMAClient 已添加收益计算方法
+- [x] 争议表格已添加类型列
+- [x] 争议表格已添加类型筛选器
+- [x] 争议表格已添加链上交易链接列
+- [x] 争议趋势图已支持按类型分组
+- [x] StakingCalculator 组件已创建
+- [x] 收益计算逻辑已实现
+- [x] 收益可视化图表已实现
+- [x] 参数调整控件已实现
+- [x] ValidatorHistoryChart 组件已创建
+- [x] 成功率趋势图已实现
+- [x] 响应时间趋势图已实现
+- [x] 声誉变化曲线已实现
+- [x] 收益计算器已集成到验证者面板
+- [x] 组件索引文件已更新
+- [x] 类型定义文件已更新
+- [x] 国际化文本已更新

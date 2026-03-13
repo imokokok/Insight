@@ -1719,7 +1719,33 @@
     "lastUpdated": "Last updated",
     "period": "period",
     "dataSource": "Data Source",
-    "justNow": "Just now"
+    "justNow": "Just now",
+    "stakingCalculator": {
+      "title": "Staking Calculator",
+      "subtitle": "Estimate your staking rewards",
+      "stakeAmount": "Stake Amount",
+      "validatorType": "Validator Type",
+      "disputeFrequency": "Dispute Frequency",
+      "dailyReward": "Daily Reward",
+      "monthlyReward": "Monthly Reward",
+      "yearlyReward": "Yearly Reward",
+      "apr": "APR"
+    },
+    "validatorHistory": {
+      "title": "Validator History Performance",
+      "successRate": "Success Rate",
+      "responseTime": "Response Time",
+      "reputation": "Reputation"
+    },
+    "dispute": {
+      "type": {
+        "price": "Price Dispute",
+        "state": "State Dispute",
+        "liquidation": "Liquidation Dispute",
+        "other": "Other Dispute"
+      },
+      "viewOnEtherscan": "View on Etherscan"
+    }
   },
   "pythNetwork": {
     "title": "Pyth Network",
@@ -2226,7 +2252,10 @@
         "blockchain": "Blockchain",
         "price": "Price",
         "timestamp": "Timestamp",
-        "source": "Source"
+        "source": "Source",
+        "change24h": "24h Change",
+        "freshness": "Freshness",
+        "confidence": "Confidence"
       },
       "priceChange": {
         "up": "Up",
@@ -2243,7 +2272,10 @@
       "dataPoints": "Data Points",
       "consistencyRating": "Consistency Rating",
       "absoluteValue": "Absolute Value",
-      "queryDuration": "Query Duration"
+      "queryDuration": "Query Duration",
+      "change24h": "24h Change",
+      "volatility": "Volatility",
+      "annualized": "Annualized"
     },
     "chart": {
       "title": "Price Trend Chart",
@@ -2251,6 +2283,7 @@
       "zoomOut": "Zoom Out",
       "reset": "Reset",
       "exportImage": "Export Image",
+      "indicators": "Indicators",
       "tooltip": {
         "time": "Time",
         "dataPoints": "Data Points"

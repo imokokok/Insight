@@ -1,7 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { StatItem } from './StatItem';
+import { calculateCurrentVolatility } from '../utils/technicalIndicators';
 
 interface StatsGridProps {
   avgPrice: number;
@@ -12,6 +14,8 @@ interface StatsGridProps {
   standardDeviationPercent: number;
   dataPoints: number;
   queryDuration: number | null;
+  avgChange24hPercent?: number;
+  prices?: number[];
 }
 
 export function StatsGrid({
@@ -23,8 +27,15 @@ export function StatsGrid({
   standardDeviationPercent,
   dataPoints,
   queryDuration,
+  avgChange24hPercent,
+  prices,
 }: StatsGridProps) {
   const { t } = useI18n();
+
+  const volatility = useMemo(() => {
+    if (!prices || prices.length < 20) return null;
+    return calculateCurrentVolatility(prices);
+  }, [prices]);
 
   const getConsistencyRating = (stdDevPercent: number): { label: string; color: string } => {
     if (stdDevPercent < 0.1) return { label: '优秀', color: 'text-green-600' };
@@ -37,7 +48,7 @@ export function StatsGrid({
     standardDeviationPercent > 0 ? getConsistencyRating(standardDeviationPercent) : null;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-0 border-b border-gray-200 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-0 border-b border-gray-200 mb-8">
       <div className="px-4 border-r border-gray-200 last:border-r-0">
         <StatItem
           label={t('priceQuery.stats.avgPrice')}
@@ -50,6 +61,20 @@ export function StatsGrid({
               : '-'
           }
           prefix="$"
+        />
+      </div>
+      <div className="px-4 border-r border-gray-200 last:border-r-0">
+        <StatItem
+          label={t('priceQuery.stats.change24h')}
+          value={
+            avgChange24hPercent !== undefined
+              ? `${avgChange24hPercent >= 0 ? '+' : ''}${avgChange24hPercent.toFixed(2)}`
+              : '-'
+          }
+          suffix="%"
+          trend={
+            avgChange24hPercent === undefined ? 'neutral' : avgChange24hPercent >= 0 ? 'up' : 'down'
+          }
         />
       </div>
       <div className="px-4 border-r border-gray-200 last:border-r-0">
@@ -95,6 +120,14 @@ export function StatsGrid({
               ? `${t('priceQuery.stats.absoluteValue')}: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : undefined
           }
+        />
+      </div>
+      <div className="px-4 border-r border-gray-200 last:border-r-0">
+        <StatItem
+          label={t('priceQuery.stats.volatility')}
+          value={volatility !== null ? volatility.toFixed(2) : '-'}
+          suffix="%"
+          subValue={volatility !== null ? t('priceQuery.stats.annualized') : undefined}
         />
       </div>
       <div className="px-4 border-r border-gray-200 last:border-r-0">

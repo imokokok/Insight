@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { UMAClient, DisputeData } from '@/lib/oracles/uma';
+import { UMAClient, DisputeData, DisputeType, DisputeTypeLabels } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
 import { createLogger } from '@/lib/utils/logger';
@@ -38,6 +38,12 @@ interface DisputeTrend {
   date: string;
   filed: number;
   resolved: number;
+  byType?: {
+    price: number;
+    state: number;
+    liquidation: number;
+    other: number;
+  };
 }
 
 function DisputeOverviewCard({
@@ -143,45 +149,98 @@ function DisputeOverviewCard({
 
 function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
   const { t } = useI18n();
+  const [showByType, setShowByType] = useState(false);
 
   const maxValue = Math.max(...trends.flatMap((d) => [d.filed, d.resolved]));
+  const maxByTypeValue = showByType
+    ? Math.max(...trends.flatMap((d) => (d.byType ? Object.values(d.byType) : [0])))
+    : 0;
 
-  const getHeight = (value: number) => {
-    return (value / maxValue) * 100;
+  const getHeight = (value: number, max = maxValue) => {
+    return max > 0 ? (value / max) * 100 : 0;
+  };
+
+  const typeColors = {
+    price: 'bg-blue-500',
+    state: 'bg-green-500',
+    liquidation: 'bg-red-500',
+    other: 'bg-gray-500',
+  };
+
+  const typeLabels = {
+    price: '价格争议',
+    state: '状态争议',
+    liquidation: '清算争议',
+    other: '其他争议',
   };
 
   return (
     <DashboardCard title={t('uma.disputeResolution.disputeTrends')}>
       <div className="space-y-4">
-        <div className="flex items-center gap-6 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {t('uma.disputeResolution.filedDisputes')}
-            </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            {!showByType ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-gray-600">
+                    {t('uma.disputeResolution.filedDisputes')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-gray-600">
+                    {t('uma.disputeResolution.resolvedDisputes')}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-4">
+                {(Object.keys(typeColors) as Array<keyof typeof typeColors>).map((type) => (
+                  <div key={type} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 ${typeColors[type]} rounded-full`}></div>
+                    <span className="text-sm text-gray-600">{typeLabels[type]}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {t('uma.disputeResolution.resolvedDisputes')}
-            </span>
-          </div>
+          <button
+            onClick={() => setShowByType(!showByType)}
+            className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            {showByType ? '显示总体趋势' : '按类型分组'}
+          </button>
         </div>
 
         <div className="flex items-end justify-between gap-2 h-48">
           {trends.map((trend, index) => (
             <div key={index} className="flex-1 flex flex-col items-center gap-2">
               <div className="w-full flex items-end justify-center gap-1 h-40">
-                <div
-                  className="w-3 bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
-                  style={{ height: `${getHeight(trend.filed)}%` }}
-                  title={`${t('uma.disputeResolution.filedDisputes')}: ${trend.filed}`}
-                ></div>
-                <div
-                  className="w-3 bg-green-500 rounded-t transition-all duration-300 hover:bg-green-600"
-                  style={{ height: `${getHeight(trend.resolved)}%` }}
-                  title={`${t('uma.disputeResolution.resolvedDisputes')}: ${trend.resolved}`}
-                ></div>
+                {!showByType ? (
+                  <>
+                    <div
+                      className="w-3 bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
+                      style={{ height: `${getHeight(trend.filed)}%` }}
+                      title={`${t('uma.disputeResolution.filedDisputes')}: ${trend.filed}`}
+                    ></div>
+                    <div
+                      className="w-3 bg-green-500 rounded-t transition-all duration-300 hover:bg-green-600"
+                      style={{ height: `${getHeight(trend.resolved)}%` }}
+                      title={`${t('uma.disputeResolution.resolvedDisputes')}: ${trend.resolved}`}
+                    ></div>
+                  </>
+                ) : (
+                  trend.byType &&
+                  (Object.keys(typeColors) as Array<keyof typeof typeColors>).map((type) => (
+                    <div
+                      key={type}
+                      className={`w-2 ${typeColors[type]} rounded-t transition-all duration-300 hover:opacity-80`}
+                      style={{ height: `${getHeight(trend.byType![type], maxByTypeValue)}%` }}
+                      title={`${typeLabels[type]}: ${trend.byType![type]}`}
+                    ></div>
+                  ))
+                )}
               </div>
               <span className="text-xs text-gray-500">{trend.date}</span>
             </div>
@@ -272,6 +331,7 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
 function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
   const { t } = useI18n();
   const [filter, setFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<DisputeType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'timestamp' | 'reward'>('timestamp');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchId, setSearchId] = useState<string>('');
@@ -280,6 +340,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
 
   const filteredDisputes = disputes.filter((dispute) => {
     if (filter !== 'all' && dispute.status !== filter) return false;
+    if (typeFilter !== 'all' && dispute.type !== typeFilter) return false;
     if (searchId.trim() && dispute.id !== searchId.trim()) return false;
     return true;
   });
@@ -299,7 +360,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, sortBy, sortOrder, searchId]);
+  }, [filter, typeFilter, sortBy, sortOrder, searchId]);
 
   const goToPage = (page: number) => {
     const validPage = Math.max(1, Math.min(page, totalPages));
@@ -372,6 +433,20 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     );
   };
 
+  const getTypeBadge = (type: DisputeType) => {
+    const styles = {
+      price: 'bg-blue-100 text-blue-700',
+      state: 'bg-green-100 text-green-700',
+      liquidation: 'bg-red-100 text-red-700',
+      other: 'bg-gray-100 text-gray-700',
+    };
+    return (
+      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${styles[type]}`}>
+        {DisputeTypeLabels[type]}
+      </span>
+    );
+  };
+
   return (
     <DashboardCard title={t('uma.disputeResolution.disputeList')}>
       <div className="space-y-4">
@@ -389,6 +464,23 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               <option value="active">{t('uma.disputeResolution.statusActive')}</option>
               <option value="resolved">{t('uma.disputeResolution.statusResolved')}</option>
               <option value="rejected">{t('uma.disputeResolution.statusRejected')}</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">
+              {t('uma.disputeResolution.filterByType') || '类型'}:
+            </label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as DisputeType | 'all')}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">全部</option>
+              <option value="price">价格争议</option>
+              <option value="state">状态争议</option>
+              <option value="liquidation">清算争议</option>
+              <option value="other">其他争议</option>
             </select>
           </div>
 
@@ -443,8 +535,14 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('uma.disputeResolution.status')}
                 </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {t('uma.disputeResolution.type') || '类型'}
+                </th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('uma.disputeResolution.reward')} (UMA)
+                </th>
+                <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {t('uma.disputeResolution.transaction') || '交易'}
                 </th>
               </tr>
             </thead>
@@ -459,8 +557,32 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                     {formatDate(dispute.timestamp)}
                   </td>
                   <td className="py-3 px-4">{getStatusBadge(dispute.status)}</td>
+                  <td className="py-3 px-4">{getTypeBadge(dispute.type)}</td>
                   <td className="py-3 px-4 text-sm text-right font-semibold text-gray-900">
                     {dispute.reward.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <a
+                      href={`https://etherscan.io/tx/${dispute.transactionHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="查看链上交易"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
                   </td>
                 </tr>
               ))}
@@ -590,8 +712,29 @@ export function DisputeResolutionPanel() {
         umaClient.getDisputeTrends(),
       ]);
 
+      // 为趋势数据添加类型分组信息
+      const trendsWithType = trendsData.map((trend) => {
+        const dateDisputes = disputesData.filter((d) => {
+          const disputeDate = new Date(d.timestamp).toLocaleDateString('zh-CN', {
+            month: 'short',
+            day: 'numeric',
+          });
+          return disputeDate === trend.date;
+        });
+
+        return {
+          ...trend,
+          byType: {
+            price: dateDisputes.filter((d) => d.type === 'price').length,
+            state: dateDisputes.filter((d) => d.type === 'state').length,
+            liquidation: dateDisputes.filter((d) => d.type === 'liquidation').length,
+            other: dateDisputes.filter((d) => d.type === 'other').length,
+          },
+        };
+      });
+
       setDisputes(disputesData);
-      setTrends(trendsData);
+      setTrends(trendsWithType);
 
       const activeDisputes = disputesData.filter((d) => d.status === 'active').length;
       const resolvedDisputes = disputesData.filter((d) => d.status === 'resolved');

@@ -1783,6 +1783,32 @@
       "page": "页",
       "refreshing": "刷新中...",
       "lastUpdate": "最后更新"
+    },
+    "stakingCalculator": {
+      "title": "质押收益计算器",
+      "subtitle": "估算您的质押收益",
+      "stakeAmount": "质押金额",
+      "validatorType": "验证者类型",
+      "disputeFrequency": "争议频率",
+      "dailyReward": "日收益",
+      "monthlyReward": "月收益",
+      "yearlyReward": "年收益",
+      "apr": "年化收益率"
+    },
+    "validatorHistory": {
+      "title": "验证者历史表现",
+      "successRate": "成功率",
+      "responseTime": "响应时间",
+      "reputation": "声誉"
+    },
+    "dispute": {
+      "type": {
+        "price": "价格争议",
+        "state": "状态争议",
+        "liquidation": "清算争议",
+        "other": "其他争议"
+      },
+      "viewOnEtherscan": "在 Etherscan 查看"
     }
   },
   "pythNetwork": {
@@ -2294,7 +2320,10 @@
         "source": "来源",
         "difference": "差异",
         "confidence": "置信度",
-        "responseTime": "响应时间"
+        "responseTime": "响应时间",
+        "change24h": "24小时涨跌",
+        "freshness": "数据新鲜度",
+        "confidence": "置信度"
       },
       "priceChange": {
         "up": "上涨",
@@ -2313,7 +2342,10 @@
       "absoluteValue": "绝对值",
       "maxDifference": "最大差异",
       "avgDifference": "平均差异",
-      "queryDuration": "查询耗时"
+      "queryDuration": "查询耗时",
+      "change24h": "24小时涨跌",
+      "volatility": "波动率",
+      "annualized": "年化"
     },
     "chart": {
       "title": "价格趋势图表",
@@ -2321,6 +2353,7 @@
       "zoomOut": "缩小",
       "reset": "重置",
       "exportImage": "导出图片",
+      "indicators": "技术指标",
       "tooltip": {
         "time": "时间",
         "dataPoints": "数据点数"

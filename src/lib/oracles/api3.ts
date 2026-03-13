@@ -1,5 +1,8 @@
 import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { GasFeeData } from '@/components/oracle/GasFeeComparison';
+import { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
+import { PriceDataPoint } from '@/components/oracle/ATRIndicator';
 
 export interface DapiPriceDeviation {
   symbol: string;
@@ -575,5 +578,171 @@ export class API3Client extends BaseOracleClient {
     });
 
     return events;
+  }
+
+  async getGasFeeData(): Promise<GasFeeData[]> {
+    return [
+      {
+        oracle: OracleProvider.API3,
+        chain: 'Ethereum',
+        updateCost: 0.85,
+        updateFrequency: 12,
+        avgGasPrice: 25.5,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.API3,
+        chain: 'Arbitrum',
+        updateCost: 0.12,
+        updateFrequency: 12,
+        avgGasPrice: 0.15,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.API3,
+        chain: 'Polygon',
+        updateCost: 0.05,
+        updateFrequency: 12,
+        avgGasPrice: 85.2,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.CHAINLINK,
+        chain: 'Ethereum',
+        updateCost: 1.25,
+        updateFrequency: 24,
+        avgGasPrice: 25.5,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.CHAINLINK,
+        chain: 'Arbitrum',
+        updateCost: 0.18,
+        updateFrequency: 24,
+        avgGasPrice: 0.15,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.PYTH_NETWORK,
+        chain: 'Ethereum',
+        updateCost: 0.45,
+        updateFrequency: 60,
+        avgGasPrice: 25.5,
+        lastUpdate: Date.now(),
+      },
+      {
+        oracle: OracleProvider.PYTH_NETWORK,
+        chain: 'Arbitrum',
+        updateCost: 0.08,
+        updateFrequency: 60,
+        avgGasPrice: 0.15,
+        lastUpdate: Date.now(),
+      },
+    ];
+  }
+
+  async getOHLCPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period: number = 30
+  ): Promise<PriceDataPoint[]> {
+    const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
+    const prices: PriceDataPoint[] = [];
+    const now = Date.now();
+    const interval = 24 * 60 * 60 * 1000; // 1 day
+
+    for (let i = period; i >= 0; i--) {
+      const timestamp = now - i * interval;
+      const randomChange = (Math.random() - 0.5) * 0.05;
+      const price = basePrice * (1 + randomChange);
+      const volatility = basePrice * 0.02;
+
+      prices.push({
+        timestamp,
+        price,
+        high: price + volatility * Math.random(),
+        low: price - volatility * Math.random(),
+        close: price,
+      });
+    }
+
+    return prices;
+  }
+
+  async getQualityHistory(): Promise<QualityDataPoint[]> {
+    const history: QualityDataPoint[] = [];
+    const now = Date.now();
+    const interval = 60 * 60 * 1000; // 1 hour
+
+    for (let i = 24; i >= 0; i--) {
+      const timestamp = now - i * interval;
+      const baseLatency = 180;
+      const latencyVariance = (Math.random() - 0.5) * 100;
+
+      history.push({
+        timestamp,
+        updateLatency: Math.max(50, Math.round(baseLatency + latencyVariance)),
+        deviationFromMedian: (Math.random() - 0.5) * 0.5,
+        isOutlier: Math.random() > 0.95,
+        isStale: Math.random() > 0.98,
+        heartbeatCompliance: 0.95 + Math.random() * 0.05,
+      });
+    }
+
+    return history;
+  }
+
+  async getCrossOracleComparison(): Promise<
+    {
+      oracle: OracleProvider;
+      responseTime: number;
+      accuracy: number;
+      availability: number;
+      costEfficiency: number;
+      updateFrequency: number;
+    }[]
+  > {
+    return [
+      {
+        oracle: OracleProvider.API3,
+        responseTime: 180,
+        accuracy: 99.7,
+        availability: 99.7,
+        costEfficiency: 85,
+        updateFrequency: 60,
+      },
+      {
+        oracle: OracleProvider.CHAINLINK,
+        responseTime: 220,
+        accuracy: 99.8,
+        availability: 99.9,
+        costEfficiency: 70,
+        updateFrequency: 3600,
+      },
+      {
+        oracle: OracleProvider.PYTH_NETWORK,
+        responseTime: 150,
+        accuracy: 99.6,
+        availability: 99.5,
+        costEfficiency: 90,
+        updateFrequency: 60,
+      },
+      {
+        oracle: OracleProvider.BAND_PROTOCOL,
+        responseTime: 250,
+        accuracy: 99.4,
+        availability: 99.2,
+        costEfficiency: 75,
+        updateFrequency: 1800,
+      },
+      {
+        oracle: OracleProvider.UMA,
+        responseTime: 300,
+        accuracy: 99.5,
+        availability: 98.8,
+        costEfficiency: 80,
+        updateFrequency: 7200,
+      },
+    ];
   }
 }

@@ -106,6 +106,10 @@ export abstract class BaseOracleClient {
     const randomChange = (Math.random() - 0.5) * 2 * volatility;
     const price = basePrice * (1 + randomChange);
 
+    // Generate 24h change data (-5% to +5% range)
+    const change24hPercent = (Math.random() - 0.5) * 10;
+    const change24h = basePrice * (change24hPercent / 100);
+
     return {
       provider: this.name,
       chain,
@@ -114,6 +118,8 @@ export abstract class BaseOracleClient {
       timestamp: timestamp || Date.now(),
       decimals: 8,
       confidence: 0.95 + Math.random() * 0.05,
+      change24h: Number(change24h.toFixed(4)),
+      change24hPercent: Number(change24hPercent.toFixed(2)),
     };
   }
 

@@ -29,10 +29,18 @@ import { DataSourceTraceabilityPanel } from '@/components/oracle/DataSourceTrace
 import { CoveragePoolTimeline } from '@/components/oracle/CoveragePoolTimeline';
 import { DapiPriceDeviation, DataSourceInfo, CoveragePoolEvent } from '@/lib/oracles/api3';
 import { createLogger } from '@/lib/utils/logger';
+import { GasFeeComparison } from '@/components/oracle/GasFeeComparison';
+import { ATRIndicator } from '@/components/oracle/ATRIndicator';
+import { BollingerBands } from '@/components/oracle/BollingerBands';
+import { DataQualityTrend } from '@/components/oracle/DataQualityTrend';
+import { CrossOracleComparison } from '@/components/oracle/CrossOracleComparison';
+import { GasFeeData } from '@/components/oracle/GasFeeComparison';
+import { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
+import { PriceDataPoint } from '@/components/oracle/ATRIndicator';
 
 const logger = createLogger('API3PageContent');
 
-type AP3Tab = 'market' | 'network' | 'airnode' | 'coverage' | 'advantages';
+type AP3Tab = 'market' | 'network' | 'airnode' | 'coverage' | 'advantages' | 'advanced';
 
 const TABS: { id: AP3Tab; label: string }[] = [
   { id: 'market', label: '市场数据' },
@@ -40,6 +48,7 @@ const TABS: { id: AP3Tab; label: string }[] = [
   { id: 'airnode', label: 'Airnode' },
   { id: 'coverage', label: '保险池' },
   { id: 'advantages', label: '第一方预言机' },
+  { id: 'advanced', label: '高级分析' },
 ];
 
 export function API3PageContent() {
@@ -102,6 +111,29 @@ export function API3PageContent() {
   const [dapiDeviations, setDapiDeviations] = useState<DapiPriceDeviation[]>([]);
   const [dataSourceTrace, setDataSourceTrace] = useState<DataSourceInfo[]>([]);
   const [coverageEvents, setCoverageEvents] = useState<CoveragePoolEvent[]>([]);
+  const [gasFeeData, setGasFeeData] = useState<GasFeeData[]>([]);
+  const [ohlcPrices, setOhlcPrices] = useState<
+    {
+      oracle: OracleProvider;
+      prices: PriceDataPoint[];
+    }[]
+  >([]);
+  const [qualityHistory, setQualityHistory] = useState<
+    {
+      oracle: OracleProvider;
+      data: QualityDataPoint[];
+    }[]
+  >([]);
+  const [crossOracleData, setCrossOracleData] = useState<
+    {
+      oracle: OracleProvider;
+      responseTime: number;
+      accuracy: number;
+      availability: number;
+      costEfficiency: number;
+      updateFrequency: number;
+    }[]
+  >([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -117,6 +149,10 @@ export function API3PageContent() {
         deviations,
         sourceTrace,
         poolEvents,
+        gasFees,
+        ohlc,
+        qualityHist,
+        crossOracle,
       ] = await Promise.all([
         client.getPrice(config.symbol, config.defaultChain),
         client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
@@ -129,6 +165,10 @@ export function API3PageContent() {
         client.getDapiPriceDeviations(),
         client.getDataSourceTraceability(),
         client.getCoveragePoolEvents(),
+        client.getGasFeeData(),
+        client.getOHLCPrices(config.symbol, config.defaultChain, 30),
+        client.getQualityHistory(),
+        client.getCrossOracleComparison(),
       ]);
 
       setPriceData(price);
@@ -153,6 +193,10 @@ export function API3PageContent() {
       setDapiDeviations(deviations);
       setDataSourceTrace(sourceTrace);
       setCoverageEvents(poolEvents);
+      setGasFeeData(gasFees);
+      setOhlcPrices([{ oracle: OracleProvider.API3, prices: ohlc }]);
+      setQualityHistory([{ oracle: OracleProvider.API3, data: qualityHist }]);
+      setCrossOracleData(crossOracle);
     } catch (error) {
       logger.error(
         'Error fetching API3 data',
@@ -448,6 +492,23 @@ export function API3PageContent() {
             {activeTab === 'airnode' && dataSourceTrace.length > 0 && (
               <div className="mt-6">
                 <DataSourceTraceabilityPanel data={dataSourceTrace} />
+              </div>
+            )}
+
+            {activeTab === 'advanced' && (
+              <div className="space-y-6">
+                {gasFeeData.length > 0 && <GasFeeComparison data={gasFeeData} />}
+
+                {ohlcPrices.length > 0 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <ATRIndicator data={ohlcPrices} />
+                    <BollingerBands data={ohlcPrices} />
+                  </div>
+                )}
+
+                {qualityHistory.length > 0 && <DataQualityTrend data={qualityHistory} />}
+
+                <CrossOracleComparison />
               </div>
             )}
           </div>

@@ -14,6 +14,196 @@ interface AnomalyInfo {
   anomalyTypes: string[];
 }
 
+// 计算 Pearson 相关系数
+function calculateCorrelation(x: number[], y: number[]): number {
+  const n = x.length;
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = y.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+  const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+  const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+
+  const numerator = n * sumXY - sumX * sumY;
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+  return denominator === 0 ? 0 : numerator / denominator;
+}
+
+// 计算相关性矩阵
+function calculateCorrelationMatrix(
+  publishers: Publisher[],
+  publisherStats: Record<string, PublisherStats>
+): number[][] {
+  const n = publishers.length;
+  const matrix: number[][] = Array(n)
+    .fill(null)
+    .map(() => Array(n).fill(0));
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) {
+        matrix[i][j] = 1;
+      } else {
+        const statsI = publisherStats[publishers[i].id];
+        const statsJ = publisherStats[publishers[j].id];
+        if (statsI?.historicalAccuracy && statsJ?.historicalAccuracy) {
+          matrix[i][j] = calculateCorrelation(statsI.historicalAccuracy, statsJ.historicalAccuracy);
+        } else {
+          matrix[i][j] = 0;
+        }
+      }
+    }
+  }
+
+  return matrix;
+}
+
+// 根据相关系数获取颜色
+function getCorrelationColor(correlation: number): string {
+  // 高正相关（绿色）-> 低相关/负相关（红色）
+  if (correlation >= 0.8) return 'bg-green-500';
+  if (correlation >= 0.6) return 'bg-green-400';
+  if (correlation >= 0.4) return 'bg-green-300';
+  if (correlation >= 0.2) return 'bg-yellow-300';
+  if (correlation >= 0) return 'bg-yellow-200';
+  if (correlation >= -0.2) return 'bg-orange-200';
+  if (correlation >= -0.4) return 'bg-orange-300';
+  if (correlation >= -0.6) return 'bg-red-300';
+  if (correlation >= -0.8) return 'bg-red-400';
+  return 'bg-red-500';
+}
+
+// 根据相关系数获取文本颜色
+function getCorrelationTextColor(correlation: number): string {
+  if (correlation >= 0.4 || correlation <= -0.4) return 'text-white';
+  return 'text-gray-800';
+}
+
+// 相关性热力图组件
+interface CorrelationHeatmapProps {
+  publishers: Publisher[];
+  correlationMatrix: number[][];
+}
+
+function CorrelationHeatmap({ publishers, correlationMatrix }: CorrelationHeatmapProps) {
+  return (
+    <div className="p-4">
+      <div className="overflow-x-auto">
+        <div className="inline-block min-w-full">
+          {/* 表头 */}
+          <div className="flex">
+            <div className="w-24 flex-shrink-0"></div>
+            {publishers.map((pub) => (
+              <div
+                key={pub.id}
+                className="w-20 h-12 flex items-center justify-center text-xs font-medium text-gray-600 border-b border-gray-200"
+              >
+                {pub.name}
+              </div>
+            ))}
+          </div>
+
+          {/* 矩阵内容 */}
+          {publishers.map((pub, rowIndex) => (
+            <div key={pub.id} className="flex">
+              <div className="w-24 h-16 flex items-center justify-start text-xs font-medium text-gray-600 pr-2 border-r border-gray-200">
+                {pub.name}
+              </div>
+              {publishers.map((_, colIndex) => {
+                const correlation = correlationMatrix[rowIndex]?.[colIndex] ?? 0;
+                const bgColor = getCorrelationColor(correlation);
+                const textColor = getCorrelationTextColor(correlation);
+                return (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`w-20 h-16 flex items-center justify-center ${bgColor} ${textColor} text-sm font-semibold transition-all hover:opacity-80 cursor-pointer`}
+                    title={`${pub.name} ↔ ${publishers[colIndex].name}: ${correlation.toFixed(2)}`}
+                  >
+                    {correlation.toFixed(2)}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 图例 */}
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+        <span className="text-gray-600">Low/Negative</span>
+        <div className="flex gap-1">
+          <div className="w-6 h-4 bg-red-500 rounded"></div>
+          <div className="w-6 h-4 bg-red-400 rounded"></div>
+          <div className="w-6 h-4 bg-red-300 rounded"></div>
+          <div className="w-6 h-4 bg-orange-300 rounded"></div>
+          <div className="w-6 h-4 bg-yellow-200 rounded"></div>
+          <div className="w-6 h-4 bg-yellow-300 rounded"></div>
+          <div className="w-6 h-4 bg-green-300 rounded"></div>
+          <div className="w-6 h-4 bg-green-400 rounded"></div>
+          <div className="w-6 h-4 bg-green-500 rounded"></div>
+        </div>
+        <span className="text-gray-600">High Positive</span>
+      </div>
+    </div>
+  );
+}
+
+// 检测关联异常
+interface CorrelatedAnomaly {
+  publisherIds: string[];
+  publisherNames: string[];
+  anomalyType: string;
+  timestamp: number;
+}
+
+function detectCorrelatedAnomalies(
+  anomalyDetails: Record<string, AnomalyInfo>,
+  publishers: Publisher[]
+): CorrelatedAnomaly[] {
+  const correlatedAnomalies: CorrelatedAnomaly[] = [];
+
+  // 按异常类型分组
+  const priceDeviationAnomalies: string[] = [];
+  const latencyAnomalies: string[] = [];
+
+  Object.entries(anomalyDetails).forEach(([publisherId, info]) => {
+    if (info.isPriceDeviationAnomaly) {
+      priceDeviationAnomalies.push(publisherId);
+    }
+    if (info.isLatencyAnomaly) {
+      latencyAnomalies.push(publisherId);
+    }
+  });
+
+  // 检测价格偏差关联异常（2个及以上Publisher同时异常）
+  if (priceDeviationAnomalies.length >= 2) {
+    const publisherNames = priceDeviationAnomalies.map(
+      (id) => publishers.find((p) => p.id === id)?.name ?? id
+    );
+    correlatedAnomalies.push({
+      publisherIds: priceDeviationAnomalies,
+      publisherNames,
+      anomalyType: 'priceDeviation',
+      timestamp: Date.now(),
+    });
+  }
+
+  // 检测延迟关联异常（2个及以上Publisher同时异常）
+  if (latencyAnomalies.length >= 2) {
+    const publisherNames = latencyAnomalies.map(
+      (id) => publishers.find((p) => p.id === id)?.name ?? id
+    );
+    correlatedAnomalies.push({
+      publisherIds: latencyAnomalies,
+      publisherNames,
+      anomalyType: 'latency',
+      timestamp: Date.now(),
+    });
+  }
+
+  return correlatedAnomalies;
+}
+
 const mockPublishers: Publisher[] = [
   {
     id: 'pub-1',
@@ -144,6 +334,16 @@ export function PublisherAnalysisPanel({
     publishers.reduce((sum, p) => sum + p.reliabilityScore, 0) / publishers.length;
   const avgLatency = publishers.reduce((sum, p) => sum + p.latency, 0) / publishers.length;
 
+  // 计算相关性矩阵
+  const correlationMatrix = useMemo(() => {
+    return calculateCorrelationMatrix(publishers, publisherStats);
+  }, [publishers, publisherStats]);
+
+  // 检测关联异常
+  const correlatedAnomalies = useMemo(() => {
+    return detectCorrelatedAnomalies(anomalyDetails, publishers);
+  }, [anomalyDetails, publishers]);
+
   const anomalyTypeStats = useMemo(() => {
     const stats = {
       priceDeviation: 0,
@@ -202,6 +402,35 @@ export function PublisherAnalysisPanel({
               <p className="text-xs text-yellow-600 mt-1">
                 {t('publisherAnalysis.anomalyCheckSuggestion')}
               </p>
+
+              {/* 关联异常提示 */}
+              {correlatedAnomalies.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-yellow-200">
+                  <div className="flex items-start gap-2">
+                    <svg
+                      className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-semibold text-red-700">关联异常告警</p>
+                      {correlatedAnomalies.map((anomaly, index) => (
+                        <p key={index} className="text-xs text-red-600 mt-1">
+                          {anomaly.anomalyType === 'priceDeviation'
+                            ? `价格偏差关联异常: ${anomaly.publisherNames.join(', ')} 同时出现异常`
+                            : `延迟关联异常: ${anomaly.publisherNames.join(', ')} 同时出现高延迟`}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -265,6 +494,10 @@ export function PublisherAnalysisPanel({
           )}
         </DashboardCard>
       </div>
+
+      <DashboardCard title="Publisher Correlation Matrix">
+        <CorrelationHeatmap publishers={publishers} correlationMatrix={correlationMatrix} />
+      </DashboardCard>
 
       <DashboardCard title="Publisher Comparison">
         <div className="overflow-x-auto">

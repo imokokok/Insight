@@ -6,6 +6,7 @@ import { CrossChainFilters } from './components/CrossChainFilters';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
+import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { ProgressBar, JumpIndicator, TrendIndicator } from './components/SmallComponents';
 import {
   BarChart,
@@ -463,6 +464,7 @@ export default function CrossChainPage() {
 
           <PriceComparisonTable data={data} />
           <CorrelationMatrix data={data} />
+          <CointegrationAnalysis data={data} />
 
           <div className="mb-8 pb-8 border-b border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
