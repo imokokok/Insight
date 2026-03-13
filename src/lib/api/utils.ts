@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createLogger } from '@/lib/utils/logger';
 import { ApiResponseBuilder } from './types';
 
@@ -103,4 +104,41 @@ export function handleApiError(
     retryable: isNetworkError,
     statusCode: 500,
   });
+}
+
+/**
+ * Extracts and validates the user ID from the authorization header
+ * @param request - The Next.js request object
+ * @returns The user ID if authentication is successful, null otherwise
+ */
+export async function getUserId(request: NextRequest): Promise<string | null> {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.slice(7);
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return null;
+  }
+
+  const client = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
+  if (error || !user) {
+    return null;
+  }
+
+  return user.id;
 }

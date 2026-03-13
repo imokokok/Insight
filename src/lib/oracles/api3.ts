@@ -1,4 +1,5 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
+import { BaseOracleClient, OracleClientConfig } from './base';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 import { GasFeeData } from '@/components/oracle/GasFeeComparison';
 import { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
@@ -623,7 +624,7 @@ export class API3Client extends BaseOracleClient {
         lastUpdate: Date.now(),
       },
       {
-        oracle: OracleProvider.PYTH_NETWORK,
+        oracle: OracleProvider.PYTH,
         chain: 'Ethereum',
         updateCost: 0.45,
         updateFrequency: 60,
@@ -631,7 +632,7 @@ export class API3Client extends BaseOracleClient {
         lastUpdate: Date.now(),
       },
       {
-        oracle: OracleProvider.PYTH_NETWORK,
+        oracle: OracleProvider.PYTH,
         chain: 'Arbitrum',
         updateCost: 0.08,
         updateFrequency: 60,
@@ -720,7 +721,7 @@ export class API3Client extends BaseOracleClient {
         updateFrequency: 3600,
       },
       {
-        oracle: OracleProvider.PYTH_NETWORK,
+        oracle: OracleProvider.PYTH,
         responseTime: 150,
         accuracy: 99.6,
         availability: 99.5,

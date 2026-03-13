@@ -1,4 +1,5 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from '../base';
+import { BaseOracleClient } from '../base';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
 class TestOracleClient extends BaseOracleClient {

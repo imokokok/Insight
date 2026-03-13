@@ -19,7 +19,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
   PriceData,
   OracleProvider,
@@ -60,7 +60,7 @@ const REFRESH_INTERVAL = 10000;
 
 const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.BAND_PROTOCOL]: 'Band',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.API3]: 'API3',
@@ -68,7 +68,7 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
 
 const PROVIDER_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: '#3b82f6',
-  [OracleProvider.PYTH_NETWORK]: '#8b5cf6',
+  [OracleProvider.PYTH]: '#8b5cf6',
   [OracleProvider.BAND_PROTOCOL]: '#10b981',
   [OracleProvider.UMA]: '#f59e0b',
   [OracleProvider.API3]: '#ef4444',
@@ -120,7 +120,7 @@ export function PriceDeviationMonitor() {
 
     try {
       const chainlinkClient = new ChainlinkClient();
-      const pythClient = new PythNetworkClient();
+      const pythClient = new PythClient();
       const bandClient = new BandProtocolClient();
       const umaClient = new UMAClient();
       const api3Client = new API3Client();
@@ -186,7 +186,7 @@ export function PriceDeviationMonitor() {
           timestamp: Date.now(),
           time: formatTime(Date.now()),
           chainlink: priceDataList.find((p) => p.provider === OracleProvider.CHAINLINK)?.price || 0,
-          pyth: priceDataList.find((p) => p.provider === OracleProvider.PYTH_NETWORK)?.price || 0,
+          pyth: priceDataList.find((p) => p.provider === OracleProvider.PYTH)?.price || 0,
           band: priceDataList.find((p) => p.provider === OracleProvider.BAND_PROTOCOL)?.price || 0,
           uma: priceDataList.find((p) => p.provider === OracleProvider.UMA)?.price || 0,
           api3: priceDataList.find((p) => p.provider === OracleProvider.API3)?.price || 0,
@@ -608,7 +608,7 @@ export function PriceDeviationMonitor() {
                 yAxisId="price"
                 type="monotone"
                 dataKey="pyth"
-                stroke={PROVIDER_COLORS[OracleProvider.PYTH_NETWORK]}
+                stroke={PROVIDER_COLORS[OracleProvider.PYTH]}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}

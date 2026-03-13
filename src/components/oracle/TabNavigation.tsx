@@ -2,6 +2,7 @@
 
 import { ReactNode, useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
@@ -194,6 +195,7 @@ export function TabNavigation({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   const displayTabs = useMemo(() => {
     if (tabs) return tabs;
@@ -218,11 +220,26 @@ export function TabNavigation({
       left: Math.max(0, scrollPosition),
       behavior: 'smooth',
     });
+
+    // Update indicator position
+    setIndicatorStyle({
+      left: tabLeft,
+      width: tabWidth,
+    });
   }, [activeTab, displayTabs]);
 
   useEffect(() => {
     scrollToActiveTab();
   }, [activeTab, scrollToActiveTab]);
+
+  // Update indicator on resize
+  useEffect(() => {
+    const handleResize = () => {
+      scrollToActiveTab();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [scrollToActiveTab]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -274,7 +291,7 @@ export function TabNavigation({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav
           ref={containerRef}
-          className="flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+          className="relative flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
           aria-label="Tabs"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
@@ -294,11 +311,11 @@ export function TabNavigation({
                 }}
                 onClick={() => handleTabClick(tab.id)}
                 className={`
-                  flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200
+                  relative flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200
                   ${
                     isActive
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }
                 `}
               >
@@ -307,6 +324,20 @@ export function TabNavigation({
               </button>
             );
           })}
+          {/* Sliding indicator */}
+          <motion.div
+            className="absolute bottom-0 h-0.5 bg-blue-600"
+            initial={false}
+            animate={{
+              left: indicatorStyle.left,
+              width: indicatorStyle.width,
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+            }}
+          />
         </nav>
       </div>
     </div>

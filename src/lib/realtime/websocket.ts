@@ -4,6 +4,12 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('WebSocketManager');
 
+function calculateBackoffDelay(attempt: number, baseDelay: number): number {
+  const maxDelay = 30000;
+  const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+  return delay + Math.random() * 1000;
+}
+
 export type WebSocketStatus =
   | 'connecting'
   | 'connected'
@@ -24,6 +30,10 @@ export interface WebSocketConfig {
   maxReconnectAttempts?: number;
   heartbeatInterval?: number;
   heartbeatTimeout?: number;
+  useExponentialBackoff?: boolean;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onError?: (error: Error) => void;
 }
 
 export type MessageHandler<T = unknown> = (message: WebSocketMessage<T>) => void;
@@ -31,7 +41,11 @@ export type StatusHandler = (status: WebSocketStatus) => void;
 
 export default class WebSocketManager {
   protected ws: WebSocket | null = null;
-  protected config: Required<WebSocketConfig>;
+  protected config: Omit<Required<WebSocketConfig>, 'onConnect' | 'onDisconnect' | 'onError'> & {
+    onConnect?: () => void;
+    onDisconnect?: () => void;
+    onError?: (error: Error) => void;
+  };
   protected status: WebSocketStatus = 'disconnected';
   protected reconnectAttempts = 0;
   protected reconnectTimer: NodeJS.Timeout | null = null;
@@ -48,6 +62,7 @@ export default class WebSocketManager {
       maxReconnectAttempts: 5,
       heartbeatInterval: 30000,
       heartbeatTimeout: 10000,
+      useExponentialBackoff: false,
       ...config,
     };
   }
@@ -59,6 +74,10 @@ export default class WebSocketManager {
 
   // 连接 WebSocket
   connect(): void {
+    if (!this.config.url) {
+      throw new Error('WebSocket URL is not configured. Please set NEXT_PUBLIC_WS_URL environment variable.');
+    }
+
     if (this.ws?.readyState === WebSocket.OPEN) {
       logger.warn('WebSocket already connected');
       return;
@@ -76,6 +95,7 @@ export default class WebSocketManager {
         this.startHeartbeat();
         this.flushMessageQueue();
         this.resubscribeChannels();
+        this.config.onConnect?.();
       };
 
       this.ws.onmessage = (event) => {
@@ -86,12 +106,14 @@ export default class WebSocketManager {
         logger.warn('WebSocket closed');
         this.setStatus('disconnected');
         this.stopHeartbeat();
+        this.config.onDisconnect?.();
         this.attemptReconnect();
       };
 
       this.ws.onerror = (error) => {
         logger.error('WebSocket error', new Error(String(error)));
         this.setStatus('error');
+        this.config.onError?.(new Error('WebSocket connection error'));
       };
     } catch (error) {
       logger.error(
@@ -273,13 +295,17 @@ export default class WebSocketManager {
     this.reconnectAttempts++;
     this.setStatus('reconnecting');
 
+    const delay = this.config.useExponentialBackoff
+      ? calculateBackoffDelay(this.reconnectAttempts - 1, this.config.reconnectInterval)
+      : this.config.reconnectInterval;
+
     logger.info(
-      `Reconnecting... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}`
+      `Reconnecting in ${delay}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}`
     );
 
     this.reconnectTimer = setTimeout(() => {
       this.connect();
-    }, this.config.reconnectInterval);
+    }, delay);
   }
 
   // 保护方法：清除重连定时器
@@ -544,9 +570,17 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
   };
 }
 
-// 默认导出配置好的 hook
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
+
+if (!WS_URL) {
+  console.warn(
+    'NEXT_PUBLIC_WS_URL is not configured. ' +
+    'Real-time features will be disabled.'
+  );
+}
+
 export const useWebSocket = createWebSocketHook({
-  url: process.env.NEXT_PUBLIC_WS_URL || 'wss://api.example.com/ws',
+  url: WS_URL || '',
   reconnectInterval: 3000,
   maxReconnectAttempts: 5,
   heartbeatInterval: 30000,

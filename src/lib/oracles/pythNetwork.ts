@@ -1,4 +1,5 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
+import { BaseOracleClient, OracleClientConfig } from './base';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain, ConfidenceInterval } from '@/lib/types/oracle';
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
@@ -9,8 +10,8 @@ const SPREAD_PERCENTAGES: Record<string, number> = {
   USDC: 0.01,
 };
 
-export class PythNetworkClient extends BaseOracleClient {
-  name = OracleProvider.PYTH_NETWORK;
+export class PythClient extends BaseOracleClient {
+  name = OracleProvider.PYTH;
   supportedChains = [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -61,8 +62,8 @@ export class PythNetworkClient extends BaseOracleClient {
       return priceData;
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from Pyth Network',
-        'PYTH_NETWORK_ERROR'
+        error instanceof Error ? error.message : 'Failed to fetch price from Pyth',
+        'PYTH_ERROR'
       );
     }
   }
@@ -82,8 +83,8 @@ export class PythNetworkClient extends BaseOracleClient {
       throw this.createError(
         error instanceof Error
           ? error.message
-          : 'Failed to fetch historical prices from Pyth Network',
-        'PYTH_NETWORK_HISTORICAL_ERROR'
+          : 'Failed to fetch historical prices from Pyth',
+        'PYTH_HISTORICAL_ERROR'
       );
     }
   }

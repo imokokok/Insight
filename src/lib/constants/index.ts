@@ -4,7 +4,7 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
 };
 
@@ -64,7 +64,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: '#3B82F6',
   [OracleProvider.BAND_PROTOCOL]: '#10B981',
   [OracleProvider.UMA]: '#F59E0B',
-  [OracleProvider.PYTH_NETWORK]: '#8B5CF6',
+  [OracleProvider.PYTH]: '#8B5CF6',
   [OracleProvider.API3]: '#EC4899',
 };
 

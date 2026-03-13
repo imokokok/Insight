@@ -44,7 +44,7 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
 };
 
@@ -52,7 +52,7 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: '#375BD2',
   [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
   [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH_NETWORK]: '#EC4899',
+  [OracleProvider.PYTH]: '#EC4899',
   [OracleProvider.API3]: '#10B981',
 };
 

@@ -3,7 +3,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
 } from '@/lib/oracles';
 import { MarketDataConfig } from '@/components/oracle/MarketDataPanel';
@@ -234,9 +234,9 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: false,
     },
   },
-  [OracleProvider.PYTH_NETWORK]: {
-    provider: OracleProvider.PYTH_NETWORK,
-    name: 'Pyth Network',
+  [OracleProvider.PYTH]: {
+    provider: OracleProvider.PYTH,
+    name: 'Pyth',
     symbol: 'PYTH',
     defaultChain: Blockchain.SOLANA,
     supportedChains: [
@@ -248,7 +248,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.AVALANCHE,
       Blockchain.BASE,
     ],
-    client: new PythNetworkClient(),
+    client: new PythClient(),
     iconBgColor: 'bg-gradient-to-r from-purple-500 to-pink-500',
     icon: (
       <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -257,7 +257,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ),
     marketData: {
       symbol: 'PYTH',
-      tokenName: 'Pyth Network',
+      tokenName: 'Pyth',
       tokenSymbol: 'PYTH',
       marketCap: 850000000,
       volume24h: 45000000,

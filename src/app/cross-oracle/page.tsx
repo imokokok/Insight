@@ -447,7 +447,7 @@ export default function CrossOraclePage() {
         [OracleProvider.CHAINLINK]: accessibleColors.chart.sequence[0],
         [OracleProvider.BAND_PROTOCOL]: accessibleColors.chart.sequence[1],
         [OracleProvider.UMA]: accessibleColors.chart.sequence[2],
-        [OracleProvider.PYTH_NETWORK]: accessibleColors.chart.sequence[3],
+        [OracleProvider.PYTH]: accessibleColors.chart.sequence[3],
         [OracleProvider.API3]: accessibleColors.chart.sequence[4],
       } as Record<OracleProvider, string>;
     }
@@ -455,7 +455,7 @@ export default function CrossOraclePage() {
       [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
       [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
       [OracleProvider.UMA]: chartColors.oracle.uma,
-      [OracleProvider.PYTH_NETWORK]: chartColors.oracle['pyth-network'],
+      [OracleProvider.PYTH]: chartColors.oracle.pyth,
       [OracleProvider.API3]: chartColors.oracle.api3,
     } as Record<OracleProvider, string>;
   }, [useAccessibleColors]);
@@ -467,7 +467,7 @@ export default function CrossOraclePage() {
       [OracleProvider.CHAINLINK]: accessibleColors.linePatterns.solid,
       [OracleProvider.BAND_PROTOCOL]: accessibleColors.linePatterns.dashed,
       [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
-      [OracleProvider.PYTH_NETWORK]: accessibleColors.linePatterns.dashDot,
+      [OracleProvider.PYTH]: accessibleColors.linePatterns.dashDot,
       [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
     };
     return patternMap[oracle] || '0';

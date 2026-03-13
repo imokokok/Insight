@@ -1,9 +1,28 @@
 import { supabase, queries } from '@/lib/supabase/client';
-import type { PriceAlert, AlertEvent, AlertConditionType } from '@/lib/supabase/database.types';
-import type { PriceData } from '@/lib/types/oracle';
+import type {
+  PriceAlert,
+  AlertEvent,
+  AlertConditionType,
+  PriceRecord,
+} from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('alert-detector');
+
+interface PriceHistoryCache {
+  data: Map<string, { price: number; timestamp: string }>;
+  timestamp: number;
+}
+
+const priceHistoryCache = new Map<string, PriceHistoryCache>();
+const CACHE_TTL = 60 * 1000;
+
+interface PerformanceMetrics {
+  startTime: number;
+  dbQueries: number;
+  cacheHits: number;
+  cacheMisses: number;
+}
 
 export interface PriceDataForAlert {
   provider: string;
@@ -30,6 +49,92 @@ export interface TriggeredAlertData {
   userId: string;
   price: number;
   conditionMet: string;
+}
+
+function getCacheKey(symbol: string, provider: string, chain?: string | null): string {
+  return `${symbol}:${provider}:${chain || 'all'}`;
+}
+
+function isCacheValid(cacheEntry: PriceHistoryCache): boolean {
+  return Date.now() - cacheEntry.timestamp < CACHE_TTL;
+}
+
+async function batchGetPriceHistory(
+  symbolsData: Array<{ symbol: string; provider: string; chain?: string | null }>,
+  metrics: PerformanceMetrics
+): Promise<Map<string, { price: number; timestamp: string }>> {
+  const result = new Map<string, { price: number; timestamp: string }>();
+  const symbolsToFetch: Array<{ symbol: string; provider: string; chain?: string | null }> = [];
+
+  for (const item of symbolsData) {
+    const cacheKey = getCacheKey(item.symbol, item.provider, item.chain);
+    const cached = priceHistoryCache.get(cacheKey);
+
+    if (cached && isCacheValid(cached)) {
+      metrics.cacheHits++;
+      const latestPrice = cached.data.get('latest');
+      if (latestPrice) {
+        result.set(cacheKey, latestPrice);
+      }
+    } else {
+      metrics.cacheMisses++;
+      symbolsToFetch.push(item);
+    }
+  }
+
+  if (symbolsToFetch.length === 0) {
+    return result;
+  }
+
+  metrics.dbQueries++;
+
+  const orConditions = symbolsToFetch.map((item) => {
+    const conditions = [`symbol.eq.${item.symbol}`, `provider.eq.${item.provider}`];
+    if (item.chain !== null && item.chain !== undefined) {
+      conditions.push(`chain.eq.${item.chain}`);
+    }
+    return `(${conditions.join(',')})`;
+  });
+
+  const { data: priceRecords, error } = await supabase
+    .from('price_records')
+    .select('*')
+    .or(orConditions.join(','))
+    .order('timestamp', { ascending: false })
+    .limit(2 * symbolsToFetch.length);
+
+  if (error || !priceRecords) {
+    logger.error(
+      'Failed to batch fetch price history',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    return result;
+  }
+
+  const groupedRecords = new Map<string, PriceRecord[]>();
+  for (const record of priceRecords as PriceRecord[]) {
+    const key = getCacheKey(record.symbol, record.provider, record.chain);
+    if (!groupedRecords.has(key)) {
+      groupedRecords.set(key, []);
+    }
+    groupedRecords.get(key)!.push(record);
+  }
+
+  for (const [key, records] of groupedRecords.entries()) {
+    const cacheData = new Map<string, { price: number; timestamp: string }>();
+
+    if (records.length > 0) {
+      cacheData.set('latest', { price: records[0].price, timestamp: records[0].timestamp });
+      result.set(key, { price: records[0].price, timestamp: records[0].timestamp });
+    }
+
+    priceHistoryCache.set(key, {
+      data: cacheData,
+      timestamp: Date.now(),
+    });
+  }
+
+  return result;
 }
 
 export function checkAlertCondition(
@@ -85,6 +190,14 @@ export async function checkAlertConditions(
   priceData: PriceDataForAlert[]
 ): Promise<AlertCheckResult[]> {
   const results: AlertCheckResult[] = [];
+  const metrics: PerformanceMetrics = {
+    startTime: Date.now(),
+    dbQueries: 0,
+    cacheHits: 0,
+    cacheMisses: 0,
+  };
+
+  metrics.dbQueries++;
 
   const { data: activeAlerts, error } = await supabase
     .from('price_alerts')
@@ -99,6 +212,33 @@ export async function checkAlertConditions(
     return results;
   }
 
+  const symbolsNeedingHistory: Array<{
+    symbol: string;
+    provider: string;
+    chain?: string | null;
+  }> = [];
+
+  for (const alert of activeAlerts as PriceAlert[]) {
+    if (alert.condition_type === 'change_percent') {
+      const matchingPrice = priceData.find(
+        (p) =>
+          p.symbol === alert.symbol &&
+          (alert.provider === null || p.provider === alert.provider) &&
+          (alert.chain === null || p.chain === alert.chain)
+      );
+
+      if (matchingPrice) {
+        symbolsNeedingHistory.push({
+          symbol: alert.symbol,
+          provider: matchingPrice.provider,
+          chain: alert.chain,
+        });
+      }
+    }
+  }
+
+  const priceHistoryMap = await batchGetPriceHistory(symbolsNeedingHistory, metrics);
+
   for (const alert of activeAlerts as PriceAlert[]) {
     const matchingPrice = priceData.find(
       (p) =>
@@ -111,16 +251,11 @@ export async function checkAlertConditions(
 
     let previousPrice: number | undefined;
     if (alert.condition_type === 'change_percent') {
-      const { data: priceHistory } = await supabase
-        .from('price_records')
-        .select('price')
-        .eq('symbol', alert.symbol)
-        .eq('provider', matchingPrice.provider)
-        .order('timestamp', { ascending: false })
-        .limit(2);
+      const cacheKey = getCacheKey(alert.symbol, matchingPrice.provider, alert.chain);
+      const historyData = priceHistoryMap.get(cacheKey);
 
-      if (priceHistory && priceHistory.length > 1) {
-        previousPrice = priceHistory[1].price;
+      if (historyData) {
+        previousPrice = historyData.price;
       }
     }
 
@@ -138,6 +273,20 @@ export async function checkAlertConditions(
       chain: alert.chain,
     });
   }
+
+  const duration = Date.now() - metrics.startTime;
+  const totalRequests = metrics.cacheHits + metrics.cacheMisses;
+  const hitRate = totalRequests > 0 ? ((metrics.cacheHits / totalRequests) * 100).toFixed(2) : '0';
+
+  logger.info('Alert check performance metrics', {
+    duration: `${duration}ms`,
+    dbQueries: metrics.dbQueries,
+    cacheHits: metrics.cacheHits,
+    cacheMisses: metrics.cacheMisses,
+    hitRate: `${hitRate}%`,
+    activeAlerts: activeAlerts.length,
+    resultsCount: results.length,
+  });
 
   return results;
 }

@@ -27,7 +27,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
 } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/lib/types/oracle';
@@ -56,7 +56,7 @@ const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
   [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH_NETWORK]: new PythNetworkClient(),
+  [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
 };
 
@@ -64,7 +64,7 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
 };
 
@@ -72,7 +72,7 @@ const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: '#375BD2',
   [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
   [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH_NETWORK]: '#EC4899',
+  [OracleProvider.PYTH]: '#EC4899',
   [OracleProvider.API3]: '#10B981',
 };
 
@@ -125,7 +125,7 @@ export function CrossOracleComparison() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
-    OracleProvider.PYTH_NETWORK,
+    OracleProvider.PYTH,
     OracleProvider.BAND_PROTOCOL,
   ]);
   const [priceData, setPriceData] = useState<PriceComparisonData[]>([]);
@@ -156,7 +156,7 @@ export function CrossOracleComparison() {
         decentralization: 95,
       },
       {
-        provider: OracleProvider.PYTH_NETWORK,
+        provider: OracleProvider.PYTH,
         responseTime: 45,
         updateFrequency: 0.4,
         dataSources: 180,
@@ -524,7 +524,7 @@ export function CrossOracleComparison() {
   const handleQuickCompare = () => {
     setSelectedOracles([
       OracleProvider.CHAINLINK,
-      OracleProvider.PYTH_NETWORK,
+      OracleProvider.PYTH,
       OracleProvider.BAND_PROTOCOL,
     ]);
   };

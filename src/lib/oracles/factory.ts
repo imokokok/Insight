@@ -3,7 +3,7 @@ import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
 import { BandProtocolClient } from './bandProtocol';
 import { UMAClient } from './uma';
-import { PythNetworkClient } from './pythNetwork';
+import { PythClient } from './pythNetwork';
 import { API3Client } from './api3';
 import { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
@@ -35,7 +35,7 @@ export class OracleClientFactory {
       OracleProvider.CHAINLINK,
       OracleProvider.BAND_PROTOCOL,
       OracleProvider.UMA,
-      OracleProvider.PYTH_NETWORK,
+      OracleProvider.PYTH,
       OracleProvider.API3,
     ];
 
@@ -64,8 +64,8 @@ export class OracleClientFactory {
         return new BandProtocolClient(this.config);
       case OracleProvider.UMA:
         return new UMAClient(this.config);
-      case OracleProvider.PYTH_NETWORK:
-        return new PythNetworkClient(this.config);
+      case OracleProvider.PYTH:
+        return new PythClient(this.config);
       case OracleProvider.API3:
         return new API3Client(this.config);
       default:

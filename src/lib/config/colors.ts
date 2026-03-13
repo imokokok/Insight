@@ -127,7 +127,7 @@ export const chartColors = {
     chainlink: '#2563EB', // 深蓝 - Chainlink品牌色
     'band-protocol': '#059669', // 深绿 - Band Protocol
     uma: '#D97706', // 深橙 - UMA
-    'pyth-network': '#7C3AED', // 深紫 - Pyth Network
+    'pyth': '#7C3AED', // 深紫 - Pyth Network
     api3: '#DB2777', // 深粉 - API3
   } as const,
 
@@ -136,7 +136,7 @@ export const chartColors = {
     chainlink: { color: '#1e40af', pattern: 'solid' }, // 深蓝
     'band-protocol': { color: '#065f46', pattern: 'dashed' }, // 深绿
     uma: { color: '#92400e', pattern: 'dotted' }, // 棕色
-    'pyth-network': { color: '#5b21b6', pattern: 'dashDot' }, // 深紫
+    'pyth': { color: '#5b21b6', pattern: 'dashDot' }, // 深紫
     api3: { color: '#9d174d', pattern: 'longDash' }, // 深粉
   } as const,
 
@@ -404,7 +404,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
     [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
     [OracleProvider.UMA]: chartColors.oracle.uma,
-    [OracleProvider.PYTH_NETWORK]: chartColors.oracle['pyth-network'],
+    [OracleProvider.PYTH]: chartColors.oracle['pyth'],
     [OracleProvider.API3]: chartColors.oracle.api3,
   };
   return colorMap[provider] || chartColors.sequence[0];

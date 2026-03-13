@@ -20,6 +20,7 @@ import { DashboardCard } from './DashboardCard';
 import { TooltipProps, CustomDotProps } from '@/lib/types/recharts';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
+import { NotImplementedError } from '@/lib/errors';
 
 const logger = createLogger('LatencyTrendChart');
 
@@ -396,7 +397,13 @@ export function LatencyTrendChart({
         setUseMockData(false);
       } catch (err) {
         logger.error('Failed to fetch latency data:', err instanceof Error ? err : new Error(String(err)));
-        setError('无法获取延迟数据，使用模拟数据');
+        
+        if (err instanceof NotImplementedError) {
+          setError('Pyth API 不支持历史价格查询，使用模拟数据');
+        } else {
+          setError('无法获取延迟数据，使用模拟数据');
+        }
+        
         const mockData = generateMockLatencyData(anomalyThreshold);
         setData(downsampleLatencyData(mockData, 50));
         setUseMockData(true);

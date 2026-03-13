@@ -6,7 +6,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
   BaseOracleClient,
 } from '@/lib/oracles';
@@ -40,7 +40,7 @@ const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
   [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH_NETWORK]: new PythNetworkClient(),
+  [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
 };
 
@@ -1071,7 +1071,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       [OracleProvider.CHAINLINK]: 'Chainlink',
       [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
       [OracleProvider.UMA]: 'UMA',
-      [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+      [OracleProvider.PYTH]: 'Pyth Network',
       [OracleProvider.API3]: 'API3',
     };
 

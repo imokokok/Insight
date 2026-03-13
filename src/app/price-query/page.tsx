@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { useCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
 import {
   OracleProvider,
   Blockchain,
@@ -9,7 +10,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
 } from '@/lib/oracles';
 import {
@@ -43,7 +44,7 @@ const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
   [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH_NETWORK]: new PythNetworkClient(),
+  [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
 };
 
@@ -555,6 +556,15 @@ export default function PriceQueryPage() {
     });
     return supported;
   }, [selectedOracles]);
+
+  // Keyboard shortcuts
+  useCommonShortcuts({
+    onRefresh: fetchQueryData,
+    onSearch: () => {
+      const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+      searchInput?.focus();
+    },
+  });
 
   const handleHistorySelect = (item: QueryHistoryItem) => {
     setSelectedOracles(item.oracles);

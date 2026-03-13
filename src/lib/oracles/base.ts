@@ -9,33 +9,10 @@ import {
   configureStorage,
   getStorageConfig,
 } from './storage';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 
 export { shouldUseDatabase, configureStorage, getStorageConfig };
 export type { OracleStorageConfig };
-
-export const UNIFIED_BASE_PRICES: Record<string, number> = {
-  BTC: 68000,
-  ETH: 3500,
-  SOL: 180,
-  LINK: 18,
-  BAND: 2.5,
-  API3: 2.8,
-  PYTH: 1.2,
-  UMA: 8.5,
-  USDC: 1,
-  ATOM: 10,
-  OSMO: 4,
-  JUNO: 3,
-  AVAX: 35,
-  MATIC: 0.6,
-  DOT: 7,
-  UNI: 10,
-  CRO: 0.08,
-  FTM: 0.3,
-  DAI: 1,
-  WBTC: 68000,
-  WETH: 3500,
-};
 
 export interface OracleClientConfig {
   useDatabase?: boolean;

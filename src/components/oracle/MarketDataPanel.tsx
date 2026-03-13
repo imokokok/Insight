@@ -265,7 +265,7 @@ export function MarketDataPanel({
       setConfidenceInterval(priceData.confidenceInterval || null);
       setLastUpdated(new Date());
 
-      if (client.name === OracleProvider.PYTH_NETWORK) {
+      if (client.name === OracleProvider.PYTH) {
         const multiplier = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
         const ema7 = priceData.price * (1 + (Math.random() - 0.5) * 0.01);
         const ema14 = priceData.price * (1 + (Math.random() - 0.5) * 0.015);
@@ -463,14 +463,14 @@ export function MarketDataPanel({
       <div className="flex flex-col lg:flex-row lg:items-end gap-6 mb-8">
         <div className="flex flex-col">
           <PriceDisplay price={price} />
-          {client.name === OracleProvider.PYTH_NETWORK && confidenceInterval && (
+          {client.name === OracleProvider.PYTH && confidenceInterval && (
             <ConfidenceIntervalDisplay
               confidenceInterval={confidenceInterval}
               price={price}
               warningThreshold={0.5}
             />
           )}
-          {client.name === OracleProvider.PYTH_NETWORK && emaData.length > 0 && (
+          {client.name === OracleProvider.PYTH && emaData.length > 0 && (
             <EMADisplay
               emaData={emaData}
               selectedPeriod={emaPeriod}

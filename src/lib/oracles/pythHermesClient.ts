@@ -1,6 +1,7 @@
 import { HermesClient } from '@pythnetwork/hermes-client';
 import { PriceData, ConfidenceInterval, Blockchain, OracleProvider } from '@/lib/types/oracle';
 import { createLogger } from '@/lib/utils/logger';
+import { NotImplementedError } from '@/lib/errors';
 
 const logger = createLogger('PythHermesClient');
 
@@ -31,12 +32,36 @@ function normalizeSymbol(symbol: string): string {
   return `${baseSymbol}/USD`;
 }
 
+export interface PythPriceData {
+  price: string | number;
+  confidence?: string | number;
+  exponent?: number;
+  expo?: number;
+  publish_time?: number;
+  slot?: number;
+}
+
 export interface PythPriceUpdate {
   price: number;
   confidence: number;
   timestamp: number;
   slot: number;
   exponent: number;
+}
+
+function isPythPriceData(data: unknown): data is PythPriceData {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  const obj = data as Record<string, unknown>;
+  return (
+    (typeof obj.price === 'string' || typeof obj.price === 'number') &&
+    (obj.confidence === undefined || typeof obj.confidence === 'string' || typeof obj.confidence === 'number') &&
+    (obj.exponent === undefined || typeof obj.exponent === 'number') &&
+    (obj.expo === undefined || typeof obj.expo === 'number') &&
+    (obj.publish_time === undefined || typeof obj.publish_time === 'number') &&
+    (obj.slot === undefined || typeof obj.slot === 'number')
+  );
 }
 
 export class PythHermesClient {
@@ -72,9 +97,19 @@ export class PythHermesClient {
       }
 
       const parsed = priceUpdates.parsed[0] as any;
-      const price = this.convertPythPrice(parsed.price);
-      const confidenceValue = String(parsed.price.confidence ?? '0');
-      const exponent = Number(parsed.price.exponent ?? parsed.price.expo ?? 0);
+      
+      if (!parsed.price || !isPythPriceData(parsed.price)) {
+        logger.error('Invalid price data format in getLatestPrice', new Error(`Expected PythPriceData, got: ${JSON.stringify(parsed.price)}`));
+        return null;
+      }
+
+      const priceData = parsed.price;
+      const price = this.convertPythPrice(priceData);
+      const exponent = priceData.exponent ?? priceData.expo ?? 0;
+      const confidenceValue = typeof priceData.confidence === 'string' 
+        ? priceData.confidence 
+        : String(priceData.confidence ?? '0');
+      
       const confidenceInterval = this.calculateConfidenceInterval(
         price,
         confidenceValue,
@@ -82,18 +117,18 @@ export class PythHermesClient {
       );
 
       return {
-        provider: OracleProvider.PYTH_NETWORK,
+        provider: OracleProvider.PYTH,
         symbol: symbol.toUpperCase(),
         price,
-        timestamp: (parsed.price.publish_time ?? Date.now() / 1000) * 1000,
+        timestamp: (priceData.publish_time ?? Date.now() / 1000) * 1000,
         decimals: Math.abs(exponent),
         confidence: this.calculateConfidenceScore(
           confidenceValue,
-          String(parsed.price.price),
+          String(priceData.price),
           exponent
         ),
         confidenceInterval,
-        change24h: 0, // Will be calculated separately
+        change24h: 0,
         change24hPercent: 0,
       };
     } catch (error) {
@@ -104,25 +139,24 @@ export class PythHermesClient {
 
   /**
    * Get historical prices for a symbol
+   * 
+   * Note: Pyth Hermes API does not support historical price range queries.
+   * It only supports:
+   * - getLatestPriceUpdates: Get current prices
+   * - getPriceUpdatesAtTimestamp: Get price at a specific timestamp
+   * - getLatestTwaps: Get TWAP for up to 10 minutes
+   * 
+   * For historical price data, consider:
+   * - Using on-chain price feeds
+   * - External data sources like Dune Analytics
+   * - Storing price data locally over time
    */
   async getHistoricalPrices(symbol: string, hours: number = 24): Promise<PriceData[]> {
-    try {
-      const pythSymbol = normalizeSymbol(symbol);
-      const priceId = PYTH_PRICE_FEED_IDS[pythSymbol];
-
-      if (!priceId) {
-        logger.warn(`No price feed ID found for symbol: ${symbol}`);
-        return [];
-      }
-
-      // For now, return empty array as getPriceUpdates is not available
-      // This is a workaround until the API is properly implemented
-      logger.warn(`Historical prices not implemented for ${symbol}`);
-      return [];
-    } catch (error) {
-      logger.error(`Failed to get historical prices for ${symbol}:`, error instanceof Error ? error : new Error(String(error)));
-      return [];
-    }
+    throw new NotImplementedError(
+      'Historical prices are not supported by Pyth Hermes API. ' +
+      'Pyth only provides real-time prices and prices at specific timestamps. ' +
+      'Consider using on-chain price feeds, external data sources, or storing price data locally over time.'
+    );
   }
 
   /**
@@ -253,12 +287,28 @@ export class PythHermesClient {
     const callbacks = this.priceCallbacks.get(priceId);
 
     if (callbacks && callbacks.length > 0) {
+      if (!data.price) {
+        logger.error('Price update missing price data', new Error(JSON.stringify(data)));
+        return;
+      }
+
+      if (!isPythPriceData(data.price)) {
+        logger.error('Invalid price data format', new Error(`Expected PythPriceData, got: ${JSON.stringify(data.price)}`));
+        return;
+      }
+
+      const priceData = data.price;
+      const exponent = priceData.exponent ?? priceData.expo ?? 0;
+      const confidenceValue = typeof priceData.confidence === 'string' 
+        ? parseInt(priceData.confidence, 10) 
+        : (priceData.confidence ?? 0);
+
       const priceUpdate: PythPriceUpdate = {
-        price: this.convertPythPrice(data.price),
-        confidence: data.price.confidence * Math.pow(10, data.price.exponent),
-        timestamp: data.price.publish_time * 1000,
-        slot: data.price.slot,
-        exponent: data.price.exponent,
+        price: this.convertPythPrice(priceData),
+        confidence: confidenceValue * Math.pow(10, exponent),
+        timestamp: (priceData.publish_time ?? Date.now() / 1000) * 1000,
+        slot: priceData.slot ?? 0,
+        exponent: exponent,
       };
 
       callbacks.forEach((callback) => {
@@ -271,10 +321,12 @@ export class PythHermesClient {
     }
   }
 
-  private convertPythPrice(pythPrice: { price: string; expo?: number; exponent?: number }): number {
-    const price = parseInt(pythPrice.price, 10);
+  private convertPythPrice(pythPrice: PythPriceData): number {
+    const priceValue = typeof pythPrice.price === 'string' 
+      ? parseInt(pythPrice.price, 10) 
+      : pythPrice.price;
     const exponent = pythPrice.exponent ?? pythPrice.expo ?? 0;
-    return price * Math.pow(10, exponent);
+    return priceValue * Math.pow(10, exponent);
   }
 
   private calculateConfidenceInterval(

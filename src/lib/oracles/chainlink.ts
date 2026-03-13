@@ -1,4 +1,5 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
+import { BaseOracleClient, OracleClientConfig } from './base';
+import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
 export class ChainlinkClient extends BaseOracleClient {

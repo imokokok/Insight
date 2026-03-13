@@ -3,7 +3,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
 } from './index';
 
@@ -11,7 +11,7 @@ const clients: Record<OracleProvider, OracleClient> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
   [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
   [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH_NETWORK]: new PythNetworkClient(),
+  [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
 };
 

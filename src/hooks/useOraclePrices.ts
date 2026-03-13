@@ -5,7 +5,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   PriceData,
   Blockchain,
 } from '@/lib/oracles';
@@ -23,7 +23,7 @@ export function useOraclePrices() {
         const chainlinkClient = new ChainlinkClient();
         const bandClient = new BandProtocolClient();
         const umaClient = new UMAClient();
-        const pythClient = new PythNetworkClient();
+        const pythClient = new PythClient();
 
         const [linkPrice, bandPrice, umaPrice, pythPrice] = await Promise.allSettled([
           chainlinkClient.getPrice('LINK', Blockchain.ETHEREUM),

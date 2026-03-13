@@ -479,7 +479,7 @@ export default function BentoMetricsGrid() {
         </div>
 
         {/* Bento Grid - Improved responsive layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 auto-rows-fr">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 auto-rows-fr">
           {metrics.map((card, index) => {
             const Icon = card.icon;
             const colors = colorMap[card.color];
@@ -490,7 +490,7 @@ export default function BentoMetricsGrid() {
               <div
                 key={card.id}
                 className={`
-                  relative group rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
+                  relative group rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
                   ${card.size === 'large' ? 'sm:col-span-2 sm:row-span-2' : ''}
                   ${card.size === 'medium' ? 'sm:col-span-1' : ''}
                   ${colors.bg} ${colors.border}
@@ -514,21 +514,21 @@ export default function BentoMetricsGrid() {
                 {/* Subtle pattern overlay */}
                 <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,gray_1px,transparent_0)] bg-[length:20px_20px]" />
 
-                <div className="relative p-5 sm:p-6 h-full flex flex-col">
+                <div className="relative p-4 sm:p-5 lg:p-6 h-full flex flex-col">
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div
                       className={`
-                      p-3 rounded-xl bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100/50
+                      p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100/50
                       group-hover:shadow-md group-hover:scale-105 transition-all duration-300
                     `}
                     >
-                      <Icon className={`w-5 h-5 ${colors.text}`} />
+                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${colors.text}`} />
                     </div>
                     {card.change && (
                       <div
                         className={`
-                        flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm
+                        flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm
                         ${
                           card.isPositive
                             ? 'bg-emerald-100/80 text-emerald-700 border border-emerald-200/50'
@@ -538,9 +538,9 @@ export default function BentoMetricsGrid() {
                       `}
                       >
                         {card.isPositive ? (
-                          <TrendingUp className="w-3 h-3" />
+                          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         ) : (
-                          <TrendingDown className="w-3 h-3" />
+                          <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         )}
                         {card.change}
                       </div>
@@ -548,20 +548,20 @@ export default function BentoMetricsGrid() {
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="text-sm font-medium text-gray-600">{card.title}</div>
+                      <div className="text-xs sm:text-sm font-medium text-gray-600 truncate">{card.title}</div>
                       {card.description && <InfoTooltip content={card.description} />}
                     </div>
                     <div
                       className={`
-                      text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 tracking-tight
+                      text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 tracking-tight
                       transition-all duration-300 ${isAnimating ? 'text-emerald-600 scale-105' : ''}
                     `}
                     >
                       {card.value}
                     </div>
-                    <div className="text-xs text-gray-500 font-medium">{card.subtitle}</div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium">{card.subtitle}</div>
 
                     {/* Alert Badge */}
                     {card.alert && (
@@ -577,8 +577,8 @@ export default function BentoMetricsGrid() {
 
                   {/* Last updated time for live cards */}
                   {card.hasLiveIndicator && (
-                    <div className="mt-4 flex items-center gap-1.5 text-[11px] text-gray-500 font-medium">
-                      <Clock className="w-3 h-3" />
+                    <div className="mt-3 sm:mt-4 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-500 font-medium">
+                      <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>
                         {locale === 'zh-CN' ? '更新于' : 'Updated'}{' '}
                         {currentTime.toLocaleTimeString(langCode, {
@@ -593,12 +593,12 @@ export default function BentoMetricsGrid() {
                   {/* Arrow indicator */}
                   <div
                     className={`
-                    absolute bottom-5 right-5 p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100/50 shadow-sm
+                    absolute bottom-4 right-4 sm:bottom-5 sm:right-5 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100/50 shadow-sm
                     opacity-0 group-hover:opacity-100 transition-all duration-300
                     transform translate-x-3 group-hover:translate-x-0 group-hover:scale-110
                   `}
                   >
-                    <ArrowUpRight className={`w-4 h-4 ${colors.text}`} />
+                    <ArrowUpRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${colors.text}`} />
                   </div>
                 </div>
               </div>

@@ -2,7 +2,7 @@ export enum OracleProvider {
   CHAINLINK = 'chainlink',
   BAND_PROTOCOL = 'band-protocol',
   UMA = 'uma',
-  PYTH_NETWORK = 'pyth-network',
+  PYTH = 'pyth',
   API3 = 'api3',
 }
 
