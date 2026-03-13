@@ -108,14 +108,75 @@ export abstract class BaseOracleClient {
   ): PriceData[] {
     const prices: PriceData[] = [];
     const now = Date.now();
-    const interval = (period * 60 * 60 * 1000) / (period * 4);
+    const dataPoints = period * 4;
+    const interval = (period * 60 * 60 * 1000) / dataPoints;
 
-    for (let i = 0; i < period * 4; i++) {
-      const timestamp = now - i * interval;
-      prices.push(this.generateMockPrice(symbol, basePrice, chain, timestamp));
+    const chainVolatility: Record<Blockchain, number> = {
+      [Blockchain.ETHEREUM]: 0.002,
+      [Blockchain.ARBITRUM]: 0.0018,
+      [Blockchain.OPTIMISM]: 0.0022,
+      [Blockchain.POLYGON]: 0.0025,
+      [Blockchain.SOLANA]: 0.003,
+      [Blockchain.AVALANCHE]: 0.0028,
+      [Blockchain.FANTOM]: 0.0032,
+      [Blockchain.CRONOS]: 0.0035,
+      [Blockchain.JUNO]: 0.0025,
+      [Blockchain.COSMOS]: 0.0022,
+      [Blockchain.OSMOSIS]: 0.0028,
+      [Blockchain.BNB_CHAIN]: 0.002,
+      [Blockchain.BASE]: 0.0022,
+      [Blockchain.SCROLL]: 0.0024,
+      [Blockchain.ZKSYNC]: 0.0026,
+      [Blockchain.APTOS]: 0.003,
+      [Blockchain.SUI]: 0.0032,
+      [Blockchain.GNOSIS]: 0.002,
+      [Blockchain.MANTLE]: 0.0023,
+      [Blockchain.LINEA]: 0.0024,
+      [Blockchain.CELESTIA]: 0.0028,
+      [Blockchain.INJECTIVE]: 0.0035,
+      [Blockchain.SEI]: 0.004,
+    };
+    const volatility = chain ? chainVolatility[chain] : 0.002;
+
+    // 随机选择趋势方向：-1 下跌, 0 震荡, 1 上涨
+    const trendDirection = Math.random() > 0.6 ? 1 : Math.random() > 0.6 ? -1 : 0;
+    const trendStrength = 0.0003 * trendDirection;
+
+    // 使用随机游走模型生成价格序列
+    let currentPrice = basePrice * (0.95 + Math.random() * 0.1);
+
+    for (let i = 0; i < dataPoints; i++) {
+      const timestamp = now - (dataPoints - 1 - i) * interval;
+
+      // 随机游走：基于前一个价格计算新价格
+      const randomWalk = (Math.random() - 0.5) * 2 * volatility;
+      const trendComponent = trendStrength * (1 + Math.sin(i / dataPoints * Math.PI) * 0.5);
+
+      currentPrice = currentPrice * (1 + randomWalk + trendComponent);
+
+      // 边界检查：确保价格在合理范围内（基准价格的 ±20%）
+      const maxPrice = basePrice * 1.2;
+      const minPrice = basePrice * 0.8;
+      currentPrice = Math.max(minPrice, Math.min(maxPrice, currentPrice));
+
+      // 计算 24h 变化（基于基准价格）
+      const change24hPercent = ((currentPrice - basePrice) / basePrice) * 100;
+      const change24h = currentPrice - basePrice;
+
+      prices.push({
+        provider: this.name,
+        chain,
+        symbol,
+        price: Number(currentPrice.toFixed(4)),
+        timestamp,
+        decimals: 8,
+        confidence: 0.95 + Math.random() * 0.05,
+        change24h: Number(change24h.toFixed(4)),
+        change24hPercent: Number(change24hPercent.toFixed(2)),
+      });
     }
 
-    return prices.reverse();
+    return prices;
   }
 
   async fetchPriceWithDatabase(

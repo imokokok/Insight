@@ -27,12 +27,13 @@ import {
   ReferenceDot,
   Area,
 } from 'recharts';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, LayoutDashboard, Table, FileJson } from 'lucide-react';
 import { TooltipProps } from '@/lib/types/recharts';
 import { OracleMarketData, TVSTrendData } from './types';
 import {
   PieChart as PieChartIcon,
   TrendingUp,
+  TrendingDown,
   BarChart3,
   Table as TableIcon,
   Activity,
@@ -57,6 +58,8 @@ import {
   ActivitySquare,
   Link2,
   X,
+  AlertTriangle,
+  ChevronDown,
 } from 'lucide-react';
 import Link from 'next/link';
 import ChainBreakdownChart from './components/ChainBreakdownChart';
@@ -830,71 +833,88 @@ export default function MarketOverviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 面包屑导航 */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <Link href="/" className="hover:text-gray-900 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* 面包屑导航 - 扁平化风格 */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+          <Link 
+            href="/" 
+            className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
             {locale === 'zh-CN' ? '首页' : 'Home'}
           </Link>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-gray-900">
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-900 font-medium">
             {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
           </span>
         </nav>
 
-        {/* 页面标题和操作栏 */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+        {/* 页面标题和操作栏 - 扁平化风格 */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
-            </h1>
-            <p className="mt-2 text-gray-600">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
+              </h1>
+            </div>
+            <p className="text-gray-600 ml-14">
               {locale === 'zh-CN'
                 ? '全面分析预言机市场份额、TVS趋势和链支持情况'
                 : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
             </p>
           </div>
 
-          {/* 操作按钮 */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* 导出按钮组 */}
-            <div className="flex items-center gap-1">
+          {/* 操作按钮 - 扁平化风格 */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* 导出按钮组 - 下拉菜单 */}
+            <div className="relative group">
               <button
-                onClick={exportToCSV}
-                disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
               >
                 <Download className="w-4 h-4" />
-                CSV
+                {locale === 'zh-CN' ? '导出' : 'Export'}
+                <ChevronDown className="w-4 h-4" />
               </button>
-              <button
-                onClick={exportToJSON}
-                disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                JSON
-              </button>
-              <button
-                onClick={exportChartToImage}
-                disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                title={locale === 'zh-CN' ? '导出为 PNG 图片' : 'Export as PNG image'}
-              >
-                <ImageIcon className="w-4 h-4" />
-                {locale === 'zh-CN' ? '图片' : 'Image'}
-              </button>
+              <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg border border-gray-200 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                <button
+                  onClick={exportToCSV}
+                  disabled={loading}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors border-b border-gray-100"
+                >
+                  <Table className="w-4 h-4 text-gray-400" />
+                  CSV
+                </button>
+                <button
+                  onClick={exportToJSON}
+                  disabled={loading}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                >
+                  <FileJson className="w-4 h-4 text-gray-400" />
+                  JSON
+                </button>
+                <button
+                  onClick={exportChartToImage}
+                  disabled={loading}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors"
+                >
+                  <ImageIcon className="w-4 h-4 text-gray-400" />
+                  {locale === 'zh-CN' ? '图片' : 'Image'}
+                </button>
+              </div>
             </div>
 
             {/* 自动刷新选择 */}
-            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+            <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
               <Clock className="w-4 h-4 text-gray-500" />
               <select
                 value={refreshInterval}
                 onChange={(e) =>
                   setRefreshInterval(Number(e.target.value) as 0 | 30000 | 60000 | 300000)
                 }
-                className="text-sm bg-transparent border-none focus:outline-none cursor-pointer"
+                className="text-sm bg-transparent border-none focus:outline-none cursor-pointer font-medium text-gray-700"
               >
                 {REFRESH_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -908,7 +928,7 @@ export default function MarketOverviewPage() {
             <button
               onClick={fetchData}
               disabled={refreshStatus === 'refreshing'}
-              className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg text-white transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors ${
                 refreshStatus === 'error'
                   ? 'bg-red-600 hover:bg-red-700'
                   : refreshStatus === 'success' && showRefreshSuccess
@@ -932,13 +952,6 @@ export default function MarketOverviewPage() {
                     : 'Refresh'}
             </button>
 
-            {lastUpdated && (
-              <span className="text-xs text-gray-400">
-                {locale === 'zh-CN' ? '更新于 ' : 'Updated '}
-                {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-
             {/* 实时状态指示器 */}
             <RealtimeIndicator
               status={wsStatus}
@@ -950,358 +963,279 @@ export default function MarketOverviewPage() {
           </div>
         </div>
 
-        {/* 关键指标统计栏 - 简洁横向布局 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* TVS */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <DollarSign className="w-5 h-5 text-blue-600" />
+        {/* 关键指标统计栏 - 扁平化风格 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          {/* TVS */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-blue-100 rounded">
+                <DollarSign className="w-4 h-4 text-blue-600" />
               </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-gray-900">{totalTVS}</span>
-                  <span
-                    className={`text-xs ${marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {marketStats.change24h >= 0 ? '+' : ''}
-                    {marketStats.change24h.toFixed(2)}%
-                  </span>
-                </div>
+              <span
+                className={`text-xs font-medium px-2 py-0.5 rounded ${
+                  marketStats.change24h >= 0 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-red-100 text-red-700'
+                }`}
+              >
+                {marketStats.change24h >= 0 ? '+' : ''}
+                {marketStats.change24h.toFixed(2)}%
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}</p>
+            <p className="text-lg font-bold text-gray-900">{totalTVS}</p>
+          </div>
+
+          {/* 支持链数 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-purple-100 rounded">
+                <Globe className="w-4 h-4 text-purple-600" />
               </div>
             </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '支持链数' : 'Chains'}</p>
+            <p className="text-lg font-bold text-gray-900">{totalChains}</p>
+          </div>
 
-            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
-
-            {/* 支持链数 */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <Globe className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '支持链数' : 'Chains'}
-                </p>
-                <p className="text-lg font-bold text-gray-900">{totalChains}</p>
+          {/* 协议数量 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-cyan-100 rounded">
+                <Layers className="w-4 h-4 text-cyan-600" />
               </div>
             </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}</p>
+            <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
+          </div>
 
-            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
-
-            {/* 协议数量 */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-cyan-50 rounded-lg">
-                <Layers className="w-5 h-5 text-cyan-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
-                </p>
-                <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
+          {/* 市场主导 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-pink-100 rounded">
+                <Activity className="w-4 h-4 text-pink-600" />
               </div>
             </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '市场主导' : 'Dominance'}</p>
+            <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
+          </div>
 
-            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
-
-            {/* 市场主导 */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-pink-50 rounded-lg">
-                <Activity className="w-5 h-5 text-pink-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
-                </p>
-                <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
+          {/* 平均延迟 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-amber-100 rounded">
+                <Zap className="w-4 h-4 text-amber-600" />
               </div>
             </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '平均延迟' : 'Latency'}</p>
+            <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+          </div>
 
-            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
-
-            {/* 平均延迟 */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <Zap className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '平均延迟' : 'Latency'}
-                </p>
-                <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+          {/* 预言机数 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-1.5 bg-green-100 rounded">
+                <Shield className="w-4 h-4 text-green-600" />
               </div>
             </div>
-
-            <div className="w-px h-10 bg-gray-200 hidden sm:block" />
-
-            {/* 预言机数 */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Shield className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">
-                  {locale === 'zh-CN' ? '预言机数' : 'Oracles'}
-                </p>
-                <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
-              </div>
-            </div>
+            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '预言机数' : 'Oracles'}</p>
+            <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
           </div>
         </div>
 
         {/* 主内容区 */}
         <div className="space-y-6">
-          {/* 图表控制栏 */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-xl border border-gray-200 p-4">
-            {/* 图表类型切换 */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => setActiveChart('pie')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'pie'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <PieChartIcon className="w-4 h-4" />
-                {locale === 'zh-CN' ? '市场份额' : 'Market Share'}
-              </button>
-              <button
-                onClick={() => setActiveChart('trend')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'trend'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4" />
-                {locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend'}
-              </button>
-              <button
-                onClick={() => setActiveChart('bar')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'bar'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
-              </button>
-              <button
-                onClick={() => setActiveChart('chain')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'chain'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Network className="w-4 h-4" />
-                {locale === 'zh-CN' ? '链分布' : 'Chain Breakdown'}
-              </button>
-              <button
-                onClick={() => setActiveChart('protocol')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'protocol'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Building2 className="w-4 h-4" />
-                {locale === 'zh-CN' ? '协议' : 'Protocols'}
-              </button>
-              <button
-                onClick={() => setActiveChart('asset')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'asset'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <PieChartIcon2 className="w-4 h-4" />
-                {locale === 'zh-CN' ? '资产类别' : 'Asset Categories'}
-              </button>
-              <button
-                onClick={() => setActiveChart('comparison')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'comparison'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <GitCompare className="w-4 h-4" />
-                {locale === 'zh-CN' ? '多预言机对比' : 'Oracle Comparison'}
-              </button>
-              <button
-                onClick={() => setActiveChart('benchmark')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'benchmark'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Target className="w-4 h-4" />
-                {locale === 'zh-CN' ? '行业基准' : 'Benchmark'}
-              </button>
-              <button
-                onClick={() => setActiveChart('correlation')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  activeChart === 'correlation'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <ActivitySquare className="w-4 h-4" />
-                {locale === 'zh-CN' ? '相关性' : 'Correlation'}
-              </button>
-            </div>
-
-            {/* 时间范围选择 */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '时间范围:' : 'Time Range:'}
-              </span>
-              <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-                {TIME_RANGES.map((range) => (
-                  <button
-                    key={range.key}
-                    onClick={() => setSelectedTimeRange(range.key)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      selectedTimeRange === range.key
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+          {/* 图表控制栏 - 扁平化风格 */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+              {/* 左侧：图表类型选择 + 快捷按钮 */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* 图表类型下拉选择 */}
+                <div className="relative">
+                  <select
+                    value={activeChart}
+                    onChange={(e) => setActiveChart(e.target.value as ChartType)}
+                    className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer font-medium min-w-[140px]"
                   >
-                    {range.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    {chartTypes.map((type) => (
+                      <option key={type.key} value={type.key}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
 
-            {/* 对比模式切换 - 仅在趋势图显示 */}
-            {activeChart === 'trend' && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">
-                  {locale === 'zh-CN' ? '对比:' : 'Compare:'}
-                </span>
+                {/* 快捷按钮组 - 仅显示前4个常用类型 */}
+                <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                  {['pie', 'trend', 'bar', 'chain'].map((key) => {
+                    const type = chartTypes.find((t) => t.key === key);
+                    if (!type) return null;
+                    const Icon = type.icon;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setActiveChart(key as ChartType)}
+                        className={`flex items-center gap-1 px-2 py-1.5 rounded text-sm font-medium transition-all ${
+                          activeChart === key
+                            ? 'bg-white text-blue-600 border border-gray-200'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                        title={type.label}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 右侧：控制项分组 */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* 时间范围选择 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-500 uppercase">
+                    {locale === 'zh-CN' ? '时间' : 'Time'}
+                  </span>
+                  <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                    {TIME_RANGES.map((range) => (
+                      <button
+                        key={range.key}
+                        onClick={() => setSelectedTimeRange(range.key)}
+                        className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                          selectedTimeRange === range.key
+                            ? 'bg-white text-blue-600 border border-gray-200'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 趋势图特有控制项 */}
+                {activeChart === 'trend' && (
+                  <>
+                    {/* 对比模式 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-500 uppercase">
+                        {locale === 'zh-CN' ? '对比' : 'Compare'}
+                      </span>
+                      <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                        <button
+                          onClick={() => toggleComparisonMode('yoy')}
+                          className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                            comparisonMode === 'yoy'
+                              ? 'bg-white text-blue-600 border border-gray-200'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                          title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
+                        >
+                          {locale === 'zh-CN' ? '同比' : 'YoY'}
+                        </button>
+                        <button
+                          onClick={() => toggleComparisonMode('mom')}
+                          className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                            comparisonMode === 'mom'
+                              ? 'bg-white text-blue-600 border border-gray-200'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                          title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
+                        >
+                          {locale === 'zh-CN' ? '环比' : 'MoM'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 异常检测阈值 */}
+                    <div className="flex items-center gap-2 px-2.5 py-1.5 bg-red-50 rounded-lg border border-red-200">
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                      <input
+                        type="range"
+                        min="5"
+                        max="50"
+                        value={anomalyThreshold * 100}
+                        onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
+                        className="w-14 h-1 bg-red-200 rounded appearance-none cursor-pointer accent-red-500"
+                      />
+                      <span className="text-xs font-medium text-red-600 min-w-[2rem]">
+                        {(anomalyThreshold * 100).toFixed(0)}%
+                      </span>
+                    </div>
+
+                    {/* 置信区间开关 */}
+                    {comparisonMode === 'none' && (
+                      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
+                        <span className="text-xs font-medium text-purple-700">
+                          {locale === 'zh-CN' ? '置信区间' : 'CI'}
+                        </span>
+                        <button
+                          onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
+                          className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${
+                            showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${
+                              showConfidenceInterval ? 'translate-x-4' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                        {showConfidenceInterval && (
+                          <span className="text-xs text-purple-600 font-medium">95%</span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* 分隔线 */}
+                <div className="w-px h-6 bg-gray-200 hidden lg:block" />
+
+                {/* 视图切换 */}
                 <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
                   <button
-                    onClick={() => toggleComparisonMode('yoy')}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      comparisonMode === 'yoy'
-                        ? 'bg-white text-blue-600 shadow-sm'
+                    onClick={() => setViewType('chart')}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-sm font-medium transition-all ${
+                      viewType === 'chart'
+                        ? 'bg-white text-blue-600 border border-gray-200'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
                   >
-                    {locale === 'zh-CN' ? '同比' : 'YoY'}
+                    <PieChartIcon className="w-4 h-4" />
+                    {locale === 'zh-CN' ? '图表' : 'Chart'}
                   </button>
                   <button
-                    onClick={() => toggleComparisonMode('mom')}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      comparisonMode === 'mom'
-                        ? 'bg-white text-blue-600 shadow-sm'
+                    onClick={() => setViewType('table')}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-sm font-medium transition-all ${
+                      viewType === 'table'
+                        ? 'bg-white text-blue-600 border border-gray-200'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
                   >
-                    {locale === 'zh-CN' ? '环比' : 'MoM'}
+                    <TableIcon className="w-4 h-4" />
+                    {locale === 'zh-CN' ? '表格' : 'Table'}
                   </button>
                 </div>
               </div>
-            )}
-
-            {/* 异常检测阈值配置 - 仅在趋势图显示 */}
-            {activeChart === 'trend' && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100">
-                <span className="text-sm text-red-600">
-                  {locale === 'zh-CN' ? '异常阈值:' : 'Anomaly Threshold:'}
-                </span>
-                <input
-                  type="range"
-                  min="5"
-                  max="50"
-                  value={anomalyThreshold * 100}
-                  onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
-                  className="w-20 h-1.5 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-500"
-                />
-                <span className="text-sm font-medium text-red-600 min-w-[3rem]">
-                  {(anomalyThreshold * 100).toFixed(0)}%
-                </span>
-              </div>
-            )}
-
-            {/* 置信区间开关 - 仅在趋势图显示 */}
-            {activeChart === 'trend' && comparisonMode === 'none' && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                <span className="text-sm text-purple-600">
-                  {locale === 'zh-CN' ? '置信区间:' : 'Confidence:'}
-                </span>
-                <button
-                  onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                    showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                      showConfidenceInterval ? 'translate-x-5' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-                <span className="text-xs text-purple-500">
-                  {showConfidenceInterval ? (locale === 'zh-CN' ? '95%' : '95%') : ''}
-                </span>
-              </div>
-            )}
-
-            {/* 视图切换 */}
-            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-              <button
-                onClick={() => setViewType('chart')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewType === 'chart'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <PieChartIcon className="w-4 h-4" />
-                {locale === 'zh-CN' ? '图表' : 'Chart'}
-              </button>
-              <button
-                onClick={() => setViewType('table')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewType === 'table'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <TableIcon className="w-4 h-4" />
-                {locale === 'zh-CN' ? '表格' : 'Table'}
-              </button>
             </div>
           </div>
 
-          {/* 图表和详情区 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 图表和详情区 - 扁平化风格 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* 主图表 */}
             <div
               ref={chartContainerRef}
-              className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6"
+              className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-5"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-semibold text-gray-900">{getChartTitle()}</h3>
                   {/* 联动指示器 */}
                   {linkedOracle && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                      <Link2 className="w-4 h-4 text-purple-600" />
-                      <span className="text-xs text-purple-600 font-medium">
-                        {locale === 'zh-CN' ? '联动' : 'Linked'}:
-                      </span>
-                      <span className="text-sm font-semibold text-purple-700">
+                    <div className="flex items-center gap-2 px-2 py-1 bg-purple-50 rounded border border-purple-200">
+                      <Link2 className="w-3.5 h-3.5 text-purple-600" />
+                      <span className="text-xs text-purple-700">
                         {linkedOracle.primary} ↔ {linkedOracle.secondary}
                       </span>
                       <button
@@ -1317,16 +1251,15 @@ export default function MarketOverviewPage() {
                   {activeChart === 'trend' &&
                     comparisonMode !== 'none' &&
                     trendComparisonData.length > 0 && (
-                      <div className="flex items-center gap-3 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
-                        <span className="text-xs text-blue-600 font-medium">
+                      <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 rounded border border-blue-200">
+                        <span className="text-xs text-blue-700">
                           {comparisonMode === 'yoy'
                             ? locale === 'zh-CN'
-                              ? '同比差异'
-                              : 'YoY Diff'
+                              ? '同比'
+                              : 'YoY'
                             : locale === 'zh-CN'
-                              ? '环比差异'
-                              : 'MoM Diff'}
-                          :
+                              ? '环比'
+                              : 'MoM'}
                         </span>
                         {(() => {
                           const latestData = prepareComparisonData(trendData, trendComparisonData)[
@@ -1356,16 +1289,16 @@ export default function MarketOverviewPage() {
                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      {locale === 'zh-CN' ? '重置缩放' : 'Reset Zoom'}
+                      {locale === 'zh-CN' ? '重置' : 'Reset'}
                     </button>
                   )}
                   {selectedItem && (
                     <button
                       onClick={() => setSelectedItem(null)}
-                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                     >
-                      {locale === 'zh-CN' ? '清除选择' : 'Clear Selection'}
-                      <ChevronRight className="w-4 h-4 rotate-90" />
+                      {locale === 'zh-CN' ? '清除' : 'Clear'}
+                      <X className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -1374,7 +1307,7 @@ export default function MarketOverviewPage() {
               {loading && !['chain', 'protocol', 'asset'].includes(activeChart) ? (
                 <div className="h-[400px] flex items-center justify-center">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+                    <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 animate-spin rounded-full" />
                     <span className="text-gray-500 text-sm">
                       {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
                     </span>
@@ -1395,7 +1328,7 @@ export default function MarketOverviewPage() {
                   </div>
                   {viewType === 'chart' &&
                     !['chain', 'protocol', 'asset'].includes(activeChart) && (
-                      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                      <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
                         <Info className="w-4 h-4" />
                         {locale === 'zh-CN'
                           ? '悬停查看详情，点击选中项目'
@@ -1406,93 +1339,103 @@ export default function MarketOverviewPage() {
               )}
             </div>
 
-            {/* 详情卡片 */}
-            <div className="space-y-4">
-              {/* 选中时间范围 */}
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 text-white">
-                <div className="text-sm text-blue-100 mb-1">
-                  {locale === 'zh-CN' ? '选中时间范围' : 'Selected Time Range'}
+            {/* 详情卡片 - 扁平化风格 */}
+            <div className="space-y-3">
+              {/* 选中时间范围卡片 */}
+              <div className="bg-blue-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-blue-100 mb-0.5">
+                      {locale === 'zh-CN' ? '选中时间范围' : 'Time Range'}
+                    </p>
+                    <p className="text-2xl font-bold">{selectedTimeRange}</p>
+                  </div>
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold">{selectedTimeRange}</div>
-                <div className="text-xs text-blue-200 mt-1">
-                  {locale === 'zh-CN' ? '数据已更新' : 'Data updated'}
+                <div className="mt-2 text-xs text-blue-200">
+                  {lastUpdated 
+                    ? `${locale === 'zh-CN' ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
+                    : (locale === 'zh-CN' ? '数据已更新' : 'Data updated')}
                 </div>
               </div>
 
-              {/* 预言机详情卡片 */}
-              {sortedOracleData.map((item) => (
-                <Link
-                  key={item.name}
-                  href={`/${item.name.toLowerCase().replace(' ', '-')}`}
-                  className={`block bg-white rounded-xl border p-4 transition-all cursor-pointer group hover:shadow-md ${
-                    selectedItem === item.name
-                      ? 'border-blue-500 shadow-md ring-1 ring-blue-500'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
-                  onMouseEnter={() => setHoveredItem(item.name)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  onClick={(e) => {
-                    if (selectedItem === item.name) {
-                      setSelectedItem(null);
-                    } else {
-                      setSelectedItem(item.name);
-                    }
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="font-medium text-gray-900">{item.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900">{item.share}%</span>
-                      <ArrowUpRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        backgroundColor: item.color,
-                        width: `${item.share}%`,
+              {/* 预言机详情卡片 - 扁平化设计 */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
+                  <h4 className="text-sm font-medium text-gray-700">
+                    {locale === 'zh-CN' ? '预言机市场份额' : 'Oracle Market Share'}
+                  </h4>
+                </div>
+                <div className="p-2 space-y-1 max-h-[280px] overflow-y-auto">
+                  {sortedOracleData.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={`/${item.name.toLowerCase().replace(' ', '-')}`}
+                      className={`block rounded border p-2 transition-all cursor-pointer hover:bg-gray-50 ${
+                        selectedItem === item.name
+                          ? 'border-blue-500 bg-blue-50/50'
+                          : 'border-gray-100 bg-white'
+                      } ${hoveredItem && hoveredItem !== item.name ? 'opacity-50' : 'opacity-100'}`}
+                      onMouseEnter={() => setHoveredItem(item.name)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (selectedItem === item.name) {
+                          setSelectedItem(null);
+                        } else {
+                          setSelectedItem(item.name);
+                        }
                       }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
-                    <div>
-                      <span className="block text-gray-400">TVS</span>
-                      <span className="font-medium text-gray-700">{item.tvs}</span>
-                    </div>
-                    <div>
-                      <span className="block text-gray-400">
-                        {locale === 'zh-CN' ? '链' : 'Chains'}
-                      </span>
-                      <span className="font-medium text-gray-700">{item.chains}</span>
-                    </div>
-                    <div>
-                      <span className="block text-gray-400">24h</span>
-                      <span
-                        className={`font-medium ${
-                          item.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {item.change24h >= 0 ? '+' : ''}
-                        {item.change24h.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="font-medium text-gray-900 text-sm">{item.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm font-bold text-gray-900">{item.share}%</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                      <div className="h-1 bg-gray-100 rounded overflow-hidden mb-1">
+                        <div
+                          className="h-full rounded transition-all duration-500"
+                          style={{
+                            backgroundColor: item.color,
+                            width: `${item.share}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>TVS: <span className="text-gray-700">{item.tvs}</span></span>
+                        <span>{locale === 'zh-CN' ? '链' : 'Chains'}: <span className="text-gray-700">{item.chains}</span></span>
+                        <span className={item.change24h >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {item.change24h >= 0 ? '+' : ''}{item.change24h.toFixed(1)}%
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
               {/* 总市场份额 */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-4">
-                <div className="text-sm text-gray-600 mb-1">
-                  {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
+              <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-0.5">
+                      {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">100%</p>
+                  </div>
+                  <div className="p-2 bg-white rounded border border-gray-200">
+                    <PieChartIcon className="w-4 h-4 text-gray-600" />
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-gray-900">100%</div>
                 <div className="text-xs text-gray-500 mt-1">
                   {locale === 'zh-CN'
                     ? `覆盖 ${marketStats.oracleCount} 个主要预言机`
@@ -1502,136 +1445,162 @@ export default function MarketOverviewPage() {
             </div>
           </div>
 
-          {/* 风险指标、异常预警和价格预警 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 风险指标、异常预警和价格预警 - 扁平化风格 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-1">
-              <RiskDashboard data={riskMetrics} loading={loadingRiskMetrics} />
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
+                <RiskDashboard data={riskMetrics} loading={loadingRiskMetrics} />
+              </div>
             </div>
             <div className="lg:col-span-1">
-              <AnomalyAlert
-                anomalies={anomalies}
-                loading={loadingAnomalies}
-                onAcknowledge={acknowledgeAnomaly}
-                maxDisplay={5}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
+                <AnomalyAlert
+                  anomalies={anomalies}
+                  loading={loadingAnomalies}
+                  onAcknowledge={acknowledgeAnomaly}
+                  maxDisplay={5}
+                />
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
+                <PriceAlertConfig
+                  alerts={priceAlerts}
+                  history={alertHistory}
+                  onAddAlert={addPriceAlert}
+                  onRemoveAlert={removePriceAlert}
+                  onToggleAlert={togglePriceAlert}
+                  onAcknowledgeHistory={acknowledgeAlertHistory}
+                  onClearHistory={clearAlertHistory}
+                  onRequestNotificationPermission={requestNotificationPermission}
+                  hasNotificationPermission={hasNotificationPermission}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 导出配置和定时导出 - 扁平化风格 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <ExportConfigComponent
+                locale={locale}
+                onExport={(config: ExportConfig) => {
+                  const { content, fileName, mimeType } = exportWithConfig(config, {
+                    oracleData,
+                    assets,
+                    trendData,
+                    chainBreakdown,
+                    protocolDetails,
+                    assetCategories,
+                    comparisonData,
+                    benchmarkData,
+                    correlationData,
+                    riskMetrics: riskMetrics || undefined,
+                    anomalies,
+                  });
+                  downloadExport(content, fileName, mimeType);
+                }}
               />
             </div>
-            <div className="lg:col-span-1">
-              <PriceAlertConfig
-                alerts={priceAlerts}
-                history={alertHistory}
-                onAddAlert={addPriceAlert}
-                onRemoveAlert={removePriceAlert}
-                onToggleAlert={togglePriceAlert}
-                onAcknowledgeHistory={acknowledgeAlertHistory}
-                onClearHistory={clearAlertHistory}
-                onRequestNotificationPermission={requestNotificationPermission}
-                hasNotificationPermission={hasNotificationPermission}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <ScheduledExportConfig
+                locale={locale}
+                onRunTask={async (task: ScheduledExportTask) => {
+                  const { content, fileName, mimeType } = exportWithConfig(task.config, {
+                    oracleData,
+                    assets,
+                    trendData,
+                    chainBreakdown,
+                    protocolDetails,
+                    assetCategories,
+                    comparisonData,
+                    benchmarkData,
+                    correlationData,
+                    riskMetrics: riskMetrics || undefined,
+                    anomalies,
+                  });
+                  downloadExport(content, fileName, mimeType);
+                }}
               />
             </div>
           </div>
 
-          {/* 导出配置和定时导出 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ExportConfigComponent
-              locale={locale}
-              onExport={(config: ExportConfig) => {
-                const { content, fileName, mimeType } = exportWithConfig(config, {
-                  oracleData,
-                  assets,
-                  trendData,
-                  chainBreakdown,
-                  protocolDetails,
-                  assetCategories,
-                  comparisonData,
-                  benchmarkData,
-                  correlationData,
-                  riskMetrics: riskMetrics || undefined,
-                  anomalies,
-                });
-                downloadExport(content, fileName, mimeType);
-              }}
-            />
-            <ScheduledExportConfig
-              locale={locale}
-              onRunTask={async (task: ScheduledExportTask) => {
-                const { content, fileName, mimeType } = exportWithConfig(task.config, {
-                  oracleData,
-                  assets,
-                  trendData,
-                  chainBreakdown,
-                  protocolDetails,
-                  assetCategories,
-                  comparisonData,
-                  benchmarkData,
-                  correlationData,
-                  riskMetrics: riskMetrics || undefined,
-                  anomalies,
-                });
-                downloadExport(content, fileName, mimeType);
-              }}
-            />
-          </div>
-
-          {/* 资产列表 */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {locale === 'zh-CN' ? '热门资产' : 'Top Assets'}
-              </h3>
+          {/* 资产列表 - 扁平化风格 */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-amber-100 rounded">
+                  <TrendingUp className="w-4 h-4 text-amber-600" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900">
+                  {locale === 'zh-CN' ? '热门资产' : 'Top Assets'}
+                </h3>
+              </div>
+              <span className="text-sm text-gray-500">
+                {assets.length} {locale === 'zh-CN' ? '个资产' : 'assets'}
+              </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '资产' : 'Asset'}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '价格' : 'Price'}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '24h变化' : '24h Change'}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '7d变化' : '7d Change'}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '24h成交量' : '24h Volume'}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {assets.map((asset) => (
-                    <tr key={asset.symbol} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-gray-900">{asset.symbol}</span>
-                          <span className="text-xs text-gray-400">
-                            {formatCompactNumber(asset.marketCap)}
+                  {assets.map((asset, index) => (
+                    <tr 
+                      key={asset.symbol} 
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs font-medium text-gray-600">
+                            {index + 1}
                           </span>
+                          <div>
+                            <span className="font-medium text-gray-900 block text-sm">{asset.symbol}</span>
+                            <span className="text-xs text-gray-400">
+                              ${formatCompactNumber(asset.marketCap)}
+                            </span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <span className="font-medium text-gray-900">
                           {formatPrice(asset.price)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <span
-                          className={`font-medium ${
-                            asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
+                      <td className="px-4 py-3 text-right">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                          asset.change24h >= 0 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-red-100 text-red-700'
+                        }`}>
                           {asset.change24h >= 0 ? '+' : ''}
                           {asset.change24h.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <span
-                          className={`font-medium ${
+                          className={`text-sm font-medium ${
                             asset.change7d >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
@@ -1639,13 +1608,13 @@ export default function MarketOverviewPage() {
                           {asset.change7d.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-gray-600">
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-gray-600 text-sm">
                           ${formatCompactNumber(asset.volume24h)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
                           {asset.primaryOracle}
                         </span>
                       </td>

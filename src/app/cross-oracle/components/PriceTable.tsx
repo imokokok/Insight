@@ -135,9 +135,8 @@ export function PriceTable({
                 deviationPercent !== null ? Math.min(Math.abs(deviationPercent) * 10, 100) : 0;
 
               return (
-                <>
+                <React.Fragment key={data.provider}>
                   <tr
-                    key={data.provider}
                     onClick={() => onExpandRow(isExpanded ? null : index)}
                     onMouseEnter={() => {
                       onSetHoveredRow(index);
@@ -395,7 +394,7 @@ export function PriceTable({
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </tbody>

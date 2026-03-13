@@ -1070,10 +1070,6 @@ export function PriceChart({
     return () => unregisterTimeRangeCallback(handleTimeRangeChange);
   }, [registerTimeRangeCallback, unregisterTimeRangeCallback]);
 
-  if (loading || !indicatorsLoaded) {
-    return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
-  }
-
   const exportData: ChartExportData[] = useMemo(
     () =>
       data.map((d) => ({
@@ -1091,6 +1087,10 @@ export function PriceChart({
       })),
     [data]
   );
+
+  if (loading || !indicatorsLoaded) {
+    return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
+  }
 
   const connectionStatusText = useMemo(() => {
     switch (umaConnectionStatus) {
