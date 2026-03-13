@@ -1,6 +1,13 @@
-import { RealtimeChannel, RealtimePostgresChangesPayload, SupabaseClient } from '@supabase/supabase-js';
+import {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+  SupabaseClient,
+} from '@supabase/supabase-js';
 import { supabase } from './client';
 import type { PriceRecord, AlertEvent, UserSnapshot, UserFavorite } from './queries';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('supabase-realtime');
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -65,7 +72,7 @@ class RealtimeManager {
 
   private setupConnectionMonitoring() {
     this.updateConnectionStatus('connecting');
-    
+
     const checkConnection = () => {
       const status = this.client.realtime.connectionState();
       if (status === 'open') {
@@ -80,18 +87,18 @@ class RealtimeManager {
     };
 
     this.client.realtime.connect();
-    
+
     setTimeout(checkConnection, 1000);
   }
 
   private updateConnectionStatus(status: ConnectionStatus) {
     this.connectionStatus = status;
-    this.statusListeners.forEach(listener => listener(status));
+    this.statusListeners.forEach((listener) => listener(status));
   }
 
   private handleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      logger.error('Max reconnection attempts reached');
       return;
     }
 
@@ -102,7 +109,9 @@ class RealtimeManager {
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
     this.reconnectAttempts++;
 
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    logger.info(
+      `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+    );
 
     this.reconnectTimer = setTimeout(() => {
       this.updateConnectionStatus('connecting');
@@ -130,39 +139,37 @@ class RealtimeManager {
     const subscriptionId = `price_updates_${JSON.stringify(filters || {})}`;
 
     if (this.subscriptions.has(subscriptionId)) {
-      console.warn('Price updates subscription already exists');
+      logger.warn('Price updates subscription already exists');
       return () => this.unsubscribe(subscriptionId);
     }
 
-    let channel = this.client
-      .channel(subscriptionId)
-      .on<PriceRecord>(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'price_records',
-          filter: filters ? this.buildFilter(filters) : undefined,
-        },
-        (payload: RealtimePostgresChangesPayload<PriceRecord>) => {
-          callback({
-            eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            new: payload.new as PriceRecord,
-            old: payload.old as Partial<PriceRecord>,
-            schema: payload.schema,
-            table: payload.table,
-            commit_timestamp: payload.commit_timestamp,
-          });
-        }
-      );
+    let channel = this.client.channel(subscriptionId).on<PriceRecord>(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'price_records',
+        filter: filters ? this.buildFilter(filters) : undefined,
+      },
+      (payload: RealtimePostgresChangesPayload<PriceRecord>) => {
+        callback({
+          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
+          new: payload.new as PriceRecord,
+          old: payload.old as Partial<PriceRecord>,
+          schema: payload.schema,
+          table: payload.table,
+          commit_timestamp: payload.commit_timestamp,
+        });
+      }
+    );
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to price updates');
+        logger.info('Subscribed to price updates');
       } else if (status === 'CLOSED') {
-        console.log('Price updates subscription closed');
+        logger.info('Price updates subscription closed');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('Price updates subscription error');
+        logger.error('Price updates subscription error');
       }
     });
 
@@ -178,39 +185,37 @@ class RealtimeManager {
     const subscriptionId = `alert_events_${userId}`;
 
     if (this.subscriptions.has(subscriptionId)) {
-      console.warn('Alert events subscription already exists');
+      logger.warn('Alert events subscription already exists');
       return () => this.unsubscribe(subscriptionId);
     }
 
-    const channel = this.client
-      .channel(subscriptionId)
-      .on<AlertEvent>(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'alert_events',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: RealtimePostgresChangesPayload<AlertEvent>) => {
-          callback({
-            eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            new: payload.new as AlertEvent,
-            old: payload.old as Partial<AlertEvent>,
-            schema: payload.schema,
-            table: payload.table,
-            commit_timestamp: payload.commit_timestamp,
-          });
-        }
-      );
+    const channel = this.client.channel(subscriptionId).on<AlertEvent>(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'alert_events',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload: RealtimePostgresChangesPayload<AlertEvent>) => {
+        callback({
+          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
+          new: payload.new as AlertEvent,
+          old: payload.old as Partial<AlertEvent>,
+          schema: payload.schema,
+          table: payload.table,
+          commit_timestamp: payload.commit_timestamp,
+        });
+      }
+    );
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to alert events');
+        logger.info('Subscribed to alert events');
       } else if (status === 'CLOSED') {
-        console.log('Alert events subscription closed');
+        logger.info('Alert events subscription closed');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('Alert events subscription error');
+        logger.error('Alert events subscription error');
       }
     });
 
@@ -226,39 +231,37 @@ class RealtimeManager {
     const subscriptionId = `snapshot_changes_${userId}`;
 
     if (this.subscriptions.has(subscriptionId)) {
-      console.warn('Snapshot changes subscription already exists');
+      logger.warn('Snapshot changes subscription already exists');
       return () => this.unsubscribe(subscriptionId);
     }
 
-    const channel = this.client
-      .channel(subscriptionId)
-      .on<UserSnapshot>(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_snapshots',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: RealtimePostgresChangesPayload<UserSnapshot>) => {
-          callback({
-            eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            new: payload.new as UserSnapshot,
-            old: payload.old as Partial<UserSnapshot>,
-            schema: payload.schema,
-            table: payload.table,
-            commit_timestamp: payload.commit_timestamp,
-          });
-        }
-      );
+    const channel = this.client.channel(subscriptionId).on<UserSnapshot>(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_snapshots',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload: RealtimePostgresChangesPayload<UserSnapshot>) => {
+        callback({
+          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
+          new: payload.new as UserSnapshot,
+          old: payload.old as Partial<UserSnapshot>,
+          schema: payload.schema,
+          table: payload.table,
+          commit_timestamp: payload.commit_timestamp,
+        });
+      }
+    );
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to snapshot changes');
+        logger.info('Subscribed to snapshot changes');
       } else if (status === 'CLOSED') {
-        console.log('Snapshot changes subscription closed');
+        logger.info('Snapshot changes subscription closed');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('Snapshot changes subscription error');
+        logger.error('Snapshot changes subscription error');
       }
     });
 
@@ -274,39 +277,37 @@ class RealtimeManager {
     const subscriptionId = `favorite_changes_${userId}`;
 
     if (this.subscriptions.has(subscriptionId)) {
-      console.warn('Favorite changes subscription already exists');
+      logger.warn('Favorite changes subscription already exists');
       return () => this.unsubscribe(subscriptionId);
     }
 
-    const channel = this.client
-      .channel(subscriptionId)
-      .on<UserFavorite>(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_favorites',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: RealtimePostgresChangesPayload<UserFavorite>) => {
-          callback({
-            eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            new: payload.new as UserFavorite,
-            old: payload.old as Partial<UserFavorite>,
-            schema: payload.schema,
-            table: payload.table,
-            commit_timestamp: payload.commit_timestamp,
-          });
-        }
-      );
+    const channel = this.client.channel(subscriptionId).on<UserFavorite>(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_favorites',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload: RealtimePostgresChangesPayload<UserFavorite>) => {
+        callback({
+          eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
+          new: payload.new as UserFavorite,
+          old: payload.old as Partial<UserFavorite>,
+          schema: payload.schema,
+          table: payload.table,
+          commit_timestamp: payload.commit_timestamp,
+        });
+      }
+    );
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('Subscribed to favorite changes');
+        logger.info('Subscribed to favorite changes');
       } else if (status === 'CLOSED') {
-        console.log('Favorite changes subscription closed');
+        logger.info('Favorite changes subscription closed');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('Favorite changes subscription error');
+        logger.error('Favorite changes subscription error');
       }
     });
 
@@ -338,14 +339,14 @@ class RealtimeManager {
     if (channel) {
       channel.unsubscribe();
       this.subscriptions.delete(subscriptionId);
-      console.log(`Unsubscribed from ${subscriptionId}`);
+      logger.info(`Unsubscribed from ${subscriptionId}`);
     }
   }
 
   public unsubscribeAll() {
     this.subscriptions.forEach((channel, subscriptionId) => {
       channel.unsubscribe();
-      console.log(`Unsubscribed from ${subscriptionId}`);
+      logger.info(`Unsubscribed from ${subscriptionId}`);
     });
     this.subscriptions.clear();
   }

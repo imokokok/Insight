@@ -22,7 +22,7 @@ export function ProfilePanel() {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    
+
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -77,12 +77,12 @@ export function ProfilePanel() {
         return;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl + '?t=' + Date.now());
-      
+
       const { error: updateError } = await updateUserProfile(user.id, {
         avatar_url: publicUrl,
       });
@@ -195,16 +195,12 @@ export function ProfilePanel() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700">头像</p>
-              <p className="text-xs text-gray-500 mt-1">
-                支持 JPEG, PNG, GIF, WebP 格式，最大 2MB
-              </p>
+              <p className="text-xs text-gray-500 mt-1">支持 JPEG, PNG, GIF, WebP 格式，最大 2MB</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              显示名称
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">显示名称</label>
             <input
               type="text"
               value={displayName}
@@ -266,9 +262,7 @@ export function ProfilePanel() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  新密码
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">新密码</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -279,9 +273,7 @@ export function ProfilePanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  确认新密码
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">确认新密码</label>
                 <input
                   type="password"
                   value={confirmPassword}

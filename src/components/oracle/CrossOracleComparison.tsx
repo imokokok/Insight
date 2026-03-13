@@ -29,6 +29,9 @@ import {
 import { OracleProvider, Blockchain } from '@/lib/types/oracle';
 import { DashboardCard, MetricCard } from './DashboardCard';
 import { PriceDeviationHistoryChart } from './PriceDeviationHistoryChart';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('CrossOracleComparison');
 
 type SortField = 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name';
 type SortDirection = 'asc' | 'desc' | null;
@@ -94,7 +97,9 @@ export function CrossOracleComparison() {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(30000);
-  const [priceHistory, setPriceHistory] = useState<Record<OracleProvider, number[]>>({} as any);
+  const [priceHistory, setPriceHistory] = useState<Record<OracleProvider, number[]>>(
+    {} as Record<OracleProvider, number[]>
+  );
   const [deviationThreshold, setDeviationThreshold] = useState<number>(1);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'name', direction: null });
 
@@ -165,7 +170,10 @@ export function CrossOracleComparison() {
             responseTime,
           };
         } catch (error) {
-          console.error(`Error fetching price from ${provider}:`, error);
+          logger.error(
+            `Error fetching price from ${provider}`,
+            error instanceof Error ? error : new Error(String(error))
+          );
           return null;
         }
       });
@@ -189,7 +197,10 @@ export function CrossOracleComparison() {
         return newHistory;
       });
     } catch (error) {
-      console.error('Error fetching prices:', error);
+      logger.error(
+        'Error fetching prices',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setIsLoading(false);
     }
@@ -319,7 +330,7 @@ export function CrossOracleComparison() {
   const lineChartData = useMemo(() => {
     const maxLength = Math.max(...Object.values(priceHistory).map((arr) => arr.length));
     return Array.from({ length: maxLength }, (_, i) => {
-      const point: any = { time: i };
+      const point: Record<string, number> = { time: i };
       selectedOracles.forEach((provider) => {
         const history = priceHistory[provider] || [];
         point[oracleNames[provider]] = history[i];

@@ -84,7 +84,7 @@ export class BandProtocolClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
+
       return this.fetchPriceWithDatabase(symbol, chain, () =>
         this.generateMockPrice(symbol, basePrice, chain)
       );
@@ -103,7 +103,7 @@ export class BandProtocolClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
+
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );

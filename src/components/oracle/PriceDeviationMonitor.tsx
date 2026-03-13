@@ -26,6 +26,9 @@ import {
   Blockchain,
 } from '@/lib/oracles';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('PriceDeviationMonitor');
 
 interface DeviationData {
   timestamp: number;
@@ -196,7 +199,10 @@ export function PriceDeviationMonitor() {
       setLoading(false);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
-      console.error('Error fetching prices:', error);
+      logger.error(
+        'Error fetching prices',
+        error instanceof Error ? error : new Error(String(error))
+      );
       setLoading(false);
     }
   }, [symbol, chain, deviationStartTime]);

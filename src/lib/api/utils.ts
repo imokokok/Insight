@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-utils');
 
 export interface ApiErrorResponse {
   error: {
@@ -45,7 +48,7 @@ export const CacheConfig = {
 export function createErrorResponse(options: ApiErrorOptions): NextResponse<ApiErrorResponse> {
   const { code, message, retryable, statusCode } = options;
 
-  console.error(`[API Error] Code: ${code}, Message: ${message}, Retryable: ${retryable}`);
+  logger.error(`API Error - Code: ${code}, Message: ${message}, Retryable: ${retryable}`);
 
   return NextResponse.json(
     {

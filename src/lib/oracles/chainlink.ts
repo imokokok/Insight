@@ -17,8 +17,8 @@ export class ChainlinkClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
-      return this.fetchPriceWithDatabase(symbol, chain, () => 
+
+      return this.fetchPriceWithDatabase(symbol, chain, () =>
         this.generateMockPrice(symbol, basePrice, chain)
       );
     } catch (error) {
@@ -36,7 +36,7 @@ export class ChainlinkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
+
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );

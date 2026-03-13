@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-favorites-id');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -35,65 +41,47 @@ async function getFavoriteById(id: string, userId: string) {
   const queries = getServerQueries();
   const favorites = await queries.getFavorites(userId);
   if (!favorites) return null;
-  return favorites.find(f => f.id === id) || null;
+  return favorites.find((f) => f.id === id) || null;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const favorite = await getFavoriteById(id, userId);
 
     if (!favorite) {
-      return NextResponse.json(
-        { error: 'Favorite not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
     }
 
     return NextResponse.json({ favorite });
   } catch (error) {
-    console.error('Error fetching favorite:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching favorite',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const existingFavorite = await getFavoriteById(id, userId);
 
     if (!existingFavorite) {
-      return NextResponse.json(
-        { error: 'Favorite not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -108,10 +96,7 @@ export async function PUT(
     const updatedFavorite = await queries.updateFavorite(id, updateData);
 
     if (!updatedFavorite) {
-      return NextResponse.json(
-        { error: 'Failed to update favorite' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update favorite' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -119,11 +104,11 @@ export async function PUT(
       message: 'Favorite updated successfully',
     });
   } catch (error) {
-    console.error('Error updating favorite:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error updating favorite',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -136,39 +121,30 @@ export async function DELETE(
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const existingFavorite = await getFavoriteById(id, userId);
 
     if (!existingFavorite) {
-      return NextResponse.json(
-        { error: 'Favorite not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
     }
 
     const queries = getServerQueries();
     const success = await queries.deleteFavorite(id);
 
     if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to delete favorite' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to delete favorite' }, { status: 500 });
     }
 
     return NextResponse.json({
       message: 'Favorite deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting favorite:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error deleting favorite',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

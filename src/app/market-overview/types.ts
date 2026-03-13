@@ -58,6 +58,9 @@ export interface ChainSupportData {
   chains: number;
   protocols: number;
   color: string;
+  share?: number;
+  tvs?: number;
+  change24h?: number;
 }
 
 export interface TimeRange {

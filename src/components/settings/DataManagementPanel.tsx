@@ -28,7 +28,7 @@ export function DataManagementPanel() {
 
   const exportUserData = async () => {
     if (!user) return;
-    
+
     setIsExporting(true);
     setError(null);
 
@@ -111,7 +111,7 @@ export function DataManagementPanel() {
 
   const exportSnapshots = async () => {
     if (!user) return;
-    
+
     setIsExporting(true);
     setError(null);
 
@@ -154,10 +154,10 @@ export function DataManagementPanel() {
     try {
       localStorage.clear();
       sessionStorage.clear();
-      
+
       if ('caches' in window) {
         const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
       setSuccess('本地数据已清除');
@@ -179,9 +179,9 @@ export function DataManagementPanel() {
       await queries.deleteAllFavorites(user.id);
       await queries.deleteAllAlerts(user.id);
       await queries.deleteAllSnapshots(user.id);
-      
+
       const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
-      
+
       if (deleteError) {
         setError('删除账户失败，请联系管理员');
         return;
@@ -258,9 +258,7 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">导出价格历史</div>
-                    <div className="text-sm text-gray-500">
-                      导出最近 10000 条价格记录
-                    </div>
+                    <div className="text-sm text-gray-500">导出最近 10000 条价格记录</div>
                   </div>
                 </div>
                 <button
@@ -286,9 +284,7 @@ export function DataManagementPanel() {
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">导出快照</div>
-                    <div className="text-sm text-gray-500">
-                      导出您保存的所有价格快照
-                    </div>
+                    <div className="text-sm text-gray-500">导出您保存的所有价格快照</div>
                   </div>
                 </div>
                 <button
@@ -324,7 +320,9 @@ export function DataManagementPanel() {
               <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">注意</p>
-                <p className="mt-1">清除本地数据将删除您的偏好设置和缓存数据，但不会影响服务器上的数据。</p>
+                <p className="mt-1">
+                  清除本地数据将删除您的偏好设置和缓存数据，但不会影响服务器上的数据。
+                </p>
               </div>
             </div>
           </div>

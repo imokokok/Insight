@@ -2,6 +2,9 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { TimeRange } from '@/components/oracle/TabNavigation';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('TimeRangeContext');
 
 const STORAGE_KEYS = {
   TIME_RANGE: 'insight_timeRange',
@@ -48,7 +51,10 @@ function getStoredTimeRange(defaultValue: TimeRange): TimeRange {
       return stored as TimeRange;
     }
   } catch (error) {
-    console.warn('Failed to read timeRange from localStorage:', error);
+    logger.warn(
+      'Failed to read timeRange from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return defaultValue;
 }
@@ -61,7 +67,10 @@ function getStoredSyncEnabled(defaultValue: boolean): boolean {
       return stored === 'true';
     }
   } catch (error) {
-    console.warn('Failed to read syncEnabled from localStorage:', error);
+    logger.warn(
+      'Failed to read syncEnabled from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return defaultValue;
 }
@@ -78,7 +87,10 @@ function getStoredCustomDateRange(): CustomDateRange | null {
       };
     }
   } catch (error) {
-    console.warn('Failed to read customDateRange from localStorage:', error);
+    logger.warn(
+      'Failed to read customDateRange from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return null;
 }
@@ -112,7 +124,10 @@ export function TimeRangeProvider({
       localStorage.setItem(STORAGE_KEYS.TIME_RANGE, range);
       localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
     } catch (error) {
-      console.warn('Failed to save timeRange to localStorage:', error);
+      logger.warn(
+        'Failed to save timeRange to localStorage',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }, []);
 
@@ -121,7 +136,10 @@ export function TimeRangeProvider({
     try {
       localStorage.setItem(STORAGE_KEYS.SYNC_ENABLED, String(enabled));
     } catch (error) {
-      console.warn('Failed to save syncEnabled to localStorage:', error);
+      logger.warn(
+        'Failed to save syncEnabled to localStorage',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }, []);
 
@@ -139,13 +157,19 @@ export function TimeRangeProvider({
         );
         localStorage.setItem(STORAGE_KEYS.TIME_RANGE, 'ALL');
       } catch (error) {
-        console.warn('Failed to save customDateRange to localStorage:', error);
+        logger.warn(
+          'Failed to save customDateRange to localStorage',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     } else {
       try {
         localStorage.removeItem(STORAGE_KEYS.CUSTOM_DATE_RANGE);
       } catch (error) {
-        console.warn('Failed to remove customDateRange from localStorage:', error);
+        logger.warn(
+          'Failed to remove customDateRange from localStorage',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
   }, []);
@@ -171,7 +195,10 @@ export function TimeRangeProvider({
             endDate: new Date(parsed.endDate),
           });
         } catch (error) {
-          console.warn('Failed to parse customDateRange from storage event:', error);
+          logger.warn(
+            'Failed to parse customDateRange from storage event',
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       }
     };

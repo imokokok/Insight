@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   PieChart,
@@ -17,6 +17,7 @@ import {
   Bar,
   ReferenceLine,
 } from 'recharts';
+import { TooltipProps, CustomLabelProps } from '@/lib/types/recharts';
 import {
   PieChart as PieChartIcon,
   TrendingUp,
@@ -29,6 +30,8 @@ import {
   ChevronRight,
   Info,
 } from 'lucide-react';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // 专业配色方案
 const COLORS = {
@@ -79,6 +82,15 @@ const timeRanges = [
 type ChartType = 'pie' | 'trend' | 'bar';
 type ViewType = 'chart' | 'table';
 
+interface MarketShareDataItem {
+  name: string;
+  value: number;
+  color: string;
+  tvs: string;
+  chains: number;
+  protocols?: number;
+}
+
 export default function OracleMarketOverview() {
   const { t, locale } = useI18n();
   const [selectedRange, setSelectedRange] = useState('30D');
@@ -86,6 +98,15 @@ export default function OracleMarketOverview() {
   const [viewType, setViewType] = useState<ViewType>('chart');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 计算统计数据
   const stats = useMemo(() => {
@@ -107,7 +128,15 @@ export default function OracleMarketOverview() {
     };
   }, []);
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+  }: CustomLabelProps) => {
+    if (!cx || !cy || !midAngle || !innerRadius || !outerRadius || !percent) return null;
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -127,12 +156,12 @@ export default function OracleMarketOverview() {
     );
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<MarketShareDataItem>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
           <p className="font-semibold text-gray-900 mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
@@ -348,7 +377,7 @@ export default function OracleMarketOverview() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((item: any, index: number) => (
+            {data.map((item, index: number) => (
               <tr
                 key={item.name}
                 className={`hover:bg-blue-50 transition-colors cursor-pointer ${
@@ -366,17 +395,19 @@ export default function OracleMarketOverview() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-semibold text-gray-900">
-                    {activeChart === 'pie' ? `${item.value}%` : item.chains}
+                    {activeChart === 'pie' ? `${'value' in item ? item.value : 0}%` : item.chains}
                   </span>
                 </td>
                 {activeChart === 'bar' && (
                   <td className="px-4 py-3 text-right">
-                    <span className="text-gray-600">{item.protocols}</span>
+                    <span className="text-gray-600">
+                      {'protocols' in item ? item.protocols : 0}
+                    </span>
                   </td>
                 )}
                 {activeChart === 'pie' && (
                   <td className="px-4 py-3 text-right">
-                    <span className="text-gray-600">{item.tvs}</span>
+                    <span className="text-gray-600">{'tvs' in item ? item.tvs : ''}</span>
                   </td>
                 )}
               </tr>
@@ -576,7 +607,7 @@ export default function OracleMarketOverview() {
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
-              {selectedItem && (
+              {selectedItem && !isLoading && (
                 <button
                   onClick={() => setSelectedItem(null)}
                   className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
@@ -587,11 +618,19 @@ export default function OracleMarketOverview() {
               )}
             </div>
             <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
-              <ResponsiveContainer width="100%" height="100%">
-                {renderChart()}
-              </ResponsiveContainer>
+              {isLoading ? (
+                <ChartSkeleton
+                  height={viewType === 'table' ? 360 : 400}
+                  variant={activeChart === 'pie' ? 'area' : activeChart === 'bar' ? 'bar' : 'price'}
+                  showToolbar={false}
+                />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChart()}
+                </ResponsiveContainer>
+              )}
             </div>
-            {viewType === 'chart' && (
+            {!isLoading && viewType === 'chart' && (
               <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
                 <Info className="w-4 h-4" />
                 {locale === 'zh-CN'

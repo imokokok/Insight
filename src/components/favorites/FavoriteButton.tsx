@@ -4,6 +4,9 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToggleFavorite, useIsFavorited, FavoriteConfig } from '@/hooks/useFavorites';
 import type { ConfigType } from '@/lib/supabase/database.types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('FavoriteButton');
 
 interface FavoriteButtonProps {
   configType: ConfigType;
@@ -44,7 +47,10 @@ export function FavoriteButton({
         const result = await toggleFavorite(name, configType, configData);
         onFavoriteChange?.(result.action === 'added');
       } catch (error) {
-        console.error('Failed to toggle favorite:', error);
+        logger.error(
+          'Failed to toggle favorite',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     },
     [user, name, configType, configData, toggleFavorite, onFavoriteChange]
@@ -104,11 +110,7 @@ export function FavoriteButton({
         onMouseLeave={() => setShowTooltip(false)}
       >
         {isToggling ? (
-          <svg
-            className={`${iconSize} text-gray-400 animate-spin`}
-            fill="none"
-            viewBox="0 0 24 24"
-          >
+          <svg className={`${iconSize} text-gray-400 animate-spin`} fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
               cx="12"
@@ -141,7 +143,14 @@ export function FavoriteButton({
       >
         {isToggling ? (
           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path
               className="opacity-75"
               fill="currentColor"
@@ -168,7 +177,14 @@ export function FavoriteButton({
     >
       {isToggling ? (
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
           <path
             className="opacity-75"
             fill="currentColor"

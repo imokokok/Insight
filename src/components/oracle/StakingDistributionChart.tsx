@@ -56,9 +56,15 @@ const CustomTooltip = ({ active, payload, t }: CustomTooltipProps) => {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
         <p className="font-medium text-gray-900">{data.name}</p>
-        <p className="text-sm text-gray-600 mt-1">{t('stakingDistribution.stakeAmount')}: {formatNumber(data.value, true)} BAND</p>
-        <p className="text-sm text-gray-600">{t('stakingDistribution.ratio')}: {data.percentage.toFixed(2)}%</p>
-        {data.validator && <p className="text-xs text-gray-400 mt-1">{t('stakingDistribution.clickForDetails')}</p>}
+        <p className="text-sm text-gray-600 mt-1">
+          {t('stakingDistribution.stakeAmount')}: {formatNumber(data.value, true)} BAND
+        </p>
+        <p className="text-sm text-gray-600">
+          {t('stakingDistribution.ratio')}: {data.percentage.toFixed(2)}%
+        </p>
+        {data.validator && (
+          <p className="text-xs text-gray-400 mt-1">{t('stakingDistribution.clickForDetails')}</p>
+        )}
       </div>
     );
   }
@@ -201,7 +207,9 @@ export function StakingDistributionChart({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-700">{t('stakingDistribution.top10StakeRatio')}</h4>
+              <h4 className="text-sm font-medium text-gray-700">
+                {t('stakingDistribution.top10StakeRatio')}
+              </h4>
               <span className="text-xs text-gray-500">
                 {t('stakingDistribution.totalStake')}: {formatNumber(totalStake, true)} BAND
               </span>
@@ -240,7 +248,9 @@ export function StakingDistributionChart({
               className={`border-2 ${riskConfig.borderColor} ${riskConfig.bgColor} rounded-xl p-4`}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-700">{t('stakingDistribution.nakamotoCoefficient')}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {t('stakingDistribution.nakamotoCoefficient')}
+                </span>
                 <span
                   className={`px-3 py-1 text-xs font-semibold rounded-full ${riskConfig.bgColor} ${riskConfig.color}`}
                 >
@@ -251,7 +261,9 @@ export function StakingDistributionChart({
                 <span className={`text-4xl font-bold ${riskConfig.color}`}>
                   {metrics.nakamotoCoefficient}
                 </span>
-                <span className="text-sm text-gray-500 mb-2">{t('stakingDistribution.validators')}</span>
+                <span className="text-sm text-gray-500 mb-2">
+                  {t('stakingDistribution.validators')}
+                </span>
               </div>
               <p className="text-xs text-gray-600 mt-2">
                 {t('stakingDistribution.nakamotoDesc', { count: metrics.nakamotoCoefficient })}
@@ -300,35 +312,47 @@ export function StakingDistributionChart({
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.herfindahlIndex')}</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t('stakingDistribution.herfindahlIndex')}
+                  </p>
                   <p className="text-xl font-bold text-gray-900">
                     {metrics.herfindahlIndex.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top10Ratio')}</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t('stakingDistribution.top10Ratio')}
+                  </p>
                   <p className="text-xl font-bold text-gray-900">
                     {metrics.top10Percentage.toFixed(1)}%
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
-                {t('stakingDistribution.hhiDesc')}
-              </p>
+              <p className="text-xs text-gray-400 mt-2">{t('stakingDistribution.hhiDesc')}</p>
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('stakingDistribution.validatorDetails')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('stakingDistribution.validatorDetails')}
+          </h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.rank')}</th>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.validator')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.stakeAmount')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.ratio')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('stakingDistribution.rank')}
+                  </th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('stakingDistribution.validator')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('stakingDistribution.stakeAmount')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('stakingDistribution.ratio')}
+                  </th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
                     {t('stakingDistribution.cumulativeRatio')}
                   </th>
@@ -433,9 +457,13 @@ export function StakingDistributionChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800">{t('stakingDistribution.concentrationWarning')}</h4>
+                <h4 className="text-sm font-semibold text-red-800">
+                  {t('stakingDistribution.concentrationWarning')}
+                </h4>
                 <p className="text-sm text-red-700 mt-1">
-                  {t('stakingDistribution.concentrationWarningDesc', { count: metrics.nakamotoCoefficient })}
+                  {t('stakingDistribution.concentrationWarningDesc', {
+                    count: metrics.nakamotoCoefficient,
+                  })}
                 </p>
               </div>
             </div>
@@ -459,7 +487,9 @@ export function StakingDistributionChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-orange-800">{t('stakingDistribution.concentrationReminder')}</h4>
+                <h4 className="text-sm font-semibold text-orange-800">
+                  {t('stakingDistribution.concentrationReminder')}
+                </h4>
                 <p className="text-sm text-orange-700 mt-1">
                   {t('stakingDistribution.concentrationReminderDesc')}
                 </p>
@@ -469,7 +499,9 @@ export function StakingDistributionChart({
         )}
 
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('stakingDistribution.metricsExplanation')}</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">
+            {t('stakingDistribution.metricsExplanation')}
+          </h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>
               • <span className="font-medium">{t('stakingDistribution.nakamotoExplanation')}</span>

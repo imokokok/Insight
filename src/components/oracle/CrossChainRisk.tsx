@@ -153,9 +153,14 @@ export function CrossChainRisk() {
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-yellow-800">{t('crossChainRisk.arbitrageOpportunity.title')}</h4>
+                <h4 className="text-sm font-medium text-yellow-800">
+                  {t('crossChainRisk.arbitrageOpportunity.title')}
+                </h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  {t('crossChainRisk.arbitrageOpportunity.description', { count: arbitrageOpportunities.length, threshold: ARBITRAGE_THRESHOLD })}
+                  {t('crossChainRisk.arbitrageOpportunity.description', {
+                    count: arbitrageOpportunities.length,
+                    threshold: ARBITRAGE_THRESHOLD,
+                  })}
                 </p>
               </div>
             </div>
@@ -164,7 +169,9 @@ export function CrossChainRisk() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.supportedChains')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('crossChainRisk.stats.supportedChains')}
+            </p>
             <p className="text-xl font-bold text-gray-900">{chainData.length}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -190,19 +197,31 @@ export function CrossChainRisk() {
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainRisk.priceDetails.title')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('crossChainRisk.priceDetails.title')}
+          </h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.chain')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.price')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.deviation')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.latency')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainRisk.priceDetails.chain')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainRisk.priceDetails.price')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainRisk.priceDetails.deviation')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainRisk.priceDetails.latency')}
+                  </th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
                     {t('crossChainRisk.priceDetails.updateTime')}
                   </th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.status')}</th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainRisk.priceDetails.status')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -245,7 +264,9 @@ export function CrossChainRisk() {
 
         {arbitrageOpportunities.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainRisk.arbitrage.title')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('crossChainRisk.arbitrage.title')}
+            </h4>
             <div className="space-y-2">
               {arbitrageOpportunities.map((opp, index) => (
                 <div
@@ -270,17 +291,23 @@ export function CrossChainRisk() {
                       </svg>
                       <span className="text-sm font-medium text-gray-900">{opp.sellChain}</span>
                     </div>
-                    <span className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.buyToSell')}</span>
+                    <span className="text-xs text-gray-500">
+                      {t('crossChainRisk.arbitrage.buyToSell')}
+                    </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.priceDiff')}</p>
+                      <p className="text-xs text-gray-500">
+                        {t('crossChainRisk.arbitrage.priceDiff')}
+                      </p>
                       <p className="text-sm font-medium text-yellow-600">
                         {opp.priceDiffPercent.toFixed(3)}%
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.estimatedProfit')}</p>
+                      <p className="text-xs text-gray-500">
+                        {t('crossChainRisk.arbitrage.estimatedProfit')}
+                      </p>
                       <p className="text-sm font-medium text-green-600">{opp.estimatedProfit}</p>
                     </div>
                   </div>
@@ -292,20 +319,28 @@ export function CrossChainRisk() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">{t('crossChainRisk.latencyRisk.title')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              {t('crossChainRisk.latencyRisk.title')}
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.avgLatency')}</span>
+                <span className="text-xs text-gray-600">
+                  {t('crossChainRisk.latencyRisk.avgLatency')}
+                </span>
                 <span className="text-sm font-medium text-gray-900">{avgLatency}ms</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.maxLatency')}</span>
+                <span className="text-xs text-gray-600">
+                  {t('crossChainRisk.latencyRisk.maxLatency')}
+                </span>
                 <span className="text-sm font-medium text-gray-900">
                   {Math.max(...chainData.map((c) => c.latency))}ms
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.minLatency')}</span>
+                <span className="text-xs text-gray-600">
+                  {t('crossChainRisk.latencyRisk.minLatency')}
+                </span>
                 <span className="text-sm font-medium text-gray-900">
                   {Math.min(...chainData.map((c) => c.latency))}ms
                 </span>
@@ -316,18 +351,23 @@ export function CrossChainRisk() {
                   style={{ width: `${Math.min((avgLatency / 300) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {getLatencyDescription(avgLatency)}
-              </p>
+              <p className="text-xs text-gray-500 mt-2">{getLatencyDescription(avgLatency)}</p>
             </div>
           </div>
 
           <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('crossChainRisk.consistencyNote.title')}</h4>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">
+              {t('crossChainRisk.consistencyNote.title')}
+            </h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• {t('crossChainRisk.consistencyNote.wormhole')}</li>
               <li>• {t('crossChainRisk.consistencyNote.idealCase')}</li>
-              <li>• {t('crossChainRisk.consistencyNote.arbitrageThreshold', { threshold: ARBITRAGE_THRESHOLD })}</li>
+              <li>
+                •{' '}
+                {t('crossChainRisk.consistencyNote.arbitrageThreshold', {
+                  threshold: ARBITRAGE_THRESHOLD,
+                })}
+              </li>
               <li>• {t('crossChainRisk.consistencyNote.highLatencyRisk')}</li>
             </ul>
           </div>

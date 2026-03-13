@@ -66,9 +66,7 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
           <div className="ml-3 w-0 flex-1 pt-0.5">
             <p className="text-sm font-medium text-gray-900">价格告警触发</p>
             <p className="mt-1 text-sm text-gray-500">{event.condition_met}</p>
-            <p className="mt-1 text-xs text-gray-400">
-              触发价格: {event.price.toFixed(4)}
-            </p>
+            <p className="mt-1 text-xs text-gray-400">触发价格: {event.price.toFixed(4)}</p>
             <p className="text-xs text-gray-400">
               时间: {new Date(event.triggered_at).toLocaleString('zh-CN')}
             </p>

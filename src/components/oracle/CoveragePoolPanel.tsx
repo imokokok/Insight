@@ -27,9 +27,24 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
   const { t } = useI18n();
 
   const getCoverageStatus = (ratio: number) => {
-    if (ratio >= 50) return { label: t('coveragePool.status.excellent'), color: 'text-green-600', bgColor: 'bg-green-100' };
-    if (ratio >= 30) return { label: t('coveragePool.status.good'), color: 'text-emerald-600', bgColor: 'bg-emerald-100' };
-    if (ratio >= 20) return { label: t('coveragePool.status.fair'), color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+    if (ratio >= 50)
+      return {
+        label: t('coveragePool.status.excellent'),
+        color: 'text-green-600',
+        bgColor: 'bg-green-100',
+      };
+    if (ratio >= 30)
+      return {
+        label: t('coveragePool.status.good'),
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-100',
+      };
+    if (ratio >= 20)
+      return {
+        label: t('coveragePool.status.fair'),
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-100',
+      };
     return { label: t('coveragePool.status.low'), color: 'text-red-600', bgColor: 'bg-red-100' };
   };
 
@@ -136,7 +151,9 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
               </svg>
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-gray-900 mb-1">{t('coveragePool.mechanismTitle')}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                {t('coveragePool.mechanismTitle')}
+              </h4>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {t('coveragePool.mechanismDescription')}
               </p>

@@ -1,6 +1,9 @@
 import { supabase } from '../supabase/client';
 import { OracleSnapshot, SnapshotStats } from '../types/snapshot';
 import { OracleProvider, PriceData } from '../types/oracle';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('snapshot-database');
 
 export interface DatabaseSnapshot {
   id: string;
@@ -44,7 +47,10 @@ export async function saveSnapshotToDatabase(
     .single();
 
   if (error) {
-    console.error('Failed to save snapshot to database:', error);
+    logger.error(
+      'Failed to save snapshot to database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 
@@ -59,7 +65,10 @@ export async function getSnapshotsFromDatabase(userId: string): Promise<OracleSn
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Failed to get snapshots from database:', error);
+    logger.error(
+      'Failed to get snapshots from database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return [];
   }
 
@@ -67,15 +76,14 @@ export async function getSnapshotsFromDatabase(userId: string): Promise<OracleSn
 }
 
 export async function getSnapshotById(id: string): Promise<OracleSnapshot | null> {
-  const { data, error } = await supabase
-    .from('user_snapshots')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data, error } = await supabase.from('user_snapshots').select('*').eq('id', id).single();
 
   if (error) {
     if (error.code !== 'PGRST116') {
-      console.error('Failed to get snapshot by id:', error);
+      logger.error(
+        'Failed to get snapshot by id',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
     return null;
   }
@@ -93,7 +101,10 @@ export async function getPublicSnapshot(id: string): Promise<OracleSnapshot | nu
 
   if (error) {
     if (error.code !== 'PGRST116') {
-      console.error('Failed to get public snapshot:', error);
+      logger.error(
+        'Failed to get public snapshot',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
     return null;
   }
@@ -133,7 +144,10 @@ export async function updateSnapshot(
     .single();
 
   if (error) {
-    console.error('Failed to update snapshot:', error);
+    logger.error(
+      'Failed to update snapshot',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 
@@ -141,13 +155,13 @@ export async function updateSnapshot(
 }
 
 export async function deleteSnapshotFromDatabase(id: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('user_snapshots')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('user_snapshots').delete().eq('id', id);
 
   if (error) {
-    console.error('Failed to delete snapshot from database:', error);
+    logger.error(
+      'Failed to delete snapshot from database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 
@@ -163,7 +177,10 @@ export async function shareSnapshot(id: string): Promise<string | null> {
     .single();
 
   if (error) {
-    console.error('Failed to share snapshot:', error);
+    logger.error(
+      'Failed to share snapshot',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 
@@ -177,7 +194,10 @@ export async function unshareSnapshot(id: string): Promise<boolean> {
     .eq('id', id);
 
   if (error) {
-    console.error('Failed to unshare snapshot:', error);
+    logger.error(
+      'Failed to unshare snapshot',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 

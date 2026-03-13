@@ -154,7 +154,11 @@ function CopyButton({ text, t }: { text: string; t: (key: string) => string }) {
     <button
       onClick={handleCopy}
       className="p-1.5 rounded hover:bg-gray-100 transition-colors group"
-      title={copied ? t('dataSourceTraceability.panel.copied') : t('dataSourceTraceability.panel.copyAddress')}
+      title={
+        copied
+          ? t('dataSourceTraceability.panel.copied')
+          : t('dataSourceTraceability.panel.copyAddress')
+      }
     >
       {copied ? (
         <svg
@@ -198,7 +202,9 @@ function DataFlowDiagram({ t }: { t: (key: string) => string }) {
             />
           </svg>
         </div>
-        <span className="text-xs text-gray-500 mt-1">{t('dataSourceTraceability.panel.dataSource')}</span>
+        <span className="text-xs text-gray-500 mt-1">
+          {t('dataSourceTraceability.panel.dataSource')}
+        </span>
       </div>
 
       <div className="flex items-center">
@@ -319,7 +325,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-xs text-gray-500">{t('dataSourceTraceability.panel.credibilityScore')}</p>
+              <p className="text-xs text-gray-500">
+                {t('dataSourceTraceability.panel.credibilityScore')}
+              </p>
               <CircularProgress score={source.credibilityScore} size={50} strokeWidth={5} />
             </div>
             <svg
@@ -351,7 +359,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500">{t('dataSourceTraceability.panel.airnodeAddress')}</span>
+                <span className="text-xs font-medium text-gray-500">
+                  {t('dataSourceTraceability.panel.airnodeAddress')}
+                </span>
                 <CopyButton text={source.airnodeAddress} t={t} />
               </div>
               <p className="text-xs font-mono text-gray-700 break-all">{source.airnodeAddress}</p>
@@ -359,7 +369,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
 
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500">{t('dataSourceTraceability.panel.dapiContractAddress')}</span>
+                <span className="text-xs font-medium text-gray-500">
+                  {t('dataSourceTraceability.panel.dapiContractAddress')}
+                </span>
                 <CopyButton text={source.dapiContract} t={t} />
               </div>
               <p className="text-xs font-mono text-gray-700 break-all">{source.dapiContract}</p>
@@ -386,7 +398,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.accuracy')}</span>
+                  <span className="text-xs text-gray-500">
+                    {t('dataSourceTraceability.panel.accuracy')}
+                  </span>
                 </div>
                 <p className={`text-lg font-bold ${getScoreColorClass(source.accuracy)}`}>
                   {source.accuracy}%
@@ -409,7 +423,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
                       d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.responseSpeed')}</span>
+                  <span className="text-xs text-gray-500">
+                    {t('dataSourceTraceability.panel.responseSpeed')}
+                  </span>
                 </div>
                 <p
                   className={`text-lg font-bold ${source.responseSpeed < 100 ? 'text-green-600' : source.responseSpeed < 150 ? 'text-blue-600' : 'text-yellow-600'}`}
@@ -434,7 +450,9 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.availability')}</span>
+                  <span className="text-xs text-gray-500">
+                    {t('dataSourceTraceability.panel.availability')}
+                  </span>
                 </div>
                 <p className={`text-lg font-bold ${getScoreColorClass(source.availability)}`}>
                   {source.availability}%
@@ -451,7 +469,7 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
 
 export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPanelProps) {
   const { t } = useI18n();
-  
+
   const avgCredibility =
     data.length > 0
       ? Math.round(data.reduce((sum, s) => sum + s.credibilityScore, 0) / data.length)
@@ -469,29 +487,39 @@ export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPane
     <DashboardCard>
       <div className="space-y-6">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">{t('dataSourceTraceability.panel.title')}</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            {t('dataSourceTraceability.panel.title')}
+          </h3>
           <p className="text-sm text-gray-500 mt-1">{t('dataSourceTraceability.panel.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50 rounded-lg">
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.dataSourceCount')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('dataSourceTraceability.panel.dataSourceCount')}
+            </p>
             <p className="text-2xl font-bold text-gray-900">{data.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.avgCredibility')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('dataSourceTraceability.panel.avgCredibility')}
+            </p>
             <div className="flex items-center justify-center">
               <CircularProgress score={avgCredibility} size={50} strokeWidth={5} />
             </div>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.exchange')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('dataSourceTraceability.panel.exchange')}
+            </p>
             <p className="text-2xl font-bold text-purple-600">
               {typeDistribution['exchange'] || 0}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.traditionalFinance')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('dataSourceTraceability.panel.traditionalFinance')}
+            </p>
             <p className="text-2xl font-bold text-blue-600">
               {typeDistribution['traditional_finance'] || 0}
             </p>

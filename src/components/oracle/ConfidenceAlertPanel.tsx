@@ -115,7 +115,10 @@ function formatTime(timestamp: number): string {
   });
 }
 
-function formatDuration(ms: number, t: (key: string, params?: Record<string, string | number>) => string): string {
+function formatDuration(
+  ms: number,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   if (minutes > 0) {
@@ -441,9 +444,12 @@ export function ConfidenceAlertPanel({
 
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-blue-600">{t('confidenceAlert.threshold')}: {threshold.toFixed(4)}</span>
             <span className="text-xs text-blue-600">
-              {t('confidenceAlert.current')}: {isAboveThreshold ? t('confidenceAlert.exceeded') : t('confidenceAlert.normal')}
+              {t('confidenceAlert.threshold')}: {threshold.toFixed(4)}
+            </span>
+            <span className="text-xs text-blue-600">
+              {t('confidenceAlert.current')}:{' '}
+              {isAboveThreshold ? t('confidenceAlert.exceeded') : t('confidenceAlert.normal')}
             </span>
           </div>
           <div className="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
@@ -551,14 +557,18 @@ export function ConfidenceAlertPanel({
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                         <div>
-                          <span className="text-gray-500">{t('confidenceAlert.currentWidthLabel')}</span>
+                          <span className="text-gray-500">
+                            {t('confidenceAlert.currentWidthLabel')}
+                          </span>
                           <span className="ml-1 font-medium text-gray-900">
                             {alert.details.currentWidth.toFixed(6)}
                           </span>
                         </div>
                         {alert.details.previousWidth !== undefined && (
                           <div>
-                            <span className="text-gray-500">{t('confidenceAlert.previousWidthLabel')}</span>
+                            <span className="text-gray-500">
+                              {t('confidenceAlert.previousWidthLabel')}
+                            </span>
                             <span className="ml-1 font-medium text-gray-900">
                               {alert.details.previousWidth.toFixed(6)}
                             </span>
@@ -566,7 +576,9 @@ export function ConfidenceAlertPanel({
                         )}
                         {alert.details.expansionPercent !== undefined && (
                           <div>
-                            <span className="text-gray-500">{t('confidenceAlert.expansionPercentLabel')}</span>
+                            <span className="text-gray-500">
+                              {t('confidenceAlert.expansionPercentLabel')}
+                            </span>
                             <span className="ml-1 font-medium text-red-600">
                               +{alert.details.expansionPercent.toFixed(1)}%
                             </span>
@@ -574,14 +586,18 @@ export function ConfidenceAlertPanel({
                         )}
                         {alert.details.duration !== undefined && (
                           <div>
-                            <span className="text-gray-500">{t('confidenceAlert.durationLabel')}</span>
+                            <span className="text-gray-500">
+                              {t('confidenceAlert.durationLabel')}
+                            </span>
                             <span className="ml-1 font-medium text-orange-600">
                               {formatDuration(alert.details.duration, t)}
                             </span>
                           </div>
                         )}
                         <div>
-                          <span className="text-gray-500">{t('confidenceAlert.thresholdLabel')}</span>
+                          <span className="text-gray-500">
+                            {t('confidenceAlert.thresholdLabel')}
+                          </span>
                           <span className="ml-1 font-medium text-gray-900">
                             {alert.details.threshold.toFixed(4)}
                           </span>
@@ -596,11 +612,15 @@ export function ConfidenceAlertPanel({
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">{t('confidenceAlert.alertStats')}</h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-3">
+            {t('confidenceAlert.alertStats')}
+          </h4>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">{t('confidenceAlert.suddenExpansion')}</span>
+                <span className="text-xs text-gray-500">
+                  {t('confidenceAlert.suddenExpansion')}
+                </span>
                 <span className="text-sm font-bold text-gray-900">
                   {stats.suddenExpansionCount}
                 </span>
@@ -639,7 +659,9 @@ export function ConfidenceAlertPanel({
           </div>
         </div>
 
-        <div className="text-xs text-gray-400 text-right">{t('confidenceAlert.lastCheck')}: {formatTime(lastCheck)}</div>
+        <div className="text-xs text-gray-400 text-right">
+          {t('confidenceAlert.lastCheck')}: {formatTime(lastCheck)}
+        </div>
       </div>
     </DashboardCard>
   );

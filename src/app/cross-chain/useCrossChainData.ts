@@ -8,6 +8,7 @@ import {
   UMAClient,
   PythNetworkClient,
   API3Client,
+  BaseOracleClient,
 } from '@/lib/oracles';
 import {
   HeatmapData,
@@ -27,6 +28,9 @@ import {
   calculateSMA,
 } from './utils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('useCrossChainData');
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -77,7 +81,7 @@ export interface UseCrossChainDataReturn {
   showRefreshSuccess: boolean;
   recommendedBaseChain: Blockchain | null;
   supportedChains: Blockchain[];
-  currentClient: any;
+  currentClient: BaseOracleClient;
   fetchData: () => Promise<void>;
   filteredChains: Blockchain[];
   priceDifferences: PriceDifference[];
@@ -110,7 +114,14 @@ export interface UseCrossChainDataReturn {
     price: number;
     deviation: number;
   }[];
-  scatterData: any[];
+  scatterData: Array<
+    Partial<ChartDataPoint> & {
+      outlierChain: Blockchain;
+      outlierPrice: number;
+      deviation: number;
+      timestamp: number;
+    }
+  >;
   correlationMatrix: Partial<Record<Blockchain, Partial<Record<Blockchain, number>>>>;
   chainVolatility: Partial<Record<Blockchain, number>>;
   updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
@@ -253,7 +264,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       setShowRefreshSuccess(true);
       setTimeout(() => setShowRefreshSuccess(false), 2000);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error(
+        'Error fetching data',
+        error instanceof Error ? error : new Error(String(error))
+      );
       setRefreshStatus('error');
     } finally {
       setLoading(false);
@@ -622,6 +636,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
           outlierChain: outlier.chain,
           outlierPrice: outlier.price,
           deviation: outlier.deviation,
+          timestamp: outlier.timestamp,
         };
       })
       .filter((d) => d.timestamp);

@@ -1,7 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Mail, Globe, AlertTriangle, TrendingUp, Save, Loader2, CheckCircle } from 'lucide-react';
+import {
+  Bell,
+  Mail,
+  Globe,
+  AlertTriangle,
+  TrendingUp,
+  Save,
+  Loader2,
+  CheckCircle,
+} from 'lucide-react';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('NotificationPanel');
 
 interface NotificationSettings {
   emailNotifications: boolean;
@@ -34,7 +46,10 @@ export function NotificationPanel() {
         const parsed = JSON.parse(saved);
         setSettings({ ...defaultSettings, ...parsed });
       } catch (e) {
-        console.error('Failed to parse notification settings:', e);
+        logger.error(
+          'Failed to parse notification settings',
+          e instanceof Error ? e : new Error(String(e))
+        );
       }
     }
 
@@ -47,7 +62,7 @@ export function NotificationPanel() {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       const permission = await Notification.requestPermission();
       setBrowserPermission(permission);
-      
+
       if (permission === 'denied') {
         alert('浏览器通知权限被拒绝。请在浏览器设置中允许通知。');
       }
@@ -56,14 +71,14 @@ export function NotificationPanel() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    
+
     setIsSaving(false);
     setSuccess('通知设置已保存');
-    
+
     setTimeout(() => setSuccess(null), 3000);
   };
 
@@ -71,15 +86,15 @@ export function NotificationPanel() {
     key: K,
     value: NotificationSettings[K]
   ) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const Toggle = ({ 
-    enabled, 
-    onChange, 
-    disabled = false 
-  }: { 
-    enabled: boolean; 
+  const Toggle = ({
+    enabled,
+    onChange,
+    disabled = false,
+  }: {
+    enabled: boolean;
     onChange: (value: boolean) => void;
     disabled?: boolean;
   }) => (
@@ -229,9 +244,7 @@ export function NotificationPanel() {
 
           {settings.priceChangeEnabled && (
             <div className="pl-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                变动阈值 (%)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">变动阈值 (%)</label>
               <div className="flex items-center gap-4">
                 <input
                   type="range"
@@ -262,11 +275,7 @@ export function NotificationPanel() {
           disabled={isSaving}
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           保存设置
         </button>
       </div>

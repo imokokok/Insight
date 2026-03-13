@@ -21,6 +21,8 @@ import {
   Bar,
   Legend,
 } from 'recharts';
+import { TooltipProps } from '@/lib/types/recharts';
+import { OracleMarketData } from './types';
 import {
   PieChart as PieChartIcon,
   TrendingUp,
@@ -80,12 +82,12 @@ export default function MarketOverviewPage() {
   } = data;
 
   // 自定义Tooltip组件
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<OracleMarketData>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
           <p className="font-medium text-gray-900 mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
@@ -262,7 +264,7 @@ export default function MarketOverviewPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((item: any, index: number) => (
+            {data.map((item, index: number) => (
               <tr
                 key={item.name}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
@@ -291,16 +293,16 @@ export default function MarketOverviewPage() {
                 {activeChart === 'pie' && (
                   <>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{item.tvs}</span>
+                      <span className="text-gray-600">{item.tvs ?? 0}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
                         className={`font-medium ${
-                          item.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                          (item.change24h ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
-                        {item.change24h >= 0 ? '+' : ''}
-                        {item.change24h.toFixed(2)}%
+                        {(item.change24h ?? 0) >= 0 ? '+' : ''}
+                        {(item.change24h ?? 0).toFixed(2)}%
                       </span>
                     </td>
                   </>

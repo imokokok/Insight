@@ -285,9 +285,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
           <h3 className="text-sm font-semibold text-gray-900">
             {t('confidenceScore.overallScore')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t('confidenceScore.overallScoreDesc')}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('confidenceScore.overallScoreDesc')}</p>
         </div>
         <div className={`p-2 rounded-lg ${levelConfig.lightBg}`}>
           <svg

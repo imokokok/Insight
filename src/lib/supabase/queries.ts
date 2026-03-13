@@ -1,5 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { OracleProvider, Blockchain } from '../types/oracle';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('supabase-queries');
 
 export interface PriceRecord {
   id?: string;
@@ -191,10 +194,11 @@ export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
-    const timestamp = typeof record.timestamp === 'number' 
-      ? new Date(record.timestamp * 1000).toISOString()
-      : record.timestamp;
-    
+    const timestamp =
+      typeof record.timestamp === 'number'
+        ? new Date(record.timestamp * 1000).toISOString()
+        : record.timestamp;
+
     const { data, error } = await this.client
       .from('price_records')
       .insert({
@@ -211,7 +215,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to save price record:', error);
+      logger.error(
+        'Failed to save price record',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -221,14 +228,15 @@ export class DatabaseQueries {
   async savePriceRecords(records: PriceRecordInsert[]): Promise<PriceRecord[] | null> {
     if (records.length === 0) return [];
 
-    const formattedRecords = records.map(record => ({
+    const formattedRecords = records.map((record) => ({
       provider: record.provider,
       symbol: record.symbol,
       chain: record.chain || null,
       price: record.price,
-      timestamp: typeof record.timestamp === 'number'
-        ? new Date(record.timestamp * 1000).toISOString()
-        : record.timestamp,
+      timestamp:
+        typeof record.timestamp === 'number'
+          ? new Date(record.timestamp * 1000).toISOString()
+          : record.timestamp,
       confidence: record.confidence || null,
       source: record.source || null,
       ttl: record.ttl || '1h',
@@ -240,7 +248,10 @@ export class DatabaseQueries {
       .select();
 
     if (error) {
-      console.error('Failed to save price records:', error);
+      logger.error(
+        'Failed to save price records',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -286,7 +297,10 @@ export class DatabaseQueries {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Failed to get price records:', error);
+      logger.error(
+        'Failed to get price records',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -313,7 +327,10 @@ export class DatabaseQueries {
     const { data, error } = await query.maybeSingle();
 
     if (error) {
-      console.error('Failed to get latest price:', error);
+      logger.error(
+        'Failed to get latest price',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -324,14 +341,20 @@ export class DatabaseQueries {
     const { error } = await this.client.rpc('cleanup_expired_price_records');
 
     if (error) {
-      console.error('Failed to delete expired price records:', error);
+      logger.error(
+        'Failed to delete expired price records',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return 0;
     }
 
     return 1;
   }
 
-  async saveSnapshot(userId: string, snapshot: Omit<UserSnapshotInsert, 'user_id'>): Promise<UserSnapshot | null> {
+  async saveSnapshot(
+    userId: string,
+    snapshot: Omit<UserSnapshotInsert, 'user_id'>
+  ): Promise<UserSnapshot | null> {
     const { data, error } = await this.client
       .from('user_snapshots')
       .insert({ ...snapshot, user_id: userId })
@@ -339,7 +362,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to save snapshot:', error);
+      logger.error(
+        'Failed to save snapshot',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -354,7 +380,10 @@ export class DatabaseQueries {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to get snapshots:', error);
+      logger.error(
+        'Failed to get snapshots',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -370,7 +399,10 @@ export class DatabaseQueries {
 
     if (error) {
       if (error.code !== 'PGRST116') {
-        console.error('Failed to get snapshot:', error);
+        logger.error(
+          'Failed to get snapshot',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
       return null;
     }
@@ -388,7 +420,10 @@ export class DatabaseQueries {
 
     if (error) {
       if (error.code !== 'PGRST116') {
-        console.error('Failed to get public snapshot:', error);
+        logger.error(
+          'Failed to get public snapshot',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
       return null;
     }
@@ -396,7 +431,10 @@ export class DatabaseQueries {
     return data;
   }
 
-  async updateSnapshot(id: string, data: Partial<UserSnapshotInsert>): Promise<UserSnapshot | null> {
+  async updateSnapshot(
+    id: string,
+    data: Partial<UserSnapshotInsert>
+  ): Promise<UserSnapshot | null> {
     const { data: updated, error } = await this.client
       .from('user_snapshots')
       .update({ ...data, updated_at: new Date().toISOString() })
@@ -405,7 +443,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to update snapshot:', error);
+      logger.error(
+        'Failed to update snapshot',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -413,20 +454,23 @@ export class DatabaseQueries {
   }
 
   async deleteSnapshot(id: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('user_snapshots')
-      .delete()
-      .eq('id', id);
+    const { error } = await this.client.from('user_snapshots').delete().eq('id', id);
 
     if (error) {
-      console.error('Failed to delete snapshot:', error);
+      logger.error(
+        'Failed to delete snapshot',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
     return true;
   }
 
-  async addFavorite(userId: string, favorite: Omit<UserFavoriteInsert, 'user_id'>): Promise<UserFavorite | null> {
+  async addFavorite(
+    userId: string,
+    favorite: Omit<UserFavoriteInsert, 'user_id'>
+  ): Promise<UserFavorite | null> {
     const { data, error } = await this.client
       .from('user_favorites')
       .insert({ ...favorite, user_id: userId })
@@ -434,7 +478,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to add favorite:', error);
+      logger.error(
+        'Failed to add favorite',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -449,7 +496,10 @@ export class DatabaseQueries {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to get favorites:', error);
+      logger.error(
+        'Failed to get favorites',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -468,14 +518,20 @@ export class DatabaseQueries {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to get favorites by type:', error);
+      logger.error(
+        'Failed to get favorites by type',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
     return data;
   }
 
-  async updateFavorite(id: string, data: Partial<UserFavoriteInsert>): Promise<UserFavorite | null> {
+  async updateFavorite(
+    id: string,
+    data: Partial<UserFavoriteInsert>
+  ): Promise<UserFavorite | null> {
     const { data: updated, error } = await this.client
       .from('user_favorites')
       .update({ ...data, updated_at: new Date().toISOString() })
@@ -484,7 +540,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to update favorite:', error);
+      logger.error(
+        'Failed to update favorite',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -492,13 +551,13 @@ export class DatabaseQueries {
   }
 
   async deleteFavorite(id: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('user_favorites')
-      .delete()
-      .eq('id', id);
+    const { error } = await this.client.from('user_favorites').delete().eq('id', id);
 
     if (error) {
-      console.error('Failed to delete favorite:', error);
+      logger.error(
+        'Failed to delete favorite',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
@@ -506,13 +565,13 @@ export class DatabaseQueries {
   }
 
   async deleteAllFavorites(userId: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('user_favorites')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await this.client.from('user_favorites').delete().eq('user_id', userId);
 
     if (error) {
-      console.error('Failed to delete all favorites:', error);
+      logger.error(
+        'Failed to delete all favorites',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
@@ -520,13 +579,13 @@ export class DatabaseQueries {
   }
 
   async deleteAllAlerts(userId: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('price_alerts')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await this.client.from('price_alerts').delete().eq('user_id', userId);
 
     if (error) {
-      console.error('Failed to delete all alerts:', error);
+      logger.error(
+        'Failed to delete all alerts',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
@@ -534,20 +593,23 @@ export class DatabaseQueries {
   }
 
   async deleteAllSnapshots(userId: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('user_snapshots')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await this.client.from('user_snapshots').delete().eq('user_id', userId);
 
     if (error) {
-      console.error('Failed to delete all snapshots:', error);
+      logger.error(
+        'Failed to delete all snapshots',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
     return true;
   }
 
-  async createAlert(userId: string, alert: Omit<PriceAlertInsert, 'user_id'>): Promise<PriceAlert | null> {
+  async createAlert(
+    userId: string,
+    alert: Omit<PriceAlertInsert, 'user_id'>
+  ): Promise<PriceAlert | null> {
     const { data, error } = await this.client
       .from('price_alerts')
       .insert({ ...alert, user_id: userId, is_active: alert.is_active ?? true })
@@ -555,7 +617,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to create alert:', error);
+      logger.error(
+        'Failed to create alert',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -570,7 +635,10 @@ export class DatabaseQueries {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to get alerts:', error);
+      logger.error(
+        'Failed to get alerts',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -584,7 +652,10 @@ export class DatabaseQueries {
       .eq('is_active', true);
 
     if (error) {
-      console.error('Failed to get active alerts:', error);
+      logger.error(
+        'Failed to get active alerts',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -600,7 +671,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to update alert:', error);
+      logger.error(
+        'Failed to update alert',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -608,28 +682,35 @@ export class DatabaseQueries {
   }
 
   async deleteAlert(id: string): Promise<boolean> {
-    const { error } = await this.client
-      .from('price_alerts')
-      .delete()
-      .eq('id', id);
+    const { error } = await this.client.from('price_alerts').delete().eq('id', id);
 
     if (error) {
-      console.error('Failed to delete alert:', error);
+      logger.error(
+        'Failed to delete alert',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
 
     return true;
   }
 
-  async triggerAlert(alertId: string, eventData: Omit<AlertEventInsert, 'alert_id'>): Promise<AlertEvent | null> {
+  async triggerAlert(
+    alertId: string,
+    userId: string,
+    eventData: Omit<AlertEventInsert, 'alert_id' | 'user_id'>
+  ): Promise<AlertEvent | null> {
     const { data: event, error: eventError } = await this.client
       .from('alert_events')
-      .insert({ ...eventData, alert_id: alertId })
+      .insert({ ...eventData, alert_id: alertId, user_id: userId })
       .select()
       .single();
 
     if (eventError) {
-      console.error('Failed to create alert event:', eventError);
+      logger.error(
+        'Failed to create alert event',
+        eventError instanceof Error ? eventError : new Error(String(eventError))
+      );
       return null;
     }
 
@@ -639,7 +720,10 @@ export class DatabaseQueries {
       .eq('id', alertId);
 
     if (updateError) {
-      console.error('Failed to update alert last_triggered_at:', updateError);
+      logger.error(
+        'Failed to update alert last_triggered_at',
+        updateError instanceof Error ? updateError : new Error(String(updateError))
+      );
     }
 
     return event;
@@ -653,7 +737,10 @@ export class DatabaseQueries {
       .order('triggered_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to get alert events:', error);
+      logger.error(
+        'Failed to get alert events',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -672,7 +759,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to acknowledge alert event:', error);
+      logger.error(
+        'Failed to acknowledge alert event',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -688,7 +778,10 @@ export class DatabaseQueries {
 
     if (error) {
       if (error.code !== 'PGRST116') {
-        console.error('Failed to get user profile:', error);
+        logger.error(
+          'Failed to get user profile',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
       return null;
     }
@@ -705,7 +798,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to update user profile:', error);
+      logger.error(
+        'Failed to update user profile',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 
@@ -724,7 +820,10 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      console.error('Failed to upsert user profile:', error);
+      logger.error(
+        'Failed to upsert user profile',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
 

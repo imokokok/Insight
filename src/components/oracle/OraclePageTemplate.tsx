@@ -42,6 +42,9 @@ import { UMADataQualityScoreCard } from './UMADataQualityScoreCard';
 import { KPIDashboard } from './KPIDashboard';
 import DataQualityIndicator from './DataQualityIndicator';
 import { DataSourceCredibility } from './DataSourceCredibility';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('OraclePageTemplate');
 
 interface OraclePageTemplateProps {
   config: OracleConfig;
@@ -86,7 +89,7 @@ export function OraclePageTemplate({
       const error = err instanceof Error ? err : new Error('Failed to fetch data');
       setError(error);
       setLoadingState({ show: false });
-      console.error(`Error fetching ${config.name} data:`, error);
+      logger.error(`Error fetching ${config.name} data`, error);
     }
   }, [config]);
 

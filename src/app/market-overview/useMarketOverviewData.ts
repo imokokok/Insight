@@ -17,6 +17,9 @@ import {
   CHAIN_SUPPORT_DATA,
   RefreshInterval,
 } from './constants';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('useMarketOverviewData');
 
 export interface UseMarketOverviewDataReturn {
   // 数据状态
@@ -133,7 +136,10 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
       setShowRefreshSuccess(true);
       setTimeout(() => setShowRefreshSuccess(false), 2000);
     } catch (error) {
-      console.error('Error fetching market data:', error);
+      logger.error(
+        'Error fetching market data',
+        error instanceof Error ? error : new Error(String(error))
+      );
       setRefreshStatus('error');
     } finally {
       setLoading(false);

@@ -1,4 +1,10 @@
-import { OracleProvider, Blockchain, ConfidenceInterval, PriceData, PublisherStatus } from './oracle';
+import {
+  OracleProvider,
+  Blockchain,
+  ConfidenceInterval,
+  PriceData,
+  PublisherStatus,
+} from './oracle';
 
 export { OracleProvider, Blockchain };
 export type { ConfidenceInterval, PriceData, PublisherStatus };

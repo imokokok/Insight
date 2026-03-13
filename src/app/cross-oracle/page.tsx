@@ -19,6 +19,8 @@ import {
   PriceDeviationHeatmap,
   PriceDeviationDataPoint,
 } from '@/components/oracle/PriceDeviationHeatmap';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import {
   PriceDistributionBoxPlot,
   OraclePriceData,
@@ -39,7 +41,12 @@ import { SnapshotComparison } from '@/components/oracle/SnapshotComparison';
 import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/lib/types/snapshot';
 import { FloatingActionButton } from '@/components/oracle/FloatingActionButton';
 import { FavoriteButton } from '@/components/favorites';
-import { useFavorites, useIsFavorited, mapConfigTypeFromDB, FavoriteConfig } from '@/hooks/useFavorites';
+import {
+  useFavorites,
+  useIsFavorited,
+  mapConfigTypeFromDB,
+  FavoriteConfig,
+} from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   oracleClients,
@@ -72,6 +79,10 @@ import {
   useTabNavigation,
   TabId,
 } from './components';
+import { createLogger } from '@/lib/utils/logger';
+import { chartColors, baseColors } from '@/lib/config/colors';
+
+const logger = createLogger('cross-oracle-page');
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
@@ -112,16 +123,22 @@ export default function CrossOraclePage() {
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentFavoriteConfig: FavoriteConfig = useMemo(() => ({
-    selectedOracles: selectedOracles.map(o => o as string),
-    symbol: selectedSymbol,
-  }), [selectedOracles, selectedSymbol]);
+  const currentFavoriteConfig: FavoriteConfig = useMemo(
+    () => ({
+      selectedOracles: selectedOracles.map((o) => o as string),
+      symbol: selectedSymbol,
+    }),
+    [selectedOracles, selectedSymbol]
+  );
 
   const { favorites: oracleFavorites } = useFavorites({ configType: 'oracle_config' });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (favoritesDropdownRef.current && !favoritesDropdownRef.current.contains(event.target as Node)) {
+      if (
+        favoritesDropdownRef.current &&
+        !favoritesDropdownRef.current.contains(event.target as Node)
+      ) {
         setShowFavoritesDropdown(false);
       }
     };
@@ -270,7 +287,10 @@ export default function CrossOraclePage() {
         prices.push(price);
         histories[oracle] = history;
       } catch (error) {
-        console.error(`Error fetching data from ${oracle}:`, error);
+        logger.error(
+          `Error fetching data from ${oracle}`,
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
 
@@ -387,13 +407,14 @@ export default function CrossOraclePage() {
     );
   };
 
-  const chartColors: Record<OracleProvider, string> = {
-    [OracleProvider.CHAINLINK]: '#3B82F6',
-    [OracleProvider.BAND_PROTOCOL]: '#10B981',
-    [OracleProvider.UMA]: '#F59E0B',
-    [OracleProvider.PYTH_NETWORK]: '#8B5CF6',
-    [OracleProvider.API3]: '#EC4899',
-  };
+  // 使用统一的颜色配置 - 创建本地映射
+  const oracleChartColors: Record<OracleProvider, string> = {
+    [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+    [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+    [OracleProvider.UMA]: chartColors.oracle.uma,
+    [OracleProvider.PYTH_NETWORK]: chartColors.oracle['pyth-network'],
+    [OracleProvider.API3]: chartColors.oracle.api3,
+  } as Record<OracleProvider, string>;
 
   const getChartData = useCallback(() => {
     if (Object.keys(historicalData).length === 0) return [];
@@ -533,7 +554,7 @@ export default function CrossOraclePage() {
         stability: Math.min(100, Math.max(0, stability)),
         dataSources: Math.floor(3 + Math.random() * 10),
         supportedChains: Math.floor(5 + Math.random() * 15),
-        color: chartColors[oracle],
+        color: oracleChartColors[oracle],
       };
     });
   }, [historicalData, selectedOracles]);
@@ -815,7 +836,7 @@ export default function CrossOraclePage() {
             >
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: chartColors[oracle] }}
+                style={{ backgroundColor: oracleChartColors[oracle] }}
               />
               {oracleNames[oracle]}
             </button>
@@ -833,7 +854,7 @@ export default function CrossOraclePage() {
           expandedRow={expandedRow}
           selectedRowIndex={selectedRowIndex}
           hoveredRowIndex={hoveredRowIndex}
-          chartColors={chartColors}
+          chartColors={oracleChartColors}
           avgPrice={avgPrice}
           standardDeviation={standardDeviation}
           validPrices={validPrices}
@@ -921,40 +942,10 @@ export default function CrossOraclePage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-24 border border-gray-200">
-            <svg
-              className="w-6 h-6 text-gray-400 animate-spin"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </div>
+          <ChartSkeleton height={400 * zoomLevel} variant="price" showToolbar={false} />
         ) : getChartData().length === 0 ? (
-          <div className="flex items-center justify-center py-24 border border-gray-200">
-            <div className="text-center">
-              <svg
-                className="w-12 h-12 mx-auto text-gray-300 mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-                />
-              </svg>
-              <p className="text-sm text-gray-500">暂无历史数据</p>
-              <p className="text-xs text-gray-400 mt-1">请选择时间范围并刷新数据</p>
-            </div>
+          <div className="border border-gray-200 rounded-lg">
+            <NoDataEmptyState onRefresh={fetchPriceData} />
           </div>
         ) : (
           <div className="border border-gray-200 rounded-lg p-4">
@@ -970,10 +961,15 @@ export default function CrossOraclePage() {
                     <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="timestamp" stroke="#6B7280" fontSize={12} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke={baseColors.gray[500]}
+                  fontSize={12}
+                  tickLine={false}
+                />
                 <YAxis
-                  stroke="#6B7280"
+                  stroke={baseColors.gray[500]}
                   fontSize={12}
                   tickLine={false}
                   domain={['auto', 'auto']}
@@ -1028,14 +1024,14 @@ export default function CrossOraclePage() {
                     key={oracle}
                     type="monotone"
                     dataKey={oracleNames[oracle]}
-                    stroke={chartColors[oracle]}
+                    stroke={oracleChartColors[oracle]}
                     strokeWidth={2.5}
                     dot={false}
                     activeDot={{
                       r: 6,
                       strokeWidth: 2,
                       stroke: '#ffffff',
-                      fill: chartColors[oracle],
+                      fill: oracleChartColors[oracle],
                     }}
                   />
                 ))}
@@ -1160,14 +1156,14 @@ export default function CrossOraclePage() {
                   key={oracle}
                   type="monotone"
                   dataKey={oracleNames[oracle]}
-                  stroke={chartColors[oracle]}
+                  stroke={oracleChartColors[oracle]}
                   strokeWidth={2.5}
                   dot={false}
                   activeDot={{
                     r: 6,
                     strokeWidth: 2,
                     stroke: '#ffffff',
-                    fill: chartColors[oracle],
+                    fill: oracleChartColors[oracle],
                   }}
                 />
               ))}
@@ -1452,7 +1448,7 @@ export default function CrossOraclePage() {
             <FavoriteButton
               configType="oracle_config"
               configData={currentFavoriteConfig}
-              name={`${selectedSymbol} - ${selectedOracles.map(o => oracleNames[o]).join(', ')}`}
+              name={`${selectedSymbol} - ${selectedOracles.map((o) => oracleNames[o]).join(', ')}`}
               variant="button"
               showLabel
             />
@@ -1464,7 +1460,12 @@ export default function CrossOraclePage() {
                 onClick={() => setShowFavoritesDropdown(!showFavoritesDropdown)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 bg-white hover:bg-gray-50 rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1482,7 +1483,12 @@ export default function CrossOraclePage() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
@@ -1686,14 +1692,14 @@ export default function CrossOraclePage() {
                     key={oracle}
                     type="monotone"
                     dataKey={oracleNames[oracle]}
-                    stroke={chartColors[oracle]}
+                    stroke={oracleChartColors[oracle]}
                     strokeWidth={2.5}
                     dot={false}
                     activeDot={{
                       r: 6,
                       strokeWidth: 2,
                       stroke: '#ffffff',
-                      fill: chartColors[oracle],
+                      fill: oracleChartColors[oracle],
                     }}
                   />
                 ))}

@@ -34,12 +34,17 @@ export interface UseAlertsReturn {
 }
 
 export interface UseCreateAlertReturn {
-  createAlert: (input: CreateAlertInput) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
+  createAlert: (
+    input: CreateAlertInput
+  ) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
   isCreating: boolean;
 }
 
 export interface UseUpdateAlertReturn {
-  updateAlert: (id: string, input: UpdateAlertInput) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
+  updateAlert: (
+    id: string,
+    input: UpdateAlertInput
+  ) => Promise<{ alert: PriceAlert | null; error: Error | null }>;
   isUpdating: boolean;
 }
 
@@ -67,7 +72,12 @@ export function useAlerts(): UseAlertsReturn {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const { data, error, isLoading, mutate: swrMutate } = useSWR(
+  const {
+    data,
+    error,
+    isLoading,
+    mutate: swrMutate,
+  } = useSWR(
     userId ? `${ALERTS_KEY}-${userId}` : null,
     async (): Promise<PriceAlert[]> => {
       if (!userId) return [];
@@ -109,8 +119,8 @@ export function useCreateAlert(): UseCreateAlertReturn {
         const alert = await queries.createAlert(user.id, {
           name: input.name,
           symbol: input.symbol,
-          provider: input.provider as string | null | undefined ?? null,
-          chain: input.chain as string | null | undefined ?? null,
+          provider: (input.provider as string | null | undefined) ?? null,
+          chain: (input.chain as string | null | undefined) ?? null,
           condition_type: input.condition_type,
           target_value: input.target_value,
           is_active: input.is_active ?? true,
@@ -149,8 +159,8 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
       try {
         const alert = await queries.updateAlert(id, {
           ...input,
-          provider: input.provider as string | null | undefined ?? null,
-          chain: input.chain as string | null | undefined ?? null,
+          provider: (input.provider as string | null | undefined) ?? null,
+          chain: (input.chain as string | null | undefined) ?? null,
         });
 
         if (!alert) {
@@ -209,7 +219,12 @@ export function useAlertEvents(): UseAlertEventsReturn {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const { data, error, isLoading, mutate: swrMutate } = useSWR(
+  const {
+    data,
+    error,
+    isLoading,
+    mutate: swrMutate,
+  } = useSWR(
     userId ? `${ALERT_EVENTS_KEY}-${userId}` : null,
     async (): Promise<AlertEvent[]> => {
       if (!userId) return [];

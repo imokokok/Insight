@@ -15,6 +15,9 @@ import {
   CacheConfig,
 } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-oracles');
 
 const clients: Record<OracleProvider, InstanceType<typeof ChainlinkClient>> = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -96,7 +99,7 @@ export async function GET(request: NextRequest) {
           const isStale = Date.now() - latestTimestamp > HISTORY_STALE_THRESHOLD;
 
           if (!isStale) {
-            const historicalPrices = cachedHistory.map(record => ({
+            const historicalPrices = cachedHistory.map((record) => ({
               provider: record.provider as OracleProvider,
               symbol: record.symbol,
               chain: record.chain as Blockchain | undefined,
@@ -125,7 +128,7 @@ export async function GET(request: NextRequest) {
 
         const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
 
-        const recordsToSave = historicalPrices.map(price => ({
+        const recordsToSave = historicalPrices.map((price) => ({
           provider: price.provider,
           symbol: price.symbol,
           chain: price.chain,
@@ -134,7 +137,7 @@ export async function GET(request: NextRequest) {
           decimals: price.decimals,
           confidence: price.confidence,
           source: price.source,
-          ttl: '7d',
+          ttl: '3d',
         }));
 
         if (recordsToSave.length > 0) {
@@ -227,7 +230,10 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Unexpected error in GET /api/oracles:', error);
+    logger.error(
+      'Unexpected error in GET /api/oracles',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       message: 'An unexpected error occurred',
@@ -324,7 +330,10 @@ export async function POST(request: NextRequest) {
       CacheConfig.PRICE
     );
   } catch (error) {
-    console.error('Error processing batch request:', error);
+    logger.error(
+      'Error processing batch request',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return createErrorResponse({
       code: ErrorCodes.BATCH_REQUEST_FAILED,
       message: error instanceof Error ? error.message : 'Failed to process batch request',

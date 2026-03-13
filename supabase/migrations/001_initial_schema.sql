@@ -125,12 +125,13 @@ CREATE TABLE IF NOT EXISTS public.user_snapshots (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     symbol TEXT NOT NULL,
+    name TEXT,
     selected_oracles TEXT[] NOT NULL,
     price_data JSONB NOT NULL,
     stats JSONB NOT NULL,
-    name TEXT,
     is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS
@@ -162,6 +163,11 @@ CREATE INDEX idx_user_snapshots_user_id ON public.user_snapshots(user_id);
 CREATE INDEX idx_user_snapshots_symbol ON public.user_snapshots(symbol);
 CREATE INDEX idx_user_snapshots_created_at ON public.user_snapshots(created_at DESC);
 CREATE INDEX idx_user_snapshots_public ON public.user_snapshots(is_public) WHERE (is_public = true);
+
+CREATE TRIGGER update_user_snapshots_updated_at
+    BEFORE UPDATE ON public.user_snapshots
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============================================
 -- Table: user_favorites

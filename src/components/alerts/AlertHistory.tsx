@@ -45,10 +45,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
     [acknowledge, onRefresh]
   );
 
-  const unacknowledgedCount = useMemo(
-    () => events.filter((e) => !e.acknowledged).length,
-    [events]
-  );
+  const unacknowledgedCount = useMemo(() => events.filter((e) => !e.acknowledged).length, [events]);
 
   if (isLoading) {
     return (
@@ -147,9 +144,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                       <span>触发价格: {event.price.toFixed(4)}</span>
-                      <span>
-                        时间: {new Date(event.triggered_at).toLocaleString('zh-CN')}
-                      </span>
+                      <span>时间: {new Date(event.triggered_at).toLocaleString('zh-CN')}</span>
                       {event.acknowledged && event.acknowledged_at && (
                         <span>
                           确认时间: {new Date(event.acknowledged_at).toLocaleString('zh-CN')}

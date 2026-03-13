@@ -34,7 +34,10 @@ export default function OracleMarketOverviewSkeleton() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="animate-pulse flex items-center gap-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-2 w-28 h-10 bg-gray-200 rounded-xl"></div>
+              <div
+                key={i}
+                className="flex items-center gap-2 px-4 py-2 w-28 h-10 bg-gray-200 rounded-xl"
+              ></div>
             ))}
           </div>
           <div className="animate-pulse flex items-center gap-1 p-1 bg-gray-100 rounded-lg">

@@ -86,7 +86,11 @@ function StatusBadge({ status }: { status: PublisherStatus }) {
   const config = {
     active: { bg: 'bg-green-100', text: 'text-green-700', label: t('publisher.status.active') },
     inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
-    degraded: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: t('publisher.status.degraded') },
+    degraded: {
+      bg: 'bg-yellow-100',
+      text: 'text-yellow-700',
+      label: t('publisher.status.degraded'),
+    },
   };
 
   const { bg, text, label } = config[status];
@@ -295,11 +299,13 @@ export function PublisherList({
                             )}
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
-                            {publisher.submissionCount.toLocaleString()} {t('publisher.submissions')}
+                            {publisher.submissionCount.toLocaleString()}{' '}
+                            {t('publisher.submissions')}
                           </p>
                           {hasAnomaly && (
                             <p className="text-xs text-red-600 mt-1">
-                              {t('publisher.anomalyTypes')}{anomalyInfo.anomalyTypes.join(', ')}
+                              {t('publisher.anomalyTypes')}
+                              {anomalyInfo.anomalyTypes.join(', ')}
                             </p>
                           )}
                         </div>
@@ -344,9 +350,7 @@ export function PublisherList({
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
-          {t('publisher.noPublishers')}
-        </div>
+        <div className="text-center py-8 text-gray-500">{t('publisher.noPublishers')}</div>
       )}
     </div>
   );

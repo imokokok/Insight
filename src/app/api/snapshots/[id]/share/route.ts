@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-snapshots-share');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -31,50 +37,36 @@ async function getUserId(request: NextRequest): Promise<string | null> {
   return user.id;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
     const existingSnapshot = await queries.getSnapshotById(id);
 
     if (!existingSnapshot) {
-      return NextResponse.json(
-        { error: 'Snapshot not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 });
     }
 
     if (existingSnapshot.user_id !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const updatedSnapshot = await queries.updateSnapshot(id, { is_public: true });
 
     if (!updatedSnapshot) {
-      return NextResponse.json(
-        { error: 'Failed to share snapshot' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to share snapshot' }, { status: 500 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000';
 
     const shareUrl = `${baseUrl}/snapshots/${id}`;
 
@@ -84,10 +76,10 @@ export async function POST(
       snapshot: updatedSnapshot,
     });
   } catch (error) {
-    console.error('Error sharing snapshot:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error sharing snapshot',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

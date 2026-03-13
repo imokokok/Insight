@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { ConfigType } from '@/lib/supabase/database.types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-favorites');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -24,7 +27,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -36,10 +42,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -55,10 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!favorites) {
-      return NextResponse.json(
-        { error: 'Failed to fetch favorites' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -66,11 +66,11 @@ export async function GET(request: NextRequest) {
       count: favorites.length,
     });
   } catch (error) {
-    console.error('Error fetching favorites:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching favorites',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -78,10 +78,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -110,21 +107,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (!favorite) {
-      return NextResponse.json(
-        { error: 'Failed to add favorite' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to add favorite' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      favorite,
-      message: 'Favorite added successfully',
-    }, { status: 201 });
-  } catch (error) {
-    console.error('Error adding favorite:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        favorite,
+        message: 'Favorite added successfully',
+      },
+      { status: 201 }
     );
+  } catch (error) {
+    logger.error(
+      'Error adding favorite',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

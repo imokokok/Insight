@@ -4,6 +4,7 @@ import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { formatHistoryTime } from '@/utils/queryHistory';
+import { OracleProvider, Blockchain } from '@/lib/types/oracle';
 
 interface PageHeaderProps {
   showHistory: boolean;
@@ -15,12 +16,12 @@ interface PageHeaderProps {
   queryResultsLength: number;
   onExportCSV: () => void;
   onExportJSON: () => void;
-  selectedOracles: string[];
-  selectedChains: string[];
+  selectedOracles: OracleProvider[];
+  selectedChains: Blockchain[];
   selectedSymbol: string;
   selectedTimeRange: number;
-  setSelectedOracles: (oracles: any[]) => void;
-  setSelectedChains: (chains: any[]) => void;
+  setSelectedOracles: (oracles: OracleProvider[]) => void;
+  setSelectedChains: (chains: Blockchain[]) => void;
   setSelectedSymbol: (symbol: string) => void;
   setSelectedTimeRange: (timeRange: number) => void;
 }

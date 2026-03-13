@@ -11,7 +11,7 @@ export interface NotificationData {
   title: string;
   message: string;
   timestamp: Date;
-  data?: any;
+  data?: unknown;
   read: boolean;
 }
 
@@ -64,9 +64,7 @@ export function RealtimeNotifications({
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
   useEffect(() => {
@@ -132,9 +130,7 @@ export function RealtimeNotifications({
             <span className="text-2xl">{typeIcons[notification.type]}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-gray-900 text-sm">
-                  {notification.title}
-                </h4>
+                <h4 className="font-semibold text-gray-900 text-sm">{notification.title}</h4>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

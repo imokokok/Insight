@@ -180,7 +180,11 @@ export function PriceCorrelationMatrix({
   };
 
   const colorLegend = [
-    { color: 'rgb(110, 50, 220)', label: '-1.0', desc: t('priceCorrelation.legend.perfectNegative') },
+    {
+      color: 'rgb(110, 50, 220)',
+      label: '-1.0',
+      desc: t('priceCorrelation.legend.perfectNegative'),
+    },
     { color: 'rgb(160, 100, 180)', label: '-0.5', desc: t('priceCorrelation.legend.negative') },
     { color: 'rgb(200, 150, 150)', label: '0.0', desc: t('priceCorrelation.legend.none') },
     { color: 'rgb(180, 100, 100)', label: '0.5', desc: t('priceCorrelation.legend.positive') },
@@ -193,8 +197,12 @@ export function PriceCorrelationMatrix({
       className={className}
       headerAction={
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>{t('priceCorrelation.oracleCount')}: {oracleIds.length}</span>
-          <span>{t('priceCorrelation.highCorrelationPairs')}: {stats.highCorrelationCount}</span>
+          <span>
+            {t('priceCorrelation.oracleCount')}: {oracleIds.length}
+          </span>
+          <span>
+            {t('priceCorrelation.highCorrelationPairs')}: {stats.highCorrelationCount}
+          </span>
         </div>
       }
     >
@@ -213,7 +221,9 @@ export function PriceCorrelationMatrix({
             <p className="text-xl font-bold text-red-700">{stats.minCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">{t('priceCorrelation.highCorrelationCount')}</p>
+            <p className="text-xs text-purple-600 mb-1">
+              {t('priceCorrelation.highCorrelationCount')}
+            </p>
             <p className="text-xl font-bold text-purple-700">{stats.highCorrelationCount}</p>
           </div>
         </div>
@@ -291,7 +301,9 @@ export function PriceCorrelationMatrix({
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">{t('priceCorrelation.correlationCoefficient')}:</span>
+                  <span className="text-gray-400">
+                    {t('priceCorrelation.correlationCoefficient')}:
+                  </span>
                   <span className="font-mono font-semibold">
                     {hoveredCell.correlation.toFixed(4)}
                   </span>
@@ -303,7 +315,9 @@ export function PriceCorrelationMatrix({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">{t('priceCorrelation.correlationDirection')}:</span>
+                  <span className="text-gray-400">
+                    {t('priceCorrelation.correlationDirection')}:
+                  </span>
                   <span>
                     {hoveredCell.correlation > 0
                       ? t('priceCorrelation.positiveCorrelation')
@@ -321,7 +335,9 @@ export function PriceCorrelationMatrix({
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-xs text-gray-600 mb-2 font-medium">{t('priceCorrelation.legend.title')}</div>
+          <div className="text-xs text-gray-600 mb-2 font-medium">
+            {t('priceCorrelation.legend.title')}
+          </div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-gray-500">-1.0</span>
             <div className="flex gap-0.5">
@@ -345,7 +361,9 @@ export function PriceCorrelationMatrix({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceCorrelation.distribution.title')}</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('priceCorrelation.distribution.title')}
+            </h4>
             <div className="space-y-2">
               {[
                 { range: '0.9 - 1.0', min: 0.9, max: 1.0 },
@@ -382,7 +400,9 @@ export function PriceCorrelationMatrix({
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceCorrelation.distribution.topPairs')}</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('priceCorrelation.distribution.topPairs')}
+            </h4>
             <div className="space-y-2">
               {correlationMatrix
                 .flat()
@@ -424,7 +444,9 @@ export function PriceCorrelationMatrix({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">{t('priceCorrelation.explanation.title')}</h4>
+              <h4 className="text-sm font-semibold text-blue-800 mb-1">
+                {t('priceCorrelation.explanation.title')}
+              </h4>
               <p className="text-xs text-blue-700">
                 {t('priceCorrelation.explanation.description')}
               </p>

@@ -10,6 +10,9 @@ import {
   SnapshotChangePayload,
   FavoriteChangePayload,
 } from '@/lib/supabase/realtime';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('RealtimeContext');
 
 export interface RealtimeContextValue {
   connectionStatus: ConnectionStatus;
@@ -61,7 +64,10 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   }, [user]);
 
   const subscribeToPriceUpdates = useCallback(
-    (callback: (payload: PriceUpdatePayload) => void, filters?: { provider?: string; symbol?: string; chain?: string }) => {
+    (
+      callback: (payload: PriceUpdatePayload) => void,
+      filters?: { provider?: string; symbol?: string; chain?: string }
+    ) => {
       return realtimeManager.subscribeToPriceUpdates(callback, filters);
     },
     []
@@ -70,7 +76,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   const subscribeToAlertEvents = useCallback(
     (callback: (payload: AlertEventPayload) => void) => {
       if (!user) {
-        console.warn('Cannot subscribe to alert events: user not authenticated');
+        logger.warn('Cannot subscribe to alert events: user not authenticated');
         return () => {};
       }
       return realtimeManager.subscribeToAlertEvents(user.id, callback);
@@ -81,7 +87,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   const subscribeToSnapshotChanges = useCallback(
     (callback: (payload: SnapshotChangePayload) => void) => {
       if (!user) {
-        console.warn('Cannot subscribe to snapshot changes: user not authenticated');
+        logger.warn('Cannot subscribe to snapshot changes: user not authenticated');
         return () => {};
       }
       return realtimeManager.subscribeToSnapshotChanges(user.id, callback);
@@ -92,7 +98,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   const subscribeToFavoriteChanges = useCallback(
     (callback: (payload: FavoriteChangePayload) => void) => {
       if (!user) {
-        console.warn('Cannot subscribe to favorite changes: user not authenticated');
+        logger.warn('Cannot subscribe to favorite changes: user not authenticated');
         return () => {};
       }
       return realtimeManager.subscribeToFavoriteChanges(user.id, callback);

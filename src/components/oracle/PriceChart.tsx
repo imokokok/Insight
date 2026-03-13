@@ -27,6 +27,9 @@ import { useTimeRange } from '@/contexts/TimeRangeContext';
 import { ChartExportData } from '@/utils/chartExport';
 import { downsampleData, downsampleDataForChart } from '@/utils/downsampling';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('PriceChart');
 
 const CHART_SETTINGS_STORAGE_KEY = 'priceChart_settings';
 
@@ -45,7 +48,7 @@ function loadChartSettings(): ChartSettings | null {
       return JSON.parse(stored);
     }
   } catch (e) {
-    console.warn('Failed to load chart settings:', e);
+    logger.warn('Failed to load chart settings', e instanceof Error ? e : new Error(String(e)));
   }
   return null;
 }
@@ -55,7 +58,7 @@ function saveChartSettings(settings: ChartSettings): void {
   try {
     localStorage.setItem(CHART_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch (e) {
-    console.warn('Failed to save chart settings:', e);
+    logger.warn('Failed to save chart settings', e instanceof Error ? e : new Error(String(e)));
   }
 }
 
@@ -150,6 +153,7 @@ interface ChartDataPoint {
   predictionUpper?: number;
   predictionLower?: number;
   predictionMean?: number;
+  [key: string]: unknown;
 }
 
 interface TimeRangeOption {
@@ -336,8 +340,6 @@ function convertHistoricalPricePoints(
     };
   });
 }
-
-
 
 function generateDataWithGranularity(
   basePrice: number,
@@ -609,17 +611,26 @@ export function PriceChart({
         };
         const historicalPoints = await bandClient.getHistoricalBandPrices(periodMap[timeRange]);
         const chartData = convertHistoricalPricePoints(historicalPoints);
-        const downsampledData = downsampleData(chartData, { preservePeaks: true, preserveTrends: true });
+        const downsampledData = downsampleData(chartData, {
+          preservePeaks: true,
+          preserveTrends: true,
+        });
         setData(downsampledData);
       } else {
         const historicalData = generateHistoricalData(priceData.price, timeRange);
-        const downsampledData = downsampleData(historicalData, { preservePeaks: true, preserveTrends: true });
+        const downsampledData = downsampleData(historicalData, {
+          preservePeaks: true,
+          preserveTrends: true,
+        });
         setData(downsampledData);
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
 
-      console.error('Error fetching price data:', error);
+      logger.error(
+        'Error fetching price data',
+        error instanceof Error ? error : new Error(String(error))
+      );
       const fallbackPrice = defaultPrice || 100;
       setCurrentPrice(fallbackPrice);
       const fallbackData = generateHistoricalData(fallbackPrice, timeRange);
@@ -667,7 +678,9 @@ export function PriceChart({
         const period2Data = convertHistoricalPricePoints(period2Points, true);
 
         setData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
-        setComparisonData(downsampleData(period2Data, { preservePeaks: true, preserveTrends: true }));
+        setComparisonData(
+          downsampleData(period2Data, { preservePeaks: true, preserveTrends: true })
+        );
       } else {
         const period1Data = generateDataWithGranularity(
           priceData.price,
@@ -683,10 +696,18 @@ export function PriceChart({
         );
 
         setData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
-        setComparisonData(downsampleData(period2Data.map((d) => ({ ...d, isComparison: true })), { preservePeaks: true, preserveTrends: true }));
+        setComparisonData(
+          downsampleData(
+            period2Data.map((d) => ({ ...d, isComparison: true })),
+            { preservePeaks: true, preserveTrends: true }
+          )
+        );
       }
     } catch (error) {
-      console.error('Error fetching comparison data:', error);
+      logger.error(
+        'Error fetching comparison data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
     }
@@ -788,13 +809,7 @@ export function PriceChart({
   }, [data, showPredictionInterval, confidenceLevel]);
 
   if (loading) {
-    return (
-      <ChartSkeleton
-        height={responsiveHeight}
-        showToolbar={showToolbar}
-        variant="price"
-      />
-    );
+    return <ChartSkeleton height={responsiveHeight} showToolbar={showToolbar} variant="price" />;
   }
 
   const exportData: ChartExportData[] = data.map((d) => ({

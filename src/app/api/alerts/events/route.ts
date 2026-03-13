@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-alerts-events');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -35,10 +41,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -49,15 +52,12 @@ export async function GET(request: NextRequest) {
     let events = await queries.getAlertEvents(userId);
 
     if (!events) {
-      return NextResponse.json(
-        { error: 'Failed to fetch alert events' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch alert events' }, { status: 500 });
     }
 
     if (acknowledged !== null) {
       const isAcknowledged = acknowledged === 'true';
-      events = events.filter(e => e.acknowledged === isAcknowledged);
+      events = events.filter((e) => e.acknowledged === isAcknowledged);
     }
 
     if (limit) {
@@ -72,10 +72,10 @@ export async function GET(request: NextRequest) {
       count: events.length,
     });
   } catch (error) {
-    console.error('Error fetching alert events:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching alert events',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

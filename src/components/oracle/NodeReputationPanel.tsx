@@ -135,8 +135,12 @@ function ReputationScoreGauge({ score }: { score: number }) {
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.reputationScore.title')}</p>
-          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.reputationScore.subtitle')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('nodeReputation.reputationScore.title')}
+          </p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            {t('nodeReputation.reputationScore.subtitle')}
+          </p>
         </div>
       </div>
 
@@ -231,7 +235,9 @@ function AccuracyStats({
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.accuracy.title')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('nodeReputation.accuracy.title')}
+          </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.accuracy.subtitle')}</p>
         </div>
       </div>
@@ -243,7 +249,10 @@ function AccuracyStats({
             <XAxis type="number" domain={[95, 100]} tick={{ fontSize: 12 }} />
             <YAxis type="category" dataKey="period" tick={{ fontSize: 12 }} width={40} />
             <Tooltip
-              formatter={(value) => [`${Number(value).toFixed(2)}%`, t('nodeReputation.tooltip.accuracy')]}
+              formatter={(value) => [
+                `${Number(value).toFixed(2)}%`,
+                t('nodeReputation.tooltip.accuracy'),
+              ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -299,11 +308,17 @@ function ResponseTimeDistribution({
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.responseTime.title')}</p>
-          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.responseTime.subtitle')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('nodeReputation.responseTime.title')}
+          </p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            {t('nodeReputation.responseTime.subtitle')}
+          </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-gray-500">{t('nodeReputation.responseTime.avgResponseTime')}</p>
+          <p className="text-xs text-gray-500">
+            {t('nodeReputation.responseTime.avgResponseTime')}
+          </p>
           <p className="text-lg font-bold text-gray-900">{avgTime}ms</p>
         </div>
       </div>
@@ -315,7 +330,10 @@ function ResponseTimeDistribution({
             <XAxis dataKey="range" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value) => [`${value} ${t('nodeReputation.tooltip.responseCount')}`, t('nodeReputation.tooltip.responseCount')]}
+              formatter={(value) => [
+                `${value} ${t('nodeReputation.tooltip.responseCount')}`,
+                t('nodeReputation.tooltip.responseCount'),
+              ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -392,7 +410,9 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
         <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.stakedAmount')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('nodeReputation.staking.stakedAmount')}
+              </p>
               <p className="text-xl font-bold text-gray-900">{formatCurrency(staked)}</p>
             </div>
             <div className="p-3 bg-blue-500 rounded-lg">
@@ -415,9 +435,13 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.totalEarnings')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('nodeReputation.staking.totalEarnings')}
+            </p>
             <p className="text-lg font-bold text-gray-900">{formatCurrency(earnings)}</p>
-            <p className="text-xs text-green-600 mt-1">↑ 12.5% {t('nodeReputation.staking.vsLastMonth')}</p>
+            <p className="text-xs text-green-600 mt-1">
+              ↑ 12.5% {t('nodeReputation.staking.vsLastMonth')}
+            </p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.apr')}</p>
@@ -484,7 +508,9 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.nodeTypes.title')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('nodeReputation.nodeTypes.title')}
+          </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.nodeTypes.subtitle')}</p>
         </div>
       </div>
@@ -506,7 +532,10 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => [`${value} ${t('nodeReputation.tooltip.nodeCount')}`, t('nodeReputation.tooltip.nodeCount')]}
+              formatter={(value) => [
+                `${value} ${t('nodeReputation.tooltip.nodeCount')}`,
+                t('nodeReputation.tooltip.nodeCount'),
+              ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -585,7 +614,9 @@ function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
                   <span className={`text-xs px-2 py-0.5 rounded ${NODE_TYPE_COLORS[node.type]}`}>
                     {NODE_TYPE_LABELS[node.type]}
                   </span>
-                  <span className="text-xs text-gray-400">{node.uptime.toFixed(2)}% {t('nodeReputation.ranking.online')}</span>
+                  <span className="text-xs text-gray-400">
+                    {node.uptime.toFixed(2)}% {t('nodeReputation.ranking.online')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -670,7 +701,9 @@ export function NodeReputationPanel({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-gray-900 mb-3">{t('nodeReputation.selectNode')}</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">
+              {t('nodeReputation.selectNode')}
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {nodes.slice(0, 10).map((node) => (
                 <button
@@ -685,7 +718,10 @@ export function NodeReputationPanel({
                   <div className="text-center">
                     <p className="text-xs font-medium text-gray-900 truncate">{node.name}</p>
                     <p className="text-lg font-bold text-gray-900 mt-1">{node.reputationScore}</p>
-                    <p className="text-xs text-gray-500">{t('nodeReputation.ranking.rankLabel')}{node.rank}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('nodeReputation.ranking.rankLabel')}
+                      {node.rank}
+                    </p>
                   </div>
                 </button>
               ))}

@@ -15,6 +15,9 @@ import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
 import { formatCompactNumberV2 } from '@/lib/utils/format';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('RequestTrendChart');
 
 type TimeRange = '24h' | '7d' | '30d';
 
@@ -101,9 +104,12 @@ export function RequestTrendChart({
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getTimeUnit = useCallback((range: TimeRange): string => {
-    return range === '30d' ? t('requestTrend.day') : t('requestTrend.hour');
-  }, [t]);
+  const getTimeUnit = useCallback(
+    (range: TimeRange): string => {
+      return range === '30d' ? t('requestTrend.day') : t('requestTrend.hour');
+    },
+    [t]
+  );
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -111,7 +117,10 @@ export function RequestTrendChart({
       const mockData = generateMockTrendData(timeRange);
       setData(mockData);
     } catch (error) {
-      console.error('Failed to fetch request trend data:', error);
+      logger.error(
+        'Failed to fetch request trend data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setIsLoading(false);
     }
@@ -223,7 +232,10 @@ export function RequestTrendChart({
             <p className="text-xl font-bold text-blue-700">
               {formatCompactNumberV2(stats.avgRequests)}
             </p>
-            <p className="text-xs text-blue-600 mt-0.5">{t('requestTrend.per')}{getTimeUnit(timeRange)}</p>
+            <p className="text-xs text-blue-600 mt-0.5">
+              {t('requestTrend.per')}
+              {getTimeUnit(timeRange)}
+            </p>
           </div>
           <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.peakRequests')}</p>

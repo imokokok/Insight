@@ -23,15 +23,27 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
   const { user } = useAuth();
   const { configType } = options;
 
-  const key = user ? (configType ? `favorites-${user.id}-${configType}` : `favorites-${user.id}`) : null;
+  const key = user
+    ? configType
+      ? `favorites-${user.id}-${configType}`
+      : `favorites-${user.id}`
+    : null;
 
-  const { data: favorites, error, isLoading, mutate: mutateFavorites } = useSWR<UserFavorite[]>(
+  const {
+    data: favorites,
+    error,
+    isLoading,
+    mutate: mutateFavorites,
+  } = useSWR<UserFavorite[]>(
     key,
     async () => {
       if (!user) return [];
       let result;
       if (configType) {
-        result = await queries.getFavoritesByType(user.id, configType as 'oracle_config' | 'symbol' | 'chain_config');
+        result = await queries.getFavoritesByType(
+          user.id,
+          configType as 'oracle_config' | 'symbol' | 'chain_config'
+        );
       } else {
         result = await queries.getFavorites(user.id);
       }
@@ -168,9 +180,8 @@ export function useIsFavorited(configType: ConfigType, configData: FavoriteConfi
   const { user } = useAuth();
   const { favorites } = useFavorites({ configType });
 
-  const isFavorited = favorites?.some(
-    (f) => JSON.stringify(f.config_data) === JSON.stringify(configData)
-  ) ?? false;
+  const isFavorited =
+    favorites?.some((f) => JSON.stringify(f.config_data) === JSON.stringify(configData)) ?? false;
 
   const matchingFavorite = favorites?.find(
     (f) => JSON.stringify(f.config_data) === JSON.stringify(configData)
@@ -187,7 +198,11 @@ export function useUpdateFavorite() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const updateFavorite = useCallback(
-    async (favoriteId: string, data: { name?: string; configData?: FavoriteConfig }, configType?: ConfigType) => {
+    async (
+      favoriteId: string,
+      data: { name?: string; configData?: FavoriteConfig },
+      configType?: ConfigType
+    ) => {
       if (!user) {
         throw new Error('User must be logged in to update favorites');
       }

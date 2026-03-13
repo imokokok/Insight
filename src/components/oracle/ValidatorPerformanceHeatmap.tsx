@@ -9,6 +9,9 @@ import {
   TimeRange,
 } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ValidatorPerformanceHeatmap');
 
 type ViewMode = 'responseTime' | 'successRate';
 
@@ -45,7 +48,10 @@ export function ValidatorPerformanceHeatmap() {
           setDataByDay(heatmapDataByDay);
         }
       } catch (error) {
-        console.error('Failed to fetch heatmap data:', error);
+        logger.error(
+          'Failed to fetch heatmap data',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }

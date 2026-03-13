@@ -40,7 +40,7 @@ export class PythNetworkClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
+
       const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
         const mockPrice = this.generateMockPrice(symbol, basePrice, chain);
         const confidenceInterval = this.generateConfidenceInterval(mockPrice.price, symbol);
@@ -74,7 +74,7 @@ export class PythNetworkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      
+
       return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
         this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
       );

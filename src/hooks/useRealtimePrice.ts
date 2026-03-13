@@ -62,7 +62,10 @@ export function useRealtimePrice(options: UseRealtimePriceOptions): UseRealtimeP
         symbol: newPrice.symbol,
         chain: newPrice.chain as Blockchain | undefined,
         price: newPrice.price,
-        timestamp: typeof newPrice.timestamp === 'string' ? new Date(newPrice.timestamp).getTime() : newPrice.timestamp,
+        timestamp:
+          typeof newPrice.timestamp === 'string'
+            ? new Date(newPrice.timestamp).getTime()
+            : newPrice.timestamp,
         confidence: newPrice.confidence ?? undefined,
         source: newPrice.source ?? undefined,
       };
@@ -116,34 +119,34 @@ export function useRealtimePrices(
   const [prices, setPrices] = useState<Map<string, RealtimePriceData>>(new Map());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const handlePriceUpdate = useCallback(
-    (payload: PriceUpdatePayload) => {
-      if (payload.eventType === 'DELETE') {
-        return;
-      }
+  const handlePriceUpdate = useCallback((payload: PriceUpdatePayload) => {
+    if (payload.eventType === 'DELETE') {
+      return;
+    }
 
-      const newPrice = payload.new;
-      const key = `${newPrice.provider}:${newPrice.symbol}:${newPrice.chain || 'default'}`;
+    const newPrice = payload.new;
+    const key = `${newPrice.provider}:${newPrice.symbol}:${newPrice.chain || 'default'}`;
 
-      const data: RealtimePriceData = {
-        provider: newPrice.provider as OracleProvider,
-        symbol: newPrice.symbol,
-        chain: newPrice.chain as Blockchain | undefined,
-        price: newPrice.price,
-        timestamp: typeof newPrice.timestamp === 'string' ? new Date(newPrice.timestamp).getTime() : newPrice.timestamp,
-        confidence: newPrice.confidence ?? undefined,
-        source: newPrice.source ?? undefined,
-      };
+    const data: RealtimePriceData = {
+      provider: newPrice.provider as OracleProvider,
+      symbol: newPrice.symbol,
+      chain: newPrice.chain as Blockchain | undefined,
+      price: newPrice.price,
+      timestamp:
+        typeof newPrice.timestamp === 'string'
+          ? new Date(newPrice.timestamp).getTime()
+          : newPrice.timestamp,
+      confidence: newPrice.confidence ?? undefined,
+      source: newPrice.source ?? undefined,
+    };
 
-      setPrices((prevPrices) => {
-        const newPrices = new Map(prevPrices);
-        newPrices.set(key, data);
-        return newPrices;
-      });
-      setLastUpdate(new Date());
-    },
-    []
-  );
+    setPrices((prevPrices) => {
+      const newPrices = new Map(prevPrices);
+      newPrices.set(key, data);
+      return newPrices;
+    });
+    setLastUpdate(new Date());
+  }, []);
 
   useEffect(() => {
     if (!enabled || symbols.length === 0) {

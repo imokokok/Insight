@@ -34,6 +34,9 @@ export interface ExportProgress {
 }
 
 export type ExportProgressCallback = (progress: ExportProgress) => void;
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('chartExport');
 
 function sanitizeFilename(filename: string): string {
   return filename
@@ -346,11 +349,14 @@ export async function exportToSVG(
             cssText += rules[j].cssText + '\n';
           }
         } catch (e) {
-          console.warn('Failed to access stylesheet rules:', e);
+          logger.warn(
+            'Failed to access stylesheet rules',
+            e instanceof Error ? e : new Error(String(e))
+          );
         }
       }
     } catch (e) {
-      console.warn('Failed to extract stylesheets:', e);
+      logger.warn('Failed to extract stylesheets', e instanceof Error ? e : new Error(String(e)));
     }
 
     if (cssText) {

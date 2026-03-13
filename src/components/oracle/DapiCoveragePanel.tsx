@@ -34,7 +34,9 @@ function TotalDapisCard({ total }: { total: number }) {
     <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">{t('dapiCoverage.totalDapis')}</p>
+          <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">
+            {t('dapiCoverage.totalDapis')}
+          </p>
           <p className="text-5xl font-bold mb-1">{total}</p>
           <p className="text-blue-200 text-sm">{t('dapiCoverage.activeDataSources')}</p>
         </div>

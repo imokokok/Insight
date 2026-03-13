@@ -16,6 +16,13 @@ import {
   Info,
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
+import { TooltipProps } from '@/lib/types/recharts';
+
+interface ChartDataPoint {
+  time: string;
+  value: number;
+  fullTime?: string;
+}
 
 // Enhanced trend data with timestamps for better tooltips
 const generateTrendData = (baseValue: number, points: number, variance: number) => {
@@ -51,7 +58,7 @@ interface MetricCard {
   icon: React.ElementType;
   size: 'large' | 'medium' | 'small';
   chart?: 'area' | 'line';
-  chartData?: any[];
+  chartData?: ChartDataPoint[];
   color: string;
   hasLiveIndicator?: boolean;
   alert?: {
@@ -263,7 +270,7 @@ function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; m
 }
 
 // Custom Tooltip for Charts
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white/95 backdrop-blur-sm border border-gray-200/60 rounded-lg shadow-lg px-3 py-2">
@@ -400,27 +407,26 @@ export default function BentoMetricsGrid() {
 
     if (card.chart === 'area') {
       return (
-        <div className="h-28 mt-5 w-full min-h-[112px]">
-          <ResponsiveContainer width="100%" height={112}>
-            <AreaChart data={card.chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+        <div className="h-24 mt-4 w-full">
+          <ResponsiveContainer width="100%" height={96}>
+            <AreaChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id={`gradient-${card.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={colors.chartFill} stopOpacity={0.25} />
-                  <stop offset="50%" stopColor={colors.chartFill} stopOpacity={0.1} />
-                  <stop offset="95%" stopColor={colors.chartFill} stopOpacity={0} />
+                  <stop offset="0%" stopColor={colors.chartFill} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={colors.chartFill} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <Tooltip
                 content={<ChartTooltip />}
-                cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '3 3' }}
               />
               <Area
                 type="monotone"
                 dataKey="value"
                 stroke={colors.chart}
-                strokeWidth={2.5}
+                strokeWidth={2}
                 fill={`url(#gradient-${card.id})`}
-                animationDuration={1500}
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -429,21 +435,21 @@ export default function BentoMetricsGrid() {
     }
 
     return (
-      <div className="h-20 mt-5 w-full min-h-[80px]">
-        <ResponsiveContainer width="100%" height={80}>
-          <LineChart data={card.chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+      <div className="h-16 mt-4 w-full">
+        <ResponsiveContainer width="100%" height={64}>
+          <LineChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '4 4' }}
+              cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '3 3' }}
             />
             <Line
               type="monotone"
               dataKey="value"
               stroke={colors.chart}
-              strokeWidth={2.5}
-              dot={{ fill: colors.chart, strokeWidth: 2, r: 3, stroke: '#fff' }}
-              activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-              animationDuration={1500}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>

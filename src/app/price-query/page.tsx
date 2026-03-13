@@ -29,6 +29,11 @@ import {
   QuickLinks,
   ChartDataPoint,
 } from './components';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { NoDataEmptyState } from '@/components/ui/EmptyState';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('price-query-page');
 
 const oracleClients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -241,7 +246,10 @@ export default function PriceQueryPage() {
               const key = `${provider}-${chain}`;
               histories[key] = history;
             } catch (error) {
-              console.error(`Error fetching ${provider} on ${chain}:`, error);
+              logger.error(
+                `Error fetching ${provider} on ${chain}`,
+                error instanceof Error ? error : new Error(String(error))
+              );
             }
             completedQueries++;
             setQueryProgress({ completed: completedQueries, total: totalQueries });
@@ -262,7 +270,10 @@ export default function PriceQueryPage() {
         setHistoryItems(getQueryHistory());
       }
     } catch (error) {
-      console.error('Error fetching query data:', error);
+      logger.error(
+        'Error fetching query data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
       setQueryDuration(Date.now() - startTime);
@@ -474,42 +485,12 @@ export default function PriceQueryPage() {
       />
 
       {loading ? (
-        <div
-          className="py-16 flex flex-col justify-center items-center gap-4 border-b border-gray-200"
-          role="status"
-          aria-live="polite"
-        >
-          <div
-            className="w-8 h-8 border-2 border-gray-900 border-t-transparent animate-spin"
-            aria-hidden="true"
-          />
-          <div className="text-sm text-gray-500">{t('priceQuery.loadingData')}</div>
-          {currentQueryTarget.oracle && currentQueryTarget.chain && (
-            <div className="flex flex-col items-center gap-2 mt-2">
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="font-medium">{t('priceQuery.querying')}:</span>
-                <span className="flex items-center gap-1">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: oracleColors[currentQueryTarget.oracle] }}
-                  />
-                  {t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}
-                </span>
-                <span className="text-gray-400">/</span>
-                <span className="flex items-center gap-1">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: chainColors[currentQueryTarget.chain] }}
-                  />
-                  {t(`blockchain.${currentQueryTarget.chain.toLowerCase()}`)}
-                </span>
-              </div>
-              <div className="text-sm text-gray-500">
-                {t('priceQuery.progress')}: {queryProgress.completed} / {queryProgress.total}
-              </div>
-            </div>
-          )}
+        <div className="space-y-8">
+          <ChartSkeleton height={200} variant="area" showToolbar={false} />
+          <ChartSkeleton height={400} variant="price" showToolbar={true} />
         </div>
+      ) : queryResults.length === 0 ? (
+        <NoDataEmptyState onRefresh={fetchQueryData} />
       ) : (
         <>
           <StatsGrid

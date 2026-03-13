@@ -121,7 +121,8 @@ export default function Navbar() {
                     className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-sm font-medium">
-                      {profile?.display_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
+                      {profile?.display_name?.[0]?.toUpperCase() ||
+                        user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
                     </div>
                   </button>
 

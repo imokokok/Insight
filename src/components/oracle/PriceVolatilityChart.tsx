@@ -16,6 +16,7 @@ import {
   Area,
 } from 'recharts';
 import { OracleProvider } from '@/lib/types/oracle';
+import { TooltipProps } from '@/lib/types/recharts';
 import { DashboardCard } from './DashboardCard';
 import { VolatilityAlert } from './VolatilityAlert';
 import { useI18n } from '@/lib/i18n/provider';
@@ -94,54 +95,32 @@ const TIME_SCALE_COLORS = {
   short: '#3B82F6',
   mid: '#10B981',
   long: '#8B5CF6',
-}
-const TIME_SCALE_CONFIG: {
-  short: { label: '短期 (1小时)', window: 6, color: TIME_SCALE_COLORS.short },
-  mid: { label: '中期 (24小时)',
- window: 24, color: TIME_SCALE_COLORS.mid },
-  long: { label: '长期 (7天)',
- window: 168, color: TIME_SCALE_COLORS.long }
-}
-const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINlink]: 'Chainlink',
-  [OracleProvider.band_protocol]: 'Band Protocol',
-  [OracleProvider.uma]: 'UMA',
-  [OracleProvider.pyth_network]: 'Pyth Network',
-  [OracleProvider.api3]: 'API3',
 };
-const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.chainlink]: '#375BD2',
-  [OracleProvider.band_protocol]: '#9B51E0',
-  [OracleProvider.uma]: '#FF6B6B',
-  [OracleProvider.pyth_network]: '#EC4899',
-  [OracleProvider.api3]: '#10B981',
-}
-const TIME_SCALE_WINDOW = {
-  short: 6,
-  mid: 24,
-  long: 168,
-}
-const TIME_SCALE_COLORS = {
-  short: '#3B82F6',
-  mid: '#10B981',
-  long: '#8B5CF6'
-}
+
 const TIME_SCALE_CONFIG: {
+  short: { label: string; window: number; color: string };
+  mid: { label: string; window: number; color: string };
+  long: { label: string; window: number; color: string };
+} = {
   short: { label: '短期 (1小时)', window: 6, color: TIME_SCALE_COLORS.short },
   mid: { label: '中期 (24小时)', window: 24, color: TIME_SCALE_COLORS.mid },
-  long: { label: '长期 (7天)', window: 168, color: TIME_SCALE_COLORS.long }
-}
+  long: { label: '长期 (7天)', window: 168, color: TIME_SCALE_COLORS.long },
+};
 
 type TimeScale = 'short' | 'mid' | 'long';
 
 type VolatilityLevelKey = 'extremelyLow' | 'low' | 'medium' | 'high' | 'extremelyHigh';
 
-function getVolatilityLevel(cv: number): { levelKey: VolatilityLevelKey; color: string } {
-  if (cv < 0.5) return { levelKey: 'extremelyLow', color: '#10B981' };
-  if (cv < 1.0) return { levelKey: 'low', color: '#3B82F6' };
-  if (cv < 2.0) return { levelKey: 'medium', color: '#F59E0B' };
-  if (cv < 5.0) return { levelKey: 'high', color: '#EF4444' };
-  return { levelKey: 'extremelyHigh', color: '#991B1B' };
+function getVolatilityLevel(cv: number): {
+  levelKey: VolatilityLevelKey;
+  color: string;
+  label: string;
+} {
+  if (cv < 0.5) return { levelKey: 'extremelyLow', color: '#10B981', label: '极低' };
+  if (cv < 1.0) return { levelKey: 'low', color: '#3B82F6', label: '低' };
+  if (cv < 2.0) return { levelKey: 'medium', color: '#F59E0B', label: '中等' };
+  if (cv < 5.0) return { levelKey: 'high', color: '#EF4444', label: '高' };
+  return { levelKey: 'extremelyHigh', color: '#991B1B', label: '极高' };
 }
 
 function calculateStandardDeviation(prices: number[]): number {
@@ -378,7 +357,17 @@ export function PriceVolatilityChart({
     return multiScaleVolatility.reduce((sum, r) => sum + r.cv, 0) / multiScaleVolatility.length;
   }, [multiScaleVolatility]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface ChartDataPayload {
+    name: string;
+    cv: number;
+    stdDev: number;
+    mean: number;
+    oracle: OracleProvider;
+    levelKey: VolatilityLevelKey;
+    levelColor: string;
+  }
+
+  const CustomTooltip = ({ active, payload }: TooltipProps<ChartDataPayload>) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const dataPoint = payload[0].payload;
@@ -412,7 +401,9 @@ export function PriceVolatilityChart({
           </div>
           <div className="pt-2 mt-2 border-t border-gray-100">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.volatilityLevel')}</span>
+              <span className="text-xs text-gray-500">
+                {t('priceVolatility.tooltip.volatilityLevel')}
+              </span>
               <span
                 className="text-xs font-medium px-2 py-0.5 rounded"
                 style={{
@@ -429,14 +420,14 @@ export function PriceVolatilityChart({
     );
   };
 
-  const TrendTooltip = ({ active, payload, label }: any) => {
+  const TrendTooltip = ({ active, payload, label }: TooltipProps<VolatilityTrendPoint>) => {
     if (!active || !payload || payload.length === 0) return null;
 
     return (
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex justify-between items-center gap-4">
               <span className="text-xs text-gray-600">{entry.name}</span>
               <span className="text-xs font-medium" style={{ color: entry.color }}>
@@ -449,7 +440,11 @@ export function PriceVolatilityChart({
     );
   };
 
-  const DecompositionTooltip = ({ active, payload, label }: any) => {
+  const DecompositionTooltip = ({
+    active,
+    payload,
+    label,
+  }: TooltipProps<VolatilityDecomposition>) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
@@ -458,7 +453,9 @@ export function PriceVolatilityChart({
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('priceVolatility.shortTermVolatility')}</span>
+            <span className="text-xs text-gray-600">
+              {t('priceVolatility.shortTermVolatility')}
+            </span>
             <span className="text-xs font-medium text-blue-600">{data.shortTerm.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between items-center">
@@ -562,7 +559,7 @@ export function PriceVolatilityChart({
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="cv" radius={[0, 4, 4, 0]} maxBarSize={40}>
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.level.color} />
+                      <Cell key={`cell-${index}`} fill={entry.levelColor} />
                     ))}
                   </Bar>
                 </ComposedChart>

@@ -63,11 +63,7 @@ export function ConnectionStatusIndicator({
       <div
         className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.color}`}
       >
-        <span
-          className={`text-sm ${
-            connectionStatus === 'connecting' ? 'animate-pulse' : ''
-          }`}
-        >
+        <span className={`text-sm ${connectionStatus === 'connecting' ? 'animate-pulse' : ''}`}>
           {config.icon}
         </span>
         {showLabel && <span>{config.label}</span>}
@@ -100,8 +96,8 @@ export function ConnectionStatusBadge({ className = '' }: { className?: string }
           connectionStatus === 'connected'
             ? 'bg-green-500'
             : connectionStatus === 'connecting'
-            ? 'bg-yellow-500 animate-pulse'
-            : 'bg-red-500'
+              ? 'bg-yellow-500 animate-pulse'
+              : 'bg-red-500'
         }`}
       />
       <span>{config.label}</span>
@@ -122,8 +118,8 @@ export function ConnectionStatusDot({ className = '' }: { className?: string }) 
           connectionStatus === 'connected'
             ? 'bg-green-500'
             : connectionStatus === 'connecting'
-            ? 'bg-yellow-500 animate-ping'
-            : 'bg-red-500'
+              ? 'bg-yellow-500 animate-ping'
+              : 'bg-red-500'
         }`}
       />
       <span
@@ -131,8 +127,8 @@ export function ConnectionStatusDot({ className = '' }: { className?: string }) 
           connectionStatus === 'connected'
             ? 'bg-green-500'
             : connectionStatus === 'connecting'
-            ? 'bg-yellow-500'
-            : 'bg-red-500'
+              ? 'bg-yellow-500'
+              : 'bg-red-500'
         }`}
       />
     </div>

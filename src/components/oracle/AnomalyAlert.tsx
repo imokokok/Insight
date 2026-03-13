@@ -13,6 +13,9 @@ import {
   OracleProvider,
   Blockchain,
 } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('AnomalyAlert');
 
 export type AnomalyType = 'price_spike' | 'price_deviation' | 'data_delay' | 'price_drop';
 export type AnomalySeverity = 'low' | 'medium' | 'high';
@@ -182,7 +185,7 @@ export function AnomalyAlert() {
 
   const requestNotificationPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+      logger.warn('This browser does not support notifications');
       return false;
     }
 
@@ -411,7 +414,10 @@ export function AnomalyAlert() {
 
       setLastCheck(Date.now());
     } catch (error) {
-      console.error('Error fetching prices:', error);
+      logger.error(
+        'Error fetching prices',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
     }

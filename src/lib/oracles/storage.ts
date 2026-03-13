@@ -1,6 +1,9 @@
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 import { getServerQueries } from '@/lib/supabase/server';
 import { PriceRecordInsert, PriceRecord } from '@/lib/supabase/queries';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('oracle-storage');
 
 export interface OracleStorageConfig {
   enabled: boolean;
@@ -45,20 +48,20 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
     decimals: priceData.decimals,
     confidence: priceData.confidence,
     source: priceData.source,
-    expires_at: calculateExpirationDate(),
+    ttl: calculateExpirationDate(),
   };
 }
 
 function recordToPriceData(record: PriceRecord): PriceData {
   return {
-    provider: record.provider,
+    provider: record.provider as OracleProvider,
     symbol: record.symbol,
-    chain: record.chain,
+    chain: record.chain as Blockchain | undefined,
     price: record.price,
-    timestamp: record.timestamp,
-    decimals: record.decimals,
-    confidence: record.confidence,
-    source: record.source,
+    timestamp: new Date(record.timestamp).getTime(),
+    decimals: 8,
+    confidence: record.confidence ?? undefined,
+    source: record.source ?? undefined,
   };
 }
 
@@ -73,7 +76,10 @@ export async function savePriceToDatabase(priceData: PriceData): Promise<boolean
     const result = await queries.savePriceRecord(record);
     return result !== null;
   } catch (error) {
-    console.error('Failed to save price to database:', error);
+    logger.error(
+      'Failed to save price to database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -89,7 +95,10 @@ export async function savePricesToDatabase(priceDataArray: PriceData[]): Promise
     const results = await queries.savePriceRecords(records);
     return results?.length || 0;
   } catch (error) {
-    console.error('Failed to save prices to database:', error);
+    logger.error(
+      'Failed to save prices to database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return 0;
   }
 }
@@ -106,14 +115,17 @@ export async function getPriceFromDatabase(
   try {
     const queries = getServerQueries();
     const record = await queries.getLatestPrice(provider, symbol, chain);
-    
+
     if (!record) {
       return null;
     }
 
     return recordToPriceData(record);
   } catch (error) {
-    console.error('Failed to get price from database:', error);
+    logger.error(
+      'Failed to get price from database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 }
@@ -148,7 +160,10 @@ export async function getHistoricalPricesFromDatabase(
 
     return records.map(recordToPriceData);
   } catch (error) {
-    console.error('Failed to get historical prices from database:', error);
+    logger.error(
+      'Failed to get historical prices from database',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 }
@@ -158,7 +173,7 @@ export async function savePriceWithFallback(
   fallback: () => Promise<PriceData>
 ): Promise<PriceData> {
   const dbPrice = await getPriceFromDatabase(priceData.provider, priceData.symbol, priceData.chain);
-  
+
   if (dbPrice) {
     return dbPrice;
   }
@@ -176,7 +191,7 @@ export async function saveHistoricalPricesWithFallback(
   fallback: () => Promise<PriceData[]>
 ): Promise<PriceData[]> {
   const dbPrices = await getHistoricalPricesFromDatabase(provider, symbol, chain, period);
-  
+
   if (dbPrices && dbPrices.length > 0) {
     return dbPrices;
   }
