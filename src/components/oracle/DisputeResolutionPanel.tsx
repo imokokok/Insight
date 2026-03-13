@@ -1,10 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { UMAClient, DisputeData, DisputeType, DisputeTypeLabels } from '@/lib/oracles/uma';
+import {
+  UMAClient,
+  DisputeData,
+  DisputeType,
+  DisputeTypeLabels,
+  DisputeTypeStyles,
+  DisputeTypeChartColors,
+  PriceDisputeIcon,
+  StateDisputeIcon,
+  LiquidationDisputeIcon,
+  OtherDisputeIcon,
+} from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
+import { DisputeAmountDistribution } from './DisputeAmountDistribution';
+import {
+  DisputeVotingPanel,
+  generateMockVotingData,
+  DisputeVotingData,
+} from './DisputeVotingPanel';
+import { useUMARealtimeDisputes, UMADisputeUpdate } from '@/hooks/useUMARealtime';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('DisputeResolutionPanel');
@@ -160,18 +178,37 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
     return max > 0 ? (value / max) * 100 : 0;
   };
 
+  // 使用统一的争议类型样式配置
   const typeColors = {
     price: 'bg-blue-500',
-    state: 'bg-green-500',
-    liquidation: 'bg-red-500',
-    other: 'bg-gray-500',
+    state: 'bg-emerald-500',
+    liquidation: 'bg-amber-500',
+    other: 'bg-slate-500',
   };
 
-  const typeLabels = {
-    price: '价格争议',
-    state: '状态争议',
-    liquidation: '清算争议',
-    other: '其他争议',
+  const typeBgColors = {
+    price: 'bg-blue-50',
+    state: 'bg-emerald-50',
+    liquidation: 'bg-amber-50',
+    other: 'bg-slate-50',
+  };
+
+  const typeLabels = DisputeTypeLabels;
+
+  // 获取争议类型图标
+  const getTypeChartIcon = (type: DisputeType, className = 'w-4 h-4') => {
+    switch (type) {
+      case 'price':
+        return <PriceDisputeIcon className={className} />;
+      case 'state':
+        return <StateDisputeIcon className={className} />;
+      case 'liquidation':
+        return <LiquidationDisputeIcon className={className} />;
+      case 'other':
+        return <OtherDisputeIcon className={className} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -188,18 +225,24 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
                   <span className="text-sm text-gray-600">
                     {t('uma.disputeResolution.resolvedDisputes')}
                   </span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 {(Object.keys(typeColors) as Array<keyof typeof typeColors>).map((type) => (
-                  <div key={type} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 ${typeColors[type]} rounded-full`}></div>
-                    <span className="text-sm text-gray-600">{typeLabels[type]}</span>
+                  <div
+                    key={type}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${typeBgColors[type]} border border-opacity-20`}
+                    style={{ borderColor: DisputeTypeChartColors[type] }}
+                  >
+                    <div className={`${typeColors[type]} text-white rounded-full p-0.5`}>
+                      {getTypeChartIcon(type, 'w-3 h-3')}
+                    </div>
+                    <span className="text-sm text-gray-700 font-medium">{typeLabels[type]}</span>
                   </div>
                 ))}
               </div>
@@ -225,7 +268,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                       title={`${t('uma.disputeResolution.filedDisputes')}: ${trend.filed}`}
                     ></div>
                     <div
-                      className="w-3 bg-green-500 rounded-t transition-all duration-300 hover:bg-green-600"
+                      className="w-3 bg-emerald-500 rounded-t transition-all duration-300 hover:bg-emerald-600"
                       style={{ height: `${getHeight(trend.resolved)}%` }}
                       title={`${t('uma.disputeResolution.resolvedDisputes')}: ${trend.resolved}`}
                     ></div>
@@ -433,15 +476,29 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     );
   };
 
+  // 获取争议类型图标
+  const getTypeIcon = (type: DisputeType, className = 'w-3.5 h-3.5') => {
+    switch (type) {
+      case 'price':
+        return <PriceDisputeIcon className={className} />;
+      case 'state':
+        return <StateDisputeIcon className={className} />;
+      case 'liquidation':
+        return <LiquidationDisputeIcon className={className} />;
+      case 'other':
+        return <OtherDisputeIcon className={className} />;
+      default:
+        return null;
+    }
+  };
+
   const getTypeBadge = (type: DisputeType) => {
-    const styles = {
-      price: 'bg-blue-100 text-blue-700',
-      state: 'bg-green-100 text-green-700',
-      liquidation: 'bg-red-100 text-red-700',
-      other: 'bg-gray-100 text-gray-700',
-    };
+    const styles = DisputeTypeStyles[type];
     return (
-      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${styles[type]}`}>
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${styles.bgColor} ${styles.color} ${styles.borderColor} ${styles.hoverBgColor} transition-colors duration-200`}
+      >
+        {getTypeIcon(type, 'w-3.5 h-3.5')}
         {DisputeTypeLabels[type]}
       </span>
     );
@@ -471,17 +528,35 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
             <label className="text-sm text-gray-600">
               {t('uma.disputeResolution.filterByType') || '类型'}:
             </label>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as DisputeType | 'all')}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">全部</option>
-              <option value="price">价格争议</option>
-              <option value="state">状态争议</option>
-              <option value="liquidation">清算争议</option>
-              <option value="other">其他争议</option>
-            </select>
+            <div className="relative">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as DisputeType | 'all')}
+                className="px-3 py-1.5 pl-9 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[120px]"
+              >
+                <option value="all">全部</option>
+                <option value="price">价格争议</option>
+                <option value="state">状态争议</option>
+                <option value="liquidation">清算争议</option>
+                <option value="other">其他争议</option>
+              </select>
+              <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                {typeFilter === 'all' ? (
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                ) : (
+                  <span className={DisputeTypeStyles[typeFilter].color}>
+                    {getTypeIcon(typeFilter, 'w-4 h-4')}
+                  </span>
+                )}
+              </div>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -699,6 +774,10 @@ export function DisputeResolutionPanel() {
   const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
   const [relativeTime, setRelativeTime] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [votingData, setVotingData] = useState<DisputeVotingData | null>(null);
+  const [realtimeNotifications, setRealtimeNotifications] = useState<UMADisputeUpdate[]>([]);
+  const [showNotifications, setShowNotifications] = useState(true);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -754,6 +833,9 @@ export function DisputeResolutionPanel() {
         avgResolutionTime,
       });
 
+      // Generate mock voting data for demonstration
+      setVotingData(generateMockVotingData(disputesData[0]?.id || 'dispute-1'));
+
       setLastUpdateTime(Date.now());
     } catch (error) {
       logger.error(
@@ -765,6 +847,78 @@ export function DisputeResolutionPanel() {
       setIsRefreshing(false);
     }
   }, []);
+
+  // UMA 实时争议数据订阅
+  const {
+    connectionStatus: disputeConnectionStatus,
+    activeCount: realtimeActiveCount,
+    resolvedCount: realtimeResolvedCount,
+    rejectedCount: realtimeRejectedCount,
+  } = useUMARealtimeDisputes({
+    enabled: true,
+    onDisputeUpdate: useCallback(
+      (disputeUpdate: UMADisputeUpdate) => {
+        // 添加通知
+        setRealtimeNotifications((prev) => {
+          const newNotifications = [disputeUpdate, ...prev].slice(0, 5); // 只保留最近5条
+          return newNotifications;
+        });
+
+        // 更新争议列表
+        setDisputes((prevDisputes) => {
+          const existingIndex = prevDisputes.findIndex((d) => d.id === disputeUpdate.id);
+          if (existingIndex >= 0) {
+            // 更新现有争议
+            const newDisputes = [...prevDisputes];
+            newDisputes[existingIndex] = disputeUpdate;
+            return newDisputes.sort((a, b) => b.timestamp - a.timestamp);
+          } else {
+            // 添加新争议
+            return [disputeUpdate, ...prevDisputes].sort((a, b) => b.timestamp - a.timestamp);
+          }
+        });
+
+        // 更新概览数据
+        setOverview((prevOverview) => {
+          if (!prevOverview) return null;
+
+          const isNewDispute = !disputes.find((d) => d.id === disputeUpdate.id);
+          const wasActive = disputeUpdate.previousStatus === 'active';
+          const isNowActive = disputeUpdate.status === 'active';
+
+          let activeDisputes = prevOverview.activeDisputes;
+          let totalDisputes = prevOverview.totalDisputes;
+          let successRate = prevOverview.successRate;
+
+          if (isNewDispute && isNowActive) {
+            activeDisputes++;
+            totalDisputes++;
+          } else if (wasActive && !isNowActive) {
+            activeDisputes--;
+          }
+
+          // 重新计算成功率
+          // Note: realtimeResolvedCount and realtimeRejectedCount are not available here
+          // due to temporal dead zone. Calculate from dispute status instead.
+          const resolvedDisputes = disputes.filter((d) => d.status === 'resolved').length;
+          const rejectedDisputes = disputes.filter((d) => d.status === 'rejected').length;
+          if (resolvedDisputes + rejectedDisputes > 0) {
+            successRate = (resolvedDisputes / (resolvedDisputes + rejectedDisputes)) * 100;
+          }
+
+          return {
+            ...prevOverview,
+            activeDisputes,
+            totalDisputes,
+            successRate,
+          };
+        });
+
+        setLastUpdateTime(Date.now());
+      },
+      [disputes]
+    ),
+  });
 
   useEffect(() => {
     fetchData();
@@ -783,8 +937,94 @@ export function DisputeResolutionPanel() {
     return () => clearInterval(interval);
   }, [lastUpdateTime]);
 
+  // 自动清除通知
+  useEffect(() => {
+    if (realtimeNotifications.length === 0) return;
+
+    const timer = setTimeout(() => {
+      setRealtimeNotifications((prev) => prev.slice(0, -1));
+    }, 10000); // 10秒后自动清除最旧的通知
+
+    return () => clearTimeout(timer);
+  }, [realtimeNotifications]);
+
   return (
     <div className="space-y-6">
+      {/* 实时通知面板 */}
+      {showNotifications && realtimeNotifications.length > 0 && (
+        <div ref={notificationsRef} className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
+          {realtimeNotifications.map((notification, index) => (
+            <div
+              key={`${notification.id}-${index}`}
+              className={`p-4 rounded-lg shadow-lg border-l-4 animate-slide-in-right ${
+                notification.updateType === 'new'
+                  ? 'bg-blue-50 border-blue-500'
+                  : notification.updateType === 'status_change'
+                    ? notification.status === 'resolved'
+                      ? 'bg-green-50 border-green-500'
+                      : notification.status === 'rejected'
+                        ? 'bg-red-50 border-red-500'
+                        : 'bg-yellow-50 border-yellow-500'
+                    : 'bg-gray-50 border-gray-500'
+              }`}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        notification.updateType === 'new'
+                          ? 'bg-blue-500'
+                          : notification.status === 'resolved'
+                            ? 'bg-green-500'
+                            : notification.status === 'rejected'
+                              ? 'bg-red-500'
+                              : 'bg-yellow-500'
+                      }`}
+                    />
+                    <span className="text-sm font-medium text-gray-900">
+                      {notification.updateType === 'new'
+                        ? '新争议'
+                        : notification.updateType === 'status_change'
+                          ? '状态变更'
+                          : '争议更新'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">争议 ID: {notification.id}</p>
+                  <p className="text-xs text-gray-600">
+                    类型: {DisputeTypeLabels[notification.type]}
+                  </p>
+                  {notification.previousStatus && (
+                    <p className="text-xs text-gray-600">
+                      状态: {notification.previousStatus} → {notification.status}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    奖励: {notification.reward.toLocaleString()} UMA
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setRealtimeNotifications((prev) => prev.filter((_, i) => i !== index))
+                  }
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {lastUpdateTime && (
@@ -796,27 +1036,88 @@ export function DisputeResolutionPanel() {
               <span className="text-sm text-blue-600">刷新中...</span>
             </div>
           )}
-        </div>
-        <button
-          onClick={() => fetchData(true)}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg
-            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          {/* 实时连接状态指示器 */}
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                disputeConnectionStatus === 'connected'
+                  ? 'bg-green-500 animate-pulse'
+                  : disputeConnectionStatus === 'connecting' ||
+                      disputeConnectionStatus === 'reconnecting'
+                    ? 'bg-yellow-500 animate-pulse'
+                    : 'bg-red-500'
+              }`}
             />
-          </svg>
-          刷新数据
-        </button>
+            <span className="text-xs text-gray-600">
+              {disputeConnectionStatus === 'connected'
+                ? '实时'
+                : disputeConnectionStatus === 'connecting'
+                  ? '连接中'
+                  : disputeConnectionStatus === 'reconnecting'
+                    ? '重连中'
+                    : '断开'}
+            </span>
+          </div>
+          {/* 实时统计 */}
+          {disputeConnectionStatus === 'connected' && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+                活跃: {realtimeActiveCount}
+              </span>
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                已解决: {realtimeResolvedCount}
+              </span>
+              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
+                已拒绝: {realtimeRejectedCount}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              showNotifications
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            通知
+            {realtimeNotifications.length > 0 && (
+              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {realtimeNotifications.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => fetchData(true)}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            刷新数据
+          </button>
+        </div>
       </div>
 
       <DisputeOverviewCard overview={overview} loading={loading} />
@@ -827,6 +1128,22 @@ export function DisputeResolutionPanel() {
       </div>
 
       <DisputeEfficiencyAnalysis />
+
+      {/* Dispute Amount Distribution Analysis */}
+      <DisputeAmountDistribution />
+
+      {/* Voting Distribution Panel */}
+      {votingData && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('uma.disputeResolution.votingDistribution') || '争议投票分布'}
+            </h3>
+            <span className="text-sm text-gray-500">争议 ID: {votingData.disputeId}</span>
+          </div>
+          <DisputeVotingPanel votingData={votingData} loading={loading} />
+        </div>
+      )}
 
       <DisputeTable disputes={disputes} />
     </div>

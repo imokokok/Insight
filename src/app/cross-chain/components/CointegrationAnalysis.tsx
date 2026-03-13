@@ -9,6 +9,7 @@ import {
   CointegrationPair,
   calculateSpreadZScore,
 } from '../cointegration';
+import { ResidualDiagnostics } from './ResidualDiagnostics';
 import {
   LineChart,
   Line,
@@ -240,6 +241,9 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
             {signal === 'neutral' && '价差在合理区间内波动，建议观望等待更好的入场时机。'}
           </p>
         </div>
+
+        {/* Residual Diagnostics */}
+        <ResidualDiagnostics residuals={result.spread} maxLag={20} />
       </div>
     </div>
   );

@@ -122,13 +122,22 @@ export const gradients = {
 // ============================================
 
 export const chartColors = {
-  // 预言机品牌色
+  // 预言机品牌色 - 优化对比度和可区分性
   oracle: {
-    chainlink: '#3B82F6',
-    'band-protocol': '#10B981',
-    uma: '#F59E0B',
-    'pyth-network': '#8B5CF6',
-    api3: '#EC4899',
+    chainlink: '#2563EB', // 深蓝 - Chainlink品牌色
+    'band-protocol': '#059669', // 深绿 - Band Protocol
+    uma: '#D97706', // 深橙 - UMA
+    'pyth-network': '#7C3AED', // 深紫 - Pyth Network
+    api3: '#DB2777', // 深粉 - API3
+  } as const,
+
+  // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
+  oracleAccessible: {
+    chainlink: { color: '#1e40af', pattern: 'solid' }, // 深蓝
+    'band-protocol': { color: '#065f46', pattern: 'dashed' }, // 深绿
+    uma: { color: '#92400e', pattern: 'dotted' }, // 棕色
+    'pyth-network': { color: '#5b21b6', pattern: 'dashDot' }, // 深紫
+    api3: { color: '#9d174d', pattern: 'longDash' }, // 深粉
   } as const,
 
   // 地区颜色
@@ -295,6 +304,41 @@ export const accessibleColors = {
     muted: '#6b7280', // gray-500
     placeholder: '#9ca3af', // gray-400
   },
+
+  // 色盲友好的图表配色方案
+  chart: {
+    // 使用不同亮度和饱和度的颜色，确保可区分
+    sequence: [
+      '#003f5c', // 深蓝
+      '#2f4b7c', // 中蓝
+      '#665191', // 紫蓝
+      '#a05195', // 紫色
+      '#d45087', // 紫红
+      '#f95d6a', // 粉红
+      '#ff7c43', // 橙色
+      '#ffa600', // 黄色
+    ],
+    // 高对比度模式
+    highContrast: [
+      '#000000', // 黑
+      '#e60000', // 红
+      '#0073e6', // 蓝
+      '#008a00', // 绿
+      '#f5c400', // 黄
+      '#e67300', // 橙
+      '#9900e6', // 紫
+      '#e6007a', // 粉
+    ],
+  },
+
+  // 线条样式（用于色盲友好的双重编码）
+  linePatterns: {
+    solid: '0',
+    dashed: '5 5',
+    dotted: '1 3',
+    dashDot: '10 3 3 3',
+    longDash: '15 5',
+  } as const,
 } as const;
 
 // ============================================

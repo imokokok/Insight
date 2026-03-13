@@ -336,6 +336,186 @@ export const generateFilename = (symbol: string, extension: string): string => {
   return `cross-chain-${symbol}-${timestamp}.${extension}`;
 };
 
+export interface RollingCorrelationPoint {
+  timestamp: number;
+  correlation: number;
+}
+
+export interface RollingVolatilityPoint {
+  timestamp: number;
+  volatility: number;
+}
+
+export interface VolatilityConePoint {
+  windowSize: number;
+  minVolatility: number;
+  maxVolatility: number;
+  meanVolatility: number;
+  medianVolatility: number;
+  p10: number;
+  p25: number;
+  p75: number;
+  p90: number;
+}
+
+export const calculateRollingCorrelation = (
+  pricesX: number[],
+  pricesY: number[],
+  windowSize: number
+): RollingCorrelationPoint[] => {
+  const n = Math.min(pricesX.length, pricesY.length);
+  if (n < windowSize || windowSize < 2) {
+    return [];
+  }
+
+  const result: RollingCorrelationPoint[] = [];
+
+  for (let i = windowSize - 1; i < n; i++) {
+    const xSlice = pricesX.slice(i - windowSize + 1, i + 1);
+    const ySlice = pricesY.slice(i - windowSize + 1, i + 1);
+
+    const xMean = xSlice.reduce((a, b) => a + b, 0) / windowSize;
+    const yMean = ySlice.reduce((a, b) => a + b, 0) / windowSize;
+
+    let numerator = 0;
+    let xDenominator = 0;
+    let yDenominator = 0;
+
+    for (let j = 0; j < windowSize; j++) {
+      const xDiff = xSlice[j] - xMean;
+      const yDiff = ySlice[j] - yMean;
+      numerator += xDiff * yDiff;
+      xDenominator += xDiff * xDiff;
+      yDenominator += yDiff * yDiff;
+    }
+
+    const denominator = Math.sqrt(xDenominator * yDenominator);
+    const correlation = denominator === 0 ? 0 : numerator / denominator;
+
+    result.push({
+      timestamp: i,
+      correlation: isNaN(correlation) ? 0 : correlation,
+    });
+  }
+
+  return result;
+};
+
+/**
+ * 计算滚动波动率
+ * @param prices 价格数组
+ * @param windowSize 窗口大小
+ * @returns 滚动波动率时序数据
+ */
+export const calculateRollingVolatility = (
+  prices: number[],
+  windowSize: number
+): RollingVolatilityPoint[] => {
+  if (prices.length < windowSize || windowSize < 2) {
+    return [];
+  }
+
+  const result: RollingVolatilityPoint[] = [];
+
+  for (let i = windowSize; i < prices.length; i++) {
+    const windowPrices = prices.slice(i - windowSize, i);
+    const returns: number[] = [];
+
+    // 计算对数收益率
+    for (let j = 1; j < windowPrices.length; j++) {
+      if (windowPrices[j - 1] > 0 && windowPrices[j] > 0) {
+        const logReturn = Math.log(windowPrices[j] / windowPrices[j - 1]);
+        returns.push(logReturn);
+      }
+    }
+
+    if (returns.length < 2) {
+      result.push({
+        timestamp: i,
+        volatility: 0,
+      });
+      continue;
+    }
+
+    // 计算收益率的标准差（波动率）
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+    const volatility = Math.sqrt(variance);
+
+    // 年化波动率 (假设数据是小时级的，年化因子为 sqrt(365 * 24))
+    const annualizedVolatility = volatility * Math.sqrt(365 * 24) * 100;
+
+    result.push({
+      timestamp: i,
+      volatility: isNaN(annualizedVolatility) ? 0 : annualizedVolatility,
+    });
+  }
+
+  return result;
+};
+
+/**
+ * 计算波动率锥
+ * @param prices 价格数组
+ * @param windowSizes 不同的时间窗口大小数组
+ * @returns 波动率锥数据
+ */
+export const calculateVolatilityCone = (
+  prices: number[],
+  windowSizes: number[] = [10, 20, 30, 50, 100]
+): VolatilityConePoint[] => {
+  const result: VolatilityConePoint[] = [];
+
+  windowSizes.forEach((windowSize) => {
+    const rollingVols = calculateRollingVolatility(prices, windowSize);
+    const volatilities = rollingVols.map((v) => v.volatility).filter((v) => v > 0);
+
+    if (volatilities.length === 0) {
+      result.push({
+        windowSize,
+        minVolatility: 0,
+        maxVolatility: 0,
+        meanVolatility: 0,
+        medianVolatility: 0,
+        p10: 0,
+        p25: 0,
+        p75: 0,
+        p90: 0,
+      });
+      return;
+    }
+
+    const sorted = [...volatilities].sort((a, b) => a - b);
+    const n = sorted.length;
+
+    const minVolatility = sorted[0];
+    const maxVolatility = sorted[n - 1];
+    const meanVolatility = volatilities.reduce((a, b) => a + b, 0) / n;
+    const medianVolatility =
+      n % 2 === 1 ? sorted[Math.floor(n / 2)] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+
+    // 计算百分位数
+    const p10Index = Math.floor(n * 0.1);
+    const p25Index = Math.floor(n * 0.25);
+    const p75Index = Math.floor(n * 0.75);
+    const p90Index = Math.floor(n * 0.9);
+
+    result.push({
+      windowSize,
+      minVolatility,
+      maxVolatility,
+      meanVolatility,
+      medianVolatility,
+      p10: sorted[p10Index] || minVolatility,
+      p25: sorted[p25Index] || minVolatility,
+      p75: sorted[p75Index] || maxVolatility,
+      p90: sorted[p90Index] || maxVolatility,
+    });
+  });
+
+  return result;
+};
+
 // Dynamic Threshold Types
 export type ThresholdType = 'fixed' | 'dynamic' | 'atr';
 

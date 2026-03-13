@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { I18nProvider } from '@/lib/i18n/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SWRProvider } from '@/providers/SWRProvider';
+import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
@@ -39,24 +40,26 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <I18nProvider>
-          <SWRProvider>
-            <AuthProvider>
-              <TimeRangeProvider>
-                <RealtimeProvider>
-                  <ErrorBoundary>
-                    <Navbar />
-                    <main className="flex-1 bg-gray-50">{children}</main>
-                    <Footer />
-                    <ConnectionStatusIndicator
-                      showLabel={false}
-                      showReconnectButton={true}
-                      className="fixed bottom-4 right-4 z-50"
-                    />
-                  </ErrorBoundary>
-                </RealtimeProvider>
-              </TimeRangeProvider>
-            </AuthProvider>
-          </SWRProvider>
+          <ReactQueryProvider>
+            <SWRProvider>
+              <AuthProvider>
+                <TimeRangeProvider>
+                  <RealtimeProvider>
+                    <ErrorBoundary>
+                      <Navbar />
+                      <main className="flex-1 bg-gray-50">{children}</main>
+                      <Footer />
+                      <ConnectionStatusIndicator
+                        showLabel={false}
+                        showReconnectButton={true}
+                        className="fixed bottom-4 right-4 z-50"
+                      />
+                    </ErrorBoundary>
+                  </RealtimeProvider>
+                </TimeRangeProvider>
+              </AuthProvider>
+            </SWRProvider>
+          </ReactQueryProvider>
         </I18nProvider>
         <Analytics />
         <SpeedInsights />

@@ -9,6 +9,7 @@ import { StakingDistributionChart } from './StakingDistributionChart';
 import { ValidatorComparison } from './ValidatorComparison';
 import { StakingCalculator } from './StakingCalculator';
 import { ValidatorHistoryChart } from './ValidatorHistoryChart';
+import { MultiValidatorComparison } from './MultiValidatorComparison';
 
 type SortField = 'tokens' | 'commissionRate' | 'uptime' | 'rank';
 type SortDirection = 'asc' | 'desc';
@@ -486,6 +487,290 @@ function ValidatorRow({
   );
 }
 
+function ValidatorCard({
+  validator,
+  onClick,
+  isSelected,
+  onToggleSelect,
+}: {
+  validator: ValidatorInfo;
+  onClick: () => void;
+  isSelected: boolean;
+  onToggleSelect: (e: React.MouseEvent) => void;
+}) {
+  const status = validator.jailed ? 'jailed' : 'active';
+  const config = statusConfig[status];
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all active:scale-[0.98]"
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onToggleSelect}
+            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+              isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            {isSelected && (
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </button>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-sm">#{validator.rank}</span>
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-900 truncate">{validator.moniker}</p>
+            <p className="text-xs text-gray-400 truncate max-w-[140px]">
+              {validator.operatorAddress.slice(0, 16)}...
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`relative flex h-2.5 w-2.5`}>
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.bgColor} opacity-75`}
+            />
+            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.bgColor}`} />
+          </span>
+          <span className={`text-xs font-medium ${config.textColor}`}>{config.label}</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="bg-gray-50 rounded-lg p-2.5">
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">质押量</p>
+          <p className="text-sm font-bold text-gray-900 truncate">
+            {formatNumber(validator.tokens, true)}
+          </p>
+          <p className="text-[10px] text-gray-400">BAND</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-2.5">
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">佣金率</p>
+          <p className="text-sm font-bold text-gray-900">
+            {(validator.commissionRate * 100).toFixed(2)}%
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                validator.uptime >= 99.5
+                  ? 'bg-green-500'
+                  : validator.uptime >= 99
+                    ? 'bg-yellow-500'
+                    : 'bg-red-500'
+              }`}
+              style={{ width: `${Math.min(validator.uptime, 100)}%` }}
+            />
+          </div>
+          <span
+            className={`text-xs font-medium ${
+              validator.uptime >= 99.5
+                ? 'text-green-600'
+                : validator.uptime >= 99
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+            }`}
+          >
+            {validator.uptime.toFixed(1)}%
+          </span>
+        </div>
+        <svg
+          className="w-5 h-5 text-gray-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function MobileValidatorList({
+  validators,
+  onValidatorClick,
+  selectedValidatorAddresses,
+  onToggleSelect,
+}: {
+  validators: ValidatorInfo[];
+  onValidatorClick: (validator: ValidatorInfo) => void;
+  selectedValidatorAddresses: Set<string>;
+  onToggleSelect: (e: React.MouseEvent, address: string) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowHeight = 140;
+
+  const virtualizer = useVirtualizer({
+    count: validators.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 3,
+  });
+
+  if (validators.length === 0) {
+    return (
+      <div className="py-12 text-center text-gray-500">
+        <svg
+          className="w-12 h-12 mx-auto mb-3 text-gray-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <p>没有找到匹配的验证者</p>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={parentRef} className="overflow-auto max-h-[600px] relative">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const validator = validators[virtualRow.index];
+          return (
+            <div
+              key={validator.operatorAddress}
+              className="absolute w-full px-4 py-2"
+              style={{
+                height: virtualRow.size,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <ValidatorCard
+                validator={validator}
+                onClick={() => onValidatorClick(validator)}
+                isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
+                onToggleSelect={(e) => onToggleSelect(e, validator.operatorAddress)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DesktopValidatorTable({
+  validators,
+  onValidatorClick,
+  selectedValidatorAddresses,
+  onToggleSelect,
+}: {
+  validators: ValidatorInfo[];
+  onValidatorClick: (validator: ValidatorInfo) => void;
+  selectedValidatorAddresses: Set<string>;
+  onToggleSelect: (e: React.MouseEvent, address: string) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowHeight = 64;
+
+  const virtualizer = useVirtualizer({
+    count: validators.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 5,
+  });
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="bg-gray-50 text-left">
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              验证者
+            </th>
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              质押量
+            </th>
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              佣金率
+            </th>
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              在线率
+            </th>
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              状态
+            </th>
+            <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
+          </tr>
+        </thead>
+      </table>
+      <div ref={parentRef} className="overflow-auto max-h-[500px] relative">
+        <table className="w-full">
+          <tbody className="block">
+            {validators.length === 0 ? (
+              <tr className="hidden"></tr>
+            ) : (
+              <tr className="block">
+                <td className="block p-0" style={{ height: virtualizer.getTotalSize() }}>
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const validator = validators[virtualRow.index];
+                    return (
+                      <div
+                        key={validator.operatorAddress}
+                        className="absolute w-full"
+                        style={{
+                          height: virtualRow.size,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                      >
+                        <ValidatorRow
+                          validator={validator}
+                          onClick={() => onValidatorClick(validator)}
+                          isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
+                          onToggleSelect={(e) => onToggleSelect(e, validator.operatorAddress)}
+                        />
+                      </div>
+                    );
+                  })}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {validators.length === 0 && (
+        <div className="py-12 text-center text-gray-500">
+          <svg
+            className="w-12 h-12 mx-auto mb-3 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p>没有找到匹配的验证者</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ValidatorPanel({
   client,
   limit = 20,
@@ -505,17 +790,18 @@ export function ValidatorPanel({
   const [selectedValidatorAddresses, setSelectedValidatorAddresses] = useState<Set<string>>(
     new Set()
   );
+  const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const parentRef = useRef<HTMLDivElement>(null);
 
-  const rowHeight = 64;
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-  const virtualizer = useVirtualizer({
-    count: filteredValidators.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => rowHeight,
-    overscan: 5,
-  });
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const convertToValidatorData = useCallback((validator: ValidatorInfo): ValidatorData => {
     const types: ('institution' | 'independent' | 'community')[] = [
@@ -544,6 +830,10 @@ export function ValidatorPanel({
       .filter((v) => selectedValidatorAddresses.has(v.operatorAddress))
       .map(convertToValidatorData);
   }, [validators, selectedValidatorAddresses, convertToValidatorData]);
+
+  const selectedValidatorsInfo = useMemo(() => {
+    return validators.filter((v) => selectedValidatorAddresses.has(v.operatorAddress));
+  }, [validators, selectedValidatorAddresses]);
 
   const fetchValidators = useCallback(async () => {
     try {
@@ -643,6 +933,10 @@ export function ValidatorPanel({
     });
   };
 
+  const handleClearSelection = () => {
+    setSelectedValidatorAddresses(new Set());
+  };
+
   const handleSegmentClick = (validator: ValidatorInfo) => {
     setSelectedValidator(validator);
     setIsModalOpen(true);
@@ -700,7 +994,7 @@ export function ValidatorPanel({
     <div className="space-y-6">
       <StakingDistributionChart validators={validators} onSegmentClick={handleSegmentClick} />
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden @container">
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -820,92 +1114,41 @@ export function ValidatorPanel({
               高在线率 (≥99.9%)
             </button>
             {selectedValidatorAddresses.size > 0 && (
-              <span className="ml-2 text-sm text-blue-600 font-medium">
-                已选择 {selectedValidatorAddresses.size} 个验证者进行对比
-              </span>
+              <div className="flex items-center gap-2 ml-2">
+                <span className="text-sm text-blue-600 font-medium">
+                  已选择 {selectedValidatorAddresses.size} 个验证者进行对比
+                </span>
+                <button
+                  onClick={handleClearSelection}
+                  className="text-xs text-gray-500 hover:text-red-600 underline transition-colors"
+                >
+                  清除选择
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  验证者
-                </th>
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  质押量
-                </th>
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  佣金率
-                </th>
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  在线率
-                </th>
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  状态
-                </th>
-                <th className="py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
-              </tr>
-            </thead>
-          </table>
-          <div ref={parentRef} className="overflow-auto max-h-[500px] relative">
-            <table className="w-full">
-              <tbody className="block">
-                {filteredValidators.length === 0 ? (
-                  <tr className="hidden"></tr>
-                ) : (
-                  <tr className="block">
-                    <td className="block p-0" style={{ height: virtualizer.getTotalSize() }}>
-                      {virtualizer.getVirtualItems().map((virtualRow) => {
-                        const validator = filteredValidators[virtualRow.index];
-                        return (
-                          <div
-                            key={validator.operatorAddress}
-                            className="absolute w-full"
-                            style={{
-                              height: virtualRow.size,
-                              transform: `translateY(${virtualRow.start}px)`,
-                            }}
-                          >
-                            <ValidatorRow
-                              validator={validator}
-                              onClick={() => handleValidatorClick(validator)}
-                              isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
-                              onToggleSelect={(e) =>
-                                handleToggleSelect(e, validator.operatorAddress)
-                              }
-                            />
-                          </div>
-                        );
-                      })}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {filteredValidators.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
-              <svg
-                className="w-12 h-12 mx-auto mb-3 text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p>没有找到匹配的验证者</p>
-            </div>
-          )}
-        </div>
+        {isMobile ? (
+          <MobileValidatorList
+            validators={filteredValidators}
+            onValidatorClick={handleValidatorClick}
+            selectedValidatorAddresses={selectedValidatorAddresses}
+            onToggleSelect={handleToggleSelect}
+          />
+        ) : (
+          <DesktopValidatorTable
+            validators={filteredValidators}
+            onValidatorClick={handleValidatorClick}
+            selectedValidatorAddresses={selectedValidatorAddresses}
+            onToggleSelect={handleToggleSelect}
+          />
+        )}
       </div>
+
+      {selectedValidatorsInfo.length >= 2 && (
+        <MultiValidatorComparison validators={selectedValidatorsInfo} client={client} />
+      )}
 
       {selectedValidatorsData.length > 0 && (
         <ValidatorComparison validators={selectedValidatorsData} />

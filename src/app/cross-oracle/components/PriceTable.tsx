@@ -30,6 +30,7 @@ interface PriceTableProps {
   onExpandRow: (index: number | null) => void;
   onSetHoveredRow: (index: number | null) => void;
   onSetSelectedRow: (index: number | null) => void;
+  onHoverOracle?: (oracle: OracleProvider | null) => void;
   t: (key: string) => string;
 }
 
@@ -50,6 +51,7 @@ export function PriceTable({
   onExpandRow,
   onSetHoveredRow,
   onSetSelectedRow,
+  onHoverOracle,
   t,
 }: PriceTableProps) {
   const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
@@ -137,8 +139,14 @@ export function PriceTable({
                   <tr
                     key={data.provider}
                     onClick={() => onExpandRow(isExpanded ? null : index)}
-                    onMouseEnter={() => onSetHoveredRow(index)}
-                    onMouseLeave={() => onSetHoveredRow(null)}
+                    onMouseEnter={() => {
+                      onSetHoveredRow(index);
+                      onHoverOracle?.(data.provider);
+                    }}
+                    onMouseLeave={() => {
+                      onSetHoveredRow(null);
+                      onHoverOracle?.(null);
+                    }}
                     tabIndex={0}
                     className={`relative border-b border-gray-100 cursor-pointer transition-all ${
                       isSelected

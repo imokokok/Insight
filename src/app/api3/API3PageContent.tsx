@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { API3Client } from '@/lib/oracles/api3';
 import {
@@ -21,22 +21,19 @@ import { DataQualityScoreCard } from '@/components/oracle/DataQualityScoreCard';
 import { LatencyDistributionHistogram } from '@/components/oracle/LatencyDistributionHistogram';
 import { UpdateFrequencyHeatmap } from '@/components/oracle/UpdateFrequencyHeatmap';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider, PriceData } from '@/lib/types/oracle';
+import { OracleProvider } from '@/lib/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { DapiPriceDeviationMonitor } from '@/components/oracle/DapiPriceDeviationMonitor';
 import { DataSourceTraceabilityPanel } from '@/components/oracle/DataSourceTraceabilityPanel';
 import { CoveragePoolTimeline } from '@/components/oracle/CoveragePoolTimeline';
-import { DapiPriceDeviation, DataSourceInfo, CoveragePoolEvent } from '@/lib/oracles/api3';
 import { createLogger } from '@/lib/utils/logger';
 import { GasFeeComparison } from '@/components/oracle/GasFeeComparison';
 import { ATRIndicator } from '@/components/oracle/ATRIndicator';
 import { BollingerBands } from '@/components/oracle/BollingerBands';
 import { DataQualityTrend } from '@/components/oracle/DataQualityTrend';
 import { CrossOracleComparison } from '@/components/oracle/CrossOracleComparison';
-import { GasFeeData } from '@/components/oracle/GasFeeComparison';
-import { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
-import { PriceDataPoint } from '@/components/oracle/ATRIndicator';
+import { useAPI3AllData } from '@/hooks/useAPI3Data';
 
 const logger = createLogger('API3PageContent');
 
@@ -51,262 +48,239 @@ const TABS: { id: AP3Tab; label: string }[] = [
   { id: 'advanced', label: '高级分析' },
 ];
 
+// 错误边界组件
+function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
+        <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4 mx-auto">
+          <svg
+            className="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">数据加载失败</h3>
+        <p className="text-sm text-gray-500 text-center mb-6">
+          {error.message || '获取 API3 数据时发生错误，请稍后重试'}
+        </p>
+        <button
+          onClick={onRetry}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          重试
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 加载状态组件
+function LoadingState() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <p className="text-gray-500">加载 API3 数据...</p>
+      </div>
+    </div>
+  );
+}
+
 export function API3PageContent() {
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('24H');
   const [activeTab, setActiveTab] = useState<AP3Tab>('market');
-  const [priceData, setPriceData] = useState<PriceData | null>(null);
-  const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const config = getOracleConfig(OracleProvider.API3);
-  const client = new API3Client();
+  const client = useMemo(() => new API3Client(), []);
 
-  const [airnodeData, setAirnodeData] = useState<{
-    deployments: {
-      total: number;
-      byRegion: { northAmerica: number; europe: number; asia: number; others: number };
-      byChain: { ethereum: number; arbitrum: number; polygon: number };
-      byProviderType: { exchanges: number; traditionalFinance: number; others: number };
-    };
-    networkStats: {
-      activeAirnodes: number;
-      nodeUptime: number;
-      avgResponseTime: number;
-      dapiUpdateFrequency: number;
-    };
-  } | null>(null);
+  // 使用 useAPI3AllData hook 替代分散的 useState
+  const {
+    // 基础数据
+    price,
+    historicalData,
 
-  const [dapiData, setDapiData] = useState<{
-    totalDapis: number;
-    byAssetType: { crypto: number; forex: number; commodities: number; stocks: number };
-    byChain: { ethereum: number; arbitrum: number; polygon: number };
-    updateFrequency: { high: number; medium: number; low: number };
-  } | null>(null);
+    // Airnode 数据
+    airnodeStats,
+    dapiCoverage,
 
-  const [stakingData, setStakingData] = useState<{
-    totalStaked: number;
-    stakingApr: number;
-    stakerCount: number;
-    coveragePool: {
-      totalValue: number;
-      coverageRatio: number;
-      historicalPayouts: number;
-    };
-  } | null>(null);
+    // 质押和保险池
+    staking,
+    firstParty,
 
-  const [firstPartyData, setFirstPartyData] = useState<{
-    noMiddlemen: boolean;
-    sourceTransparency: boolean;
-    responseTime: number;
-  } | null>(null);
+    // 质量和性能
+    latency,
+    qualityMetrics,
+    hourlyActivity,
+    deviations,
+    sourceTrace,
+    coverageEvents,
 
-  const [latencyData, setLatencyData] = useState<number[]>([]);
-  const [qualityMetrics, setQualityMetrics] = useState<{
-    freshness: { lastUpdated: Date; updateInterval: number };
-    completeness: { successCount: number; totalCount: number };
-    reliability: { historicalAccuracy: number; responseSuccessRate: number; uptime: number };
-  } | null>(null);
-  const [hourlyActivity, setHourlyActivity] = useState<number[]>([]);
-  const [dapiDeviations, setDapiDeviations] = useState<DapiPriceDeviation[]>([]);
-  const [dataSourceTrace, setDataSourceTrace] = useState<DataSourceInfo[]>([]);
-  const [coverageEvents, setCoverageEvents] = useState<CoveragePoolEvent[]>([]);
-  const [gasFeeData, setGasFeeData] = useState<GasFeeData[]>([]);
-  const [ohlcPrices, setOhlcPrices] = useState<
-    {
-      oracle: OracleProvider;
-      prices: PriceDataPoint[];
-    }[]
-  >([]);
-  const [qualityHistory, setQualityHistory] = useState<
-    {
-      oracle: OracleProvider;
-      data: QualityDataPoint[];
-    }[]
-  >([]);
-  const [crossOracleData, setCrossOracleData] = useState<
-    {
-      oracle: OracleProvider;
-      responseTime: number;
-      accuracy: number;
-      availability: number;
-      costEfficiency: number;
-      updateFrequency: number;
-    }[]
-  >([]);
+    // 高级分析
+    gasFees,
+    ohlc,
+    qualityHistory,
+    crossOracle,
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [
-        price,
-        history,
-        airnodeStats,
-        dapiCoverage,
-        staking,
-        firstParty,
-        latency,
-        quality,
-        deviations,
-        sourceTrace,
-        poolEvents,
-        gasFees,
-        ohlc,
-        qualityHist,
-        crossOracle,
-      ] = await Promise.all([
-        client.getPrice(config.symbol, config.defaultChain),
-        client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
-        client.getAirnodeNetworkStats(),
-        client.getDapiCoverage(),
-        client.getStakingData(),
-        client.getFirstPartyOracleData(),
-        client.getLatencyDistribution(),
-        client.getDataQualityMetrics(),
-        client.getDapiPriceDeviations(),
-        client.getDataSourceTraceability(),
-        client.getCoveragePoolEvents(),
-        client.getGasFeeData(),
-        client.getOHLCPrices(config.symbol, config.defaultChain, 30),
-        client.getQualityHistory(),
-        client.getCrossOracleComparison(),
-      ]);
-
-      setPriceData(price);
-      setHistoricalData(history);
-
-      setAirnodeData({
-        deployments: firstParty.airnodeDeployments,
-        networkStats: {
-          activeAirnodes: airnodeStats.activeAirnodes,
-          nodeUptime: airnodeStats.nodeUptime,
-          avgResponseTime: airnodeStats.avgResponseTime,
-          dapiUpdateFrequency: airnodeStats.dapiUpdateFrequency,
-        },
-      });
-
-      setDapiData(dapiCoverage);
-      setStakingData(staking);
-      setFirstPartyData(firstParty.advantages);
-      setLatencyData(latency);
-      setQualityMetrics(quality);
-      setHourlyActivity(airnodeStats.hourlyActivity);
-      setDapiDeviations(deviations);
-      setDataSourceTrace(sourceTrace);
-      setCoverageEvents(poolEvents);
-      setGasFeeData(gasFees);
-      setOhlcPrices([{ oracle: OracleProvider.API3, prices: ohlc }]);
-      setQualityHistory([{ oracle: OracleProvider.API3, data: qualityHist }]);
-      setCrossOracleData(crossOracle);
-    } catch (error) {
-      logger.error(
-        'Error fetching API3 data',
-        error instanceof Error ? error : new Error(String(error))
-      );
-    } finally {
-      setIsLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const { isRefreshing, refresh } = useRefresh({
-    onRefresh: fetchData,
-    minLoadingTime: 500,
+    // 状态
+    isLoading,
+    isError,
+    errors,
+    refetchAll,
+  } = useAPI3AllData({
+    symbol: config.symbol,
+    chain: config.defaultChain,
+    enabled: true,
   });
 
+  // 导出数据
   const { exportData } = useExport({
     data: {
       timestamp: new Date().toISOString(),
-      price: priceData,
+      price,
       historical: historicalData,
-      airnode: airnodeData,
-      dapi: dapiData,
-      staking: stakingData,
+      airnode: airnodeStats,
+      dapi: dapiCoverage,
+      staking,
       timeRange,
     },
     filename: `api3-data-${timeRange}`,
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // 刷新功能
+  const { isRefreshing, refresh } = useRefresh({
+    onRefresh: async () => {
+      await refetchAll();
+    },
+    minLoadingTime: 500,
+  });
 
-  const stats = [
-    {
-      title: '活跃 Airnode',
-      value: airnodeData ? `${airnodeData.networkStats.activeAirnodes}+` : '-',
-      change: '+3%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: 'dAPI 数据源',
-      value: dapiData ? `${dapiData.totalDapis}+` : '-',
-      change: '+8%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: '质押 APR',
-      value: stakingData ? `${stakingData.stakingApr}%` : '-',
-      change: '+2.1%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: '网络在线率',
-      value: airnodeData ? `${airnodeData.networkStats.nodeUptime}%` : '-',
-      change: '+0.1%',
-      changeType: 'positive' as const,
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-  ];
+  // 处理错误重试
+  const handleRetry = async () => {
+    await refetchAll();
+  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
-          <p className="text-gray-500">加载 API3 数据...</p>
-        </div>
-      </div>
-    );
+  // 显示错误状态
+  if (isError && !isLoading) {
+    const firstError = errors[0];
+    logger.error('API3 data fetch error', firstError);
+    return <ErrorFallback error={firstError} onRetry={handleRetry} />;
   }
+
+  // 显示加载状态
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  // 构建统计数据
+  const stats = useMemo(() => {
+    const activeAirnodes = airnodeStats?.activeAirnodes ?? 0;
+    const totalDapis = dapiCoverage?.totalDapis ?? 0;
+    const stakingApr = staking?.stakingApr ?? 12.5;
+    const nodeUptime = airnodeStats?.nodeUptime ?? 99.7;
+
+    return [
+      {
+        title: '活跃 Airnode',
+        value: activeAirnodes > 0 ? `${activeAirnodes}+` : '-',
+        change: '+3%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: 'dAPI 数据源',
+        value: totalDapis > 0 ? `${totalDapis}+` : '-',
+        change: '+8%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: '质押 APR',
+        value: `${stakingApr}%`,
+        change: '+2.1%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
+          </svg>
+        ),
+      },
+      {
+        title: '网络在线率',
+        value: `${nodeUptime}%`,
+        change: '+0.1%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+    ];
+  }, [airnodeStats, dapiCoverage, staking]);
+
+  // 构建 Airnode 数据
+  const airnodeData = useMemo(() => {
+    if (!airnodeStats || !firstParty) return null;
+
+    return {
+      deployments: firstParty.airnodeDeployments,
+      networkStats: {
+        activeAirnodes: airnodeStats.activeAirnodes,
+        nodeUptime: airnodeStats.nodeUptime,
+        avgResponseTime: airnodeStats.avgResponseTime,
+        dapiUpdateFrequency: airnodeStats.dapiUpdateFrequency,
+      },
+    };
+  }, [airnodeStats, firstParty]);
+
+  // 构建 OHLC 和 Quality History 数据格式
+  const ohlcPrices = useMemo(() => {
+    if (!ohlc || ohlc.length === 0) return [];
+    return [{ oracle: OracleProvider.API3, prices: ohlc }];
+  }, [ohlc]);
+
+  const qualityHistoryData = useMemo(() => {
+    if (!qualityHistory || qualityHistory.length === 0) return [];
+    return [{ oracle: OracleProvider.API3, data: qualityHistory }];
+  }, [qualityHistory]);
 
   return (
     <TimeRangeProvider defaultTimeRange={timeRange}>
@@ -367,9 +341,9 @@ export function API3PageContent() {
                   </div>
                 )}
 
-                {dapiDeviations.length > 0 && (
+                {deviations.length > 0 && (
                   <div className="mb-6">
-                    <DapiPriceDeviationMonitor data={dapiDeviations} />
+                    <DapiPriceDeviationMonitor data={deviations} />
                   </div>
                 )}
 
@@ -417,7 +391,7 @@ export function API3PageContent() {
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm text-gray-600">质押 APR</span>
                         <span className="text-sm font-semibold text-green-600">
-                          {stakingData?.stakingApr || 12.5}%
+                          {staking?.stakingApr ?? 12.5}%
                         </span>
                       </div>
                     </div>
@@ -430,14 +404,14 @@ export function API3PageContent() {
               <div className="space-y-6">
                 <NetworkHealthPanel config={config.networkData} />
 
-                {latencyData.length > 0 && (
-                  <LatencyDistributionHistogram data={latencyData} oracleName="API3" />
+                {latency.length > 0 && (
+                  <LatencyDistributionHistogram data={latency} oracleName="API3" />
                 )}
 
                 {hourlyActivity.length > 0 && (
                   <UpdateFrequencyHeatmap
                     hourlyActivity={hourlyActivity}
-                    updateFrequency={airnodeData?.networkStats.dapiUpdateFrequency || 60}
+                    updateFrequency={airnodeStats?.dapiUpdateFrequency || 60}
                   />
                 )}
               </div>
@@ -456,8 +430,8 @@ export function API3PageContent() {
             {activeTab === 'coverage' && (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {stakingData && <CoveragePoolPanel data={stakingData.coveragePool} />}
-                  {stakingData && <StakingMetricsPanel data={stakingData} />}
+                  {staking && <CoveragePoolPanel data={staking.coveragePool} />}
+                  {staking && <StakingMetricsPanel data={staking} />}
                   {coverageEvents.length > 0 && (
                     <div className="mt-6 col-span-2">
                       <CoveragePoolTimeline data={coverageEvents} />
@@ -467,37 +441,37 @@ export function API3PageContent() {
               </>
             )}
 
-            {activeTab === 'coverage' && !stakingData && (
+            {activeTab === 'coverage' && !staking && (
               <DashboardCard>
                 <p className="text-gray-500 text-center py-8">暂无保险池数据</p>
               </DashboardCard>
             )}
 
-            {activeTab === 'advantages' && firstPartyData && (
-              <FirstPartyOracleAdvantages data={firstPartyData} />
+            {activeTab === 'advantages' && firstParty?.advantages && (
+              <FirstPartyOracleAdvantages data={firstParty.advantages} />
             )}
 
-            {activeTab === 'advantages' && !firstPartyData && (
+            {activeTab === 'advantages' && !firstParty?.advantages && (
               <DashboardCard>
                 <p className="text-gray-500 text-center py-8">暂无第一方预言机数据</p>
               </DashboardCard>
             )}
 
-            {activeTab === 'airnode' && dapiData && (
+            {activeTab === 'airnode' && dapiCoverage && (
               <div className="mt-6">
-                <DapiCoveragePanel data={dapiData} />
+                <DapiCoveragePanel data={dapiCoverage} />
               </div>
             )}
 
-            {activeTab === 'airnode' && dataSourceTrace.length > 0 && (
+            {activeTab === 'airnode' && sourceTrace.length > 0 && (
               <div className="mt-6">
-                <DataSourceTraceabilityPanel data={dataSourceTrace} />
+                <DataSourceTraceabilityPanel data={sourceTrace} />
               </div>
             )}
 
             {activeTab === 'advanced' && (
               <div className="space-y-6">
-                {gasFeeData.length > 0 && <GasFeeComparison data={gasFeeData} />}
+                {gasFees.length > 0 && <GasFeeComparison data={gasFees} />}
 
                 {ohlcPrices.length > 0 && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -506,7 +480,7 @@ export function API3PageContent() {
                   </div>
                 )}
 
-                {qualityHistory.length > 0 && <DataQualityTrend data={qualityHistory} />}
+                {qualityHistoryData.length > 0 && <DataQualityTrend data={qualityHistoryData} />}
 
                 <CrossOracleComparison />
               </div>

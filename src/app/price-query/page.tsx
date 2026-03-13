@@ -28,10 +28,14 @@ import {
   PriceChart,
   QuickLinks,
   ChartDataPoint,
+  ExportConfig,
+  ExportConfigData,
+  DataQualityPanel,
 } from './components';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import { createLogger } from '@/lib/utils/logger';
+import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
 const logger = createLogger('price-query-page');
 
@@ -59,7 +63,6 @@ export default function PriceQueryPage() {
     'oracle'
   );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
   const [queryStartTime, setQueryStartTime] = useState<number | null>(null);
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
@@ -73,6 +76,16 @@ export default function PriceQueryPage() {
   }>({ oracle: null, chain: null });
   const [showHistory, setShowHistory] = useState(false);
   const [historyItems, setHistoryItems] = useState<QueryHistoryItem[]>([]);
+  const [selectedRow, setSelectedRow] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState<boolean>(false);
+  const [compareTimeRange, setCompareTimeRange] = useState<number>(24);
+  const [compareHistoricalData, setCompareHistoricalData] = useState<
+    Partial<Record<string, PriceData[]>>
+  >({});
+  const [compareQueryResults, setCompareQueryResults] = useState<QueryResult[]>([]);
+  const [showBaseline, setShowBaseline] = useState<boolean>(false);
+  const [showExportConfig, setShowExportConfig] = useState(false);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const isInitialized = useRef(false);
 
   useEffect(() => {
@@ -103,18 +116,6 @@ export default function PriceQueryPage() {
     };
     updateUrlParams(config);
   }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange]);
-
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.2, 3));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.2, 0.5));
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(1);
-  };
 
   const toggleSeries = (seriesName: string) => {
     setHiddenSeries((prev) => {
@@ -216,13 +217,17 @@ export default function PriceQueryPage() {
         }
       }
     }
-    setQueryProgress({ completed: 0, total: totalQueries });
+
+    // 如果开启对比模式，需要查询两倍的数据
+    const actualTotalQueries = compareMode ? totalQueries * 2 : totalQueries;
+    setQueryProgress({ completed: 0, total: actualTotalQueries });
 
     try {
       const results: QueryResult[] = [];
       const histories: Partial<Record<string, PriceData[]>> = {};
       let completedQueries = 0;
 
+      // 获取主时间范围数据
       for (const provider of selectedOracles) {
         const client = oracleClients[provider];
         const supportedChains = client.supportedChains;
@@ -252,13 +257,59 @@ export default function PriceQueryPage() {
               );
             }
             completedQueries++;
-            setQueryProgress({ completed: completedQueries, total: totalQueries });
+            setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
           }
         }
       }
 
       setQueryResults(results);
       setHistoricalData(histories);
+
+      // 如果开启对比模式，获取对比时间范围数据
+      if (compareMode) {
+        const compareResults: QueryResult[] = [];
+        const compareHistories: Partial<Record<string, PriceData[]>> = {};
+
+        for (const provider of selectedOracles) {
+          const client = oracleClients[provider];
+          const supportedChains = client.supportedChains;
+
+          for (const chain of selectedChains) {
+            if (supportedChains.includes(chain)) {
+              setCurrentQueryTarget({ oracle: provider, chain: chain });
+              try {
+                const price = await client.getPrice(selectedSymbol, chain);
+                compareResults.push({
+                  provider,
+                  chain,
+                  priceData: price,
+                });
+
+                const history = await client.getHistoricalPrices(
+                  selectedSymbol,
+                  chain,
+                  compareTimeRange
+                );
+                const key = `${provider}-${chain}`;
+                compareHistories[key] = history;
+              } catch (error) {
+                logger.error(
+                  `Error fetching compare data ${provider} on ${chain}`,
+                  error instanceof Error ? error : new Error(String(error))
+                );
+              }
+              completedQueries++;
+              setQueryProgress({ completed: completedQueries, total: actualTotalQueries });
+            }
+          }
+        }
+
+        setCompareQueryResults(compareResults);
+        setCompareHistoricalData(compareHistories);
+      } else {
+        setCompareQueryResults([]);
+        setCompareHistoricalData({});
+      }
 
       if (results.length > 0) {
         saveQueryHistory({
@@ -328,6 +379,46 @@ export default function PriceQueryPage() {
       return dataPoint;
     });
   }, [historicalData, queryResults, selectedTimeRange]);
+
+  // 对比数据的 chartData
+  const compareChartData = useMemo((): ChartDataPoint[] => {
+    if (!compareMode || Object.keys(compareHistoricalData).length === 0) return [];
+
+    const timestamps = new Set<number>();
+    Object.values(compareHistoricalData).forEach((history) => {
+      history?.forEach((price) => timestamps.add(price.timestamp));
+    });
+    const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
+
+    const getTimeFormat = (): Intl.DateTimeFormatOptions => {
+      if (compareTimeRange <= 6) {
+        return { hour: '2-digit', minute: '2-digit' };
+      } else if (compareTimeRange <= 24) {
+        return { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      } else {
+        return { month: 'short', day: 'numeric' };
+      }
+    };
+
+    return sortedTimestamps.map((timestamp) => {
+      const dataPoint: ChartDataPoint = {
+        timestamp,
+        time: new Date(timestamp).toLocaleString([], getTimeFormat()),
+      };
+
+      compareQueryResults.forEach(({ provider, chain }) => {
+        const key = `${provider}-${chain}`;
+        const history = compareHistoricalData[key];
+        const price = history?.find((p) => p.timestamp === timestamp);
+        if (price) {
+          const label = `${providerNames[provider]} (${chainNames[chain]})`;
+          dataPoint[label] = price.price;
+        }
+      });
+
+      return dataPoint;
+    });
+  }, [compareHistoricalData, compareQueryResults, compareTimeRange, compareMode]);
 
   const sortedQueryResults = useMemo(() => {
     return [...queryResults].sort((a, b) => {
@@ -401,6 +492,34 @@ export default function PriceQueryPage() {
     return validPrices.length > 0 ? Math.min(...validPrices) : 0;
   }, [validPrices]);
 
+  // 对比数据的统计计算
+  const compareValidPrices = useMemo(() => {
+    return compareQueryResults.map((r) => r.priceData.price).filter((p) => p > 0);
+  }, [compareQueryResults]);
+
+  const compareAvgPrice = useMemo(() => {
+    return compareValidPrices.length > 0 ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length : 0;
+  }, [compareValidPrices]);
+
+  const compareAvgChange24hPercent = useMemo(() => {
+    const changes = compareQueryResults
+      .map((r) => r.priceData.change24hPercent)
+      .filter((c): c is number => c !== undefined);
+    return changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : undefined;
+  }, [compareQueryResults]);
+
+  const compareMaxPrice = useMemo(() => {
+    return compareValidPrices.length > 0 ? Math.max(...compareValidPrices) : 0;
+  }, [compareValidPrices]);
+
+  const compareMinPrice = useMemo(() => {
+    return compareValidPrices.length > 0 ? Math.min(...compareValidPrices) : 0;
+  }, [compareValidPrices]);
+
+  const comparePriceRange = useMemo(() => {
+    return compareMaxPrice - compareMinPrice;
+  }, [compareMaxPrice, compareMinPrice]);
+
   const priceRange = useMemo(() => {
     return maxPrice - minPrice;
   }, [maxPrice, minPrice]);
@@ -449,6 +568,58 @@ export default function PriceQueryPage() {
     setHistoryItems([]);
   };
 
+  const handleExportWithConfig = useCallback(
+    async (config: ExportConfigData) => {
+      const stats = {
+        avgPrice,
+        maxPrice,
+        minPrice,
+        priceRange,
+        standardDeviation,
+        standardDeviationPercent,
+        dataPoints: queryResults.length,
+        queryDuration,
+        avgChange24hPercent,
+      };
+
+      switch (config.format) {
+        case 'csv':
+          exportToCSV(queryResults, config, selectedSymbol);
+          break;
+        case 'json':
+          exportToJSON(queryResults, config, selectedSymbol, selectedOracles, selectedChains);
+          break;
+        case 'pdf':
+          await exportToPDF(
+            queryResults,
+            config,
+            selectedSymbol,
+            selectedOracles,
+            selectedChains,
+            selectedTimeRange,
+            stats,
+            chartContainerRef
+          );
+          break;
+      }
+    },
+    [
+      queryResults,
+      selectedSymbol,
+      selectedOracles,
+      selectedChains,
+      selectedTimeRange,
+      avgPrice,
+      maxPrice,
+      minPrice,
+      priceRange,
+      standardDeviation,
+      standardDeviationPercent,
+      queryDuration,
+      avgChange24hPercent,
+    ]
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div aria-live="polite" className="sr-only">
@@ -467,6 +638,7 @@ export default function PriceQueryPage() {
         queryResultsLength={queryResults.length}
         onExportCSV={handleExportCSV}
         onExportJSON={handleExportJSON}
+        onOpenExportConfig={() => setShowExportConfig(true)}
         selectedOracles={selectedOracles}
         selectedChains={selectedChains}
         selectedSymbol={selectedSymbol}
@@ -489,6 +661,12 @@ export default function PriceQueryPage() {
         loading={loading}
         onQuery={fetchQueryData}
         supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
+        compareMode={compareMode}
+        setCompareMode={setCompareMode}
+        compareTimeRange={compareTimeRange}
+        setCompareTimeRange={setCompareTimeRange}
+        showBaseline={showBaseline}
+        setShowBaseline={setShowBaseline}
       />
 
       {loading ? (
@@ -511,6 +689,18 @@ export default function PriceQueryPage() {
             queryDuration={queryDuration}
             avgChange24hPercent={avgChange24hPercent}
             prices={validPrices}
+            compareMode={compareMode}
+            compareAvgPrice={compareAvgPrice}
+            compareMaxPrice={compareMaxPrice}
+            compareMinPrice={compareMinPrice}
+            comparePriceRange={comparePriceRange}
+            compareAvgChange24hPercent={compareAvgChange24hPercent}
+            comparePrices={compareValidPrices}
+          />
+
+          <DataQualityPanel
+            results={queryResults}
+            historicalData={historicalData}
           />
 
           <PriceResultsTable
@@ -522,23 +712,42 @@ export default function PriceQueryPage() {
             sortDirection={sortDirection}
             onSort={handleSort}
             avgPrice={avgPrice}
+            selectedRow={selectedRow}
+            onRowSelect={setSelectedRow}
+            historicalData={historicalData}
           />
 
-          <PriceChart
-            chartData={chartData}
-            queryResults={queryResults}
-            hiddenSeries={hiddenSeries}
-            onToggleSeries={toggleSeries}
-            zoomLevel={zoomLevel}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onResetZoom={handleResetZoom}
-            selectedTimeRange={selectedTimeRange}
-          />
+          <div ref={chartContainerRef}>
+            <PriceChart
+              chartData={chartData}
+              queryResults={queryResults}
+              hiddenSeries={hiddenSeries}
+              onToggleSeries={toggleSeries}
+              selectedTimeRange={selectedTimeRange}
+              selectedRow={selectedRow}
+              compareMode={compareMode}
+              compareChartData={compareChartData}
+              compareQueryResults={compareQueryResults}
+              showBaseline={showBaseline}
+              avgPrice={avgPrice}
+            />
+          </div>
 
           <QuickLinks />
         </>
       )}
+
+      <ExportConfig
+        isOpen={showExportConfig}
+        onClose={() => setShowExportConfig(false)}
+        onExport={handleExportWithConfig}
+        queryResults={queryResults}
+        selectedSymbol={selectedSymbol}
+        selectedOracles={selectedOracles}
+        selectedChains={selectedChains}
+        selectedTimeRange={selectedTimeRange}
+        chartRef={chartContainerRef}
+      />
     </div>
   );
 }

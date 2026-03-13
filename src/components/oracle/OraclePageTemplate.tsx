@@ -37,6 +37,7 @@ import {
   LatencyDistributionHistogram,
   BollingerBands,
   ATRIndicator,
+  ValidatorGeographicMap,
 } from '@/components/oracle';
 import { RSIIndicator } from './RSIIndicator';
 import { MACDIndicator } from './MACDIndicator';
@@ -674,6 +675,9 @@ export function OraclePageTemplate({
               {config.provider === OracleProvider.BAND_PROTOCOL &&
                 config.client instanceof BandProtocolClient && (
                   <>
+                    <div className="mb-6">
+                      <ValidatorGeographicMap validators={[]} />
+                    </div>
                     <div className="mb-6">
                       <ValidatorPanel client={config.client} />
                     </div>

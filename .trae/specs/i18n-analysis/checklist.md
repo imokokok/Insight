@@ -1,8 +1,0 @@
-- [x] 确认国际化需求（SEO、URL 路径、类型安全等）
-- [x] 决定最终方案（迁移 next-intl 简化方案）
-- [x] 确保所有翻译 key 都正确迁移
-- [x] 测试语言切换功能
-- [x] 测试 SSR/SSG 水合（无 hydration mismatch 错误）
-- [x] 测试 localStorage 持久化
-- [x] 测试浏览器语言自动检测
-- [x] 构建成功（npm run build）

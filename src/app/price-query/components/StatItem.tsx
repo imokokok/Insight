@@ -1,5 +1,7 @@
 'use client';
 
+import { ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+
 interface StatItemProps {
   label: string;
   value: string;
@@ -19,7 +21,6 @@ export function StatItem({
 }: StatItemProps) {
   const trendColor =
     trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-900';
-  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '';
 
   return (
     <div className="py-4 border-b border-gray-200 last:border-b-0">
@@ -27,7 +28,18 @@ export function StatItem({
       <div className="flex items-baseline gap-1">
         {prefix && <span className="text-lg text-gray-400">{prefix}</span>}
         <span className={`text-2xl font-bold ${trendColor}`}>
-          {trendIcon && <span className="mr-1">{trendIcon}</span>}
+          {trend === 'up' && (
+            <ArrowUpIcon
+              className="inline-block w-5 h-5 mr-1 align-text-bottom"
+              aria-hidden="true"
+            />
+          )}
+          {trend === 'down' && (
+            <ArrowDownIcon
+              className="inline-block w-5 h-5 mr-1 align-text-bottom"
+              aria-hidden="true"
+            />
+          )}
           {value}
         </span>
         {suffix && <span className="text-lg text-gray-400">{suffix}</span>}

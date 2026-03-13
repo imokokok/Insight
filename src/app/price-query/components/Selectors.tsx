@@ -17,6 +17,12 @@ interface SelectorsProps {
   loading: boolean;
   onQuery: () => void;
   supportedChainsBySelectedOracles: Set<Blockchain>;
+  compareMode?: boolean;
+  setCompareMode?: (mode: boolean) => void;
+  compareTimeRange?: number;
+  setCompareTimeRange?: (timeRange: number) => void;
+  showBaseline?: boolean;
+  setShowBaseline?: (show: boolean) => void;
 }
 
 export function Selectors({
@@ -31,6 +37,12 @@ export function Selectors({
   loading,
   onQuery,
   supportedChainsBySelectedOracles,
+  compareMode = false,
+  setCompareMode,
+  compareTimeRange = 24,
+  setCompareTimeRange,
+  showBaseline = false,
+  setShowBaseline,
 }: SelectorsProps) {
   const { t } = useI18n();
 
@@ -195,28 +207,82 @@ export function Selectors({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Icons.clock />
-          <span className="text-sm font-semibold text-gray-700 mr-2">
-            {t('priceQuery.selectors.timeRange')}
-          </span>
-          <div className="flex gap-1">
-            {TIME_RANGES.map((range) => (
-              <button
-                key={range.value}
-                onClick={() => setSelectedTimeRange(range.value)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  selectedTimeRange === range.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {t(`priceQuery.timeRanges.${range.key}`)}
-              </button>
-            ))}
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex items-center gap-2">
+            <Icons.clock />
+            <span className="text-sm font-semibold text-gray-700 mr-2">
+              {t('priceQuery.selectors.timeRange')}
+            </span>
+            <div className="flex gap-1">
+              {TIME_RANGES.map((range) => (
+                <button
+                  key={range.value}
+                  onClick={() => setSelectedTimeRange(range.value)}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    selectedTimeRange === range.value
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {t(`priceQuery.timeRanges.${range.key}`)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* 对比模式控制 */}
+        <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* 对比模式切换 */}
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={compareMode}
+                onChange={(e) => setCompareMode?.(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">对比模式</span>
+            </label>
+
+            {/* 显示基准线 */}
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showBaseline}
+                onChange={(e) => setShowBaseline?.(e.target.checked)}
+                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+              <span className="text-sm font-medium text-gray-700">显示基准线</span>
+            </label>
+          </div>
+
+          {/* 对比时间范围选择 */}
+          {compareMode && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">对比时间:</span>
+              <div className="flex gap-1">
+                {TIME_RANGES.map((range) => (
+                  <button
+                    key={`compare-${range.value}`}
+                    onClick={() => setCompareTimeRange?.(range.value)}
+                    className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                      compareTimeRange === range.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    {t(`priceQuery.timeRanges.${range.key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
         <button
           onClick={onQuery}
           disabled={loading}

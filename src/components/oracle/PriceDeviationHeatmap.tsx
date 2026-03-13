@@ -20,6 +20,7 @@ interface PriceDeviationHeatmapProps {
   data: PriceDeviationDataPoint[];
   timeRange?: TimeRange;
   className?: string;
+  useAccessibleColors?: boolean;
 }
 
 const oracleColors: Record<string, string> = {
@@ -28,6 +29,15 @@ const oracleColors: Record<string, string> = {
   UMA: '#FF6B6B',
   'Pyth Network': '#EC4899',
   API3: '#10B981',
+};
+
+// 色盲友好的预言机颜色
+const accessibleOracleColors: Record<string, string> = {
+  Chainlink: '#003f5c',
+  'Band Protocol': '#2f4b7c',
+  UMA: '#665191',
+  'Pyth Network': '#a05195',
+  API3: '#d45087',
 };
 
 const getDeviationColor = (deviation: number): string => {
@@ -63,6 +73,7 @@ export function PriceDeviationHeatmap({
   data,
   timeRange,
   className = '',
+  useAccessibleColors = false,
 }: PriceDeviationHeatmapProps) {
   const [hoveredCell, setHoveredCell] = useState<{
     timestamp: number;
@@ -198,7 +209,12 @@ export function PriceDeviationHeatmap({
                   <div className="w-28 flex-shrink-0 pr-3 flex items-center">
                     <div
                       className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
-                      style={{ backgroundColor: oracleColors[oracle] || '#6B7280' }}
+                      style={{
+                        backgroundColor:
+                          (useAccessibleColors
+                            ? accessibleOracleColors[oracle]
+                            : oracleColors[oracle]) || '#6B7280',
+                      }}
                     />
                     <span className="text-sm text-gray-700 truncate">{oracle}</span>
                   </div>
@@ -350,7 +366,12 @@ export function PriceDeviationHeatmap({
                     <span className="w-5 text-xs text-gray-400 font-medium">{idx + 1}</span>
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: oracleColors[item.oracle] || '#6B7280' }}
+                      style={{
+                        backgroundColor:
+                          (useAccessibleColors
+                            ? accessibleOracleColors[item.oracle]
+                            : oracleColors[item.oracle]) || '#6B7280',
+                      }}
                     />
                     <span className="flex-1 text-sm text-gray-700 truncate">{item.oracle}</span>
                     <span
