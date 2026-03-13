@@ -25,6 +25,9 @@ const PYTH_SUPPORTED_CHAINS = [
   { name: 'Solana', chainId: 'solana-mainnet', icon: '◎' },
   { name: 'Ethereum', chainId: 'ethereum-mainnet', icon: '⟠' },
   { name: 'Arbitrum', chainId: 'arbitrum-one', icon: '⬡' },
+  { name: 'Base', chainId: 'base-mainnet', icon: '🔵' },
+  { name: 'Optimism', chainId: 'optimism-mainnet', icon: '🔴' },
+  { name: 'Polygon', chainId: 'polygon-mainnet', icon: '🟣' },
 ];
 
 const DEVIATION_THRESHOLDS = {
@@ -197,8 +200,8 @@ export function CrossChainPriceConsistency({
 
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-3">各链价格对比</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 px-4">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">链</th>
@@ -368,8 +371,9 @@ export function CrossChainPriceConsistency({
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                Pyth 通过 Wormhole 实现跨链价格传输，Solana 作为主链发布价格， 其他链通过 Wormhole
-                消息接收价格更新。
+                Pyth 通过 Wormhole 实现跨链价格传输，Solana
+                作为主链发布价格，其他链（Ethereum、Arbitrum、Base、Optimism、Polygon 等）通过
+                Wormhole 消息接收价格更新。
               </p>
             </div>
           </div>
@@ -394,7 +398,10 @@ export function CrossChainPriceConsistency({
               <h4 className="text-sm font-medium text-pink-800">Pyth 跨链价格机制</h4>
               <ul className="text-sm text-pink-700 mt-2 space-y-1">
                 <li>• Solana 作为 Pyth 的主链，价格首先在 Solana 上发布</li>
-                <li>• 通过 Wormhole 跨链消息传递，价格同步到 Ethereum、Arbitrum 等链</li>
+                <li>
+                  • 通过 Wormhole 跨链消息传递，价格同步到
+                  Ethereum、Arbitrum、Base、Optimism、Polygon 等链
+                </li>
                 <li>• 各链价格应保持高度一致，偏差通常应小于 0.1%</li>
                 <li>• 较大偏差可能表示网络拥堵或跨链消息延迟</li>
               </ul>

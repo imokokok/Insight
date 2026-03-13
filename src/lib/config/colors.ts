@@ -152,6 +152,8 @@ export const chartColors = {
     negative: '#EF4444',
     neutral: '#64748b',
     warning: '#F59E0B',
+    success: '#10B981',
+    danger: '#EF4444',
   },
 
   // 图表网格和轴线颜色

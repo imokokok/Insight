@@ -238,6 +238,143 @@ export const isOutlier = (zScore: number | null): boolean => {
   return Math.abs(zScore) > 2;
 };
 
+export const calculateSMA = (prices: number[], period: number): number[] => {
+  const sma: number[] = [];
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period - 1) {
+      sma.push(NaN);
+    } else {
+      const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+      sma.push(sum / period);
+    }
+  }
+  return sma;
+};
+
+export const calculateEMA = (prices: number[], period: number): number[] => {
+  const ema: number[] = [];
+  const multiplier = 2 / (period + 1);
+
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period - 1) {
+      ema.push(NaN);
+    } else if (i === period - 1) {
+      const sum = prices.slice(0, period).reduce((a, b) => a + b, 0);
+      ema.push(sum / period);
+    } else {
+      const currentEMA = (prices[i] - ema[i - 1]) * multiplier + ema[i - 1];
+      ema.push(currentEMA);
+    }
+  }
+  return ema;
+};
+
+export const calculateRSI = (prices: number[], period: number = 14): number[] => {
+  const rsi: number[] = [];
+  const gains: number[] = [];
+  const losses: number[] = [];
+
+  for (let i = 1; i < prices.length; i++) {
+    const change = prices[i] - prices[i - 1];
+    gains.push(change > 0 ? change : 0);
+    losses.push(change < 0 ? Math.abs(change) : 0);
+  }
+
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period) {
+      rsi.push(NaN);
+    } else {
+      const avgGain = gains.slice(i - period, i).reduce((a, b) => a + b, 0) / period;
+      const avgLoss = losses.slice(i - period, i).reduce((a, b) => a + b, 0) / period;
+
+      if (avgLoss === 0) {
+        rsi.push(100);
+      } else {
+        const rs = avgGain / avgLoss;
+        rsi.push(100 - 100 / (1 + rs));
+      }
+    }
+  }
+  return rsi;
+};
+
+export const calculateATR = (
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period: number = 14
+): number[] => {
+  const tr: number[] = [];
+  const atr: number[] = [];
+
+  for (let i = 0; i < highs.length; i++) {
+    if (i === 0) {
+      tr.push(highs[i] - lows[i]);
+    } else {
+      const tr1 = highs[i] - lows[i];
+      const tr2 = Math.abs(highs[i] - closes[i - 1]);
+      const tr3 = Math.abs(lows[i] - closes[i - 1]);
+      tr.push(Math.max(tr1, tr2, tr3));
+    }
+
+    if (i < period - 1) {
+      atr.push(NaN);
+    } else if (i === period - 1) {
+      const sum = tr.slice(0, period).reduce((a, b) => a + b, 0);
+      atr.push(sum / period);
+    } else {
+      const previousATR = atr[i - 1];
+      const currentATR = (previousATR * (period - 1) + tr[i]) / period;
+      atr.push(currentATR);
+    }
+  }
+  return atr;
+};
+
+export const calculateBollingerBands = (
+  prices: number[],
+  period: number = 20,
+  multiplier: number = 2
+): { middle: number[]; upper: number[]; lower: number[] } => {
+  const middle = calculateSMA(prices, period);
+  const upper: number[] = [];
+  const lower: number[] = [];
+
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period - 1) {
+      upper.push(NaN);
+      lower.push(NaN);
+    } else {
+      const slice = prices.slice(i - period + 1, i + 1);
+      const mean = slice.reduce((a, b) => a + b, 0) / period;
+      const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
+      const variance = squaredDiffs.reduce((a, b) => a + b, 0) / period;
+      const stdDev = Math.sqrt(variance);
+
+      upper.push(middle[i] + stdDev * multiplier);
+      lower.push(middle[i] - stdDev * multiplier);
+    }
+  }
+
+  return { middle, upper, lower };
+};
+
+export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
+  if (x.length !== y.length || x.length === 0) return 0;
+
+  const n = x.length;
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = y.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+  const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+  const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+
+  const numerator = n * sumXY - sumX * sumY;
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+  return denominator === 0 ? 0 : numerator / denominator;
+};
+
 export interface ExportRow {
   oracle: string;
   provider: string;

@@ -1,0 +1,77 @@
+type Environment = 'development' | 'production' | 'test';
+
+interface SupabaseConfig {
+  url: string;
+  anonKey: string;
+}
+
+interface AppConfig {
+  url: string | undefined;
+  environment: Environment;
+  isDevelopment: boolean;
+  isProduction: boolean;
+  isTest: boolean;
+}
+
+interface FeatureFlags {
+  enableRealtime: boolean;
+  enableAnalytics: boolean;
+  enablePerformanceMonitoring: boolean;
+}
+
+interface EnvConfig {
+  supabase: SupabaseConfig;
+  app: AppConfig;
+  features: FeatureFlags;
+}
+
+function getEnvironment(): Environment {
+  return (process.env.NODE_ENV as Environment) || 'development';
+}
+
+function validateEnvVar(name: string, value: string | undefined): string {
+  if (!value) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+    console.warn(`Missing environment variable: ${name}, using fallback`);
+    return '';
+  }
+  return value;
+}
+
+export const env: EnvConfig = {
+  supabase: {
+    url: validateEnvVar('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL),
+    anonKey: validateEnvVar(
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ),
+  },
+  app: {
+    url: process.env.NEXT_PUBLIC_APP_URL,
+    environment: getEnvironment(),
+    isDevelopment: getEnvironment() === 'development',
+    isProduction: getEnvironment() === 'production',
+    isTest: getEnvironment() === 'test',
+  },
+  features: {
+    enableRealtime: process.env.NEXT_PUBLIC_ENABLE_REALTIME !== 'false',
+    enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
+    enablePerformanceMonitoring: process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING === 'true',
+  },
+};
+
+export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
+  return env.features[feature];
+}
+
+export function getSupabaseConfig(): SupabaseConfig {
+  return env.supabase;
+}
+
+export function getAppConfig(): AppConfig {
+  return env.app;
+}
+
+export type { EnvConfig, SupabaseConfig, AppConfig, FeatureFlags, Environment };

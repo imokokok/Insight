@@ -4,6 +4,8 @@ import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useCrossChainData } from '../useCrossChainData';
+import { useCrossChainStore } from '@/stores/crossChainStore';
+import { ThresholdType } from '../utils';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -37,6 +39,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     lastUpdated,
     recommendedBaseChain,
   } = data;
+
+  const thresholdConfig = useCrossChainStore((state) => state.thresholdConfig);
+  const setThresholdConfig = useCrossChainStore((state) => state.setThresholdConfig);
 
   const providerOptions = Object.values(OracleProvider).map((provider) => ({
     value: provider,
@@ -236,6 +241,90 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           >
             {t('crossChain.resetChart')}
           </button>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">异常检测阈值配置</h3>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 uppercase tracking-wide">阈值类型</label>
+            <select
+              value={thresholdConfig.type}
+              onChange={(e) =>
+                setThresholdConfig({
+                  ...thresholdConfig,
+                  type: e.target.value as ThresholdType,
+                })
+              }
+              className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
+            >
+              <option value="fixed">固定阈值</option>
+              <option value="dynamic">动态波动率</option>
+              <option value="atr">ATR指标</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 uppercase tracking-wide">固定阈值 (%)</label>
+            <input
+              type="number"
+              value={thresholdConfig.fixedThreshold}
+              onChange={(e) =>
+                setThresholdConfig({
+                  ...thresholdConfig,
+                  fixedThreshold: Number(e.target.value),
+                })
+              }
+              step={0.1}
+              min={0.1}
+              max={10}
+              className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 w-24"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 uppercase tracking-wide">波动率倍数</label>
+            <input
+              type="number"
+              value={thresholdConfig.atrMultiplier}
+              onChange={(e) =>
+                setThresholdConfig({
+                  ...thresholdConfig,
+                  atrMultiplier: Number(e.target.value),
+                })
+              }
+              step={0.5}
+              min={0.5}
+              max={5}
+              className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 w-24"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 uppercase tracking-wide">计算周期</label>
+            <select
+              value={thresholdConfig.volatilityWindow}
+              onChange={(e) =>
+                setThresholdConfig({
+                  ...thresholdConfig,
+                  volatilityWindow: Number(e.target.value),
+                })
+              }
+              className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[100px]"
+            >
+              <option value={7}>7</option>
+              <option value={14}>14</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+            </select>
+          </div>
+
+          <div className="text-xs text-gray-500 max-w-xs">
+            {thresholdConfig.type === 'fixed' && '使用固定百分比作为异常检测阈值'}
+            {thresholdConfig.type === 'dynamic' && '基于历史波动率(CV)动态调整阈值'}
+            {thresholdConfig.type === 'atr' && '使用ATR(平均真实波幅)指标计算动态阈值'}
+          </div>
         </div>
       </div>
     </div>

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { DashboardCard } from './DashboardCard';
-import { UMAClient, ValidatorData } from '@/lib/oracles/uma';
+import { UMAClient, ValidatorData, ValidatorHistoryData } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
 import { ValidatorPerformanceHeatmap } from './ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from './ValidatorComparison';
+import { StakingCalculator } from './StakingCalculator';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 
@@ -13,11 +14,285 @@ const logger = createLogger('ValidatorAnalyticsPanel');
 
 type SortField = 'name' | 'responseTime' | 'successRate' | 'reputation' | 'staked' | 'earnings';
 type SortDirection = 'asc' | 'desc';
+type TimeRange = '7d' | '30d' | '90d';
 
 interface EarningsTrend {
   day: string;
   daily: number;
   cumulative: number;
+}
+
+function ValidatorHistoryChart({
+  data,
+  timeRange,
+  onTimeRangeChange,
+}: {
+  data: ValidatorHistoryData[];
+  timeRange: TimeRange;
+  onTimeRangeChange: (range: TimeRange) => void;
+}) {
+  const { t } = useI18n();
+  const [activeMetric, setActiveMetric] = useState<'successRate' | 'responseTime' | 'reputation'>(
+    'successRate'
+  );
+
+  if (data.length === 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-gray-900 text-sm font-semibold">
+              {t('uma.validatorAnalytics.historyTrend')}
+            </p>
+            <p className="text-gray-500 text-xs mt-0.5">
+              {t('uma.validatorAnalytics.performanceHistory')}
+            </p>
+          </div>
+        </div>
+        <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+          {t('uma.validatorAnalytics.noData')}
+        </div>
+      </div>
+    );
+  }
+
+  const maxSuccessRate = Math.max(...data.map((d) => d.successRate));
+  const minSuccessRate = Math.min(...data.map((d) => d.successRate));
+  const maxResponseTime = Math.max(...data.map((d) => d.responseTime));
+  const minResponseTime = Math.min(...data.map((d) => d.responseTime));
+  const maxReputation = Math.max(...data.map((d) => d.reputation));
+  const minReputation = Math.min(...data.map((d) => d.reputation));
+
+  const getNormalizedValue = (value: number, min: number, max: number) => {
+    if (max === min) return 50;
+    return ((value - min) / (max - min)) * 80 + 10;
+  };
+
+  const createPath = (metric: keyof ValidatorHistoryData) => {
+    if (data.length < 2) return '';
+
+    let minVal: number, maxVal: number;
+    switch (metric) {
+      case 'successRate':
+        minVal = minSuccessRate;
+        maxVal = maxSuccessRate;
+        break;
+      case 'responseTime':
+        minVal = minResponseTime;
+        maxVal = maxResponseTime;
+        break;
+      case 'reputation':
+        minVal = minReputation;
+        maxVal = maxReputation;
+        break;
+      default:
+        return '';
+    }
+
+    const points = data.map((d, i) => {
+      const x = (i / (data.length - 1)) * 100;
+      const y = 100 - getNormalizedValue(d[metric] as number, minVal, maxVal);
+      return `${x},${y}`;
+    });
+
+    return `M ${points.join(' L ')}`;
+  };
+
+  const getMetricColor = (metric: string) => {
+    switch (metric) {
+      case 'successRate':
+        return '#10B981';
+      case 'responseTime':
+        return '#3B82F6';
+      case 'reputation':
+        return '#8B5CF6';
+      default:
+        return '#6B7280';
+    }
+  };
+
+  const getMetricLabel = (metric: string) => {
+    switch (metric) {
+      case 'successRate':
+        return t('uma.validatorAnalytics.successRate');
+      case 'responseTime':
+        return t('uma.validatorAnalytics.responseTime');
+      case 'reputation':
+        return t('uma.validatorAnalytics.reputation');
+      default:
+        return metric;
+    }
+  };
+
+  const timeRangeOptions: { value: TimeRange; label: string; days: number }[] = [
+    { value: '7d', label: '7天', days: 7 },
+    { value: '30d', label: '30天', days: 30 },
+    { value: '90d', label: '90天', days: 90 },
+  ];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('uma.validatorAnalytics.historyTrend')}
+          </p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            {t('uma.validatorAnalytics.performanceHistory')}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {timeRangeOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => onTimeRangeChange(option.value)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                timeRange === option.value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        {(['successRate', 'responseTime', 'reputation'] as const).map((metric) => (
+          <button
+            key={metric}
+            onClick={() => setActiveMetric(metric)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              activeMetric === metric
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: getMetricColor(metric) }}
+            />
+            {getMetricLabel(metric)}
+          </button>
+        ))}
+      </div>
+
+      <div className="h-48 relative">
+        <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id={`gradient-${activeMetric}`} x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={getMetricColor(activeMetric)} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={getMetricColor(activeMetric)} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          <g className="text-gray-200">
+            {[0, 25, 50, 75, 100].map((y) => (
+              <line
+                key={y}
+                x1="0"
+                y1={y}
+                x2="100"
+                y2={y}
+                stroke="currentColor"
+                strokeWidth="0.5"
+                strokeDasharray="2,2"
+              />
+            ))}
+          </g>
+
+          <path
+            d={`${createPath(activeMetric)} L 100,100 L 0,100 Z`}
+            fill={`url(#gradient-${activeMetric})`}
+            opacity="0.5"
+          />
+
+          <path
+            d={createPath(activeMetric)}
+            fill="none"
+            stroke={getMetricColor(activeMetric)}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {data.map((d, i) => {
+            let value: number, minVal: number, maxVal: number;
+            switch (activeMetric) {
+              case 'successRate':
+                value = d.successRate;
+                minVal = minSuccessRate;
+                maxVal = maxSuccessRate;
+                break;
+              case 'responseTime':
+                value = d.responseTime;
+                minVal = minResponseTime;
+                maxVal = maxResponseTime;
+                break;
+              case 'reputation':
+                value = d.reputation;
+                minVal = minReputation;
+                maxVal = maxReputation;
+                break;
+              default:
+                return null;
+            }
+
+            const x = (i / (data.length - 1)) * 100;
+            const y = 100 - getNormalizedValue(value, minVal, maxVal);
+
+            return (
+              <g key={i}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="2"
+                  fill={getMetricColor(activeMetric)}
+                  className="hover:r-3 transition-all"
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-400 px-2">
+          <span>{data[0]?.date}</span>
+          <span>{data[Math.floor(data.length / 2)]?.date}</span>
+          <span>{data[data.length - 1]?.date}</span>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-xs text-gray-500 mb-1">
+              {t('uma.validatorAnalytics.avgSuccessRate')}
+            </p>
+            <p className="text-sm font-semibold text-green-600">
+              {(data.reduce((sum, d) => sum + d.successRate, 0) / data.length).toFixed(1)}%
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 mb-1">
+              {t('uma.validatorAnalytics.avgResponseTime')}
+            </p>
+            <p className="text-sm font-semibold text-blue-600">
+              {Math.round(data.reduce((sum, d) => sum + d.responseTime, 0) / data.length)}ms
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 mb-1">
+              {t('uma.validatorAnalytics.avgReputation')}
+            </p>
+            <p className="text-sm font-semibold text-purple-600">
+              {Math.round(data.reduce((sum, d) => sum + d.reputation, 0) / data.length)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function formatRelativeTime(timestamp: number | null): string {
@@ -224,11 +499,13 @@ function ValidatorTable({
   sortField,
   sortDirection,
   onSort,
+  onViewHistory,
 }: {
   validators: ValidatorData[];
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
+  onViewHistory: (validator: ValidatorData) => void;
 }) {
   const { t } = useI18n();
 
@@ -346,6 +623,9 @@ function ValidatorTable({
                 {getSortIcon('earnings')}
               </button>
             </th>
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {t('uma.validatorAnalytics.actions')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -364,7 +644,25 @@ function ValidatorTable({
                 </span>
               </td>
               <td className="py-3 px-4">
-                <span className="text-sm font-medium text-gray-900">{validator.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900">{validator.name}</span>
+                  <a
+                    href={`https://etherscan.io/address/${validator.address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                    title={t('uma.validatorAnalytics.viewOnEtherscan')}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </td>
               <td className="py-3 px-4">{getTypeBadge(validator.type)}</td>
               <td className="py-3 px-4">
@@ -400,6 +698,27 @@ function ValidatorTable({
                   {formatNumber(validator.earnings)}
                 </span>
               </td>
+              <td className="py-3 px-4">
+                <button
+                  onClick={() => onViewHistory(validator)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                  {t('uma.validatorAnalytics.viewHistory')}
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -421,6 +740,12 @@ export function ValidatorAnalyticsPanel() {
   const [lastUpdateTime, setLastUpdateTime] = useState<number | null>(null);
   const [relativeTime, setRelativeTime] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [selectedValidator, setSelectedValidator] = useState<ValidatorData | null>(null);
+  const [validatorHistory, setValidatorHistory] = useState<ValidatorHistoryData[]>([]);
+  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [showValidatorModal, setShowValidatorModal] = useState(false);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -521,6 +846,50 @@ export function ValidatorAnalyticsPanel() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const fetchValidatorHistory = useCallback(async (validatorId: string, days: number) => {
+    setIsHistoryLoading(true);
+    try {
+      const client = new UMAClient();
+      const history = await client.getValidatorHistory(validatorId, days);
+      setValidatorHistory(history);
+    } catch (error) {
+      logger.error(
+        'Failed to fetch validator history',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      setValidatorHistory([]);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  }, []);
+
+  const handleViewHistory = useCallback(
+    (validator: ValidatorData) => {
+      setSelectedValidator(validator);
+      setShowValidatorModal(true);
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+      fetchValidatorHistory(validator.id, days);
+    },
+    [timeRange, fetchValidatorHistory]
+  );
+
+  const handleTimeRangeChange = useCallback(
+    (range: TimeRange) => {
+      setTimeRange(range);
+      if (selectedValidator) {
+        const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+        fetchValidatorHistory(selectedValidator.id, days);
+      }
+    },
+    [selectedValidator, fetchValidatorHistory]
+  );
+
+  const handleCloseModal = () => {
+    setShowValidatorModal(false);
+    setSelectedValidator(null);
+    setValidatorHistory([]);
   };
 
   const totalStaked = validators.reduce((sum, v) => sum + v.staked, 0);
@@ -737,6 +1106,7 @@ export function ValidatorAnalyticsPanel() {
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={handleSort}
+          onViewHistory={handleViewHistory}
         />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
@@ -821,6 +1191,173 @@ export function ValidatorAnalyticsPanel() {
       <ValidatorPerformanceHeatmap />
 
       <ValidatorComparison validators={validators} />
+
+      <StakingCalculator />
+
+      {showValidatorModal && selectedValidator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{selectedValidator.name}</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t('uma.validatorAnalytics.validatorDetails')}
+                </p>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                    {t('uma.validatorAnalytics.type')}
+                  </p>
+                  <span
+                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedValidator.type === 'institution'
+                        ? 'bg-purple-100 text-purple-700'
+                        : selectedValidator.type === 'independent'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-green-100 text-green-700'
+                    }`}
+                  >
+                    {selectedValidator.type === 'institution'
+                      ? '机构'
+                      : selectedValidator.type === 'independent'
+                        ? '独立'
+                        : '社区'}
+                  </span>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                    {t('uma.validatorAnalytics.region')}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900">{selectedValidator.region}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                    {t('uma.validatorAnalytics.staked')}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {formatNumber(selectedValidator.staked)} UMA
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                    {t('uma.validatorAnalytics.earnings')}
+                  </p>
+                  <p className="text-sm font-semibold text-green-600">
+                    {formatNumber(selectedValidator.earnings)} UMA
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {t('uma.validatorAnalytics.address')}
+                  </h4>
+                  <a
+                    href={`https://etherscan.io/address/${selectedValidator.address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    <span>{t('uma.validatorAnalytics.viewOnEtherscan')}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4 font-mono text-sm text-gray-700 break-all">
+                  {selectedValidator.address}
+                </div>
+              </div>
+
+              {isHistoryLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+                    <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
+                  </div>
+                </div>
+              ) : (
+                <ValidatorHistoryChart
+                  data={validatorHistory}
+                  timeRange={timeRange}
+                  onTimeRangeChange={handleTimeRangeChange}
+                />
+              )}
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('uma.validatorAnalytics.estimatedRewards')}
+                </h4>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                        {t('uma.validatorAnalytics.estimatedDaily')}
+                      </p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatNumber(Math.round(selectedValidator.earnings / 30))}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        UMA / {t('uma.validatorAnalytics.day')}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                        {t('uma.validatorAnalytics.estimatedMonthly')}
+                      </p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {formatNumber(selectedValidator.earnings)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        UMA / {t('uma.validatorAnalytics.month')}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
+                        {t('uma.validatorAnalytics.estimatedYearly')}
+                      </p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatNumber(selectedValidator.earnings * 12)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        UMA / {t('uma.validatorAnalytics.year')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200/50">
+                    <p className="text-xs text-gray-500 text-center">
+                      * {t('uma.validatorAnalytics.rewardEstimateNote')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,15 @@
 import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
+export type DisputeType = 'price' | 'state' | 'liquidation' | 'other';
+
+export const DisputeTypeLabels: Record<DisputeType, string> = {
+  price: '价格争议',
+  state: '状态争议',
+  liquidation: '清算争议',
+  other: '其他争议',
+};
+
 export interface ValidatorData {
   id: string;
   name: string;
@@ -11,6 +20,7 @@ export interface ValidatorData {
   reputation: number;
   staked: number;
   earnings: number;
+  address: string;
 }
 
 export interface DisputeData {
@@ -19,6 +29,8 @@ export interface DisputeData {
   status: 'active' | 'resolved' | 'rejected';
   reward: number;
   resolutionTime?: number;
+  type: DisputeType;
+  transactionHash: string;
 }
 
 export interface UMAMetworkStats {
@@ -99,6 +111,20 @@ export interface DataQualityScore {
   };
 }
 
+export interface ValidatorHistoryData {
+  date: string;
+  successRate: number;
+  responseTime: number;
+  reputation: number;
+}
+
+export interface StakingCalculation {
+  dailyReward: number;
+  monthlyReward: number;
+  yearlyReward: number;
+  apr: number;
+}
+
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
   supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
@@ -153,6 +179,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 98,
         staked: 680000,
         earnings: 12500,
+        address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
       },
       {
         id: '2',
@@ -164,6 +191,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 95,
         staked: 500000,
         earnings: 9800,
+        address: '0x8ba1f109551bD432803012645Hac136c82C3e8C9',
       },
       {
         id: '3',
@@ -175,6 +203,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 92,
         staked: 420000,
         earnings: 8200,
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
       },
       {
         id: '4',
@@ -186,6 +215,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 94,
         staked: 380000,
         earnings: 7500,
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       },
       {
         id: '5',
@@ -197,6 +227,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 90,
         staked: 320000,
         earnings: 6400,
+        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       },
       {
         id: '6',
@@ -208,6 +239,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 88,
         staked: 280000,
         earnings: 5600,
+        address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
       },
       {
         id: '7',
@@ -219,6 +251,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 89,
         staked: 260000,
         earnings: 5200,
+        address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
       },
       {
         id: '8',
@@ -230,6 +263,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 85,
         staked: 220000,
         earnings: 4400,
+        address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
       },
       {
         id: '9',
@@ -241,6 +275,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 86,
         staked: 200000,
         earnings: 4000,
+        address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
       },
       {
         id: '10',
@@ -252,6 +287,7 @@ export class UMAClient extends BaseOracleClient {
         reputation: 84,
         staked: 180000,
         earnings: 3600,
+        address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
       },
     ];
     return validators;
@@ -260,6 +296,7 @@ export class UMAClient extends BaseOracleClient {
   async getDisputes(): Promise<DisputeData[]> {
     const disputes: DisputeData[] = [];
     const now = Date.now();
+    const disputeTypes: DisputeType[] = ['price', 'state', 'liquidation', 'other'];
 
     for (let i = 0; i < 50; i++) {
       const isResolved = Math.random() > 0.3;
@@ -269,6 +306,8 @@ export class UMAClient extends BaseOracleClient {
         status: isResolved ? 'resolved' : Math.random() > 0.5 ? 'active' : 'rejected',
         reward: Math.floor(Math.random() * 5000) + 1000,
         resolutionTime: isResolved ? Math.floor(Math.random() * 48) + 1 : undefined,
+        type: disputeTypes[Math.floor(Math.random() * disputeTypes.length)],
+        transactionHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
       });
     }
 
@@ -531,5 +570,91 @@ export class UMAClient extends BaseOracleClient {
         trend: getTrend(),
       },
     };
+  }
+
+  async getValidatorHistory(
+    validatorId: string,
+    days: number = 30
+  ): Promise<ValidatorHistoryData[]> {
+    const validators = await this.getValidators();
+    const validator = validators.find((v) => v.id === validatorId);
+
+    const baseSuccessRate = validator?.successRate ?? 99.0;
+    const baseResponseTime = validator?.responseTime ?? 150;
+    const baseReputation = validator?.reputation ?? 85;
+
+    const history: ValidatorHistoryData[] = [];
+    const now = new Date();
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+
+      const trendFactor = Math.sin(((days - i) / days) * Math.PI) * 2;
+      const randomVariation = (Math.random() - 0.5) * 2;
+
+      const successRate = Math.min(
+        100,
+        Math.max(95, baseSuccessRate + trendFactor + randomVariation)
+      );
+
+      const responseTimeVariation =
+        Math.cos(((days - i) / days) * Math.PI) * 20 + (Math.random() - 0.5) * 30;
+      const responseTime = Math.max(50, Math.round(baseResponseTime + responseTimeVariation));
+
+      const reputationTrend = ((days - i) / days) * 3;
+      const reputationVariation = (Math.random() - 0.5) * 4;
+      const reputation = Math.min(
+        100,
+        Math.max(70, Math.round(baseReputation + reputationTrend + reputationVariation))
+      );
+
+      history.push({
+        date: dateStr,
+        successRate: parseFloat(successRate.toFixed(2)),
+        responseTime,
+        reputation,
+      });
+    }
+
+    return history;
+  }
+
+  async calculateStakingRewards(
+    amount: number,
+    validatorType: 'institution' | 'independent' | 'community',
+    disputeFrequency: 'low' | 'medium' | 'high'
+  ): Promise<StakingCalculation> {
+    const baseAprMap = {
+      institution: 0.08,
+      independent: 0.1,
+      community: 0.12,
+    };
+
+    const disputeBonusMap = {
+      low: 0,
+      medium: 0.02,
+      high: 0.05,
+    };
+
+    const baseApr = baseAprMap[validatorType];
+    const disputeBonus = disputeBonusMap[disputeFrequency];
+    const totalApr = baseApr + disputeBonus;
+
+    const yearlyReward = amount * totalApr;
+    const monthlyReward = yearlyReward / 12;
+    const dailyReward = yearlyReward / 365;
+
+    return {
+      dailyReward: parseFloat(dailyReward.toFixed(4)),
+      monthlyReward: parseFloat(monthlyReward.toFixed(2)),
+      yearlyReward: parseFloat(yearlyReward.toFixed(2)),
+      apr: parseFloat((totalApr * 100).toFixed(2)),
+    };
+  }
+
+  async getDisputesWithType(): Promise<DisputeData[]> {
+    return this.getDisputes();
   }
 }

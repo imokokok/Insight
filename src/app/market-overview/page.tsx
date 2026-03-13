@@ -43,8 +43,29 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
+  Network,
+  Building2,
+  PieChart as PieChartIcon2,
+  GitCompare,
+  Target,
+  ActivitySquare,
 } from 'lucide-react';
 import Link from 'next/link';
+import ChainBreakdownChart from './components/ChainBreakdownChart';
+import ProtocolList from './components/ProtocolList';
+import AssetCategoryChart from './components/AssetCategoryChart';
+import OracleComparison from './components/OracleComparison';
+import BenchmarkComparison from './components/BenchmarkComparison';
+import CorrelationMatrix from './components/CorrelationMatrix';
+import RiskDashboard from './components/RiskDashboard';
+import AnomalyAlert from './components/AnomalyAlert';
+import RealtimeIndicator from './components/RealtimeIndicator';
+import PriceAlertConfig from './components/PriceAlertConfig';
+import ExportConfigComponent from './components/ExportConfig';
+import ScheduledExportConfig from './components/ScheduledExportConfig';
+import { ExportConfig } from '@/lib/export/exportConfig';
+import { ScheduledExportTask } from '@/lib/export/scheduledExport';
+import { exportWithConfig, downloadExport } from '@/lib/services/marketData';
 
 export default function MarketOverviewPage() {
   const { t, locale } = useI18n();
@@ -55,7 +76,19 @@ export default function MarketOverviewPage() {
     assets,
     trendData,
     marketStats,
+    chainBreakdown,
+    protocolDetails,
+    assetCategories,
+    comparisonData,
+    benchmarkData,
+    correlationData,
+    riskMetrics,
+    anomalies,
     loading,
+    loadingEnhanced,
+    loadingComparison,
+    loadingRiskMetrics,
+    loadingAnomalies,
     lastUpdated,
     selectedTimeRange,
     setSelectedTimeRange,
@@ -80,6 +113,25 @@ export default function MarketOverviewPage() {
     totalTVS,
     totalChains,
     totalProtocols,
+    acknowledgeAnomaly,
+
+    // WebSocket
+    wsStatus,
+    wsLastUpdated,
+    wsReconnect,
+    wsMessageCount,
+    wsConnectedChannels,
+
+    // 价格预警
+    priceAlerts,
+    alertHistory,
+    addPriceAlert,
+    removePriceAlert,
+    togglePriceAlert,
+    acknowledgeAlertHistory,
+    clearAlertHistory,
+    requestNotificationPermission,
+    hasNotificationPermission,
   } = data;
 
   // 自定义Tooltip组件
@@ -109,7 +161,7 @@ export default function MarketOverviewPage() {
 
   // 渲染图表
   const renderChart = () => {
-    if (viewType === 'table') {
+    if (viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart)) {
       return renderTable();
     }
 
@@ -230,6 +282,30 @@ export default function MarketOverviewPage() {
             </Bar>
           </BarChart>
         );
+      case 'chain':
+        return (
+          <ChainBreakdownChart
+            data={chainBreakdown}
+            loading={loadingEnhanced}
+            viewType={viewType}
+          />
+        );
+      case 'protocol':
+        return <ProtocolList data={protocolDetails} loading={loadingEnhanced} />;
+      case 'asset':
+        return (
+          <AssetCategoryChart
+            data={assetCategories}
+            loading={loadingEnhanced}
+            viewType={viewType}
+          />
+        );
+      case 'comparison':
+        return <OracleComparison data={comparisonData} loading={loadingComparison} />;
+      case 'benchmark':
+        return <BenchmarkComparison data={benchmarkData} loading={loadingComparison} />;
+      case 'correlation':
+        return <CorrelationMatrix data={correlationData} loading={loadingComparison} />;
       default:
         return null;
     }
@@ -343,6 +419,18 @@ export default function MarketOverviewPage() {
         return locale === 'zh-CN' ? 'TVS 趋势分析' : 'TVS Trend Analysis';
       case 'bar':
         return locale === 'zh-CN' ? '链支持情况' : 'Chain Support Overview';
+      case 'chain':
+        return locale === 'zh-CN' ? '链级别 TVS 分布' : 'Chain TVS Breakdown';
+      case 'protocol':
+        return locale === 'zh-CN' ? '协议列表' : 'Protocol List';
+      case 'asset':
+        return locale === 'zh-CN' ? '资产类别分析' : 'Asset Category Analysis';
+      case 'comparison':
+        return locale === 'zh-CN' ? '多预言机对比分析' : 'Multi-Oracle Comparison';
+      case 'benchmark':
+        return locale === 'zh-CN' ? '行业基准对比' : 'Industry Benchmark Comparison';
+      case 'correlation':
+        return locale === 'zh-CN' ? 'TVS 相关性分析' : 'TVS Correlation Analysis';
       default:
         return '';
     }
@@ -377,7 +465,7 @@ export default function MarketOverviewPage() {
 
           {/* 操作按钮 */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* 导出按钮 */}
+            {/* 导出按钮组 */}
             <div className="flex items-center gap-1">
               <button
                 onClick={exportToCSV}
@@ -449,6 +537,15 @@ export default function MarketOverviewPage() {
                 {lastUpdated.toLocaleTimeString()}
               </span>
             )}
+
+            {/* 实时状态指示器 */}
+            <RealtimeIndicator
+              status={wsStatus}
+              lastUpdated={wsLastUpdated}
+              onReconnect={wsReconnect}
+              connectedChannels={wsConnectedChannels}
+              messageCount={wsMessageCount}
+            />
           </div>
         </div>
 
@@ -592,6 +689,72 @@ export default function MarketOverviewPage() {
                 <BarChart3 className="w-4 h-4" />
                 {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
               </button>
+              <button
+                onClick={() => setActiveChart('chain')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'chain'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Network className="w-4 h-4" />
+                {locale === 'zh-CN' ? '链分布' : 'Chain Breakdown'}
+              </button>
+              <button
+                onClick={() => setActiveChart('protocol')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'protocol'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Building2 className="w-4 h-4" />
+                {locale === 'zh-CN' ? '协议' : 'Protocols'}
+              </button>
+              <button
+                onClick={() => setActiveChart('asset')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'asset'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <PieChartIcon2 className="w-4 h-4" />
+                {locale === 'zh-CN' ? '资产类别' : 'Asset Categories'}
+              </button>
+              <button
+                onClick={() => setActiveChart('comparison')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'comparison'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <GitCompare className="w-4 h-4" />
+                {locale === 'zh-CN' ? '多预言机对比' : 'Oracle Comparison'}
+              </button>
+              <button
+                onClick={() => setActiveChart('benchmark')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'benchmark'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Target className="w-4 h-4" />
+                {locale === 'zh-CN' ? '行业基准' : 'Benchmark'}
+              </button>
+              <button
+                onClick={() => setActiveChart('correlation')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  activeChart === 'correlation'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <ActivitySquare className="w-4 h-4" />
+                {locale === 'zh-CN' ? '相关性' : 'Correlation'}
+              </button>
             </div>
 
             {/* 时间范围选择 */}
@@ -660,7 +823,7 @@ export default function MarketOverviewPage() {
                 )}
               </div>
 
-              {loading ? (
+              {loading && !['chain', 'protocol', 'asset'].includes(activeChart) ? (
                 <div className="h-[400px] flex items-center justify-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
@@ -671,19 +834,26 @@ export default function MarketOverviewPage() {
                 </div>
               ) : (
                 <>
-                  <div className={`${viewType === 'table' ? 'h-[360px]' : 'h-[400px]'}`}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      {renderChart()}
-                    </ResponsiveContainer>
+                  <div
+                    className={`${viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart) ? 'h-[360px]' : 'h-[400px]'}`}
+                  >
+                    {['chain', 'protocol', 'asset'].includes(activeChart) ? (
+                      renderChart()
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        {renderChart()}
+                      </ResponsiveContainer>
+                    )}
                   </div>
-                  {viewType === 'chart' && (
-                    <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
-                      <Info className="w-4 h-4" />
-                      {locale === 'zh-CN'
-                        ? '悬停查看详情，点击选中项目'
-                        : 'Hover for details, click to select'}
-                    </div>
-                  )}
+                  {viewType === 'chart' &&
+                    !['chain', 'protocol', 'asset'].includes(activeChart) && (
+                      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                        <Info className="w-4 h-4" />
+                        {locale === 'zh-CN'
+                          ? '悬停查看详情，点击选中项目'
+                          : 'Hover for details, click to select'}
+                      </div>
+                    )}
                 </>
               )}
             </div>
@@ -782,6 +952,76 @@ export default function MarketOverviewPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* 风险指标、异常预警和价格预警 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <RiskDashboard data={riskMetrics} loading={loadingRiskMetrics} />
+            </div>
+            <div className="lg:col-span-1">
+              <AnomalyAlert
+                anomalies={anomalies}
+                loading={loadingAnomalies}
+                onAcknowledge={acknowledgeAnomaly}
+                maxDisplay={5}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <PriceAlertConfig
+                alerts={priceAlerts}
+                history={alertHistory}
+                onAddAlert={addPriceAlert}
+                onRemoveAlert={removePriceAlert}
+                onToggleAlert={togglePriceAlert}
+                onAcknowledgeHistory={acknowledgeAlertHistory}
+                onClearHistory={clearAlertHistory}
+                onRequestNotificationPermission={requestNotificationPermission}
+                hasNotificationPermission={hasNotificationPermission}
+              />
+            </div>
+          </div>
+
+          {/* 导出配置和定时导出 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ExportConfigComponent
+              locale={locale}
+              onExport={(config: ExportConfig) => {
+                const { content, fileName, mimeType } = exportWithConfig(config, {
+                  oracleData,
+                  assets,
+                  trendData,
+                  chainBreakdown,
+                  protocolDetails,
+                  assetCategories,
+                  comparisonData,
+                  benchmarkData,
+                  correlationData,
+                  riskMetrics: riskMetrics || undefined,
+                  anomalies,
+                });
+                downloadExport(content, fileName, mimeType);
+              }}
+            />
+            <ScheduledExportConfig
+              locale={locale}
+              onRunTask={async (task: ScheduledExportTask) => {
+                const { content, fileName, mimeType } = exportWithConfig(task.config, {
+                  oracleData,
+                  assets,
+                  trendData,
+                  chainBreakdown,
+                  protocolDetails,
+                  assetCategories,
+                  comparisonData,
+                  benchmarkData,
+                  correlationData,
+                  riskMetrics: riskMetrics || undefined,
+                  anomalies,
+                });
+                downloadExport(content, fileName, mimeType);
+              }}
+            />
           </div>
 
           {/* 资产列表 */}

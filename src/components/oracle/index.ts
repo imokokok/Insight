@@ -31,6 +31,7 @@ export { DisputeResolutionPanel } from './DisputeResolutionPanel';
 export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
 export { RiskAssessmentPanel } from './RiskAssessmentPanel';
 export type { ValidatorPanelProps, SortField, SortDirection, FilterStatus } from './ValidatorPanel';
+export { StakingCalculator } from './StakingCalculator';
 export { DataQualityPanel } from './DataQualityPanel';
 export type {
   DataQualityPanelProps,
@@ -152,3 +153,13 @@ export {
   type ExportOption,
   type ExportFormat,
 } from './DataExportButton';
+export { ChainEventMonitor } from './ChainEventMonitor';
+export type { ChainEventMonitorProps } from './ChainEventMonitor';
+export { BollingerBands } from './BollingerBands';
+export type { BollingerBandsProps } from './BollingerBands';
+export { ATRIndicator } from './ATRIndicator';
+export type { ATRIndicatorProps } from './ATRIndicator';
+export { DataQualityTrend } from './DataQualityTrend';
+export type { DataQualityTrendProps, QualityDataPoint } from './DataQualityTrend';
+export { GasFeeComparison } from './GasFeeComparison';
+export type { GasFeeComparisonProps, GasFeeData } from './GasFeeComparison';

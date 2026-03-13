@@ -25,7 +25,11 @@ import {
   calculateStandardDeviation,
   calculatePercentile,
   calculatePearsonCorrelation,
+  calculatePearsonCorrelationWithSignificance,
   calculateSMA,
+  calculateDynamicThreshold,
+  type CorrelationResult,
+  type ThresholdConfig,
 } from './utils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 import { createLogger } from '@/lib/utils/logger';
@@ -123,6 +127,9 @@ export interface UseCrossChainDataReturn {
     }
   >;
   correlationMatrix: Partial<Record<Blockchain, Partial<Record<Blockchain, number>>>>;
+  correlationMatrixWithSignificance: Partial<
+    Record<Blockchain, Partial<Record<Blockchain, CorrelationResult>>>
+  >;
   chainVolatility: Partial<Record<Blockchain, number>>;
   updateDelays: Partial<Record<Blockchain, { avgDelay: number; maxDelay: number }>>;
   dataIntegrity: Partial<Record<Blockchain, number>>;
@@ -388,7 +395,18 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   }, [currentPrices, selectedBaseChain, filteredChains]);
 
   const sortedPriceDifferences = useMemo(() => {
-    const DEVIATION_THRESHOLD = 0.5;
+    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
+
+    // Calculate dynamic threshold based on all historical prices
+    const allHistoricalPrices: number[] = [];
+    filteredChains.forEach((chain) => {
+      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
+      allHistoricalPrices.push(...prices);
+    });
+
+    const dynamicThreshold = calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
+
+    const DEVIATION_THRESHOLD = dynamicThreshold;
     let filtered = [...priceDifferences];
 
     if (tableFilter === 'abnormal') {
@@ -425,7 +443,15 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       return [baseChainItem, ...otherItems];
     }
     return otherItems;
-  }, [priceDifferences, sortColumn, sortDirection, selectedBaseChain, tableFilter]);
+  }, [
+    priceDifferences,
+    sortColumn,
+    sortDirection,
+    selectedBaseChain,
+    tableFilter,
+    historicalPrices,
+    filteredChains,
+  ]);
 
   const validPrices = useMemo(() => {
     return currentPrices
@@ -656,6 +682,33 @@ export function useCrossChainData(): UseCrossChainDataReturn {
         } else {
           const correlation = calculatePearsonCorrelation(pricesX, pricesY);
           matrix[chainX]![chainY] = isNaN(correlation) ? 0 : correlation;
+        }
+      });
+    });
+
+    return matrix;
+  }, [historicalPrices, filteredChains]);
+
+  const correlationMatrixWithSignificance = useMemo(() => {
+    const matrix: Partial<Record<Blockchain, Partial<Record<Blockchain, CorrelationResult>>>> = {};
+
+    filteredChains.forEach((chainX) => {
+      matrix[chainX] = {};
+      filteredChains.forEach((chainY) => {
+        const pricesX = historicalPrices[chainX]?.map((p) => p.price) || [];
+        const pricesY = historicalPrices[chainY]?.map((p) => p.price) || [];
+
+        if (chainX === chainY) {
+          matrix[chainX]![chainY] = {
+            correlation: 1,
+            pValue: 0,
+            sampleSize: pricesX.length,
+            isSignificant: true,
+            significanceLevel: '***',
+          };
+        } else {
+          const result = calculatePearsonCorrelationWithSignificance(pricesX, pricesY);
+          matrix[chainX]![chainY] = result;
         }
       });
     });
@@ -936,9 +989,19 @@ export function useCrossChainData(): UseCrossChainDataReturn {
   }, [historicalPrices, filteredChains]);
 
   const chainsWithHighDeviation = useMemo(() => {
-    const DEVIATION_THRESHOLD = 0.5;
-    return priceDifferences.filter((item) => Math.abs(item.diffPercent) > DEVIATION_THRESHOLD);
-  }, [priceDifferences]);
+    const thresholdConfig = useCrossChainStore.getState().thresholdConfig;
+
+    // Calculate dynamic threshold based on all historical prices
+    const allHistoricalPrices: number[] = [];
+    filteredChains.forEach((chain) => {
+      const prices = historicalPrices[chain]?.map((p) => p.price) || [];
+      allHistoricalPrices.push(...prices);
+    });
+
+    const dynamicThreshold = calculateDynamicThreshold(allHistoricalPrices, thresholdConfig);
+
+    return priceDifferences.filter((item) => Math.abs(item.diffPercent) > dynamicThreshold);
+  }, [priceDifferences, historicalPrices, filteredChains]);
 
   const exportToCSV = useCallback(() => {
     const csvLines: string[] = [];
@@ -1149,6 +1212,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     stdDevHistoricalOutliers,
     scatterData,
     correlationMatrix,
+    correlationMatrixWithSignificance,
     chainVolatility,
     updateDelays,
     dataIntegrity,

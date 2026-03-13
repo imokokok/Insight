@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import { RefreshInterval } from '@/app/cross-chain/constants';
+import { ThresholdConfig, defaultThresholdConfig } from '@/app/cross-chain/utils';
 
 interface SelectorState {
   selectedProvider: OracleProvider;
@@ -43,6 +44,7 @@ interface DataState {
 
 interface ConfigState {
   refreshInterval: RefreshInterval;
+  thresholdConfig: ThresholdConfig;
 }
 
 interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState {
@@ -76,6 +78,7 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
   setRecommendedBaseChain: (chain: Blockchain | null) => void;
 
   setRefreshInterval: (interval: RefreshInterval) => void;
+  setThresholdConfig: (config: ThresholdConfig) => void;
 
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
@@ -110,6 +113,7 @@ const initialState: SelectorState & UIState & DataState & ConfigState = {
   recommendedBaseChain: null,
 
   refreshInterval: 0,
+  thresholdConfig: defaultThresholdConfig,
 };
 
 export const useCrossChainStore = create<CrossChainStore>((set, get) => ({
@@ -143,6 +147,7 @@ export const useCrossChainStore = create<CrossChainStore>((set, get) => ({
   setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
 
   setRefreshInterval: (interval) => set({ refreshInterval: interval }),
+  setThresholdConfig: (config) => set({ thresholdConfig: config }),
 
   toggleChain: (chain) => {
     const { visibleChains } = get();
@@ -192,6 +197,7 @@ export const useRecommendedBaseChain = () =>
   useCrossChainStore((state) => state.recommendedBaseChain);
 
 export const useRefreshInterval = () => useCrossChainStore((state) => state.refreshInterval);
+export const useThresholdConfig = () => useCrossChainStore((state) => state.thresholdConfig);
 
 export const useSelectorState = () =>
   useCrossChainStore((state) => ({

@@ -51,6 +51,8 @@ export interface PriceData {
   source?: string;
   change?: number;
   confidenceInterval?: ConfidenceInterval;
+  change24h?: number;
+  change24hPercent?: number;
 }
 
 export interface OracleClient {

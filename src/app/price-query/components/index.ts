@@ -9,3 +9,5 @@ export { PriceResultsTable } from './PriceResultsTable';
 export { PriceChart } from './PriceChart';
 export type { ChartDataPoint } from './PriceChart';
 export { QuickLinks } from './QuickLinks';
+export { FreshnessIndicator } from './FreshnessIndicator';
+export { ConfidenceBadge } from './ConfidenceBadge';

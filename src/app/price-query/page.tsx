@@ -386,6 +386,13 @@ export default function PriceQueryPage() {
     return validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
   }, [validPrices]);
 
+  const avgChange24hPercent = useMemo(() => {
+    const changes = queryResults
+      .map((r) => r.priceData.change24hPercent)
+      .filter((c): c is number => c !== undefined);
+    return changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : undefined;
+  }, [queryResults]);
+
   const maxPrice = useMemo(() => {
     return validPrices.length > 0 ? Math.max(...validPrices) : 0;
   }, [validPrices]);
@@ -502,6 +509,8 @@ export default function PriceQueryPage() {
             standardDeviationPercent={standardDeviationPercent}
             dataPoints={queryResults.length}
             queryDuration={queryDuration}
+            avgChange24hPercent={avgChange24hPercent}
+            prices={validPrices}
           />
 
           <PriceResultsTable

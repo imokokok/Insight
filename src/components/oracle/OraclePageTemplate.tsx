@@ -33,7 +33,14 @@ import {
   ConfidenceAlertPanel,
   DataQualityScorePanel,
   LatencyTrendChart,
+  ChainEventMonitor,
+  LatencyDistributionHistogram,
+  BollingerBands,
+  ATRIndicator,
 } from '@/components/oracle';
+import { RSIIndicator } from './RSIIndicator';
+import { MACDIndicator } from './MACDIndicator';
+import { GasFeeTrendChart } from './GasFeeTrendChart';
 import { useRefresh, useExport, ExportOptions } from '@/hooks';
 import { useGlobalTimeRange } from '@/contexts/TimeRangeContext';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -553,6 +560,40 @@ export function OraclePageTemplate({
             </div>
           )}
 
+          {/* RSI和MACD技术指标 - 仅Chainlink显示 */}
+          {activeTab === 'market' && config.provider === OracleProvider.CHAINLINK && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <RSIIndicator
+                data={historicalData.map((h) => ({
+                  time: new Date(h.timestamp).toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                  timestamp: h.timestamp,
+                  price: h.price,
+                  close: h.price,
+                }))}
+                period={14}
+                height={220}
+              />
+              <MACDIndicator
+                data={historicalData.map((h) => ({
+                  time: new Date(h.timestamp).toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                  timestamp: h.timestamp,
+                  price: h.price,
+                  close: h.price,
+                }))}
+                fastPeriod={12}
+                slowPeriod={26}
+                signalPeriod={9}
+                height={220}
+              />
+            </div>
+          )}
+
           {activeTab === 'market' && config.provider === OracleProvider.PYTH_NETWORK && (
             <>
               <div className="mb-6">
@@ -591,6 +632,24 @@ export function OraclePageTemplate({
               <div className="mb-6">
                 <NetworkHealthPanel config={config.networkData} />
               </div>
+
+              {/* Gas费用趋势图 */}
+              {config.provider === OracleProvider.CHAINLINK && (
+                <div className="mb-6">
+                  <GasFeeTrendChart height={280} />
+                </div>
+              )}
+
+              {/* 链上延迟分布 */}
+              {config.provider === OracleProvider.CHAINLINK && (
+                <div className="mb-6">
+                  <LatencyDistributionHistogram
+                    data={Array.from({ length: 1000 }, () => Math.random() * 400 + 50)}
+                    oracleName={config.name}
+                  />
+                </div>
+              )}
+
               {dataSourceCredibilityData.length > 0 && (
                 <div className="mb-6">
                   <DataSourceCredibility sources={dataSourceCredibilityData} />
@@ -617,6 +676,9 @@ export function OraclePageTemplate({
                   <>
                     <div className="mb-6">
                       <ValidatorPanel client={config.client} />
+                    </div>
+                    <div className="mb-6">
+                      <ChainEventMonitor client={config.client} refreshInterval={30000} />
                     </div>
                     <div className="mb-6">
                       <BandCrossChainPriceConsistency />

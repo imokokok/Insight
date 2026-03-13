@@ -39,6 +39,12 @@ interface ChartSettings {
   showPredictionInterval: boolean;
   confidenceLevel: ConfidenceLevel;
   comparisonEnabled: boolean;
+  showStdDevBands: boolean;
+  showMA7: boolean;
+  showMA14: boolean;
+  showMA30: boolean;
+  showMA60: boolean;
+  showMA20: boolean;
 }
 
 function loadChartSettings(): ChartSettings | null {
@@ -69,13 +75,19 @@ function useChartSettings() {
     showPredictionInterval: false,
     confidenceLevel: 95,
     comparisonEnabled: false,
+    showStdDevBands: true,
+    showMA7: true,
+    showMA14: false,
+    showMA30: false,
+    showMA60: false,
+    showMA20: false,
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const saved = loadChartSettings();
     if (saved) {
-      setSettings(saved);
+      setSettings((prev) => ({ ...prev, ...saved }));
     }
     setIsLoaded(true);
   }, []);
@@ -150,10 +162,18 @@ interface ChartDataPoint {
   low?: number;
   close?: number;
   ma7?: number;
+  ma14?: number;
+  ma30?: number;
+  ma60?: number;
+  ma20?: number;
   isComparison?: boolean;
   predictionUpper?: number;
   predictionLower?: number;
   predictionMean?: number;
+  stdDev1Upper?: number;
+  stdDev1Lower?: number;
+  stdDev2Upper?: number;
+  stdDev2Lower?: number;
   [key: string]: unknown;
 }
 
@@ -297,11 +317,41 @@ function generateHistoricalData(basePrice: number, timeRange: TimeRange): ChartD
   }
 
   const dataWithMA = dataPoints.map((point, index) => {
+    const result: ChartDataPoint = { ...point };
+
+    // MA7
     if (index < 6) {
-      return { ...point, ma7: point.price };
+      result.ma7 = point.price;
+    } else {
+      const sum7 = dataPoints.slice(index - 6, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma7 = sum7 / 7;
     }
-    const sum = dataPoints.slice(index - 6, index + 1).reduce((acc, p) => acc + p.price, 0);
-    return { ...point, ma7: sum / 7 };
+
+    // MA14
+    if (index < 13) {
+      result.ma14 = point.price;
+    } else {
+      const sum14 = dataPoints.slice(index - 13, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma14 = sum14 / 14;
+    }
+
+    // MA30
+    if (index < 29) {
+      result.ma30 = point.price;
+    } else {
+      const sum30 = dataPoints.slice(index - 29, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma30 = sum30 / 30;
+    }
+
+    // MA60
+    if (index < 59) {
+      result.ma60 = point.price;
+    } else {
+      const sum60 = dataPoints.slice(index - 59, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma60 = sum60 / 60;
+    }
+
+    return result;
   });
 
   return dataWithMA;
@@ -337,6 +387,12 @@ function convertHistoricalPricePoints(
       high: point.high,
       low: point.low,
       close: point.close,
+      ma7: point.ma7,
+      ma20: point.ma20,
+      stdDev1Upper: point.stdDev1Upper,
+      stdDev1Lower: point.stdDev1Lower,
+      stdDev2Upper: point.stdDev2Upper,
+      stdDev2Lower: point.stdDev2Lower,
       isComparison,
     };
   });
@@ -396,11 +452,41 @@ function generateDataWithGranularity(
   }
 
   const dataWithMA = dataPoints.map((point, index) => {
+    const result: ChartDataPoint = { ...point };
+
+    // MA7
     if (index < 6) {
-      return { ...point, ma7: point.price };
+      result.ma7 = point.price;
+    } else {
+      const sum7 = dataPoints.slice(index - 6, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma7 = sum7 / 7;
     }
-    const sum = dataPoints.slice(index - 6, index + 1).reduce((acc, p) => acc + p.price, 0);
-    return { ...point, ma7: sum / 7 };
+
+    // MA14
+    if (index < 13) {
+      result.ma14 = point.price;
+    } else {
+      const sum14 = dataPoints.slice(index - 13, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma14 = sum14 / 14;
+    }
+
+    // MA30
+    if (index < 29) {
+      result.ma30 = point.price;
+    } else {
+      const sum30 = dataPoints.slice(index - 29, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma30 = sum30 / 30;
+    }
+
+    // MA60
+    if (index < 59) {
+      result.ma60 = point.price;
+    } else {
+      const sum60 = dataPoints.slice(index - 59, index + 1).reduce((acc, p) => acc + p.price, 0);
+      result.ma60 = sum60 / 60;
+    }
+
+    return result;
   });
 
   return dataWithMA;
@@ -462,6 +548,57 @@ function CustomTooltip({
           <span className="text-amber-600 font-mono">${data.ma7.toFixed(4)}</span>
         </div>
       )}
+
+      {data.ma14 !== undefined && chartType === 'line' && (
+        <div className="flex justify-between gap-4 text-xs mt-1">
+          <span className="text-gray-500">MA14:</span>
+          <span className="text-blue-600 font-mono">${data.ma14.toFixed(4)}</span>
+        </div>
+      )}
+
+      {data.ma30 !== undefined && chartType === 'line' && (
+        <div className="flex justify-between gap-4 text-xs mt-1">
+          <span className="text-gray-500">MA30:</span>
+          <span className="text-purple-600 font-mono">${data.ma30.toFixed(4)}</span>
+        </div>
+      )}
+
+      {data.ma60 !== undefined && chartType === 'line' && (
+        <div className="flex justify-between gap-4 text-xs mt-1">
+          <span className="text-gray-500">MA60:</span>
+          <span className="text-green-600 font-mono">${data.ma60.toFixed(4)}</span>
+        </div>
+      )}
+
+      {data.ma20 !== undefined && chartType === 'line' && (
+        <div className="flex justify-between gap-4 text-xs mt-1">
+          <span className="text-gray-500">MA20:</span>
+          <span className="text-cyan-600 font-mono">${data.ma20.toFixed(4)}</span>
+        </div>
+      )}
+
+      {(data.stdDev1Upper !== undefined || data.stdDev2Upper !== undefined) &&
+        chartType === 'line' && (
+          <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
+            <p className="text-xs text-gray-400 font-medium">标准差区间</p>
+            {data.stdDev1Upper !== undefined && (
+              <div className="flex justify-between gap-4 text-xs">
+                <span className="text-gray-500">±1σ:</span>
+                <span className="text-purple-500 font-mono">
+                  ${data.stdDev1Lower?.toFixed(4)} - ${data.stdDev1Upper.toFixed(4)}
+                </span>
+              </div>
+            )}
+            {data.stdDev2Upper !== undefined && (
+              <div className="flex justify-between gap-4 text-xs">
+                <span className="text-gray-500">±2σ:</span>
+                <span className="text-purple-600 font-mono">
+                  ${data.stdDev2Lower?.toFixed(4)} - ${data.stdDev2Upper.toFixed(4)}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
       {data.predictionUpper !== undefined && data.predictionLower !== undefined && (
         <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
@@ -574,6 +711,12 @@ export function PriceChart({
   const anomalyDetectionEnabled = settings.anomalyDetectionEnabled;
   const showPredictionInterval = settings.showPredictionInterval;
   const confidenceLevel = settings.confidenceLevel;
+  const showStdDevBands = settings.showStdDevBands;
+  const showMA7 = settings.showMA7;
+  const showMA14 = settings.showMA14;
+  const showMA30 = settings.showMA30;
+  const showMA60 = settings.showMA60;
+  const showMA20 = settings.showMA20;
 
   const timeRange = globalTimeRange;
 
@@ -896,6 +1039,84 @@ export function PriceChart({
                 </div>
               </div>
             )}
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">指标:</span>
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => updateSettings({ showStdDevBands: !showStdDevBands })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showStdDevBands
+                      ? 'bg-white text-purple-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="标准差区间 (±1σ, ±2σ)"
+                >
+                  <span className="w-2 h-2 rounded-full bg-purple-400" />
+                  标准差
+                </button>
+                <button
+                  onClick={() => updateSettings({ showMA7: !showMA7 })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showMA7
+                      ? 'bg-white text-amber-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="7日移动平均线"
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  MA7
+                </button>
+                <button
+                  onClick={() => updateSettings({ showMA14: !showMA14 })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showMA14
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="14日移动平均线"
+                >
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  MA14
+                </button>
+                <button
+                  onClick={() => updateSettings({ showMA30: !showMA30 })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showMA30
+                      ? 'bg-white text-purple-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="30日移动平均线"
+                >
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  MA30
+                </button>
+                <button
+                  onClick={() => updateSettings({ showMA60: !showMA60 })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showMA60
+                      ? 'bg-white text-green-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="60日移动平均线"
+                >
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  MA60
+                </button>
+                <button
+                  onClick={() => updateSettings({ showMA20: !showMA20 })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                    showMA20
+                      ? 'bg-white text-cyan-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="20日移动平均线"
+                >
+                  <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                  MA20
+                </button>
+              </div>
+            </div>
           </div>
 
           {showComparisonPanel && (
@@ -1053,7 +1274,13 @@ export function PriceChart({
               />
             )}
 
-            <Bar yAxisId="volume" dataKey="volume" fill={chartColors.recharts.primaryLight} fillOpacity={0.2} stroke="none">
+            <Bar
+              yAxisId="volume"
+              dataKey="volume"
+              fill={chartColors.recharts.primaryLight}
+              fillOpacity={0.2}
+              stroke="none"
+            >
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
@@ -1071,6 +1298,90 @@ export function PriceChart({
 
             {chartType === 'line' && (
               <>
+                {showStdDevBands && (
+                  <>
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev2Upper"
+                      stroke="none"
+                      fill="#a855f7"
+                      fillOpacity={0.05}
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev2Lower"
+                      stroke="none"
+                      fill="#ffffff"
+                      fillOpacity={1}
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev1Upper"
+                      stroke="none"
+                      fill="#c084fc"
+                      fillOpacity={0.08}
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Area
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev1Lower"
+                      stroke="none"
+                      fill="#ffffff"
+                      fillOpacity={1}
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Line
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev2Upper"
+                      stroke="#a855f7"
+                      strokeWidth={1}
+                      strokeDasharray="3 3"
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Line
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev2Lower"
+                      stroke="#a855f7"
+                      strokeWidth={1}
+                      strokeDasharray="3 3"
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Line
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev1Upper"
+                      stroke="#c084fc"
+                      strokeWidth={1}
+                      strokeDasharray="3 3"
+                      dot={false}
+                      activeDot={false}
+                    />
+                    <Line
+                      yAxisId="price"
+                      type="monotone"
+                      dataKey="stdDev1Lower"
+                      stroke="#c084fc"
+                      strokeWidth={1}
+                      strokeDasharray="3 3"
+                      dot={false}
+                      activeDot={false}
+                    />
+                  </>
+                )}
                 {showPredictionInterval && (
                   <>
                     <Area
@@ -1131,16 +1442,71 @@ export function PriceChart({
                     name="comparison"
                   />
                 )}
-                <Line
-                  yAxisId="price"
-                  type="monotone"
-                  dataKey="ma7"
-                  stroke={chartColors.recharts.warning}
-                  strokeWidth={1.5}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  activeDot={false}
-                />
+                {showMA7 && (
+                  <Line
+                    yAxisId="price"
+                    type="monotone"
+                    dataKey="ma7"
+                    stroke={chartColors.recharts.warning}
+                    strokeWidth={1.5}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    activeDot={false}
+                    name="MA7"
+                  />
+                )}
+                {showMA14 && (
+                  <Line
+                    yAxisId="price"
+                    type="monotone"
+                    dataKey="ma14"
+                    stroke="#3b82f6"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    activeDot={false}
+                    name="MA14"
+                  />
+                )}
+                {showMA30 && (
+                  <Line
+                    yAxisId="price"
+                    type="monotone"
+                    dataKey="ma30"
+                    stroke="#8b5cf6"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    activeDot={false}
+                    name="MA30"
+                  />
+                )}
+                {showMA60 && (
+                  <Line
+                    yAxisId="price"
+                    type="monotone"
+                    dataKey="ma60"
+                    stroke="#22c55e"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    activeDot={false}
+                    name="MA60"
+                  />
+                )}
+                {showMA20 && (
+                  <Line
+                    yAxisId="price"
+                    type="monotone"
+                    dataKey="ma20"
+                    stroke="#06b6d4"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    activeDot={false}
+                    name="MA20"
+                  />
+                )}
               </>
             )}
 
@@ -1170,7 +1536,7 @@ export function PriceChart({
       )}
 
       {chartType === 'line' && (
-        <div className="flex items-center justify-center gap-6 mt-3 flex-wrap">
+        <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-blue-500 rounded-full" />
             <span className="text-xs text-gray-500">价格</span>
@@ -1184,13 +1550,36 @@ export function PriceChart({
               <span className="text-xs text-gray-500">对比价格</span>
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-0.5 bg-amber-500 rounded-full border-dashed"
-              style={{ borderTop: '2px dashed #f59e0b' }}
-            />
-            <span className="text-xs text-gray-500">MA7</span>
-          </div>
+          {showMA7 && (
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-0.5 bg-amber-500 rounded-full border-dashed"
+                style={{ borderTop: '2px dashed #f59e0b' }}
+              />
+              <span className="text-xs text-gray-500">MA7</span>
+            </div>
+          )}
+          {showMA20 && (
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-0.5 bg-cyan-500 rounded-full border-dashed"
+                style={{ borderTop: '2px dashed #06b6d4' }}
+              />
+              <span className="text-xs text-gray-500">MA20</span>
+            </div>
+          )}
+          {showStdDevBands && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-purple-300/20 border border-purple-400 border-dashed rounded" />
+                <span className="text-xs text-gray-500">±1σ</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-purple-500/10 border border-purple-500 border-dashed rounded" />
+                <span className="text-xs text-gray-500">±2σ</span>
+              </div>
+            </>
+          )}
           {showPredictionInterval && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-blue-500/20 border border-blue-500 border-dashed rounded" />
