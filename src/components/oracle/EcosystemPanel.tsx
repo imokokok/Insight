@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { IntegratedProtocols } from './IntegratedProtocols';
 import { DataSourceCoverage } from './DataSourceCoverage';
 import { DataSourceTrend } from './DataSourceTrend';
@@ -57,15 +58,16 @@ function StatCard({
 }
 
 export function EcosystemPanel() {
+  const { t } = useI18n();
   const stats = useMemo(() => mockStats, []);
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="集成协议总数"
+          title={t('ecosystem.totalProtocols')}
           value={stats.totalProtocols.toString()}
-          subtitle="使用 Pyth 数据的协议"
+          subtitle={t('ecosystem.totalProtocolsSubtitle')}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -78,9 +80,9 @@ export function EcosystemPanel() {
           }
         />
         <StatCard
-          title="总锁仓价值 (TVL)"
+          title={t('ecosystem.totalTVL')}
           value={formatTVL(stats.totalTVL)}
-          subtitle="所有协议 TVL 总和"
+          subtitle={t('ecosystem.totalTVLSubtitle')}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -93,9 +95,9 @@ export function EcosystemPanel() {
           }
         />
         <StatCard
-          title="支持链数量"
+          title={t('ecosystem.supportedChains')}
           value={stats.supportedChains.toString()}
-          subtitle="跨链覆盖范围"
+          subtitle={t('ecosystem.supportedChainsSubtitle')}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -108,9 +110,9 @@ export function EcosystemPanel() {
           }
         />
         <StatCard
-          title="数据源总数"
+          title={t('ecosystem.totalDataSources')}
           value={stats.totalDataSources.toString()}
-          subtitle="实时价格数据源"
+          subtitle={t('ecosystem.totalDataSourcesSubtitle')}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

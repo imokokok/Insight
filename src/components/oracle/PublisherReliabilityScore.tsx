@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/lib/types/oracle';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface PublisherReliabilityScoreProps {
   publisher: Publisher;
@@ -51,11 +52,11 @@ const mockStats: Record<string, PublisherStats> = {
   },
 };
 
-function TrendIndicator({ trend }: { trend: 'improving' | 'stable' | 'declining' }) {
+function TrendIndicator({ trend, t }: { trend: 'improving' | 'stable' | 'declining'; t: (key: string) => string }) {
   const config = {
-    improving: { icon: '↑', color: 'text-green-600', bg: 'bg-green-50', label: 'Improving' },
-    stable: { icon: '→', color: 'text-blue-600', bg: 'bg-blue-50', label: 'Stable' },
-    declining: { icon: '↓', color: 'text-red-600', bg: 'bg-red-50', label: 'Declining' },
+    improving: { icon: '↑', color: 'text-green-600', bg: 'bg-green-50', label: t('publisherReliability.trend.improving') },
+    stable: { icon: '→', color: 'text-blue-600', bg: 'bg-blue-50', label: t('publisherReliability.trend.stable') },
+    declining: { icon: '↓', color: 'text-red-600', bg: 'bg-red-50', label: t('publisherReliability.trend.declining') },
   };
 
   const { icon, color, bg, label } = config[trend];
@@ -107,6 +108,8 @@ export function PublisherReliabilityScore({
   publisher,
   stats = mockStats[publisher.id] || mockStats['pub-1'],
 }: PublisherReliabilityScoreProps) {
+  const { t } = useI18n();
+
   const avgAccuracy = useMemo(() => {
     if (stats.historicalAccuracy.length === 0) return 0;
     return stats.historicalAccuracy.reduce((a, b) => a + b, 0) / stats.historicalAccuracy.length;
@@ -121,26 +124,26 @@ export function PublisherReliabilityScore({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-gray-900">{publisher.name} Statistics</h4>
-        <TrendIndicator trend={stats.trend} />
+        <h4 className="font-semibold text-gray-900">{publisher.name} {t('publisherReliability.statistics')}</h4>
+        <TrendIndicator trend={stats.trend} t={t} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">Historical Accuracy</span>
+            <span className="text-sm text-gray-600">{t('publisherReliability.historicalAccuracy')}</span>
             <span className="text-lg font-bold text-gray-900">{avgAccuracy.toFixed(1)}%</span>
           </div>
           <AccuracyBar accuracy={avgAccuracy} />
           <div className="mt-3">
             <MiniChart data={stats.historicalAccuracy} color="green" />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Last 7 periods</p>
+          <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.last7Periods')}</p>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">Price Deviation</span>
+            <span className="text-sm text-gray-600">{t('publisherReliability.priceDeviation')}</span>
             <span className={`text-lg font-bold ${deviationColor}`}>
               {stats.averageDeviation.toFixed(3)}%
             </span>
@@ -148,13 +151,13 @@ export function PublisherReliabilityScore({
           <div className="mt-2">
             <MiniChart data={stats.priceDeviations} color="blue" />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Deviation from median price</p>
+          <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.deviationFromMedian')}</p>
         </div>
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-700">Submission Frequency</span>
+          <span className="text-sm font-medium text-gray-700">{t('publisherReliability.submissionFrequency')}</span>
           <span className="text-lg font-bold text-gray-900">{stats.submissionFrequency}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
@@ -171,7 +174,7 @@ export function PublisherReliabilityScore({
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-500">
           <span>0%</span>
-          <span>Target: 99%</span>
+          <span>{t('publisherReliability.target99')}</span>
           <span>100%</span>
         </div>
       </div>
@@ -181,30 +184,30 @@ export function PublisherReliabilityScore({
           <p className="text-2xl font-bold text-gray-900">
             {publisher.accuracy?.toFixed(1) ?? '-'}%
           </p>
-          <p className="text-xs text-gray-500 mt-1">Current Accuracy</p>
+          <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.currentAccuracy')}</p>
         </div>
         <div className="text-center p-3 bg-white border border-gray-200 rounded-lg">
           <p className="text-2xl font-bold text-gray-900">{publisher.latency}ms</p>
-          <p className="text-xs text-gray-500 mt-1">Avg Latency</p>
+          <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.avgLatency')}</p>
         </div>
         <div className="text-center p-3 bg-white border border-gray-200 rounded-lg">
           <p className="text-2xl font-bold text-gray-900">
             {publisher.priceDeviation ? `${publisher.priceDeviation.toFixed(2)}%` : '-'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Price Deviation</p>
+          <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.priceDeviation')}</p>
         </div>
       </div>
 
       <div className="border-t border-gray-200 pt-4">
-        <h5 className="text-sm font-medium text-gray-700 mb-3">Recent Activity</h5>
+        <h5 className="text-sm font-medium text-gray-700 mb-3">{t('publisherReliability.recentActivity')}</h5>
         <div className="space-y-2">
           {stats.historicalAccuracy.slice(-5).map((acc, index) => (
             <div key={index} className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Period {index + 1}</span>
+              <span className="text-gray-500">{t('publisherReliability.period')} {index + 1}</span>
               <div className="flex items-center gap-4">
-                <span className="text-gray-900">{acc.toFixed(1)}% accuracy</span>
+                <span className="text-gray-900">{acc.toFixed(1)}% {t('publisherReliability.accuracy')}</span>
                 <span className="text-gray-500">
-                  {stats.priceDeviations[index]?.toFixed(3) ?? '-'}% dev
+                  {stats.priceDeviations[index]?.toFixed(3) ?? '-'}% {t('publisherReliability.dev')}
                 </span>
               </div>
             </div>

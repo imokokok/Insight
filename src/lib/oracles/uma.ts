@@ -1,7 +1,6 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
-// 验证者数据类型
 export interface ValidatorData {
   id: string;
   name: string;
@@ -14,7 +13,6 @@ export interface ValidatorData {
   earnings: number;
 }
 
-// 争议数据类型
 export interface DisputeData {
   id: string;
   timestamp: number;
@@ -23,7 +21,6 @@ export interface DisputeData {
   resolutionTime?: number;
 }
 
-// 网络统计数据类型
 export interface UMAMetworkStats {
   activeValidators: number;
   validatorUptime: number;
@@ -37,7 +34,6 @@ export interface UMAMetworkStats {
   activeDisputes: number;
 }
 
-// 验证活动数据
 export interface VerificationActivity {
   hourly: number[];
   total: number;
@@ -46,7 +42,6 @@ export interface VerificationActivity {
   peakRequests: number;
 }
 
-// 验证者性能热力图数据
 export interface ValidatorPerformanceHeatmapData {
   validatorId: string;
   validatorName: string;
@@ -57,7 +52,6 @@ export interface ValidatorPerformanceHeatmapData {
   }[];
 }
 
-// 验证者性能热力图数据（按天）
 export interface ValidatorPerformanceHeatmapDataByDay {
   validatorId: string;
   validatorName: string;
@@ -71,7 +65,6 @@ export interface ValidatorPerformanceHeatmapDataByDay {
 
 export type TimeRange = '24H' | '7D';
 
-// 争议解决效率统计
 export interface DisputeEfficiencyStats {
   avgResolutionTime: number;
   medianResolutionTime: number;
@@ -86,7 +79,6 @@ export interface DisputeEfficiencyStats {
   }[];
 }
 
-// 数据质量评分
 export interface DataQualityScore {
   overallScore: number;
   networkHealth: {
@@ -111,10 +103,17 @@ export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
   supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
 
+  constructor(config?: OracleClientConfig) {
+    super(config);
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockPrice(symbol, basePrice, chain);
+      
+      return this.fetchPriceWithDatabase(symbol, chain, () =>
+        this.generateMockPrice(symbol, basePrice, chain)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from UMA',
@@ -130,7 +129,10 @@ export class UMAClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+      
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from UMA',
@@ -139,7 +141,6 @@ export class UMAClient extends BaseOracleClient {
     }
   }
 
-  // 获取验证者列表
   async getValidators(): Promise<ValidatorData[]> {
     const validators: ValidatorData[] = [
       {
@@ -256,12 +257,10 @@ export class UMAClient extends BaseOracleClient {
     return validators;
   }
 
-  // 获取争议数据
   async getDisputes(): Promise<DisputeData[]> {
     const disputes: DisputeData[] = [];
     const now = Date.now();
 
-    // 生成模拟争议数据
     for (let i = 0; i < 50; i++) {
       const isResolved = Math.random() > 0.3;
       disputes.push({
@@ -276,7 +275,6 @@ export class UMAClient extends BaseOracleClient {
     return disputes.sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  // 获取网络统计
   async getNetworkStats(): Promise<UMAMetworkStats> {
     return {
       activeValidators: 850,
@@ -292,7 +290,6 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
-  // 获取验证活动数据
   async getVerificationActivity(): Promise<VerificationActivity> {
     const hourly = [
       3200, 2800, 2500, 2200, 1900, 2100, 2800, 4200, 5800, 7200, 8500, 9200, 8800, 8400, 7900,
@@ -312,7 +309,6 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
-  // 获取争议趋势数据
   async getDisputeTrends(): Promise<{ date: string; filed: number; resolved: number }[]> {
     const trends = [];
     const now = new Date();
@@ -330,7 +326,6 @@ export class UMAClient extends BaseOracleClient {
     return trends;
   }
 
-  // 获取收益趋势数据
   async getEarningsTrends(): Promise<{ day: string; daily: number; cumulative: number }[]> {
     const trends = [];
     let cumulative = 0;
@@ -351,7 +346,6 @@ export class UMAClient extends BaseOracleClient {
     return trends;
   }
 
-  // 获取验证者性能热力图数据
   async getValidatorPerformanceHeatmap(): Promise<ValidatorPerformanceHeatmapData[]> {
     const validators = await this.getValidators();
     const heatmapData: ValidatorPerformanceHeatmapData[] = [];
@@ -427,7 +421,6 @@ export class UMAClient extends BaseOracleClient {
     return heatmapData;
   }
 
-  // 获取争议解决效率统计
   async getDisputeEfficiencyStats(): Promise<DisputeEfficiencyStats> {
     const disputes = await this.getDisputes();
     const resolvedDisputes = disputes.filter((d) => d.status === 'resolved' && d.resolutionTime);
@@ -489,7 +482,6 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
-  // 获取数据质量评分
   async getDataQualityScore(): Promise<DataQualityScore> {
     const networkStats = await this.getNetworkStats();
 

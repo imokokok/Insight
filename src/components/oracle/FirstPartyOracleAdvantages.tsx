@@ -1,4 +1,7 @@
+'use client';
+
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface FirstPartyAdvantages {
   noMiddlemen: boolean;
@@ -17,36 +20,38 @@ interface ComparisonRow {
   api3HasAdvantage: boolean;
 }
 
-const comparisonData: ComparisonRow[] = [
-  {
-    feature: '数据源透明度',
-    api3: '✓ 100%',
-    traditional: '✗ 部分',
-    api3HasAdvantage: true,
-  },
-  {
-    feature: '中间商',
-    api3: '✓ 无',
-    traditional: '✗ 有',
-    api3HasAdvantage: true,
-  },
-  {
-    feature: '响应时间',
-    api3: '180ms',
-    traditional: '200-500ms',
-    api3HasAdvantage: true,
-  },
-  {
-    feature: '保险机制',
-    api3: '✓ 有',
-    traditional: '✗ 无',
-    api3HasAdvantage: true,
-  },
-];
-
 export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesProps) {
+  const { t } = useI18n();
+
+  const comparisonData: ComparisonRow[] = [
+    {
+      feature: t('api3.firstPartyOracle.dataSourceTransparency'),
+      api3: t('api3.firstPartyOracle.fullTransparency'),
+      traditional: t('api3.firstPartyOracle.partialTransparency'),
+      api3HasAdvantage: true,
+    },
+    {
+      feature: t('api3.firstPartyOracle.middlemen'),
+      api3: t('api3.firstPartyOracle.none'),
+      traditional: t('api3.firstPartyOracle.has'),
+      api3HasAdvantage: true,
+    },
+    {
+      feature: t('api3.firstPartyOracle.responseTime'),
+      api3: '180ms',
+      traditional: '200-500ms',
+      api3HasAdvantage: true,
+    },
+    {
+      feature: t('api3.firstPartyOracle.insuranceMechanism'),
+      api3: t('api3.firstPartyOracle.hasInsurance'),
+      traditional: t('api3.firstPartyOracle.noInsurance'),
+      api3HasAdvantage: true,
+    },
+  ];
+
   return (
-    <DashboardCard title="第一方预言机优势对比">
+    <DashboardCard title={t('api3.firstPartyOracle.title')}>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
@@ -67,9 +72,13 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-600 uppercase tracking-wider">无中间商</p>
+                <p className="text-xs text-gray-600 uppercase tracking-wider">
+                  {t('api3.firstPartyOracle.noMiddlemen')}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {data.noMiddlemen ? '✓ 直接连接' : '✗ 有中间商'}
+                  {data.noMiddlemen
+                    ? t('api3.firstPartyOracle.directConnection')
+                    : t('api3.firstPartyOracle.hasMiddlemen')}
                 </p>
               </div>
             </div>
@@ -99,9 +108,13 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-600 uppercase tracking-wider">数据源透明</p>
+                <p className="text-xs text-gray-600 uppercase tracking-wider">
+                  {t('api3.firstPartyOracle.sourceTransparency')}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {data.sourceTransparency ? '✓ 100% 可追溯' : '✗ 不透明'}
+                  {data.sourceTransparency
+                    ? t('api3.firstPartyOracle.traceable')
+                    : t('api3.firstPartyOracle.notTransparent')}
                 </p>
               </div>
             </div>
@@ -125,7 +138,9 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-600 uppercase tracking-wider">响应时间</p>
+                <p className="text-xs text-gray-600 uppercase tracking-wider">
+                  {t('api3.firstPartyOracle.responseTime')}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">{data.responseTime}ms</p>
               </div>
             </div>
@@ -133,19 +148,21 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">API3 vs 传统预言机对比</h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+            {t('api3.firstPartyOracle.comparisonTitle')}
+          </h4>
           <div className="overflow-hidden border border-gray-200 rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    特性
+                    {t('api3.firstPartyOracle.feature')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     API3
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    传统预言机
+                    {t('api3.firstPartyOracle.traditionalOracle')}
                   </th>
                 </tr>
               </thead>
@@ -196,10 +213,11 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-1">第一方预言机优势</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                {t('api3.firstPartyOracle.advantagesTitle')}
+              </h4>
               <p className="text-sm text-gray-600">
-                API3
-                作为第一方预言机,直接从数据源获取数据,无需经过中间商,提供更高的透明度、更快的响应速度和更可靠的数据质量。
+                {t('api3.firstPartyOracle.advantagesDesc')}
               </p>
             </div>
           </div>

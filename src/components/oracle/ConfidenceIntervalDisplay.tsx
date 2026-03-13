@@ -1,4 +1,7 @@
+'use client';
+
 import { ConfidenceInterval } from '@/lib/types/oracle';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface ConfidenceIntervalDisplayProps {
   confidenceInterval: ConfidenceInterval;
@@ -11,6 +14,7 @@ export function ConfidenceIntervalDisplay({
   price,
   warningThreshold = 0.5,
 }: ConfidenceIntervalDisplayProps) {
+  const { t } = useI18n();
   const { bid, ask, widthPercentage } = confidenceInterval;
   const spread = ask - bid;
   const midPrice = (bid + ask) / 2;
@@ -36,7 +40,7 @@ export function ConfidenceIntervalDisplay({
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          <span className="text-sm font-medium text-gray-700">Confidence Interval</span>
+          <span className="text-sm font-medium text-gray-700">{t('confidenceInterval.title')}</span>
         </div>
         {isWarning && (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg">
@@ -53,7 +57,7 @@ export function ConfidenceIntervalDisplay({
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            <span className="text-xs font-medium text-amber-700">Wide Spread</span>
+            <span className="text-xs font-medium text-amber-700">{t('confidenceInterval.wideSpread')}</span>
           </div>
         )}
       </div>
@@ -62,16 +66,16 @@ export function ConfidenceIntervalDisplay({
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4">
             <div>
-              <span className="text-gray-500">Bid: </span>
+              <span className="text-gray-500">{t('confidenceInterval.bid')}: </span>
               <span className="font-medium text-green-600">${bid.toFixed(4)}</span>
             </div>
             <div>
-              <span className="text-gray-500">Ask: </span>
+              <span className="text-gray-500">{t('confidenceInterval.ask')}: </span>
               <span className="font-medium text-red-600">${ask.toFixed(4)}</span>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-gray-500">Spread: </span>
+            <span className="text-gray-500">{t('confidenceInterval.spread')}: </span>
             <span className={`font-medium ${isWarning ? 'text-amber-600' : 'text-gray-700'}`}>
               ${spread.toFixed(4)}
             </span>
@@ -102,8 +106,8 @@ export function ConfidenceIntervalDisplay({
           </div>
 
           <div className="absolute inset-0 flex items-center justify-between px-2">
-            <span className="text-[10px] text-green-700 font-medium">BID</span>
-            <span className="text-[10px] text-red-700 font-medium">ASK</span>
+            <span className="text-[10px] text-green-700 font-medium">{t('confidenceInterval.bidLabel')}</span>
+            <span className="text-[10px] text-red-700 font-medium">{t('confidenceInterval.askLabel')}</span>
           </div>
         </div>
 
@@ -111,13 +115,13 @@ export function ConfidenceIntervalDisplay({
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-gray-300 rounded-full" />
             <span className="text-xs text-gray-500">
-              Width:{' '}
+              {t('confidenceInterval.width')}:{' '}
               <span className={`font-medium ${isWarning ? 'text-amber-600' : 'text-gray-700'}`}>
                 {widthPercentage.toFixed(4)}%
               </span>
             </span>
           </div>
-          <div className="text-xs text-gray-400">Threshold: {warningThreshold}%</div>
+          <div className="text-xs text-gray-400">{t('confidenceInterval.threshold')}: {warningThreshold}%</div>
         </div>
       </div>
     </div>

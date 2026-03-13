@@ -77,28 +77,28 @@ const STATUS_CONFIG = {
     bgColor: 'bg-green-500',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '优秀',
+    labelKey: 'latencyAnalysis.status.excellent',
   },
   good: {
     color: 'text-blue-600',
     bgColor: 'bg-blue-500',
     lightBg: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '良好',
+    labelKey: 'latencyAnalysis.status.good',
   },
   warning: {
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-500',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '警告',
+    labelKey: 'latencyAnalysis.status.warning',
   },
   critical: {
     color: 'text-red-600',
     bgColor: 'bg-red-500',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '异常',
+    labelKey: 'latencyAnalysis.status.critical',
   },
 };
 
@@ -204,23 +204,23 @@ function generateAnomalies(): AnomalyData[] {
 
     let value: number;
     let severity: 'low' | 'medium' | 'high';
-    let message: string;
+    let messageKey: string;
 
     switch (type) {
       case 'spike':
         value = Math.round(500 + Math.random() * 500);
         severity = value > 800 ? 'high' : value > 600 ? 'medium' : 'low';
-        message = `延迟突增至 ${value}ms`;
+        messageKey = `spike:${value}`;
         break;
       case 'timeout':
         value = Math.round(Math.random() * 5 + 1);
         severity = value > 3 ? 'high' : value > 1 ? 'medium' : 'low';
-        message = `发生 ${value} 次超时`;
+        messageKey = `timeout:${value}`;
         break;
       case 'high_latency':
         value = Math.round(300 + Math.random() * 200);
         severity = value > 450 ? 'high' : value > 350 ? 'medium' : 'low';
-        message = `持续高延迟 ${value}ms`;
+        messageKey = `highLatency:${value}`;
         break;
     }
 
@@ -231,7 +231,7 @@ function generateAnomalies(): AnomalyData[] {
       chain,
       value,
       severity,
-      message,
+      message: messageKey,
     });
   }
 
@@ -545,7 +545,7 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}
                   >
-                    {statusConfig.label}
+                    {t(statusConfig.labelKey)}
                   </span>
                   <span
                     className={`text-xs font-medium ${chain.trend > 0 ? 'text-red-600' : 'text-green-600'}`}
@@ -631,6 +631,20 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
     high_latency: { icon: '⚠️', label: t('latencyAnalysis.anomalies.types.highLatency') },
   };
 
+  const getLocalizedMessage = (anomaly: AnomalyData): string => {
+    const [type, value] = anomaly.message.split(':');
+    switch (type) {
+      case 'spike':
+        return t('latencyAnalysis.anomalies.messages.spike', { value });
+      case 'timeout':
+        return t('latencyAnalysis.anomalies.messages.timeout', { value });
+      case 'highLatency':
+        return t('latencyAnalysis.anomalies.messages.highLatency', { value });
+      default:
+        return anomaly.message;
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -667,7 +681,7 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
                         {severity.label}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{anomaly.message}</p>
+                    <p className="text-xs text-gray-600 mt-1">{getLocalizedMessage(anomaly)}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                       <span>{anomaly.chain}</span>
                       <span>•</span>

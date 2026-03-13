@@ -18,6 +18,7 @@ import {
 import { OracleProvider } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
 import { VolatilityAlert } from './VolatilityAlert';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -83,13 +84,65 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.API3]: '#10B981',
 };
 
-const TIME_SCALE_CONFIG = {
-  short: { label: '短期 (1小时)', window: 6, color: '#3B82F6' },
-  mid: { label: '中期 (24小时)', window: 24, color: '#10B981' },
-  long: { label: '长期 (7天)', window: 168, color: '#8B5CF6' },
+const TIME_SCALE_WINDOW = {
+  short: 6,
+  mid: 24,
+  long: 168,
 };
 
+const TIME_SCALE_COLORS = {
+  short: '#3B82F6',
+  mid: '#10B981',
+  long: '#8B5CF6',
+}
+const TIME_SCALE_CONFIG: {
+  short: { label: '短期 (1小时)', window: 6, color: TIME_SCALE_COLORS.short },
+  mid: { label: '中期 (24小时)',
+ window: 24, color: TIME_SCALE_COLORS.mid },
+  long: { label: '长期 (7天)',
+ window: 168, color: TIME_SCALE_COLORS.long }
+}
+const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
+  [OracleProvider.CHAINlink]: 'Chainlink',
+  [OracleProvider.band_protocol]: 'Band Protocol',
+  [OracleProvider.uma]: 'UMA',
+  [OracleProvider.pyth_network]: 'Pyth Network',
+  [OracleProvider.api3]: 'API3',
+};
+const ORACLE_COLORS: Record<OracleProvider, string> = {
+  [OracleProvider.chainlink]: '#375BD2',
+  [OracleProvider.band_protocol]: '#9B51E0',
+  [OracleProvider.uma]: '#FF6B6B',
+  [OracleProvider.pyth_network]: '#EC4899',
+  [OracleProvider.api3]: '#10B981',
+}
+const TIME_SCALE_WINDOW = {
+  short: 6,
+  mid: 24,
+  long: 168,
+}
+const TIME_SCALE_COLORS = {
+  short: '#3B82F6',
+  mid: '#10B981',
+  long: '#8B5CF6'
+}
+const TIME_SCALE_CONFIG: {
+  short: { label: '短期 (1小时)', window: 6, color: TIME_SCALE_COLORS.short },
+  mid: { label: '中期 (24小时)', window: 24, color: TIME_SCALE_COLORS.mid },
+  long: { label: '长期 (7天)', window: 168, color: TIME_SCALE_COLORS.long }
+}
+
 type TimeScale = 'short' | 'mid' | 'long';
+
+type VolatilityLevelKey = 'extremelyLow' | 'low' | 'medium' | 'high' | 'extremelyHigh';
+
+function getVolatilityLevel(cv: number): { levelKey: VolatilityLevelKey; color: string } {
+  if (cv < 0.5) return { levelKey: 'extremelyLow', color: '#10B981' };
+  if (cv < 1.0) return { levelKey: 'low', color: '#3B82F6' };
+  if (cv < 2.0) return { levelKey: 'medium', color: '#F59E0B' };
+  if (cv < 5.0) return { levelKey: 'high', color: '#EF4444' };
+  return { levelKey: 'extremelyHigh', color: '#991B1B' };
+}
 
 function calculateStandardDeviation(prices: number[]): number {
   if (prices.length === 0) return 0;
@@ -179,7 +232,7 @@ function calculateMultiScaleVolatility(
   data: OraclePriceHistory[],
   timeScale: TimeScale
 ): VolatilityResult[] {
-  const windowSize = TIME_SCALE_CONFIG[timeScale].window;
+  const windowSize = TIME_SCALE_WINDOW[timeScale];
 
   return data.map((oracleData) => {
     const prices = oracleData.prices.map((p) => p.price);
@@ -270,14 +323,6 @@ function calculateVolatilityDecomposition(data: OraclePriceHistory[]): Volatilit
   });
 }
 
-function getVolatilityLevel(cv: number): { label: string; color: string } {
-  if (cv < 0.5) return { label: '极低', color: '#10B981' };
-  if (cv < 1.0) return { label: '低', color: '#3B82F6' };
-  if (cv < 2.0) return { label: '中等', color: '#F59E0B' };
-  if (cv < 5.0) return { label: '高', color: '#EF4444' };
-  return { label: '极高', color: '#991B1B' };
-}
-
 export function PriceVolatilityChart({
   data,
   oracleNames: customOracleNames,
@@ -285,6 +330,7 @@ export function PriceVolatilityChart({
   className,
   alertThreshold = 2.0,
 }: PriceVolatilityChartProps) {
+  const { t } = useI18n();
   const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
   const [selectedTimeScale, setSelectedTimeScale] = useState<TimeScale>('short');
 
@@ -307,14 +353,18 @@ export function PriceVolatilityChart({
 
   const chartData = useMemo(
     () =>
-      multiScaleVolatility.map((result) => ({
-        name: result.name,
-        cv: Number(result.cv.toFixed(4)),
-        stdDev: result.stdDev,
-        mean: result.mean,
-        oracle: result.oracle,
-        level: getVolatilityLevel(result.cv),
-      })),
+      multiScaleVolatility.map((result) => {
+        const levelInfo = getVolatilityLevel(result.cv);
+        return {
+          name: result.name,
+          cv: Number(result.cv.toFixed(4)),
+          stdDev: result.stdDev,
+          mean: result.mean,
+          oracle: result.oracle,
+          levelKey: levelInfo.levelKey,
+          levelColor: levelInfo.color,
+        };
+      }),
     [multiScaleVolatility]
   );
 
@@ -341,36 +391,36 @@ export function PriceVolatilityChart({
         <p className="text-sm font-semibold text-gray-900 mb-3">{dataPoint.name}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">变异系数 (CV)</span>
-            <span className="text-sm font-bold" style={{ color: dataPoint.level.color }}>
+            <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.cv')}</span>
+            <span className="text-sm font-bold" style={{ color: dataPoint.levelColor }}>
               {result.cv.toFixed(4)}%
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">标准差 (σ)</span>
+            <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.stdDev')}</span>
             <span className="text-sm font-medium text-gray-700">${result.stdDev.toFixed(4)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">平均价格</span>
+            <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.avgPrice')}</span>
             <span className="text-sm font-medium text-gray-700">${result.mean.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">价格范围</span>
+            <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.priceRange')}</span>
             <span className="text-sm font-medium text-gray-700">
               ${result.minPrice.toFixed(2)} - ${result.maxPrice.toFixed(2)}
             </span>
           </div>
           <div className="pt-2 mt-2 border-t border-gray-100">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500">波动率等级</span>
+              <span className="text-xs text-gray-500">{t('priceVolatility.tooltip.volatilityLevel')}</span>
               <span
                 className="text-xs font-medium px-2 py-0.5 rounded"
                 style={{
-                  backgroundColor: `${dataPoint.level.color}20`,
-                  color: dataPoint.level.color,
+                  backgroundColor: `${dataPoint.levelColor}20`,
+                  color: dataPoint.levelColor,
                 }}
               >
-                {dataPoint.level.label}
+                {t(`priceVolatility.level.${dataPoint.levelKey}`)}
               </span>
             </div>
           </div>
@@ -408,20 +458,20 @@ export function PriceVolatilityChart({
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">短期波动</span>
+            <span className="text-xs text-gray-600">{t('priceVolatility.shortTermVolatility')}</span>
             <span className="text-xs font-medium text-blue-600">{data.shortTerm.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">中期波动</span>
+            <span className="text-xs text-gray-600">{t('priceVolatility.midTermVolatility')}</span>
             <span className="text-xs font-medium text-green-600">{data.midTerm.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">长期波动</span>
+            <span className="text-xs text-gray-600">{t('priceVolatility.longTermVolatility')}</span>
             <span className="text-xs font-medium text-purple-600">{data.longTerm.toFixed(1)}%</span>
           </div>
           <div className="pt-1 mt-1 border-t border-gray-100">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">总波动率</span>
+              <span className="text-xs text-gray-600">{t('priceVolatility.totalVolatility')}</span>
               <span className="text-xs font-bold text-gray-900">{data.total.toFixed(4)}%</span>
             </div>
           </div>

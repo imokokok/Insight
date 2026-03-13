@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { Publisher } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface PublisherContributionPanelProps {
   publishers: Publisher[];
@@ -65,6 +66,7 @@ function formatTimeSince(timestamp: number): string {
 }
 
 export function PublisherContributionPanel({ publishers }: PublisherContributionPanelProps) {
+  const { t } = useI18n();
   const contributionData: ContributionData[] = useMemo(() => {
     const weights = publishers.map((p) => ({
       publisher: p,
@@ -123,7 +125,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-900">{payload[0].name}</p>
           <p className="text-sm text-gray-600">
-            贡献权重:{' '}
+            {t('publisherContribution.contributionWeight')}:{' '}
             <span className="font-medium text-purple-600">{payload[0].value.toFixed(2)}%</span>
           </p>
         </div>
@@ -153,30 +155,30 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-bold">Publisher Contribution Analysis</h3>
-            <p className="text-sm text-white/80">聚合价格贡献权重分布</p>
+            <h3 className="text-xl font-bold">{t('publisherContribution.title')}</h3>
+            <p className="text-sm text-white/80">{t('publisherContribution.subtitle')}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-white/70 text-sm">Total Publishers</p>
+            <p className="text-white/70 text-sm">{t('publisherContribution.totalPublishers')}</p>
             <p className="text-2xl font-bold">{publishers.length}</p>
           </div>
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-white/70 text-sm">Avg Reliability</p>
+            <p className="text-white/70 text-sm">{t('publisherContribution.avgReliability')}</p>
             <p className="text-2xl font-bold">{avgReliability.toFixed(1)}%</p>
           </div>
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-white/70 text-sm">Avg Latency</p>
+            <p className="text-white/70 text-sm">{t('publisherContribution.avgLatency')}</p>
             <p className="text-2xl font-bold">{avgLatency.toFixed(0)}ms</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title="贡献权重分布">
-          <div className="h-80">
+        <DashboardCard title={t('publisherContribution.weightDistribution')}>
+        <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -205,7 +207,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           </div>
         </DashboardCard>
 
-        <DashboardCard title="权重对比条形图">
+        <DashboardCard title={t('publisherContribution.weightComparisonChart')}>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} layout="vertical" margin={{ left: 60, right: 20 }}>
@@ -213,7 +215,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                 <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value) => [`${Number(value).toFixed(2)}%`, '贡献权重']}
+                  formatter={(value) => [`${Number(value).toFixed(2)}%`, t('publisherContribution.contributionWeight')]}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Bar dataKey="weight" radius={[0, 4, 4, 0]}>
@@ -227,26 +229,26 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
         </DashboardCard>
       </div>
 
-      <DashboardCard title="贡献权重详情">
+      <DashboardCard title={t('publisherContribution.weightDetails')}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Rank</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">{t('publisherContribution.rank')}</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Publisher
+                  {t('publisherContribution.publisher')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
-                  Weight %
+                  {t('publisherContribution.weightPercent')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
-                  Reliability
+                  {t('publisherContribution.reliability')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
-                  Latency
+                  {t('publisherContribution.latency')}
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
-                  Status
+                  {t('publisherContribution.status')}
                 </th>
               </tr>
             </thead>
@@ -287,7 +289,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                         <span className="font-medium text-gray-900">{publisher.name}</span>
                         {publisher.id === topContributor?.id && (
                           <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
-                            Top Contributor
+                            {t('publisherContribution.topContributor')}
                           </span>
                         )}
                       </div>
@@ -355,7 +357,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
         </div>
       </DashboardCard>
 
-      <DashboardCard title="权重计算说明">
+      <DashboardCard title={t('publisherContribution.weightCalculation')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -374,10 +376,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">可靠性分数</span>
+              <span className="font-semibold text-gray-900">{t('publisherContribution.reliabilityScore')}</span>
             </div>
             <p className="text-2xl font-bold text-blue-600">40%</p>
-            <p className="text-sm text-gray-600 mt-1">基于历史可靠性评分</p>
+            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.reliabilityScoreDesc')}</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4">
@@ -397,10 +399,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">延迟因子</span>
+              <span className="font-semibold text-gray-900">{t('publisherContribution.latencyFactor')}</span>
             </div>
             <p className="text-2xl font-bold text-green-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">响应速度权重</p>
+            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.latencyFactorDesc')}</p>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-4">
@@ -420,10 +422,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">状态因子</span>
+              <span className="font-semibold text-gray-900">{t('publisherContribution.statusFactor')}</span>
             </div>
             <p className="text-2xl font-bold text-purple-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">当前运行状态</p>
+            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.statusFactorDesc')}</p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4">
@@ -443,10 +445,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">准确度因子</span>
+              <span className="font-semibold text-gray-900">{t('publisherContribution.accuracyFactor')}</span>
             </div>
             <p className="text-2xl font-bold text-orange-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">价格准确度评分</p>
+            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.accuracyFactorDesc')}</p>
           </div>
         </div>
       </DashboardCard>

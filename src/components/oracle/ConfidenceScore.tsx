@@ -56,8 +56,6 @@ const LEVEL_CONFIG = {
     bgColor: 'bg-green-500',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '优秀',
-    labelEn: 'Excellent',
     range: [90, 100],
   },
   good: {
@@ -65,8 +63,6 @@ const LEVEL_CONFIG = {
     bgColor: 'bg-blue-500',
     lightBg: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '良好',
-    labelEn: 'Good',
     range: [70, 90],
   },
   fair: {
@@ -74,8 +70,6 @@ const LEVEL_CONFIG = {
     bgColor: 'bg-yellow-500',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '一般',
-    labelEn: 'Fair',
     range: [50, 70],
   },
   poor: {
@@ -83,8 +77,6 @@ const LEVEL_CONFIG = {
     bgColor: 'bg-red-500',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '较差',
-    labelEn: 'Poor',
     range: [0, 50],
   },
 };
@@ -126,7 +118,7 @@ function calculateAccuracyScore(historicalAccuracy: number): number {
   return historicalAccuracy;
 }
 
-function generateMockData(): ConfidenceData {
+function generateMockData(t: (key: string) => string): ConfidenceData {
   const activeNodes = Math.floor(80 + Math.random() * 20);
   const totalNodes = 100;
   const consensusRate = 85 + Math.random() * 15;
@@ -143,57 +135,57 @@ function generateMockData(): ConfidenceData {
 
   const dimensions: DimensionScore[] = [
     {
-      name: '节点数量',
+      name: t('confidenceScore.dimensions.nodeCount'),
       score: nodeScore,
       weight: 0.2,
-      description: '基于活跃节点数量和占比',
+      description: t('confidenceScore.dimensions.nodeCountDesc'),
       details: {
         value: activeNodes,
-        unit: '个',
+        unit: t('confidenceScore.units.count'),
         benchmark: 80,
       },
     },
     {
-      name: '共识度',
+      name: t('confidenceScore.dimensions.consensus'),
       score: consensusScore,
       weight: 0.25,
-      description: '节点间数据一致性程度',
+      description: t('confidenceScore.dimensions.consensusDesc'),
       details: {
         value: consensusRate,
-        unit: '%',
+        unit: t('confidenceScore.units.percent'),
         benchmark: 90,
       },
     },
     {
-      name: '数据源多样性',
+      name: t('confidenceScore.dimensions.diversity'),
       score: diversityScore,
       weight: 0.2,
-      description: '数据源类型和数量',
+      description: t('confidenceScore.dimensions.diversityDesc'),
       details: {
         value: sourceCount,
-        unit: '个',
+        unit: t('confidenceScore.units.count'),
         benchmark: 10,
       },
     },
     {
-      name: '数据新鲜度',
+      name: t('confidenceScore.dimensions.freshness'),
       score: freshnessScore,
       weight: 0.15,
-      description: '数据更新频率',
+      description: t('confidenceScore.dimensions.freshnessDesc'),
       details: {
         value: avgUpdateInterval,
-        unit: '秒',
+        unit: t('confidenceScore.units.seconds'),
         benchmark: 30,
       },
     },
     {
-      name: '历史准确率',
+      name: t('confidenceScore.dimensions.accuracy'),
       score: accuracyScore,
       weight: 0.2,
-      description: '历史数据准确性',
+      description: t('confidenceScore.dimensions.accuracyDesc'),
       details: {
         value: historicalAccuracy,
-        unit: '%',
+        unit: t('confidenceScore.units.percent'),
         benchmark: 95,
       },
     },
@@ -224,22 +216,22 @@ function generateMockData(): ConfidenceData {
 
   const suggestions: string[] = [];
   if (nodeScore < 80) {
-    suggestions.push('建议增加更多活跃节点以提高去中心化程度');
+    suggestions.push(t('confidenceScore.suggestions.increaseNodes'));
   }
   if (consensusScore < 90) {
-    suggestions.push('节点共识度较低，建议检查数据源质量');
+    suggestions.push(t('confidenceScore.suggestions.checkConsensus'));
   }
   if (diversityScore < 70) {
-    suggestions.push('建议增加更多类型的数据源以提高多样性');
+    suggestions.push(t('confidenceScore.suggestions.increaseDiversity'));
   }
   if (freshnessScore < 80) {
-    suggestions.push('数据更新频率较低，建议优化数据获取流程');
+    suggestions.push(t('confidenceScore.suggestions.optimizeFreshness'));
   }
   if (accuracyScore < 95) {
-    suggestions.push('历史准确率有待提升，建议加强数据验证机制');
+    suggestions.push(t('confidenceScore.suggestions.improveAccuracy'));
   }
   if (suggestions.length === 0) {
-    suggestions.push('当前数据质量优秀，建议保持现有配置');
+    suggestions.push(t('confidenceScore.suggestions.maintainQuality'));
   }
 
   return {
@@ -253,8 +245,23 @@ function generateMockData(): ConfidenceData {
 }
 
 function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceLevel }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const levelConfig = LEVEL_CONFIG[level];
+
+  const getLevelLabel = () => {
+    switch (level) {
+      case 'excellent':
+        return t('confidenceScore.level.excellent');
+      case 'good':
+        return t('confidenceScore.level.good');
+      case 'fair':
+        return t('confidenceScore.level.fair');
+      case 'poor':
+        return t('confidenceScore.level.poor');
+      default:
+        return '';
+    }
+  };
 
   const getStrokeColor = () => {
     switch (level) {
@@ -276,12 +283,10 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '综合置信度评分' : 'Overall Confidence Score'}
+            {t('confidenceScore.overallScore')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {locale === 'zh-CN'
-              ? '基于多维度数据质量评估'
-              : 'Multi-dimensional data quality assessment'}
+            {t('confidenceScore.overallScoreDesc')}
           </p>
         </div>
         <div className={`p-2 rounded-lg ${levelConfig.lightBg}`}>
@@ -319,7 +324,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className={`text-4xl font-bold ${levelConfig.color}`}>{score}</p>
-              <p className="text-xs text-gray-500 mt-1">{locale === 'zh-CN' ? '总分' : 'Score'}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('confidenceScore.totalScore')}</p>
             </div>
           </div>
         </div>
@@ -329,7 +334,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
         <span
           className={`px-4 py-2 text-sm font-medium rounded-full ${levelConfig.lightBg} ${levelConfig.color}`}
         >
-          {locale === 'zh-CN' ? levelConfig.label : levelConfig.labelEn}
+          {getLevelLabel()}
         </span>
       </div>
     </div>
@@ -653,16 +658,16 @@ export function ConfidenceScore({
   autoUpdate = true,
   updateInterval = 30000,
 }: ConfidenceScoreProps) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const [data, setData] = useState<ConfidenceData | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const updateData = useCallback(() => {
-    const newData = generateMockData();
+    const newData = generateMockData(t);
     setData(newData);
     setLastUpdated(new Date());
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     updateData();

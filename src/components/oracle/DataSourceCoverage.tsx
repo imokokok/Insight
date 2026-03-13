@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
 
@@ -13,13 +14,13 @@ interface DataSourceType {
   color: string;
 }
 
-const mockDataSources: DataSourceType[] = [
-  { category: 'crypto', name: '加密货币', count: 380, color: '#8B5CF6' },
-  { category: 'forex', name: '外汇', count: 85, color: '#3B82F6' },
-  { category: 'commodities', name: '商品', count: 42, color: '#F59E0B' },
-  { category: 'stocks', name: '股票', count: 28, color: '#10B981' },
-  { category: 'etf', name: 'ETF', count: 10, color: '#EC4899' },
-  { category: 'indices', name: '指数', count: 5, color: '#6366F1' },
+const getMockDataSources = (t: (key: string) => string): DataSourceType[] => [
+  { category: 'crypto', name: t('dataSourceCoverage.categories.crypto'), count: 380, color: '#8B5CF6' },
+  { category: 'forex', name: t('dataSourceCoverage.categories.forex'), count: 85, color: '#3B82F6' },
+  { category: 'commodities', name: t('dataSourceCoverage.categories.commodities'), count: 42, color: '#F59E0B' },
+  { category: 'stocks', name: t('dataSourceCoverage.categories.stocks'), count: 28, color: '#10B981' },
+  { category: 'etf', name: t('dataSourceCoverage.categories.etf'), count: 10, color: '#EC4899' },
+  { category: 'indices', name: t('dataSourceCoverage.categories.indices'), count: 5, color: '#6366F1' },
 ];
 
 const CATEGORY_ICONS: Record<DataSourceCategory, React.ReactNode> = {
@@ -95,9 +96,13 @@ const CATEGORY_EXAMPLES: Record<DataSourceCategory, string[]> = {
 };
 
 export function DataSourceCoverage() {
+  const { t } = useI18n();
+  
+  const mockDataSources = useMemo(() => getMockDataSources(t), [t]);
+
   const totalDataSources = useMemo(() => {
     return mockDataSources.reduce((sum, item) => sum + item.count, 0);
-  }, []);
+  }, [mockDataSources]);
 
   const pieData = useMemo(() => {
     return mockDataSources.map((item) => ({
@@ -105,20 +110,20 @@ export function DataSourceCoverage() {
       value: item.count,
       color: item.color,
     }));
-  }, []);
+  }, [mockDataSources]);
 
   return (
-    <DashboardCard title="数据源覆盖">
+    <DashboardCard title={t('dataSourceCoverage.title')}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500 mb-1">按资产类型分布</p>
+            <p className="text-sm text-gray-500 mb-1">{t('dataSourceCoverage.distributionByAssetType')}</p>
             <p className="text-3xl font-bold text-gray-900">{totalDataSources}</p>
-            <p className="text-sm text-gray-500">总数据源数量</p>
+            <p className="text-sm text-gray-500">{t('dataSourceCoverage.totalDataSources')}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-green-600 font-medium">+12 本月新增</p>
-            <p className="text-xs text-gray-400">持续扩展中</p>
+            <p className="text-sm text-green-600 font-medium">{t('dataSourceCoverage.newThisMonth')}</p>
+            <p className="text-xs text-gray-400">{t('dataSourceCoverage.continuouslyExpanding')}</p>
           </div>
         </div>
 
@@ -139,7 +144,7 @@ export function DataSourceCoverage() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value, name) => [`${value} 个`, name]}
+                formatter={(value, name) => [`${value} ${t('dataSourceCoverage.unit')}`, name]}
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e5e7eb',

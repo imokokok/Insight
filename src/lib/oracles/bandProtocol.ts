@@ -1,7 +1,6 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
-// Band Protocol 市场数据类型
 export interface BandMarketData {
   symbol: string;
   price: number;
@@ -17,7 +16,6 @@ export interface BandMarketData {
   timestamp: number;
 }
 
-// 验证者信息类型
 export interface ValidatorInfo {
   operatorAddress: string;
   moniker: string;
@@ -34,7 +32,6 @@ export interface ValidatorInfo {
   rank: number;
 }
 
-// 网络统计类型
 export interface BandNetworkStats {
   activeValidators: number;
   totalValidators: number;
@@ -48,7 +45,6 @@ export interface BandNetworkStats {
   timestamp: number;
 }
 
-// 跨链统计类型
 export interface ChainDataRequest {
   chainName: string;
   chainId: string;
@@ -67,7 +63,6 @@ export interface CrossChainStats {
   timestamp: number;
 }
 
-// 历史价格数据点
 export interface HistoricalPricePoint {
   timestamp: number;
   price: number;
@@ -82,10 +77,17 @@ export class BandProtocolClient extends BaseOracleClient {
   name = OracleProvider.BAND_PROTOCOL;
   supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
 
+  constructor(config?: OracleClientConfig) {
+    super(config);
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockPrice(symbol, basePrice, chain);
+      
+      return this.fetchPriceWithDatabase(symbol, chain, () =>
+        this.generateMockPrice(symbol, basePrice, chain)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Band Protocol',
@@ -101,7 +103,10 @@ export class BandProtocolClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+      
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error
@@ -112,7 +117,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 获取 BAND 代币市场数据
   async getBandMarketData(): Promise<BandMarketData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES.BAND || 2.5;
@@ -144,7 +148,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 获取验证者列表
   async getValidators(limit: number = 50): Promise<ValidatorInfo[]> {
     try {
       const validators: ValidatorInfo[] = [];
@@ -235,7 +238,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 获取网络统计信息
   async getNetworkStats(): Promise<BandNetworkStats> {
     try {
       const totalValidators = 72 + Math.floor(Math.random() * 15);
@@ -263,7 +265,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 获取跨链数据请求统计
   async getCrossChainStats(): Promise<CrossChainStats> {
     try {
       const chains: ChainDataRequest[] = [
@@ -360,7 +361,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 获取 BAND 历史价格
   async getHistoricalBandPrices(
     period: '1d' | '7d' | '30d' | '90d' | '1y' = '30d'
   ): Promise<HistoricalPricePoint[]> {
@@ -411,7 +411,6 @@ export class BandProtocolClient extends BaseOracleClient {
     }
   }
 
-  // 辅助方法：生成随机地址
   private generateRandomAddress(): string {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -421,7 +420,6 @@ export class BandProtocolClient extends BaseOracleClient {
     return result;
   }
 
-  // 辅助方法：生成随机十六进制字符串
   private generateRandomHex(length: number): string {
     const chars = '0123456789abcdef';
     let result = '';

@@ -71,14 +71,14 @@ const EVENT_TYPE_CONFIG = {
   },
 };
 
-const SEVERITY_CONFIG = {
-  low: { color: '#10b981', label: '低' },
-  medium: { color: '#f59e0b', label: '中' },
-  high: { color: '#ef4444', label: '高' },
-};
-
 export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
   const { t } = useI18n();
+
+  const SEVERITY_CONFIG = {
+    low: { color: '#10b981', label: t('pyth.extreme.severityLow') },
+    medium: { color: '#f59e0b', label: t('pyth.extreme.severityMedium') },
+    high: { color: '#ef4444', label: t('pyth.extreme.severityHigh') },
+  };
 
   const stats = useMemo(() => {
     if (events.length === 0) {

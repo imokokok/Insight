@@ -1,4 +1,4 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain, ConfidenceInterval } from '@/lib/types/oracle';
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
@@ -19,6 +19,10 @@ export class PythNetworkClient extends BaseOracleClient {
     Blockchain.SOLANA,
   ];
 
+  constructor(config?: OracleClientConfig) {
+    super(config);
+  }
+
   private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const randomFactor = 0.8 + Math.random() * 0.4;
@@ -36,13 +40,25 @@ export class PythNetworkClient extends BaseOracleClient {
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      const priceData = this.generateMockPrice(symbol, basePrice, chain);
-      const confidenceInterval = this.generateConfidenceInterval(priceData.price, symbol);
+      
+      const priceData = await this.fetchPriceWithDatabase(symbol, chain, () => {
+        const mockPrice = this.generateMockPrice(symbol, basePrice, chain);
+        const confidenceInterval = this.generateConfidenceInterval(mockPrice.price, symbol);
+        return {
+          ...mockPrice,
+          confidenceInterval,
+        };
+      });
 
-      return {
-        ...priceData,
-        confidenceInterval,
-      };
+      if (!priceData.confidenceInterval) {
+        const confidenceInterval = this.generateConfidenceInterval(priceData.price, symbol);
+        return {
+          ...priceData,
+          confidenceInterval,
+        };
+      }
+
+      return priceData;
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Pyth Network',
@@ -58,7 +74,10 @@ export class PythNetworkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+      
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error

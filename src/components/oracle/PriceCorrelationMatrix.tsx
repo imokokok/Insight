@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -81,13 +82,13 @@ const getCorrelationTextColor = (correlation: number): string => {
   return 'text-gray-800';
 };
 
-const getCorrelationLevel = (correlation: number): string => {
+const getCorrelationLevel = (correlation: number, t: (key: string) => string): string => {
   const absCorrelation = Math.abs(correlation);
-  if (absCorrelation >= 0.9) return '极强相关';
-  if (absCorrelation >= 0.7) return '强相关';
-  if (absCorrelation >= 0.5) return '中等相关';
-  if (absCorrelation >= 0.3) return '弱相关';
-  return '极弱相关';
+  if (absCorrelation >= 0.9) return t('priceCorrelation.level.veryStrong');
+  if (absCorrelation >= 0.7) return t('priceCorrelation.level.strong');
+  if (absCorrelation >= 0.5) return t('priceCorrelation.level.moderate');
+  if (absCorrelation >= 0.3) return t('priceCorrelation.level.weak');
+  return t('priceCorrelation.level.veryWeak');
 };
 
 const getCorrelationLevelColor = (correlation: number): string => {
@@ -104,6 +105,7 @@ export function PriceCorrelationMatrix({
   className = '',
 }: PriceCorrelationMatrixProps) {
   const [hoveredCell, setHoveredCell] = useState<CorrelationCell | null>(null);
+  const { t } = useI18n();
 
   const { correlationMatrix, oracleIds, priceArrays } = useMemo(() => {
     const ids = data.map((d) => d.oracleId);
@@ -178,40 +180,40 @@ export function PriceCorrelationMatrix({
   };
 
   const colorLegend = [
-    { color: 'rgb(110, 50, 220)', label: '-1.0', desc: '完全负相关' },
-    { color: 'rgb(160, 100, 180)', label: '-0.5', desc: '负相关' },
-    { color: 'rgb(200, 150, 150)', label: '0.0', desc: '无相关' },
-    { color: 'rgb(180, 100, 100)', label: '0.5', desc: '正相关' },
-    { color: 'rgb(220, 50, 50)', label: '1.0', desc: '完全正相关' },
+    { color: 'rgb(110, 50, 220)', label: '-1.0', desc: t('priceCorrelation.legend.perfectNegative') },
+    { color: 'rgb(160, 100, 180)', label: '-0.5', desc: t('priceCorrelation.legend.negative') },
+    { color: 'rgb(200, 150, 150)', label: '0.0', desc: t('priceCorrelation.legend.none') },
+    { color: 'rgb(180, 100, 100)', label: '0.5', desc: t('priceCorrelation.legend.positive') },
+    { color: 'rgb(220, 50, 50)', label: '1.0', desc: t('priceCorrelation.legend.perfectPositive') },
   ];
 
   return (
     <DashboardCard
-      title="预言机价格相关性矩阵"
+      title={t('priceCorrelation.title')}
       className={className}
       headerAction={
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>预言机数量: {oracleIds.length}</span>
-          <span>高相关对: {stats.highCorrelationCount}</span>
+          <span>{t('priceCorrelation.oracleCount')}: {oracleIds.length}</span>
+          <span>{t('priceCorrelation.highCorrelationPairs')}: {stats.highCorrelationCount}</span>
         </div>
       }
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">平均相关系数</p>
+            <p className="text-xs text-blue-600 mb-1">{t('priceCorrelation.avgCorrelation')}</p>
             <p className="text-xl font-bold text-blue-700">{stats.avgCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">最高相关系数</p>
+            <p className="text-xs text-green-600 mb-1">{t('priceCorrelation.maxCorrelation')}</p>
             <p className="text-xl font-bold text-green-700">{stats.maxCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">最低相关系数</p>
+            <p className="text-xs text-red-600 mb-1">{t('priceCorrelation.minCorrelation')}</p>
             <p className="text-xl font-bold text-red-700">{stats.minCorrelation.toFixed(3)}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">高相关对数量</p>
+            <p className="text-xs text-purple-600 mb-1">{t('priceCorrelation.highCorrelationCount')}</p>
             <p className="text-xl font-bold text-purple-700">{stats.highCorrelationCount}</p>
           </div>
         </div>
@@ -289,25 +291,25 @@ export function PriceCorrelationMatrix({
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">相关系数:</span>
+                  <span className="text-gray-400">{t('priceCorrelation.correlationCoefficient')}:</span>
                   <span className="font-mono font-semibold">
                     {hoveredCell.correlation.toFixed(4)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">相关程度:</span>
+                  <span className="text-gray-400">{t('priceCorrelation.correlationLevel')}:</span>
                   <span className={getCorrelationLevelColor(hoveredCell.correlation)}>
-                    {getCorrelationLevel(hoveredCell.correlation)}
+                    {getCorrelationLevel(hoveredCell.correlation, t)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">相关方向:</span>
+                  <span className="text-gray-400">{t('priceCorrelation.correlationDirection')}:</span>
                   <span>
                     {hoveredCell.correlation > 0
-                      ? '正相关'
+                      ? t('priceCorrelation.positiveCorrelation')
                       : hoveredCell.correlation < 0
-                        ? '负相关'
-                        : '无相关'}
+                        ? t('priceCorrelation.negativeCorrelation')
+                        : t('priceCorrelation.noCorrelation')}
                   </span>
                 </div>
               </div>
@@ -319,7 +321,7 @@ export function PriceCorrelationMatrix({
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-xs text-gray-600 mb-2 font-medium">相关系数图例</div>
+          <div className="text-xs text-gray-600 mb-2 font-medium">{t('priceCorrelation.legend.title')}</div>
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-gray-500">-1.0</span>
             <div className="flex gap-0.5">
@@ -335,15 +337,15 @@ export function PriceCorrelationMatrix({
             <span className="text-xs text-gray-500">1.0</span>
           </div>
           <div className="flex items-center justify-center gap-4 mt-2 text-xs text-gray-500">
-            <span>蓝色 = 低相关</span>
+            <span>{t('priceCorrelation.legend.lowCorrelation')}</span>
             <span>|</span>
-            <span>红色 = 高相关</span>
+            <span>{t('priceCorrelation.legend.highCorrelation')}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">相关性分布</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceCorrelation.distribution.title')}</h4>
             <div className="space-y-2">
               {[
                 { range: '0.9 - 1.0', min: 0.9, max: 1.0 },
@@ -380,7 +382,7 @@ export function PriceCorrelationMatrix({
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">最高相关预言机对</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceCorrelation.distribution.topPairs')}</h4>
             <div className="space-y-2">
               {correlationMatrix
                 .flat()
@@ -422,11 +424,9 @@ export function PriceCorrelationMatrix({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">皮尔逊相关系数说明</h4>
+              <h4 className="text-sm font-semibold text-blue-800 mb-1">{t('priceCorrelation.explanation.title')}</h4>
               <p className="text-xs text-blue-700">
-                皮尔逊相关系数衡量两个预言机价格序列之间的线性相关程度。 系数范围从 -1 到 1，其中 1
-                表示完全正相关，-1 表示完全负相关，0 表示无线性相关。
-                高相关系数表明预言机价格走势高度一致，数据质量可靠。
+                {t('priceCorrelation.explanation.description')}
               </p>
             </div>
           </div>

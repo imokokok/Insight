@@ -6,6 +6,7 @@ import type { PieSectorDataItem } from 'recharts';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface StakingDistributionChartProps {
   validators: ValidatorInfo[];
@@ -46,17 +47,18 @@ const OTHERS_COLOR = '#94a3b8';
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ payload: PieDataItem }>;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, t }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
         <p className="font-medium text-gray-900">{data.name}</p>
-        <p className="text-sm text-gray-600 mt-1">质押量: {formatNumber(data.value, true)} BAND</p>
-        <p className="text-sm text-gray-600">占比: {data.percentage.toFixed(2)}%</p>
-        {data.validator && <p className="text-xs text-gray-400 mt-1">点击查看详情</p>}
+        <p className="text-sm text-gray-600 mt-1">{t('stakingDistribution.stakeAmount')}: {formatNumber(data.value, true)} BAND</p>
+        <p className="text-sm text-gray-600">{t('stakingDistribution.ratio')}: {data.percentage.toFixed(2)}%</p>
+        {data.validator && <p className="text-xs text-gray-400 mt-1">{t('stakingDistribution.clickForDetails')}</p>}
       </div>
     );
   }
@@ -111,28 +113,31 @@ function calculateConcentrationMetrics(
   };
 }
 
-function getRiskLevelConfig(riskLevel: 'low' | 'medium' | 'high' | 'critical') {
+function getRiskLevelConfig(
+  riskLevel: 'low' | 'medium' | 'high' | 'critical',
+  t: (key: string, params?: Record<string, string | number>) => string
+) {
   const configs = {
     low: {
-      label: '低风险',
+      label: t('stakingDistribution.riskLevel.low'),
       color: 'text-green-600',
       bgColor: 'bg-green-100',
       borderColor: 'border-green-200',
     },
     medium: {
-      label: '中等风险',
+      label: t('stakingDistribution.riskLevel.medium'),
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
       borderColor: 'border-yellow-200',
     },
     high: {
-      label: '高风险',
+      label: t('stakingDistribution.riskLevel.high'),
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
       borderColor: 'border-orange-200',
     },
     critical: {
-      label: '严重风险',
+      label: t('stakingDistribution.riskLevel.critical'),
       color: 'text-red-600',
       bgColor: 'bg-red-100',
       borderColor: 'border-red-200',
@@ -145,6 +150,8 @@ export function StakingDistributionChart({
   validators,
   onSegmentClick,
 }: StakingDistributionChartProps) {
+  const { t } = useI18n();
+
   const { pieData, totalStake, metrics, othersData } = useMemo(() => {
     const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);
     const total = sortedValidators.reduce((sum, v) => sum + v.tokens, 0);
@@ -161,7 +168,7 @@ export function StakingDistributionChart({
     const others: PieDataItem | null =
       othersStake > 0
         ? {
-            name: '其他验证者',
+            name: t('stakingDistribution.othersValidators'),
             value: othersStake,
             percentage: (othersStake / total) * 100,
             validator: null,
@@ -176,7 +183,7 @@ export function StakingDistributionChart({
       metrics: concentrationMetrics,
       othersData: others,
     };
-  }, [validators]);
+  }, [validators, t]);
 
   const allPieData = othersData ? [...pieData, othersData] : pieData;
 
@@ -186,17 +193,17 @@ export function StakingDistributionChart({
     }
   };
 
-  const riskConfig = getRiskLevelConfig(metrics.riskLevel);
+  const riskConfig = getRiskLevelConfig(metrics.riskLevel, t);
 
   return (
-    <DashboardCard title="验证者质押分布">
+    <DashboardCard title={t('stakingDistribution.title')}>
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-700">前10名验证者质押占比</h4>
+              <h4 className="text-sm font-medium text-gray-700">{t('stakingDistribution.top10StakeRatio')}</h4>
               <span className="text-xs text-gray-500">
-                总质押: {formatNumber(totalStake, true)} BAND
+                {t('stakingDistribution.totalStake')}: {formatNumber(totalStake, true)} BAND
               </span>
             </div>
             <div style={{ height: 300 }}>
@@ -222,7 +229,7 @@ export function StakingDistributionChart({
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip t={t} />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -233,7 +240,7 @@ export function StakingDistributionChart({
               className={`border-2 ${riskConfig.borderColor} ${riskConfig.bgColor} rounded-xl p-4`}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-700">Nakamoto 系数</span>
+                <span className="text-sm font-medium text-gray-700">{t('stakingDistribution.nakamotoCoefficient')}</span>
                 <span
                   className={`px-3 py-1 text-xs font-semibold rounded-full ${riskConfig.bgColor} ${riskConfig.color}`}
                 >
@@ -244,16 +251,16 @@ export function StakingDistributionChart({
                 <span className={`text-4xl font-bold ${riskConfig.color}`}>
                   {metrics.nakamotoCoefficient}
                 </span>
-                <span className="text-sm text-gray-500 mb-2">个验证者</span>
+                <span className="text-sm text-gray-500 mb-2">{t('stakingDistribution.validators')}</span>
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                需要至少 {metrics.nakamotoCoefficient} 个验证者合作才能控制 33.3% 的质押量
+                {t('stakingDistribution.nakamotoDesc', { count: metrics.nakamotoCoefficient })}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Top 3 占比</p>
+                <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top3Ratio')}</p>
                 <p className="text-xl font-bold text-gray-900">
                   {metrics.top3Percentage.toFixed(1)}%
                 </p>
@@ -271,7 +278,7 @@ export function StakingDistributionChart({
                 </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Top 5 占比</p>
+                <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top5Ratio')}</p>
                 <p className="text-xl font-bold text-gray-900">
                   {metrics.top5Percentage.toFixed(1)}%
                 </p>
@@ -293,37 +300,37 @@ export function StakingDistributionChart({
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Herfindahl 指数</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.herfindahlIndex')}</p>
                   <p className="text-xl font-bold text-gray-900">
                     {metrics.herfindahlIndex.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500 mb-1">Top 10 占比</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top10Ratio')}</p>
                   <p className="text-xl font-bold text-gray-900">
                     {metrics.top10Percentage.toFixed(1)}%
                   </p>
                 </div>
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                HHI 越低表示质押分布越分散（理想值 &lt; 1500）
+                {t('stakingDistribution.hhiDesc')}
               </p>
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">验证者详情</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('stakingDistribution.validatorDetails')}</h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">排名</th>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">验证者</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">质押量</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">占比</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.rank')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.validator')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.stakeAmount')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('stakingDistribution.ratio')}</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
-                    累计占比
+                    {t('stakingDistribution.cumulativeRatio')}
                   </th>
                 </tr>
               </thead>
@@ -426,10 +433,9 @@ export function StakingDistributionChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800">质押集中度警告</h4>
+                <h4 className="text-sm font-semibold text-red-800">{t('stakingDistribution.concentrationWarning')}</h4>
                 <p className="text-sm text-red-700 mt-1">
-                  当前网络质押高度集中，前 {metrics.nakamotoCoefficient} 个验证者即可控制超过 33.3%
-                  的质押量。这可能导致网络安全性降低，建议关注质押分布变化。
+                  {t('stakingDistribution.concentrationWarningDesc', { count: metrics.nakamotoCoefficient })}
                 </p>
               </div>
             </div>
@@ -453,9 +459,9 @@ export function StakingDistributionChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-orange-800">质押集中度提醒</h4>
+                <h4 className="text-sm font-semibold text-orange-800">{t('stakingDistribution.concentrationReminder')}</h4>
                 <p className="text-sm text-orange-700 mt-1">
-                  网络质押分布存在一定集中风险，建议持续监控验证者质押变化情况。
+                  {t('stakingDistribution.concentrationReminderDesc')}
                 </p>
               </div>
             </div>
@@ -463,19 +469,16 @@ export function StakingDistributionChart({
         )}
 
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">指标说明</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('stakingDistribution.metricsExplanation')}</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>
-              • <span className="font-medium">Nakamoto 系数</span>: 需要多少验证者合作才能控制 33.3%
-              质押量，数值越大越安全
+              • <span className="font-medium">{t('stakingDistribution.nakamotoExplanation')}</span>
             </li>
             <li>
-              • <span className="font-medium">Herfindahl 指数 (HHI)</span>: 衡量质押集中度，低于
-              1500 表示分散，高于 2500 表示高度集中
+              • <span className="font-medium">{t('stakingDistribution.hhiExplanation')}</span>
             </li>
             <li>
-              • <span className="font-medium">Top N 占比</span>: 前 N 名验证者的质押总量占比，建议
-              Top 3 不超过 33%
+              • <span className="font-medium">{t('stakingDistribution.topNExplanation')}</span>
             </li>
           </ul>
         </div>

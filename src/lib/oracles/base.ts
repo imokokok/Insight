@@ -1,4 +1,17 @@
 import { PriceData, OracleProvider, OracleError, Blockchain } from '@/lib/types/oracle';
+import {
+  shouldUseDatabase,
+  savePriceToDatabase,
+  savePricesToDatabase,
+  getPriceFromDatabase,
+  getHistoricalPricesFromDatabase,
+  OracleStorageConfig,
+  configureStorage,
+  getStorageConfig,
+} from './storage';
+
+export { shouldUseDatabase, configureStorage, getStorageConfig };
+export type { OracleStorageConfig };
 
 export const UNIFIED_BASE_PRICES: Record<string, number> = {
   BTC: 68000,
@@ -24,6 +37,16 @@ export const UNIFIED_BASE_PRICES: Record<string, number> = {
   WETH: 3500,
 };
 
+export interface OracleClientConfig {
+  useDatabase?: boolean;
+  fallbackToMock?: boolean;
+}
+
+const DEFAULT_CLIENT_CONFIG: OracleClientConfig = {
+  useDatabase: true,
+  fallbackToMock: true,
+};
+
 export abstract class BaseOracleClient {
   abstract name: OracleProvider;
   abstract supportedChains: Blockchain[];
@@ -33,6 +56,12 @@ export abstract class BaseOracleClient {
     chain?: Blockchain,
     period?: number
   ): Promise<PriceData[]>;
+
+  protected config: OracleClientConfig;
+
+  constructor(config?: OracleClientConfig) {
+    this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
+  }
 
   protected createError(message: string, code?: string): OracleError {
     return {
@@ -104,5 +133,48 @@ export abstract class BaseOracleClient {
     }
 
     return prices.reverse();
+  }
+
+  async fetchPriceWithDatabase(
+    symbol: string,
+    chain: Blockchain | undefined,
+    mockGenerator: () => PriceData
+  ): Promise<PriceData> {
+    if (this.config.useDatabase && shouldUseDatabase()) {
+      const dbPrice = await getPriceFromDatabase(this.name, symbol, chain);
+      if (dbPrice) {
+        return dbPrice;
+      }
+    }
+
+    const priceData = mockGenerator();
+
+    if (this.config.useDatabase && shouldUseDatabase()) {
+      await savePriceToDatabase(priceData);
+    }
+
+    return priceData;
+  }
+
+  async fetchHistoricalPricesWithDatabase(
+    symbol: string,
+    chain: Blockchain | undefined,
+    period: number,
+    mockGenerator: () => PriceData[]
+  ): Promise<PriceData[]> {
+    if (this.config.useDatabase && shouldUseDatabase()) {
+      const dbPrices = await getHistoricalPricesFromDatabase(this.name, symbol, chain, period);
+      if (dbPrices && dbPrices.length > 0) {
+        return dbPrices;
+      }
+    }
+
+    const pricesData = mockGenerator();
+
+    if (this.config.useDatabase && shouldUseDatabase()) {
+      await savePricesToDatabase(pricesData);
+    }
+
+    return pricesData;
   }
 }

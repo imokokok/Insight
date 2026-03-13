@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface StakingData {
   totalStaked: number;
@@ -23,11 +24,13 @@ function formatNumber(num: number): string {
 }
 
 export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
+  const { t } = useI18n();
+
   return (
-    <DashboardCard title="质押数据">
+    <DashboardCard title={t('stakingMetrics.title')}>
       <div className="space-y-4">
         <div className="flex items-center justify-between py-3 border-b border-gray-100">
-          <span className="text-sm text-gray-600">质押总量</span>
+          <span className="text-sm text-gray-600">{t('stakingMetrics.totalStaked')}</span>
           <span className="text-lg font-semibold text-gray-900">
             {formatNumber(data.totalStaked)} API3
           </span>
@@ -35,16 +38,16 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
 
         <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-green-50 -mx-5 px-5">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">质押 APR</span>
+            <span className="text-sm text-gray-600">{t('stakingMetrics.stakingApr')}</span>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-              热门
+              {t('stakingMetrics.hot')}
             </span>
           </div>
           <span className="text-2xl font-bold text-green-600">{data.stakingApr}%</span>
         </div>
 
         <div className="flex items-center justify-between py-3 border-b border-gray-100">
-          <span className="text-sm text-gray-600">质押者数量</span>
+          <span className="text-sm text-gray-600">{t('stakingMetrics.stakerCount')}</span>
           <span className="text-lg font-semibold text-gray-900">
             {data.stakerCount.toLocaleString()}
           </span>
@@ -52,9 +55,9 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
 
         <div className="pt-2">
           <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md">
-            立即质押
+            {t('stakingMetrics.stakeNow')}
           </button>
-          <p className="text-xs text-gray-400 text-center mt-2">参与 API3 质押，获取稳定收益</p>
+          <p className="text-xs text-gray-400 text-center mt-2">{t('stakingMetrics.stakeDescription')}</p>
         </div>
       </div>
     </DashboardCard>

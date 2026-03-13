@@ -49,7 +49,7 @@ function TrendIndicator({
             d="M5 10l7-7m0 0l7 7m-7-7v18"
           />
         </svg>
-        <span className="text-xs">{t('uma.dataQuality.improving')}</span>
+        <span className="text-xs">{t('dataQualityScoreCard.improving')}</span>
       </div>
     );
   }
@@ -65,7 +65,7 @@ function TrendIndicator({
             d="M19 14l-7 7m0 0l-7-7m7 7V3"
           />
         </svg>
-        <span className="text-xs">{t('uma.dataQuality.declining')}</span>
+        <span className="text-xs">{t('dataQualityScoreCard.declining')}</span>
       </div>
     );
   }
@@ -75,7 +75,7 @@ function TrendIndicator({
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
-      <span className="text-xs">{t('uma.dataQuality.stable')}</span>
+      <span className="text-xs">{t('dataQualityScoreCard.stable')}</span>
     </div>
   );
 }
@@ -170,12 +170,12 @@ export function DataQualityScoreCard({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('uma.dataQuality.title')}</h3>
-            <p className="text-sm text-gray-500 mt-1">{t('uma.dataQuality.subtitle')}</p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dataQualityScoreCard.title')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('dataQualityScoreCard.subtitle')}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-500 uppercase tracking-wider">
-              {t('uma.dataQuality.overallScore')}
+              {t('dataQualityScoreCard.overallScore')}
             </p>
             <p className="text-3xl font-bold text-blue-600">{data.overallScore.toFixed(1)}</p>
           </div>
@@ -184,7 +184,7 @@ export function DataQualityScoreCard({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <ScoreCard
-          title={t('uma.dataQuality.networkHealth')}
+          title={t('dataQualityScoreCard.networkHealth')}
           score={data.networkHealth.score}
           trend={data.networkHealth.trend}
           t={t}
@@ -206,7 +206,7 @@ export function DataQualityScoreCard({
         />
 
         <ScoreCard
-          title={t('uma.dataQuality.dataIntegrity')}
+          title={t('dataQualityScoreCard.dataIntegrity')}
           score={data.dataIntegrity.score}
           trend={data.dataIntegrity.trend}
           t={t}
@@ -228,7 +228,7 @@ export function DataQualityScoreCard({
         />
 
         <ScoreCard
-          title={t('uma.dataQuality.responseTime')}
+          title={t('dataQualityScoreCard.responseTime')}
           score={data.responseTime.score}
           trend={data.responseTime.trend}
           t={t}
@@ -250,7 +250,7 @@ export function DataQualityScoreCard({
         />
 
         <ScoreCard
-          title={t('uma.dataQuality.validatorActivity')}
+          title={t('dataQualityScoreCard.validatorActivity')}
           score={data.validatorActivity.score}
           trend={data.validatorActivity.trend}
           t={t}

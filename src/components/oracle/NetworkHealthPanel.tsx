@@ -56,14 +56,14 @@ interface SolanaNetworkMetrics {
   totalStake: number;
 }
 
-const statusConfig = {
+const getStatusConfig = (t: (key: string) => string) => ({
   online: {
     color: 'green',
     bgColor: 'bg-green-500',
     textColor: 'text-green-600',
     borderColor: 'border-green-200',
     bgGradient: 'from-green-50 to-green-100',
-    label: '在线',
+    label: t('networkHealth.status.online'),
     pulseColor: 'bg-green-400',
   },
   warning: {
@@ -72,7 +72,7 @@ const statusConfig = {
     textColor: 'text-yellow-600',
     borderColor: 'border-yellow-200',
     bgGradient: 'from-yellow-50 to-yellow-100',
-    label: '警告',
+    label: t('networkHealth.status.warning'),
     pulseColor: 'bg-yellow-400',
   },
   offline: {
@@ -81,19 +81,21 @@ const statusConfig = {
     textColor: 'text-red-600',
     borderColor: 'border-red-200',
     bgGradient: 'from-red-50 to-red-100',
-    label: '离线',
+    label: t('networkHealth.status.offline'),
     pulseColor: 'bg-red-400',
   },
-};
+});
 
 function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
+  const { t } = useI18n();
+  const statusConfig = getStatusConfig(t);
   const config = statusConfig[status];
 
   return (
     <div className={`bg-white border ${config.borderColor} rounded-xl p-5`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">网络状态</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('networkHealth.networkStatus')}</p>
           <div className="flex items-center gap-3">
             <div className="relative">
               <span className={`relative flex h-4 w-4`}>
@@ -107,7 +109,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
             </div>
             <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
           </div>
-          <p className="text-gray-400 text-xs mt-2">实时监控中 • 最后检查: 刚刚</p>
+          <p className="text-gray-400 text-xs mt-2">{t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('networkHealth.justNow')}</p>
         </div>
         <div className={`p-4 rounded-xl bg-gradient-to-br ${config.bgGradient}`}>
           <svg
@@ -130,6 +132,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
 }
 
 function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
+  const { t } = useI18n();
   const trendColor =
     metric.trendDirection === 'up'
       ? 'text-green-600'
@@ -155,7 +158,7 @@ function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
               {metric.trend > 0 ? '+' : ''}
               {metric.trend}%
             </span>
-            <span className="text-gray-400 ml-1">vs 上周</span>
+            <span className="text-gray-400 ml-1">{t('networkHealth.vsLastWeek')}</span>
           </div>
         </div>
         <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{metric.icon}</div>
@@ -165,6 +168,7 @@ function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
 }
 
 function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
+  const { t } = useI18n();
   const maxValue = Math.max(...hourlyData);
   const minValue = Math.min(...hourlyData);
 
@@ -185,11 +189,11 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">网络活动热力图</p>
-          <p className="text-gray-500 text-xs mt-0.5">24小时数据请求分布</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('networkHealth.activityHeatmap.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('networkHealth.activityHeatmap.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>低</span>
+          <span>{t('networkHealth.activityHeatmap.low')}</span>
           <div className="flex gap-1">
             <div className="w-3 h-3 bg-blue-200 rounded"></div>
             <div className="w-3 h-3 bg-blue-700 rounded"></div>
@@ -197,7 +201,7 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
             <div className="w-3 h-3 bg-blue-500 rounded"></div>
             <div className="w-3 h-3 bg-blue-400 rounded"></div>
           </div>
-          <span>高</span>
+          <span>{t('networkHealth.activityHeatmap.high')}</span>
         </div>
       </div>
 
@@ -206,7 +210,7 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
           <div key={index} className="group relative">
             <div
               className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-blue-300 cursor-pointer`}
-              title={`${getHourLabel(index)}: ${value.toLocaleString()} 请求`}
+              title={`${getHourLabel(index)}: ${value.toLocaleString()} ${t('networkHealth.activityHeatmap.requests')}`}
             />
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
               {getHourLabel(index)}: {value.toLocaleString()}
@@ -225,25 +229,25 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
 
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <div className="text-center">
-          <p className="text-xs text-gray-500">总请求量</p>
+          <p className="text-xs text-gray-500">{t('networkHealth.activityHeatmap.totalRequests')}</p>
           <p className="text-sm font-semibold text-gray-900">
             {hourlyData.reduce((a, b) => a + b, 0).toLocaleString()}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">峰值时段</p>
+          <p className="text-xs text-gray-500">{t('networkHealth.activityHeatmap.peakHour')}</p>
           <p className="text-sm font-semibold text-gray-900">
             {getHourLabel(hourlyData.indexOf(maxValue))}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">平均/小时</p>
+          <p className="text-xs text-gray-500">{t('networkHealth.activityHeatmap.avgPerHour')}</p>
           <p className="text-sm font-semibold text-gray-900">
             {Math.round(hourlyData.reduce((a, b) => a + b, 0) / 24).toLocaleString()}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">峰值请求</p>
+          <p className="text-xs text-gray-500">{t('networkHealth.activityHeatmap.peakRequests')}</p>
           <p className="text-sm font-semibold text-gray-900">{maxValue.toLocaleString()}</p>
         </div>
       </div>
@@ -252,14 +256,15 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
 }
 
 function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) {
+  const { t } = useI18n();
   const tokenSymbol = metrics.tokenSymbol || 'BAND';
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">Band Protocol 网络指标</p>
-          <p className="text-gray-500 text-xs mt-0.5">链上验证者与质押数据</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('networkHealth.bandProtocol.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('networkHealth.bandProtocol.subtitle')}</p>
         </div>
         <div className="p-2 bg-purple-50 rounded-lg">
           <svg
@@ -294,14 +299,14 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="text-sm text-gray-500">活跃验证者</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.bandProtocol.activeValidators')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
               {metrics.activeValidators} / {metrics.totalValidators}
             </p>
             <p className="text-xs text-gray-400">
-              {((metrics.activeValidators / metrics.totalValidators) * 100).toFixed(1)}% 活跃
+              {((metrics.activeValidators / metrics.totalValidators) * 100).toFixed(1)}% {t('networkHealth.bandProtocol.activePercent')}
             </p>
           </div>
         </div>
@@ -321,13 +326,13 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="text-sm text-gray-500">质押代币总量</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.bandProtocol.stakedTokens')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
               {formatCompactNumber(metrics.stakedAmount)} {tokenSymbol}
             </p>
-            <p className="text-xs text-gray-400">质押率 {metrics.stakingRate.toFixed(1)}%</p>
+            <p className="text-xs text-gray-400">{t('networkHealth.bandProtocol.stakingRate')} {metrics.stakingRate.toFixed(1)}%</p>
           </div>
         </div>
 
@@ -346,13 +351,13 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
-            <span className="text-sm text-gray-500">区块高度</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.bandProtocol.blockHeight')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
               {metrics.blockHeight.toLocaleString()}
             </p>
-            <p className="text-xs text-gray-400">区块时间 {metrics.blockTime.toFixed(1)}s</p>
+            <p className="text-xs text-gray-400">{t('networkHealth.bandProtocol.blockTime')} {metrics.blockTime.toFixed(1)}s</p>
           </div>
         </div>
 
@@ -371,11 +376,11 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
                 d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
               />
             </svg>
-            <span className="text-sm text-gray-500">通胀率</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.bandProtocol.inflationRate')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">{metrics.inflationRate.toFixed(2)}%</p>
-            <p className="text-xs text-gray-400">年化通胀</p>
+            <p className="text-xs text-gray-400">{t('networkHealth.bandProtocol.annualInflation')}</p>
           </div>
         </div>
 
@@ -394,13 +399,13 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            <span className="text-sm text-gray-500">社区池余额</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.bandProtocol.communityPoolBalance')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
               {formatCompactNumber(metrics.communityPoolBalance)} {tokenSymbol}
             </p>
-            <p className="text-xs text-gray-400">社区资金池</p>
+            <p className="text-xs text-gray-400">{t('networkHealth.bandProtocol.communityPool')}</p>
           </div>
         </div>
       </div>
@@ -615,29 +620,31 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
 }
 
 function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; latency: number }) {
+  const { t } = useI18n();
+  
   const getLatencyColor = (ms: number) => {
-    if (ms < 100) return { color: 'text-green-600', bgColor: 'bg-green-500', label: '优秀' };
-    if (ms < 500) return { color: 'text-yellow-600', bgColor: 'bg-yellow-500', label: '良好' };
-    return { color: 'text-red-600', bgColor: 'bg-red-500', label: '缓慢' };
+    if (ms < 100) return { color: 'text-green-600', bgColor: 'bg-green-500', label: t('networkHealth.dataFreshness.excellent') };
+    if (ms < 500) return { color: 'text-yellow-600', bgColor: 'bg-yellow-500', label: t('networkHealth.dataFreshness.good') };
+    return { color: 'text-red-600', bgColor: 'bg-red-500', label: t('networkHealth.dataFreshness.slow') };
   };
 
   const latencyStatus = getLatencyColor(latency);
 
   const getTimeAgo = () => {
     const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}秒前`;
+    if (seconds < 60) return `${seconds}${t('networkHealth.dataFreshness.secondsAgo')}`;
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}分钟前`;
+    if (minutes < 60) return `${minutes}${t('networkHealth.dataFreshness.minutesAgo')}`;
     const hours = Math.floor(minutes / 60);
-    return `${hours}小时前`;
+    return `${hours}${t('networkHealth.dataFreshness.hoursAgo')}`;
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">数据新鲜度</p>
-          <p className="text-gray-500 text-xs mt-0.5">实时数据同步状态</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('networkHealth.dataFreshness.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('networkHealth.dataFreshness.subtitle')}</p>
         </div>
         <div className="p-2 bg-gray-100 rounded-lg">
           <svg
@@ -672,7 +679,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2"
               />
             </svg>
-            <span className="text-sm text-gray-500">最后更新</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.dataFreshness.lastUpdated')}</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
@@ -701,7 +708,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            <span className="text-sm text-gray-500">数据延迟</span>
+            <span className="text-sm text-gray-500">{t('networkHealth.dataFreshness.dataLatency')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className={`relative flex h-2.5 w-2.5`}>
@@ -734,6 +741,7 @@ export function NetworkHealthPanel({
   autoUpdate = true,
   updateInterval = 30000,
 }: NetworkHealthPanelProps) {
+  const { t } = useI18n();
   const [networkData, setNetworkData] = useState(initialConfig);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -775,7 +783,7 @@ export function NetworkHealthPanel({
   const metrics: NetworkMetric[] = [
     {
       id: 'activeNodes',
-      title: '活跃节点数',
+      title: t('networkHealth.activeNodes'),
       value: `${networkData.activeNodes.toLocaleString()}+`,
       trend: 2.5,
       trendDirection: 'up',
@@ -792,7 +800,7 @@ export function NetworkHealthPanel({
     },
     {
       id: 'nodeUptime',
-      title: '节点在线率',
+      title: t('networkHealth.nodeUptime'),
       value: networkData.nodeUptime.toFixed(1),
       unit: '%',
       trend: 0.1,
@@ -810,7 +818,7 @@ export function NetworkHealthPanel({
     },
     {
       id: 'avgResponseTime',
-      title: '平均响应时间',
+      title: t('networkHealth.avgResponseTime'),
       value: networkData.avgResponseTime.toString(),
       unit: 'ms',
       trend: -5.2,
@@ -828,9 +836,9 @@ export function NetworkHealthPanel({
     },
     {
       id: 'updateFrequency',
-      title: '数据更新频率',
-      value: `每 ${networkData.updateFrequency}`,
-      unit: '秒',
+      title: t('networkHealth.updateFrequency'),
+      value: `${t('networkHealth.every')} ${networkData.updateFrequency}`,
+      unit: t('networkHealth.seconds'),
       trend: 0,
       trendDirection: 'neutral',
       icon: (
@@ -846,7 +854,7 @@ export function NetworkHealthPanel({
     },
     {
       id: 'totalStaked',
-      title: '网络质押总量',
+      title: t('networkHealth.totalStaked'),
       value: (networkData.totalStaked / 1000000).toFixed(0),
       unit: `M ${networkData.stakingTokenSymbol || 'TOKEN'}`,
       trend: 3.8,
@@ -864,7 +872,7 @@ export function NetworkHealthPanel({
     },
     {
       id: 'dataFeeds',
-      title: '数据源数量',
+      title: t('networkHealth.dataFeeds'),
       value: `${networkData.dataFeeds.toLocaleString()}+`,
       trend: 1.2,
       trendDirection: 'up',
@@ -885,7 +893,7 @@ export function NetworkHealthPanel({
     {
       value: networkData.avgResponseTime,
       max: 1000,
-      label: '响应时间',
+      label: t('networkHealth.performanceDashboard.responseTime'),
       unit: 'ms',
       type: 'value' as const,
       warningThreshold: 500,
@@ -894,7 +902,7 @@ export function NetworkHealthPanel({
     {
       value: networkData.nodeUptime,
       max: 100,
-      label: '在线率',
+      label: t('networkHealth.performanceDashboard.uptime'),
       unit: '%',
       type: 'percentage' as const,
       warningThreshold: 95,
@@ -903,8 +911,8 @@ export function NetworkHealthPanel({
     {
       value: networkData.updateFrequency,
       max: 60,
-      label: '更新频率',
-      unit: '秒',
+      label: t('networkHealth.performanceDashboard.updateFreq'),
+      unit: t('networkHealth.seconds'),
       type: 'value' as const,
       warningThreshold: 30,
       dangerThreshold: 45,
@@ -919,7 +927,7 @@ export function NetworkHealthPanel({
               networkData.bandProtocolMetrics.totalValidators) *
             100,
           max: 100,
-          label: '验证者活跃率',
+          label: t('networkHealth.performanceDashboard.validatorActiveRate'),
           unit: '%',
           type: 'percentage' as const,
           warningThreshold: 85,
@@ -928,7 +936,7 @@ export function NetworkHealthPanel({
         {
           value: networkData.bandProtocolMetrics.stakingRate,
           max: 100,
-          label: '质押率',
+          label: t('networkHealth.performanceDashboard.stakingRate'),
           unit: '%',
           type: 'percentage' as const,
           warningThreshold: 50,
@@ -937,7 +945,7 @@ export function NetworkHealthPanel({
         {
           value: networkData.bandProtocolMetrics.blockTime,
           max: 10,
-          label: '区块时间',
+          label: t('networkHealth.performanceDashboard.blockTime'),
           unit: 's',
           type: 'value' as const,
           warningThreshold: 5,
@@ -958,8 +966,8 @@ export function NetworkHealthPanel({
 
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">性能仪表盘</h3>
-          <p className="text-sm text-gray-500 mt-1">实时网络性能指标可视化</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('networkHealth.performanceDashboard.title')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('networkHealth.performanceDashboard.subtitle')}</p>
         </div>
         <PerformanceGaugeGroup gauges={performanceGauges} size={160} />
       </div>
@@ -971,8 +979,8 @@ export function NetworkHealthPanel({
           <BandProtocolMetricsCard metrics={networkData.bandProtocolMetrics} />
           <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Band Protocol 性能仪表盘</h3>
-              <p className="text-sm text-gray-500 mt-1">链上验证者与网络性能指标</p>
+              <h3 className="text-lg font-semibold text-gray-900">{t('networkHealth.bandProtocolDashboard.title')}</h3>
+              <p className="text-sm text-gray-500 mt-1">{t('networkHealth.bandProtocolDashboard.subtitle')}</p>
             </div>
             <PerformanceGaugeGroup gauges={bandProtocolGauges} size={160} />
           </div>

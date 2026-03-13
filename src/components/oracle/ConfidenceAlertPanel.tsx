@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 export type AlertType = 'sudden_expansion' | 'sustained_high';
 export type AlertSeverity = 'warning' | 'critical';
@@ -61,14 +62,12 @@ const ALERT_CONFIG = {
 
 const SEVERITY_CONFIG = {
   warning: {
-    label: '警告',
     bgColor: 'bg-yellow-100',
     textColor: 'text-yellow-700',
     borderColor: 'border-yellow-300',
     iconBg: 'bg-yellow-500',
   },
   critical: {
-    label: '严重',
     bgColor: 'bg-red-100',
     textColor: 'text-red-700',
     borderColor: 'border-red-300',
@@ -78,7 +77,6 @@ const SEVERITY_CONFIG = {
 
 const ALERT_TYPE_CONFIG = {
   sudden_expansion: {
-    label: '突然扩大',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
@@ -91,7 +89,6 @@ const ALERT_TYPE_CONFIG = {
     ),
   },
   sustained_high: {
-    label: '持续高位',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
@@ -118,13 +115,13 @@ function formatTime(timestamp: number): string {
   });
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number, t: (key: string, params?: Record<string, string | number>) => string): string {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   if (minutes > 0) {
-    return `${minutes}分${seconds}秒`;
+    return t('confidenceAlert.duration.minutes', { minutes, seconds });
   }
-  return `${seconds}秒`;
+  return t('confidenceAlert.duration.seconds', { seconds });
 }
 
 function generateMockData(symbol: string): ConfidenceDataPoint[] {
@@ -162,6 +159,7 @@ export function ConfidenceAlertPanel({
   checkInterval = 60000,
   onAlert,
 }: ConfidenceAlertPanelProps) {
+  const { t } = useI18n();
   const [alerts, setAlerts] = useState<ConfidenceAlert[]>([]);
   const [data, setData] = useState<ConfidenceDataPoint[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -213,7 +211,11 @@ export function ConfidenceAlertPanel({
               expansionPercent: expansionPercent * 100,
               threshold: ALERT_CONFIG.suddenExpansion.expansionThreshold * 100,
             },
-            message: `${current.symbol} 置信区间在 ${formatDuration(timeDiff)} 内扩大了 ${(expansionPercent * 100).toFixed(1)}%`,
+            message: t('confidenceAlert.message.suddenExpansion', {
+              symbol: current.symbol,
+              duration: formatDuration(timeDiff, t),
+              percent: (expansionPercent * 100).toFixed(1),
+            }),
             acknowledged: false,
           };
 
@@ -233,7 +235,7 @@ export function ConfidenceAlertPanel({
 
       return null;
     },
-    []
+    [t]
   );
 
   const detectSustainedHigh = useCallback(
@@ -268,7 +270,11 @@ export function ConfidenceAlertPanel({
               duration,
               threshold,
             },
-            message: `${current.symbol} 置信区间已连续 ${formatDuration(duration)} 超过阈值 ${threshold.toFixed(4)}`,
+            message: t('confidenceAlert.message.sustainedHigh', {
+              symbol: current.symbol,
+              duration: formatDuration(duration, t),
+              threshold: threshold.toFixed(4),
+            }),
             acknowledged: false,
           };
 
@@ -280,7 +286,7 @@ export function ConfidenceAlertPanel({
 
       return null;
     },
-    [threshold]
+    [threshold, t]
   );
 
   const runDetection = useCallback(() => {
@@ -370,11 +376,11 @@ export function ConfidenceAlertPanel({
 
   return (
     <DashboardCard
-      title="置信区间实时预警"
+      title={t('confidenceAlert.title')}
       headerAction={
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">自动刷新</span>
+            <span className="text-xs text-gray-500">{t('confidenceAlert.autoRefresh')}</span>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
@@ -392,7 +398,7 @@ export function ConfidenceAlertPanel({
             onClick={refreshData}
             className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium"
           >
-            刷新
+            {t('confidenceAlert.refresh')}
           </button>
         </div>
       }
@@ -401,7 +407,7 @@ export function ConfidenceAlertPanel({
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-500 mb-1">当前宽度</p>
+            <p className="text-xs text-gray-500 mb-1">{t('confidenceAlert.currentWidth')}</p>
             <p
               className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}
             >
@@ -409,15 +415,15 @@ export function ConfidenceAlertPanel({
             </p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">严重预警</p>
+            <p className="text-xs text-red-600 mb-1">{t('confidenceAlert.criticalAlerts')}</p>
             <p className="text-xl font-bold text-red-700">{stats.criticalCount}</p>
           </div>
           <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">警告预警</p>
+            <p className="text-xs text-yellow-600 mb-1">{t('confidenceAlert.warningAlerts')}</p>
             <p className="text-xl font-bold text-yellow-700">{stats.warningCount}</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">未确认</p>
+            <p className="text-xs text-blue-600 mb-1">{t('confidenceAlert.unacknowledged')}</p>
             <p className="text-xl font-bold text-blue-700">{stats.unacknowledgedCount}</p>
           </div>
         </div>
@@ -425,19 +431,19 @@ export function ConfidenceAlertPanel({
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-red-500" />
-            <span>严重: 扩大≥100% 或 持续≥20分钟</span>
+            <span>{t('confidenceAlert.criticalRule')}</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-yellow-500" />
-            <span>警告: 扩大≥50% 或 持续≥10分钟</span>
+            <span>{t('confidenceAlert.warningRule')}</span>
           </div>
         </div>
 
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-blue-600">阈值: {threshold.toFixed(4)}</span>
+            <span className="text-xs text-blue-600">{t('confidenceAlert.threshold')}: {threshold.toFixed(4)}</span>
             <span className="text-xs text-blue-600">
-              当前: {isAboveThreshold ? '超出' : '正常'}
+              {t('confidenceAlert.current')}: {isAboveThreshold ? t('confidenceAlert.exceeded') : t('confidenceAlert.normal')}
             </span>
           </div>
           <div className="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
@@ -454,13 +460,13 @@ export function ConfidenceAlertPanel({
 
         <div className="border-t border-gray-100 pt-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-900">预警列表</h4>
+            <h4 className="text-sm font-medium text-gray-900">{t('confidenceAlert.alertList')}</h4>
             {alerts.length > 0 && (
               <button
                 onClick={clearAllAlerts}
                 className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
               >
-                清除全部
+                {t('confidenceAlert.clearAll')}
               </button>
             )}
           </div>
@@ -480,8 +486,8 @@ export function ConfidenceAlertPanel({
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="text-sm">暂无预警</p>
-              <p className="text-xs text-gray-400 mt-1">系统正在监控置信区间变化</p>
+              <p className="text-sm">{t('confidenceAlert.noAlerts')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('confidenceAlert.noAlertsDesc')}</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
@@ -510,10 +516,10 @@ export function ConfidenceAlertPanel({
                                 severityConfig.bgColor
                               } ${severityConfig.textColor}`}
                             >
-                              {severityConfig.label}
+                              {t(`confidenceAlert.severity.${alert.severity}`)}
                             </span>
                             <span className="text-sm font-medium text-gray-900">
-                              {typeConfig.label}
+                              {t(`confidenceAlert.type.${alert.type}`)}
                             </span>
                           </div>
                           <p className="text-sm text-gray-700 mb-1">{alert.message}</p>
@@ -530,14 +536,14 @@ export function ConfidenceAlertPanel({
                             onClick={() => acknowledgeAlert(alert.id)}
                             className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                           >
-                            确认
+                            {t('confidenceAlert.acknowledge')}
                           </button>
                         )}
                         <button
                           onClick={() => dismissAlert(alert.id)}
                           className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
                         >
-                          忽略
+                          {t('confidenceAlert.dismiss')}
                         </button>
                       </div>
                     </div>
@@ -545,14 +551,14 @@ export function ConfidenceAlertPanel({
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                         <div>
-                          <span className="text-gray-500">当前宽度:</span>
+                          <span className="text-gray-500">{t('confidenceAlert.currentWidthLabel')}</span>
                           <span className="ml-1 font-medium text-gray-900">
                             {alert.details.currentWidth.toFixed(6)}
                           </span>
                         </div>
                         {alert.details.previousWidth !== undefined && (
                           <div>
-                            <span className="text-gray-500">之前宽度:</span>
+                            <span className="text-gray-500">{t('confidenceAlert.previousWidthLabel')}</span>
                             <span className="ml-1 font-medium text-gray-900">
                               {alert.details.previousWidth.toFixed(6)}
                             </span>
@@ -560,7 +566,7 @@ export function ConfidenceAlertPanel({
                         )}
                         {alert.details.expansionPercent !== undefined && (
                           <div>
-                            <span className="text-gray-500">扩大幅度:</span>
+                            <span className="text-gray-500">{t('confidenceAlert.expansionPercentLabel')}</span>
                             <span className="ml-1 font-medium text-red-600">
                               +{alert.details.expansionPercent.toFixed(1)}%
                             </span>
@@ -568,14 +574,14 @@ export function ConfidenceAlertPanel({
                         )}
                         {alert.details.duration !== undefined && (
                           <div>
-                            <span className="text-gray-500">持续时间:</span>
+                            <span className="text-gray-500">{t('confidenceAlert.durationLabel')}</span>
                             <span className="ml-1 font-medium text-orange-600">
-                              {formatDuration(alert.details.duration)}
+                              {formatDuration(alert.details.duration, t)}
                             </span>
                           </div>
                         )}
                         <div>
-                          <span className="text-gray-500">阈值:</span>
+                          <span className="text-gray-500">{t('confidenceAlert.thresholdLabel')}</span>
                           <span className="ml-1 font-medium text-gray-900">
                             {alert.details.threshold.toFixed(4)}
                           </span>
@@ -590,11 +596,11 @@ export function ConfidenceAlertPanel({
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">预警统计</h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-3">{t('confidenceAlert.alertStats')}</h4>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">突然扩大</span>
+                <span className="text-xs text-gray-500">{t('confidenceAlert.suddenExpansion')}</span>
                 <span className="text-sm font-bold text-gray-900">
                   {stats.suddenExpansionCount}
                 </span>
@@ -614,7 +620,7 @@ export function ConfidenceAlertPanel({
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">持续高位</span>
+                <span className="text-xs text-gray-500">{t('confidenceAlert.sustainedHigh')}</span>
                 <span className="text-sm font-bold text-gray-900">{stats.sustainedHighCount}</span>
               </div>
               <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -633,7 +639,7 @@ export function ConfidenceAlertPanel({
           </div>
         </div>
 
-        <div className="text-xs text-gray-400 text-right">上次检测: {formatTime(lastCheck)}</div>
+        <div className="text-xs text-gray-400 text-right">{t('confidenceAlert.lastCheck')}: {formatTime(lastCheck)}</div>
       </div>
     </DashboardCard>
   );

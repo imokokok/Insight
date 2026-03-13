@@ -15,6 +15,7 @@ import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/ora
 import { RequestTrendChart } from './RequestTrendChart';
 import { ChainComparison } from './ChainComparison';
 import { RequestTypeDistribution } from './RequestTypeDistribution';
+import { useI18n } from '@/lib/i18n/provider';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -23,12 +24,6 @@ interface CrossChainPanelProps {
   autoUpdate?: boolean;
   updateInterval?: number;
 }
-
-const TIME_RANGE_CONFIG: Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> = {
-  '24h': { label: '24小时', field: 'requestCount24h' },
-  '7d': { label: '7天', field: 'requestCount7d' },
-  '30d': { label: '30天', field: 'requestCount30d' },
-};
 
 const CHAIN_COLORS: Record<string, string> = {
   'Cosmos Hub': '#2E3359',
@@ -72,9 +67,10 @@ interface StatCardProps {
   icon: React.ReactNode;
   trend?: number;
   suffix?: string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-function StatCard({ title, value, icon, trend, suffix }: StatCardProps) {
+function StatCard({ title, value, icon, trend, suffix, t }: StatCardProps) {
   const trendColor = trend
     ? trend > 0
       ? 'text-green-600'
@@ -99,7 +95,7 @@ function StatCard({ title, value, icon, trend, suffix }: StatCardProps) {
                 {trend > 0 ? '+' : ''}
                 {trend.toFixed(1)}%
               </span>
-              <span className="text-gray-400 ml-1">vs 上周</span>
+              <span className="text-gray-400 ml-1">{t('crossChainPanel.vsLastWeek')}</span>
             </div>
           )}
         </div>
@@ -116,9 +112,10 @@ interface CustomTooltipProps {
     value: number;
     payload: { name: string; value: number; color: string };
   }>;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0]?.payload;
@@ -130,7 +127,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">
-          {data.value.toLocaleString()} 请求
+          {data.value.toLocaleString()} {t('crossChainPanel.requests')}
         </span>
       </div>
     </div>
@@ -140,9 +137,10 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 interface ChainDetailModalProps {
   chain: ChainDataRequest | null;
   onClose: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-function ChainDetailModal({ chain, onClose }: ChainDetailModalProps) {
+function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
   if (!chain) return null;
 
   return (
@@ -176,25 +174,25 @@ function ChainDetailModal({ chain, onClose }: ChainDetailModalProps) {
 
         <div className="p-6 space-y-6">
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Chain ID</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('crossChainPanel.chainId')}</p>
             <p className="text-gray-900 font-mono">{chain.chainId}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-blue-50 rounded-xl p-4 text-center">
-              <p className="text-gray-500 text-xs mb-1">24小时</p>
+              <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange24h')}</p>
               <p className="text-blue-600 font-bold text-lg">
                 {chain.requestCount24h.toLocaleString()}
               </p>
             </div>
             <div className="bg-green-50 rounded-xl p-4 text-center">
-              <p className="text-gray-500 text-xs mb-1">7天</p>
+              <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange7d')}</p>
               <p className="text-green-600 font-bold text-lg">
                 {chain.requestCount7d.toLocaleString()}
               </p>
             </div>
             <div className="bg-purple-50 rounded-xl p-4 text-center">
-              <p className="text-gray-500 text-xs mb-1">30天</p>
+              <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange30d')}</p>
               <p className="text-purple-600 font-bold text-lg">
                 {chain.requestCount30d.toLocaleString()}
               </p>
@@ -217,7 +215,7 @@ function ChainDetailModal({ chain, onClose }: ChainDetailModalProps) {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                <span className="text-gray-500 text-sm">平均 Gas 成本</span>
+                <span className="text-gray-500 text-sm">{t('crossChainPanel.avgGasCost')}</span>
               </div>
               <span className="text-gray-900 font-mono font-semibold">
                 {chain.avgGasCost.toFixed(6)} BAND
@@ -226,7 +224,7 @@ function ChainDetailModal({ chain, onClose }: ChainDetailModalProps) {
           </div>
 
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">支持的代币</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">{t('crossChainPanel.supportedTokens')}</p>
             <div className="flex flex-wrap gap-2">
               {chain.supportedSymbols.map((symbol) => (
                 <span
@@ -241,13 +239,13 @@ function ChainDetailModal({ chain, onClose }: ChainDetailModalProps) {
 
           <div className="pt-4 border-t border-gray-200">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">日均请求量</span>
+              <span className="text-gray-500">{t('crossChainPanel.dailyAvgRequests')}</span>
               <span className="text-gray-900 font-medium">
                 {Math.round(chain.requestCount7d / 7).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-gray-500">月均请求量</span>
+              <span className="text-gray-500">{t('crossChainPanel.monthlyAvgRequests')}</span>
               <span className="text-gray-900 font-medium">
                 {Math.round(chain.requestCount30d / 30).toLocaleString()}
               </span>
@@ -264,6 +262,7 @@ export function CrossChainPanel({
   autoUpdate = true,
   updateInterval = 60000,
 }: CrossChainPanelProps) {
+  const { t } = useI18n();
   const [stats, setStats] = useState<CrossChainStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -273,6 +272,12 @@ export function CrossChainPanel({
     ChainDataRequest[]
   >([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const TIME_RANGE_CONFIG: Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> = {
+    '24h': { label: t('crossChainPanel.timeRange24h'), field: 'requestCount24h' },
+    '7d': { label: t('crossChainPanel.timeRange7d'), field: 'requestCount7d' },
+    '30d': { label: t('crossChainPanel.timeRange30d'), field: 'requestCount30d' },
+  };
 
   const fetchData = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -292,7 +297,7 @@ export function CrossChainPanel({
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : '获取跨链数据失败');
+      setError(err instanceof Error ? err.message : t('crossChainPanel.fetchCrossChainDataFailed'));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
@@ -319,9 +324,9 @@ export function CrossChainPanel({
   }, [fetchData, autoUpdate, updateInterval]);
 
   const chartData =
-    stats?.chains.map((chain, index) => ({
+    stats?.chains.map((chain: ChainDataRequest, index) => ({
       name: chain.chainName,
-      value: chain[TIME_RANGE_CONFIG[timeRange].field] as number,
+      value: chain[TIME_RANGE_CONFIG[timeRange].field as keyof ChainDataRequest] as number,
       color: getChainColor(chain.chainName, index),
     })) || [];
 
@@ -365,7 +370,7 @@ export function CrossChainPanel({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          <span className="text-sm">加载跨链数据...</span>
+          <span className="text-sm">{t('crossChainPanel.loadingCrossChainData')}</span>
         </div>
       </div>
     );
@@ -393,7 +398,7 @@ export function CrossChainPanel({
             onClick={fetchData}
             className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
           >
-            重试
+            {t('crossChainPanel.retry')}
           </button>
         </div>
       </div>
@@ -404,8 +409,8 @@ export function CrossChainPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">跨链数据请求统计</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Band Protocol 跨链数据请求分布</p>
+          <h2 className="text-lg font-bold text-gray-900">{t('crossChainPanel.crossChainRequestStats')}</h2>
+          <p className="text-gray-500 text-sm mt-0.5">{t('crossChainPanel.bandProtocolDistribution')}</p>
         </div>
         <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
           {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
@@ -426,9 +431,10 @@ export function CrossChainPanel({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title="24小时请求总量"
+          title={t('crossChainPanel.totalRequests24h')}
           value={stats?.totalRequests24h || 0}
           trend={5.2}
+          t={t}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -441,9 +447,10 @@ export function CrossChainPanel({
           }
         />
         <StatCard
-          title="7天请求总量"
+          title={t('crossChainPanel.totalRequests7d')}
           value={stats?.totalRequests7d || 0}
           trend={3.8}
+          t={t}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -456,9 +463,10 @@ export function CrossChainPanel({
           }
         />
         <StatCard
-          title="30天请求总量"
+          title={t('crossChainPanel.totalRequests30d')}
           value={stats?.totalRequests30d || 0}
           trend={8.5}
+          t={t}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -479,12 +487,12 @@ export function CrossChainPanel({
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-gray-900 text-sm font-semibold">各链请求量分布</p>
+            <p className="text-gray-900 text-sm font-semibold">{t('crossChainPanel.chainRequestDistribution')}</p>
             <p className="text-gray-500 text-xs mt-0.5">
-              {TIME_RANGE_CONFIG[timeRange].label}总请求: {totalRequests.toLocaleString()}
+              {TIME_RANGE_CONFIG[timeRange].label}{t('crossChainPanel.totalRequests')}: {totalRequests.toLocaleString()}
             </p>
           </div>
-          <div className="text-xs text-gray-400">点击柱状图查看详情</div>
+          <div className="text-xs text-gray-400">{t('crossChainPanel.clickBarForDetails')}</div>
         </div>
 
         <div className="h-64">
@@ -514,7 +522,7 @@ export function CrossChainPanel({
                 tickFormatter={(value) => formatNumber(value)}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+              <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
               <Bar
                 dataKey="value"
                 radius={[4, 4, 0, 0]}
@@ -535,9 +543,9 @@ export function CrossChainPanel({
 
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-900 text-sm font-semibold">各链概览</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('crossChainPanel.chainOverview')}</p>
           <p className="text-xs text-gray-500">
-            已选择 {selectedChainsForComparison.length}/5 条链进行对比
+            {t('crossChainPanel.chainsSelectedForComparison', { count: selectedChainsForComparison.length })}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -592,18 +600,18 @@ export function CrossChainPanel({
                   <span className="text-gray-900 font-medium text-sm">{chain.chainName}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Gas:</span>
+                  <span className="text-gray-500">{t('crossChainPanel.gas')}</span>
                   <span className="text-gray-700 font-mono">{chain.avgGasCost.toFixed(4)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500">代币:</span>
+                  <span className="text-gray-500">{t('crossChainPanel.tokens')}</span>
                   <span className="text-gray-700">
                     {chain.supportedSymbols.slice(0, 3).join(', ')}
                     {chain.supportedSymbols.length > 3 ? '...' : ''}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500">请求:</span>
+                  <span className="text-gray-500">{t('crossChainPanel.requestsLabel')}</span>
                   <span className="text-gray-700 font-medium">
                     {chain[
                       TIME_RANGE_CONFIG[timeRange].field as keyof ChainDataRequest
@@ -617,7 +625,7 @@ export function CrossChainPanel({
       </div>
 
       {selectedChain && (
-        <ChainDetailModal chain={selectedChain} onClose={() => setSelectedChain(null)} />
+        <ChainDetailModal chain={selectedChain} onClose={() => setSelectedChain(null)} t={t} />
       )}
 
       {stats && (

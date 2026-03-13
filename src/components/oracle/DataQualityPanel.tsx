@@ -12,6 +12,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
+import { useI18n } from '@/lib/i18n/provider';
 
 type QualityStatus = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -80,13 +81,13 @@ const ORACLE_COLORS: Record<string, string> = {
   DIA: '#06b6d4',
 };
 
-const STATUS_CONFIG = {
+const getStatusConfig = (t: (key: string) => string) => ({
   excellent: {
     color: 'text-green-600',
     bgColor: 'bg-green-500',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '优秀',
+    label: t('dataQuality.excellent'),
     score: 90,
   },
   good: {
@@ -94,7 +95,7 @@ const STATUS_CONFIG = {
     bgColor: 'bg-blue-500',
     lightBg: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '良好',
+    label: t('dataQuality.good'),
     score: 70,
   },
   warning: {
@@ -102,7 +103,7 @@ const STATUS_CONFIG = {
     bgColor: 'bg-yellow-500',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '警告',
+    label: t('dataQuality.warning'),
     score: 50,
   },
   critical: {
@@ -110,10 +111,10 @@ const STATUS_CONFIG = {
     bgColor: 'bg-red-500',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '异常',
+    label: t('dataQuality.critical'),
     score: 30,
   },
-};
+});
 
 function getStatusFromScore(score: number): QualityStatus {
   if (score >= 90) return 'excellent';
@@ -282,6 +283,8 @@ function PriceDeviationCard({
   data: PriceDeviationData[];
   basePrice: number;
 }) {
+  const { t } = useI18n();
+  const STATUS_CONFIG = getStatusConfig(t);
   const avgDeviation = data.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) / data.length;
   const maxDeviation = Math.max(...data.map((d) => Math.abs(d.deviationPercent)));
 
@@ -289,8 +292,8 @@ function PriceDeviationCard({
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">价格偏差监控</h3>
-          <p className="text-xs text-gray-500 mt-0.5">与其他预言机价格对比分析</p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.priceDeviationMonitor')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.comparisonWithOracles')}</p>
         </div>
         <div className="p-2 bg-blue-50 rounded-lg">
           <svg
@@ -311,11 +314,11 @@ function PriceDeviationCard({
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">基准价格</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.basePrice')}</p>
           <p className="text-lg font-bold text-gray-900">${basePrice.toFixed(2)}</p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">平均偏差</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgDeviation')}</p>
           <p
             className={`text-lg font-bold ${avgDeviation >= 0.5 ? 'text-orange-600' : 'text-gray-900'}`}
           >
@@ -323,7 +326,7 @@ function PriceDeviationCard({
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">最大偏差</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.maxDeviation')}</p>
           <p
             className={`text-lg font-bold ${maxDeviation >= 1.0 ? 'text-red-600' : 'text-gray-900'}`}
           >
@@ -334,7 +337,7 @@ function PriceDeviationCard({
 
       <div className="space-y-2">
         {data.map((item) => {
-          const statusConfig = STATUS_CONFIG[item.status];
+          const config = STATUS_CONFIG[item.status];
           return (
             <div
               key={item.oracle}
@@ -358,9 +361,9 @@ function PriceDeviationCard({
                   </p>
                 </div>
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${statusConfig.lightBg} ${statusConfig.color}`}
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${config.lightBg} ${config.color}`}
                 >
-                  {statusConfig.label}
+                  {config.label}
                 </span>
               </div>
             </div>
@@ -372,11 +375,13 @@ function PriceDeviationCard({
 }
 
 function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
+  const { t } = useI18n();
+  
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">偏差分布图</h3>
-        <p className="text-xs text-gray-500 mt-0.5">各预言机价格偏差百分比</p>
+        <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.deviationDistribution')}</h3>
+        <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.deviationPercentByOracle')}</p>
       </div>
 
       <ResponsiveContainer width="100%" height={200}>
@@ -405,11 +410,11 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
                   <p className="text-xs text-gray-600 font-medium mb-2">{item.oracle}</p>
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">价格:</span>
+                      <span className="text-gray-500">{t('dataQuality.price')}:</span>
                       <span className="text-gray-900 font-mono">${item.price.toFixed(4)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">偏差:</span>
+                      <span className="text-gray-500">{t('dataQuality.deviation')}:</span>
                       <span
                         className={`font-mono ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
                       >
@@ -447,15 +452,15 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-green-500 rounded" />
-          <span className="text-xs text-gray-500">正常 (&lt;0.2%)</span>
+          <span className="text-xs text-gray-500">{t('dataQuality.normal')} (&lt;0.2%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-yellow-500 rounded" />
-          <span className="text-xs text-gray-500">警告 (0.2-0.5%)</span>
+          <span className="text-xs text-gray-500">{t('dataQuality.warningRange')} (0.2-0.5%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-red-500 rounded" />
-          <span className="text-xs text-gray-500">异常 (&gt;0.5%)</span>
+          <span className="text-xs text-gray-500">{t('dataQuality.criticalRange')} (&gt;0.5%)</span>
         </div>
       </div>
     </div>
@@ -469,12 +474,14 @@ function LatencyDistributionChart({
   data: LatencyDistributionData[];
   metrics: LatencyMetrics;
 }) {
+  const { t } = useI18n();
+  
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">延迟分布分析</h3>
-          <p className="text-xs text-gray-500 mt-0.5">响应延迟分布直方图</p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.latencyDistributionAnalysis')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.responseLatencyHistogram')}</p>
         </div>
         <div className="p-2 bg-purple-50 rounded-lg">
           <svg
@@ -540,9 +547,9 @@ function LatencyDistributionChart({
               const item = payload[0].payload as LatencyDistributionData;
               return (
                 <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
-                  <p className="text-xs text-gray-600 font-medium">延迟范围: {item.range}ms</p>
-                  <p className="text-xs text-gray-600 mt-1">占比: {item.percentage.toFixed(1)}%</p>
-                  <p className="text-xs text-gray-600 mt-1">样本数: {item.count}</p>
+                  <p className="text-xs text-gray-600 font-medium">{t('dataQuality.latencyRange')}: {item.range}ms</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('dataQuality.percentage')}: {item.percentage.toFixed(1)}%</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('dataQuality.sampleCount')}: {item.count}</p>
                 </div>
               );
             }}
@@ -561,19 +568,19 @@ function LatencyDistributionChart({
 
       <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-gray-100">
         <div className="text-center">
-          <p className="text-xs text-gray-500">平均值</p>
+          <p className="text-xs text-gray-500">{t('dataQuality.avgValue')}</p>
           <p className="text-sm font-semibold text-gray-900">{metrics.avg}ms</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">最小值</p>
+          <p className="text-xs text-gray-500">{t('dataQuality.minValue')}</p>
           <p className="text-sm font-semibold text-gray-900">{metrics.min}ms</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">最大值</p>
+          <p className="text-xs text-gray-500">{t('dataQuality.maxValue')}</p>
           <p className="text-sm font-semibold text-gray-900">{metrics.max}ms</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">标准差</p>
+          <p className="text-xs text-gray-500">{t('dataQuality.stdDev')}</p>
           <p className="text-sm font-semibold text-gray-900">{metrics.stdDev}ms</p>
         </div>
       </div>
@@ -582,6 +589,9 @@ function LatencyDistributionChart({
 }
 
 function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability[] }) {
+  const { t } = useI18n();
+  const STATUS_CONFIG = getStatusConfig(t);
+  
   const avgAvailability = sources.reduce((sum, s) => sum + s.availability, 0) / sources.length;
   const avgUpdateFrequency =
     sources.reduce((sum, s) => sum + s.updateFrequency, 0) / sources.length;
@@ -592,19 +602,19 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
 
   const getTimeAgo = (date: Date) => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}秒前`;
+    if (seconds < 60) return `${seconds}${t('dataQuality.secondsAgo')}`;
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}分钟前`;
+    if (minutes < 60) return `${minutes}${t('dataQuality.minutesAgo')}`;
     const hours = Math.floor(minutes / 60);
-    return `${hours}小时前`;
+    return `${hours}${t('dataQuality.hoursAgo')}`;
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">数据源可靠性评分</h3>
-          <p className="text-xs text-gray-500 mt-0.5">数据源可用性与更新状态</p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.dataSourceReliability')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.availabilityAndUpdateStatus')}</p>
         </div>
         <div className="p-2 bg-green-50 rounded-lg">
           <svg
@@ -625,18 +635,18 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">平均可用性</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgAvailability')}</p>
           <p className="text-lg font-bold text-green-600">{avgAvailability.toFixed(2)}%</p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">平均更新频率</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgUpdateFrequency')}</p>
           <p className="text-lg font-bold text-gray-900">
             {avgUpdateFrequency.toFixed(0)}
-            <span className="text-sm text-gray-500 ml-1">秒</span>
+            <span className="text-sm text-gray-500 ml-1">{t('dataQuality.secondsAgo').replace('前', '')}</span>
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
-          <p className="text-xs text-gray-500 mb-1">最近更新</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.recentUpdate')}</p>
           <p className="text-sm font-bold text-gray-900">{getTimeAgo(mostRecentUpdate)}</p>
         </div>
       </div>
@@ -678,8 +688,8 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
               </div>
 
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>更新频率: {source.updateFrequency}秒</span>
-                <span>最后更新: {getTimeAgo(source.lastSuccessfulUpdate)}</span>
+                <span>{t('dataQuality.updateFrequency')}: {source.updateFrequency}s</span>
+                <span>{t('dataQuality.lastUpdate')}: {getTimeAgo(source.lastSuccessfulUpdate)}</span>
               </div>
             </div>
           );
@@ -690,13 +700,16 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
 }
 
 function QualityScoreCard({ score }: { score: QualityScore }) {
+  const { t } = useI18n();
+  const STATUS_CONFIG = getStatusConfig(t);
+  
   const overallStatus = getStatusFromScore(score.overall);
   const statusConfig = STATUS_CONFIG[overallStatus];
 
   const scoreItems = [
-    { label: '价格准确性', value: score.priceAccuracy, color: '#3b82f6' },
-    { label: '延迟性能', value: score.latency, color: '#8b5cf6' },
-    { label: '可靠性', value: score.reliability, color: '#10b981' },
+    { label: t('dataQuality.priceAccuracy'), value: score.priceAccuracy, color: '#3b82f6' },
+    { label: t('dataQuality.latencyPerformance'), value: score.latency, color: '#8b5cf6' },
+    { label: t('dataQuality.reliability'), value: score.reliability, color: '#10b981' },
   ];
 
   const getStrokeColor = () => {
@@ -718,8 +731,8 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">综合质量评分</h3>
-          <p className="text-xs text-gray-500 mt-0.5">数据质量综合评估</p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.compositeQualityScore')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.comprehensiveDataAssessment')}</p>
         </div>
         <div className={`p-2 rounded-lg ${statusConfig.lightBg}`}>
           <svg
@@ -756,7 +769,7 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <p className={`text-3xl font-bold ${statusConfig.color}`}>{score.overall}</p>
-              <p className="text-xs text-gray-500">总分</p>
+              <p className="text-xs text-gray-500">{t('dataQuality.totalScore')}</p>
             </div>
           </div>
         </div>
@@ -795,6 +808,7 @@ export function DataQualityPanel({
   autoUpdate = true,
   updateInterval = 30000,
 }: DataQualityPanelProps) {
+  const { t } = useI18n();
   const [config, setConfig] = useState<DataQualityConfig>({
     symbol,
     basePrice,
@@ -846,18 +860,18 @@ export function DataQualityPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">数据质量分析</h2>
-          <p className="text-sm text-gray-500 mt-1">预言机数据质量专业分析指标</p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('dataQuality.dataQualityAnalysis')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('dataQuality.oracleDataQualityMetrics')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
-            最后更新: {lastUpdated.toLocaleTimeString('zh-CN')}
+            {t('dataQuality.lastUpdated')}: {lastUpdated.toLocaleTimeString('zh-CN')}
           </span>
           <button
             onClick={updateData}
             className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors"
           >
-            刷新数据
+            {t('dataQuality.refreshData')}
           </button>
         </div>
       </div>

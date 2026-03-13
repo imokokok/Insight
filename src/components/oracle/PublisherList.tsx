@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Publisher, PublisherStatus } from '@/lib/types/oracle';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;
@@ -81,10 +82,11 @@ const mockPublishers: Publisher[] = [
 ];
 
 function StatusBadge({ status }: { status: PublisherStatus }) {
+  const { t } = useI18n();
   const config = {
-    active: { bg: 'bg-green-100', text: 'text-green-700', label: 'Active' },
-    inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Inactive' },
-    degraded: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Degraded' },
+    active: { bg: 'bg-green-100', text: 'text-green-700', label: t('publisher.status.active') },
+    inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
+    degraded: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: t('publisher.status.degraded') },
   };
 
   const { bg, text, label } = config[status];
@@ -150,6 +152,7 @@ export function PublisherList({
   onPublisherSelect,
   onAnomalyDetected,
 }: PublisherListProps) {
+  const { t } = useI18n();
   const [filter, setFilter] = useState<string>('all');
 
   const anomalyDetection = useMemo(() => {
@@ -179,8 +182,8 @@ export function PublisherList({
       const isLatencyAnomaly = latency > avgLatency * 2;
 
       const anomalyTypes: string[] = [];
-      if (isPriceDeviationAnomaly) anomalyTypes.push('价格偏差');
-      if (isLatencyAnomaly) anomalyTypes.push('响应延迟');
+      if (isPriceDeviationAnomaly) anomalyTypes.push(t('publisher.priceDeviation'));
+      if (isLatencyAnomaly) anomalyTypes.push(t('publisher.latencyAnomaly'));
 
       if (anomalyTypes.length > 0) {
         anomalyCount++;
@@ -194,7 +197,7 @@ export function PublisherList({
     });
 
     return { anomalyDetails, anomalyCount };
-  }, [publishers]);
+  }, [publishers, t]);
 
   useMemo(() => {
     onAnomalyDetected?.(anomalyDetection.anomalyCount, anomalyDetection.anomalyDetails);
@@ -222,20 +225,20 @@ export function PublisherList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Filter by status:</label>
+          <label className="text-sm text-gray-600">{t('publisher.filterByStatus')}:</label>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="all">All Publishers</option>
-            <option value="active">Active Only</option>
-            <option value="degraded">Degraded</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">{t('publisher.allPublishers')}</option>
+            <option value="active">{t('publisher.activeOnly')}</option>
+            <option value="degraded">{t('publisher.degraded')}</option>
+            <option value="inactive">{t('publisher.inactive')}</option>
           </select>
         </div>
         <div className="text-sm text-gray-500">
-          {filteredPublishers.length} publisher{filteredPublishers.length !== 1 ? 's' : ''}
+          {t('publisher.publisherCount', { count: filteredPublishers.length })}
         </div>
       </div>
 
@@ -287,16 +290,16 @@ export function PublisherList({
                             <StatusBadge status={publisher.status} />
                             {hasAnomaly && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-300">
-                                异常
+                                {t('publisher.anomaly')}
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
-                            {publisher.submissionCount.toLocaleString()} submissions
+                            {publisher.submissionCount.toLocaleString()} {t('publisher.submissions')}
                           </p>
                           {hasAnomaly && (
                             <p className="text-xs text-red-600 mt-1">
-                              异常类型: {anomalyInfo.anomalyTypes.join(', ')}
+                              {t('publisher.anomalyTypes')}{anomalyInfo.anomalyTypes.join(', ')}
                             </p>
                           )}
                         </div>
@@ -313,7 +316,7 @@ export function PublisherList({
 
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-500 text-xs">Latency</p>
+                        <p className="text-gray-500 text-xs">{t('publisher.latency')}</p>
                         <p
                           className={`font-medium ${anomalyInfo?.isLatencyAnomaly ? 'text-red-600' : 'text-gray-900'}`}
                         >
@@ -322,13 +325,13 @@ export function PublisherList({
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 text-xs">Accuracy</p>
+                        <p className="text-gray-500 text-xs">{t('publisher.accuracy')}</p>
                         <p className="font-medium text-gray-900">
                           {publisher.accuracy?.toFixed(1) ?? '-'}%
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 text-xs">Last Update</p>
+                        <p className="text-gray-500 text-xs">{t('publisher.lastUpdate')}</p>
                         <p className="font-medium text-gray-900">
                           {formatTimeAgo(publisher.lastUpdate)}
                         </p>
@@ -342,7 +345,7 @@ export function PublisherList({
         </div>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          No publishers found matching the filter criteria.
+          {t('publisher.noPublishers')}
         </div>
       )}
     </div>

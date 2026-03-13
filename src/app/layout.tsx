@@ -7,6 +7,9 @@ import { I18nProvider } from '@/lib/i18n/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { SWRProvider } from '@/providers/SWRProvider';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { RealtimeProvider } from '@/contexts/RealtimeContext';
+import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -37,13 +40,22 @@ export default function RootLayout({
       >
         <I18nProvider>
           <SWRProvider>
-            <TimeRangeProvider>
-              <ErrorBoundary>
-                <Navbar />
-                <main className="flex-1 bg-gray-50">{children}</main>
-                <Footer />
-              </ErrorBoundary>
-            </TimeRangeProvider>
+            <AuthProvider>
+              <TimeRangeProvider>
+                <RealtimeProvider>
+                  <ErrorBoundary>
+                    <Navbar />
+                    <main className="flex-1 bg-gray-50">{children}</main>
+                    <Footer />
+                    <ConnectionStatusIndicator
+                      showLabel={false}
+                      showReconnectButton={true}
+                      className="fixed bottom-4 right-4 z-50"
+                    />
+                  </ErrorBoundary>
+                </RealtimeProvider>
+              </TimeRangeProvider>
+            </AuthProvider>
           </SWRProvider>
         </I18nProvider>
         <Analytics />
