@@ -27,6 +27,7 @@ import {
 } from '@/lib/oracles';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('PriceDeviationMonitor');
 
@@ -475,16 +476,16 @@ export function PriceDeviationMonitor() {
         <div style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={currentPrices} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="provider"
                 tickFormatter={(value) => PROVIDER_NAMES[value as OracleProvider]}
-                stroke="#9ca3af"
-                tick={{ fontSize: 12, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 12, fill: chartColors.recharts.tick }}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 12, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 12, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
               <Tooltip
@@ -496,22 +497,22 @@ export function PriceDeviationMonitor() {
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
               <Bar dataKey="deviationPercent" radius={[4, 4, 0, 0]}>
@@ -520,10 +521,10 @@ export function PriceDeviationMonitor() {
                     key={`cell-${index}`}
                     fill={
                       entry.status === 'critical'
-                        ? '#ef4444'
+                        ? chartColors.recharts.danger
                         : entry.status === 'warning'
-                          ? '#f59e0b'
-                          : '#10b981'
+                          ? chartColors.recharts.warning
+                          : chartColors.recharts.success
                     }
                   />
                 ))}
@@ -554,25 +555,25 @@ export function PriceDeviationMonitor() {
         <div style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={historicalData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={30}
               />
               <YAxis
                 yAxisId="price"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `$${value.toFixed(2)}`}
                 width={70}
               />
               <YAxis
                 yAxisId="deviation"
                 orientation="right"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(1)}%`}
                 width={60}
               />
@@ -643,7 +644,7 @@ export function PriceDeviationMonitor() {
                 yAxisId="deviation"
                 type="monotone"
                 dataKey="deviationPercent"
-                stroke="#6b7280"
+                stroke={chartColors.recharts.tick}
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -661,16 +662,16 @@ export function PriceDeviationMonitor() {
         <div style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={historicalData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={30}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
               <Tooltip
@@ -681,28 +682,28 @@ export function PriceDeviationMonitor() {
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
               <Line
                 type="monotone"
                 dataKey="deviationPercent"
-                stroke="#3b82f6"
+                stroke={chartColors.recharts.primaryLight}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}

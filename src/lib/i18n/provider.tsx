@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import en from '@/i18n/en.json';
 import zhCN from '@/i18n/zh-CN.json';
@@ -56,21 +56,19 @@ function translate(
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en');
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return 'en';
     setMounted(true);
     const savedLocale = localStorage.getItem('preferredLocale') as Locale;
     if (savedLocale && ['en', 'zh-CN'].includes(savedLocale)) {
-      setLocaleState(savedLocale);
-    } else if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language;
-      if (browserLang.startsWith('zh')) {
-        setLocaleState('zh-CN');
-      }
+      return savedLocale;
     }
-  }, []);
+    if (typeof navigator !== 'undefined' && navigator.language.startsWith('zh')) {
+      return 'zh-CN';
+    }
+    return 'en';
+  });
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);

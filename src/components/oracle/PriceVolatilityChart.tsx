@@ -20,6 +20,7 @@ import { TooltipProps } from '@/lib/types/recharts';
 import { DashboardCard } from './DashboardCard';
 import { VolatilityAlert } from './VolatilityAlert';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -542,18 +543,18 @@ export function PriceVolatilityChart({
                   layout="vertical"
                   margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                   <XAxis
                     type="number"
-                    stroke="#9ca3af"
-                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    stroke={chartColors.recharts.axis}
+                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                     tickFormatter={(value) => `${value.toFixed(2)}%`}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="#9ca3af"
-                    tick={{ fontSize: 12, fill: '#374151' }}
+                    stroke={chartColors.recharts.axis}
+                    tick={{ fontSize: 12, fill: chartColors.recharts.tickDark }}
                     width={80}
                   />
                   <Tooltip content={<CustomTooltip />} />
@@ -576,16 +577,16 @@ export function PriceVolatilityChart({
                     data={trendData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                     <XAxis
                       dataKey="period"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       minTickGap={40}
                     />
                     <YAxis
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickFormatter={(value) => `${value}%`}
                       width={50}
                     />
@@ -618,16 +619,16 @@ export function PriceVolatilityChart({
                     data={decompositionData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                     <XAxis
                       dataKey="timestamp"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       minTickGap={40}
                     />
                     <YAxis
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickFormatter={(value) => `${value}%`}
                       width={50}
                     />

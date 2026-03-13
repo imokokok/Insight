@@ -28,7 +28,7 @@ function generateTestData(count) {
 
 function downsampleData(data, config = {}) {
   const dataLength = data.length;
-  
+
   if (dataLength <= 200) return data;
 
   const targetPoints = config.targetPoints || Math.min(250, Math.floor(dataLength * 0.25));
@@ -89,7 +89,8 @@ function downsampleData(data, config = {}) {
         }
 
         const firstPoint = firstHalfMax.price > firstHalfMin.price ? firstHalfMax : firstHalfMin;
-        const secondPoint = secondHalfMax.price > secondHalfMin.price ? secondHalfMax : secondHalfMin;
+        const secondPoint =
+          secondHalfMax.price > secondHalfMin.price ? secondHalfMax : secondHalfMin;
 
         result.push({ ...firstPoint });
         result.push({ ...secondPoint });
@@ -132,9 +133,8 @@ function runPerformanceTests() {
   for (const size of testSizes) {
     const data = generateTestData(size);
 
-    const { result: downsampled, time } = measureTime(
-      `Downsampling ${size} points`,
-      () => downsampleData(data, { preservePeaks: true, preserveTrends: true })
+    const { result: downsampled, time } = measureTime(`Downsampling ${size} points`, () =>
+      downsampleData(data, { preservePeaks: true, preserveTrends: true })
     );
 
     const compressionRatio = ((1 - downsampled.length / size) * 100).toFixed(1);
@@ -180,7 +180,9 @@ function runPerformanceTests() {
   console.log(`Total Tests: ${results.length}`);
   console.log(`Passed: ${passedTests}`);
   console.log(`Failed: ${results.length - passedTests}`);
-  console.log(`Average Time: ${(results.reduce((sum, r) => sum + parseFloat(r.downsamplingTime), 0) / results.length).toFixed(2)}ms`);
+  console.log(
+    `Average Time: ${(results.reduce((sum, r) => sum + parseFloat(r.downsamplingTime), 0) / results.length).toFixed(2)}ms`
+  );
   console.log('\n========================================\n');
 
   return {

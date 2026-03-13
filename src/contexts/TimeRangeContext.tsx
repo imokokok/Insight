@@ -110,11 +110,6 @@ export function TimeRangeProvider({
     getStoredCustomDateRange()
   );
   const [brushRange, setBrushRangeState] = useState<BrushRange | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   const setGlobalTimeRange = useCallback((range: TimeRange) => {
     setGlobalTimeRangeState(range);

@@ -6,6 +6,7 @@ import { REFRESH_OPTIONS, CHAIN_SUPPORT_DATA } from './constants';
 import { ChartType, ViewType, TIME_RANGES } from './types';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
+import { chartColors } from '@/lib/config/colors';
 import {
   PieChart,
   Pie,
@@ -123,7 +124,7 @@ export default function MarketOverviewPage() {
               labelLine={false}
               outerRadius={120}
               innerRadius={70}
-              fill="#8884d8"
+              fill={chartColors.pie.default}
               dataKey="share"
               paddingAngle={2}
               onMouseEnter={(_, index) => setHoveredItem(sortedOracleData[index]?.name)}
@@ -137,7 +138,11 @@ export default function MarketOverviewPage() {
                 <Cell
                   key={`cell-${index}`}
                   fill={entry.color}
-                  stroke={selectedItem === entry.name ? '#fff' : 'none'}
+                  stroke={
+                    selectedItem === entry.name
+                      ? chartColors.pie.stroke.selected
+                      : chartColors.pie.stroke.none
+                  }
                   strokeWidth={selectedItem === entry.name ? 3 : 0}
                   opacity={hoveredItem && hoveredItem !== entry.name ? 0.6 : 1}
                   style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
@@ -150,16 +155,20 @@ export default function MarketOverviewPage() {
       case 'trend':
         return (
           <LineChart data={trendData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-            <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(v) => `$${v}B`} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} />
+            <XAxis dataKey="date" stroke={chartColors.lineChart.axis} fontSize={12} />
+            <YAxis
+              stroke={chartColors.lineChart.axis}
+              fontSize={12}
+              tickFormatter={(v) => `$${v}B`}
+            />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line
               type="monotone"
               dataKey="chainlink"
               name="Chainlink"
-              stroke="#375BD2"
+              stroke={chartColors.marketOverview.chainlink}
               strokeWidth={2}
               dot={false}
             />
@@ -167,7 +176,7 @@ export default function MarketOverviewPage() {
               type="monotone"
               dataKey="pyth"
               name="Pyth Network"
-              stroke="#E6B800"
+              stroke={chartColors.marketOverview.pyth}
               strokeWidth={2}
               dot={false}
             />
@@ -175,7 +184,7 @@ export default function MarketOverviewPage() {
               type="monotone"
               dataKey="band"
               name="Band Protocol"
-              stroke="#516BEB"
+              stroke={chartColors.marketOverview.band}
               strokeWidth={2}
               dot={false}
             />
@@ -183,7 +192,7 @@ export default function MarketOverviewPage() {
               type="monotone"
               dataKey="api3"
               name="API3"
-              stroke="#7CE3CB"
+              stroke={chartColors.marketOverview.api3}
               strokeWidth={2}
               dot={false}
             />
@@ -191,7 +200,7 @@ export default function MarketOverviewPage() {
               type="monotone"
               dataKey="uma"
               name="UMA"
-              stroke="#FF4A8D"
+              stroke={chartColors.marketOverview.uma}
               strokeWidth={2}
               dot={false}
             />
@@ -200,9 +209,19 @@ export default function MarketOverviewPage() {
       case 'bar':
         return (
           <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-            <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.lineChart.grid}
+              horizontal={false}
+            />
+            <XAxis type="number" stroke={chartColors.lineChart.axis} fontSize={12} />
+            <YAxis
+              dataKey="name"
+              type="category"
+              stroke={chartColors.lineChart.axis}
+              fontSize={12}
+              width={100}
+            />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]}>
               {CHAIN_SUPPORT_DATA.map((entry, index) => (

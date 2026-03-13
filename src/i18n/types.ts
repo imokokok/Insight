@@ -1,3 +1,1 @@
-type Messages = typeof import('./en.json');
-
-export interface IntlMessages extends Messages {}
+export type IntlMessages = Record<string, unknown>;
