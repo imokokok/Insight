@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { DataSourceInfo } from '@/lib/oracles/api3';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface DataSourceTraceabilityPanelProps {
   data: DataSourceInfo[];
@@ -122,11 +123,11 @@ function DataSourceTypeIcon({ type }: { type: DataSourceInfo['type'] }) {
   );
 }
 
-function getTypeLabel(type: DataSourceInfo['type']): string {
+function getTypeLabel(type: DataSourceInfo['type'], t: (key: string) => string): string {
   const labels: Record<DataSourceInfo['type'], string> = {
-    exchange: '交易所',
-    traditional_finance: '传统金融',
-    other: '其他',
+    exchange: t('dataSourceTraceability.panel.typeExchange'),
+    traditional_finance: t('dataSourceTraceability.panel.typeTraditionalFinance'),
+    other: t('dataSourceTraceability.panel.typeOther'),
   };
   return labels[type];
 }
@@ -140,7 +141,7 @@ function getTypeBadgeClass(type: DataSourceInfo['type']): string {
   return classes[type];
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, t }: { text: string; t: (key: string) => string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -153,7 +154,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={handleCopy}
       className="p-1.5 rounded hover:bg-gray-100 transition-colors group"
-      title={copied ? '已复制' : '复制地址'}
+      title={copied ? t('dataSourceTraceability.panel.copied') : t('dataSourceTraceability.panel.copyAddress')}
     >
       {copied ? (
         <svg
@@ -183,7 +184,7 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function DataFlowDiagram() {
+function DataFlowDiagram({ t }: { t: (key: string) => string }) {
   return (
     <div className="flex items-center justify-center gap-2 py-2">
       <div className="flex flex-col items-center">
@@ -197,7 +198,7 @@ function DataFlowDiagram() {
             />
           </svg>
         </div>
-        <span className="text-xs text-gray-500 mt-1">数据源</span>
+        <span className="text-xs text-gray-500 mt-1">{t('dataSourceTraceability.panel.dataSource')}</span>
       </div>
 
       <div className="flex items-center">
@@ -289,7 +290,7 @@ function MetricBar({
   );
 }
 
-function DataSourceCard({ source }: { source: DataSourceInfo }) {
+function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string) => string }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -309,7 +310,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${getTypeBadgeClass(source.type)}`}
                 >
-                  {getTypeLabel(source.type)}
+                  {getTypeLabel(source.type, t)}
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">{source.chain}</p>
@@ -318,7 +319,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-xs text-gray-500">可信度评分</p>
+              <p className="text-xs text-gray-500">{t('dataSourceTraceability.panel.credibilityScore')}</p>
               <CircularProgress score={source.credibilityScore} size={50} strokeWidth={5} />
             </div>
             <svg
@@ -342,24 +343,24 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
         <div className="border-t border-gray-200 bg-white p-4">
           <div className="mb-4">
             <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-              数据传输路径
+              {t('dataSourceTraceability.panel.dataFlowPath')}
             </h5>
-            <DataFlowDiagram />
+            <DataFlowDiagram t={t} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500">Airnode 地址</span>
-                <CopyButton text={source.airnodeAddress} />
+                <span className="text-xs font-medium text-gray-500">{t('dataSourceTraceability.panel.airnodeAddress')}</span>
+                <CopyButton text={source.airnodeAddress} t={t} />
               </div>
               <p className="text-xs font-mono text-gray-700 break-all">{source.airnodeAddress}</p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500">dAPI 合约地址</span>
-                <CopyButton text={source.dapiContract} />
+                <span className="text-xs font-medium text-gray-500">{t('dataSourceTraceability.panel.dapiContractAddress')}</span>
+                <CopyButton text={source.dapiContract} t={t} />
               </div>
               <p className="text-xs font-mono text-gray-700 break-all">{source.dapiContract}</p>
             </div>
@@ -367,7 +368,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
 
           <div>
             <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-              详细指标
+              {t('dataSourceTraceability.panel.detailedMetrics')}
             </h5>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white border border-gray-200 rounded-lg p-3">
@@ -385,7 +386,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">准确性</span>
+                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.accuracy')}</span>
                 </div>
                 <p className={`text-lg font-bold ${getScoreColorClass(source.accuracy)}`}>
                   {source.accuracy}%
@@ -408,7 +409,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
                       d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">响应速度</span>
+                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.responseSpeed')}</span>
                 </div>
                 <p
                   className={`text-lg font-bold ${source.responseSpeed < 100 ? 'text-green-600' : source.responseSpeed < 150 ? 'text-blue-600' : 'text-yellow-600'}`}
@@ -433,7 +434,7 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-xs text-gray-500">可用性</span>
+                  <span className="text-xs text-gray-500">{t('dataSourceTraceability.panel.availability')}</span>
                 </div>
                 <p className={`text-lg font-bold ${getScoreColorClass(source.availability)}`}>
                   {source.availability}%
@@ -449,6 +450,8 @@ function DataSourceCard({ source }: { source: DataSourceInfo }) {
 }
 
 export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPanelProps) {
+  const { t } = useI18n();
+  
   const avgCredibility =
     data.length > 0
       ? Math.round(data.reduce((sum, s) => sum + s.credibilityScore, 0) / data.length)
@@ -466,29 +469,29 @@ export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPane
     <DashboardCard>
       <div className="space-y-6">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">数据源追溯性</h3>
-          <p className="text-sm text-gray-500 mt-1">第一方数据源完整链路追踪</p>
+          <h3 className="text-base font-semibold text-gray-900">{t('dataSourceTraceability.panel.title')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('dataSourceTraceability.panel.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50 rounded-lg">
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">数据源数量</p>
+            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.dataSourceCount')}</p>
             <p className="text-2xl font-bold text-gray-900">{data.length}</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">平均可信度</p>
+            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.avgCredibility')}</p>
             <div className="flex items-center justify-center">
               <CircularProgress score={avgCredibility} size={50} strokeWidth={5} />
             </div>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">交易所</p>
+            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.exchange')}</p>
             <p className="text-2xl font-bold text-purple-600">
               {typeDistribution['exchange'] || 0}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500 mb-1">传统金融</p>
+            <p className="text-xs text-gray-500 mb-1">{t('dataSourceTraceability.panel.traditionalFinance')}</p>
             <p className="text-2xl font-bold text-blue-600">
               {typeDistribution['traditional_finance'] || 0}
             </p>
@@ -497,7 +500,7 @@ export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPane
 
         <div className="space-y-3">
           {data.map((source) => (
-            <DataSourceCard key={source.id} source={source} />
+            <DataSourceCard key={source.id} source={source} t={t} />
           ))}
         </div>
 
@@ -516,7 +519,7 @@ export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPane
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <p>暂无数据源追溯信息</p>
+            <p>{t('dataSourceTraceability.panel.noData')}</p>
           </div>
         )}
       </div>

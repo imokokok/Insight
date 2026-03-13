@@ -15,3 +15,33 @@ export type {
   AccuracyTrendPoint,
   ExtremeMarketEvent,
 } from './usePriceHistory';
+export {
+  useFavorites,
+  useAddFavorite,
+  useRemoveFavorite,
+  useToggleFavorite,
+  useIsFavorited,
+  useUpdateFavorite,
+  mapConfigTypeFromDB,
+} from './useFavorites';
+export type { FavoriteConfig, UseFavoritesOptions } from './useFavorites';
+export {
+  useAlerts,
+  useCreateAlert,
+  useUpdateAlert,
+  useDeleteAlert,
+  useAlertEvents,
+  useAcknowledgeAlert,
+  useActiveAlertsRealtime,
+  useAlertEventsRealtime,
+} from './useAlerts';
+export type {
+  CreateAlertInput,
+  UpdateAlertInput,
+  UseAlertsReturn,
+  UseCreateAlertReturn,
+  UseUpdateAlertReturn,
+  UseDeleteAlertReturn,
+  UseAlertEventsReturn,
+  UseAcknowledgeAlertReturn,
+} from './useAlerts';

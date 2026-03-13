@@ -6,6 +6,7 @@ import { PublisherList } from './PublisherList';
 import { PublisherReliabilityScore } from './PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;
@@ -128,6 +129,7 @@ export function PublisherAnalysisPanel({
   publishers = mockPublishers,
   publisherStats = mockPublisherStats,
 }: PublisherAnalysisPanelProps) {
+  const { t } = useI18n();
   const [selectedPublisherId, setSelectedPublisherId] = useState<string | undefined>(
     publishers[0]?.id
   );
@@ -177,22 +179,22 @@ export function PublisherAnalysisPanel({
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-yellow-800">
-                检测到 {anomalyCount} 个异常 Publisher
+                {t('publisherAnalysis.anomalyDetected', { count: anomalyCount })}
               </h4>
               <p className="text-sm text-yellow-700 mt-1">
-                异常类型分布：
+                {t('publisherAnalysis.anomalyTypeDistribution')}
                 {anomalyTypeStats.priceDeviation > 0 && (
-                  <span className="ml-1">价格偏差异常 {anomalyTypeStats.priceDeviation} 个</span>
+                  <span className="ml-1">{t('publisherAnalysis.priceDeviationAnomaly', { count: anomalyTypeStats.priceDeviation })}</span>
                 )}
                 {anomalyTypeStats.priceDeviation > 0 && anomalyTypeStats.latency > 0 && (
                   <span className="mx-1">|</span>
                 )}
                 {anomalyTypeStats.latency > 0 && (
-                  <span>响应延迟异常 {anomalyTypeStats.latency} 个</span>
+                  <span>{t('publisherAnalysis.latencyAnomaly', { count: anomalyTypeStats.latency })}</span>
                 )}
               </p>
               <p className="text-xs text-yellow-600 mt-1">
-                请检查异常 Publisher 的运行状态和数据质量
+                {t('publisherAnalysis.anomalyCheckSuggestion')}
               </p>
             </div>
           </div>

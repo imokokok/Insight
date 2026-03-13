@@ -14,6 +14,7 @@ import {
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
 import { formatCompactNumberV2 } from '@/lib/utils/format';
+import { useI18n } from '@/lib/i18n/provider';
 
 type TimeRange = '24h' | '7d' | '30d';
 
@@ -90,18 +91,19 @@ const generateMockTrendData = (range: TimeRange): TrendDataPoint[] => {
   return data;
 };
 
-const getTimeUnit = (range: TimeRange): string => {
-  return range === '30d' ? '天' : '小时';
-};
-
 export function RequestTrendChart({
   client: _client,
   autoUpdate = false,
   updateInterval = 30000,
 }: RequestTrendChartProps) {
+  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getTimeUnit = useCallback((range: TimeRange): string => {
+    return range === '30d' ? t('requestTrend.day') : t('requestTrend.hour');
+  }, [t]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -165,19 +167,19 @@ export function RequestTrendChart({
           <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">请求数</span>
+              <span className="text-xs text-gray-500">{t('requestTrend.requests')}</span>
               <span className="text-xs font-semibold text-blue-600">
                 {formatCompactNumberV2(dataPoint.requests)}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">平均延迟</span>
+              <span className="text-xs text-gray-500">{t('requestTrend.avgLatency')}</span>
               <span className="text-xs font-semibold text-purple-600">
                 {dataPoint.avgLatency}ms
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">成功率</span>
+              <span className="text-xs text-gray-500">{t('requestTrend.successRate')}</span>
               <span className="text-xs font-semibold text-green-600">{dataPoint.successRate}%</span>
             </div>
           </div>
@@ -188,14 +190,14 @@ export function RequestTrendChart({
   };
 
   const timeRangeButtons = [
-    { key: '24h' as TimeRange, label: '24小时' },
-    { key: '7d' as TimeRange, label: '7天' },
-    { key: '30d' as TimeRange, label: '30天' },
+    { key: '24h' as TimeRange, label: t('requestTrend.timeRange24h') },
+    { key: '7d' as TimeRange, label: t('requestTrend.timeRange7d') },
+    { key: '30d' as TimeRange, label: t('requestTrend.timeRange30d') },
   ];
 
   return (
     <DashboardCard
-      title="跨链请求趋势"
+      title={t('requestTrend.title')}
       headerAction={
         <div className="flex items-center gap-2">
           {timeRangeButtons.map((btn) => (
@@ -217,33 +219,33 @@ export function RequestTrendChart({
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-            <p className="text-xs text-gray-600 mb-1">平均请求</p>
+            <p className="text-xs text-gray-600 mb-1">{t('requestTrend.avgRequests')}</p>
             <p className="text-xl font-bold text-blue-700">
               {formatCompactNumberV2(stats.avgRequests)}
             </p>
-            <p className="text-xs text-blue-600 mt-0.5">每{getTimeUnit(timeRange)}</p>
+            <p className="text-xs text-blue-600 mt-0.5">{t('requestTrend.per')}{getTimeUnit(timeRange)}</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-            <p className="text-xs text-gray-600 mb-1">峰值请求</p>
+            <p className="text-xs text-gray-600 mb-1">{t('requestTrend.peakRequests')}</p>
             <p className="text-xl font-bold text-purple-700">
               {formatCompactNumberV2(stats.peakRequests)}
             </p>
-            <p className="text-xs text-purple-600 mt-0.5">最高记录</p>
+            <p className="text-xs text-purple-600 mt-0.5">{t('requestTrend.peakRecord')}</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-            <p className="text-xs text-gray-600 mb-1">增长率</p>
+            <p className="text-xs text-gray-600 mb-1">{t('requestTrend.growthRate')}</p>
             <p className="text-xl font-bold text-green-700">
               {stats.growthRate >= 0 ? '+' : ''}
               {stats.growthRate}%
             </p>
-            <p className="text-xs text-green-600 mt-0.5">后半周期</p>
+            <p className="text-xs text-green-600 mt-0.5">{t('requestTrend.secondHalfPeriod')}</p>
           </div>
           <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-            <p className="text-xs text-gray-600 mb-1">总请求数</p>
+            <p className="text-xs text-gray-600 mb-1">{t('requestTrend.totalRequests')}</p>
             <p className="text-xl font-bold text-orange-700">
               {formatCompactNumberV2(stats.totalRequests)}
             </p>
-            <p className="text-xs text-orange-600 mt-0.5">累计请求</p>
+            <p className="text-xs text-orange-600 mt-0.5">{t('requestTrend.cumulativeRequests')}</p>
           </div>
         </div>
 
@@ -251,7 +253,7 @@ export function RequestTrendChart({
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-gray-500">加载中...</p>
+              <p className="text-sm text-gray-500">{t('requestTrend.loading')}</p>
             </div>
           </div>
         ) : (
@@ -291,7 +293,7 @@ export function RequestTrendChart({
                 <Line
                   type="monotone"
                   dataKey="requests"
-                  name="请求数"
+                  name={t('requestTrend.requests')}
                   stroke="#3B82F6"
                   strokeWidth={2}
                   dot={false}
@@ -306,18 +308,18 @@ export function RequestTrendChart({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-xs text-gray-600">请求数</span>
+              <span className="text-xs text-gray-600">{t('requestTrend.requests')}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {autoUpdate && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-xs text-gray-500">实时更新</span>
+                <span className="text-xs text-gray-500">{t('requestTrend.realtimeUpdate')}</span>
               </div>
             )}
             <div className="text-right">
-              <p className="text-xs text-gray-500">平均成功率</p>
+              <p className="text-xs text-gray-500">{t('requestTrend.avgSuccessRate')}</p>
               <p className="text-sm font-bold text-green-600">{stats.avgSuccessRate}%</p>
             </div>
           </div>

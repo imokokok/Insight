@@ -173,19 +173,25 @@ export function ValidatorPerformanceHeatmap() {
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: '#10B981' }} />
               <span className="text-gray-600">
-                {viewMode === 'responseTime' ? '< 120ms' : '≥ 99.5%'}
+                {viewMode === 'responseTime'
+                  ? t('uma.validatorAnalytics.legend.responseTimeExcellent')
+                  : t('uma.validatorAnalytics.legend.successRateExcellent')}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }} />
               <span className="text-gray-600">
-                {viewMode === 'responseTime' ? '120-150ms' : '99.0-99.5%'}
+                {viewMode === 'responseTime'
+                  ? t('uma.validatorAnalytics.legend.responseTimeGood')
+                  : t('uma.validatorAnalytics.legend.successRateGood')}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EF4444' }} />
               <span className="text-gray-600">
-                {viewMode === 'responseTime' ? '> 150ms' : '< 99.0%'}
+                {viewMode === 'responseTime'
+                  ? t('uma.validatorAnalytics.legend.responseTimePoor')
+                  : t('uma.validatorAnalytics.legend.successRatePoor')}
               </span>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface VolatilityAlertProps {
   threshold: number;
@@ -25,13 +26,17 @@ interface AlertLevel {
   icon: string;
 }
 
-function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel {
+function getAlertLevel(
+  currentVolatility: number,
+  threshold: number,
+  t: (key: string) => string
+): AlertLevel {
   const ratio = currentVolatility / threshold;
 
   if (ratio < 1) {
     return {
       level: 'low',
-      label: '低风险',
+      label: t('volatilityAlert.riskLevel.low'),
       color: '#059669',
       bgColor: '#ECFDF5',
       borderColor: '#10B981',
@@ -40,7 +45,7 @@ function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel
   } else if (ratio < 1.5) {
     return {
       level: 'medium',
-      label: '中等风险',
+      label: t('volatilityAlert.riskLevel.medium'),
       color: '#D97706',
       bgColor: '#FFFBEB',
       borderColor: '#F59E0B',
@@ -49,7 +54,7 @@ function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel
   } else {
     return {
       level: 'high',
-      label: '高风险',
+      label: t('volatilityAlert.riskLevel.high'),
       color: '#DC2626',
       bgColor: '#FEF2F2',
       borderColor: '#EF4444',
@@ -58,14 +63,17 @@ function getAlertLevel(currentVolatility: number, threshold: number): AlertLevel
   }
 }
 
-function generateHistoricalEvents(currentVolatility: number): HistoricalEvent[] {
+function generateHistoricalEvents(
+  currentVolatility: number,
+  t: (key: string) => string
+): HistoricalEvent[] {
   const events: HistoricalEvent[] = [];
   const baseDate = new Date();
 
   const eventConfigs = [
-    { daysAgo: 7, volatilityMultiplier: 1.1, duration: '2小时', impact: '价格回调3%' },
-    { daysAgo: 14, volatilityMultiplier: 1.3, duration: '4小时', impact: '价格波动5%' },
-    { daysAgo: 30, volatilityMultiplier: 0.9, duration: '1小时', impact: '价格回调2%' },
+    { daysAgo: 7, volatilityMultiplier: 1.1, duration: t('volatilityAlert.duration.2hours'), impact: t('volatilityAlert.impact.priceCorrection3') },
+    { daysAgo: 14, volatilityMultiplier: 1.3, duration: t('volatilityAlert.duration.4hours'), impact: t('volatilityAlert.impact.priceFluctuation5') },
+    { daysAgo: 30, volatilityMultiplier: 0.9, duration: t('volatilityAlert.duration.1hour'), impact: t('volatilityAlert.impact.priceCorrection2') },
   ];
 
   eventConfigs.forEach((config) => {
@@ -89,20 +97,22 @@ function generateHistoricalEvents(currentVolatility: number): HistoricalEvent[] 
 }
 
 export function VolatilityAlert({ threshold, currentVolatility, className }: VolatilityAlertProps) {
+  const { t } = useI18n();
+  
   const alertLevel = useMemo(
-    () => getAlertLevel(currentVolatility, threshold),
-    [currentVolatility, threshold]
+    () => getAlertLevel(currentVolatility, threshold, t),
+    [currentVolatility, threshold, t]
   );
 
   const historicalEvents = useMemo(
-    () => generateHistoricalEvents(currentVolatility),
-    [currentVolatility]
+    () => generateHistoricalEvents(currentVolatility, t),
+    [currentVolatility, t]
   );
 
   const isAlertActive = currentVolatility >= threshold;
 
   return (
-    <DashboardCard title="波动率预警" className={className}>
+    <DashboardCard title={t('volatilityAlert.title')} className={className}>
       <div className="space-y-4">
         <div
           className="rounded-lg p-4 border-2 transition-all duration-300"
@@ -120,14 +130,14 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
                 {alertLevel.icon}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700">当前波动率</p>
+                <p className="text-sm font-medium text-gray-700">{t('volatilityAlert.currentVolatility')}</p>
                 <p className="text-2xl font-bold" style={{ color: alertLevel.color }}>
                   {currentVolatility.toFixed(4)}%
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-500 mb-1">预警阈值</p>
+              <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.threshold')}</p>
               <p className="text-sm font-semibold text-gray-700">{threshold.toFixed(4)}%</p>
             </div>
           </div>
@@ -145,7 +155,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
               </span>
               {isAlertActive && (
                 <span className="text-xs text-gray-600">
-                  超出阈值 {((currentVolatility / threshold - 1) * 100).toFixed(1)}%
+                  {t('volatilityAlert.exceedsThreshold')} {((currentVolatility / threshold - 1) * 100).toFixed(1)}%
                 </span>
               )}
             </div>
@@ -162,7 +172,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">历史相似波动率事件</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('volatilityAlert.historicalEvents')}</h4>
           <div className="space-y-2">
             {historicalEvents.map((event, index) => (
               <div
@@ -177,7 +187,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">波动率</p>
+                  <p className="text-xs text-gray-500">{t('volatilityAlert.volatility')}</p>
                   <p className="text-sm font-semibold text-gray-700">
                     {event.volatility.toFixed(4)}%
                   </p>
@@ -189,17 +199,17 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
 
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100">
           <div className="text-center p-2 rounded bg-green-50">
-            <p className="text-xs text-gray-500 mb-1">低风险</p>
+            <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.low')}</p>
             <p className="text-xs font-medium text-green-600">&lt; {threshold.toFixed(2)}%</p>
           </div>
           <div className="text-center p-2 rounded bg-yellow-50">
-            <p className="text-xs text-gray-500 mb-1">中等风险</p>
+            <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.medium')}</p>
             <p className="text-xs font-medium text-yellow-600">
               {threshold.toFixed(2)}% - {(threshold * 1.5).toFixed(2)}%
             </p>
           </div>
           <div className="text-center p-2 rounded bg-red-50">
-            <p className="text-xs text-gray-500 mb-1">高风险</p>
+            <p className="text-xs text-gray-500 mb-1">{t('volatilityAlert.riskLevel.high')}</p>
             <p className="text-xs font-medium text-red-600">&gt; {(threshold * 1.5).toFixed(2)}%</p>
           </div>
         </div>

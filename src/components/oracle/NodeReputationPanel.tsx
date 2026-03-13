@@ -16,6 +16,7 @@ import {
   Cell,
   Legend,
 } from 'recharts';
+import { useI18n } from '@/lib/i18n/provider';
 
 type NodeType = 'data_provider' | 'validator' | 'aggregator';
 
@@ -46,12 +47,6 @@ const COLORS = {
   good: '#3B82F6',
   fair: '#F59E0B',
   poor: '#EF4444',
-};
-
-const NODE_TYPE_LABELS: Record<NodeType, string> = {
-  data_provider: '数据提供商',
-  validator: '验证节点',
-  aggregator: '聚合节点',
 };
 
 const NODE_TYPE_COLORS: Record<NodeType, string> = {
@@ -115,6 +110,8 @@ function generateMockNodes(): NodeReputationData[] {
 }
 
 function ReputationScoreGauge({ score }: { score: number }) {
+  const { t } = useI18n();
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return COLORS.excellent;
     if (score >= 80) return COLORS.good;
@@ -123,10 +120,10 @@ function ReputationScoreGauge({ score }: { score: number }) {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 90) return '优秀';
-    if (score >= 80) return '良好';
-    if (score >= 70) return '一般';
-    return '较差';
+    if (score >= 90) return t('nodeReputation.reputationScore.excellent');
+    if (score >= 80) return t('nodeReputation.reputationScore.good');
+    if (score >= 70) return t('nodeReputation.reputationScore.fair');
+    return t('nodeReputation.reputationScore.poor');
   };
 
   const color = getScoreColor(score);
@@ -138,8 +135,8 @@ function ReputationScoreGauge({ score }: { score: number }) {
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">节点声誉评分</p>
-          <p className="text-gray-500 text-xs mt-0.5">综合性能评估</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.reputationScore.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.reputationScore.subtitle')}</p>
         </div>
       </div>
 
@@ -181,7 +178,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
             className="w-3 h-3 rounded-full mx-auto mb-1"
             style={{ backgroundColor: COLORS.excellent }}
           ></div>
-          <p className="text-xs text-gray-500">优秀</p>
+          <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.excellent')}</p>
           <p className="text-xs text-gray-400">90+</p>
         </div>
         <div>
@@ -189,7 +186,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
             className="w-3 h-3 rounded-full mx-auto mb-1"
             style={{ backgroundColor: COLORS.good }}
           ></div>
-          <p className="text-xs text-gray-500">良好</p>
+          <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.good')}</p>
           <p className="text-xs text-gray-400">80-89</p>
         </div>
         <div>
@@ -197,7 +194,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
             className="w-3 h-3 rounded-full mx-auto mb-1"
             style={{ backgroundColor: COLORS.fair }}
           ></div>
-          <p className="text-xs text-gray-500">一般</p>
+          <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.fair')}</p>
           <p className="text-xs text-gray-400">70-79</p>
         </div>
         <div>
@@ -205,7 +202,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
             className="w-3 h-3 rounded-full mx-auto mb-1"
             style={{ backgroundColor: COLORS.poor }}
           ></div>
-          <p className="text-xs text-gray-500">较差</p>
+          <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.poor')}</p>
           <p className="text-xs text-gray-400">&lt;70</p>
         </div>
       </div>
@@ -222,18 +219,20 @@ function AccuracyStats({
   weekly: number;
   monthly: number;
 }) {
+  const { t } = useI18n();
+
   const data = [
-    { period: '日', accuracy: daily },
-    { period: '周', accuracy: weekly },
-    { period: '月', accuracy: monthly },
+    { period: t('nodeReputation.accuracy.day'), accuracy: daily },
+    { period: t('nodeReputation.accuracy.week'), accuracy: weekly },
+    { period: t('nodeReputation.accuracy.month'), accuracy: monthly },
   ];
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">历史准确率统计</p>
-          <p className="text-gray-500 text-xs mt-0.5">不同时间维度的准确率</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.accuracy.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.accuracy.subtitle')}</p>
         </div>
       </div>
 
@@ -244,7 +243,7 @@ function AccuracyStats({
             <XAxis type="number" domain={[95, 100]} tick={{ fontSize: 12 }} />
             <YAxis type="category" dataKey="period" tick={{ fontSize: 12 }} width={40} />
             <Tooltip
-              formatter={(value) => [`${Number(value).toFixed(2)}%`, '准确率']}
+              formatter={(value) => [`${Number(value).toFixed(2)}%`, t('nodeReputation.tooltip.accuracy')]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -271,15 +270,15 @@ function AccuracyStats({
 
       <div className="mt-4 grid grid-cols-3 gap-4">
         <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">日准确率</p>
+          <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.daily')}</p>
           <p className="text-lg font-bold text-gray-900">{daily.toFixed(2)}%</p>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">周准确率</p>
+          <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.weekly')}</p>
           <p className="text-lg font-bold text-gray-900">{weekly.toFixed(2)}%</p>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">月准确率</p>
+          <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.monthly')}</p>
           <p className="text-lg font-bold text-gray-900">{monthly.toFixed(2)}%</p>
         </div>
       </div>
@@ -294,15 +293,17 @@ function ResponseTimeDistribution({
   data: { range: string; count: number }[];
   avgTime: number;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">响应时间分布</p>
-          <p className="text-gray-500 text-xs mt-0.5">节点响应时间统计</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.responseTime.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.responseTime.subtitle')}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-gray-500">平均响应时间</p>
+          <p className="text-xs text-gray-500">{t('nodeReputation.responseTime.avgResponseTime')}</p>
           <p className="text-lg font-bold text-gray-900">{avgTime}ms</p>
         </div>
       </div>
@@ -314,7 +315,7 @@ function ResponseTimeDistribution({
             <XAxis dataKey="range" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value) => [`${value} 次`, '响应次数']}
+              formatter={(value) => [`${value} ${t('nodeReputation.tooltip.responseCount')}`, t('nodeReputation.tooltip.responseCount')]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -344,21 +345,21 @@ function ResponseTimeDistribution({
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: COLORS.excellent }}
             ></div>
-            <span>优秀 (&lt;50ms)</span>
+            <span>{t('nodeReputation.responseTime.excellent')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.good }}></div>
-            <span>良好 (50-100ms)</span>
+            <span>{t('nodeReputation.responseTime.good')}</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.fair }}></div>
-            <span>一般 (100-150ms)</span>
+            <span>{t('nodeReputation.responseTime.fair')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.poor }}></div>
-            <span>较慢 (&gt;150ms)</span>
+            <span>{t('nodeReputation.responseTime.slow')}</span>
           </div>
         </div>
       </div>
@@ -367,6 +368,8 @@ function ResponseTimeDistribution({
 }
 
 function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: number; apr: number }) {
+  const { t } = useI18n();
+
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(2)}M`;
@@ -380,8 +383,8 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">质押与收益</p>
-          <p className="text-gray-500 text-xs mt-0.5">节点经济数据</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.staking.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.staking.subtitle')}</p>
         </div>
       </div>
 
@@ -389,7 +392,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
         <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 mb-1">质押量</p>
+              <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.stakedAmount')}</p>
               <p className="text-xl font-bold text-gray-900">{formatCurrency(staked)}</p>
             </div>
             <div className="p-3 bg-blue-500 rounded-lg">
@@ -412,12 +415,12 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 mb-1">累计收益</p>
+            <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.totalEarnings')}</p>
             <p className="text-lg font-bold text-gray-900">{formatCurrency(earnings)}</p>
-            <p className="text-xs text-green-600 mt-1">↑ 12.5% 较上月</p>
+            <p className="text-xs text-green-600 mt-1">↑ 12.5% {t('nodeReputation.staking.vsLastMonth')}</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 mb-1">年化收益率</p>
+            <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.apr')}</p>
             <p className="text-lg font-bold text-gray-900">{apr.toFixed(2)}%</p>
             <p className="text-xs text-gray-400 mt-1">APR</p>
           </div>
@@ -425,7 +428,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 
         <div className="p-4 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-500">收益趋势（30天）</p>
+            <p className="text-xs text-gray-500">{t('nodeReputation.staking.earningsTrend')}</p>
             <p className="text-xs text-green-600 font-medium">+{(earnings * 0.125).toFixed(0)}</p>
           </div>
           <div className="h-16">
@@ -453,6 +456,14 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 }
 
 function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
+  const { t } = useI18n();
+
+  const NODE_TYPE_LABELS: Record<NodeType, string> = {
+    data_provider: t('nodeReputation.nodeTypes.dataProvider'),
+    validator: t('nodeReputation.nodeTypes.validator'),
+    aggregator: t('nodeReputation.nodeTypes.aggregator'),
+  };
+
   const typeCounts = nodes.reduce(
     (acc, node) => {
       acc[node.type] = (acc[node.type] || 0) + 1;
@@ -473,8 +484,8 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">节点类型分布</p>
-          <p className="text-gray-500 text-xs mt-0.5">按功能分类统计</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.nodeTypes.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.nodeTypes.subtitle')}</p>
         </div>
       </div>
 
@@ -495,7 +506,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => [`${value} 个节点`, '数量']}
+              formatter={(value) => [`${value} ${t('nodeReputation.tooltip.nodeCount')}`, t('nodeReputation.tooltip.nodeCount')]}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
@@ -529,14 +540,22 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
 }
 
 function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
+  const { t } = useI18n();
+
+  const NODE_TYPE_LABELS: Record<NodeType, string> = {
+    data_provider: t('nodeReputation.nodeTypes.dataProvider'),
+    validator: t('nodeReputation.nodeTypes.validator'),
+    aggregator: t('nodeReputation.nodeTypes.aggregator'),
+  };
+
   const topNodes = nodes.slice(0, 10);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">节点排名 (Top 10)</p>
-          <p className="text-gray-500 text-xs mt-0.5">按声誉评分排序</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.ranking.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('nodeReputation.ranking.subtitle')}</p>
         </div>
       </div>
 
@@ -566,7 +585,7 @@ function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
                   <span className={`text-xs px-2 py-0.5 rounded ${NODE_TYPE_COLORS[node.type]}`}>
                     {NODE_TYPE_LABELS[node.type]}
                   </span>
-                  <span className="text-xs text-gray-400">{node.uptime.toFixed(2)}% 在线</span>
+                  <span className="text-xs text-gray-400">{node.uptime.toFixed(2)}% {t('nodeReputation.ranking.online')}</span>
                 </div>
               </div>
             </div>
@@ -585,6 +604,7 @@ export function NodeReputationPanel({
   autoUpdate = true,
   updateInterval = 30000,
 }: NodeReputationPanelProps) {
+  const { t } = useI18n();
   const [nodes, setNodes] = useState<NodeReputationData[]>([]);
   const [selectedNode, setSelectedNode] = useState<NodeReputationData | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -624,7 +644,7 @@ export function NodeReputationPanel({
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">加载节点数据...</p>
+          <p className="mt-4 text-gray-500">{t('nodeReputation.loading')}</p>
         </div>
       </div>
     );
@@ -634,23 +654,23 @@ export function NodeReputationPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">节点声誉面板</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('nodeReputation.title')}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            最后更新: {lastUpdated.toLocaleTimeString('zh-CN')}
+            {t('nodeReputation.lastUpdated')}: {lastUpdated.toLocaleTimeString('zh-CN')}
           </p>
         </div>
         <button
           onClick={loadData}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
         >
-          刷新数据
+          {t('nodeReputation.refresh')}
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <div className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-gray-900 mb-3">选择节点查看详情</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">{t('nodeReputation.selectNode')}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {nodes.slice(0, 10).map((node) => (
                 <button
@@ -665,7 +685,7 @@ export function NodeReputationPanel({
                   <div className="text-center">
                     <p className="text-xs font-medium text-gray-900 truncate">{node.name}</p>
                     <p className="text-lg font-bold text-gray-900 mt-1">{node.reputationScore}</p>
-                    <p className="text-xs text-gray-500">排名 #{node.rank}</p>
+                    <p className="text-xs text-gray-500">{t('nodeReputation.ranking.rankLabel')}{node.rank}</p>
                   </div>
                 </button>
               ))}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from './DashboardCard';
 
 interface DapiCoverage {
@@ -27,13 +28,15 @@ interface DapiCoveragePanelProps {
 }
 
 function TotalDapisCard({ total }: { total: number }) {
+  const { t } = useI18n();
+
   return (
     <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">dAPI 总数</p>
+          <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">{t('dapiCoverage.totalDapis')}</p>
           <p className="text-5xl font-bold mb-1">{total}</p>
-          <p className="text-blue-200 text-sm">活跃数据源</p>
+          <p className="text-blue-200 text-sm">{t('dapiCoverage.activeDataSources')}</p>
         </div>
         <div className="p-3 bg-blue-500 bg-opacity-30 rounded-xl">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,6 +86,7 @@ function DistributionBar({
 }
 
 function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
+  const { t } = useI18n();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const chains = [
     { key: 'ethereum', label: 'Ethereum', value: data.ethereum, color: 'bg-indigo-500' },
@@ -91,7 +95,7 @@ function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
   ];
 
   return (
-    <DashboardCard title="按链分布">
+    <DashboardCard title={t('dapiCoverage.byChainDistribution')}>
       <div className="space-y-1">
         {chains.map((chain) => (
           <DistributionBar
@@ -108,33 +112,34 @@ function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
 }
 
 function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequency'] }) {
+  const { t } = useI18n();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const frequencies = [
     {
       key: 'high',
-      label: '高频',
-      sublabel: '每秒更新',
+      label: t('dapiCoverage.highFrequency'),
+      sublabel: t('dapiCoverage.perSecondUpdate'),
       value: data.high,
       color: 'bg-green-500',
     },
     {
       key: 'medium',
-      label: '中频',
-      sublabel: '每分钟更新',
+      label: t('dapiCoverage.mediumFrequency'),
+      sublabel: t('dapiCoverage.perMinuteUpdate'),
       value: data.medium,
       color: 'bg-yellow-500',
     },
     {
       key: 'low',
-      label: '低频',
-      sublabel: '每小时更新',
+      label: t('dapiCoverage.lowFrequency'),
+      sublabel: t('dapiCoverage.perHourUpdate'),
       value: data.low,
       color: 'bg-red-400',
     },
   ];
 
   return (
-    <DashboardCard title="更新频率分布">
+    <DashboardCard title={t('dapiCoverage.updateFrequencyDistribution')}>
       <div className="space-y-1">
         {frequencies.map((freq) => (
           <div key={freq.key} className="mb-4 last:mb-0">
@@ -164,6 +169,7 @@ function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequ
 }
 
 function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
+  const { t } = useI18n();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const segments = [
     { key: 'crypto', value: data.crypto, color: '#3B82F6' },
@@ -211,23 +217,24 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold text-gray-900">{total}</span>
-        <span className="text-xs text-gray-500">总计</span>
+        <span className="text-xs text-gray-500">{t('dapiCoverage.total')}</span>
       </div>
     </div>
   );
 }
 
 function AssetTypeDonut({ data }: { data: DapiCoverage['byAssetType'] }) {
+  const { t } = useI18n();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const legend = [
-    { label: '加密货币', value: data.crypto, color: 'bg-blue-500' },
-    { label: '外汇', value: data.forex, color: 'bg-green-500' },
-    { label: '大宗商品', value: data.commodities, color: 'bg-yellow-500' },
-    { label: '股票', value: data.stocks, color: 'bg-purple-500' },
+    { label: t('dapiCoverage.crypto'), value: data.crypto, color: 'bg-blue-500' },
+    { label: t('dapiCoverage.forex'), value: data.forex, color: 'bg-green-500' },
+    { label: t('dapiCoverage.commodities'), value: data.commodities, color: 'bg-yellow-500' },
+    { label: t('dapiCoverage.stocks'), value: data.stocks, color: 'bg-purple-500' },
   ];
 
   return (
-    <DashboardCard title="资产类型分布">
+    <DashboardCard title={t('dapiCoverage.byAssetTypeDistribution')}>
       <div className="flex flex-col lg:flex-row items-center gap-6">
         <DonutChart data={data} />
         <div className="flex-1 space-y-3">

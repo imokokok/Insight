@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface RequestTypeData {
   type: string;
@@ -15,58 +16,14 @@ export interface RequestTypeDistributionProps {
   className?: string;
 }
 
-const REQUEST_TYPES: Omit<RequestTypeData, 'count' | 'percentage'>[] = [
-  {
-    type: '价格数据',
-    color: '#8B5CF6',
-    description: '加密货币、外汇等价格请求',
-  },
-  {
-    type: '随机数',
-    color: '#06B6D4',
-    description: 'VRF 随机数生成请求',
-  },
-  {
-    type: '体育数据',
-    color: '#F59E0B',
-    description: '体育赛事结果数据',
-  },
-  {
-    type: '股票数据',
-    color: '#10B981',
-    description: '传统金融市场数据',
-  },
-  {
-    type: '商品数据',
-    color: '#EF4444',
-    description: '黄金、原油等商品价格',
-  },
-  {
-    type: '其他',
-    color: '#6B7280',
-    description: '其他类型数据请求',
-  },
+const REQUEST_TYPE_KEYS = [
+  { key: 'priceData', color: '#8B5CF6' },
+  { key: 'randomNumber', color: '#06B6D4' },
+  { key: 'sportsData', color: '#F59E0B' },
+  { key: 'stockData', color: '#10B981' },
+  { key: 'commodityData', color: '#EF4444' },
+  { key: 'other', color: '#6B7280' },
 ];
-
-function generateMockRequestTypeData(): RequestTypeData[] {
-  const totalRequests = 50000 + Math.floor(Math.random() * 20000);
-  const weights = [0.55, 0.15, 0.12, 0.08, 0.06, 0.04];
-  let remainingPercentage = 100;
-
-  return REQUEST_TYPES.map((type, index) => {
-    const isLast = index === REQUEST_TYPES.length - 1;
-    const percentage = isLast ? remainingPercentage : Math.round(weights[index] * 100);
-    if (!isLast) remainingPercentage -= percentage;
-
-    return {
-      type: type.type,
-      count: Math.round((totalRequests * percentage) / 100),
-      percentage,
-      color: type.color,
-      description: type.description,
-    };
-  });
-}
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -76,6 +33,8 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  const { t } = useI18n();
+  
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
@@ -85,11 +44,11 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       <p className="text-gray-900 font-medium text-sm mb-2">{data.type}</p>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-gray-500 text-xs">请求数量</span>
+          <span className="text-gray-500 text-xs">{t('requestTypeDistribution.requestCount')}</span>
           <span className="text-gray-900 font-mono text-sm">{data.count.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <span className="text-gray-500 text-xs">占比</span>
+          <span className="text-gray-500 text-xs">{t('requestTypeDistribution.percentage')}</span>
           <span className="text-gray-900 font-mono text-sm">{data.percentage}%</span>
         </div>
         <p className="text-gray-400 text-xs pt-1 border-t border-gray-100 mt-1">
@@ -126,7 +85,35 @@ function CustomLegend({ payload }: CustomLegendProps) {
 }
 
 export function RequestTypeDistribution({ className = '' }: RequestTypeDistributionProps) {
-  const data = useMemo(() => generateMockRequestTypeData(), []);
+  const { t } = useI18n();
+
+  const requestTypes = useMemo(() => {
+    return REQUEST_TYPE_KEYS.map((item) => ({
+      type: t(`requestTypeDistribution.types.${item.key}`),
+      color: item.color,
+      description: t(`requestTypeDistribution.types.${item.key}Desc`),
+    }));
+  }, [t]);
+
+  const data = useMemo(() => {
+    const totalRequests = 50000 + Math.floor(Math.random() * 20000);
+    const weights = [0.55, 0.15, 0.12, 0.08, 0.06, 0.04];
+    let remainingPercentage = 100;
+
+    return requestTypes.map((type, index) => {
+      const isLast = index === requestTypes.length - 1;
+      const percentage = isLast ? remainingPercentage : Math.round(weights[index] * 100);
+      if (!isLast) remainingPercentage -= percentage;
+
+      return {
+        type: type.type,
+        count: Math.round((totalRequests * percentage) / 100),
+        percentage,
+        color: type.color,
+        description: type.description,
+      };
+    });
+  }, [requestTypes]);
 
   const totalRequests = data.reduce((sum, item) => sum + item.count, 0);
 
@@ -136,11 +123,11 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
     <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">数据请求类型分布</p>
-          <p className="text-gray-500 text-xs mt-0.5">24小时请求类型统计</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('requestTypeDistribution.title')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('requestTypeDistribution.subtitle')}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-gray-500">总请求量</p>
+          <p className="text-xs text-gray-500">{t('requestTypeDistribution.totalRequests')}</p>
           <p className="text-lg font-bold text-gray-900">{totalRequests.toLocaleString()}</p>
         </div>
       </div>
@@ -207,8 +194,7 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
             />
           </svg>
           <span className="text-sm text-purple-700">
-            <span className="font-medium">{topType.type}</span> 是最常见的数据请求类型，
-            占总请求量的 <span className="font-medium">{topType.percentage}%</span>
+            <span className="font-medium">{topType.type}</span> {t('requestTypeDistribution.mostCommonType')} <span className="font-medium">{topType.percentage}%</span>
           </span>
         </div>
       </div>

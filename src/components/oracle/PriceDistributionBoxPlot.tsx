@@ -13,6 +13,7 @@ import {
   ZAxis,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface BoxPlotStats {
   min: number;
@@ -195,9 +196,10 @@ interface CustomTooltipProps {
       color: string;
     };
   }>;
+  t: (key: string) => string;
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   const { name, stats, color } = payload[0].payload;
@@ -210,42 +212,42 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">最大值:</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.max')}:</span>
           <span className="font-mono text-gray-900">${stats.max.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">上须:</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.upperWhisker')}:</span>
           <span className="font-mono text-gray-900">${stats.whiskerMax.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">Q3 (75%):</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.q3')}:</span>
           <span className="font-mono text-gray-900">${stats.q3.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 bg-blue-50 -mx-2 px-2 py-1 rounded">
-          <span className="text-blue-700 font-medium">中位数:</span>
+          <span className="text-blue-700 font-medium">{t('priceDistribution.tooltip.median')}:</span>
           <span className="font-mono text-blue-700 font-semibold">${stats.median.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">Q1 (25%):</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.q1')}:</span>
           <span className="font-mono text-gray-900">${stats.q1.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">下须:</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.lowerWhisker')}:</span>
           <span className="font-mono text-gray-900">${stats.whiskerMin.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">最小值:</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.min')}:</span>
           <span className="font-mono text-gray-900">${stats.min.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 pt-2 border-t border-gray-100">
-          <span className="text-gray-500">IQR:</span>
+          <span className="text-gray-500">{t('priceDistribution.tooltip.iqr')}:</span>
           <span className="font-mono text-gray-900">${stats.iqr.toFixed(4)}</span>
         </div>
         {stats.outliers.length > 0 && (
           <div className="pt-2 border-t border-gray-100">
             <div className="flex justify-between gap-4 mb-1">
-              <span className="text-orange-600 font-medium">离群值:</span>
-              <span className="font-mono text-orange-600">{stats.outliers.length} 个</span>
+              <span className="text-orange-600 font-medium">{t('priceDistribution.tooltip.outliers')}:</span>
+              <span className="font-mono text-orange-600">{stats.outliers.length} {t('priceDistribution.tooltip.outlierCount')}</span>
             </div>
             <div className="text-xs text-gray-500 max-h-20 overflow-y-auto">
               {stats.outliers.slice(0, 5).map((v, i) => (
@@ -266,8 +268,11 @@ export function PriceDistributionBoxPlot({
   data,
   oracleNames = {},
   className = '',
-  title = '价格分布箱线图',
+  title,
 }: PriceDistributionBoxPlotProps) {
+  const { t } = useI18n();
+  const chartTitle = title || t('priceDistribution.title');
+  
   const { chartData, outliersData, yDomain } = useMemo(() => {
     if (!data || data.length === 0) {
       return { chartData: [], outliersData: [], yDomain: [0, 100] };
@@ -336,14 +341,14 @@ export function PriceDistributionBoxPlot({
 
   if (!data || data.length === 0) {
     return (
-      <DashboardCard title={title} className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">暂无数据</div>
+      <DashboardCard title={chartTitle} className={className}>
+        <div className="h-80 flex items-center justify-center text-gray-400">{t('priceDistribution.noData')}</div>
       </DashboardCard>
     );
   }
 
   return (
-    <DashboardCard title={title} className={className}>
+    <DashboardCard title={chartTitle} className={className}>
       <div className="space-y-4">
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -377,7 +382,7 @@ export function PriceDistributionBoxPlot({
                 width={70}
               />
               <ZAxis type="number" range={[100, 100]} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip t={t} />} />
 
               <Scatter data={chartData} shape={<BoxPlotShape />}>
                 {chartData.map((entry, index) => (
@@ -402,39 +407,39 @@ export function PriceDistributionBoxPlot({
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">图例说明</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceDistribution.legend.title')}</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 border-2 border-blue-500 bg-blue-100 rounded-sm" />
-              <span className="text-gray-600">箱体 (Q1-Q3)</span>
+              <span className="text-gray-600">{t('priceDistribution.legend.box')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-0.5 bg-blue-500" style={{ height: '3px' }} />
-              <span className="text-gray-600">中位数</span>
+              <span className="text-gray-600">{t('priceDistribution.legend.median')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-0.5 h-4 bg-blue-500" />
-              <span className="text-gray-600">须线 (1.5×IQR)</span>
+              <span className="text-gray-600">{t('priceDistribution.legend.whisker')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-orange-500" />
-              <span className="text-gray-600">离群值</span>
+              <span className="text-gray-600">{t('priceDistribution.legend.outlier')}</span>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">统计摘要</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceDistribution.stats.title')}</h4>
           <div className="overflow-x-auto">
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 font-medium text-gray-500">预言机</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">中位数</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">Q1</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">Q3</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">IQR</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">离群值</th>
+                  <th className="text-left py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.oracle')}</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.median')}</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.q1')}</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.q3')}</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.iqr')}</th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.outliers')}</th>
                 </tr>
               </thead>
               <tbody>

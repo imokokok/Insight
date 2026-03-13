@@ -25,7 +25,13 @@
     "bandProtocolDesc": "Cross-chain data oracle on Cosmos",
     "pythNetworkDesc": "High-frequency financial data oracle",
     "api3Desc": "First-party oracle network",
-    "umaDesc": "Optimistic oracle protocol"
+    "umaDesc": "Optimistic oracle protocol",
+    "favorites": "Favorites",
+    "alerts": "Alerts",
+    "settings": "Settings",
+    "login": "Login",
+    "register": "Register",
+    "signOut": "Sign Out"
   },
   "footer": {
     "copyright": "© 2026 Insight. All rights reserved.",
@@ -1643,7 +1649,15 @@
       "total": "Total {count} records",
       "showing": "Showing {start}-{end}",
       "refreshing": "Refreshing...",
-      "lastUpdate": "Last update"
+      "lastUpdate": "Last update",
+      "legend": {
+        "responseTimeExcellent": "< 120ms",
+        "responseTimeGood": "120-150ms",
+        "responseTimePoor": "> 150ms",
+        "successRateExcellent": "≥ 99.5%",
+        "successRateGood": "99.0-99.5%",
+        "successRatePoor": "< 99.0%"
+      }
     },
     "validatorComparison": {
       "selectValidators": "Select Validators to Compare",
@@ -1843,7 +1857,10 @@
       "oraclePrice": "Oracle Price",
       "marketPrice": "Market Price",
       "recovery": "Recovery",
-      "deviation": "Deviation"
+      "deviation": "Deviation",
+      "severityLow": "Low",
+      "severityMedium": "Medium",
+      "severityHigh": "High"
     },
     "trend": {
       "title": "Accuracy Trend (Last 30 Days)",
@@ -1874,6 +1891,30 @@
       "firstPartyOracles": "First-Party Oracles",
       "ecosystem": "Ecosystem",
       "riskAssessment": "Risk Assessment"
+    },
+    "firstPartyOracle": {
+      "title": "First-Party Oracle Advantages Comparison",
+      "noMiddlemen": "No Middlemen",
+      "directConnection": "✓ Direct Connection",
+      "hasMiddlemen": "✗ Has Middlemen",
+      "sourceTransparency": "Source Transparency",
+      "traceable": "✓ 100% Traceable",
+      "notTransparent": "✗ Not Transparent",
+      "responseTime": "Response Time",
+      "comparisonTitle": "API3 vs Traditional Oracle Comparison",
+      "feature": "Feature",
+      "traditionalOracle": "Traditional Oracle",
+      "dataSourceTransparency": "Data Source Transparency",
+      "fullTransparency": "✓ 100%",
+      "partialTransparency": "✗ Partial",
+      "middlemen": "Middlemen",
+      "none": "✓ None",
+      "has": "✗ Has",
+      "insuranceMechanism": "Insurance Mechanism",
+      "hasInsurance": "✓ Yes",
+      "noInsurance": "✗ No",
+      "advantagesTitle": "First-Party Oracle Advantages",
+      "advantagesDesc": "API3, as a first-party oracle, obtains data directly from data sources without intermediaries, providing higher transparency, faster response times, and more reliable data quality."
     },
     "pageTitles": {
       "market": "Market Data Overview",
@@ -2327,7 +2368,13 @@
       "subtitle": "Sorted by reputation score",
       "rank": "Rank",
       "nodeName": "Node Name",
-      "online": "Online"
+      "online": "Online",
+      "rankLabel": "Rank #"
+    },
+    "tooltip": {
+      "accuracy": "Accuracy",
+      "responseCount": "Response Count",
+      "nodeCount": "nodes"
     }
   },
   "latencyAnalysis": {
@@ -2372,6 +2419,11 @@
         "spike": "Latency Spike",
         "timeout": "Timeout",
         "highLatency": "High Latency"
+      },
+      "messages": {
+        "spike": "Latency spiked to {value}ms",
+        "timeout": "{value} timeout(s) occurred",
+        "highLatency": "Sustained high latency {value}ms"
       }
     },
     "stats": {
@@ -2380,12 +2432,41 @@
       "max": "Maximum",
       "stdDev": "Std Dev",
       "samples": "Total Samples"
+    },
+    "status": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "warning": "Warning",
+      "critical": "Critical"
     }
   },
   "dataSourceTraceability": {
     "title": "Data Source Traceability",
     "subtitle": "Track the complete flow of data from source to blockchain",
     "lastUpdated": "Last updated",
+    "panel": {
+      "title": "Data Source Traceability",
+      "subtitle": "Complete first-party data source chain tracking",
+      "dataSourceCount": "Data Sources",
+      "avgCredibility": "Avg Credibility",
+      "exchange": "Exchange",
+      "traditionalFinance": "Traditional Finance",
+      "credibilityScore": "Credibility Score",
+      "dataFlowPath": "Data Transmission Path",
+      "dataSource": "Data Source",
+      "airnodeAddress": "Airnode Address",
+      "dapiContractAddress": "dAPI Contract Address",
+      "detailedMetrics": "Detailed Metrics",
+      "accuracy": "Accuracy",
+      "responseSpeed": "Response Speed",
+      "availability": "Availability",
+      "noData": "No data source traceability information available",
+      "typeExchange": "Exchange",
+      "typeTraditionalFinance": "Traditional Finance",
+      "typeOther": "Other",
+      "copied": "Copied",
+      "copyAddress": "Copy Address"
+    },
     "statusOverview": {
       "healthy": "Healthy",
       "warning": "Warning",
@@ -2541,6 +2622,11 @@
       "optimizeFreshness": "Data update frequency is low, recommend optimizing data acquisition process",
       "improveAccuracy": "Historical accuracy needs improvement, recommend strengthening data validation mechanisms",
       "maintainQuality": "Current data quality is excellent, recommend maintaining current configuration"
+    },
+    "units": {
+      "count": "",
+      "seconds": "s",
+      "percent": "%"
     }
   },
   "language": {
@@ -2664,6 +2750,96 @@
       "trendDesc": "Deviation trend: increasing means deviation is growing, decreasing means deviation is reducing"
     }
   },
+  "updateFrequency": {
+    "title": "Update Frequency Heatmap",
+    "updateFrequencyLabel": "Update Frequency: Every {frequency}s",
+    "anomaly": "Anomaly",
+    "avgHourlyUpdates": "Avg Hourly Updates",
+    "maxUpdateFrequency": "Max Update Frequency",
+    "minUpdateFrequency": "Min Update Frequency",
+    "anomalyPeriodCount": "Anomaly Periods",
+    "updateCount": "Update Count",
+    "clickForDetails": "Click for details",
+    "low": "Low",
+    "high": "High",
+    "anomalyDetected": "Update Frequency Anomaly Detected",
+    "anomalyPeriodsDesc": "Update frequency significantly below average in the following periods:",
+    "hourlyStats": "Hourly Update Statistics",
+    "period": "Period",
+    "status": "Status",
+    "normal": "Normal"
+  },
+  "requestTrend": {
+    "title": "Cross-Chain Request Trend",
+    "requests": "Requests",
+    "avgLatency": "Avg Latency",
+    "successRate": "Success Rate",
+    "timeRange24h": "24 Hours",
+    "timeRange7d": "7 Days",
+    "timeRange30d": "30 Days",
+    "avgRequests": "Avg Requests",
+    "per": "Per",
+    "day": "Day",
+    "hour": "Hour",
+    "peakRequests": "Peak Requests",
+    "peakRecord": "Peak Record",
+    "growthRate": "Growth Rate",
+    "secondHalfPeriod": "Second Half",
+    "totalRequests": "Total Requests",
+    "cumulativeRequests": "Cumulative Requests",
+    "loading": "Loading...",
+    "realtimeUpdate": "Real-time Update",
+    "avgSuccessRate": "Avg Success Rate"
+  },
+  "concentrationRisk": {
+    "title": "Data Source Concentration Risk Analysis",
+    "publisherWeightDistribution": "Publisher Weight Distribution",
+    "weight": "Weight",
+    "diversityScore": "Data Source Diversity Score",
+    "diversityLevel": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "herfindahlIndex": "Herfindahl Index",
+    "herfindahlIndexDesc": "Lower is more dispersed",
+    "maxPublisherWeight": "Max Publisher Weight",
+    "maxPublisherWeightDesc": "Recommended <30%",
+    "singlePublisherFailureImpact": "Single Publisher Failure Impact",
+    "impactLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "impactDescription": {
+      "high": "significant",
+      "medium": "moderate",
+      "low": "minor",
+      "prefix": "When the largest Publisher fails, it may have a",
+      "suffix": "impact on price accuracy."
+    },
+    "publisherDetails": "Publisher Details",
+    "table": {
+      "name": "Name",
+      "weight": "Weight",
+      "submissions": "Submissions",
+      "reliability": "Reliability",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "degraded": "Degraded",
+      "inactive": "Offline"
+    },
+    "riskExplanation": {
+      "title": "Concentration Risk Explanation",
+      "item1": "The Herfindahl Index measures market concentration; lower values indicate more dispersed data sources",
+      "item2": "Ideally, a single Publisher's weight should not exceed 30%",
+      "item3": "The diversity score considers both Publisher count and weight distribution",
+      "item4": "High concentration may lead to single point of failure risk, affecting price data reliability"
+    }
+  },
   "anomalyAlert": {
     "title": "Anomaly Detection & Alert System",
     "subtitle": "Real-time monitoring of price anomalies with push notifications",
@@ -2721,5 +2897,770 @@
     "priceDropMessage": "{provider} {symbol} price dropped {percent}%",
     "priceDeviationMessage": "{provider} {symbol} price deviation {percent}%",
     "dataDelayMessage": "{provider} {symbol} data delayed {delay}"
+  },
+  "ecosystem": {
+    "totalProtocols": "Total Integrated Protocols",
+    "totalProtocolsSubtitle": "Protocols using Pyth data",
+    "totalTVL": "Total Value Locked (TVL)",
+    "totalTVLSubtitle": "Sum of all protocol TVL",
+    "supportedChains": "Supported Chains",
+    "supportedChainsSubtitle": "Cross-chain coverage",
+    "totalDataSources": "Total Data Sources",
+    "totalDataSourcesSubtitle": "Real-time price data sources"
+  },
+  "snapshot": {
+    "title": "Data Snapshots",
+    "savedCount": "{count} snapshots saved",
+    "saveSnapshot": "Save Snapshot",
+    "noSnapshot": "No Snapshots",
+    "noSnapshotDesc": "Click \"Save Snapshot\" to save current data",
+    "snapshotList": "Snapshot List",
+    "clearAll": "Clear All",
+    "oracleCount": "{count} oracles",
+    "avgPrice": "Avg Price:",
+    "deviation": "Deviation:",
+    "deleteSnapshot": "Delete Snapshot",
+    "confirmDelete": "Confirm Delete",
+    "confirmDeleteDesc": "Are you sure you want to delete this snapshot? This action cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmClear": "Confirm Clear",
+    "confirmClearDesc": "Are you sure you want to clear all snapshots? This action cannot be undone.",
+    "clear": "Clear",
+    "shared": "Shared",
+    "unshare": "Unshare",
+    "shareSnapshot": "Share Snapshot",
+    "copyShareLink": "Copy Share Link",
+    "migrateToCloud": "Migrate Snapshots to Cloud",
+    "localSnapshotsDetected": "{count} local snapshots detected",
+    "migrationDesc": "You have snapshots saved locally. After logging in, you can migrate these snapshots to the cloud for cross-device sync and sharing.",
+    "remindLater": "Remind Later",
+    "skip": "Skip",
+    "startMigration": "Start Migration",
+    "migrating": "Migrating...",
+    "cloudLabel": "(Cloud)"
+  },
+  "confidenceAlert": {
+    "title": "Confidence Interval Real-time Alert",
+    "autoRefresh": "Auto Refresh",
+    "refresh": "Refresh",
+    "currentWidth": "Current Width",
+    "criticalAlerts": "Critical Alerts",
+    "warningAlerts": "Warning Alerts",
+    "unacknowledged": "Unacknowledged",
+    "criticalRule": "Critical: Expansion≥100% or Duration≥20min",
+    "warningRule": "Warning: Expansion≥50% or Duration≥10min",
+    "threshold": "Threshold",
+    "current": "Current",
+    "exceeded": "Exceeded",
+    "normal": "Normal",
+    "alertList": "Alert List",
+    "clearAll": "Clear All",
+    "noAlerts": "No Alerts",
+    "noAlertsDesc": "System is monitoring confidence interval changes",
+    "acknowledge": "Acknowledge",
+    "dismiss": "Dismiss",
+    "currentWidthLabel": "Current Width:",
+    "previousWidthLabel": "Previous Width:",
+    "expansionPercentLabel": "Expansion:",
+    "durationLabel": "Duration:",
+    "thresholdLabel": "Threshold:",
+    "alertStats": "Alert Statistics",
+    "suddenExpansion": "Sudden Expansion",
+    "sustainedHigh": "Sustained High",
+    "lastCheck": "Last Check",
+    "severity": {
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "type": {
+      "sudden_expansion": "Sudden Expansion",
+      "sustained_high": "Sustained High"
+    },
+    "message": {
+      "suddenExpansion": "{symbol} confidence interval expanded by {percent}% within {duration}",
+      "sustainedHigh": "{symbol} confidence interval has exceeded threshold {threshold} for {duration}"
+    },
+    "duration": {
+      "minutes": "{minutes}m {seconds}s",
+      "seconds": "{seconds}s"
+    }
+  },
+  "publisher": {
+    "filterByStatus": "Filter by status",
+    "allPublishers": "All Publishers",
+    "activeOnly": "Active Only",
+    "degraded": "Degraded",
+    "inactive": "Inactive",
+    "publisherCount": "{count} publisher{plural}",
+    "noPublishers": "No publishers found matching the filter criteria.",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "degraded": "Degraded"
+    },
+    "anomaly": "Anomaly",
+    "anomalyTypes": "Anomaly Types: ",
+    "priceDeviation": "Price Deviation",
+    "latencyAnomaly": "Latency Anomaly",
+    "submissions": "submissions",
+    "latency": "Latency",
+    "accuracy": "Accuracy",
+    "lastUpdate": "Last Update"
+  },
+  "coveragePool": {
+    "title": "Coverage Pool Overview",
+    "totalValue": "Total Coverage Pool Value",
+    "coverageRatio": "Coverage Ratio",
+    "historicalPayouts": "Total Historical Payouts",
+    "coverageDescription": "Current coverage pool can cover {ratio}% of potential risks",
+    "mechanismTitle": "Coverage Mechanism",
+    "mechanismDescription": "The Coverage Pool provides insurance for oracle data through staked funds. When data anomalies or errors occur, affected users can receive compensation from the pool. Stakers earn yield by providing funds while assuming certain risk exposure.",
+    "participateButton": "Participate in Coverage Pool",
+    "participateDesc": "Provide protection for oracle data and earn stable returns",
+    "status": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "low": "Low"
+    }
+  },
+  "publisherReliability": {
+    "statistics": "Statistics",
+    "trend": {
+      "improving": "Improving",
+      "stable": "Stable",
+      "declining": "Declining"
+    },
+    "historicalAccuracy": "Historical Accuracy",
+    "last7Periods": "Last 7 periods",
+    "priceDeviation": "Price Deviation",
+    "deviationFromMedian": "Deviation from median price",
+    "submissionFrequency": "Submission Frequency",
+    "target99": "Target: 99%",
+    "currentAccuracy": "Current Accuracy",
+    "avgLatency": "Avg Latency",
+    "recentActivity": "Recent Activity",
+    "period": "Period",
+    "accuracy": "accuracy",
+    "dev": "dev"
+  },
+  "dataQuality": {
+    "priceDeviationMonitor": "Price Deviation Monitor",
+    "comparisonWithOracles": "Comparison with other oracle prices",
+    "basePrice": "Base Price",
+    "avgDeviation": "Avg Deviation",
+    "maxDeviation": "Max Deviation",
+    "deviationDistribution": "Deviation Distribution",
+    "deviationPercentByOracle": "Price deviation percentage by oracle",
+    "price": "Price",
+    "deviation": "Deviation",
+    "normal": "Normal",
+    "warningRange": "Warning",
+    "criticalRange": "Critical",
+    "latencyDistributionAnalysis": "Latency Distribution Analysis",
+    "responseLatencyHistogram": "Response latency distribution histogram",
+    "latencyRange": "Latency Range",
+    "percentage": "Percentage",
+    "sampleCount": "Sample Count",
+    "avgValue": "Average",
+    "minValue": "Minimum",
+    "maxValue": "Maximum",
+    "stdDev": "Std Dev",
+    "dataSourceReliability": "Data Source Reliability Score",
+    "availabilityAndUpdateStatus": "Data source availability and update status",
+    "avgAvailability": "Avg Availability",
+    "avgUpdateFrequency": "Avg Update Frequency",
+    "recentUpdate": "Recent Update",
+    "updateFrequency": "Update Frequency",
+    "lastUpdate": "Last Update",
+    "secondsAgo": "s ago",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago",
+    "compositeQualityScore": "Composite Quality Score",
+    "comprehensiveDataAssessment": "Comprehensive data quality assessment",
+    "totalScore": "Total Score",
+    "priceAccuracy": "Price Accuracy",
+    "latencyPerformance": "Latency Performance",
+    "reliability": "Reliability",
+    "excellent": "Excellent",
+    "good": "Good",
+    "warning": "Warning",
+    "critical": "Critical",
+    "dataQualityAnalysis": "Data Quality Analysis",
+    "oracleDataQualityMetrics": "Professional oracle data quality metrics",
+    "lastUpdated": "Last Updated",
+    "refreshData": "Refresh Data"
+  },
+  "networkHealth": {
+    "status": {
+      "online": "Online",
+      "warning": "Warning",
+      "offline": "Offline"
+    },
+    "networkStatus": "Network Status",
+    "monitoring": "Real-time monitoring",
+    "lastCheck": "Last check",
+    "justNow": "Just now",
+    "vsLastWeek": "vs last week",
+    "activeNodes": "Active Nodes",
+    "nodeUptime": "Node Uptime",
+    "avgResponseTime": "Avg Response Time",
+    "updateFrequency": "Update Frequency",
+    "every": "Every",
+    "seconds": "seconds",
+    "totalStaked": "Total Staked",
+    "dataFeeds": "Data Feeds",
+    "activityHeatmap": {
+      "title": "Network Activity Heatmap",
+      "subtitle": "24-hour data request distribution",
+      "low": "Low",
+      "high": "High",
+      "totalRequests": "Total Requests",
+      "peakHour": "Peak Hour",
+      "avgPerHour": "Avg/Hour",
+      "peakRequests": "Peak Requests",
+      "requests": "requests"
+    },
+    "bandProtocol": {
+      "title": "Band Protocol Network Metrics",
+      "subtitle": "On-chain validators and staking data",
+      "activeValidators": "Active Validators",
+      "activePercent": "active",
+      "stakedTokens": "Total Staked Tokens",
+      "stakingRate": "Staking Rate",
+      "blockHeight": "Block Height",
+      "blockTime": "Block Time",
+      "inflationRate": "Inflation Rate",
+      "annualInflation": "Annual Inflation",
+      "communityPoolBalance": "Community Pool Balance",
+      "communityPool": "Community Pool"
+    },
+    "performanceDashboard": {
+      "title": "Performance Dashboard",
+      "subtitle": "Real-time network performance visualization",
+      "responseTime": "Response Time",
+      "uptime": "Uptime",
+      "updateFreq": "Update Frequency",
+      "validatorActiveRate": "Validator Active Rate",
+      "stakingRate": "Staking Rate",
+      "blockTime": "Block Time"
+    },
+    "bandProtocolDashboard": {
+      "title": "Band Protocol Performance Dashboard",
+      "subtitle": "On-chain validators and network performance metrics"
+    },
+    "dataFreshness": {
+      "title": "Data Freshness",
+      "subtitle": "Real-time data sync status",
+      "lastUpdated": "Last Updated",
+      "dataLatency": "Data Latency",
+      "excellent": "Excellent",
+      "good": "Good",
+      "slow": "Slow",
+      "secondsAgo": "s ago",
+      "minutesAgo": "m ago",
+      "hoursAgo": "h ago"
+    }
+  },
+  "crossChainPanel": {
+    "timeRange24h": "24 Hours",
+    "timeRange7d": "7 Days",
+    "timeRange30d": "30 Days",
+    "vsLastWeek": "vs last week",
+    "requests": "requests",
+    "chainId": "Chain ID",
+    "avgGasCost": "Avg Gas Cost",
+    "supportedTokens": "Supported Tokens",
+    "dailyAvgRequests": "Daily Avg Requests",
+    "monthlyAvgRequests": "Monthly Avg Requests",
+    "loadingCrossChainData": "Loading cross-chain data...",
+    "retry": "Retry",
+    "fetchCrossChainDataFailed": "Failed to fetch cross-chain data",
+    "crossChainRequestStats": "Cross-Chain Request Statistics",
+    "bandProtocolDistribution": "Band Protocol Cross-Chain Request Distribution",
+    "totalRequests24h": "Total Requests (24h)",
+    "totalRequests7d": "Total Requests (7d)",
+    "totalRequests30d": "Total Requests (30d)",
+    "chainRequestDistribution": "Chain Request Distribution",
+    "totalRequests": "Total Requests",
+    "clickBarForDetails": "Click bar for details",
+    "chainOverview": "Chain Overview",
+    "chainsSelectedForComparison": "{count}/5 chains selected for comparison",
+    "gas": "Gas:",
+    "tokens": "Tokens:",
+    "requestsLabel": "Requests:"
+  },
+  "publisherAnalysis": {
+    "anomalyDetected": "{count} anomalous Publishers detected",
+    "anomalyTypeDistribution": "Anomaly type distribution:",
+    "priceDeviationAnomaly": "Price deviation anomaly: {count}",
+    "latencyAnomaly": "Latency anomaly: {count}",
+    "anomalyCheckSuggestion": "Please check the status and data quality of anomalous Publishers"
+  },
+  "confidenceInterval": {
+    "title": "Confidence Interval",
+    "wideSpread": "Wide Spread",
+    "bid": "Bid",
+    "ask": "Ask",
+    "spread": "Spread",
+    "bidLabel": "BID",
+    "askLabel": "ASK",
+    "width": "Width",
+    "threshold": "Threshold"
+  },
+  "anomalyStats": {
+    "totalAnomalies": "Total Anomalies",
+    "priceSpike": "Price Spike",
+    "priceDrop": "Price Drop",
+    "avgDeviation": "Avg Deviation",
+    "typeDistribution": "Anomaly Type Distribution",
+    "count": "Count",
+    "severityDistribution": "Severity Distribution",
+    "highSeverity": "High",
+    "mediumSeverity": "Medium",
+    "lowSeverity": "Low",
+    "severitySuffix": "Severity",
+    "timeDistribution": "Time Distribution",
+    "hourFormat": "{hour}:00",
+    "recommendations": "Recommendations",
+    "recommendation": {
+      "highSeverityFound": "High severity anomalies detected, recommend checking data source status immediately",
+      "spikeFrequent": "Frequent price spikes, possible market manipulation or data source anomalies",
+      "dropFrequent": "Frequent price drops, recommend checking market liquidity and oracle latency",
+      "tooManyAnomalies": "Large number of anomalies, recommend adjusting detection threshold or checking data quality",
+      "noAnomalies": "No price anomalies detected in current time period",
+      "highAvgDeviation": "High average deviation, recommend increasing monitoring frequency",
+      "systemNormal": "System running normally, no special recommendations"
+    }
+  },
+  "riskAssessment": {
+    "riskLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk",
+      "critical": "Critical Risk"
+    },
+    "overviewTitle": "Risk Assessment Overview",
+    "overviewDescription": "Comprehensive assessment of Oracle network security and reliability",
+    "overallRiskScore": "Overall Risk Score",
+    "priceDeviationRisk": "Price Deviation Risk",
+    "priceDeviationRiskDesc": "Evaluate the deviation between price and market average",
+    "concentrationRisk": "Data Source Concentration Risk",
+    "concentrationRiskDesc": "Evaluate data source diversity and decentralization",
+    "crossChainRisk": "Cross-Chain Consistency Risk",
+    "crossChainRiskDesc": "Evaluate price consistency across different chains",
+    "riskDetailsTitle": "Risk Assessment Details",
+    "pythOnlyMessage": "Full risk assessment features are currently only available for Pyth Network",
+    "comingSoonMessage": "Risk assessment for other Oracle providers coming soon"
+  },
+  "volatilityAlert": {
+    "title": "Volatility Alert",
+    "currentVolatility": "Current Volatility",
+    "threshold": "Alert Threshold",
+    "exceedsThreshold": "Exceeds Threshold",
+    "historicalEvents": "Historical Similar Volatility Events",
+    "volatility": "Volatility",
+    "riskLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "duration": {
+      "1hour": "1 hour",
+      "2hours": "2 hours",
+      "4hours": "4 hours"
+    },
+    "impact": {
+      "priceCorrection2": "Price correction 2%",
+      "priceCorrection3": "Price correction 3%",
+      "priceFluctuation5": "Price fluctuation 5%"
+    }
+  },
+  "dataSourceCoverage": {
+    "title": "Data Source Coverage",
+    "distributionByAssetType": "Distribution by Asset Type",
+    "totalDataSources": "Total Data Sources",
+    "newThisMonth": "+12 New This Month",
+    "continuouslyExpanding": "Continuously Expanding",
+    "unit": "",
+    "categories": {
+      "crypto": "Cryptocurrency",
+      "forex": "Forex",
+      "commodities": "Commodities",
+      "stocks": "Stocks",
+      "etf": "ETF",
+      "indices": "Indices"
+    }
+  },
+  "dataQualityScoreCard": {
+    "title": "Data Quality Score",
+    "subtitle": "Comprehensive data quality assessment",
+    "overallScore": "Overall Score",
+    "networkHealth": "Network Health",
+    "dataIntegrity": "Data Integrity",
+    "responseTime": "Response Time",
+    "validatorActivity": "Validator Activity",
+    "improving": "Improving",
+    "declining": "Declining",
+    "stable": "Stable"
+  },
+  "stakingMetrics": {
+    "title": "Staking Data",
+    "totalStaked": "Total Staked",
+    "stakingApr": "Staking APR",
+    "hot": "Hot",
+    "stakerCount": "Staker Count",
+    "stakeNow": "Stake Now",
+    "stakeDescription": "Participate in API3 staking for stable returns"
+  },
+  "dapiCoverage": {
+    "totalDapis": "Total dAPIs",
+    "activeDataSources": "Active Data Sources",
+    "byChainDistribution": "Distribution by Chain",
+    "updateFrequencyDistribution": "Update Frequency Distribution",
+    "highFrequency": "High Frequency",
+    "perSecondUpdate": "Per Second",
+    "mediumFrequency": "Medium Frequency",
+    "perMinuteUpdate": "Per Minute",
+    "lowFrequency": "Low Frequency",
+    "perHourUpdate": "Per Hour",
+    "total": "Total",
+    "byAssetTypeDistribution": "Distribution by Asset Type",
+    "crypto": "Cryptocurrency",
+    "forex": "Forex",
+    "commodities": "Commodities",
+    "stocks": "Stocks"
+  },
+  "airnodeDeployment": {
+    "totalAirnodes": "Total Airnodes",
+    "globallyDeployedNodes": "Globally Deployed Nodes",
+    "regionDistribution": {
+      "title": "Region Distribution",
+      "subtitle": "By Geographic Location"
+    },
+    "chainDistribution": {
+      "title": "Chain Distribution",
+      "subtitle": "By Blockchain Network"
+    },
+    "providerTypeDistribution": {
+      "title": "Provider Type Distribution",
+      "subtitle": "By Data Provider Type"
+    },
+    "regions": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "others": "Others"
+    },
+    "providerTypes": {
+      "exchanges": "Exchanges",
+      "traditionalFinance": "Traditional Finance",
+      "others": "Others"
+    }
+  },
+  "publisherContribution": {
+    "title": "Publisher Contribution Analysis",
+    "subtitle": "Aggregated price contribution weight distribution",
+    "totalPublishers": "Total Publishers",
+    "avgReliability": "Avg Reliability",
+    "avgLatency": "Avg Latency",
+    "contributionWeight": "Contribution Weight",
+    "weightDistribution": "Contribution Weight Distribution",
+    "weightComparisonChart": "Weight Comparison Bar Chart",
+    "weightDetails": "Contribution Weight Details",
+    "weightCalculation": "Weight Calculation Explanation",
+    "reliabilityScore": "Reliability Score",
+    "reliabilityScoreDesc": "Based on historical reliability rating",
+    "latencyFactor": "Latency Factor",
+    "latencyFactorDesc": "Response speed weight",
+    "statusFactor": "Status Factor",
+    "statusFactorDesc": "Current operational status",
+    "accuracyFactor": "Accuracy Factor",
+    "accuracyFactorDesc": "Price accuracy rating",
+    "rank": "Rank",
+    "publisher": "Publisher",
+    "weightPercent": "Weight %",
+    "reliability": "Reliability",
+    "latency": "Latency",
+    "status": "Status",
+    "topContributor": "Top Contributor"
+  },
+  "crossChainRisk": {
+    "title": "Cross-Chain Consistency Risk Analysis",
+    "status": {
+      "normal": "Normal",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "arbitrageOpportunity": {
+      "title": "Cross-Chain Arbitrage Opportunities Detected",
+      "description": "Detected {count} cross-chain arbitrage opportunities with price spread exceeding {threshold}%, which may indicate cross-chain price inconsistency."
+    },
+    "stats": {
+      "supportedChains": "Supported Chains",
+      "avgLatency": "Average Latency",
+      "maxDeviation": "Max Price Spread",
+      "abnormalChains": "Abnormal Chains"
+    },
+    "priceDetails": {
+      "title": "Chain Price Details",
+      "chain": "Chain",
+      "price": "Price",
+      "deviation": "Deviation",
+      "latency": "Latency",
+      "updateTime": "Update Time",
+      "status": "Status"
+    },
+    "arbitrage": {
+      "title": "Cross-Chain Arbitrage Opportunities",
+      "buyToSell": "Buy → Sell",
+      "priceDiff": "Price Diff",
+      "estimatedProfit": "Est. Profit"
+    },
+    "latencyRisk": {
+      "title": "Cross-Chain Latency Risk",
+      "avgLatency": "Average Latency",
+      "maxLatency": "Max Latency",
+      "minLatency": "Min Latency",
+      "lowLatency": "Cross-chain latency is low, price sync is timely",
+      "mediumLatency": "Cross-chain latency is moderate, price sync is mostly normal",
+      "highLatency": "Cross-chain latency is high, may affect price accuracy"
+    },
+    "consistencyNote": {
+      "title": "Cross-Chain Consistency Notes",
+      "wormhole": "Pyth enables cross-chain price transmission via Wormhole",
+      "idealCase": "Ideally, prices should be consistent across all chains",
+      "arbitrageThreshold": "Price spread exceeding {threshold}% may indicate arbitrage opportunities",
+      "highLatencyRisk": "High latency may cause delayed price updates"
+    }
+  },
+  "requestTypeDistribution": {
+    "title": "Data Request Type Distribution",
+    "subtitle": "24-hour request type statistics",
+    "totalRequests": "Total Requests",
+    "requestCount": "Request Count",
+    "percentage": "Percentage",
+    "mostCommonType": "is the most common data request type, accounting for",
+    "types": {
+      "priceData": "Price Data",
+      "priceDataDesc": "Cryptocurrency, forex and other price requests",
+      "randomNumber": "Random Number",
+      "randomNumberDesc": "VRF random number generation requests",
+      "sportsData": "Sports Data",
+      "sportsDataDesc": "Sports event results data",
+      "stockData": "Stock Data",
+      "stockDataDesc": "Traditional financial market data",
+      "commodityData": "Commodity Data",
+      "commodityDataDesc": "Gold, crude oil and other commodity prices",
+      "other": "Other",
+      "otherDesc": "Other types of data requests"
+    }
+  },
+  "integratedProtocols": {
+    "title": "Integrated Protocols"
+  },
+  "oraclePerformanceRanking": {
+    "title": "Oracle Performance Ranking",
+    "subtitle": "Real-time ranking based on multi-dimensional comprehensive scoring",
+    "weightInfo": "Weights: Response Time 30% | Accuracy 30% | Stability 20% | Data Sources 10% | Supported Chains 10%",
+    "overallScore": "Overall Score",
+    "unchanged": "Unchanged",
+    "dimensionLabels": {
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "dataSources": "Data Sources",
+      "supportedChains": "Chains"
+    },
+    "dimensionDescriptions": {
+      "title": "Scoring Dimensions",
+      "responseTime": {
+        "title": "Response Time",
+        "weight": "Weight 30%",
+        "description": "Lower response time yields higher score"
+      },
+      "accuracy": {
+        "title": "Accuracy",
+        "weight": "Weight 30%",
+        "description": "Higher price accuracy yields higher score"
+      },
+      "stability": {
+        "title": "Stability",
+        "weight": "Weight 20%",
+        "description": "Stability calculated based on standard deviation"
+      },
+      "dataSources": {
+        "title": "Data Sources",
+        "weight": "Weight 10%",
+        "description": "More data sources yield higher score"
+      },
+      "supportedChains": {
+        "title": "Supported Chains",
+        "weight": "Weight 10%",
+        "description": "More supported blockchains yield higher score"
+      }
+    }
+  },
+  "stakingDistribution": {
+    "title": "Validator Staking Distribution",
+    "top10StakeRatio": "Top 10 Validators Staking Ratio",
+    "totalStake": "Total Stake",
+    "stakeAmount": "Stake Amount",
+    "ratio": "Ratio",
+    "clickForDetails": "Click for details",
+    "othersValidators": "Other Validators",
+    "nakamotoCoefficient": "Nakamoto Coefficient",
+    "validators": "validators",
+    "nakamotoDesc": "Requires at least {count} validators to control 33.3% of stake",
+    "top3Ratio": "Top 3 Ratio",
+    "top5Ratio": "Top 5 Ratio",
+    "herfindahlIndex": "Herfindahl Index",
+    "top10Ratio": "Top 10 Ratio",
+    "hhiDesc": "Lower HHI indicates more dispersed staking (ideal < 1500)",
+    "validatorDetails": "Validator Details",
+    "rank": "Rank",
+    "validator": "Validator",
+    "cumulativeRatio": "Cumulative Ratio",
+    "riskLevel": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk",
+      "critical": "Critical Risk"
+    },
+    "concentrationWarning": "Staking Concentration Warning",
+    "concentrationWarningDesc": "Current network staking is highly concentrated. The top {count} validators can control over 33.3% of the stake. This may reduce network security. It is recommended to monitor staking distribution changes.",
+    "concentrationReminder": "Staking Concentration Reminder",
+    "concentrationReminderDesc": "Network staking distribution has some concentration risk. It is recommended to continuously monitor validator staking changes.",
+    "metricsExplanation": "Metrics Explanation",
+    "nakamotoExplanation": "Nakamoto Coefficient: How many validators need to collude to control 33.3% of stake. Higher is safer.",
+    "hhiExplanation": "Herfindahl Index (HHI): Measures staking concentration. Below 1500 indicates dispersion, above 2500 indicates high concentration.",
+    "topNExplanation": "Top N Ratio: The total stake ratio of top N validators. Top 3 should not exceed 33%."
+  },
+  "priceVolatility": {
+    "title": "Price Volatility Comparison Analysis",
+    "timeScale": {
+      "short": "Short-term (1 hour)",
+      "mid": "Mid-term (24 hours)",
+      "long": "Long-term (7 days)"
+    },
+    "windowSize": "Window size: {window} data points",
+    "avgCV": "Average Coefficient of Variation",
+    "minVolatility": "Minimum Volatility",
+    "maxVolatility": "Maximum Volatility",
+    "oracleCount": "Oracle Count",
+    "volatilityComparison": "Volatility Comparison (CV) - {label}",
+    "rollingVolatilityTrend": "Rolling Volatility Trend",
+    "volatilityDecomposition": "Volatility Decomposition View",
+    "shortTermVolatility": "Short-term Volatility",
+    "midTermVolatility": "Mid-term Volatility",
+    "longTermVolatility": "Long-term Volatility",
+    "totalVolatility": "Total Volatility",
+    "shortTermProportion": "Short-term Volatility Proportion",
+    "midTermProportion": "Mid-term Volatility Proportion",
+    "longTermProportion": "Long-term Volatility Proportion",
+    "table": {
+      "oracle": "Oracle",
+      "cv": "Coefficient of Variation (CV)",
+      "stdDev": "Standard Deviation (σ)",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "tooltip": {
+      "cv": "Coefficient of Variation (CV)",
+      "stdDev": "Standard Deviation (σ)",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "volatilityLevel": "Volatility Level"
+    },
+    "level": {
+      "extremelyLow": "Extremely Low",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "extremelyHigh": "Extremely High"
+    },
+    "explanation": {
+      "title": "Volatility Calculation Explanation",
+      "stdDevDesc": "Standard Deviation (σ): Measures price deviation from the mean, σ = √[Σ(xi-x̄)² / n]",
+      "cvDesc": "Coefficient of Variation (CV): Ratio of standard deviation to mean, CV = (σ / x̄) × 100%",
+      "cvInterpretation": "Lower CV indicates more stable prices, higher CV indicates greater volatility",
+      "rollingWindowDesc": "Rolling volatility uses a 5-point window to reflect volatility trend over time",
+      "multiScaleDesc": "Multi-scale analysis helps identify volatility characteristics across different periods",
+      "decompositionDesc": "Volatility decomposition shows the contribution of short, mid, and long-term volatility to total volatility"
+    }
+  },
+  "priceCorrelation": {
+    "title": "Oracle Price Correlation Matrix",
+    "oracleCount": "Oracle Count",
+    "highCorrelationPairs": "High Correlation Pairs",
+    "avgCorrelation": "Average Correlation",
+    "maxCorrelation": "Maximum Correlation",
+    "minCorrelation": "Minimum Correlation",
+    "highCorrelationCount": "High Correlation Pairs",
+    "correlationCoefficient": "Correlation Coefficient",
+    "correlationLevel": "Correlation Level",
+    "correlationDirection": "Correlation Direction",
+    "positiveCorrelation": "Positive Correlation",
+    "negativeCorrelation": "Negative Correlation",
+    "noCorrelation": "No Correlation",
+    "level": {
+      "veryStrong": "Very Strong Correlation",
+      "strong": "Strong Correlation",
+      "moderate": "Moderate Correlation",
+      "weak": "Weak Correlation",
+      "veryWeak": "Very Weak Correlation"
+    },
+    "legend": {
+      "title": "Correlation Coefficient Legend",
+      "perfectNegative": "Perfect Negative",
+      "negative": "Negative",
+      "none": "None",
+      "positive": "Positive",
+      "perfectPositive": "Perfect Positive",
+      "lowCorrelation": "Blue = Low Correlation",
+      "highCorrelation": "Red = High Correlation"
+    },
+    "distribution": {
+      "title": "Correlation Distribution",
+      "topPairs": "Top Correlated Oracle Pairs"
+    },
+    "explanation": {
+      "title": "Pearson Correlation Coefficient Explanation",
+      "description": "Pearson correlation coefficient measures the linear correlation between two oracle price series. The coefficient ranges from -1 to 1, where 1 indicates perfect positive correlation, -1 indicates perfect negative correlation, and 0 indicates no linear correlation. High correlation coefficients indicate that oracle price movements are highly consistent and data quality is reliable."
+    }
+  },
+  "priceDistribution": {
+    "title": "Price Distribution Box Plot",
+    "noData": "No Data Available",
+    "legend": {
+      "title": "Legend",
+      "box": "Box (Q1-Q3)",
+      "median": "Median",
+      "whisker": "Whisker (1.5×IQR)",
+      "outlier": "Outliers"
+    },
+    "stats": {
+      "title": "Statistical Summary",
+      "oracle": "Oracle",
+      "median": "Median",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "Outliers"
+    },
+    "tooltip": {
+      "max": "Maximum",
+      "upperWhisker": "Upper Whisker",
+      "q3": "Q3 (75%)",
+      "median": "Median",
+      "q1": "Q1 (25%)",
+      "lowerWhisker": "Lower Whisker",
+      "min": "Minimum",
+      "iqr": "IQR",
+      "outliers": "Outliers",
+      "outlierCount": ""
+    }
   }
 }

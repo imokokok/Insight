@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { OracleProvider } from '@/lib/types/oracle';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface OraclePerformanceData {
   provider: OracleProvider;
@@ -135,12 +136,12 @@ function getScoreBgColor(score: number): string {
   return 'bg-red-50 border-red-200';
 }
 
-function RankChangeIndicator({ change }: { change: number }) {
+function RankChangeIndicator({ change, t }: { change: number; t: (key: string) => string }) {
   if (change === 0) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
         <span>→</span>
-        <span>不变</span>
+        <span>{t('oraclePerformanceRanking.unchanged')}</span>
       </span>
     );
   }
@@ -205,6 +206,7 @@ export function OraclePerformanceRanking({
   previousRankings = [],
   className = '',
 }: OraclePerformanceRankingProps) {
+  const { t } = useI18n();
   const rankings = useMemo(() => {
     const allResponseTimes = performanceData.map((d) => d.responseTime);
     const allStability = performanceData.map((d) => d.stability);
@@ -270,11 +272,11 @@ export function OraclePerformanceRanking({
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">预言机性能排名</h3>
-          <p className="text-sm text-gray-500 mt-1">基于多维度综合评分的实时排名</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('oraclePerformanceRanking.title')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('oraclePerformanceRanking.subtitle')}</p>
         </div>
         <div className="text-xs text-gray-400">
-          权重: 响应时间30% | 准确率30% | 稳定性20% | 数据源10% | 支持链10%
+          {t('oraclePerformanceRanking.weightInfo')}
         </div>
       </div>
 
@@ -305,31 +307,31 @@ export function OraclePerformanceRanking({
                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
                     <span className="font-semibold text-gray-900">{item.name}</span>
                   </div>
-                  <RankChangeIndicator change={item.rankChange} />
+                  <RankChangeIndicator change={item.rankChange} t={t} />
                 </div>
 
                 <div className="text-center py-4">
                   <p className={`text-4xl font-bold ${getScoreColor(item.overallScore)}`}>
                     {item.overallScore.toFixed(1)}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">综合评分</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('oraclePerformanceRanking.overallScore')}</p>
                 </div>
 
                 <div className="space-y-2 mt-4">
                   <DimensionScoreBar
-                    label="响应时间"
+                    label={t('oraclePerformanceRanking.dimensionLabels.responseTime')}
                     score={item.dimensionScores.responseTime}
                     weight={WEIGHTS.responseTime}
                     color="blue"
                   />
                   <DimensionScoreBar
-                    label="准确率"
+                    label={t('oraclePerformanceRanking.dimensionLabels.accuracy')}
                     score={item.dimensionScores.accuracy}
                     weight={WEIGHTS.accuracy}
                     color="green"
                   />
                   <DimensionScoreBar
-                    label="稳定性"
+                    label={t('oraclePerformanceRanking.dimensionLabels.stability')}
                     score={item.dimensionScores.stability}
                     weight={WEIGHTS.stability}
                     color="purple"
@@ -361,7 +363,7 @@ export function OraclePerformanceRanking({
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
 
-                  <RankChangeIndicator change={item.rankChange} />
+                  <RankChangeIndicator change={item.rankChange} t={t} />
                 </div>
 
                 <div className="flex items-center gap-6">
@@ -370,25 +372,25 @@ export function OraclePerformanceRanking({
                       <span className="font-medium text-gray-700">
                         {item.rawMetrics.responseTime}ms
                       </span>
-                      <span>响应</span>
+                      <span>{t('oraclePerformanceRanking.dimensionLabels.responseTime')}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="font-medium text-gray-700">
                         {item.rawMetrics.accuracy.toFixed(1)}%
                       </span>
-                      <span>准确率</span>
+                      <span>{t('oraclePerformanceRanking.dimensionLabels.accuracy')}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="font-medium text-gray-700">
                         {item.rawMetrics.dataSources}
                       </span>
-                      <span>数据源</span>
+                      <span>{t('oraclePerformanceRanking.dimensionLabels.dataSources')}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="font-medium text-gray-700">
                         {item.rawMetrics.supportedChains}
                       </span>
-                      <span>链</span>
+                      <span>{t('oraclePerformanceRanking.dimensionLabels.supportedChains')}</span>
                     </div>
                   </div>
 
@@ -406,32 +408,32 @@ export function OraclePerformanceRanking({
         </DashboardCard>
       )}
 
-      <DashboardCard title="评分维度说明">
+      <DashboardCard title={t('oraclePerformanceRanking.dimensionDescriptions.title')}>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm font-medium text-blue-900">响应时间</p>
-            <p className="text-xs text-blue-700 mt-1">权重 30%</p>
-            <p className="text-xs text-gray-600 mt-2">响应时间越低得分越高</p>
+            <p className="text-sm font-medium text-blue-900">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.title')}</p>
+            <p className="text-xs text-blue-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.weight')}</p>
+            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.description')}</p>
           </div>
           <div className="p-3 bg-green-50 rounded-lg">
-            <p className="text-sm font-medium text-green-900">准确率</p>
-            <p className="text-xs text-green-700 mt-1">权重 30%</p>
-            <p className="text-xs text-gray-600 mt-2">价格准确率越高得分越高</p>
+            <p className="text-sm font-medium text-green-900">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.title')}</p>
+            <p className="text-xs text-green-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.weight')}</p>
+            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.description')}</p>
           </div>
           <div className="p-3 bg-purple-50 rounded-lg">
-            <p className="text-sm font-medium text-purple-900">稳定性</p>
-            <p className="text-xs text-purple-700 mt-1">权重 20%</p>
-            <p className="text-xs text-gray-600 mt-2">基于标准差计算的稳定性</p>
+            <p className="text-sm font-medium text-purple-900">{t('oraclePerformanceRanking.dimensionDescriptions.stability.title')}</p>
+            <p className="text-xs text-purple-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.stability.weight')}</p>
+            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.stability.description')}</p>
           </div>
           <div className="p-3 bg-pink-50 rounded-lg">
-            <p className="text-sm font-medium text-pink-900">数据源数量</p>
-            <p className="text-xs text-pink-700 mt-1">权重 10%</p>
-            <p className="text-xs text-gray-600 mt-2">数据源越多得分越高</p>
+            <p className="text-sm font-medium text-pink-900">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.title')}</p>
+            <p className="text-xs text-pink-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.weight')}</p>
+            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.description')}</p>
           </div>
           <div className="p-3 bg-amber-50 rounded-lg">
-            <p className="text-sm font-medium text-amber-900">支持链数量</p>
-            <p className="text-xs text-amber-700 mt-1">权重 10%</p>
-            <p className="text-xs text-gray-600 mt-2">支持的区块链越多得分越高</p>
+            <p className="text-sm font-medium text-amber-900">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.title')}</p>
+            <p className="text-xs text-amber-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.weight')}</p>
+            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.description')}</p>
           </div>
         </div>
       </DashboardCard>

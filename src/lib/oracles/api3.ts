@@ -1,4 +1,4 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
 export interface DapiPriceDeviation {
@@ -46,7 +46,6 @@ export interface AirnodeNetworkStats {
   latency: number;
 }
 
-// dAPI 覆盖数据
 export interface DapiCoverage {
   totalDapis: number;
   byAssetType: {
@@ -67,7 +66,6 @@ export interface DapiCoverage {
   };
 }
 
-// 质押和保险池数据
 export interface StakingData {
   totalStaked: number;
   stakingApr: number;
@@ -79,7 +77,6 @@ export interface StakingData {
   };
 }
 
-// 第一方预言机数据
 export interface FirstPartyOracleData {
   airnodeDeployments: {
     total: number;
@@ -112,10 +109,17 @@ export class API3Client extends BaseOracleClient {
   name = OracleProvider.API3;
   supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON];
 
+  constructor(config?: OracleClientConfig) {
+    super(config);
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockPrice(symbol, basePrice, chain);
+      
+      return this.fetchPriceWithDatabase(symbol, chain, () =>
+        this.generateMockPrice(symbol, basePrice, chain)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from API3',
@@ -131,7 +135,10 @@ export class API3Client extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+      
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from API3',
@@ -140,7 +147,6 @@ export class API3Client extends BaseOracleClient {
     }
   }
 
-  // 获取 Airnode 网络统计
   async getAirnodeNetworkStats(): Promise<AirnodeNetworkStats> {
     return {
       activeAirnodes: 156,
@@ -159,7 +165,6 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  // 获取 dAPI 覆盖数据
   async getDapiCoverage(): Promise<DapiCoverage> {
     return {
       totalDapis: 168,
@@ -182,7 +187,6 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  // 获取质押和保险池数据
   async getStakingData(): Promise<StakingData> {
     return {
       totalStaked: 25000000,
@@ -196,7 +200,6 @@ export class API3Client extends BaseOracleClient {
     };
   }
 
-  // 获取第一方预言机数据
   async getFirstPartyOracleData(): Promise<FirstPartyOracleData> {
     return {
       airnodeDeployments: {

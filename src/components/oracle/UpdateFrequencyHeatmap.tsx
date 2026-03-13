@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface HourlyData {
   hour: number;
@@ -19,6 +20,7 @@ export function UpdateFrequencyHeatmap({
   hourlyActivity,
   updateFrequency = 1,
 }: UpdateFrequencyHeatmapProps) {
+  const { t } = useI18n();
   const [hoveredCell, setHoveredCell] = useState<{ hour: number; count: number } | null>(null);
 
   const hourlyData: HourlyData[] = useMemo(() => {
@@ -69,13 +71,13 @@ export function UpdateFrequencyHeatmap({
 
   return (
     <DashboardCard
-      title="更新频率热力图"
+      title={t('updateFrequency.title')}
       headerAction={
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">更新频率: 每 {updateFrequency}s</span>
+          <span className="text-xs text-gray-500">{t('updateFrequency.updateFrequencyLabel', { frequency: updateFrequency })}</span>
           <div className="flex items-center gap-1 text-xs">
             <span className="w-2 h-2 rounded-full bg-yellow-400" />
-            <span className="text-gray-500">异常</span>
+            <span className="text-gray-500">{t('updateFrequency.anomaly')}</span>
           </div>
         </div>
       }
@@ -83,21 +85,21 @@ export function UpdateFrequencyHeatmap({
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">平均每小时更新</p>
+            <p className="text-xs text-blue-600 mb-1">{t('updateFrequency.avgHourlyUpdates')}</p>
             <p className="text-xl font-bold text-blue-700">{avgHourlyUpdates.toLocaleString()}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">最高更新频率</p>
+            <p className="text-xs text-green-600 mb-1">{t('updateFrequency.maxUpdateFrequency')}</p>
             <p className="text-xl font-bold text-green-700">{maxCount.toLocaleString()}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">最低更新频率</p>
+            <p className="text-xs text-purple-600 mb-1">{t('updateFrequency.minUpdateFrequency')}</p>
             <p className="text-xl font-bold text-purple-700">
               {Math.min(...hourlyData.map((d) => d.updateCount)).toLocaleString()}
             </p>
           </div>
           <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">异常时段数</p>
+            <p className="text-xs text-yellow-600 mb-1">{t('updateFrequency.anomalyPeriodCount')}</p>
             <p className="text-xl font-bold text-yellow-700">{anomalyHours.length}</p>
           </div>
         </div>
@@ -136,14 +138,14 @@ export function UpdateFrequencyHeatmap({
                 {hoveredCell.hour.toString().padStart(2, '0')}:00 -{' '}
                 {(hoveredCell.hour + 1).toString().padStart(2, '0')}:00
               </div>
-              <div>更新次数: {hoveredCell.count.toLocaleString()}</div>
-              <div className="text-gray-400 text-xs mt-1">点击查看详情</div>
+              <div>{t('updateFrequency.updateCount')}: {hoveredCell.count.toLocaleString()}</div>
+              <div className="text-gray-400 text-xs mt-1">{t('updateFrequency.clickForDetails')}</div>
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-center gap-1">
-          <span className="text-xs text-gray-500 mr-2">低</span>
+          <span className="text-xs text-gray-500 mr-2">{t('updateFrequency.low')}</span>
           <div className="flex gap-0.5">
             <div className="w-4 h-4 rounded bg-purple-200" />
             <div className="w-4 h-4 rounded bg-purple-300" />
@@ -151,7 +153,7 @@ export function UpdateFrequencyHeatmap({
             <div className="w-4 h-4 rounded bg-purple-500" />
             <div className="w-4 h-4 rounded bg-purple-600" />
           </div>
-          <span className="text-xs text-gray-500 ml-2">高</span>
+          <span className="text-xs text-gray-500 ml-2">{t('updateFrequency.high')}</span>
         </div>
 
         {anomalyHours.length > 0 && (
@@ -169,9 +171,9 @@ export function UpdateFrequencyHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-yellow-800 mb-1">检测到更新频率异常</h4>
+                <h4 className="text-sm font-semibold text-yellow-800 mb-1">{t('updateFrequency.anomalyDetected')}</h4>
                 <p className="text-xs text-yellow-700">
-                  以下时段的更新频率显著低于平均水平：
+                  {t('updateFrequency.anomalyPeriodsDesc')}
                   {anomalyHours.map((h) => ` ${h.hour.toString().padStart(2, '0')}:00`).join(',')}
                 </p>
               </div>
@@ -181,20 +183,20 @@ export function UpdateFrequencyHeatmap({
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-700">每小时更新统计</h4>
+            <h4 className="text-sm font-semibold text-gray-700">{t('updateFrequency.hourlyStats')}</h4>
           </div>
           <div className="max-h-48 overflow-y-auto">
             <table className="w-full">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                    时段
+                    {t('updateFrequency.period')}
                   </th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                    更新次数
+                    {t('updateFrequency.updateCount')}
                   </th>
                   <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                    状态
+                    {t('updateFrequency.status')}
                   </th>
                 </tr>
               </thead>
@@ -219,7 +221,7 @@ export function UpdateFrequencyHeatmap({
                             : 'bg-green-100 text-green-800'
                         }`}
                       >
-                        {data.isAnomaly ? '异常' : '正常'}
+                        {data.isAnomaly ? t('updateFrequency.anomaly') : t('updateFrequency.normal')}
                       </span>
                     </td>
                   </tr>

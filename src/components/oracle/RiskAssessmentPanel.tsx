@@ -6,6 +6,7 @@ import { PriceDeviationRisk } from './PriceDeviationRisk';
 import { ConcentrationRisk } from './ConcentrationRisk';
 import { CrossChainRisk } from './CrossChainRisk';
 import { OracleProvider } from '@/lib/types/oracle';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface RiskScore {
   overall: number;
@@ -18,15 +19,15 @@ interface RiskAssessmentPanelProps {
   provider?: OracleProvider;
 }
 
-function getRiskLevel(score: number): { label: string; color: string; bgColor: string } {
+function getRiskLevel(score: number, t: (key: string) => string): { label: string; color: string; bgColor: string } {
   if (score >= 80) {
-    return { label: '低风险', color: 'text-green-600', bgColor: 'bg-green-100' };
+    return { label: t('riskAssessment.riskLevel.low'), color: 'text-green-600', bgColor: 'bg-green-100' };
   } else if (score >= 60) {
-    return { label: '中等风险', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+    return { label: t('riskAssessment.riskLevel.medium'), color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
   } else if (score >= 40) {
-    return { label: '较高风险', color: 'text-orange-600', bgColor: 'bg-orange-100' };
+    return { label: t('riskAssessment.riskLevel.high'), color: 'text-orange-600', bgColor: 'bg-orange-100' };
   } else {
-    return { label: '高风险', color: 'text-red-600', bgColor: 'bg-red-100' };
+    return { label: t('riskAssessment.riskLevel.critical'), color: 'text-red-600', bgColor: 'bg-red-100' };
   }
 }
 
@@ -34,12 +35,14 @@ function RiskScoreCard({
   title,
   score,
   description,
+  t,
 }: {
   title: string;
   score: number;
   description: string;
+  t: (key: string) => string;
 }) {
-  const riskLevel = getRiskLevel(score);
+  const riskLevel = getRiskLevel(score, t);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -75,6 +78,8 @@ function RiskScoreCard({
 }
 
 export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
+  const { t } = useI18n();
+  
   const riskScores: RiskScore = useMemo(() => {
     return {
       overall: 78,
@@ -84,7 +89,7 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
     };
   }, []);
 
-  const overallRisk = getRiskLevel(riskScores.overall);
+  const overallRisk = getRiskLevel(riskScores.overall, t);
 
   const isPythNetwork = provider === OracleProvider.PYTH_NETWORK;
 
@@ -93,12 +98,12 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">风险评估总览</h3>
-            <p className="text-sm text-gray-500 mt-1">综合评估 Oracle 网络的安全性和可靠性</p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('riskAssessment.overviewTitle')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('riskAssessment.overviewDescription')}</p>
           </div>
           <div className="text-right">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">综合风险评分</span>
+              <span className="text-sm text-gray-600">{t('riskAssessment.overallRiskScore')}</span>
               <span
                 className={`px-3 py-1 text-sm font-medium rounded-full ${overallRisk.bgColor} ${overallRisk.color}`}
               >
@@ -131,19 +136,22 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <RiskScoreCard
-            title="价格偏差风险"
+            title={t('riskAssessment.priceDeviationRisk')}
             score={riskScores.priceDeviation}
-            description="评估价格与市场均价的偏离程度"
+            description={t('riskAssessment.priceDeviationRiskDesc')}
+            t={t}
           />
           <RiskScoreCard
-            title="数据源集中度风险"
+            title={t('riskAssessment.concentrationRisk')}
             score={riskScores.concentration}
-            description="评估数据源的多样性和去中心化程度"
+            description={t('riskAssessment.concentrationRiskDesc')}
+            t={t}
           />
           <RiskScoreCard
-            title="跨链一致性风险"
+            title={t('riskAssessment.crossChainRisk')}
             score={riskScores.crossChain}
-            description="评估不同链上价格的一致性"
+            description={t('riskAssessment.crossChainRiskDesc')}
+            t={t}
           />
         </div>
       </div>
@@ -155,7 +163,7 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
           <CrossChainRisk />
         </>
       ) : (
-        <DashboardCard title="风险评估详情">
+        <DashboardCard title={t('riskAssessment.riskDetailsTitle')}>
           <div className="flex flex-col items-center justify-center py-12">
             <svg
               className="w-16 h-16 text-gray-300 mb-4"
@@ -171,9 +179,9 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
               />
             </svg>
             <p className="text-gray-500 text-center">
-              完整的风险评估功能目前仅支持 Pyth Network
+              {t('riskAssessment.pythOnlyMessage')}
               <br />
-              <span className="text-sm">其他 Oracle 提供商的风险评估功能即将推出</span>
+              <span className="text-sm">{t('riskAssessment.comingSoonMessage')}</span>
             </p>
           </div>
         </DashboardCard>

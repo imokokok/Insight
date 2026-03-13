@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface PublisherData {
   name: string;
@@ -58,31 +59,49 @@ function calculateConcentrationMetrics(publishers: PublisherData[]): Concentrati
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6b7280'];
 
-function getDiversityLevel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: '优秀', color: 'text-green-600' };
-  if (score >= 60) return { label: '良好', color: 'text-blue-600' };
-  if (score >= 40) return { label: '一般', color: 'text-yellow-600' };
-  return { label: '较差', color: 'text-red-600' };
-}
-
-function getImpactLevel(impact: 'low' | 'medium' | 'high'): {
-  label: string;
-  color: string;
-  bgColor: string;
-} {
-  switch (impact) {
-    case 'low':
-      return { label: '低', color: 'text-green-600', bgColor: 'bg-green-100' };
-    case 'medium':
-      return { label: '中等', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-    case 'high':
-      return { label: '高', color: 'text-red-600', bgColor: 'bg-red-100' };
-  }
-}
-
 export function ConcentrationRisk() {
+  const { t } = useI18n();
   const publishers = useMemo(() => generateMockPublishers(), []);
   const metrics = useMemo(() => calculateConcentrationMetrics(publishers), [publishers]);
+
+  const getDiversityLevel = (score: number): { label: string; color: string } => {
+    if (score >= 80) return { label: t('concentrationRisk.diversityLevel.excellent'), color: 'text-green-600' };
+    if (score >= 60) return { label: t('concentrationRisk.diversityLevel.good'), color: 'text-blue-600' };
+    if (score >= 40) return { label: t('concentrationRisk.diversityLevel.fair'), color: 'text-yellow-600' };
+    return { label: t('concentrationRisk.diversityLevel.poor'), color: 'text-red-600' };
+  };
+
+  const getImpactLevel = (impact: 'low' | 'medium' | 'high'): {
+    label: string;
+    color: string;
+    bgColor: string;
+  } => {
+    switch (impact) {
+      case 'low':
+        return { label: t('concentrationRisk.impactLevel.low'), color: 'text-green-600', bgColor: 'bg-green-100' };
+      case 'medium':
+        return { label: t('concentrationRisk.impactLevel.medium'), color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+      case 'high':
+        return { label: t('concentrationRisk.impactLevel.high'), color: 'text-red-600', bgColor: 'bg-red-100' };
+    }
+  };
+
+  const getStatusLabel = (status: 'active' | 'degraded' | 'inactive'): string => {
+    switch (status) {
+      case 'active':
+        return t('concentrationRisk.status.active');
+      case 'degraded':
+        return t('concentrationRisk.status.degraded');
+      case 'inactive':
+        return t('concentrationRisk.status.inactive');
+    }
+  };
+
+  const getImpactDescription = (impact: 'low' | 'medium' | 'high'): string => {
+    const impactKey = impact === 'high' ? 'high' : impact === 'medium' ? 'medium' : 'low';
+    return `${t('concentrationRisk.impactDescription.prefix')}${t(`concentrationRisk.impactDescription.${impactKey}`)}${t('concentrationRisk.impactDescription.suffix')}`;
+  };
+
   const diversityLevel = getDiversityLevel(metrics.diversityScore);
   const impactLevel = getImpactLevel(metrics.singleFailureImpact);
 
@@ -92,12 +111,12 @@ export function ConcentrationRisk() {
   }));
 
   return (
-    <DashboardCard title="数据源集中度风险分析">
+    <DashboardCard title={t('concentrationRisk.title')}>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-700">Publisher 权重分布</h4>
+              <h4 className="text-sm font-medium text-gray-700">{t('concentrationRisk.publisherWeightDistribution')}</h4>
             </div>
             <div style={{ height: 240 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -118,7 +137,7 @@ export function ConcentrationRisk() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [`${value}%`, '权重']}
+                    formatter={(value) => [`${value}%`, t('concentrationRisk.weight')]}
                     contentStyle={{
                       backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
@@ -133,7 +152,7 @@ export function ConcentrationRisk() {
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">数据源多样性评分</span>
+                <span className="text-sm text-gray-600">{t('concentrationRisk.diversityScore')}</span>
                 <span className={`text-sm font-medium ${diversityLevel.color}`}>
                   {diversityLevel.label}
                 </span>
@@ -162,52 +181,46 @@ export function ConcentrationRisk() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">Herfindahl 指数</p>
+                <p className="text-xs text-gray-500 mb-1">{t('concentrationRisk.herfindahlIndex')}</p>
                 <p className="text-lg font-bold text-gray-900">{metrics.herfindahlIndex}</p>
-                <p className="text-xs text-gray-400 mt-1">越低越分散</p>
+                <p className="text-xs text-gray-400 mt-1">{t('concentrationRisk.herfindahlIndexDesc')}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">最大 Publisher 权重</p>
+                <p className="text-xs text-gray-500 mb-1">{t('concentrationRisk.maxPublisherWeight')}</p>
                 <p className="text-lg font-bold text-gray-900">{metrics.topPublisherWeight}%</p>
-                <p className="text-xs text-gray-400 mt-1">建议 &lt;30%</p>
+                <p className="text-xs text-gray-400 mt-1">{t('concentrationRisk.maxPublisherWeightDesc')}</p>
               </div>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">单一 Publisher 故障影响</span>
+                <span className="text-sm text-gray-600">{t('concentrationRisk.singlePublisherFailureImpact')}</span>
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${impactLevel.bgColor} ${impactLevel.color}`}
                 >
-                  {impactLevel.label}风险
+                  {impactLevel.label}
                 </span>
               </div>
               <p className="text-xs text-gray-500">
-                当最大权重 Publisher 发生故障时，可能对价格准确性产生{' '}
-                {metrics.singleFailureImpact === 'high'
-                  ? '显著'
-                  : metrics.singleFailureImpact === 'medium'
-                    ? '一定'
-                    : '轻微'}{' '}
-                影响。
+                {getImpactDescription(metrics.singleFailureImpact)}
               </p>
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Publisher 详情</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('concentrationRisk.publisherDetails')}</h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">名称</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">权重</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.name')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.weight')}</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
-                    提交次数
+                    {t('concentrationRisk.table.submissions')}
                   </th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">可靠性</th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.reliability')}</th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -241,11 +254,7 @@ export function ConcentrationRisk() {
                               : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {publisher.status === 'active'
-                          ? '正常'
-                          : publisher.status === 'degraded'
-                            ? '降级'
-                            : '离线'}
+                        {getStatusLabel(publisher.status)}
                       </span>
                     </td>
                   </tr>
@@ -256,12 +265,12 @@ export function ConcentrationRisk() {
         </div>
 
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">集中度风险说明</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('concentrationRisk.riskExplanation.title')}</h4>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Herfindahl 指数用于衡量市场集中度，数值越低表示数据源越分散</li>
-            <li>• 理想情况下，单一 Publisher 权重不应超过 30%</li>
-            <li>• 多样性评分综合考虑了 Publisher 数量和权重分布</li>
-            <li>• 高集中度可能导致单点故障风险，影响价格数据的可靠性</li>
+            <li>• {t('concentrationRisk.riskExplanation.item1')}</li>
+            <li>• {t('concentrationRisk.riskExplanation.item2')}</li>
+            <li>• {t('concentrationRisk.riskExplanation.item3')}</li>
+            <li>• {t('concentrationRisk.riskExplanation.item4')}</li>
           </ul>
         </div>
       </div>

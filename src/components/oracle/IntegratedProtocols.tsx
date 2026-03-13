@@ -1,4 +1,7 @@
+'use client';
+
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface Protocol {
   name: string;
@@ -25,8 +28,10 @@ function formatTVL(value: number): string {
 }
 
 export function IntegratedProtocols() {
+  const { t } = useI18n();
+
   return (
-    <DashboardCard title="集成协议">
+    <DashboardCard title={t('integratedProtocols.title')}>
       <div className="space-y-3">
         {mockProtocols.map((protocol) => (
           <div

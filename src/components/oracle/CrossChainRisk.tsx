@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface ChainPriceData {
   chain: string;
@@ -89,29 +90,8 @@ function findArbitrageOpportunities(chainData: ChainPriceData[]): ArbitrageOppor
   return opportunities.sort((a, b) => b.priceDiffPercent - a.priceDiffPercent).slice(0, 5);
 }
 
-function getStatusColor(status: 'normal' | 'warning' | 'critical'): string {
-  switch (status) {
-    case 'normal':
-      return 'bg-green-100 text-green-700';
-    case 'warning':
-      return 'bg-yellow-100 text-yellow-700';
-    case 'critical':
-      return 'bg-red-100 text-red-700';
-  }
-}
-
-function getStatusLabel(status: 'normal' | 'warning' | 'critical'): string {
-  switch (status) {
-    case 'normal':
-      return '正常';
-    case 'warning':
-      return '警告';
-    case 'critical':
-      return '异常';
-  }
-}
-
 export function CrossChainRisk() {
+  const { t } = useI18n();
   const chainData = useMemo(() => generateMockChainData(), []);
   const arbitrageOpportunities = useMemo(() => findArbitrageOpportunities(chainData), [chainData]);
 
@@ -121,8 +101,40 @@ export function CrossChainRisk() {
   const maxDeviation = Math.max(...chainData.map((c) => Math.abs(c.deviationPercent)));
   const warningCount = chainData.filter((c) => c.status !== 'normal').length;
 
+  const getStatusColor = (status: 'normal' | 'warning' | 'critical'): string => {
+    switch (status) {
+      case 'normal':
+        return 'bg-green-100 text-green-700';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'critical':
+        return 'bg-red-100 text-red-700';
+    }
+  };
+
+  const getStatusLabel = (status: 'normal' | 'warning' | 'critical'): string => {
+    switch (status) {
+      case 'normal':
+        return t('crossChainRisk.status.normal');
+      case 'warning':
+        return t('crossChainRisk.status.warning');
+      case 'critical':
+        return t('crossChainRisk.status.critical');
+    }
+  };
+
+  const getLatencyDescription = (latency: number): string => {
+    if (latency < 100) {
+      return t('crossChainRisk.latencyRisk.lowLatency');
+    } else if (latency < 200) {
+      return t('crossChainRisk.latencyRisk.mediumLatency');
+    } else {
+      return t('crossChainRisk.latencyRisk.highLatency');
+    }
+  };
+
   return (
-    <DashboardCard title="跨链一致性风险分析">
+    <DashboardCard title={t('crossChainRisk.title')}>
       <div className="space-y-6">
         {arbitrageOpportunities.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -141,10 +153,9 @@ export function CrossChainRisk() {
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-yellow-800">发现跨链套利机会</h4>
+                <h4 className="text-sm font-medium text-yellow-800">{t('crossChainRisk.arbitrageOpportunity.title')}</h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  检测到 {arbitrageOpportunities.length} 个价差超过 {ARBITRAGE_THRESHOLD}%
-                  的跨链套利机会， 这可能表示跨链价格不一致。
+                  {t('crossChainRisk.arbitrageOpportunity.description', { count: arbitrageOpportunities.length, threshold: ARBITRAGE_THRESHOLD })}
                 </p>
               </div>
             </div>
@@ -153,15 +164,15 @@ export function CrossChainRisk() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">支持链数量</p>
+            <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.supportedChains')}</p>
             <p className="text-xl font-bold text-gray-900">{chainData.length}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">平均延迟</p>
+            <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.avgLatency')}</p>
             <p className="text-xl font-bold text-gray-900">{avgLatency}ms</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">最大价差</p>
+            <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.maxDeviation')}</p>
             <p
               className={`text-xl font-bold ${maxDeviation >= 1 ? 'text-red-600' : maxDeviation >= ARBITRAGE_THRESHOLD ? 'text-yellow-600' : 'text-gray-900'}`}
             >
@@ -169,7 +180,7 @@ export function CrossChainRisk() {
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">异常链数</p>
+            <p className="text-xs text-gray-500 mb-1">{t('crossChainRisk.stats.abnormalChains')}</p>
             <p
               className={`text-xl font-bold ${warningCount > 0 ? 'text-yellow-600' : 'text-gray-900'}`}
             >
@@ -179,19 +190,19 @@ export function CrossChainRisk() {
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">各链价格详情</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainRisk.priceDetails.title')}</h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">链</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">价格</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">偏差</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">延迟</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.chain')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.price')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.deviation')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.latency')}</th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
-                    更新时间
+                    {t('crossChainRisk.priceDetails.updateTime')}
                   </th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">状态</th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainRisk.priceDetails.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,7 +245,7 @@ export function CrossChainRisk() {
 
         {arbitrageOpportunities.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">跨链套利机会</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainRisk.arbitrage.title')}</h4>
             <div className="space-y-2">
               {arbitrageOpportunities.map((opp, index) => (
                 <div
@@ -259,17 +270,17 @@ export function CrossChainRisk() {
                       </svg>
                       <span className="text-sm font-medium text-gray-900">{opp.sellChain}</span>
                     </div>
-                    <span className="text-xs text-gray-500">买入 → 卖出</span>
+                    <span className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.buyToSell')}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">价差</p>
+                      <p className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.priceDiff')}</p>
                       <p className="text-sm font-medium text-yellow-600">
                         {opp.priceDiffPercent.toFixed(3)}%
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">预估收益</p>
+                      <p className="text-xs text-gray-500">{t('crossChainRisk.arbitrage.estimatedProfit')}</p>
                       <p className="text-sm font-medium text-green-600">{opp.estimatedProfit}</p>
                     </div>
                   </div>
@@ -281,20 +292,20 @@ export function CrossChainRisk() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">跨链延迟风险</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">{t('crossChainRisk.latencyRisk.title')}</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">平均延迟</span>
+                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.avgLatency')}</span>
                 <span className="text-sm font-medium text-gray-900">{avgLatency}ms</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">最大延迟</span>
+                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.maxLatency')}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {Math.max(...chainData.map((c) => c.latency))}ms
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">最小延迟</span>
+                <span className="text-xs text-gray-600">{t('crossChainRisk.latencyRisk.minLatency')}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {Math.min(...chainData.map((c) => c.latency))}ms
                 </span>
@@ -306,22 +317,18 @@ export function CrossChainRisk() {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {avgLatency < 100
-                  ? '跨链延迟较低，价格同步及时'
-                  : avgLatency < 200
-                    ? '跨链延迟适中，价格同步基本正常'
-                    : '跨链延迟较高，可能影响价格准确性'}
+                {getLatencyDescription(avgLatency)}
               </p>
             </div>
           </div>
 
           <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">跨链一致性说明</h4>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('crossChainRisk.consistencyNote.title')}</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Pyth 通过 Wormhole 实现跨链价格传输</li>
-              <li>• 理想情况下，各链价格应保持一致</li>
-              <li>• 价差超过 {ARBITRAGE_THRESHOLD}% 可能存在套利机会</li>
-              <li>• 高延迟可能导致价格更新不及时</li>
+              <li>• {t('crossChainRisk.consistencyNote.wormhole')}</li>
+              <li>• {t('crossChainRisk.consistencyNote.idealCase')}</li>
+              <li>• {t('crossChainRisk.consistencyNote.arbitrageThreshold', { threshold: ARBITRAGE_THRESHOLD })}</li>
+              <li>• {t('crossChainRisk.consistencyNote.highLatencyRisk')}</li>
             </ul>
           </div>
         </div>

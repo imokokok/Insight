@@ -9,6 +9,9 @@ import {
   Shield,
   Zap,
   Activity,
+  Settings,
+  Heart,
+  Bell,
 } from 'lucide-react';
 import { NavStructure } from './types';
 import { oracleColors } from '@/lib/constants';
@@ -93,6 +96,24 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.umaDesc',
       },
     ],
+  },
+];
+
+export const userNavigationConfig: NavStructure = [
+  {
+    href: '/favorites',
+    label: 'navbar.favorites',
+    icon: Heart,
+  },
+  {
+    href: '/alerts',
+    label: 'navbar.alerts',
+    icon: Bell,
+  },
+  {
+    href: '/settings',
+    label: 'navbar.settings',
+    icon: Settings,
   },
 ];
 

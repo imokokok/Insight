@@ -13,6 +13,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AnomalyData {
   timestamp: number;
@@ -43,39 +44,41 @@ function getSeverity(deviation: number): 'high' | 'medium' | 'low' {
   return 'low';
 }
 
-function getRecommendations(anomalies: AnomalyData[]): string[] {
+function getRecommendations(anomalies: AnomalyData[], t: (key: string) => string): string[] {
   const recommendations: string[] = [];
   const spikeCount = anomalies.filter((a) => a.type === 'spike').length;
   const dropCount = anomalies.filter((a) => a.type === 'drop').length;
   const highSeverityCount = anomalies.filter((a) => getSeverity(a.deviation) === 'high').length;
 
   if (highSeverityCount > 0) {
-    recommendations.push('发现高严重度异常，建议立即检查数据源状态');
+    recommendations.push(t('anomalyStats.recommendation.highSeverityFound'));
   }
 
   if (spikeCount > dropCount * 2) {
-    recommendations.push('价格尖峰频发，可能存在市场操纵或数据源异常');
+    recommendations.push(t('anomalyStats.recommendation.spikeFrequent'));
   } else if (dropCount > spikeCount * 2) {
-    recommendations.push('价格骤降频繁，建议检查市场流动性和预言机延迟');
+    recommendations.push(t('anomalyStats.recommendation.dropFrequent'));
   }
 
   if (anomalies.length > 10) {
-    recommendations.push('异常数量较多，建议调整检测阈值或检查数据质量');
+    recommendations.push(t('anomalyStats.recommendation.tooManyAnomalies'));
   }
 
   if (anomalies.length === 0) {
-    recommendations.push('当前时间段内未检测到价格异常');
+    recommendations.push(t('anomalyStats.recommendation.noAnomalies'));
   }
 
   const avgDeviation = anomalies.reduce((sum, a) => sum + a.deviation, 0) / anomalies.length || 0;
   if (avgDeviation > 3) {
-    recommendations.push('平均偏差较大，建议增加监控频率');
+    recommendations.push(t('anomalyStats.recommendation.highAvgDeviation'));
   }
 
-  return recommendations.length > 0 ? recommendations : ['系统运行正常，暂无特殊建议'];
+  return recommendations.length > 0 ? recommendations : [t('anomalyStats.recommendation.systemNormal')];
 }
 
 export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPanelProps) {
+  const { t } = useI18n();
+
   const stats = useMemo(() => {
     const spikeCount = anomalies.filter((a) => a.type === 'spike').length;
     const dropCount = anomalies.filter((a) => a.type === 'drop').length;
@@ -106,22 +109,22 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
 
   const typeDistribution = useMemo(
     () => [
-      { name: '价格尖峰', value: stats.spikeCount, color: COLORS.spike },
-      { name: '价格骤降', value: stats.dropCount, color: COLORS.drop },
+      { name: t('anomalyStats.priceSpike'), value: stats.spikeCount, color: COLORS.spike },
+      { name: t('anomalyStats.priceDrop'), value: stats.dropCount, color: COLORS.drop },
     ],
-    [stats.spikeCount, stats.dropCount]
+    [stats.spikeCount, stats.dropCount, t]
   );
 
   const severityDistribution = useMemo(
     () => [
-      { name: '高', value: stats.highSeverityCount, color: SEVERITY_COLORS.high },
-      { name: '中', value: stats.mediumSeverityCount, color: SEVERITY_COLORS.medium },
-      { name: '低', value: stats.lowSeverityCount, color: SEVERITY_COLORS.low },
+      { name: t('anomalyStats.highSeverity'), value: stats.highSeverityCount, color: SEVERITY_COLORS.high },
+      { name: t('anomalyStats.mediumSeverity'), value: stats.mediumSeverityCount, color: SEVERITY_COLORS.medium },
+      { name: t('anomalyStats.lowSeverity'), value: stats.lowSeverityCount, color: SEVERITY_COLORS.low },
     ],
-    [stats.highSeverityCount, stats.mediumSeverityCount, stats.lowSeverityCount]
+    [stats.highSeverityCount, stats.mediumSeverityCount, stats.lowSeverityCount, t]
   );
 
-  const recommendations = useMemo(() => getRecommendations(anomalies), [anomalies]);
+  const recommendations = useMemo(() => getRecommendations(anomalies, t), [anomalies, t]);
 
   const timeDistribution = useMemo(() => {
     const hourCounts: Record<number, number> = {};
@@ -132,36 +135,36 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
 
     return Object.entries(hourCounts)
       .map(([hour, count]) => ({
-        hour: `${hour}时`,
+        hour: t('anomalyStats.hourFormat', { hour }),
         count,
       }))
       .sort((a, b) => parseInt(a.hour) - parseInt(b.hour))
       .slice(0, 12);
-  }, [anomalies]);
+  }, [anomalies, t]);
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-xs text-gray-500 mt-1">异常总数</div>
+          <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.totalAnomalies')}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="text-2xl font-bold text-red-600">{stats.spikeCount}</div>
-          <div className="text-xs text-gray-500 mt-1">价格尖峰</div>
+          <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.priceSpike')}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="text-2xl font-bold text-blue-600">{stats.dropCount}</div>
-          <div className="text-xs text-gray-500 mt-1">价格骤降</div>
+          <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.priceDrop')}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="text-2xl font-bold text-orange-600">{stats.avgDeviation.toFixed(2)}σ</div>
-          <div className="text-xs text-gray-500 mt-1">平均偏差</div>
+          <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.avgDeviation')}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DashboardCard title="异常类型分布">
+        <DashboardCard title={t('anomalyStats.typeDistribution')}>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -179,7 +182,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value) => [value, '数量']}
+                  formatter={(value) => [value, t('anomalyStats.count')]}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
@@ -199,7 +202,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
           </div>
         </DashboardCard>
 
-        <DashboardCard title="严重程度分布">
+        <DashboardCard title={t('anomalyStats.severityDistribution')}>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -217,7 +220,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value) => [value, '数量']}
+                  formatter={(value) => [value, t('anomalyStats.count')]}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
@@ -230,7 +233,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
               {severityDistribution.map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-gray-600">{item.name}严重度</span>
+                  <span className="text-xs text-gray-600">{item.name}{t('anomalyStats.severitySuffix')}</span>
                 </div>
               ))}
             </div>
@@ -239,7 +242,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
       </div>
 
       {timeDistribution.length > 0 && (
-        <DashboardCard title="异常时间分布">
+        <DashboardCard title={t('anomalyStats.timeDistribution')}>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={timeDistribution}>
@@ -259,7 +262,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
         </DashboardCard>
       )}
 
-      <DashboardCard title="异常处理建议">
+      <DashboardCard title={t('anomalyStats.recommendations')}>
         <div className="space-y-2">
           {recommendations.map((rec, index) => (
             <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">

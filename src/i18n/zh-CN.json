@@ -25,7 +25,13 @@
     "bandProtocolDesc": "基于Cosmos的跨链数据预言机",
     "pythNetworkDesc": "高频金融数据预言机",
     "api3Desc": "第一方预言机网络",
-    "umaDesc": "乐观预言机协议"
+    "umaDesc": "乐观预言机协议",
+    "favorites": "收藏",
+    "alerts": "告警",
+    "settings": "设置",
+    "login": "登录",
+    "register": "注册",
+    "signOut": "退出登录"
   },
   "footer": {
     "copyright": "© 2026 Insight。保留所有权利。",
@@ -704,7 +710,9 @@
     "oraclePerformanceRanking": {
       "title": "预言机性能排名",
       "subtitle": "综合性能评估排名",
-      "rank": "排名",
+      "accuracyFactor": "准确度因子",
+    "accuracyFactorDesc": "价格准确度评分",
+    "rank": "排名",
       "oracle": "预言机",
       "score": "评分",
       "metrics": {
@@ -1716,7 +1724,15 @@
       "total": "共 {count} 条记录",
       "showing": "显示 {start}-{end} 条",
       "refreshing": "刷新中...",
-      "lastUpdate": "最后更新"
+      "lastUpdate": "最后更新",
+      "legend": {
+        "responseTimeExcellent": "< 120ms",
+        "responseTimeGood": "120-150ms",
+        "responseTimePoor": "> 150ms",
+        "successRateExcellent": "≥ 99.5%",
+        "successRateGood": "99.0-99.5%",
+        "successRatePoor": "< 99.0%"
+      }
     },
     "validatorComparison": {
       "selectValidators": "选择验证者进行对比",
@@ -1905,7 +1921,10 @@
       "oraclePrice": "预言机价格",
       "marketPrice": "市场价格",
       "recovery": "恢复时间",
-      "deviation": "偏差"
+      "deviation": "偏差",
+      "severityLow": "低",
+      "severityMedium": "中",
+      "severityHigh": "高"
     },
     "trend": {
       "title": "准确率趋势（过去30天）",
@@ -1937,6 +1956,30 @@
       "firstPartyOracles": "第一方预言机",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估"
+    },
+    "firstPartyOracle": {
+      "title": "第一方预言机优势对比",
+      "noMiddlemen": "无中间商",
+      "directConnection": "✓ 直接连接",
+      "hasMiddlemen": "✗ 有中间商",
+      "sourceTransparency": "数据源透明",
+      "traceable": "✓ 100% 可追溯",
+      "notTransparent": "✗ 不透明",
+      "responseTime": "响应时间",
+      "comparisonTitle": "API3 vs 传统预言机对比",
+      "feature": "特性",
+      "traditionalOracle": "传统预言机",
+      "dataSourceTransparency": "数据源透明度",
+      "fullTransparency": "✓ 100%",
+      "partialTransparency": "✗ 部分",
+      "middlemen": "中间商",
+      "none": "✓ 无",
+      "has": "✗ 有",
+      "insuranceMechanism": "保险机制",
+      "hasInsurance": "✓ 有",
+      "noInsurance": "✗ 无",
+      "advantagesTitle": "第一方预言机优势",
+      "advantagesDesc": "API3 作为第一方预言机,直接从数据源获取数据,无需经过中间商,提供更高的透明度、更快的响应速度和更可靠的数据质量。"
     },
     "pageTitles": {
       "market": "市场数据概览",
@@ -2422,13 +2465,42 @@
       "subtitle": "按声誉评分排序",
       "rank": "排名",
       "nodeName": "节点名称",
-      "online": "在线"
+      "online": "在线",
+      "rankLabel": "排名 #"
+    },
+    "tooltip": {
+      "accuracy": "准确率",
+      "responseCount": "响应次数",
+      "nodeCount": "个节点"
     }
   },
   "dataSourceTraceability": {
     "title": "数据源追溯",
     "subtitle": "追踪数据从源头到链上的完整流程",
     "lastUpdated": "最后更新",
+    "panel": {
+      "title": "数据源追溯性",
+      "subtitle": "第一方数据源完整链路追踪",
+      "dataSourceCount": "数据源数量",
+      "avgCredibility": "平均可信度",
+      "exchange": "交易所",
+      "traditionalFinance": "传统金融",
+      "credibilityScore": "可信度评分",
+      "dataFlowPath": "数据传输路径",
+      "dataSource": "数据源",
+      "airnodeAddress": "Airnode 地址",
+      "dapiContractAddress": "dAPI 合约地址",
+      "detailedMetrics": "详细指标",
+      "accuracy": "准确性",
+      "responseSpeed": "响应速度",
+      "availability": "可用性",
+      "noData": "暂无数据源追溯信息",
+      "typeExchange": "交易所",
+      "typeTraditionalFinance": "传统金融",
+      "typeOther": "其他",
+      "copied": "已复制",
+      "copyAddress": "复制地址"
+    },
     "statusOverview": {
       "healthy": "健康",
       "warning": "警告",
@@ -2569,6 +2641,11 @@
         "spike": "延迟突增",
         "timeout": "超时",
         "highLatency": "高延迟"
+      },
+      "messages": {
+        "spike": "延迟突增至 {value}ms",
+        "timeout": "发生 {value} 次超时",
+        "highLatency": "持续高延迟 {value}ms"
       }
     },
     "stats": {
@@ -2577,6 +2654,12 @@
       "max": "最大值",
       "stdDev": "标准差",
       "samples": "总样本数"
+    },
+    "status": {
+      "excellent": "优秀",
+      "good": "良好",
+      "warning": "警告",
+      "critical": "异常"
     }
   },
   "confidenceScore": {
@@ -2636,6 +2719,11 @@
       "optimizeFreshness": "数据更新频率较低，建议优化数据获取流程",
       "improveAccuracy": "历史准确率有待提升，建议加强数据验证机制",
       "maintainQuality": "当前数据质量优秀，建议保持现有配置"
+    },
+    "units": {
+      "count": "个",
+      "seconds": "秒",
+      "percent": "%"
     }
   },
   "crossOracleComparison": {
@@ -2759,6 +2847,96 @@
       "trendDesc": "偏离趋势：上升表示偏离在增大，下降表示偏离在减小"
     }
   },
+  "updateFrequency": {
+    "title": "更新频率热力图",
+    "updateFrequencyLabel": "更新频率: 每 {frequency}s",
+    "anomaly": "异常",
+    "avgHourlyUpdates": "平均每小时更新",
+    "maxUpdateFrequency": "最高更新频率",
+    "minUpdateFrequency": "最低更新频率",
+    "anomalyPeriodCount": "异常时段数",
+    "updateCount": "更新次数",
+    "clickForDetails": "点击查看详情",
+    "low": "低",
+    "high": "高",
+    "anomalyDetected": "检测到更新频率异常",
+    "anomalyPeriodsDesc": "以下时段的更新频率显著低于平均水平：",
+    "hourlyStats": "每小时更新统计",
+    "period": "时段",
+    "status": "状态",
+    "normal": "正常"
+  },
+  "requestTrend": {
+    "title": "跨链请求趋势",
+    "requests": "请求数",
+    "avgLatency": "平均延迟",
+    "successRate": "成功率",
+    "timeRange24h": "24小时",
+    "timeRange7d": "7天",
+    "timeRange30d": "30天",
+    "avgRequests": "平均请求",
+    "per": "每",
+    "day": "天",
+    "hour": "小时",
+    "peakRequests": "峰值请求",
+    "peakRecord": "最高记录",
+    "growthRate": "增长率",
+    "secondHalfPeriod": "后半周期",
+    "totalRequests": "总请求数",
+    "cumulativeRequests": "累计请求",
+    "loading": "加载中...",
+    "realtimeUpdate": "实时更新",
+    "avgSuccessRate": "平均成功率"
+  },
+  "concentrationRisk": {
+    "title": "数据源集中度风险分析",
+    "publisherWeightDistribution": "Publisher 权重分布",
+    "weight": "权重",
+    "diversityScore": "数据源多样性评分",
+    "diversityLevel": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    },
+    "herfindahlIndex": "Herfindahl 指数",
+    "herfindahlIndexDesc": "越低越分散",
+    "maxPublisherWeight": "最大 Publisher 权重",
+    "maxPublisherWeightDesc": "建议 <30%",
+    "singlePublisherFailureImpact": "单一 Publisher 故障影响",
+    "impactLevel": {
+      "low": "低风险",
+      "medium": "中等风险",
+      "high": "高风险"
+    },
+    "impactDescription": {
+      "high": "显著",
+      "medium": "一定",
+      "low": "轻微",
+      "prefix": "当最大权重 Publisher 发生故障时，可能对价格准确性产生",
+      "suffix": "影响。"
+    },
+    "publisherDetails": "Publisher 详情",
+    "table": {
+      "name": "名称",
+      "weight": "权重",
+      "submissions": "提交次数",
+      "reliability": "可靠性",
+      "status": "状态"
+    },
+    "status": {
+      "active": "正常",
+      "degraded": "降级",
+      "inactive": "离线"
+    },
+    "riskExplanation": {
+      "title": "集中度风险说明",
+      "item1": "Herfindahl 指数用于衡量市场集中度，数值越低表示数据源越分散",
+      "item2": "理想情况下，单一 Publisher 权重不应超过 30%",
+      "item3": "多样性评分综合考虑了 Publisher 数量和权重分布",
+      "item4": "高集中度可能导致单点故障风险，影响价格数据的可靠性"
+    }
+  },
   "anomalyAlert": {
     "title": "异常检测与报警系统",
     "subtitle": "实时监控价格异常并推送报警",
@@ -2816,5 +2994,770 @@
     "priceDropMessage": "{provider} {symbol} 价格突变下跌 {percent}%",
     "priceDeviationMessage": "{provider} {symbol} 价格偏离 {percent}%",
     "dataDelayMessage": "{provider} {symbol} 数据延迟 {delay}"
+  },
+  "ecosystem": {
+    "totalProtocols": "集成协议总数",
+    "totalProtocolsSubtitle": "使用 Pyth 数据的协议",
+    "totalTVL": "总锁仓价值 (TVL)",
+    "totalTVLSubtitle": "所有协议 TVL 总和",
+    "supportedChains": "支持链数量",
+    "supportedChainsSubtitle": "跨链覆盖范围",
+    "totalDataSources": "数据源总数",
+    "totalDataSourcesSubtitle": "实时价格数据源"
+  },
+  "snapshot": {
+    "title": "数据快照",
+    "savedCount": "已保存 {count} 个快照",
+    "saveSnapshot": "保存快照",
+    "noSnapshot": "暂无快照",
+    "noSnapshotDesc": "点击「保存快照」按钮保存当前数据",
+    "snapshotList": "快照列表",
+    "clearAll": "清空全部",
+    "oracleCount": "{count} 个预言机",
+    "avgPrice": "均价:",
+    "deviation": "偏差:",
+    "deleteSnapshot": "删除快照",
+    "confirmDelete": "确认删除",
+    "confirmDeleteDesc": "确定要删除这个快照吗？此操作无法撤销。",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirmClear": "确认清空",
+    "confirmClearDesc": "确定要清空所有快照吗？此操作无法撤销。",
+    "clear": "清空",
+    "shared": "已分享",
+    "unshare": "取消分享",
+    "shareSnapshot": "分享快照",
+    "copyShareLink": "复制分享链接",
+    "migrateToCloud": "迁移快照到云端",
+    "localSnapshotsDetected": "检测到 {count} 个本地快照",
+    "migrationDesc": "您有保存在本地的快照数据。登录后可以将这些快照迁移到云端，实现跨设备同步和分享功能。",
+    "remindLater": "稍后提醒",
+    "skip": "跳过",
+    "startMigration": "开始迁移",
+    "migrating": "迁移中...",
+    "cloudLabel": "(云端)"
+  },
+  "confidenceAlert": {
+    "title": "置信区间实时预警",
+    "autoRefresh": "自动刷新",
+    "refresh": "刷新",
+    "currentWidth": "当前宽度",
+    "criticalAlerts": "严重预警",
+    "warningAlerts": "警告预警",
+    "unacknowledged": "未确认",
+    "criticalRule": "严重: 扩大≥100% 或 持续≥20分钟",
+    "warningRule": "警告: 扩大≥50% 或 持续≥10分钟",
+    "threshold": "阈值",
+    "current": "当前",
+    "exceeded": "超出",
+    "normal": "正常",
+    "alertList": "预警列表",
+    "clearAll": "清除全部",
+    "noAlerts": "暂无预警",
+    "noAlertsDesc": "系统正在监控置信区间变化",
+    "acknowledge": "确认",
+    "dismiss": "忽略",
+    "currentWidthLabel": "当前宽度:",
+    "previousWidthLabel": "之前宽度:",
+    "expansionPercentLabel": "扩大幅度:",
+    "durationLabel": "持续时间:",
+    "thresholdLabel": "阈值:",
+    "alertStats": "预警统计",
+    "suddenExpansion": "突然扩大",
+    "sustainedHigh": "持续高位",
+    "lastCheck": "上次检测",
+    "severity": {
+      "warning": "警告",
+      "critical": "严重"
+    },
+    "type": {
+      "sudden_expansion": "突然扩大",
+      "sustained_high": "持续高位"
+    },
+    "message": {
+      "suddenExpansion": "{symbol} 置信区间在 {duration} 内扩大了 {percent}%",
+      "sustainedHigh": "{symbol} 置信区间已连续 {duration} 超过阈值 {threshold}"
+    },
+    "duration": {
+      "minutes": "{minutes}分{seconds}秒",
+      "seconds": "{seconds}秒"
+    }
+  },
+  "publisher": {
+    "filterByStatus": "按状态筛选",
+    "allPublishers": "所有发布者",
+    "activeOnly": "仅活跃",
+    "degraded": "降级",
+    "inactive": "未激活",
+    "publisherCount": "{count} 个发布者",
+    "noPublishers": "未找到符合条件的发布者",
+    "status": {
+      "active": "活跃",
+      "inactive": "未激活",
+      "degraded": "降级"
+    },
+    "anomaly": "异常",
+    "anomalyTypes": "异常类型: ",
+    "priceDeviation": "价格偏差",
+    "latencyAnomaly": "响应延迟",
+    "submissions": "提交次数",
+    "latency": "延迟",
+    "accuracy": "准确率",
+    "lastUpdate": "最后更新"
+  },
+  "coveragePool": {
+    "title": "保险池概览",
+    "totalValue": "保险池总价值",
+    "coverageRatio": "覆盖比率",
+    "historicalPayouts": "历史赔付总额",
+    "coverageDescription": "当前保险池可覆盖 {ratio}% 的潜在风险",
+    "mechanismTitle": "保险机制说明",
+    "mechanismDescription": "Coverage Pool 通过质押资金为预言机数据提供保险保障。当数据出现异常或错误时，受影响的用户可以从保险池中获得赔偿。质押者通过提供资金获得收益分成，同时承担一定的风险敞口。",
+    "participateButton": "参与保险池",
+    "participateDesc": "为预言机数据提供保障，获取稳定收益",
+    "status": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "low": "较低"
+    }
+  },
+  "publisherReliability": {
+    "statistics": "统计",
+    "trend": {
+      "improving": "改善中",
+      "stable": "稳定",
+      "declining": "下降中"
+    },
+    "historicalAccuracy": "历史准确率",
+    "last7Periods": "最近 7 个周期",
+    "priceDeviation": "价格偏差",
+    "deviationFromMedian": "相对中位价的偏差",
+    "submissionFrequency": "提交频率",
+    "target99": "目标: 99%",
+    "currentAccuracy": "当前准确率",
+    "avgLatency": "平均延迟",
+    "recentActivity": "近期活动",
+    "period": "周期",
+    "accuracy": "准确率",
+    "dev": "偏差"
+  },
+  "dataQuality": {
+    "priceDeviationMonitor": "价格偏差监控",
+    "comparisonWithOracles": "与其他预言机价格对比分析",
+    "basePrice": "基准价格",
+    "avgDeviation": "平均偏差",
+    "maxDeviation": "最大偏差",
+    "deviationDistribution": "偏差分布图",
+    "deviationPercentByOracle": "各预言机价格偏差百分比",
+    "price": "价格",
+    "deviation": "偏差",
+    "normal": "正常",
+    "warningRange": "警告",
+    "criticalRange": "异常",
+    "latencyDistributionAnalysis": "延迟分布分析",
+    "responseLatencyHistogram": "响应延迟分布直方图",
+    "latencyRange": "延迟范围",
+    "percentage": "占比",
+    "sampleCount": "样本数",
+    "avgValue": "平均值",
+    "minValue": "最小值",
+    "maxValue": "最大值",
+    "stdDev": "标准差",
+    "dataSourceReliability": "数据源可靠性评分",
+    "availabilityAndUpdateStatus": "数据源可用性与更新状态",
+    "avgAvailability": "平均可用性",
+    "avgUpdateFrequency": "平均更新频率",
+    "recentUpdate": "最近更新",
+    "updateFrequency": "更新频率",
+    "lastUpdate": "最后更新",
+    "secondsAgo": "秒前",
+    "minutesAgo": "分钟前",
+    "hoursAgo": "小时前",
+    "compositeQualityScore": "综合质量评分",
+    "comprehensiveDataAssessment": "数据质量综合评估",
+    "totalScore": "总分",
+    "priceAccuracy": "价格准确性",
+    "latencyPerformance": "延迟性能",
+    "reliability": "可靠性",
+    "excellent": "优秀",
+    "good": "良好",
+    "warning": "警告",
+    "critical": "异常",
+    "dataQualityAnalysis": "数据质量分析",
+    "oracleDataQualityMetrics": "预言机数据质量专业分析指标",
+    "lastUpdated": "最后更新",
+    "refreshData": "刷新数据"
+  },
+  "networkHealth": {
+    "status": {
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线"
+    },
+    "networkStatus": "网络状态",
+    "monitoring": "实时监控中",
+    "lastCheck": "最后检查",
+    "justNow": "刚刚",
+    "vsLastWeek": "较上周",
+    "activeNodes": "活跃节点数",
+    "nodeUptime": "节点在线率",
+    "avgResponseTime": "平均响应时间",
+    "updateFrequency": "数据更新频率",
+    "every": "每",
+    "seconds": "秒",
+    "totalStaked": "网络质押总量",
+    "dataFeeds": "数据源数量",
+    "activityHeatmap": {
+      "title": "网络活动热力图",
+      "subtitle": "24小时数据请求分布",
+      "low": "低",
+      "high": "高",
+      "totalRequests": "总请求量",
+      "peakHour": "峰值时段",
+      "avgPerHour": "平均/小时",
+      "peakRequests": "峰值请求",
+      "requests": "请求"
+    },
+    "bandProtocol": {
+      "title": "Band Protocol 网络指标",
+      "subtitle": "链上验证者与质押数据",
+      "activeValidators": "活跃验证者",
+      "activePercent": "活跃",
+      "stakedTokens": "质押代币总量",
+      "stakingRate": "质押率",
+      "blockHeight": "区块高度",
+      "blockTime": "区块时间",
+      "inflationRate": "通胀率",
+      "annualInflation": "年化通胀",
+      "communityPoolBalance": "社区池余额",
+      "communityPool": "社区资金池"
+    },
+    "performanceDashboard": {
+      "title": "性能仪表盘",
+      "subtitle": "实时网络性能指标可视化",
+      "responseTime": "响应时间",
+      "uptime": "在线率",
+      "updateFreq": "更新频率",
+      "validatorActiveRate": "验证者活跃率",
+      "stakingRate": "质押率",
+      "blockTime": "区块时间"
+    },
+    "bandProtocolDashboard": {
+      "title": "Band Protocol 性能仪表盘",
+      "subtitle": "链上验证者与网络性能指标"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "subtitle": "实时数据同步状态",
+      "lastUpdated": "最后更新",
+      "dataLatency": "数据延迟",
+      "excellent": "优秀",
+      "good": "良好",
+      "slow": "缓慢",
+      "secondsAgo": "秒前",
+      "minutesAgo": "分钟前",
+      "hoursAgo": "小时前"
+    }
+  },
+  "crossChainPanel": {
+    "timeRange24h": "24小时",
+    "timeRange7d": "7天",
+    "timeRange30d": "30天",
+    "vsLastWeek": "vs 上周",
+    "requests": "请求",
+    "chainId": "Chain ID",
+    "avgGasCost": "平均 Gas 成本",
+    "supportedTokens": "支持的代币",
+    "dailyAvgRequests": "日均请求量",
+    "monthlyAvgRequests": "月均请求量",
+    "loadingCrossChainData": "加载跨链数据...",
+    "retry": "重试",
+    "fetchCrossChainDataFailed": "获取跨链数据失败",
+    "crossChainRequestStats": "跨链数据请求统计",
+    "bandProtocolDistribution": "Band Protocol 跨链数据请求分布",
+    "totalRequests24h": "24小时请求总量",
+    "totalRequests7d": "7天请求总量",
+    "totalRequests30d": "30天请求总量",
+    "chainRequestDistribution": "各链请求量分布",
+    "totalRequests": "总请求",
+    "clickBarForDetails": "点击柱状图查看详情",
+    "chainOverview": "各链概览",
+    "chainsSelectedForComparison": "已选择 {count}/5 条链进行对比",
+    "gas": "Gas:",
+    "tokens": "代币:",
+    "requestsLabel": "请求:"
+  },
+  "publisherAnalysis": {
+    "anomalyDetected": "检测到 {count} 个异常 Publisher",
+    "anomalyTypeDistribution": "异常类型分布：",
+    "priceDeviationAnomaly": "价格偏差异常 {count} 个",
+    "latencyAnomaly": "延迟延迟异常 {count} 个",
+    "anomalyCheckSuggestion": "请检查异常 Publisher 的运行状态和数据质量"
+  },
+  "confidenceInterval": {
+    "title": "置信区间",
+    "wideSpread": "价差过大",
+    "bid": "买价",
+    "ask": "卖价",
+    "spread": "价差",
+    "bidLabel": "买",
+    "askLabel": "卖",
+    "width": "宽度",
+    "threshold": "阈值"
+  },
+  "anomalyStats": {
+    "totalAnomalies": "异常总数",
+    "priceSpike": "价格尖峰",
+    "priceDrop": "价格骤降",
+    "avgDeviation": "平均偏差",
+    "typeDistribution": "异常类型分布",
+    "count": "数量",
+    "severityDistribution": "严重程度分布",
+    "highSeverity": "高",
+    "mediumSeverity": "中",
+    "lowSeverity": "低",
+    "severitySuffix": "严重度",
+    "timeDistribution": "异常时间分布",
+    "hourFormat": "{hour}时",
+    "recommendations": "异常处理建议",
+    "recommendation": {
+      "highSeverityFound": "发现高严重度异常，建议立即检查数据源状态",
+      "spikeFrequent": "价格尖峰频发，可能存在市场操纵或数据源异常",
+      "dropFrequent": "价格骤降频繁，建议检查市场流动性和预言机延迟",
+      "tooManyAnomalies": "异常数量较多，建议调整检测阈值或检查数据质量",
+      "noAnomalies": "当前时间段内未检测到价格异常",
+      "highAvgDeviation": "平均偏差较大，建议增加监控频率",
+      "systemNormal": "系统运行正常，暂无特殊建议"
+    }
+  },
+  "volatilityAlert": {
+    "title": "波动率预警",
+    "currentVolatility": "当前波动率",
+    "threshold": "预警阈值",
+    "exceedsThreshold": "超出阈值",
+    "historicalEvents": "历史相似波动率事件",
+    "volatility": "波动率",
+    "riskLevel": {
+      "low": "低风险",
+      "medium": "中等风险",
+      "high": "高风险"
+    },
+    "duration": {
+      "1hour": "1小时",
+      "2hours": "2小时",
+      "4hours": "4小时"
+    },
+    "impact": {
+      "priceCorrection2": "价格回调2%",
+      "priceCorrection3": "价格回调3%",
+      "priceFluctuation5": "价格波动5%"
+    }
+  },
+  "riskAssessment": {
+    "riskLevel": {
+      "low": "低风险",
+      "medium": "中等风险",
+      "high": "较高风险",
+      "critical": "高风险"
+    },
+    "overviewTitle": "风险评估总览",
+    "overviewDescription": "综合评估 Oracle 网络的安全性和可靠性",
+    "overallRiskScore": "综合风险评分",
+    "priceDeviationRisk": "价格偏差风险",
+    "priceDeviationRiskDesc": "评估价格与市场均价的偏离程度",
+    "concentrationRisk": "数据源集中度风险",
+    "concentrationRiskDesc": "评估数据源的多样性和去中心化程度",
+    "crossChainRisk": "跨链一致性风险",
+    "crossChainRiskDesc": "评估不同链上价格的一致性",
+    "riskDetailsTitle": "风险评估详情",
+    "pythOnlyMessage": "完整的风险评估功能目前仅支持 Pyth Network",
+    "comingSoonMessage": "其他 Oracle 提供商的风险评估功能即将推出"
+  },
+  "dataSourceCoverage": {
+    "title": "数据源覆盖",
+    "distributionByAssetType": "按资产类型分布",
+    "totalDataSources": "总数据源数量",
+    "newThisMonth": "+12 本月新增",
+    "continuouslyExpanding": "持续扩展中",
+    "unit": "个",
+    "categories": {
+      "crypto": "加密货币",
+      "forex": "外汇",
+      "commodities": "商品",
+      "stocks": "股票",
+      "etf": "ETF",
+      "indices": "指数"
+    }
+  },
+  "dataQualityScoreCard": {
+    "title": "数据质量评分",
+    "subtitle": "综合数据质量评估",
+    "overallScore": "综合评分",
+    "networkHealth": "网络健康度",
+    "dataIntegrity": "数据完整性",
+    "responseTime": "响应时间",
+    "validatorActivity": "验证者活跃度",
+    "improving": "改善中",
+    "declining": "下降中",
+    "stable": "稳定"
+  },
+  "stakingMetrics": {
+    "title": "质押数据",
+    "totalStaked": "质押总量",
+    "stakingApr": "质押 APR",
+    "hot": "热门",
+    "stakerCount": "质押者数量",
+    "stakeNow": "立即质押",
+    "stakeDescription": "参与 API3 质押，获取稳定收益"
+  },
+  "publisherContribution": {
+    "title": "Publisher 贡献分析",
+    "subtitle": "聚合价格贡献权重分布",
+    "totalPublishers": "总 Publishers",
+    "avgReliability": "平均可靠性",
+    "avgLatency": "平均延迟",
+    "contributionWeight": "贡献权重",
+    "weightDistribution": "贡献权重分布",
+    "weightComparisonChart": "权重对比条形图",
+    "weightDetails": "贡献权重详情",
+    "weightCalculation": "权重计算说明",
+    "reliabilityScore": "可靠性分数",
+    "reliabilityScoreDesc": "基于历史可靠性评分",
+    "latencyFactor": "延迟因子",
+    "latencyFactorDesc": "响应速度权重",
+    "statusFactor": "状态因子",
+    "statusFactorDesc": "当前运行状态",
+    "accuracyFactor": "准确度因子",
+    "accuracyFactorDesc": "价格准确度评分",
+    "rank": "排名",
+    "publisher": "Publisher",
+    "weightPercent": "权重 %",
+    "reliability": "可靠性",
+    "latency": "延迟",
+    "status": "状态",
+    "topContributor": "Top Contributor"
+  },
+  "airnodeDeployment": {
+    "totalAirnodes": "Airnode 总数",
+    "globallyDeployedNodes": "全球部署节点",
+    "regionDistribution": {
+      "title": "地区分布",
+      "subtitle": "按地理位置划分"
+    },
+    "chainDistribution": {
+      "title": "链分布",
+      "subtitle": "按区块链网络划分"
+    },
+    "providerTypeDistribution": {
+      "title": "提供商类型分布",
+      "subtitle": "按数据提供商类型划分"
+    },
+    "regions": {
+      "northAmerica": "北美",
+      "europe": "欧洲",
+      "asia": "亚洲",
+      "others": "其他"
+    },
+    "providerTypes": {
+      "exchanges": "交易所",
+      "traditionalFinance": "传统金融",
+      "others": "其他"
+    }
+  },
+  "dapiCoverage": {
+    "totalDapis": "dAPI 总数",
+    "activeDataSources": "活跃数据源",
+    "byChainDistribution": "按链分布",
+    "updateFrequencyDistribution": "更新频率分布",
+    "highFrequency": "高频",
+    "perSecondUpdate": "每秒更新",
+    "mediumFrequency": "中频",
+    "perMinuteUpdate": "每分钟更新",
+    "lowFrequency": "低频",
+    "perHourUpdate": "每小时更新",
+    "total": "总计",
+    "byAssetTypeDistribution": "资产类型分布",
+    "crypto": "加密货币",
+    "forex": "外汇",
+    "commodities": "大宗商品",
+    "stocks": "股票"
+  },
+  "requestTypeDistribution": {
+    "title": "数据请求类型分布",
+    "subtitle": "24小时请求类型统计",
+    "totalRequests": "总请求量",
+    "requestCount": "请求数量",
+    "percentage": "占比",
+    "mostCommonType": "是最常见的数据请求类型，占总请求量的",
+    "types": {
+      "priceData": "价格数据",
+      "priceDataDesc": "加密货币、外汇等价格请求",
+      "randomNumber": "随机数",
+      "randomNumberDesc": "VRF 随机数生成请求",
+      "sportsData": "体育数据",
+      "sportsDataDesc": "体育赛事结果数据",
+      "stockData": "股票数据",
+      "stockDataDesc": "传统金融市场数据",
+      "commodityData": "商品数据",
+      "commodityDataDesc": "黄金、原油等商品价格",
+      "other": "其他",
+      "otherDesc": "其他类型数据请求"
+    }
+  },
+  "crossChainRisk": {
+    "title": "跨链一致性风险分析",
+    "status": {
+      "normal": "正常",
+      "warning": "警告",
+      "critical": "异常"
+    },
+    "arbitrageOpportunity": {
+      "title": "发现跨链套利机会",
+      "description": "检测到 {count} 个价差超过 {threshold}% 的跨链套利机会，这可能表示跨链价格不一致。"
+    },
+    "stats": {
+      "supportedChains": "支持链数量",
+      "avgLatency": "平均延迟",
+      "maxDeviation": "最大价差",
+      "abnormalChains": "异常链数"
+    },
+    "priceDetails": {
+      "title": "各链价格详情",
+      "chain": "链",
+      "price": "价格",
+      "deviation": "偏差",
+      "latency": "延迟",
+      "updateTime": "更新时间",
+      "status": "状态"
+    },
+    "arbitrage": {
+      "title": "跨链套利机会",
+      "buyToSell": "买入 → 卖出",
+      "priceDiff": "价差",
+      "estimatedProfit": "预估收益"
+    },
+    "latencyRisk": {
+      "title": "跨链延迟风险",
+      "avgLatency": "平均延迟",
+      "maxLatency": "最大延迟",
+      "minLatency": "最小延迟",
+      "lowLatency": "跨链延迟较低，价格同步及时",
+      "mediumLatency": "跨链延迟适中，价格同步基本正常",
+      "highLatency": "跨链延迟较高，可能影响价格准确性"
+    },
+    "consistencyNote": {
+      "title": "跨链一致性说明",
+      "wormhole": "Pyth 通过 Wormhole 实现跨链价格传输",
+      "idealCase": "理想情况下，各链价格应保持一致",
+      "arbitrageThreshold": "价差超过 {threshold}% 可能存在套利机会",
+      "highLatencyRisk": "高延迟可能导致价格更新不及时"
+    }
+  },
+  "integratedProtocols": {
+    "title": "集成协议"
+  },
+  "stakingDistribution": {
+    "title": "验证者质押分布",
+    "top10StakeRatio": "前10名验证者质押占比",
+    "totalStake": "总质押",
+    "stakeAmount": "质押量",
+    "ratio": "占比",
+    "clickForDetails": "点击查看详情",
+    "othersValidators": "其他验证者",
+    "nakamotoCoefficient": "Nakamoto 系数",
+    "validators": "个验证者",
+    "nakamotoDesc": "需要至少 {count} 个验证者合作才能控制 33.3% 的质押量",
+    "top3Ratio": "Top 3 占比",
+    "top5Ratio": "Top 5 占比",
+    "herfindahlIndex": "Herfindahl 指数",
+    "top10Ratio": "Top 10 占比",
+    "hhiDesc": "HHI 越低表示质押分布越分散（理想值 < 1500）",
+    "validatorDetails": "验证者详情",
+    "rank": "排名",
+    "validator": "验证者",
+    "cumulativeRatio": "累计占比",
+    "riskLevel": {
+      "low": "低风险",
+      "medium": "中等风险",
+      "high": "高风险",
+      "critical": "严重风险"
+    },
+    "concentrationWarning": "质押集中度警告",
+    "concentrationWarningDesc": "当前网络质押高度集中，前 {count} 个验证者即可控制超过 33.3% 的质押量。这可能导致网络安全性降低，建议关注质押分布变化。",
+    "concentrationReminder": "质押集中度提醒",
+    "concentrationReminderDesc": "网络质押分布存在一定集中风险，建议持续监控验证者质押变化情况。",
+    "metricsExplanation": "指标说明",
+    "nakamotoExplanation": "Nakamoto 系数: 需要多少验证者合作才能控制 33.3% 质押量，数值越大越安全",
+    "hhiExplanation": "Herfindahl 指数 (HHI): 衡量质押集中度，低于 1500 表示分散，高于 2500 表示高度集中",
+    "topNExplanation": "Top N 占比: 前 N 名验证者的质押总量占比，建议 Top 3 不超过 33%"
+  },
+  "oraclePerformanceRanking": {
+    "title": "预言机性能排名",
+    "subtitle": "基于多维度综合评分的实时排名",
+    "weightInfo": "权重: 响应时间30% | 准确率30% | 稳定性20% | 数据源10% | 支持链10%",
+    "overallScore": "综合评分",
+    "unchanged": "不变",
+    "dimensionLabels": {
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "stability": "稳定性",
+      "dataSources": "数据源",
+      "supportedChains": "链"
+    },
+    "dimensionDescriptions": {
+      "title": "评分维度说明",
+      "responseTime": {
+        "title": "响应时间",
+        "weight": "权重 30%",
+        "description": "响应时间越低得分越高"
+      },
+      "accuracy": {
+        "title": "准确率",
+        "weight": "权重 30%",
+        "description": "价格准确率越高得分越高"
+      },
+      "stability": {
+        "title": "稳定性",
+        "weight": "权重 20%",
+        "description": "基于标准差计算的稳定性"
+      },
+      "dataSources": {
+        "title": "数据源数量",
+        "weight": "权重 10%",
+        "description": "数据源越多得分越高"
+      },
+      "supportedChains": {
+        "title": "支持链数量",
+        "weight": "权重 10%",
+        "description": "支持的区块链越多得分越高"
+      }
+    }
+  },
+  "priceVolatility": {
+    "title": "价格波动率对比分析",
+    "timeScale": {
+      "short": "短期 (1小时)",
+      "mid": "中期 (24小时)",
+      "long": "长期 (7天)"
+    },
+    "windowSize": "窗口大小: {window} 个数据点",
+    "avgCV": "平均变异系数",
+    "minVolatility": "最低波动",
+    "maxVolatility": "最高波动",
+    "oracleCount": "预言机数量",
+    "volatilityComparison": "波动率对比（变异系数 CV）- {label}",
+    "rollingVolatilityTrend": "滚动波动率趋势",
+    "volatilityDecomposition": "波动率分解视图",
+    "shortTermVolatility": "短期波动",
+    "midTermVolatility": "中期波动",
+    "longTermVolatility": "长期波动",
+    "totalVolatility": "总波动率",
+    "shortTermProportion": "短期波动占比",
+    "midTermProportion": "中期波动占比",
+    "longTermProportion": "长期波动占比",
+    "table": {
+      "oracle": "预言机",
+      "cv": "变异系数 (CV)",
+      "stdDev": "标准差 (σ)",
+      "avgPrice": "平均价格",
+      "priceRange": "价格范围",
+      "volatilityLevel": "波动等级"
+    },
+    "tooltip": {
+      "cv": "变异系数 (CV)",
+      "stdDev": "标准差 (σ)",
+      "avgPrice": "平均价格",
+      "priceRange": "价格范围",
+      "volatilityLevel": "波动率等级"
+    },
+    "level": {
+      "extremelyLow": "极低",
+      "low": "低",
+      "medium": "中等",
+      "high": "高",
+      "extremelyHigh": "极高"
+    },
+    "explanation": {
+      "title": "波动率计算说明",
+      "stdDevDesc": "标准差 (σ): 衡量价格偏离平均值的程度，σ = √[Σ(xi-x̄)² / n]",
+      "cvDesc": "变异系数 (CV): 标准差与平均值的比率，CV = (σ / x̄) × 100%",
+      "cvInterpretation": "CV 越低表示价格越稳定，越高表示波动越大",
+      "rollingWindowDesc": "滚动波动率使用 5 个时间点的窗口计算，反映波动率随时间的变化趋势",
+      "multiScaleDesc": "多时间尺度分析帮助识别不同周期的波动特征",
+      "decompositionDesc": "波动率分解展示短期、中期、长期波动对总波动的贡献"
+    }
+  },
+  "priceCorrelation": {
+    "title": "预言机价格相关性矩阵",
+    "oracleCount": "预言机数量",
+    "highCorrelationPairs": "高相关对",
+    "avgCorrelation": "平均相关系数",
+    "maxCorrelation": "最高相关系数",
+    "minCorrelation": "最低相关系数",
+    "highCorrelationCount": "高相关对数量",
+    "correlationCoefficient": "相关系数",
+    "correlationLevel": "相关程度",
+    "correlationDirection": "相关方向",
+    "positiveCorrelation": "正相关",
+    "negativeCorrelation": "负相关",
+    "noCorrelation": "无相关",
+    "level": {
+      "veryStrong": "极强相关",
+      "strong": "强相关",
+      "moderate": "中等相关",
+      "weak": "弱相关",
+      "veryWeak": "极弱相关"
+    },
+    "legend": {
+      "title": "相关系数图例",
+      "perfectNegative": "完全负相关",
+      "negative": "负相关",
+      "none": "无相关",
+      "positive": "正相关",
+      "perfectPositive": "完全正相关",
+      "lowCorrelation": "蓝色 = 低相关",
+      "highCorrelation": "红色 = 高相关"
+    },
+    "distribution": {
+      "title": "相关性分布",
+      "topPairs": "最高相关预言机对"
+    },
+    "explanation": {
+      "title": "皮尔逊相关系数说明",
+      "description": "皮尔逊相关系数衡量两个预言机价格序列之间的线性相关程度。 系数范围从 -1 到 1，其中 1 表示完全正相关，-1 表示完全负相关，0 表示无线性相关。高相关系数表明预言机价格走势高度一致，数据质量可靠。"
+    }
+  },
+  "priceDistribution": {
+    "title": "价格分布箱线图",
+    "noData": "暂无数据",
+    "legend": {
+      "title": "图例说明",
+      "box": "箱体 (Q1-Q3)",
+      "median": "中位数",
+      "whisker": "须线 (1.5×IQR)",
+      "outlier": "离群值"
+    },
+    "stats": {
+      "title": "统计摘要",
+      "oracle": "预言机",
+      "median": "中位数",
+      "q1": "Q1",
+      "q3": "Q3",
+      "iqr": "IQR",
+      "outliers": "离群值"
+    },
+    "tooltip": {
+      "max": "最大值",
+      "upperWhisker": "上须",
+      "q3": "Q3 (75%)",
+      "median": "中位数",
+      "q1": "Q1 (25%)",
+      "lowerWhisker": "下须",
+      "min": "最小值",
+      "iqr": "IQR",
+      "outliers": "离群值",
+      "outlierCount": "个"
+    }
   }
 }

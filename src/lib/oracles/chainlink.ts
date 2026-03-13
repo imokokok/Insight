@@ -1,4 +1,4 @@
-import { BaseOracleClient, UNIFIED_BASE_PRICES } from './base';
+import { BaseOracleClient, UNIFIED_BASE_PRICES, OracleClientConfig } from './base';
 import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
 
 export class ChainlinkClient extends BaseOracleClient {
@@ -10,10 +10,17 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.POLYGON,
   ];
 
+  constructor(config?: OracleClientConfig) {
+    super(config);
+  }
+
   async getPrice(symbol: string, chain?: Blockchain): Promise<PriceData> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockPrice(symbol, basePrice, chain);
+      
+      return this.fetchPriceWithDatabase(symbol, chain, () => 
+        this.generateMockPrice(symbol, basePrice, chain)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch price from Chainlink',
@@ -29,7 +36,10 @@ export class ChainlinkClient extends BaseOracleClient {
   ): Promise<PriceData[]> {
     try {
       const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-      return this.generateMockHistoricalPrices(symbol, basePrice, chain, period);
+      
+      return this.fetchHistoricalPricesWithDatabase(symbol, chain, period, () =>
+        this.generateMockHistoricalPrices(symbol, basePrice, chain, period)
+      );
     } catch (error) {
       throw this.createError(
         error instanceof Error ? error.message : 'Failed to fetch historical prices from Chainlink',

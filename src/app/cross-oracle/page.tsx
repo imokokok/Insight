@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider, PriceData } from '@/lib/types/oracle';
 import {
@@ -37,6 +38,9 @@ import { SnapshotManager } from '@/components/oracle/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/SnapshotComparison';
 import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/lib/types/snapshot';
 import { FloatingActionButton } from '@/components/oracle/FloatingActionButton';
+import { FavoriteButton } from '@/components/favorites';
+import { useFavorites, useIsFavorited, mapConfigTypeFromDB, FavoriteConfig } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   oracleClients,
   oracleNames,
@@ -71,6 +75,8 @@ import {
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
+  const router = useRouter();
+  const { user } = useAuth();
   const { activeTab, handleTabChange } = useTabNavigation();
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
@@ -103,6 +109,39 @@ export default function CrossOraclePage() {
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
   const [highlightedOutlierIndex, setHighlightedOutlierIndex] = useState<number | null>(null);
   const tableRef = useRef<HTMLTableSectionElement>(null);
+  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+
+  const currentFavoriteConfig: FavoriteConfig = useMemo(() => ({
+    selectedOracles: selectedOracles.map(o => o as string),
+    symbol: selectedSymbol,
+  }), [selectedOracles, selectedSymbol]);
+
+  const { favorites: oracleFavorites } = useFavorites({ configType: 'oracle_config' });
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (favoritesDropdownRef.current && !favoritesDropdownRef.current.contains(event.target as Node)) {
+        setShowFavoritesDropdown(false);
+      }
+    };
+    if (showFavoritesDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFavoritesDropdown]);
+
+  const handleApplyFavorite = useCallback((config: FavoriteConfig) => {
+    if (config.selectedOracles) {
+      setSelectedOracles(config.selectedOracles as OracleProvider[]);
+    }
+    if (config.symbol) {
+      setSelectedSymbol(config.symbol);
+    }
+    setShowFavoritesDropdown(false);
+  }, []);
 
   const validPrices = useMemo(
     () => priceData.map((d) => d.price).filter((p) => p > 0),
@@ -1408,6 +1447,100 @@ export default function CrossOraclePage() {
             )}
             {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
           </button>
+
+          {user && (
+            <FavoriteButton
+              configType="oracle_config"
+              configData={currentFavoriteConfig}
+              name={`${selectedSymbol} - ${selectedOracles.map(o => oracleNames[o]).join(', ')}`}
+              variant="button"
+              showLabel
+            />
+          )}
+
+          {user && oracleFavorites && oracleFavorites.length > 0 && (
+            <div className="relative" ref={favoritesDropdownRef}>
+              <button
+                onClick={() => setShowFavoritesDropdown(!showFavoritesDropdown)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 bg-white hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  />
+                </svg>
+                <span>收藏</span>
+                <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  {oracleFavorites.length}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${showFavoritesDropdown ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showFavoritesDropdown && (
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  <div className="p-2 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-900">快速访问收藏</h3>
+                  </div>
+                  <div className="p-1">
+                    {oracleFavorites.map((favorite) => {
+                      const config = favorite.config_data as FavoriteConfig;
+                      return (
+                        <button
+                          key={favorite.id}
+                          onClick={() => handleApplyFavorite(config)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {favorite.name}
+                            </span>
+                            <span className="text-xs text-gray-500">{config.symbol}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {config.selectedOracles?.slice(0, 2).map((oracle) => (
+                              <span
+                                key={oracle}
+                                className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-700 rounded"
+                              >
+                                {oracle}
+                              </span>
+                            ))}
+                            {(config.selectedOracles?.length || 0) > 2 && (
+                              <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                                +{(config.selectedOracles?.length || 0) - 2}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="p-2 border-t border-gray-100">
+                    <button
+                      onClick={() => {
+                        setShowFavoritesDropdown(false);
+                        router.push('/favorites');
+                      }}
+                      className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      查看全部收藏
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {lastUpdated && (
             <span className="text-xs text-gray-400">
               {t('crossOracle.updated')} {lastUpdated.toLocaleTimeString()}
