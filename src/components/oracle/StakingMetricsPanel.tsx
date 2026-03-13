@@ -57,7 +57,9 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
           <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md">
             {t('stakingMetrics.stakeNow')}
           </button>
-          <p className="text-xs text-gray-400 text-center mt-2">{t('stakingMetrics.stakeDescription')}</p>
+          <p className="text-xs text-gray-400 text-center mt-2">
+            {t('stakingMetrics.stakeDescription')}
+          </p>
         </div>
       </div>
     </DashboardCard>

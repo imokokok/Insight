@@ -170,7 +170,9 @@ export function DataQualityScoreCard({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('dataQualityScoreCard.title')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('dataQualityScoreCard.title')}
+            </h3>
             <p className="text-sm text-gray-500 mt-1">{t('dataQualityScoreCard.subtitle')}</p>
           </div>
           <div className="text-right">

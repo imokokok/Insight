@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { TooltipProps } from '@/lib/types/recharts';
 
 interface TrendDataPoint {
   month: string;
@@ -35,7 +36,7 @@ const mockTrendData: TrendDataPoint[] = [
   { month: '2026-02', monthShort: '2月', newSources: 28, cumulative: 657 },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<TrendDataPoint>) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">

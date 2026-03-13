@@ -71,9 +71,24 @@ function generateHistoricalEvents(
   const baseDate = new Date();
 
   const eventConfigs = [
-    { daysAgo: 7, volatilityMultiplier: 1.1, duration: t('volatilityAlert.duration.2hours'), impact: t('volatilityAlert.impact.priceCorrection3') },
-    { daysAgo: 14, volatilityMultiplier: 1.3, duration: t('volatilityAlert.duration.4hours'), impact: t('volatilityAlert.impact.priceFluctuation5') },
-    { daysAgo: 30, volatilityMultiplier: 0.9, duration: t('volatilityAlert.duration.1hour'), impact: t('volatilityAlert.impact.priceCorrection2') },
+    {
+      daysAgo: 7,
+      volatilityMultiplier: 1.1,
+      duration: t('volatilityAlert.duration.2hours'),
+      impact: t('volatilityAlert.impact.priceCorrection3'),
+    },
+    {
+      daysAgo: 14,
+      volatilityMultiplier: 1.3,
+      duration: t('volatilityAlert.duration.4hours'),
+      impact: t('volatilityAlert.impact.priceFluctuation5'),
+    },
+    {
+      daysAgo: 30,
+      volatilityMultiplier: 0.9,
+      duration: t('volatilityAlert.duration.1hour'),
+      impact: t('volatilityAlert.impact.priceCorrection2'),
+    },
   ];
 
   eventConfigs.forEach((config) => {
@@ -98,7 +113,7 @@ function generateHistoricalEvents(
 
 export function VolatilityAlert({ threshold, currentVolatility, className }: VolatilityAlertProps) {
   const { t } = useI18n();
-  
+
   const alertLevel = useMemo(
     () => getAlertLevel(currentVolatility, threshold, t),
     [currentVolatility, threshold, t]
@@ -130,7 +145,9 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
                 {alertLevel.icon}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700">{t('volatilityAlert.currentVolatility')}</p>
+                <p className="text-sm font-medium text-gray-700">
+                  {t('volatilityAlert.currentVolatility')}
+                </p>
                 <p className="text-2xl font-bold" style={{ color: alertLevel.color }}>
                   {currentVolatility.toFixed(4)}%
                 </p>
@@ -155,7 +172,8 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
               </span>
               {isAlertActive && (
                 <span className="text-xs text-gray-600">
-                  {t('volatilityAlert.exceedsThreshold')} {((currentVolatility / threshold - 1) * 100).toFixed(1)}%
+                  {t('volatilityAlert.exceedsThreshold')}{' '}
+                  {((currentVolatility / threshold - 1) * 100).toFixed(1)}%
                 </span>
               )}
             </div>
@@ -172,7 +190,9 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('volatilityAlert.historicalEvents')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('volatilityAlert.historicalEvents')}
+          </h4>
           <div className="space-y-2">
             {historicalEvents.map((event, index) => (
               <div

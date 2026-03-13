@@ -9,6 +9,9 @@ import {
   PriceData,
   Blockchain,
 } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('useOraclePrices');
 
 export function useOraclePrices() {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
@@ -37,7 +40,10 @@ export function useOraclePrices() {
 
         setPrices(priceMap);
       } catch (error) {
-        console.error('Error fetching prices:', error);
+        logger.error(
+          'Error fetching prices',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }

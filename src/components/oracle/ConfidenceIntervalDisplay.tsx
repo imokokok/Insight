@@ -57,7 +57,9 @@ export function ConfidenceIntervalDisplay({
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            <span className="text-xs font-medium text-amber-700">{t('confidenceInterval.wideSpread')}</span>
+            <span className="text-xs font-medium text-amber-700">
+              {t('confidenceInterval.wideSpread')}
+            </span>
           </div>
         )}
       </div>
@@ -106,8 +108,12 @@ export function ConfidenceIntervalDisplay({
           </div>
 
           <div className="absolute inset-0 flex items-center justify-between px-2">
-            <span className="text-[10px] text-green-700 font-medium">{t('confidenceInterval.bidLabel')}</span>
-            <span className="text-[10px] text-red-700 font-medium">{t('confidenceInterval.askLabel')}</span>
+            <span className="text-[10px] text-green-700 font-medium">
+              {t('confidenceInterval.bidLabel')}
+            </span>
+            <span className="text-[10px] text-red-700 font-medium">
+              {t('confidenceInterval.askLabel')}
+            </span>
           </div>
         </div>
 
@@ -121,7 +127,9 @@ export function ConfidenceIntervalDisplay({
               </span>
             </span>
           </div>
-          <div className="text-xs text-gray-400">{t('confidenceInterval.threshold')}: {warningThreshold}%</div>
+          <div className="text-xs text-gray-400">
+            {t('confidenceInterval.threshold')}: {warningThreshold}%
+          </div>
         </div>
       </div>
     </div>

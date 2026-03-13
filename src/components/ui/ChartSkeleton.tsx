@@ -31,20 +31,40 @@ export function ChartSkeleton({
       )}
 
       <div className="flex-1 bg-gray-50 rounded-lg p-4 h-full">
-        <svg
-          className="w-full h-full"
-          viewBox="0 0 800 300"
-          preserveAspectRatio="none"
-        >
+        <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
           {variant === 'price' && (
             <>
               <rect x="0" y="0" width="800" height="300" fill="#f9fafb" />
-              <rect x="60" y="20" width="720" height="200" fill="none" stroke="#e5e7eb" strokeDasharray="3 3" />
+              <rect
+                x="60"
+                y="20"
+                width="720"
+                height="200"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeDasharray="3 3"
+              />
               {[...Array(6)].map((_, i) => (
-                <rect key={`hline-${i}`} x="60" y={20 + i * 33} width="720" height="1" fill="#e5e7eb" opacity="0.5" />
+                <rect
+                  key={`hline-${i}`}
+                  x="60"
+                  y={20 + i * 33}
+                  width="720"
+                  height="1"
+                  fill="#e5e7eb"
+                  opacity="0.5"
+                />
               ))}
               {[...Array(10)].map((_, i) => (
-                <rect key={`vline-${i}`} x={60 + i * 72} y="20" width="1" height="200" fill="#e5e7eb" opacity="0.3" />
+                <rect
+                  key={`vline-${i}`}
+                  x={60 + i * 72}
+                  y="20"
+                  width="1"
+                  height="200"
+                  fill="#e5e7eb"
+                  opacity="0.3"
+                />
               ))}
               <path
                 d="M 60 120 Q 200 80, 300 140 T 500 100 T 700 130"
@@ -89,7 +109,13 @@ export function ChartSkeleton({
                 strokeDasharray="5 5"
               />
               {[...Array(8)].map((_, i) => (
-                <circle key={`dot-${i}`} cx={i * 100 + 100} cy={150 + (i % 2) * 30} r="4" fill="#d1d5db" />
+                <circle
+                  key={`dot-${i}`}
+                  cx={i * 100 + 100}
+                  cy={150 + (i % 2) * 30}
+                  r="4"
+                  fill="#d1d5db"
+                />
               ))}
             </>
           )}
@@ -122,7 +148,11 @@ interface MiniChartSkeletonProps {
   className?: string;
 }
 
-export function MiniChartSkeleton({ height = 80, width = '100%', className = '' }: MiniChartSkeletonProps) {
+export function MiniChartSkeleton({
+  height = 80,
+  width = '100%',
+  className = '',
+}: MiniChartSkeletonProps) {
   return (
     <div className={`animate-pulse ${className}`} style={{ height, width }}>
       <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
@@ -137,12 +167,7 @@ export function MiniChartSkeleton({ height = 80, width = '100%', className = '' 
           d="M 0 60 Q 50 40, 100 50 T 200 30 L 200 80 L 0 80 Z"
           fill="url(#miniSkeletonGradient)"
         />
-        <path
-          d="M 0 60 Q 50 40, 100 50 T 200 30"
-          fill="none"
-          stroke="#d1d5db"
-          strokeWidth="1.5"
-        />
+        <path d="M 0 60 Q 50 40, 100 50 T 200 30" fill="none" stroke="#d1d5db" strokeWidth="1.5" />
       </svg>
     </div>
   );
@@ -154,7 +179,9 @@ interface MetricCardSkeletonProps {
 
 export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
   return (
-    <div className={`animate-pulse rounded-2xl border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}>
+    <div
+      className={`animate-pulse rounded-2xl border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 rounded-xl bg-gray-200 h-11 w-11" />
         <div className="h-6 w-16 bg-gray-200 rounded-full" />

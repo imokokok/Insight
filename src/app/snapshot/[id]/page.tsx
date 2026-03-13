@@ -7,6 +7,9 @@ import { getPublicSnapshot } from '@/lib/snapshots';
 import { OracleSnapshot, formatTimestamp } from '@/lib/types/snapshot';
 import { OracleProvider } from '@/lib/types/oracle';
 import { providerNames } from '@/lib/constants';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('snapshot-page');
 
 const oracleNames = providerNames;
 
@@ -34,7 +37,7 @@ export default function SnapshotPage() {
         setError('快照不存在或未公开分享');
       }
     } catch (err) {
-      console.error('Failed to load snapshot:', err);
+      logger.error('Failed to load snapshot', err instanceof Error ? err : new Error(String(err)));
       setError('加载快照失败');
     } finally {
       setIsLoading(false);
@@ -71,12 +74,8 @@ export default function SnapshotPage() {
               />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">
-            {error || '快照不存在'}
-          </h1>
-          <p className="text-gray-600 mb-6">
-            该快照可能已被删除或未设置为公开分享
-          </p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">{error || '快照不存在'}</h1>
+          <p className="text-gray-600 mb-6">该快照可能已被删除或未设置为公开分享</p>
           <Link
             href="/"
             className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
@@ -96,12 +95,7 @@ export default function SnapshotPage() {
             href="/"
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
           >
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -117,9 +111,7 @@ export default function SnapshotPage() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {snapshot.symbol} 价格快照
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900">{snapshot.symbol} 价格快照</h1>
                 <p className="mt-1 text-sm text-gray-500">
                   创建于 {formatTimestamp(snapshot.timestamp)}
                 </p>
@@ -143,7 +135,10 @@ export default function SnapshotPage() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500">加权均价</p>
                 <p className="mt-1 text-xl font-semibold text-gray-900">
-                  ${snapshot.stats.weightedAvgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  $
+                  {snapshot.stats.weightedAvgPrice.toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
@@ -164,13 +159,19 @@ export default function SnapshotPage() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500">价格区间</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
-                  ${snapshot.stats.priceRange.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  $
+                  {snapshot.stats.priceRange.toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500">标准偏差</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
-                  ${snapshot.stats.standardDeviation.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                  $
+                  {snapshot.stats.standardDeviation.toLocaleString(undefined, {
+                    maximumFractionDigits: 4,
+                  })}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
@@ -198,9 +199,7 @@ export default function SnapshotPage() {
             </div>
 
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                价格数据详情
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">价格数据详情</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">

@@ -28,6 +28,9 @@ import { DapiPriceDeviationMonitor } from '@/components/oracle/DapiPriceDeviatio
 import { DataSourceTraceabilityPanel } from '@/components/oracle/DataSourceTraceabilityPanel';
 import { CoveragePoolTimeline } from '@/components/oracle/CoveragePoolTimeline';
 import { DapiPriceDeviation, DataSourceInfo, CoveragePoolEvent } from '@/lib/oracles/api3';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('API3PageContent');
 
 type AP3Tab = 'market' | 'network' | 'airnode' | 'coverage' | 'advantages';
 
@@ -151,7 +154,10 @@ export function API3PageContent() {
       setDataSourceTrace(sourceTrace);
       setCoverageEvents(poolEvents);
     } catch (error) {
-      console.error('Error fetching API3 data:', error);
+      logger.error(
+        'Error fetching API3 data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setIsLoading(false);
     }

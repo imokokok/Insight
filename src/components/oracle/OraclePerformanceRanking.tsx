@@ -272,12 +272,12 @@ export function OraclePerformanceRanking({
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{t('oraclePerformanceRanking.title')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {t('oraclePerformanceRanking.title')}
+          </h3>
           <p className="text-sm text-gray-500 mt-1">{t('oraclePerformanceRanking.subtitle')}</p>
         </div>
-        <div className="text-xs text-gray-400">
-          {t('oraclePerformanceRanking.weightInfo')}
-        </div>
+        <div className="text-xs text-gray-400">{t('oraclePerformanceRanking.weightInfo')}</div>
       </div>
 
       {topThree.length > 0 && (
@@ -314,7 +314,9 @@ export function OraclePerformanceRanking({
                   <p className={`text-4xl font-bold ${getScoreColor(item.overallScore)}`}>
                     {item.overallScore.toFixed(1)}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">{t('oraclePerformanceRanking.overallScore')}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {t('oraclePerformanceRanking.overallScore')}
+                  </p>
                 </div>
 
                 <div className="space-y-2 mt-4">
@@ -411,29 +413,59 @@ export function OraclePerformanceRanking({
       <DashboardCard title={t('oraclePerformanceRanking.dimensionDescriptions.title')}>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm font-medium text-blue-900">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.title')}</p>
-            <p className="text-xs text-blue-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.weight')}</p>
-            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.responseTime.description')}</p>
+            <p className="text-sm font-medium text-blue-900">
+              {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.title')}
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.weight')}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.description')}
+            </p>
           </div>
           <div className="p-3 bg-green-50 rounded-lg">
-            <p className="text-sm font-medium text-green-900">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.title')}</p>
-            <p className="text-xs text-green-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.weight')}</p>
-            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.accuracy.description')}</p>
+            <p className="text-sm font-medium text-green-900">
+              {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.title')}
+            </p>
+            <p className="text-xs text-green-700 mt-1">
+              {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.weight')}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.description')}
+            </p>
           </div>
           <div className="p-3 bg-purple-50 rounded-lg">
-            <p className="text-sm font-medium text-purple-900">{t('oraclePerformanceRanking.dimensionDescriptions.stability.title')}</p>
-            <p className="text-xs text-purple-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.stability.weight')}</p>
-            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.stability.description')}</p>
+            <p className="text-sm font-medium text-purple-900">
+              {t('oraclePerformanceRanking.dimensionDescriptions.stability.title')}
+            </p>
+            <p className="text-xs text-purple-700 mt-1">
+              {t('oraclePerformanceRanking.dimensionDescriptions.stability.weight')}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              {t('oraclePerformanceRanking.dimensionDescriptions.stability.description')}
+            </p>
           </div>
           <div className="p-3 bg-pink-50 rounded-lg">
-            <p className="text-sm font-medium text-pink-900">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.title')}</p>
-            <p className="text-xs text-pink-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.weight')}</p>
-            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.dataSources.description')}</p>
+            <p className="text-sm font-medium text-pink-900">
+              {t('oraclePerformanceRanking.dimensionDescriptions.dataSources.title')}
+            </p>
+            <p className="text-xs text-pink-700 mt-1">
+              {t('oraclePerformanceRanking.dimensionDescriptions.dataSources.weight')}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              {t('oraclePerformanceRanking.dimensionDescriptions.dataSources.description')}
+            </p>
           </div>
           <div className="p-3 bg-amber-50 rounded-lg">
-            <p className="text-sm font-medium text-amber-900">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.title')}</p>
-            <p className="text-xs text-amber-700 mt-1">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.weight')}</p>
-            <p className="text-xs text-gray-600 mt-2">{t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.description')}</p>
+            <p className="text-sm font-medium text-amber-900">
+              {t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.title')}
+            </p>
+            <p className="text-xs text-amber-700 mt-1">
+              {t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.weight')}
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              {t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.description')}
+            </p>
           </div>
         </div>
       </DashboardCard>

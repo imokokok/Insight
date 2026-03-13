@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('UMADataQualityScoreCard');
 
 function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   const { t } = useI18n();
@@ -111,7 +114,10 @@ export function UMADataQualityScoreCard() {
         const scoreData = await client.getDataQualityScore();
         setData(scoreData);
       } catch (error) {
-        console.error('Failed to fetch data quality score:', error);
+        logger.error(
+          'Failed to fetch data quality score',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }

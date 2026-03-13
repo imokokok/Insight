@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { AlertConditionType } from '@/lib/supabase/database.types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-alerts');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -24,7 +27,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -36,20 +42,14 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
     const alerts = await queries.getAlerts(userId);
 
     if (!alerts) {
-      return NextResponse.json(
-        { error: 'Failed to fetch alerts' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -57,11 +57,11 @@ export async function GET(request: NextRequest) {
       count: alerts.length,
     });
   } catch (error) {
-    console.error('Error fetching alerts:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching alerts',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -69,10 +69,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -105,21 +102,18 @@ export async function POST(request: NextRequest) {
     });
 
     if (!alert) {
-      return NextResponse.json(
-        { error: 'Failed to create alert' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to create alert' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      alert,
-      message: 'Alert created successfully',
-    }, { status: 201 });
-  } catch (error) {
-    console.error('Error creating alert:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        alert,
+        message: 'Alert created successfully',
+      },
+      { status: 201 }
     );
+  } catch (error) {
+    logger.error('Error creating alert', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

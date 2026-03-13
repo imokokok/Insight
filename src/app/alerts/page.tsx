@@ -83,9 +83,7 @@ export default function AlertsPage() {
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">价格告警</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          设置价格告警，当价格达到目标时自动通知您
-        </p>
+        <p className="mt-1 text-sm text-gray-500">设置价格告警，当价格达到目标时自动通知您</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -94,20 +92,12 @@ export default function AlertsPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <AlertList
-            alerts={alerts}
-            isLoading={alertsLoading}
-            onRefresh={refetchAlerts}
-          />
+          <AlertList alerts={alerts} isLoading={alertsLoading} onRefresh={refetchAlerts} />
         </div>
       </div>
 
       <div id="alert-history" className="mt-6">
-        <AlertHistory
-          events={events}
-          isLoading={eventsLoading}
-          onRefresh={refetchEvents}
-        />
+        <AlertHistory events={events} isLoading={eventsLoading} onRefresh={refetchEvents} />
       </div>
 
       <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">

@@ -6,6 +6,10 @@ import { UMAClient, ValidatorData } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
 import { ValidatorPerformanceHeatmap } from './ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from './ValidatorComparison';
+import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
+
+const logger = createLogger('ValidatorAnalyticsPanel');
 
 type SortField = 'name' | 'responseTime' | 'successRate' | 'reputation' | 'staked' | 'earnings';
 type SortDirection = 'asc' | 'desc';
@@ -434,7 +438,10 @@ export function ValidatorAnalyticsPanel() {
       setEarningsTrends(earningsData);
       setLastUpdateTime(Date.now());
     } catch (error) {
-      console.error('Failed to fetch validator data:', error);
+      logger.error(
+        'Failed to fetch validator data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -534,11 +541,12 @@ export function ValidatorAnalyticsPanel() {
     {} as Record<string, number>
   );
 
+  // 使用统一的颜色配置
   const regionColors: Record<string, string> = {
-    'North America': '#3B82F6',
-    Europe: '#8B5CF6',
-    Asia: '#10B981',
-    Other: '#F59E0B',
+    'North America': chartColors.region.northAmerica,
+    Europe: chartColors.region.europe,
+    Asia: chartColors.region.asia,
+    Other: chartColors.region.other,
   };
 
   const regionChartData = Object.entries(regionDistribution).map(([name, value]) => ({
@@ -556,9 +564,9 @@ export function ValidatorAnalyticsPanel() {
   );
 
   const typeColors: Record<string, string> = {
-    institution: '#8B5CF6',
-    independent: '#3B82F6',
-    community: '#10B981',
+    institution: chartColors.validator.institution,
+    independent: chartColors.validator.independent,
+    community: chartColors.validator.community,
   };
 
   const typeLabels: Record<string, string> = {

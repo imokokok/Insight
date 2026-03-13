@@ -34,7 +34,7 @@ interface CustomTooltipProps {
 
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const { t } = useI18n();
-  
+
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
@@ -123,7 +123,9 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
     <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('requestTypeDistribution.title')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('requestTypeDistribution.title')}
+          </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('requestTypeDistribution.subtitle')}</p>
         </div>
         <div className="text-right">
@@ -194,7 +196,9 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
             />
           </svg>
           <span className="text-sm text-purple-700">
-            <span className="font-medium">{topType.type}</span> {t('requestTypeDistribution.mostCommonType')} <span className="font-medium">{topType.percentage}%</span>
+            <span className="font-medium">{topType.type}</span>{' '}
+            {t('requestTypeDistribution.mostCommonType')}{' '}
+            <span className="font-medium">{topType.percentage}%</span>
           </span>
         </div>
       </div>

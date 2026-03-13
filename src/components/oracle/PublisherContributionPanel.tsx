@@ -178,7 +178,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardCard title={t('publisherContribution.weightDistribution')}>
-        <div className="h-80">
+          <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -215,7 +215,10 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                 <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value) => [`${Number(value).toFixed(2)}%`, t('publisherContribution.contributionWeight')]}
+                  formatter={(value) => [
+                    `${Number(value).toFixed(2)}%`,
+                    t('publisherContribution.contributionWeight'),
+                  ]}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Bar dataKey="weight" radius={[0, 4, 4, 0]}>
@@ -234,7 +237,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">{t('publisherContribution.rank')}</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  {t('publisherContribution.rank')}
+                </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                   {t('publisherContribution.publisher')}
                 </th>
@@ -376,10 +381,14 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">{t('publisherContribution.reliabilityScore')}</span>
+              <span className="font-semibold text-gray-900">
+                {t('publisherContribution.reliabilityScore')}
+              </span>
             </div>
             <p className="text-2xl font-bold text-blue-600">40%</p>
-            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.reliabilityScoreDesc')}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {t('publisherContribution.reliabilityScoreDesc')}
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4">
@@ -399,10 +408,14 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">{t('publisherContribution.latencyFactor')}</span>
+              <span className="font-semibold text-gray-900">
+                {t('publisherContribution.latencyFactor')}
+              </span>
             </div>
             <p className="text-2xl font-bold text-green-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.latencyFactorDesc')}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {t('publisherContribution.latencyFactorDesc')}
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-4">
@@ -422,10 +435,14 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">{t('publisherContribution.statusFactor')}</span>
+              <span className="font-semibold text-gray-900">
+                {t('publisherContribution.statusFactor')}
+              </span>
             </div>
             <p className="text-2xl font-bold text-purple-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.statusFactorDesc')}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {t('publisherContribution.statusFactorDesc')}
+            </p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4">
@@ -445,10 +462,14 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   />
                 </svg>
               </div>
-              <span className="font-semibold text-gray-900">{t('publisherContribution.accuracyFactor')}</span>
+              <span className="font-semibold text-gray-900">
+                {t('publisherContribution.accuracyFactor')}
+              </span>
             </div>
             <p className="text-2xl font-bold text-orange-600">20%</p>
-            <p className="text-sm text-gray-600 mt-1">{t('publisherContribution.accuracyFactorDesc')}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {t('publisherContribution.accuracyFactorDesc')}
+            </p>
           </div>
         </div>
       </DashboardCard>

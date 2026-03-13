@@ -292,7 +292,9 @@ function PriceDeviationCard({
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.priceDeviationMonitor')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('dataQuality.priceDeviationMonitor')}
+          </h3>
           <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.comparisonWithOracles')}</p>
         </div>
         <div className="p-2 bg-blue-50 rounded-lg">
@@ -376,11 +378,13 @@ function PriceDeviationCard({
 
 function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
   const { t } = useI18n();
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.deviationDistribution')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900">
+          {t('dataQuality.deviationDistribution')}
+        </h3>
         <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.deviationPercentByOracle')}</p>
       </div>
 
@@ -475,13 +479,17 @@ function LatencyDistributionChart({
   metrics: LatencyMetrics;
 }) {
   const { t } = useI18n();
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.latencyDistributionAnalysis')}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.responseLatencyHistogram')}</p>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('dataQuality.latencyDistributionAnalysis')}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {t('dataQuality.responseLatencyHistogram')}
+          </p>
         </div>
         <div className="p-2 bg-purple-50 rounded-lg">
           <svg
@@ -547,9 +555,15 @@ function LatencyDistributionChart({
               const item = payload[0].payload as LatencyDistributionData;
               return (
                 <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
-                  <p className="text-xs text-gray-600 font-medium">{t('dataQuality.latencyRange')}: {item.range}ms</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('dataQuality.percentage')}: {item.percentage.toFixed(1)}%</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('dataQuality.sampleCount')}: {item.count}</p>
+                  <p className="text-xs text-gray-600 font-medium">
+                    {t('dataQuality.latencyRange')}: {item.range}ms
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('dataQuality.percentage')}: {item.percentage.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('dataQuality.sampleCount')}: {item.count}
+                  </p>
                 </div>
               );
             }}
@@ -591,7 +605,7 @@ function LatencyDistributionChart({
 function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability[] }) {
   const { t } = useI18n();
   const STATUS_CONFIG = getStatusConfig(t);
-  
+
   const avgAvailability = sources.reduce((sum, s) => sum + s.availability, 0) / sources.length;
   const avgUpdateFrequency =
     sources.reduce((sum, s) => sum + s.updateFrequency, 0) / sources.length;
@@ -613,8 +627,12 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.dataSourceReliability')}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.availabilityAndUpdateStatus')}</p>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('dataQuality.dataSourceReliability')}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {t('dataQuality.availabilityAndUpdateStatus')}
+          </p>
         </div>
         <div className="p-2 bg-green-50 rounded-lg">
           <svg
@@ -642,7 +660,9 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
           <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgUpdateFrequency')}</p>
           <p className="text-lg font-bold text-gray-900">
             {avgUpdateFrequency.toFixed(0)}
-            <span className="text-sm text-gray-500 ml-1">{t('dataQuality.secondsAgo').replace('前', '')}</span>
+            <span className="text-sm text-gray-500 ml-1">
+              {t('dataQuality.secondsAgo').replace('前', '')}
+            </span>
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 text-center">
@@ -688,8 +708,12 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
               </div>
 
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{t('dataQuality.updateFrequency')}: {source.updateFrequency}s</span>
-                <span>{t('dataQuality.lastUpdate')}: {getTimeAgo(source.lastSuccessfulUpdate)}</span>
+                <span>
+                  {t('dataQuality.updateFrequency')}: {source.updateFrequency}s
+                </span>
+                <span>
+                  {t('dataQuality.lastUpdate')}: {getTimeAgo(source.lastSuccessfulUpdate)}
+                </span>
               </div>
             </div>
           );
@@ -702,7 +726,7 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
 function QualityScoreCard({ score }: { score: QualityScore }) {
   const { t } = useI18n();
   const STATUS_CONFIG = getStatusConfig(t);
-  
+
   const overallStatus = getStatusFromScore(score.overall);
   const statusConfig = STATUS_CONFIG[overallStatus];
 
@@ -731,8 +755,12 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.compositeQualityScore')}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.comprehensiveDataAssessment')}</p>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {t('dataQuality.compositeQualityScore')}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {t('dataQuality.comprehensiveDataAssessment')}
+          </p>
         </div>
         <div className={`p-2 rounded-lg ${statusConfig.lightBg}`}>
           <svg
@@ -860,7 +888,9 @@ export function DataQualityPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t('dataQuality.dataQualityAnalysis')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('dataQuality.dataQualityAnalysis')}
+          </h2>
           <p className="text-sm text-gray-500 mt-1">{t('dataQuality.oracleDataQualityMetrics')}</p>
         </div>
         <div className="flex items-center gap-3">

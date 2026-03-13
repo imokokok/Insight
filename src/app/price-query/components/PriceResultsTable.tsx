@@ -210,9 +210,14 @@ export function PriceResultsTable({
                   return (
                     <tr
                       key={`${result.provider}-${result.chain}`}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        isHighDeviation ? 'bg-amber-50' : ''
+                      className={`group hover:bg-blue-50/60 transition-all duration-200 cursor-default ${
+                        isHighDeviation ? 'bg-amber-50/50' : ''
                       }`}
+                      title={
+                        isHighDeviation
+                          ? `偏差: ${deviation > 0 ? '+' : ''}${deviation.toFixed(2)}%`
+                          : undefined
+                      }
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">

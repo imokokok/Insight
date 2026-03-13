@@ -174,7 +174,9 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
 
         <div className="p-6 space-y-6">
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{t('crossChainPanel.chainId')}</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
+              {t('crossChainPanel.chainId')}
+            </p>
             <p className="text-gray-900 font-mono">{chain.chainId}</p>
           </div>
 
@@ -224,7 +226,9 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
           </div>
 
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">{t('crossChainPanel.supportedTokens')}</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">
+              {t('crossChainPanel.supportedTokens')}
+            </p>
             <div className="flex flex-wrap gap-2">
               {chain.supportedSymbols.map((symbol) => (
                 <span
@@ -273,11 +277,12 @@ export function CrossChainPanel({
   >([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const TIME_RANGE_CONFIG: Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> = {
-    '24h': { label: t('crossChainPanel.timeRange24h'), field: 'requestCount24h' },
-    '7d': { label: t('crossChainPanel.timeRange7d'), field: 'requestCount7d' },
-    '30d': { label: t('crossChainPanel.timeRange30d'), field: 'requestCount30d' },
-  };
+  const TIME_RANGE_CONFIG: Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> =
+    {
+      '24h': { label: t('crossChainPanel.timeRange24h'), field: 'requestCount24h' },
+      '7d': { label: t('crossChainPanel.timeRange7d'), field: 'requestCount7d' },
+      '30d': { label: t('crossChainPanel.timeRange30d'), field: 'requestCount30d' },
+    };
 
   const fetchData = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -409,8 +414,12 @@ export function CrossChainPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">{t('crossChainPanel.crossChainRequestStats')}</h2>
-          <p className="text-gray-500 text-sm mt-0.5">{t('crossChainPanel.bandProtocolDistribution')}</p>
+          <h2 className="text-lg font-bold text-gray-900">
+            {t('crossChainPanel.crossChainRequestStats')}
+          </h2>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {t('crossChainPanel.bandProtocolDistribution')}
+          </p>
         </div>
         <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
           {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
@@ -487,9 +496,12 @@ export function CrossChainPanel({
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-gray-900 text-sm font-semibold">{t('crossChainPanel.chainRequestDistribution')}</p>
+            <p className="text-gray-900 text-sm font-semibold">
+              {t('crossChainPanel.chainRequestDistribution')}
+            </p>
             <p className="text-gray-500 text-xs mt-0.5">
-              {TIME_RANGE_CONFIG[timeRange].label}{t('crossChainPanel.totalRequests')}: {totalRequests.toLocaleString()}
+              {TIME_RANGE_CONFIG[timeRange].label}
+              {t('crossChainPanel.totalRequests')}: {totalRequests.toLocaleString()}
             </p>
           </div>
           <div className="text-xs text-gray-400">{t('crossChainPanel.clickBarForDetails')}</div>
@@ -543,9 +555,13 @@ export function CrossChainPanel({
 
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-900 text-sm font-semibold">{t('crossChainPanel.chainOverview')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('crossChainPanel.chainOverview')}
+          </p>
           <p className="text-xs text-gray-500">
-            {t('crossChainPanel.chainsSelectedForComparison', { count: selectedChainsForComparison.length })}
+            {t('crossChainPanel.chainsSelectedForComparison', {
+              count: selectedChainsForComparison.length,
+            })}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

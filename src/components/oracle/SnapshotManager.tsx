@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  OracleSnapshot,
-  formatTimestamp,
-  getTimeAgo,
-} from '@/lib/types/snapshot';
+import { OracleSnapshot, formatTimestamp, getTimeAgo } from '@/lib/types/snapshot';
 import {
   getSnapshotsFromDatabase,
   deleteSnapshotFromDatabase,
@@ -23,6 +19,9 @@ import {
 } from '@/lib/snapshots';
 import { OracleProvider } from '@/lib/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('SnapshotManager');
 
 const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
@@ -92,7 +91,10 @@ export function SnapshotManager({
         setSnapshots(localSnapshots);
       }
     } catch (error) {
-      console.error('Failed to load snapshots:', error);
+      logger.error(
+        'Failed to load snapshots',
+        error instanceof Error ? error : new Error(String(error))
+      );
       setSnapshots([]);
     } finally {
       setIsLoading(false);
@@ -113,7 +115,10 @@ export function SnapshotManager({
         }
       }
     } catch (error) {
-      console.error('Failed to delete snapshot:', error);
+      logger.error(
+        'Failed to delete snapshot',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
     setShowDeleteConfirm(null);
   };
@@ -143,7 +148,10 @@ export function SnapshotManager({
         setShareStates((prev) => ({ ...prev, [id]: true }));
       }
     } catch (error) {
-      console.error('Failed to toggle share:', error);
+      logger.error(
+        'Failed to toggle share',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   };
 
@@ -154,7 +162,10 @@ export function SnapshotManager({
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
-      console.error('Failed to copy share link:', error);
+      logger.error(
+        'Failed to copy share link',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   };
 
@@ -172,10 +183,13 @@ export function SnapshotManager({
         setMigrationSnapshots([]);
         await loadSnapshots();
       } else {
-        console.error('Migration completed with errors:', result.errors);
+        logger.error('Migration completed with errors', undefined, { errors: result.errors });
       }
     } catch (error) {
-      console.error('Failed to migrate snapshots:', error);
+      logger.error(
+        'Failed to migrate snapshots',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setIsMigrating(false);
     }
@@ -220,7 +234,9 @@ export function SnapshotManager({
           <div>
             <h3 className="text-sm font-semibold text-gray-900">{t('snapshot.title')}</h3>
             <p className="text-xs text-gray-500">
-              {isLoading ? t('home.loading') : t('snapshot.savedCount', { count: snapshots.length })}
+              {isLoading
+                ? t('home.loading')
+                : t('snapshot.savedCount', { count: snapshots.length })}
               {user && ` ${t('snapshot.cloudLabel')}`}
             </p>
           </div>
@@ -273,7 +289,7 @@ export function SnapshotManager({
                 />
               </svg>
               <p className="text-sm text-gray-500">{t('snapshot.noSnapshot')}</p>
-            <p className="text-xs text-gray-400 mt-1">{t('snapshot.noSnapshotDesc')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('snapshot.noSnapshotDesc')}</p>
             </div>
           ) : (
             <>
@@ -344,7 +360,10 @@ export function SnapshotManager({
                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                               />
                             </svg>
-                            {snapshot.selectedOracles.length} {t('snapshot.oracleCount', { count: snapshot.selectedOracles.length }).replace('{count} ', '')}
+                            {snapshot.selectedOracles.length}{' '}
+                            {t('snapshot.oracleCount', {
+                              count: snapshot.selectedOracles.length,
+                            }).replace('{count} ', '')}
                           </span>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-1">
@@ -394,7 +413,11 @@ export function SnapshotManager({
                                   ? 'text-green-600 hover:text-green-700'
                                   : 'text-gray-400 hover:text-indigo-600'
                               }`}
-                              title={shareStates[snapshot.id] ? t('snapshot.unshare') : t('snapshot.shareSnapshot')}
+                              title={
+                                shareStates[snapshot.id]
+                                  ? t('snapshot.unshare')
+                                  : t('snapshot.shareSnapshot')
+                              }
                             >
                               <svg
                                 className="w-4 h-4"
@@ -504,15 +527,15 @@ export function SnapshotManager({
                 </svg>
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-gray-900">{t('snapshot.migrateToCloud')}</h4>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {t('snapshot.migrateToCloud')}
+                </h4>
                 <p className="text-sm text-gray-500">
                   {t('snapshot.localSnapshotsDetected', { count: migrationSnapshots.length })}
                 </p>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {t('snapshot.migrationDesc')}
-            </p>
+            <p className="text-sm text-gray-600 mb-4">{t('snapshot.migrationDesc')}</p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleRemindLater}
@@ -541,7 +564,9 @@ export function SnapshotManager({
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">{t('snapshot.confirmDelete')}</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('snapshot.confirmDelete')}
+            </h4>
             <p className="text-sm text-gray-600 mb-4">{t('snapshot.confirmDeleteDesc')}</p>
             <div className="flex justify-end gap-2">
               <button
@@ -564,7 +589,9 @@ export function SnapshotManager({
       {showClearConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">{t('snapshot.confirmClear')}</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('snapshot.confirmClear')}
+            </h4>
             <p className="text-sm text-gray-600 mb-4">{t('snapshot.confirmClearDesc')}</p>
             <div className="flex justify-end gap-2">
               <button

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-alerts-events-acknowledge');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -31,37 +37,25 @@ async function getUserId(request: NextRequest): Promise<string | null> {
   return user.id;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
     const events = await queries.getAlertEvents(userId);
 
     if (!events) {
-      return NextResponse.json(
-        { error: 'Failed to verify event ownership' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to verify event ownership' }, { status: 500 });
     }
 
-    const event = events.find(e => e.id === id);
+    const event = events.find((e) => e.id === id);
     if (!event) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
     if (event.acknowledged) {
@@ -74,10 +68,7 @@ export async function POST(
     const acknowledgedEvent = await queries.acknowledgeAlertEvent(id);
 
     if (!acknowledgedEvent) {
-      return NextResponse.json(
-        { error: 'Failed to acknowledge event' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to acknowledge event' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -85,10 +76,10 @@ export async function POST(
       message: 'Event acknowledged successfully',
     });
   } catch (error) {
-    console.error('Error acknowledging event:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error acknowledging event',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -14,6 +14,7 @@ import {
   Dot,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { TooltipProps, CustomDotProps } from '@/lib/types/recharts';
 
 interface LatencyDataPoint {
   timestamp: string;
@@ -122,8 +123,8 @@ function downsampleLatencyData(
   return result.sort((a, b) => a.fullTimestamp.getTime() - b.fullTimestamp.getTime());
 }
 
-function CustomDot({ cx, cy, payload }: any) {
-  if (payload.isAnomaly) {
+function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
+  if (payload?.isAnomaly) {
     return <Dot cx={cx} cy={cy} r={5} fill="#EF4444" stroke="#FFF" strokeWidth={2} />;
   }
   return <Dot cx={cx} cy={cy} r={3} fill="#3B82F6" stroke="#FFF" strokeWidth={2} />;
@@ -200,7 +201,7 @@ export function LatencyTrendChart({
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<LatencyDataPoint>) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const dataPoint = payload[0].payload;

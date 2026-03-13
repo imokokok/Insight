@@ -224,7 +224,9 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
           <span className="font-mono text-gray-900">${stats.q3.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 bg-blue-50 -mx-2 px-2 py-1 rounded">
-          <span className="text-blue-700 font-medium">{t('priceDistribution.tooltip.median')}:</span>
+          <span className="text-blue-700 font-medium">
+            {t('priceDistribution.tooltip.median')}:
+          </span>
           <span className="font-mono text-blue-700 font-semibold">${stats.median.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
@@ -246,8 +248,12 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
         {stats.outliers.length > 0 && (
           <div className="pt-2 border-t border-gray-100">
             <div className="flex justify-between gap-4 mb-1">
-              <span className="text-orange-600 font-medium">{t('priceDistribution.tooltip.outliers')}:</span>
-              <span className="font-mono text-orange-600">{stats.outliers.length} {t('priceDistribution.tooltip.outlierCount')}</span>
+              <span className="text-orange-600 font-medium">
+                {t('priceDistribution.tooltip.outliers')}:
+              </span>
+              <span className="font-mono text-orange-600">
+                {stats.outliers.length} {t('priceDistribution.tooltip.outlierCount')}
+              </span>
             </div>
             <div className="text-xs text-gray-500 max-h-20 overflow-y-auto">
               {stats.outliers.slice(0, 5).map((v, i) => (
@@ -272,7 +278,7 @@ export function PriceDistributionBoxPlot({
 }: PriceDistributionBoxPlotProps) {
   const { t } = useI18n();
   const chartTitle = title || t('priceDistribution.title');
-  
+
   const { chartData, outliersData, yDomain } = useMemo(() => {
     if (!data || data.length === 0) {
       return { chartData: [], outliersData: [], yDomain: [0, 100] };
@@ -342,7 +348,9 @@ export function PriceDistributionBoxPlot({
   if (!data || data.length === 0) {
     return (
       <DashboardCard title={chartTitle} className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">{t('priceDistribution.noData')}</div>
+        <div className="h-80 flex items-center justify-center text-gray-400">
+          {t('priceDistribution.noData')}
+        </div>
       </DashboardCard>
     );
   }
@@ -407,7 +415,9 @@ export function PriceDistributionBoxPlot({
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceDistribution.legend.title')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('priceDistribution.legend.title')}
+          </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 border-2 border-blue-500 bg-blue-100 rounded-sm" />
@@ -429,17 +439,31 @@ export function PriceDistributionBoxPlot({
         </div>
 
         <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceDistribution.stats.title')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('priceDistribution.stats.title')}
+          </h4>
           <div className="overflow-x-auto">
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.oracle')}</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.median')}</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.q1')}</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.q3')}</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.iqr')}</th>
-                  <th className="text-right py-2 px-3 font-medium text-gray-500">{t('priceDistribution.stats.outliers')}</th>
+                  <th className="text-left py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.oracle')}
+                  </th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.median')}
+                  </th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.q1')}
+                  </th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.q3')}
+                  </th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.iqr')}
+                  </th>
+                  <th className="text-right py-2 px-3 font-medium text-gray-500">
+                    {t('priceDistribution.stats.outliers')}
+                  </th>
                 </tr>
               </thead>
               <tbody>

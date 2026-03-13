@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { UserPreferences } from '@/lib/supabase/database.types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-auth-profile');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -24,7 +27,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -36,10 +42,7 @@ export async function GET(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
@@ -61,11 +64,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ profile });
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching profile',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -73,10 +76,7 @@ export async function PUT(request: NextRequest) {
   try {
     const userId = await getUserId(request);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -87,20 +87,14 @@ export async function PUT(request: NextRequest) {
     if (preferences !== undefined) updateData.preferences = preferences;
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: 'No fields to update' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
 
     const queries = getServerQueries();
     const updatedProfile = await queries.upsertUserProfile(userId, updateData);
 
     if (!updatedProfile) {
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -108,10 +102,10 @@ export async function PUT(request: NextRequest) {
       message: 'Profile updated successfully',
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error updating profile',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

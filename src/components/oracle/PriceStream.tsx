@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('PriceStream');
 
 const formatPriceValue = (price: number): string => formatPrice(price).replace('$', '');
 
@@ -52,7 +55,7 @@ function loadPreferences(): UserPreferences {
       return { ...DEFAULT_PREFERENCES, ...JSON.parse(saved) };
     }
   } catch (e) {
-    console.error('Failed to load preferences:', e);
+    logger.error('Failed to load preferences', e instanceof Error ? e : new Error(String(e)));
   }
   return DEFAULT_PREFERENCES;
 }
@@ -62,7 +65,7 @@ function savePreferences(preferences: UserPreferences): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
   } catch (e) {
-    console.error('Failed to save preferences:', e);
+    logger.error('Failed to save preferences', e instanceof Error ? e : new Error(String(e)));
   }
 }
 

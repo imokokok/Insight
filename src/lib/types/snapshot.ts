@@ -1,4 +1,7 @@
 import { OracleProvider, PriceData } from './oracle';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('snapshot-types');
 
 export interface SnapshotStats {
   avgPrice: number;
@@ -66,7 +69,10 @@ export function saveSnapshot(snapshot: Omit<OracleSnapshot, 'id'>): OracleSnapsh
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshots));
   } catch (error) {
-    console.error('Failed to save snapshot to localStorage:', error);
+    logger.error(
+      'Failed to save snapshot to localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 
   return newSnapshot;
@@ -80,7 +86,10 @@ export function getSnapshots(): OracleSnapshot[] {
     const snapshots = JSON.parse(data) as OracleSnapshot[];
     return snapshots.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
-    console.error('Failed to read snapshots from localStorage:', error);
+    logger.error(
+      'Failed to read snapshots from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return [];
   }
 }
@@ -102,7 +111,10 @@ export function deleteSnapshot(id: string): boolean {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshots));
     return true;
   } catch (error) {
-    console.error('Failed to delete snapshot from localStorage:', error);
+    logger.error(
+      'Failed to delete snapshot from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -112,7 +124,10 @@ export function clearAllSnapshots(): boolean {
     localStorage.removeItem(STORAGE_KEY);
     return true;
   } catch (error) {
-    console.error('Failed to clear snapshots from localStorage:', error);
+    logger.error(
+      'Failed to clear snapshots from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }

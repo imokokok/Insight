@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeEfficiencyStats } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('DisputeEfficiencyAnalysis');
 
 export function DisputeEfficiencyAnalysis() {
   const { t } = useI18n();
@@ -18,7 +21,10 @@ export function DisputeEfficiencyAnalysis() {
         const data = await client.getDisputeEfficiencyStats();
         setStats(data);
       } catch (error) {
-        console.error('Failed to fetch dispute efficiency stats:', error);
+        logger.error(
+          'Failed to fetch dispute efficiency stats',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,8 @@
 import { OracleSnapshot } from '../types/snapshot';
 import { saveSnapshotToDatabase } from './database';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('snapshot-migration');
 
 const STORAGE_KEY = 'oracle-snapshots';
 const MIGRATION_FLAG_KEY = 'oracle-snapshots-migrated';
@@ -23,7 +26,10 @@ export function detectLocalStorageSnapshots(): OracleSnapshot[] {
     const snapshots = JSON.parse(data) as OracleSnapshot[];
     return snapshots.sort((a, b) => b.timestamp - a.timestamp);
   } catch (error) {
-    console.error('Failed to detect localStorage snapshots:', error);
+    logger.error(
+      'Failed to detect localStorage snapshots',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return [];
   }
 }
@@ -96,7 +102,10 @@ export function clearLocalStorageSnapshots(): boolean {
     localStorage.removeItem(STORAGE_KEY);
     return true;
   } catch (error) {
-    console.error('Failed to clear localStorage snapshots:', error);
+    logger.error(
+      'Failed to clear localStorage snapshots',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }

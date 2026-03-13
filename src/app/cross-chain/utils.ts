@@ -143,7 +143,7 @@ export const calculatePercentile = (sortedPrices: number[], percentile: number):
 
 export const calculateSMA = (data: number[], period: number): (number | null)[] => {
   const result = calculateMovingAverage(data, period);
-  return result.map(v => v);
+  return result.map((v) => v);
 };
 
 export const calculatePearsonCorrelation = (x: number[], y: number[]): number => {

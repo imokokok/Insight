@@ -15,12 +15,37 @@ interface DataSourceType {
 }
 
 const getMockDataSources = (t: (key: string) => string): DataSourceType[] => [
-  { category: 'crypto', name: t('dataSourceCoverage.categories.crypto'), count: 380, color: '#8B5CF6' },
-  { category: 'forex', name: t('dataSourceCoverage.categories.forex'), count: 85, color: '#3B82F6' },
-  { category: 'commodities', name: t('dataSourceCoverage.categories.commodities'), count: 42, color: '#F59E0B' },
-  { category: 'stocks', name: t('dataSourceCoverage.categories.stocks'), count: 28, color: '#10B981' },
+  {
+    category: 'crypto',
+    name: t('dataSourceCoverage.categories.crypto'),
+    count: 380,
+    color: '#8B5CF6',
+  },
+  {
+    category: 'forex',
+    name: t('dataSourceCoverage.categories.forex'),
+    count: 85,
+    color: '#3B82F6',
+  },
+  {
+    category: 'commodities',
+    name: t('dataSourceCoverage.categories.commodities'),
+    count: 42,
+    color: '#F59E0B',
+  },
+  {
+    category: 'stocks',
+    name: t('dataSourceCoverage.categories.stocks'),
+    count: 28,
+    color: '#10B981',
+  },
   { category: 'etf', name: t('dataSourceCoverage.categories.etf'), count: 10, color: '#EC4899' },
-  { category: 'indices', name: t('dataSourceCoverage.categories.indices'), count: 5, color: '#6366F1' },
+  {
+    category: 'indices',
+    name: t('dataSourceCoverage.categories.indices'),
+    count: 5,
+    color: '#6366F1',
+  },
 ];
 
 const CATEGORY_ICONS: Record<DataSourceCategory, React.ReactNode> = {
@@ -97,7 +122,7 @@ const CATEGORY_EXAMPLES: Record<DataSourceCategory, string[]> = {
 
 export function DataSourceCoverage() {
   const { t } = useI18n();
-  
+
   const mockDataSources = useMemo(() => getMockDataSources(t), [t]);
 
   const totalDataSources = useMemo(() => {
@@ -117,12 +142,16 @@ export function DataSourceCoverage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500 mb-1">{t('dataSourceCoverage.distributionByAssetType')}</p>
+            <p className="text-sm text-gray-500 mb-1">
+              {t('dataSourceCoverage.distributionByAssetType')}
+            </p>
             <p className="text-3xl font-bold text-gray-900">{totalDataSources}</p>
             <p className="text-sm text-gray-500">{t('dataSourceCoverage.totalDataSources')}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-green-600 font-medium">{t('dataSourceCoverage.newThisMonth')}</p>
+            <p className="text-sm text-green-600 font-medium">
+              {t('dataSourceCoverage.newThisMonth')}
+            </p>
             <p className="text-xs text-gray-400">{t('dataSourceCoverage.continuouslyExpanding')}</p>
           </div>
         </div>

@@ -204,7 +204,9 @@ export function FavoritesManager({
                   {filter.label}
                   <span
                     className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
-                      selectedType === filter.value ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+                      selectedType === filter.value
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'bg-gray-100 text-gray-500'
                     }`}
                   >
                     {filter.count}

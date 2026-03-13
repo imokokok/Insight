@@ -19,15 +19,34 @@ interface RiskAssessmentPanelProps {
   provider?: OracleProvider;
 }
 
-function getRiskLevel(score: number, t: (key: string) => string): { label: string; color: string; bgColor: string } {
+function getRiskLevel(
+  score: number,
+  t: (key: string) => string
+): { label: string; color: string; bgColor: string } {
   if (score >= 80) {
-    return { label: t('riskAssessment.riskLevel.low'), color: 'text-green-600', bgColor: 'bg-green-100' };
+    return {
+      label: t('riskAssessment.riskLevel.low'),
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
+    };
   } else if (score >= 60) {
-    return { label: t('riskAssessment.riskLevel.medium'), color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+    return {
+      label: t('riskAssessment.riskLevel.medium'),
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-100',
+    };
   } else if (score >= 40) {
-    return { label: t('riskAssessment.riskLevel.high'), color: 'text-orange-600', bgColor: 'bg-orange-100' };
+    return {
+      label: t('riskAssessment.riskLevel.high'),
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+    };
   } else {
-    return { label: t('riskAssessment.riskLevel.critical'), color: 'text-red-600', bgColor: 'bg-red-100' };
+    return {
+      label: t('riskAssessment.riskLevel.critical'),
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+    };
   }
 }
 
@@ -79,7 +98,7 @@ function RiskScoreCard({
 
 export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
   const { t } = useI18n();
-  
+
   const riskScores: RiskScore = useMemo(() => {
     return {
       overall: 78,
@@ -98,7 +117,9 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('riskAssessment.overviewTitle')}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {t('riskAssessment.overviewTitle')}
+            </h3>
             <p className="text-sm text-gray-500 mt-1">{t('riskAssessment.overviewDescription')}</p>
           </div>
           <div className="text-right">

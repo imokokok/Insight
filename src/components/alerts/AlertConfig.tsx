@@ -48,7 +48,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       }
 
       const input: CreateAlertInput = {
-        name: alertName || `${symbol} ${conditionType === 'above' ? '高于' : conditionType === 'below' ? '低于' : '变化'} ${numericTarget}`,
+        name:
+          alertName ||
+          `${symbol} ${conditionType === 'above' ? '高于' : conditionType === 'below' ? '低于' : '变化'} ${numericTarget}`,
         symbol,
         provider: provider || null,
         chain: chain || null,
@@ -70,7 +72,17 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         onAlertCreated?.();
       }
     },
-    [alertName, symbol, provider, chain, conditionType, targetValue, isActive, createAlert, onAlertCreated]
+    [
+      alertName,
+      symbol,
+      provider,
+      chain,
+      conditionType,
+      targetValue,
+      isActive,
+      createAlert,
+      onAlertCreated,
+    ]
   );
 
   const getTargetPlaceholder = () => {
@@ -115,9 +127,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            预言机 (可选)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">预言机 (可选)</label>
           <select
             value={provider}
             onChange={(e) => handleProviderChange(e.target.value as OracleProvider | '')}
@@ -221,9 +231,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           type="submit"
           disabled={isCreating}
           className={`w-full py-2 px-4 rounded-lg font-medium text-white transition-colors ${
-            isCreating
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
+            isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >
           {isCreating ? '创建中...' : '创建告警'}

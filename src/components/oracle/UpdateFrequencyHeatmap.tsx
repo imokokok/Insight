@@ -74,7 +74,9 @@ export function UpdateFrequencyHeatmap({
       title={t('updateFrequency.title')}
       headerAction={
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">{t('updateFrequency.updateFrequencyLabel', { frequency: updateFrequency })}</span>
+          <span className="text-xs text-gray-500">
+            {t('updateFrequency.updateFrequencyLabel', { frequency: updateFrequency })}
+          </span>
           <div className="flex items-center gap-1 text-xs">
             <span className="w-2 h-2 rounded-full bg-yellow-400" />
             <span className="text-gray-500">{t('updateFrequency.anomaly')}</span>
@@ -93,13 +95,17 @@ export function UpdateFrequencyHeatmap({
             <p className="text-xl font-bold text-green-700">{maxCount.toLocaleString()}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">{t('updateFrequency.minUpdateFrequency')}</p>
+            <p className="text-xs text-purple-600 mb-1">
+              {t('updateFrequency.minUpdateFrequency')}
+            </p>
             <p className="text-xl font-bold text-purple-700">
               {Math.min(...hourlyData.map((d) => d.updateCount)).toLocaleString()}
             </p>
           </div>
           <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">{t('updateFrequency.anomalyPeriodCount')}</p>
+            <p className="text-xs text-yellow-600 mb-1">
+              {t('updateFrequency.anomalyPeriodCount')}
+            </p>
             <p className="text-xl font-bold text-yellow-700">{anomalyHours.length}</p>
           </div>
         </div>
@@ -138,8 +144,12 @@ export function UpdateFrequencyHeatmap({
                 {hoveredCell.hour.toString().padStart(2, '0')}:00 -{' '}
                 {(hoveredCell.hour + 1).toString().padStart(2, '0')}:00
               </div>
-              <div>{t('updateFrequency.updateCount')}: {hoveredCell.count.toLocaleString()}</div>
-              <div className="text-gray-400 text-xs mt-1">{t('updateFrequency.clickForDetails')}</div>
+              <div>
+                {t('updateFrequency.updateCount')}: {hoveredCell.count.toLocaleString()}
+              </div>
+              <div className="text-gray-400 text-xs mt-1">
+                {t('updateFrequency.clickForDetails')}
+              </div>
             </div>
           )}
         </div>
@@ -171,7 +181,9 @@ export function UpdateFrequencyHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-yellow-800 mb-1">{t('updateFrequency.anomalyDetected')}</h4>
+                <h4 className="text-sm font-semibold text-yellow-800 mb-1">
+                  {t('updateFrequency.anomalyDetected')}
+                </h4>
                 <p className="text-xs text-yellow-700">
                   {t('updateFrequency.anomalyPeriodsDesc')}
                   {anomalyHours.map((h) => ` ${h.hour.toString().padStart(2, '0')}:00`).join(',')}
@@ -183,7 +195,9 @@ export function UpdateFrequencyHeatmap({
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-700">{t('updateFrequency.hourlyStats')}</h4>
+            <h4 className="text-sm font-semibold text-gray-700">
+              {t('updateFrequency.hourlyStats')}
+            </h4>
           </div>
           <div className="max-h-48 overflow-y-auto">
             <table className="w-full">
@@ -221,7 +235,9 @@ export function UpdateFrequencyHeatmap({
                             : 'bg-green-100 text-green-800'
                         }`}
                       >
-                        {data.isAnomaly ? t('updateFrequency.anomaly') : t('updateFrequency.normal')}
+                        {data.isAnomaly
+                          ? t('updateFrequency.anomaly')
+                          : t('updateFrequency.normal')}
                       </span>
                     </td>
                   </tr>

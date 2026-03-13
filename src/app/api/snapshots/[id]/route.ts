@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-snapshots-id');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -31,10 +37,7 @@ async function getUserId(request: NextRequest): Promise<string | null> {
   return user.id;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
@@ -43,59 +46,41 @@ export async function GET(
     const snapshot = await queries.getSnapshotById(id);
 
     if (!snapshot) {
-      return NextResponse.json(
-        { error: 'Snapshot not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 });
     }
 
     if (snapshot.user_id !== userId && !snapshot.is_public) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return NextResponse.json({ snapshot });
   } catch (error) {
-    console.error('Error fetching snapshot:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error fetching snapshot',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
     const existingSnapshot = await queries.getSnapshotById(id);
 
     if (!existingSnapshot) {
-      return NextResponse.json(
-        { error: 'Snapshot not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 });
     }
 
     if (existingSnapshot.user_id !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -112,10 +97,7 @@ export async function PUT(
     const updatedSnapshot = await queries.updateSnapshot(id, updateData);
 
     if (!updatedSnapshot) {
-      return NextResponse.json(
-        { error: 'Failed to update snapshot' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update snapshot' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -123,11 +105,11 @@ export async function PUT(
       message: 'Snapshot updated successfully',
     });
   } catch (error) {
-    console.error('Error updating snapshot:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error updating snapshot',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -140,46 +122,34 @@ export async function DELETE(
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const queries = getServerQueries();
     const existingSnapshot = await queries.getSnapshotById(id);
 
     if (!existingSnapshot) {
-      return NextResponse.json(
-        { error: 'Snapshot not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Snapshot not found' }, { status: 404 });
     }
 
     if (existingSnapshot.user_id !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const success = await queries.deleteSnapshot(id);
 
     if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to delete snapshot' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to delete snapshot' }, { status: 500 });
     }
 
     return NextResponse.json({
       message: 'Snapshot deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting snapshot:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    logger.error(
+      'Error deleting snapshot',
+      error instanceof Error ? error : new Error(String(error))
     );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

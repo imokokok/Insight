@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-auth-callback');
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function GET(request: NextRequest) {
     const errorDescription = searchParams.get('error_description');
 
     if (error) {
-      console.error('OAuth error:', error, errorDescription);
+      logger.error('OAuth error', new Error(`${error}: ${errorDescription}`));
       const redirectUrl = new URL('/auth/error', request.url);
       redirectUrl.searchParams.set('error', error);
       if (errorDescription) {
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing Supabase configuration');
+      logger.error('Missing Supabase configuration');
       return NextResponse.redirect(new URL('/auth/error?error=server_error', request.url));
     }
 
@@ -41,24 +44,31 @@ export async function GET(request: NextRequest) {
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError || !data.session) {
-      console.error('Failed to exchange code for session:', exchangeError);
+      logger.error(
+        'Failed to exchange code for session',
+        exchangeError instanceof Error ? exchangeError : new Error(String(exchangeError))
+      );
       return NextResponse.redirect(new URL('/auth/error?error=auth_failed', request.url));
     }
 
     const { user, session } = data;
 
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .upsert({
+    const { error: profileError } = await supabase.from('user_profiles').upsert(
+      {
         id: user.id,
         display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
         updated_at: new Date().toISOString(),
-      }, {
+      },
+      {
         onConflict: 'id',
-      });
+      }
+    );
 
     if (profileError) {
-      console.error('Failed to create/update user profile:', profileError);
+      logger.error(
+        'Failed to create/update user profile',
+        profileError instanceof Error ? profileError : new Error(String(profileError))
+      );
     }
 
     const redirectPath = state || '/';
@@ -82,7 +92,10 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Error in OAuth callback:', error);
+    logger.error(
+      'Error in OAuth callback',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return NextResponse.redirect(new URL('/auth/error?error=server_error', request.url));
   }
 }

@@ -20,7 +20,9 @@ export default function FavoritesPage() {
   const handleApply = (config: FavoriteConfig, configType: ConfigType) => {
     switch (configType) {
       case 'oracle_config':
-        router.push(`/cross-oracle?oracles=${config.selectedOracles?.join(',')}&symbol=${config.symbol}`);
+        router.push(
+          `/cross-oracle?oracles=${config.selectedOracles?.join(',')}&symbol=${config.symbol}`
+        );
         break;
       case 'symbol':
         router.push(`/price-query?symbol=${config.symbol}`);

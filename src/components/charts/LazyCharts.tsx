@@ -17,7 +17,16 @@ export const LazyBarChart = lazy(() =>
   import('recharts').then((mod) => ({ default: mod.BarChart }))
 );
 
-export function SuspenseAreaChart({ children, height = 112, ...props }: any) {
+interface SuspenseChartProps {
+  children?: React.ReactNode;
+  height?: number;
+}
+
+export function SuspenseAreaChart({
+  children,
+  height = 112,
+  ...props
+}: SuspenseChartProps & Record<string, unknown>) {
   return (
     <Suspense fallback={<MiniChartSkeleton height={height} />}>
       <LazyAreaChart {...props}>{children}</LazyAreaChart>
@@ -25,7 +34,11 @@ export function SuspenseAreaChart({ children, height = 112, ...props }: any) {
   );
 }
 
-export function SuspenseLineChart({ children, height = 80, ...props }: any) {
+export function SuspenseLineChart({
+  children,
+  height = 80,
+  ...props
+}: SuspenseChartProps & Record<string, unknown>) {
   return (
     <Suspense fallback={<MiniChartSkeleton height={height} />}>
       <LazyLineChart {...props}>{children}</LazyLineChart>
@@ -33,7 +46,11 @@ export function SuspenseLineChart({ children, height = 80, ...props }: any) {
   );
 }
 
-export function SuspenseComposedChart({ children, height = 400, ...props }: any) {
+export function SuspenseComposedChart({
+  children,
+  height = 400,
+  ...props
+}: SuspenseChartProps & Record<string, unknown>) {
   return (
     <Suspense fallback={<ChartSkeleton height={height} variant="price" />}>
       <LazyComposedChart {...props}>{children}</LazyComposedChart>
@@ -41,7 +58,11 @@ export function SuspenseComposedChart({ children, height = 400, ...props }: any)
   );
 }
 
-export function SuspenseBarChart({ children, height = 300, ...props }: any) {
+export function SuspenseBarChart({
+  children,
+  height = 300,
+  ...props
+}: SuspenseChartProps & Record<string, unknown>) {
   return (
     <Suspense fallback={<ChartSkeleton height={height} variant="bar" />}>
       <LazyBarChart {...props}>{children}</LazyBarChart>

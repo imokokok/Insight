@@ -15,6 +15,9 @@ import {
   CacheConfig,
 } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-oracles-provider');
 
 const clients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -91,7 +94,7 @@ export async function GET(
           const isStale = Date.now() - latestTimestamp > HISTORY_STALE_THRESHOLD;
 
           if (!isStale) {
-            const historicalPrices = cachedHistory.map(record => ({
+            const historicalPrices = cachedHistory.map((record) => ({
               provider: record.provider as OracleProvider,
               symbol: record.symbol,
               chain: record.chain as Blockchain | undefined,
@@ -120,7 +123,7 @@ export async function GET(
 
         const historicalPrices = await client.getHistoricalPrices(symbol, chainValue, periodNum);
 
-        const recordsToSave = historicalPrices.map(price => ({
+        const recordsToSave = historicalPrices.map((price) => ({
           provider: price.provider,
           symbol: price.symbol,
           chain: price.chain,
@@ -222,7 +225,10 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error('Unexpected error in GET /api/oracles/[provider]:', error);
+    logger.error(
+      'Unexpected error in GET /api/oracles/[provider]',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
       message: 'An unexpected error occurred',

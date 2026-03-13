@@ -65,24 +65,41 @@ export function ConcentrationRisk() {
   const metrics = useMemo(() => calculateConcentrationMetrics(publishers), [publishers]);
 
   const getDiversityLevel = (score: number): { label: string; color: string } => {
-    if (score >= 80) return { label: t('concentrationRisk.diversityLevel.excellent'), color: 'text-green-600' };
-    if (score >= 60) return { label: t('concentrationRisk.diversityLevel.good'), color: 'text-blue-600' };
-    if (score >= 40) return { label: t('concentrationRisk.diversityLevel.fair'), color: 'text-yellow-600' };
+    if (score >= 80)
+      return { label: t('concentrationRisk.diversityLevel.excellent'), color: 'text-green-600' };
+    if (score >= 60)
+      return { label: t('concentrationRisk.diversityLevel.good'), color: 'text-blue-600' };
+    if (score >= 40)
+      return { label: t('concentrationRisk.diversityLevel.fair'), color: 'text-yellow-600' };
     return { label: t('concentrationRisk.diversityLevel.poor'), color: 'text-red-600' };
   };
 
-  const getImpactLevel = (impact: 'low' | 'medium' | 'high'): {
+  const getImpactLevel = (
+    impact: 'low' | 'medium' | 'high'
+  ): {
     label: string;
     color: string;
     bgColor: string;
   } => {
     switch (impact) {
       case 'low':
-        return { label: t('concentrationRisk.impactLevel.low'), color: 'text-green-600', bgColor: 'bg-green-100' };
+        return {
+          label: t('concentrationRisk.impactLevel.low'),
+          color: 'text-green-600',
+          bgColor: 'bg-green-100',
+        };
       case 'medium':
-        return { label: t('concentrationRisk.impactLevel.medium'), color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+        return {
+          label: t('concentrationRisk.impactLevel.medium'),
+          color: 'text-yellow-600',
+          bgColor: 'bg-yellow-100',
+        };
       case 'high':
-        return { label: t('concentrationRisk.impactLevel.high'), color: 'text-red-600', bgColor: 'bg-red-100' };
+        return {
+          label: t('concentrationRisk.impactLevel.high'),
+          color: 'text-red-600',
+          bgColor: 'bg-red-100',
+        };
     }
   };
 
@@ -116,7 +133,9 @@ export function ConcentrationRisk() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-gray-700">{t('concentrationRisk.publisherWeightDistribution')}</h4>
+              <h4 className="text-sm font-medium text-gray-700">
+                {t('concentrationRisk.publisherWeightDistribution')}
+              </h4>
             </div>
             <div style={{ height: 240 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +171,9 @@ export function ConcentrationRisk() {
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('concentrationRisk.diversityScore')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('concentrationRisk.diversityScore')}
+                </span>
                 <span className={`text-sm font-medium ${diversityLevel.color}`}>
                   {diversityLevel.label}
                 </span>
@@ -181,20 +202,30 @@ export function ConcentrationRisk() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">{t('concentrationRisk.herfindahlIndex')}</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t('concentrationRisk.herfindahlIndex')}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{metrics.herfindahlIndex}</p>
-                <p className="text-xs text-gray-400 mt-1">{t('concentrationRisk.herfindahlIndexDesc')}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {t('concentrationRisk.herfindahlIndexDesc')}
+                </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">{t('concentrationRisk.maxPublisherWeight')}</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t('concentrationRisk.maxPublisherWeight')}
+                </p>
                 <p className="text-lg font-bold text-gray-900">{metrics.topPublisherWeight}%</p>
-                <p className="text-xs text-gray-400 mt-1">{t('concentrationRisk.maxPublisherWeightDesc')}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {t('concentrationRisk.maxPublisherWeightDesc')}
+                </p>
               </div>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{t('concentrationRisk.singlePublisherFailureImpact')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('concentrationRisk.singlePublisherFailureImpact')}
+                </span>
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded-full ${impactLevel.bgColor} ${impactLevel.color}`}
                 >
@@ -209,18 +240,28 @@ export function ConcentrationRisk() {
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('concentrationRisk.publisherDetails')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('concentrationRisk.publisherDetails')}
+          </h4>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.name')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.weight')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('concentrationRisk.table.name')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('concentrationRisk.table.weight')}
+                  </th>
                   <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
                     {t('concentrationRisk.table.submissions')}
                   </th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.reliability')}</th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('concentrationRisk.table.status')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('concentrationRisk.table.reliability')}
+                  </th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('concentrationRisk.table.status')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -265,7 +306,9 @@ export function ConcentrationRisk() {
         </div>
 
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('concentrationRisk.riskExplanation.title')}</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">
+            {t('concentrationRisk.riskExplanation.title')}
+          </h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• {t('concentrationRisk.riskExplanation.item1')}</li>
             <li>• {t('concentrationRisk.riskExplanation.item2')}</li>

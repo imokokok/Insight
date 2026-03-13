@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('api-alerts-id');
 
 async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
@@ -23,7 +26,10 @@ async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -35,65 +41,44 @@ async function getAlertById(id: string, userId: string) {
   const queries = getServerQueries();
   const alerts = await queries.getAlerts(userId);
   if (!alerts) return null;
-  return alerts.find(a => a.id === id) || null;
+  return alerts.find((a) => a.id === id) || null;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const alert = await getAlertById(id, userId);
 
     if (!alert) {
-      return NextResponse.json(
-        { error: 'Alert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
 
     return NextResponse.json({ alert });
   } catch (error) {
-    console.error('Error fetching alert:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error fetching alert', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const existingAlert = await getAlertById(id, userId);
 
     if (!existingAlert) {
-      return NextResponse.json(
-        { error: 'Alert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -112,10 +97,7 @@ export async function PUT(
     const updatedAlert = await queries.updateAlert(id, updateData);
 
     if (!updatedAlert) {
-      return NextResponse.json(
-        { error: 'Failed to update alert' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update alert' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -123,11 +105,8 @@ export async function PUT(
       message: 'Alert updated successfully',
     });
   } catch (error) {
-    console.error('Error updating alert:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error updating alert', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -140,39 +119,27 @@ export async function DELETE(
     const userId = await getUserId(request);
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const existingAlert = await getAlertById(id, userId);
 
     if (!existingAlert) {
-      return NextResponse.json(
-        { error: 'Alert not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
 
     const queries = getServerQueries();
     const success = await queries.deleteAlert(id);
 
     if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to delete alert' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to delete alert' }, { status: 500 });
     }
 
     return NextResponse.json({
       message: 'Alert deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting alert:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Error deleting alert', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

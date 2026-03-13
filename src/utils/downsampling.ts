@@ -12,7 +12,7 @@ export interface DataPoint {
   predictionUpper?: number;
   predictionLower?: number;
   predictionMean?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface DownsamplingConfig {
@@ -46,10 +46,7 @@ function calculateOptimalTargetPoints(dataLength: number, config: DownsamplingCo
   return 500;
 }
 
-export function downsampleData<T extends DataPoint>(
-  data: T[],
-  config: DownsamplingConfig = {}
-): T[] {
+export function downsampleData(data: DataPoint[], config: DownsamplingConfig = {}): DataPoint[] {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   const dataLength = data.length;
 
@@ -64,7 +61,7 @@ export function downsampleData<T extends DataPoint>(
     return downsampleData(sampled, { ...finalConfig, maxDataPoints: Infinity });
   }
 
-  const result: T[] = [];
+  const result: DataPoint[] = [];
   result.push({ ...data[0] });
 
   const bucketSize = (dataLength - 2) / (targetPoints - 2);
@@ -119,49 +116,32 @@ export function downsampleData<T extends DataPoint>(
         }
 
         const firstPoint = firstHalfMax.price > firstHalfMin.price ? firstHalfMax : firstHalfMin;
-        const secondPoint = secondHalfMax.price > secondHalfMin.price ? secondHalfMax : secondHalfMin;
+        const secondPoint =
+          secondHalfMax.price > secondHalfMin.price ? secondHalfMax : secondHalfMin;
 
         result.push({ ...firstPoint });
         result.push({ ...secondPoint });
       } else {
         result.push({ ...midPoint });
       }
-    } else {
-      const avgIndex = Math.floor(bucket.length / 2);
-      result.push({ ...bucket[avgIndex] });
+    }
+
+    if (finalConfig.preserveTrends) {
+      const trendPoints = bucket.filter((_, idx) => idx % Math.ceil(bucket.length / 3) === 0);
+      trendPoints.forEach((p) => result.push({ ...p }));
     }
   }
 
   result.push({ ...data[dataLength - 1] });
 
-  if (finalConfig.preserveTrends && result.length > 3) {
-    const smoothed: T[] = [result[0]];
-    for (let i = 1; i < result.length - 1; i++) {
-      const prev = result[i - 1];
-      const curr = result[i];
-      const next = result[i + 1];
-
-      if (
-        (prev.price < curr.price && curr.price < next.price) ||
-        (prev.price > curr.price && curr.price > next.price)
-      ) {
-        smoothed.push(curr);
-      } else {
-        smoothed.push(curr);
-      }
-    }
-    smoothed.push(result[result.length - 1]);
-    return smoothed;
-  }
-
   return result;
 }
 
-export function downsampleDataForChart<T extends DataPoint>(
-  data: T[],
+export function downsampleDataForChart(
+  data: DataPoint[],
   chartWidth: number,
   devicePixelRatio: number = 1
-): T[] {
+): DataPoint[] {
   const targetPoints = Math.min(Math.floor(chartWidth * devicePixelRatio * 0.8), 500);
   return downsampleData(data, {
     targetPoints,
@@ -171,7 +151,7 @@ export function downsampleDataForChart<T extends DataPoint>(
   });
 }
 
-export function downsampleDataForPerformance<T extends DataPoint>(data: T[]): T[] {
+export function downsampleDataForPerformance(data: DataPoint[]): DataPoint[] {
   return downsampleData(data, {
     targetPoints: 150,
     preservePeaks: true,
@@ -180,32 +160,29 @@ export function downsampleDataForPerformance<T extends DataPoint>(data: T[]): T[
   });
 }
 
-export function adaptiveDownsample<T extends DataPoint>(
-  data: T[],
+export function adaptiveDownsample(
+  data: DataPoint[],
   options: {
     renderTime?: number;
     targetRenderTime?: number;
     chartWidth?: number;
   } = {}
-): T[] {
-  const { renderTime, targetRenderTime = 300, chartWidth } = options;
+): DataPoint[] {
+  const { renderTime = 16, targetRenderTime = 16, chartWidth = 800 } = options;
 
-  if (renderTime && renderTime > targetRenderTime) {
-    const ratio = targetRenderTime / renderTime;
-    const currentPoints = data.length;
-    const targetPoints = Math.floor(currentPoints * ratio);
-
-    return downsampleData(data, {
-      targetPoints,
-      preservePeaks: true,
-      preserveTrends: false,
-      performanceMode: true,
-    });
+  if (renderTime <= targetRenderTime) {
+    return data;
   }
 
-  if (chartWidth) {
-    return downsampleDataForChart(data, chartWidth);
-  }
+  const performanceRatio = targetRenderTime / renderTime;
+  const targetPoints = Math.max(50, Math.floor(data.length * performanceRatio));
 
-  return downsampleData(data, { preservePeaks: true, preserveTrends: true });
+  return downsampleData(data, {
+    targetPoints,
+    preservePeaks: true,
+    preserveTrends: false,
+    performanceMode: true,
+  });
 }
+
+export { DEFAULT_CONFIG };

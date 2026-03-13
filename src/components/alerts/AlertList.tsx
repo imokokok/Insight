@@ -173,7 +173,10 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                       <span className="flex items-center gap-1">
                         <span
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: oracleColors[alert.provider as keyof typeof oracleColors] }}
+                          style={{
+                            backgroundColor:
+                              oracleColors[alert.provider as keyof typeof oracleColors],
+                          }}
                         />
                         {providerNames[alert.provider as keyof typeof providerNames]}
                       </span>
@@ -182,7 +185,9 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                       <span className="flex items-center gap-1">
                         <span
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: chainColors[alert.chain as keyof typeof chainColors] }}
+                          style={{
+                            backgroundColor: chainColors[alert.chain as keyof typeof chainColors],
+                          }}
                         />
                         {chainNames[alert.chain as keyof typeof chainNames]}
                       </span>
@@ -279,7 +284,12 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
                       title="删除"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"

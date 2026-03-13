@@ -58,7 +58,9 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
   setHiddenLines: (lines: Set<string>) => void;
   setFocusedChain: (chain: Blockchain | null) => void;
   setTableFilter: (filter: 'all' | 'abnormal' | 'normal') => void;
-  setHoveredCell: (cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null) => void;
+  setHoveredCell: (
+    cell: { xChain: Blockchain; yChain: Blockchain; x: number; y: number } | null
+  ) => void;
   setSelectedCell: (cell: { xChain: Blockchain; yChain: Blockchain } | null) => void;
   setTooltipPosition: (position: { x: number; y: number }) => void;
   setSortColumn: (column: string) => void;
@@ -186,7 +188,8 @@ export const useRefreshStatus = () => useCrossChainStore((state) => state.refres
 export const useShowRefreshSuccess = () => useCrossChainStore((state) => state.showRefreshSuccess);
 export const useLastUpdated = () => useCrossChainStore((state) => state.lastUpdated);
 export const usePrevStats = () => useCrossChainStore((state) => state.prevStats);
-export const useRecommendedBaseChain = () => useCrossChainStore((state) => state.recommendedBaseChain);
+export const useRecommendedBaseChain = () =>
+  useCrossChainStore((state) => state.recommendedBaseChain);
 
 export const useRefreshInterval = () => useCrossChainStore((state) => state.refreshInterval);
 

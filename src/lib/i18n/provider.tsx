@@ -86,7 +86,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   if (!mounted) {
     return (
       <NextIntlClientProvider locale="en" messages={messages['en']}>
-        <I18nContext.Provider value={{ locale: 'en', setLocale, t: (key) => translate(messages['en'], key) }}>
+        <I18nContext.Provider
+          value={{ locale: 'en', setLocale, t: (key) => translate(messages['en'], key) }}
+        >
           {children}
         </I18nContext.Provider>
       </NextIntlClientProvider>
@@ -95,9 +97,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages[locale]}>
-      <I18nContext.Provider value={{ locale, setLocale, t }}>
-        {children}
-      </I18nContext.Provider>
+      <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>
     </NextIntlClientProvider>
   );
 }

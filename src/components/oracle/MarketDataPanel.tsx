@@ -7,6 +7,9 @@ import { MetricCard } from './DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('MarketDataPanel');
 
 type EMAPeriod = 7 | 14 | 30;
 
@@ -283,7 +286,10 @@ export function MarketDataPanel({
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
-      console.error('Error fetching price:', error);
+      logger.error(
+        'Error fetching price',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       if (!abortController.signal.aborted) {
         setIsLoading(false);

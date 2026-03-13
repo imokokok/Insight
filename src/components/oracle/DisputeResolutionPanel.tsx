@@ -5,6 +5,9 @@ import { useI18n } from '@/lib/i18n/provider';
 import { UMAClient, DisputeData } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 import { DisputeEfficiencyAnalysis } from './DisputeEfficiencyAnalysis';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('DisputeResolutionPanel');
 
 const umaClient = new UMAClient();
 
@@ -610,7 +613,10 @@ export function DisputeResolutionPanel() {
 
       setLastUpdateTime(Date.now());
     } catch (error) {
-      console.error('Failed to fetch dispute data:', error);
+      logger.error(
+        'Failed to fetch dispute data',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
       setIsRefreshing(false);

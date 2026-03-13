@@ -184,13 +184,19 @@ export function PublisherAnalysisPanel({
               <p className="text-sm text-yellow-700 mt-1">
                 {t('publisherAnalysis.anomalyTypeDistribution')}
                 {anomalyTypeStats.priceDeviation > 0 && (
-                  <span className="ml-1">{t('publisherAnalysis.priceDeviationAnomaly', { count: anomalyTypeStats.priceDeviation })}</span>
+                  <span className="ml-1">
+                    {t('publisherAnalysis.priceDeviationAnomaly', {
+                      count: anomalyTypeStats.priceDeviation,
+                    })}
+                  </span>
                 )}
                 {anomalyTypeStats.priceDeviation > 0 && anomalyTypeStats.latency > 0 && (
                   <span className="mx-1">|</span>
                 )}
                 {anomalyTypeStats.latency > 0 && (
-                  <span>{t('publisherAnalysis.latencyAnomaly', { count: anomalyTypeStats.latency })}</span>
+                  <span>
+                    {t('publisherAnalysis.latencyAnomaly', { count: anomalyTypeStats.latency })}
+                  </span>
                 )}
               </p>
               <p className="text-xs text-yellow-600 mt-1">

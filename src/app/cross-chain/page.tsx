@@ -22,6 +22,7 @@ import {
   Legend,
   Brush,
 } from 'recharts';
+import { TooltipProps, LegendClickEvent, ScatterShapeProps } from '@/lib/types/recharts';
 import { Blockchain } from '@/lib/types/oracle';
 import {
   chainNames,
@@ -201,8 +202,8 @@ export default function CrossChainPage() {
     },
   ];
 
-  const handleLegendClick = (e: any) => {
-    const dataKey = e.dataKey;
+  const handleLegendClick = (e: unknown) => {
+    const dataKey = (e as { dataKey?: string | number })?.dataKey;
     if (typeof dataKey === 'string') {
       const newSet = new Set(hiddenLines);
       if (newSet.has(dataKey)) newSet.delete(dataKey);
@@ -211,7 +212,7 @@ export default function CrossChainPage() {
     }
   };
 
-  const handleLegendDoubleClick = (chain: any) => {
+  const handleLegendDoubleClick = (chain: Blockchain) => {
     if (focusedChain === chain) {
       setFocusedChain(null);
       setHiddenLines(new Set());
@@ -225,17 +226,17 @@ export default function CrossChainPage() {
     }
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<Record<string, number>>) => {
     if (!active || !payload || payload.length === 0) return null;
     const priceData = payload.filter(
-      (p: any) => !p.dataKey?.includes('_MA') && filteredChains.includes(p.dataKey)
+      (p) => !p.dataKey?.includes('_MA') && filteredChains.includes(p.dataKey as Blockchain)
     );
     return (
       <div className="bg-white border border-gray-200 shadow-lg p-4 min-w-[280px]">
         <p className="text-gray-600 text-xs mb-3 font-medium border-b border-gray-100 pb-2">
           {label}
         </p>
-        {priceData.map((entry: any, index: number) => (
+        {priceData.map((entry, index: number) => (
           <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
@@ -419,8 +420,8 @@ export default function CrossChainPage() {
                             key={i}
                             data={[d]}
                             fill={d.color}
-                            shape={(props: any) => {
-                              const { cx, cy } = props;
+                            shape={(props: unknown) => {
+                              const { cx, cy } = props as { cx: number; cy: number };
                               const boxHeight = 30;
                               const y = cy;
                               return (

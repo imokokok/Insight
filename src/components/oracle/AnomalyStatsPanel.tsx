@@ -73,7 +73,9 @@ function getRecommendations(anomalies: AnomalyData[], t: (key: string) => string
     recommendations.push(t('anomalyStats.recommendation.highAvgDeviation'));
   }
 
-  return recommendations.length > 0 ? recommendations : [t('anomalyStats.recommendation.systemNormal')];
+  return recommendations.length > 0
+    ? recommendations
+    : [t('anomalyStats.recommendation.systemNormal')];
 }
 
 export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPanelProps) {
@@ -117,9 +119,21 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
 
   const severityDistribution = useMemo(
     () => [
-      { name: t('anomalyStats.highSeverity'), value: stats.highSeverityCount, color: SEVERITY_COLORS.high },
-      { name: t('anomalyStats.mediumSeverity'), value: stats.mediumSeverityCount, color: SEVERITY_COLORS.medium },
-      { name: t('anomalyStats.lowSeverity'), value: stats.lowSeverityCount, color: SEVERITY_COLORS.low },
+      {
+        name: t('anomalyStats.highSeverity'),
+        value: stats.highSeverityCount,
+        color: SEVERITY_COLORS.high,
+      },
+      {
+        name: t('anomalyStats.mediumSeverity'),
+        value: stats.mediumSeverityCount,
+        color: SEVERITY_COLORS.medium,
+      },
+      {
+        name: t('anomalyStats.lowSeverity'),
+        value: stats.lowSeverityCount,
+        color: SEVERITY_COLORS.low,
+      },
     ],
     [stats.highSeverityCount, stats.mediumSeverityCount, stats.lowSeverityCount, t]
   );
@@ -233,7 +247,10 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
               {severityDistribution.map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-gray-600">{item.name}{t('anomalyStats.severitySuffix')}</span>
+                  <span className="text-xs text-gray-600">
+                    {item.name}
+                    {t('anomalyStats.severitySuffix')}
+                  </span>
                 </div>
               ))}
             </div>

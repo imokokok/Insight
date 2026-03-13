@@ -33,4 +33,4 @@ export function getQueries(): DatabaseQueries {
   return clientQueries;
 }
 
-export const queries: DatabaseQueries = createQueries(supabase);
+export const queries = getQueries();

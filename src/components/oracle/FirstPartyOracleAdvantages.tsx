@@ -216,9 +216,7 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
               <h4 className="text-sm font-semibold text-gray-900 mb-1">
                 {t('api3.firstPartyOracle.advantagesTitle')}
               </h4>
-              <p className="text-sm text-gray-600">
-                {t('api3.firstPartyOracle.advantagesDesc')}
-              </p>
+              <p className="text-sm text-gray-600">{t('api3.firstPartyOracle.advantagesDesc')}</p>
             </div>
           </div>
         </div>

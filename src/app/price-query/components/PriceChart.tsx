@@ -16,11 +16,14 @@ import { Icons } from './Icons';
 import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
 import { QueryResult, oracleColors } from '../constants';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('price-query-PriceChart');
 
 export interface ChartDataPoint {
   timestamp: number;
   time: string;
-  [key: string]: string | number;
+  [key: string]: unknown;
 }
 
 interface PriceChartProps {
@@ -91,7 +94,10 @@ export function PriceChart({
       };
       img.src = url;
     } catch (error) {
-      console.error('Failed to export chart:', error);
+      logger.error(
+        'Failed to export chart',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }, [generateFilename]);
 

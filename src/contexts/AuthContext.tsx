@@ -47,25 +47,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | Error | null>(null);
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { profile: userProfile, error: profileError } = await getUserProfile(userId);
-    if (profileError) {
-      if (profileError.message.includes('No rows found')) {
-        const { user: currentUser } = await getUser();
-        if (currentUser) {
+  const fetchProfile = useCallback(
+    async (userId: string) => {
+      const { profile: userProfile, error: profileError } = await getUserProfile(userId);
+      if (profileError) {
+        if (profileError.message.includes('No rows found')) {
           const { profile: newProfile } = await createUserProfile(userId, {
-            email: currentUser.email || '',
-            display_name: currentUser.user_metadata?.display_name,
+            display_name: session?.user?.user_metadata?.display_name,
           });
           if (newProfile) {
             setProfile(newProfile);
           }
         }
+      } else if (userProfile) {
+        setProfile(userProfile);
       }
-    } else if (userProfile) {
-      setProfile(userProfile);
-    }
-  }, []);
+    },
+    [session]
+  );
 
   const initializeAuth = useCallback(async () => {
     try {

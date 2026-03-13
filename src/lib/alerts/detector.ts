@@ -1,6 +1,9 @@
 import { supabase, queries } from '@/lib/supabase/client';
 import type { PriceAlert, AlertEvent, AlertConditionType } from '@/lib/supabase/database.types';
 import type { PriceData } from '@/lib/types/oracle';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('alert-detector');
 
 export interface PriceDataForAlert {
   provider: string;
@@ -89,7 +92,10 @@ export async function checkAlertConditions(
     .eq('is_active', true);
 
   if (error || !activeAlerts) {
-    console.error('Failed to fetch active alerts:', error);
+    logger.error(
+      'Failed to fetch active alerts',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return results;
   }
 
@@ -148,17 +154,19 @@ export async function triggerAlert(
     .maybeSingle();
 
   if (checkError) {
-    console.error('Error checking existing events:', checkError);
+    logger.error(
+      'Error checking existing events',
+      checkError instanceof Error ? checkError : new Error(String(checkError))
+    );
     return null;
   }
 
   if (existingEvent) {
-    console.log('Alert already triggered recently, skipping:', alertId);
+    logger.info('Alert already triggered recently, skipping', { alertId });
     return null;
   }
 
-  const event = await queries.triggerAlert(alertId, {
-    user_id: eventData.userId,
+  const event = await queries.triggerAlert(alertId, eventData.userId, {
     price: eventData.price,
     triggered_at: new Date().toISOString(),
     condition_met: eventData.conditionMet,
@@ -166,7 +174,7 @@ export async function triggerAlert(
   });
 
   if (event) {
-    console.log('Alert triggered:', alertId, eventData.conditionMet);
+    logger.info('Alert triggered', { alertId, conditionMet: eventData.conditionMet });
   }
 
   return event as AlertEvent | null;
@@ -215,7 +223,7 @@ export class AlertDetector {
         const events = await processPriceUpdate(priceData);
 
         if (events.length > 0) {
-          console.log(`Processed ${events.length} triggered alerts`);
+          logger.info(`Processed ${events.length} triggered alerts`);
         }
 
         priceData.forEach((p) => {
@@ -223,7 +231,10 @@ export class AlertDetector {
           this.lastPrices.set(key, p.price);
         });
       } catch (error) {
-        console.error('Error in alert detector:', error);
+        logger.error(
+          'Error in alert detector',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }, this.intervalMs);
   }

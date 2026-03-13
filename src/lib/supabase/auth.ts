@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
+import { Blockchain, OracleProvider } from '../types/oracle';
 
 export interface AuthResponse {
   user: User | null;
@@ -9,11 +10,23 @@ export interface AuthResponse {
 
 export interface UserProfile {
   id: string;
-  email: string;
   display_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
+  avatar_url?: string | null;
+  preferences?: {
+    defaultSymbol?: string;
+    defaultChain?: Blockchain;
+    defaultProvider?: OracleProvider;
+    refreshInterval?: number;
+    notificationsEnabled?: boolean;
+    theme?: 'light' | 'dark' | 'system';
+  };
+  notification_settings?: {
+    email_alerts?: boolean;
+    push_notifications?: boolean;
+    alert_frequency?: 'immediate' | 'hourly' | 'daily';
+  };
+  created_at?: string;
+  updated_at?: string;
 }
 
 export async function signUp(
@@ -33,7 +46,6 @@ export async function signUp(
 
   if (data.user && !error) {
     await createUserProfile(data.user.id, {
-      email,
       display_name: displayName,
     });
   }
@@ -120,13 +132,12 @@ export function onAuthStateChange(callback: (event: string, session: Session | n
 
 export async function createUserProfile(
   userId: string,
-  data: { email: string; display_name?: string | null }
+  data: { display_name?: string | null }
 ): Promise<{ profile: UserProfile | null; error: Error | null }> {
   const { data: profile, error } = await supabase
     .from('user_profiles')
     .insert({
       id: userId,
-      email: data.email,
       display_name: data.display_name || null,
     })
     .select()
@@ -155,7 +166,9 @@ export async function getUserProfile(
 
 export async function updateUserProfile(
   userId: string,
-  updates: Partial<Pick<UserProfile, 'display_name' | 'avatar_url'>>
+  updates: Partial<
+    Pick<UserProfile, 'display_name' | 'avatar_url' | 'preferences' | 'notification_settings'>
+  >
 ): Promise<{ profile: UserProfile | null; error: Error | null }> {
   const { data, error } = await supabase
     .from('user_profiles')
