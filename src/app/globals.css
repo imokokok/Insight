@@ -1,4 +1,26 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Brand Colors */
+  --color-finance-primary: var(--finance-primary);
+  --color-finance-secondary: var(--finance-secondary);
+  --color-finance-accent: var(--finance-accent);
+
+  /* Status Colors */
+  --color-finance-success: var(--finance-success);
+  --color-finance-success-light: var(--finance-success-light);
+  --color-finance-warning: var(--finance-warning);
+  --color-finance-warning-light: var(--finance-warning-light);
+  --color-finance-danger: var(--finance-danger);
+  --color-finance-danger-light: var(--finance-danger-light);
+  --color-finance-neutral: var(--finance-neutral);
+  --color-finance-neutral-light: var(--finance-neutral-light);
+}
 
 :root {
   --background: #ffffff;
@@ -55,28 +77,6 @@
   --radius-2xl: 1.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-
-  /* Brand Colors */
-  --color-finance-primary: var(--finance-primary);
-  --color-finance-secondary: var(--finance-secondary);
-  --color-finance-accent: var(--finance-accent);
-
-  /* Status Colors */
-  --color-finance-success: var(--finance-success);
-  --color-finance-success-light: var(--finance-success-light);
-  --color-finance-warning: var(--finance-warning);
-  --color-finance-warning-light: var(--finance-warning-light);
-  --color-finance-danger: var(--finance-danger);
-  --color-finance-danger-light: var(--finance-danger-light);
-  --color-finance-neutral: var(--finance-neutral);
-  --color-finance-neutral-light: var(--finance-neutral-light);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -114,50 +114,125 @@ body {
 
 /* Button Base Styles */
 .btn {
-  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-primary {
-  @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: #2563eb;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.btn-primary:active:not(:disabled) {
+  background-color: #1e40af;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-secondary {
-  @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.btn-secondary:active:not(:disabled) {
+  background-color: #d1d5db;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Card Base Styles */
 .card {
-  @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .card-hover {
-  @apply card transition-all duration-300 hover:shadow-md hover:border-gray-300;
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.card-hover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
 }
 
 /* Form Input Styles */
 .input {
-  @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  color: #111827;
+  transition: all 0.2s;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-color: transparent;
 }
 
 /* Table Styles */
 .table-container {
-  @apply overflow-x-auto rounded-lg border border-gray-200;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
 }
 
 .table {
-  @apply w-full text-left border-collapse;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
 }
 
 .table th {
-  @apply sticky top-0 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200;
+  position: sticky;
+  top: 0;
+  background-color: #f9fafb;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .table td {
-  @apply px-4 py-3 border-b border-gray-100;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .table tr:hover {
-  @apply bg-gray-50;
+  background-color: #f9fafb;
 }
 
 ::selection {
