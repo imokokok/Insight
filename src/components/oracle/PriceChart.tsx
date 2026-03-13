@@ -28,6 +28,7 @@ import { ChartExportData } from '@/utils/chartExport';
 import { downsampleData, downsampleDataForChart } from '@/utils/downsampling';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('PriceChart');
 
@@ -995,26 +996,26 @@ export function PriceChart({
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#e5e7eb"
+              stroke={chartColors.recharts.grid}
               strokeOpacity={0.5}
               vertical={false}
             />
 
             <XAxis
               dataKey="time"
-              stroke="#9ca3af"
-              tick={{ fontSize: isMobile ? 10 : 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: isMobile ? 10 : 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+              axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
               minTickGap={isMobile ? 50 : 30}
             />
 
             <YAxis
               yAxisId="price"
-              stroke="#9ca3af"
-              tick={{ fontSize: isMobile ? 10 : 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: isMobile ? 10 : 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+              axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
               domain={[priceRange.min, priceRange.max]}
               tickFormatter={(value) => `$${Number(value).toFixed(2)}`}
               width={isMobile ? 45 : 60}
@@ -1023,8 +1024,8 @@ export function PriceChart({
             <YAxis
               yAxisId="volume"
               orientation="right"
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
               axisLine={false}
               domain={[volumeRange.min, volumeRange.max]}
@@ -1034,7 +1035,7 @@ export function PriceChart({
             <Tooltip
               content={<CustomTooltip chartType={chartType} />}
               cursor={{
-                stroke: '#d1d5db',
+                stroke: chartColors.recharts.border,
                 strokeWidth: 1,
                 strokeDasharray: '4 4',
               }}
@@ -1052,7 +1053,7 @@ export function PriceChart({
               />
             )}
 
-            <Bar yAxisId="volume" dataKey="volume" fill="#3b82f6" fillOpacity={0.2} stroke="none">
+            <Bar yAxisId="volume" dataKey="volume" fill={chartColors.recharts.primaryLight} fillOpacity={0.2} stroke="none">
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
@@ -1060,8 +1061,8 @@ export function PriceChart({
                     entry.close !== undefined &&
                     entry.open !== undefined &&
                     entry.close >= entry.open
-                      ? '#10b981'
-                      : '#f43f5e'
+                      ? chartColors.semantic.success
+                      : chartColors.semantic.danger
                   }
                   fillOpacity={0.3}
                 />
@@ -1076,7 +1077,7 @@ export function PriceChart({
                       yAxisId="price"
                       type="monotone"
                       dataKey="predictionUpper"
-                      stroke="#3b82f6"
+                      stroke={chartColors.recharts.primaryLight}
                       strokeDasharray="5 5"
                       strokeWidth={1}
                       fill="transparent"
@@ -1087,7 +1088,7 @@ export function PriceChart({
                       yAxisId="price"
                       type="monotone"
                       dataKey="predictionLower"
-                      stroke="#3b82f6"
+                      stroke={chartColors.recharts.primaryLight}
                       strokeDasharray="5 5"
                       strokeWidth={1}
                       fill="transparent"
@@ -1099,7 +1100,7 @@ export function PriceChart({
                       type="monotone"
                       dataKey="predictionUpper"
                       stroke="none"
-                      fill="#3b82f6"
+                      fill={chartColors.recharts.primaryLight}
                       fillOpacity={0.1}
                       dot={false}
                       activeDot={false}
@@ -1110,10 +1111,10 @@ export function PriceChart({
                   yAxisId="price"
                   type="monotone"
                   dataKey="price"
-                  stroke="#3b82f6"
+                  stroke={chartColors.recharts.primaryLight}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#2563eb' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: chartColors.recharts.primaryDark }}
                   name="price"
                 />
                 {comparison.enabled && comparisonData.length > 0 && (
@@ -1122,11 +1123,11 @@ export function PriceChart({
                     type="monotone"
                     data={comparisonData}
                     dataKey="price"
-                    stroke="#8b5cf6"
+                    stroke={chartColors.recharts.purple}
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     dot={false}
-                    activeDot={{ r: 4, strokeWidth: 0, fill: '#7c3aed' }}
+                    activeDot={{ r: 4, strokeWidth: 0, fill: chartColors.recharts.purpleDark }}
                     name="comparison"
                   />
                 )}
@@ -1134,7 +1135,7 @@ export function PriceChart({
                   yAxisId="price"
                   type="monotone"
                   dataKey="ma7"
-                  stroke="#f59e0b"
+                  stroke={chartColors.recharts.warning}
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
                   dot={false}
@@ -1154,8 +1155,8 @@ export function PriceChart({
             <Brush
               dataKey="time"
               height={30}
-              stroke="#3b82f6"
-              fill="#f3f4f6"
+              stroke={chartColors.recharts.primaryLight}
+              fill={chartColors.recharts.backgroundLight}
               tickFormatter={() => ''}
             />
           </ComposedChart>

@@ -172,6 +172,75 @@ export const chartColors = {
     '#F97316', // 深橙
     '#84CC16', // 浅绿
   ],
+
+  // 市场概览专用颜色
+  marketOverview: {
+    chainlink: '#375BD2',
+    pyth: '#E6B800',
+    band: '#516BEB',
+    api3: '#7CE3CB',
+    uma: '#FF4A8D',
+    default: '#8884d8',
+  },
+
+  // 饼图颜色
+  pie: {
+    default: '#8884d8',
+    stroke: {
+      selected: '#ffffff',
+      none: 'none',
+    },
+  },
+
+  // 折线图网格和轴线
+  lineChart: {
+    grid: '#f3f4f6',
+    axis: '#9ca3af',
+  },
+
+  // Recharts 图表常用颜色
+  recharts: {
+    // 网格线
+    grid: '#e5e7eb',
+    gridLight: '#E5E7EB',
+    // 轴线
+    axis: '#9ca3af',
+    axisLight: '#9CA3AF',
+    // 刻度文字
+    tick: '#6b7280',
+    tickLight: '#6B7280',
+    tickDark: '#374151',
+    // 主色
+    primary: '#3B82F6',
+    primaryDark: '#2563eb',
+    primaryLight: '#3b82f6',
+    // 紫色
+    purple: '#8B5CF6',
+    purpleDark: '#7c3aed',
+    // 状态色
+    success: '#10B981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    // 其他
+    cyan: '#06B6D4',
+    teal: '#7CE3CB',
+    pink: '#EC4899',
+    magenta: '#FF4A8D',
+    gold: '#E6B800',
+    indigo: '#516BEB',
+    chainlink: '#375BD2',
+    // 背景
+    background: '#f9fafb',
+    backgroundLight: '#F3F4F6',
+    // 边框
+    border: '#d1d5db',
+    borderLight: '#D1D5DB',
+    // 白色
+    white: '#ffffff',
+    whiteLight: '#FFFFFF',
+    // 透明
+    none: 'none',
+  },
 } as const;
 
 // ============================================
@@ -182,6 +251,19 @@ export const shadowColors = {
   soft: '0 4px 20px -2px rgba(30, 64, 175, 0.1)',
   medium: '0 8px 30px -4px rgba(30, 64, 175, 0.15)',
   strong: '0 12px 40px -6px rgba(30, 64, 175, 0.2)',
+} as const;
+
+// ============================================
+// 导出颜色常量
+// ============================================
+
+export const exportColors = {
+  background: '#ffffff',
+  text: {
+    primary: '#1f2937',
+    secondary: '#6b7280',
+    muted: '#9ca3af',
+  },
 } as const;
 
 // ============================================

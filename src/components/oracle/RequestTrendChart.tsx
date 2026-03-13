@@ -16,6 +16,7 @@ import { DashboardCard } from './DashboardCard';
 import { formatCompactNumberV2 } from '@/lib/utils/format';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('RequestTrendChart');
 
@@ -274,20 +275,24 @@ export function RequestTrendChart({
               <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                    <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={chartColors.recharts.gridLight}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="time"
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
-                  axisLine={{ stroke: '#E5E7EB' }}
+                  tick={{ fontSize: 11, fill: chartColors.recharts.tickLight }}
+                  axisLine={{ stroke: chartColors.recharts.gridLight }}
                   tickLine={false}
                   interval={timeRange === '7d' ? 5 : 'preserveStartEnd'}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#6B7280' }}
+                  tick={{ fontSize: 11, fill: chartColors.recharts.tickLight }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value) => formatCompactNumberV2(value)}
@@ -306,10 +311,10 @@ export function RequestTrendChart({
                   type="monotone"
                   dataKey="requests"
                   name={t('requestTrend.requests')}
-                  stroke="#3B82F6"
+                  stroke={chartColors.recharts.primary}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 5, fill: '#3B82F6' }}
+                  activeDot={{ r: 5, fill: chartColors.recharts.primary }}
                 />
               </LineChart>
             </ResponsiveContainer>

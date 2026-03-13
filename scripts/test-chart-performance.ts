@@ -1,4 +1,8 @@
-import { downsampleData, downsampleDataForPerformance, adaptiveDownsample } from '../src/utils/downsampling';
+import {
+  downsampleData,
+  downsampleDataForPerformance,
+  adaptiveDownsample,
+} from '../src/utils/downsampling';
 import type { DataPoint } from '../src/utils/downsampling';
 
 function generateTestData(count: number): DataPoint[] {
@@ -61,9 +65,8 @@ export function runDownsamplingPerformanceTest(
   for (const size of dataSizes) {
     const data = generateTestData(size);
 
-    const { result: downsampled, time } = measureTime(
-      `Downsampling ${size} points`,
-      () => downsampleData(data, { preservePeaks: true, preserveTrends: true })
+    const { result: downsampled, time } = measureTime(`Downsampling ${size} points`, () =>
+      downsampleData(data, { preservePeaks: true, preserveTrends: true })
     );
 
     const compressionRatio = ((1 - downsampled.length / size) * 100).toFixed(1);
@@ -91,9 +94,8 @@ export function runPerformanceModeTest(): PerformanceTestResult[] {
   for (const size of dataSizes) {
     const data = generateTestData(size);
 
-    const { result: downsampled, time } = measureTime(
-      `Performance mode ${size} points`,
-      () => downsampleDataForPerformance(data)
+    const { result: downsampled, time } = measureTime(`Performance mode ${size} points`, () =>
+      downsampleDataForPerformance(data)
     );
 
     const compressionRatio = ((1 - downsampled.length / size) * 100).toFixed(1);
@@ -125,13 +127,11 @@ export function runAdaptiveDownsampleTest(): PerformanceTestResult[] {
   ];
 
   for (const scenario of scenarios) {
-    const { result: downsampled, time } = measureTime(
-      `Adaptive ${scenario.name}`,
-      () =>
-        adaptiveDownsample(data, {
-          renderTime: scenario.renderTime,
-          targetRenderTime: scenario.targetRenderTime,
-        })
+    const { result: downsampled, time } = measureTime(`Adaptive ${scenario.name}`, () =>
+      adaptiveDownsample(data, {
+        renderTime: scenario.renderTime,
+        targetRenderTime: scenario.targetRenderTime,
+      })
     );
 
     const compressionRatio = ((1 - downsampled.length / data.length) * 100).toFixed(1);
@@ -171,7 +171,8 @@ export function runAllPerformanceTests(): {
 
   const allResults = [...downsampling, ...performanceMode, ...adaptive];
   const passedTests = allResults.filter((r) => r.passed).length;
-  const averageTime = allResults.reduce((sum, r) => sum + r.downsamplingTime, 0) / allResults.length;
+  const averageTime =
+    allResults.reduce((sum, r) => sum + r.downsamplingTime, 0) / allResults.length;
 
   const summary = {
     totalTests: allResults.length,

@@ -335,8 +335,8 @@ export interface Database {
         Returns: undefined;
       };
     };
-    Enums: {};
-    CompositeTypes: {};
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
 

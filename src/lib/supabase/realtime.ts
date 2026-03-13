@@ -143,7 +143,7 @@ class RealtimeManager {
       return () => this.unsubscribe(subscriptionId);
     }
 
-    let channel = this.client.channel(subscriptionId).on<PriceRecord>(
+    const channel = this.client.channel(subscriptionId).on<PriceRecord>(
       'postgres_changes',
       {
         event: '*',

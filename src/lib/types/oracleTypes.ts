@@ -5,6 +5,7 @@ import {
   PriceData,
   PublisherStatus,
 } from './oracle';
+import { financeColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 export { OracleProvider, Blockchain };
 export type { ConfidenceInterval, PriceData, PublisherStatus };
@@ -211,15 +212,15 @@ export interface ChartThemeColors {
 }
 
 export const DEFAULT_CHART_THEME: ChartThemeColors = {
-  primary: '#3b82f6',
-  secondary: '#6b7280',
-  success: '#22c55e',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  info: '#06b6d4',
-  neutral: '#9ca3af',
-  grid: '#e5e7eb',
-  text: '#374151',
+  primary: financeColors.secondary,
+  secondary: baseColors.gray[500],
+  success: semanticColors.success.DEFAULT,
+  warning: semanticColors.warning.DEFAULT,
+  danger: semanticColors.danger.DEFAULT,
+  info: baseColors.primary[500],
+  neutral: baseColors.gray[400],
+  grid: baseColors.gray[200],
+  text: baseColors.gray[700],
   background: '#ffffff',
 };
 

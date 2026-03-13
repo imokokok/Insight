@@ -1,3 +1,6 @@
+import { createLogger } from '@/lib/utils/logger';
+import { exportColors } from '@/lib/config/colors';
+
 export interface ExportOptions {
   format: 'csv' | 'json' | 'png' | 'svg' | 'excel';
   filename?: string;
@@ -34,7 +37,6 @@ export interface ExportProgress {
 }
 
 export type ExportProgressCallback = (progress: ExportProgress) => void;
-import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('chartExport');
 
@@ -175,7 +177,7 @@ export async function exportToPNG(
   onProgress?: ExportProgressCallback
 ): Promise<void> {
   const {
-    backgroundColor = '#ffffff',
+    backgroundColor = exportColors.background,
     padding = 20,
     resolution = 'standard',
     chartTitle,
@@ -220,7 +222,7 @@ export async function exportToPNG(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   if (chartTitle) {
-    ctx.fillStyle = '#1f2937';
+    ctx.fillStyle = exportColors.text.primary;
     ctx.font = `bold ${24 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(chartTitle, (totalWidth * scale) / 2, padding * scale + 30 * scale);
@@ -243,7 +245,7 @@ export async function exportToPNG(
 
         if (showTimestamp) {
           const timestampY = chartY + svgRect.height * scale + 25 * scale;
-          ctx.fillStyle = '#6b7280';
+          ctx.fillStyle = exportColors.text.secondary;
           ctx.font = `${12 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
           ctx.textAlign = 'left';
 
@@ -257,7 +259,7 @@ export async function exportToPNG(
           ctx.fillText(`导出时间: ${timestamp}`, padding * scale, timestampY);
 
           if (dataSource) {
-            ctx.fillStyle = '#9ca3af';
+            ctx.fillStyle = exportColors.text.muted;
             ctx.font = `${10 * scale}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
             ctx.fillText(`数据来源: ${dataSource}`, padding * scale, timestampY + 18 * scale);
           }
@@ -308,7 +310,7 @@ export async function exportToSVG(
   onProgress?: ExportProgressCallback
 ): Promise<void> {
   const {
-    backgroundColor = '#ffffff',
+    backgroundColor = exportColors.background,
     includeStyles = true,
     chartTitle,
     dataSource,
@@ -386,7 +388,7 @@ export async function exportToSVG(
     );
     titleText.setAttribute('font-size', '24');
     titleText.setAttribute('font-weight', 'bold');
-    titleText.setAttribute('fill', '#1f2937');
+    titleText.setAttribute('fill', exportColors.text.primary);
     titleText.textContent = chartTitle;
     titleGroup.appendChild(titleText);
     clone.appendChild(titleGroup);
@@ -425,7 +427,7 @@ export async function exportToSVG(
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     );
     timestampText.setAttribute('font-size', '12');
-    timestampText.setAttribute('fill', '#6b7280');
+    timestampText.setAttribute('fill', exportColors.text.secondary);
     timestampText.textContent = `导出时间: ${timestamp}`;
     footerGroup.appendChild(timestampText);
 
@@ -438,7 +440,7 @@ export async function exportToSVG(
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       );
       sourceText.setAttribute('font-size', '10');
-      sourceText.setAttribute('fill', '#9ca3af');
+      sourceText.setAttribute('fill', exportColors.text.muted);
       sourceText.textContent = `数据来源: ${dataSource}`;
       footerGroup.appendChild(sourceText);
     }

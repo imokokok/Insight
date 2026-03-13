@@ -195,8 +195,10 @@ function generateAccuracyTrend(days: number = 30): AccuracyTrendPoint[] {
 export function usePriceHistory(options: UsePriceHistoryOptions = {}): UsePriceHistoryReturn {
   const { maxDataPoints = 100, autoRefresh = false, refreshInterval = 60000 } = options;
 
-  const [priceHistory, setPriceHistory] = useState<PriceHistoryPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [priceHistory, setPriceHistory] = useState<PriceHistoryPoint[]>(() => {
+    return generatePriceHistory(maxDataPoints);
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
@@ -216,10 +218,6 @@ export function usePriceHistory(options: UsePriceHistoryOptions = {}): UsePriceH
       setIsLoading(false);
     }
   }, [maxDataPoints]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   useEffect(() => {
     if (!autoRefresh) return;

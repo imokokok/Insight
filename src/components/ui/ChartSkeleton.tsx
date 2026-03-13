@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { chartColors } from '@/lib/config/colors';
 
 interface ChartSkeletonProps {
   height?: number;
@@ -34,14 +35,14 @@ export function ChartSkeleton({
         <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
           {variant === 'price' && (
             <>
-              <rect x="0" y="0" width="800" height="300" fill="#f9fafb" />
+              <rect x="0" y="0" width="800" height="300" fill={chartColors.recharts.background} />
               <rect
                 x="60"
                 y="20"
                 width="720"
                 height="200"
                 fill="none"
-                stroke="#e5e7eb"
+                stroke={chartColors.recharts.grid}
                 strokeDasharray="3 3"
               />
               {[...Array(6)].map((_, i) => (
@@ -51,7 +52,7 @@ export function ChartSkeleton({
                   y={20 + i * 33}
                   width="720"
                   height="1"
-                  fill="#e5e7eb"
+                  fill={chartColors.recharts.grid}
                   opacity="0.5"
                 />
               ))}
@@ -62,27 +63,35 @@ export function ChartSkeleton({
                   y="20"
                   width="1"
                   height="200"
-                  fill="#e5e7eb"
+                  fill={chartColors.recharts.grid}
                   opacity="0.3"
                 />
               ))}
               <path
                 d="M 60 120 Q 200 80, 300 140 T 500 100 T 700 130"
                 fill="none"
-                stroke="#d1d5db"
+                stroke={chartColors.recharts.border}
                 strokeWidth="2"
               />
-              <rect x="60" y="220" width="720" height="60" fill="#e5e7eb" opacity="0.3" rx="4" />
+              <rect
+                x="60"
+                y="220"
+                width="720"
+                height="60"
+                fill={chartColors.recharts.grid}
+                opacity="0.3"
+                rx="4"
+              />
             </>
           )}
 
           {variant === 'area' && (
             <>
-              <rect x="0" y="0" width="800" height="300" fill="#f9fafb" />
+              <rect x="0" y="0" width="800" height="300" fill={chartColors.recharts.background} />
               <defs>
                 <linearGradient id="skeletonGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#e5e7eb" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#e5e7eb" stopOpacity="0" />
+                  <stop offset="0%" stopColor={chartColors.recharts.grid} stopOpacity="0.4" />
+                  <stop offset="100%" stopColor={chartColors.recharts.grid} stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path
@@ -92,7 +101,7 @@ export function ChartSkeleton({
               <path
                 d="M 0 250 Q 100 200, 200 220 T 400 180 T 600 200 T 800 150"
                 fill="none"
-                stroke="#d1d5db"
+                stroke={chartColors.recharts.border}
                 strokeWidth="2"
               />
             </>
@@ -100,11 +109,11 @@ export function ChartSkeleton({
 
           {variant === 'line' && (
             <>
-              <rect x="0" y="0" width="800" height="300" fill="#f9fafb" />
+              <rect x="0" y="0" width="800" height="300" fill={chartColors.recharts.background} />
               <path
                 d="M 0 150 Q 100 100, 200 180 T 400 120 T 600 160 T 800 100"
                 fill="none"
-                stroke="#d1d5db"
+                stroke={chartColors.recharts.border}
                 strokeWidth="2"
                 strokeDasharray="5 5"
               />
@@ -114,7 +123,7 @@ export function ChartSkeleton({
                   cx={i * 100 + 100}
                   cy={150 + (i % 2) * 30}
                   r="4"
-                  fill="#d1d5db"
+                  fill={chartColors.recharts.border}
                 />
               ))}
             </>
@@ -122,7 +131,7 @@ export function ChartSkeleton({
 
           {variant === 'bar' && (
             <>
-              <rect x="0" y="0" width="800" height="300" fill="#f9fafb" />
+              <rect x="0" y="0" width="800" height="300" fill={chartColors.recharts.background} />
               {[...Array(12)].map((_, i) => (
                 <rect
                   key={`bar-${i}`}
@@ -130,7 +139,7 @@ export function ChartSkeleton({
                   y={150 + (i % 2) * 30}
                   width="40"
                   height={100 - (i % 3) * 20}
-                  fill="#e5e7eb"
+                  fill={chartColors.recharts.grid}
                   rx="4"
                 />
               ))}
@@ -156,18 +165,23 @@ export function MiniChartSkeleton({
   return (
     <div className={`animate-pulse ${className}`} style={{ height, width }}>
       <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
-        <rect x="0" y="0" width="200" height="80" fill="#f9fafb" />
+        <rect x="0" y="0" width="200" height="80" fill={chartColors.recharts.background} />
         <defs>
           <linearGradient id="miniSkeletonGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#e5e7eb" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#e5e7eb" stopOpacity="0" />
+            <stop offset="0%" stopColor={chartColors.recharts.grid} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={chartColors.recharts.grid} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path
           d="M 0 60 Q 50 40, 100 50 T 200 30 L 200 80 L 0 80 Z"
           fill="url(#miniSkeletonGradient)"
         />
-        <path d="M 0 60 Q 50 40, 100 50 T 200 30" fill="none" stroke="#d1d5db" strokeWidth="1.5" />
+        <path
+          d="M 0 60 Q 50 40, 100 50 T 200 30"
+          fill="none"
+          stroke={chartColors.recharts.border}
+          strokeWidth="1.5"
+        />
       </svg>
     </div>
   );

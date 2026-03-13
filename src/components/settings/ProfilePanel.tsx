@@ -39,7 +39,7 @@ export function ProfilePanel() {
         setSuccess('个人资料已保存');
         await refreshProfile();
       }
-    } catch (err) {
+    } catch {
       setError('保存失败，请重试');
     } finally {
       setIsSaving(false);
@@ -93,7 +93,7 @@ export function ProfilePanel() {
         setSuccess('头像已更新');
         await refreshProfile();
       }
-    } catch (err) {
+    } catch {
       setError('上传失败，请重试');
     } finally {
       setIsUploading(false);
@@ -127,7 +127,7 @@ export function ProfilePanel() {
         setNewPassword('');
         setConfirmPassword('');
       }
-    } catch (err) {
+    } catch {
       setError('密码更新失败');
     } finally {
       setIsChangingPassword(false);
@@ -163,6 +163,7 @@ export function ProfilePanel() {
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-2 border-gray-200">
                 {avatarUrl || profile?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl || profile?.avatar_url || ''}
                     alt="头像"

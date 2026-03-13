@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Palette,
   Globe,
@@ -12,9 +12,6 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('PreferencesPanel');
 
 interface UserPreferences {
   defaultOracle: string;
@@ -65,21 +62,20 @@ const languageOptions = [
 ];
 
 export function PreferencesPanel() {
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
-  const [isSaving, setIsSaving] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [preferences, setPreferences] = useState<UserPreferences>(() => {
+    if (typeof window === 'undefined') return defaultPreferences;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        setPreferences({ ...defaultPreferences, ...parsed });
-      } catch (e) {
-        logger.error('Failed to parse preferences', e instanceof Error ? e : new Error(String(e)));
+        return { ...defaultPreferences, ...JSON.parse(saved) };
+      } catch {
+        return defaultPreferences;
       }
     }
-  }, []);
+    return defaultPreferences;
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSave = async () => {
     setIsSaving(true);
