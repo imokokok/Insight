@@ -203,6 +203,141 @@ export const generateTradingSignal = (zScore: number): 'long' | 'short' | 'neutr
   return 'neutral';
 };
 
+// Calculate residuals from OLS regression
+// residuals = y - hedgeRatio * x (assuming alpha = 0 for spread)
+export const calculateResiduals = (
+  pricesX: number[],
+  pricesY: number[],
+  hedgeRatio: number
+): number[] => {
+  const n = Math.min(pricesX.length, pricesY.length);
+  if (n === 0) return [];
+
+  const residuals: number[] = [];
+  for (let i = 0; i < n; i++) {
+    // Residual = Y - beta * X (spread calculation)
+    residuals.push(pricesY[i] - hedgeRatio * pricesX[i]);
+  }
+  return residuals;
+};
+
+// Calculate Autocorrelation Function (ACF)
+export const calculateACF = (
+  residuals: number[],
+  maxLag: number
+): Array<{ lag: number; autocorrelation: number }> => {
+  const n = residuals.length;
+  if (n === 0 || maxLag <= 0) return [];
+
+  const mean = residuals.reduce((a, b) => a + b, 0) / n;
+  const centered = residuals.map((r) => r - mean);
+
+  // Calculate variance (lag 0 autocorrelation)
+  const variance = centered.reduce((sum, r) => sum + r * r, 0) / n;
+
+  if (variance === 0) {
+    return Array.from({ length: Math.min(maxLag, n - 1) }, (_, i) => ({
+      lag: i + 1,
+      autocorrelation: 0,
+    }));
+  }
+
+  const acf: Array<{ lag: number; autocorrelation: number }> = [];
+
+  for (let lag = 1; lag <= maxLag && lag < n; lag++) {
+    let numerator = 0;
+    for (let t = lag; t < n; t++) {
+      numerator += centered[t] * centered[t - lag];
+    }
+    const autocorrelation = numerator / (n * variance);
+    acf.push({ lag, autocorrelation });
+  }
+
+  return acf;
+};
+
+// Calculate Ljung-Box test statistic
+// H0: residuals are independently distributed (no autocorrelation)
+export const calculateLjungBox = (
+  residuals: number[],
+  maxLag: number
+): { statistic: number; pValue: number; criticalValue: number } => {
+  const n = residuals.length;
+  if (n === 0 || maxLag <= 0) {
+    return { statistic: 0, pValue: 1, criticalValue: 0 };
+  }
+
+  const acf = calculateACF(residuals, maxLag);
+  let statistic = 0;
+
+  for (let k = 0; k < acf.length; k++) {
+    const rho = acf[k].autocorrelation;
+    statistic += (rho * rho) / (n - k - 1);
+  }
+
+  statistic = n * (n + 2) * statistic;
+
+  // Critical value for chi-square distribution with maxLag degrees of freedom at 5% level
+  // Approximation: critical value ≈ maxLag + 1.645 * sqrt(2 * maxLag)
+  const criticalValue = maxLag + 1.645 * Math.sqrt(2 * maxLag);
+
+  // Approximate p-value
+  const pValue = statistic > criticalValue ? 0.05 : 0.5;
+
+  return { statistic, pValue, criticalValue };
+};
+
+// Calculate histogram data for residuals
+export const calculateResidualHistogram = (
+  residuals: number[],
+  binCount: number = 20
+): Array<{ bin: string; count: number; density: number; normalDensity: number }> => {
+  const n = residuals.length;
+  if (n === 0 || binCount <= 0) return [];
+
+  const min = Math.min(...residuals);
+  const max = Math.max(...residuals);
+  const binWidth = (max - min) / binCount || 1;
+
+  const mean = residuals.reduce((a, b) => a + b, 0) / n;
+  const variance = residuals.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / n;
+  const std = Math.sqrt(variance);
+
+  // Normal distribution PDF
+  const normalPDF = (x: number): number => {
+    if (std === 0) return 0;
+    const z = (x - mean) / std;
+    return (1 / (std * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * z * z);
+  };
+
+  const bins: Array<{ bin: string; count: number; density: number; normalDensity: number }> = [];
+
+  for (let i = 0; i < binCount; i++) {
+    const binStart = min + i * binWidth;
+    const binEnd = binStart + binWidth;
+    const binCenter = (binStart + binEnd) / 2;
+
+    const count = residuals.filter(
+      (r) => r >= binStart && (i === binCount - 1 ? r <= binEnd : r < binEnd)
+    ).length;
+
+    // Empirical density (normalized to form a PDF)
+    const density = count / (n * binWidth);
+
+    // Theoretical normal density at bin center
+    const normalDensity = normalPDF(binCenter);
+
+    bins.push({
+      bin: `${binCenter.toFixed(2)}`,
+      count,
+      density,
+      normalDensity,
+    });
+  }
+
+  return bins;
+};
+
 // Interface for cointegration pair analysis
 export interface CointegrationPair {
   chainX: Blockchain;

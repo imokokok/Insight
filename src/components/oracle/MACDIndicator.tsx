@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  Scatter,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
 
@@ -21,23 +22,31 @@ interface MACDDataPoint {
   dea: number;
   macd: number;
   signal?: 'golden' | 'death' | null;
+  signalX?: number;
+  signalY?: number;
+  signalType?: 'golden' | 'death';
 }
 
-interface MACDIndicatorProps {
-  data: Array<{ time: string; timestamp: number; price: number; close?: number }>;
-  fastPeriod?: number;
-  slowPeriod?: number;
-  signalPeriod?: number;
+export interface MACDIndicatorProps {
+  data: Array<{ price: number; timestamp: number }>;
+  fastPeriod?: number; // 默认12
+  slowPeriod?: number; // 默认26
+  signalPeriod?: number; // 默认9
   height?: number;
+  showSignals?: boolean;
 }
 
+/**
+ * 计算指数移动平均 (EMA)
+ * EMA = (今日收盘价 × 2 / (N + 1)) + (昨日EMA × (N - 1) / (N + 1))
+ */
 function calculateEMA(data: number[], period: number): number[] {
   const ema: number[] = [];
   const multiplier = 2 / (period + 1);
 
   // 第一个EMA使用简单移动平均
   let sum = 0;
-  for (let i = 0; i < period; i++) {
+  for (let i = 0; i < period && i < data.length; i++) {
     sum += data[i];
   }
   ema[period - 1] = sum / period;
@@ -55,35 +64,44 @@ function calculateEMA(data: number[], period: number): number[] {
   return ema;
 }
 
+/**
+ * 计算 MACD 指标
+ * MACD 公式：
+ * EMA12 = 12日指数移动平均
+ * EMA26 = 26日指数移动平均
+ * DIF = EMA12 - EMA26
+ * DEA = DIF的9日EMA
+ * MACD柱状图 = (DIF - DEA) * 2
+ */
 function calculateMACD(
-  data: Array<{ price: number; close?: number }>,
+  data: Array<{ price: number }>,
   fastPeriod: number = 12,
   slowPeriod: number = 26,
   signalPeriod: number = 9
 ): { dif: number[]; dea: number[]; macd: number[]; signals: Array<'golden' | 'death' | null> } {
-  const closes = data.map((d) => d.close || d.price);
+  const prices = data.map((d) => d.price);
 
   // 计算快速和慢速EMA
-  const fastEMA = calculateEMA(closes, fastPeriod);
-  const slowEMA = calculateEMA(closes, slowPeriod);
+  const ema12 = calculateEMA(prices, fastPeriod);
+  const ema26 = calculateEMA(prices, slowPeriod);
 
-  // 计算DIF (快线)
-  const dif = fastEMA.map((fast, i) => fast - slowEMA[i]);
+  // 计算DIF (快线) = EMA12 - EMA26
+  const dif = ema12.map((fast, i) => fast - ema26[i]);
 
-  // 计算DEA (慢线/信号线)
+  // 计算DEA (慢线/信号线) = DIF的9日EMA
   const dea = calculateEMA(dif, signalPeriod);
 
-  // 计算MACD柱状图
+  // 计算MACD柱状图 = (DIF - DEA) * 2
   const macd = dif.map((d, i) => (d - dea[i]) * 2);
 
   // 检测金叉和死叉
   const signals: Array<'golden' | 'death' | null> = new Array(data.length).fill(null);
   for (let i = 1; i < data.length; i++) {
-    // 金叉: DIF从下向上穿越DEA
+    // 金叉: DIF从下向上穿越DEA (DIF上穿DEA)
     if (dif[i - 1] < dea[i - 1] && dif[i] >= dea[i]) {
       signals[i] = 'golden';
     }
-    // 死叉: DIF从上向下穿越DEA
+    // 死叉: DIF从上向下穿越DEA (DIF下穿DEA)
     else if (dif[i - 1] > dea[i - 1] && dif[i] <= dea[i]) {
       signals[i] = 'death';
     }
@@ -92,35 +110,54 @@ function calculateMACD(
   return { dif, dea, macd, signals };
 }
 
+/**
+ * 格式化时间戳为显示时间
+ */
+function formatTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
 export function MACDIndicator({
   data,
   fastPeriod = 12,
   slowPeriod = 26,
   signalPeriod = 9,
   height = 200,
+  showSignals = true,
 }: MACDIndicatorProps) {
   const macdData = useMemo<MACDDataPoint[]>(() => {
+    if (data.length === 0) return [];
+
     const { dif, dea, macd, signals } = calculateMACD(data, fastPeriod, slowPeriod, signalPeriod);
-    return data.map((point, index) => ({
-      time: point.time,
-      timestamp: point.timestamp,
-      dif: dif[index],
-      dea: dea[index],
-      macd: macd[index],
-      signal: signals[index],
-    }));
+
+    return data.map((point, index) => {
+      const signal = signals[index];
+      return {
+        time: formatTime(point.timestamp),
+        timestamp: point.timestamp,
+        dif: dif[index],
+        dea: dea[index],
+        macd: macd[index],
+        signal: signal,
+        // 为散点图准备信号点数据
+        signalX: signal ? index : undefined,
+        signalY: signal ? dif[index] : undefined,
+        signalType: signal || undefined,
+      };
+    });
   }, [data, fastPeriod, slowPeriod, signalPeriod]);
 
   const currentData =
     macdData.length > 0 ? macdData[macdData.length - 1] : { dif: 0, dea: 0, macd: 0 };
-  const lastSignal = useMemo(() => {
+  const lastSignal = (() => {
     for (let i = macdData.length - 1; i >= 0; i--) {
       if (macdData[i].signal) {
         return { type: macdData[i].signal, index: i };
       }
     }
     return null;
-  }, [macdData]);
+  })();
 
   const goldenCrossCount = macdData.filter((d) => d.signal === 'golden').length;
   const deathCrossCount = macdData.filter((d) => d.signal === 'death').length;
@@ -269,6 +306,61 @@ export function MACDIndicator({
               dot={false}
               activeDot={{ r: 3, fill: '#f97316' }}
             />
+            {/* 金叉/死叉信号标记 */}
+            {showSignals && (
+              <>
+                <Scatter
+                  dataKey="signalY"
+                  fill="#ef4444"
+                  shape={(props: { cx?: number; cy?: number; payload?: MACDDataPoint }) => {
+                    const { cx = 0, cy = 0, payload } = props;
+                    if (payload?.signalType === 'golden') {
+                      return (
+                        <g>
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={6}
+                            fill="#ef4444"
+                            stroke="#fff"
+                            strokeWidth={2}
+                          />
+                          <text x={cx} y={cy - 10} textAnchor="middle" fill="#ef4444" fontSize={10}>
+                            金叉
+                          </text>
+                        </g>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Scatter
+                  dataKey="signalY"
+                  fill="#22c55e"
+                  shape={(props: { cx?: number; cy?: number; payload?: MACDDataPoint }) => {
+                    const { cx = 0, cy = 0, payload } = props;
+                    if (payload?.signalType === 'death') {
+                      return (
+                        <g>
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={6}
+                            fill="#22c55e"
+                            stroke="#fff"
+                            strokeWidth={2}
+                          />
+                          <text x={cx} y={cy - 10} textAnchor="middle" fill="#22c55e" fontSize={10}>
+                            死叉
+                          </text>
+                        </g>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </>
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>

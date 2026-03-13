@@ -28,7 +28,20 @@ export { PublisherAnalysisPanel } from './PublisherAnalysisPanel';
 export { PublisherContributionPanel } from './PublisherContributionPanel';
 export { ValidatorPanel } from './ValidatorPanel';
 export { DisputeResolutionPanel } from './DisputeResolutionPanel';
+export { DisputeVotingPanel, generateMockVotingData } from './DisputeVotingPanel';
+export type {
+  DisputeVotingPanelProps,
+  DisputeVotingData,
+  ValidatorVote,
+  VotePosition,
+} from './DisputeVotingPanel';
 export { ValidatorAnalyticsPanel } from './ValidatorAnalyticsPanel';
+export { ValidatorEarningsBreakdown } from './ValidatorEarningsBreakdown';
+export type {
+  ValidatorEarningsBreakdownProps,
+  EarningsSourceBreakdown,
+  EfficiencyMetrics,
+} from './ValidatorEarningsBreakdown';
 export { RiskAssessmentPanel } from './RiskAssessmentPanel';
 export type { ValidatorPanelProps, SortField, SortDirection, FilterStatus } from './ValidatorPanel';
 export { StakingCalculator } from './StakingCalculator';
@@ -87,6 +100,10 @@ export type {
   HistogramBin,
   LatencyStats as HistogramLatencyStats,
 } from './LatencyDistributionHistogram';
+export { CDFChart } from './CDFChart';
+export type { CDFChartProps } from './CDFChart';
+export { LatencyTrendMiniChart } from './LatencyTrendMiniChart';
+export type { LatencyTrendMiniChartProps, LatencyDataPoint as TrendLatencyDataPoint } from './LatencyTrendMiniChart';
 export { DataQualityScoreCard } from './DataQualityScoreCard';
 export type {
   DataQualityScoreCardProps,
@@ -147,14 +164,15 @@ export { DapiPriceDeviationMonitor } from './DapiPriceDeviationMonitor';
 export { DataSourceTraceabilityPanel } from './DataSourceTraceabilityPanel';
 export { CoveragePoolTimeline } from './CoveragePoolTimeline';
 export { FilterPanel, QuickFilterTags } from './FilterPanel';
-export {
-  DataExportButton,
-  ExportModal,
-  type ExportOption,
-  type ExportFormat,
-} from './DataExportButton';
+export { DataExportButton, type ExportFormat, type ExportColumn } from './DataExportButton';
 export { ChainEventMonitor } from './ChainEventMonitor';
 export type { ChainEventMonitorProps } from './ChainEventMonitor';
+export { CrossChainTrendChart } from './CrossChainTrendChart';
+export type { CrossChainTrendChartProps } from './CrossChainTrendChart';
+export { ValidatorGeographicMap } from './ValidatorGeographicMap';
+export type { ValidatorGeographicMapProps } from './ValidatorGeographicMap';
+export { MultiValidatorComparison } from './MultiValidatorComparison';
+export type { MultiValidatorComparisonProps } from './MultiValidatorComparison';
 export { BollingerBands } from './BollingerBands';
 export type { BollingerBandsProps } from './BollingerBands';
 export { ATRIndicator } from './ATRIndicator';
@@ -163,3 +181,20 @@ export { DataQualityTrend } from './DataQualityTrend';
 export type { DataQualityTrendProps, QualityDataPoint } from './DataQualityTrend';
 export { GasFeeComparison } from './GasFeeComparison';
 export type { GasFeeComparisonProps, GasFeeData } from './GasFeeComparison';
+export {
+  ChartAnnotations,
+  ChartAnnotationOverlay,
+  chainlinkMilestones,
+  getAnnotationColor,
+  getAnnotationIcon,
+  getImportanceLabel,
+  getTypeLabel,
+  formatDate,
+} from './ChartAnnotations';
+export type {
+  ChartAnnotation,
+  AnnotationType,
+  ImportanceLevel,
+  ChartAnnotationsProps,
+  ChartAnnotationOverlayProps,
+} from './ChartAnnotations';

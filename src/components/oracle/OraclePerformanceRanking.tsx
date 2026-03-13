@@ -11,8 +11,8 @@ export interface OraclePerformanceData {
   responseTime: number;
   accuracy: number;
   stability: number;
-  dataSources: number;
-  supportedChains: number;
+  dataSources?: number;
+  supportedChains?: number;
   color?: string;
 }
 
@@ -45,18 +45,18 @@ interface CalculatedRanking {
     responseTime: number;
     accuracy: number;
     stability: number;
-    dataSources: number;
-    supportedChains: number;
+    dataSources?: number;
+    supportedChains?: number;
   };
   color?: string;
 }
 
 const WEIGHTS = {
-  responseTime: 0.3,
-  accuracy: 0.3,
-  stability: 0.2,
-  dataSources: 0.1,
-  supportedChains: 0.1,
+  responseTime: 0.35,
+  accuracy: 0.35,
+  stability: 0.3,
+  dataSources: 0,
+  supportedChains: 0,
 };
 
 const oracleNames: Record<OracleProvider, string> = {
@@ -93,16 +93,26 @@ function normalizeStability(stability: number, allStability: number[]): number {
   return Math.max(0, Math.min(100, ((stability - min) / (max - min)) * 100));
 }
 
-function normalizeDataSources(dataSources: number, allDataSources: number[]): number {
-  const min = Math.min(...allDataSources);
-  const max = Math.max(...allDataSources);
+function normalizeDataSources(
+  dataSources: number | undefined,
+  allDataSources: (number | undefined)[]
+): number {
+  const validSources = allDataSources.filter((s): s is number => s !== undefined);
+  if (validSources.length === 0 || dataSources === undefined) return 50; // 默认值
+  const min = Math.min(...validSources);
+  const max = Math.max(...validSources);
   if (max === min) return 100;
   return Math.max(0, Math.min(100, ((dataSources - min) / (max - min)) * 100));
 }
 
-function normalizeSupportedChains(chains: number, allChains: number[]): number {
-  const min = Math.min(...allChains);
-  const max = Math.max(...allChains);
+function normalizeSupportedChains(
+  chains: number | undefined,
+  allChains: (number | undefined)[]
+): number {
+  const validChains = allChains.filter((c): c is number => c !== undefined);
+  if (validChains.length === 0 || chains === undefined) return 50; // 默认值
+  const min = Math.min(...validChains);
+  const max = Math.max(...validChains);
   if (max === min) return 100;
   return Math.max(0, Math.min(100, ((chains - min) / (max - min)) * 100));
 }
@@ -220,12 +230,24 @@ export function OraclePerformanceRanking({
       const dataSourcesScore = normalizeDataSources(data.dataSources, allDataSources);
       const chainsScore = normalizeSupportedChains(data.supportedChains, allChains);
 
+      // 根据是否有数据源和链数数据动态调整权重
+      const hasDataSources = data.dataSources !== undefined;
+      const hasChains = data.supportedChains !== undefined;
+      const availableWeights =
+        WEIGHTS.responseTime +
+        WEIGHTS.accuracy +
+        WEIGHTS.stability +
+        (hasDataSources ? WEIGHTS.dataSources : 0) +
+        (hasChains ? WEIGHTS.supportedChains : 0);
+      const normalizeFactor = availableWeights > 0 ? 1 / availableWeights : 1;
+
       const overallScore =
-        responseTimeScore * WEIGHTS.responseTime +
-        accuracyScore * WEIGHTS.accuracy +
-        stabilityScore * WEIGHTS.stability +
-        dataSourcesScore * WEIGHTS.dataSources +
-        chainsScore * WEIGHTS.supportedChains;
+        (responseTimeScore * WEIGHTS.responseTime +
+          accuracyScore * WEIGHTS.accuracy +
+          stabilityScore * WEIGHTS.stability +
+          dataSourcesScore * (hasDataSources ? WEIGHTS.dataSources : 0) +
+          chainsScore * (hasChains ? WEIGHTS.supportedChains : 0)) *
+        normalizeFactor;
 
       return {
         provider: data.provider,
@@ -244,8 +266,8 @@ export function OraclePerformanceRanking({
           responseTime: data.responseTime,
           accuracy: data.accuracy,
           stability: data.stability,
-          dataSources: data.dataSources,
-          supportedChains: data.supportedChains,
+          dataSources: data.dataSources ?? 0,
+          supportedChains: data.supportedChains ?? 0,
         },
         color: data.color || oracleColors[data.provider],
       };
@@ -382,18 +404,22 @@ export function OraclePerformanceRanking({
                       </span>
                       <span>{t('oraclePerformanceRanking.dimensionLabels.accuracy')}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-gray-700">
-                        {item.rawMetrics.dataSources}
-                      </span>
-                      <span>{t('oraclePerformanceRanking.dimensionLabels.dataSources')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-gray-700">
-                        {item.rawMetrics.supportedChains}
-                      </span>
-                      <span>{t('oraclePerformanceRanking.dimensionLabels.supportedChains')}</span>
-                    </div>
+                    {item.rawMetrics.dataSources !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-gray-700">
+                          {item.rawMetrics.dataSources}
+                        </span>
+                        <span>{t('oraclePerformanceRanking.dimensionLabels.dataSources')}</span>
+                      </div>
+                    )}
+                    {item.rawMetrics.supportedChains !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-gray-700">
+                          {item.rawMetrics.supportedChains}
+                        </span>
+                        <span>{t('oraclePerformanceRanking.dimensionLabels.supportedChains')}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div

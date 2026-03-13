@@ -37,7 +37,7 @@ interface DeviationStats {
 }
 
 interface PriceDeviationHistoryChartProps {
-  priceHistory: Record<OracleProvider, number[]>;
+  priceHistory: Partial<Record<OracleProvider, number[]>>;
   selectedOracles: OracleProvider[];
   oracleColors: Record<OracleProvider, string>;
   oracleNames: Record<OracleProvider, string>;

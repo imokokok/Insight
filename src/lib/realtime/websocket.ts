@@ -377,6 +377,41 @@ export class MockWebSocketManager extends WebSocketManager {
       avgUpdateLatency: 200 + Math.floor(Math.random() * 100),
       timestamp: Date.now(),
     }));
+
+    // UMA 价格数据生成器
+    this.mockDataGenerators.set('uma:prices', () => ({
+      symbol: ['BTC', 'ETH', 'UMA', 'USDC', 'DAI'][Math.floor(Math.random() * 5)],
+      price: 1000 + Math.random() * 20000,
+      change24h: (Math.random() - 0.5) * 8,
+      timestamp: Date.now(),
+      confidence: 0.95 + Math.random() * 0.05,
+      source: 'UMA Optimistic Oracle',
+    }));
+
+    // UMA 争议状态生成器
+    this.mockDataGenerators.set('uma:disputes', () => {
+      const statuses = ['active', 'resolved', 'rejected'] as const;
+      const types = ['price', 'state', 'liquidation', 'other'] as const;
+      return {
+        id: `dispute-${Math.floor(Math.random() * 1000)}`,
+        timestamp: Date.now(),
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        type: types[Math.floor(Math.random() * types.length)],
+        reward: Math.floor(Math.random() * 5000) + 1000,
+        resolutionTime: Math.random() > 0.5 ? Math.floor(Math.random() * 48) + 1 : undefined,
+        transactionHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+      };
+    });
+
+    // UMA 验证者活动生成器
+    this.mockDataGenerators.set('uma:validators', () => ({
+      validatorId: `validator-${Math.floor(Math.random() * 10) + 1}`,
+      timestamp: Date.now(),
+      responseTime: 100 + Math.floor(Math.random() * 100),
+      successRate: 95 + Math.random() * 5,
+      staked: Math.floor(Math.random() * 500000) + 100000,
+      earnings: Math.floor(Math.random() * 10000) + 1000,
+    }));
   }
 
   private startMockDataStream(): void {

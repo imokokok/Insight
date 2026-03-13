@@ -45,6 +45,7 @@ interface DataState {
 interface ConfigState {
   refreshInterval: RefreshInterval;
   thresholdConfig: ThresholdConfig;
+  colorblindMode: boolean;
 }
 
 interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState {
@@ -79,6 +80,7 @@ interface CrossChainStore extends SelectorState, UIState, DataState, ConfigState
 
   setRefreshInterval: (interval: RefreshInterval) => void;
   setThresholdConfig: (config: ThresholdConfig) => void;
+  setColorblindMode: (enabled: boolean) => void;
 
   toggleChain: (chain: Blockchain) => void;
   handleSort: (column: string) => void;
@@ -114,6 +116,7 @@ const initialState: SelectorState & UIState & DataState & ConfigState = {
 
   refreshInterval: 0,
   thresholdConfig: defaultThresholdConfig,
+  colorblindMode: false,
 };
 
 export const useCrossChainStore = create<CrossChainStore>((set, get) => ({
@@ -148,6 +151,7 @@ export const useCrossChainStore = create<CrossChainStore>((set, get) => ({
 
   setRefreshInterval: (interval) => set({ refreshInterval: interval }),
   setThresholdConfig: (config) => set({ thresholdConfig: config }),
+  setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
 
   toggleChain: (chain) => {
     const { visibleChains } = get();
@@ -198,6 +202,8 @@ export const useRecommendedBaseChain = () =>
 
 export const useRefreshInterval = () => useCrossChainStore((state) => state.refreshInterval);
 export const useThresholdConfig = () => useCrossChainStore((state) => state.thresholdConfig);
+export const useColorblindMode = () => useCrossChainStore((state) => state.colorblindMode);
+export const useSetColorblindMode = () => useCrossChainStore((state) => state.setColorblindMode);
 
 export const useSelectorState = () =>
   useCrossChainStore((state) => ({

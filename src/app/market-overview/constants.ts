@@ -102,6 +102,9 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
   let api3Base = 2.5;
   let umaBase = 2;
 
+  // 置信区间系数 (95% 置信区间约为 ±5%)
+  const confidenceInterval = 0.05;
+
   for (let i = points; i >= 0; i--) {
     const timestamp = now - i * interval;
     const date = new Date(timestamp);
@@ -118,14 +121,36 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
     api3Base *= 1 + (Math.random() - 0.5) * volatility;
     umaBase *= 1 + (Math.random() - 0.5) * volatility;
 
+    // 计算置信区间上下界
+    const chainlinkUpper = chainlinkBase * (1 + confidenceInterval);
+    const chainlinkLower = chainlinkBase * (1 - confidenceInterval);
+    const pythUpper = pythBase * (1 + confidenceInterval);
+    const pythLower = pythBase * (1 - confidenceInterval);
+    const bandUpper = bandBase * (1 + confidenceInterval);
+    const bandLower = bandBase * (1 - confidenceInterval);
+    const api3Upper = api3Base * (1 + confidenceInterval);
+    const api3Lower = api3Base * (1 - confidenceInterval);
+    const umaUpper = umaBase * (1 + confidenceInterval);
+    const umaLower = umaBase * (1 - confidenceInterval);
+
     data.push({
       timestamp,
       date: dateStr,
       chainlink: Number(chainlinkBase.toFixed(2)),
+      chainlinkUpper: Number(chainlinkUpper.toFixed(2)),
+      chainlinkLower: Number(chainlinkLower.toFixed(2)),
       pyth: Number(pythBase.toFixed(2)),
+      pythUpper: Number(pythUpper.toFixed(2)),
+      pythLower: Number(pythLower.toFixed(2)),
       band: Number(bandBase.toFixed(2)),
+      bandUpper: Number(bandUpper.toFixed(2)),
+      bandLower: Number(bandLower.toFixed(2)),
       api3: Number(api3Base.toFixed(2)),
+      api3Upper: Number(api3Upper.toFixed(2)),
+      api3Lower: Number(api3Lower.toFixed(2)),
       uma: Number(umaBase.toFixed(2)),
+      umaUpper: Number(umaUpper.toFixed(2)),
+      umaLower: Number(umaLower.toFixed(2)),
       total: Number((chainlinkBase + pythBase + bandBase + api3Base + umaBase).toFixed(2)),
     });
   }

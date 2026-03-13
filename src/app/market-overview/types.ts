@@ -46,10 +46,20 @@ export interface TVSTrendData {
   timestamp: number;
   date: string;
   chainlink: number;
+  chainlinkUpper: number; // 置信区间上界
+  chainlinkLower: number; // 置信区间下界
   pyth: number;
+  pythUpper: number;
+  pythLower: number;
   band: number;
+  bandUpper: number;
+  bandLower: number;
   api3: number;
+  api3Upper: number;
+  api3Lower: number;
   uma: number;
+  umaUpper: number;
+  umaLower: number;
   total: number;
 }
 

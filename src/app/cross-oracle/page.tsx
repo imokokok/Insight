@@ -85,9 +85,32 @@ import {
   TabId,
 } from './components';
 import { createLogger } from '@/lib/utils/logger';
-import { chartColors, baseColors } from '@/lib/config/colors';
+import { chartColors, baseColors, accessibleColors } from '@/lib/config/colors';
+import { lttbDownsample, calculateOptimalThreshold } from '@/lib/utils/lttb';
 
 const logger = createLogger('cross-oracle-page');
+
+// 根据时间范围确定最大数据点数
+const getMaxPointsForTimeRange = (timeRange: TimeRange): number => {
+  switch (timeRange) {
+    case '1H':
+      return 60; // 每分钟一个点
+    case '24H':
+      return 200; // 每7分钟一个点
+    case '7D':
+      return 300; // 每30分钟一个点
+    case '30D':
+      return 400; // 每1.8小时一个点
+    case '90D':
+      return 500; // 每4.3小时一个点
+    case '1Y':
+      return 500; // 每17小时一个点
+    case 'ALL':
+      return 500;
+    default:
+      return 200;
+  }
+};
 
 export default function CrossOraclePage() {
   const { t } = useI18n();
@@ -127,6 +150,11 @@ export default function CrossOraclePage() {
   const tableRef = useRef<HTMLTableSectionElement>(null);
   const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+  const [useAccessibleColors, setUseAccessibleColors] = useState(false);
+  const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
+  const [selectedOracleFromChart, setSelectedOracleFromChart] = useState<OracleProvider | null>(
+    null
+  );
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
     () => ({
@@ -412,19 +440,60 @@ export default function CrossOraclePage() {
     );
   };
 
-  // 使用统一的颜色配置 - 创建本地映射
-  const oracleChartColors: Record<OracleProvider, string> = {
-    [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-    [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-    [OracleProvider.UMA]: chartColors.oracle.uma,
-    [OracleProvider.PYTH_NETWORK]: chartColors.oracle['pyth-network'],
-    [OracleProvider.API3]: chartColors.oracle.api3,
-  } as Record<OracleProvider, string>;
+  // 使用统一的颜色配置 - 创建本地映射（支持色盲友好模式）
+  const oracleChartColors: Record<OracleProvider, string> = useMemo(() => {
+    if (useAccessibleColors) {
+      return {
+        [OracleProvider.CHAINLINK]: accessibleColors.chart.sequence[0],
+        [OracleProvider.BAND_PROTOCOL]: accessibleColors.chart.sequence[1],
+        [OracleProvider.UMA]: accessibleColors.chart.sequence[2],
+        [OracleProvider.PYTH_NETWORK]: accessibleColors.chart.sequence[3],
+        [OracleProvider.API3]: accessibleColors.chart.sequence[4],
+      } as Record<OracleProvider, string>;
+    }
+    return {
+      [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+      [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+      [OracleProvider.UMA]: chartColors.oracle.uma,
+      [OracleProvider.PYTH_NETWORK]: chartColors.oracle['pyth-network'],
+      [OracleProvider.API3]: chartColors.oracle.api3,
+    } as Record<OracleProvider, string>;
+  }, [useAccessibleColors]);
+
+  // 获取线条样式（用于色盲友好的双重编码）
+  const getLineStrokeDasharray = (oracle: OracleProvider): string => {
+    if (!useAccessibleColors) return '0';
+    const patternMap: Record<OracleProvider, string> = {
+      [OracleProvider.CHAINLINK]: accessibleColors.linePatterns.solid,
+      [OracleProvider.BAND_PROTOCOL]: accessibleColors.linePatterns.dashed,
+      [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
+      [OracleProvider.PYTH_NETWORK]: accessibleColors.linePatterns.dashDot,
+      [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
+    };
+    return patternMap[oracle] || '0';
+  };
 
   const getChartData = useCallback(() => {
     if (Object.keys(historicalData).length === 0) return [];
+
+    // 应用LTTB下采样优化性能
+    const maxPoints = getMaxPointsForTimeRange(timeRange);
+    const downsampledData: Partial<Record<OracleProvider, PriceData[]>> = {};
+
+    selectedOracles.forEach((oracle) => {
+      const data = historicalData[oracle];
+      if (data && data.length > maxPoints) {
+        downsampledData[oracle] = lttbDownsample(
+          data.map((d) => ({ timestamp: d.timestamp, price: d.price })),
+          maxPoints
+        ).map((d) => ({ ...d, provider: oracle, confidence: 1 }) as PriceData);
+      } else {
+        downsampledData[oracle] = data || [];
+      }
+    });
+
     const timestamps = new Set<number>();
-    Object.values(historicalData).forEach((history) => {
+    Object.values(downsampledData).forEach((history) => {
       history?.forEach((data) => timestamps.add(data.timestamp));
     });
     const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
@@ -438,7 +507,7 @@ export default function CrossOraclePage() {
       const pricesAtTime: number[] = [];
 
       selectedOracles.forEach((oracle) => {
-        const dataPoint = historicalData[oracle]?.find((d) => d.timestamp === timestamp);
+        const dataPoint = downsampledData[oracle]?.find((d) => d.timestamp === timestamp);
         if (dataPoint) {
           point[oracleNames[oracle]] = dataPoint.price;
           pricesAtTime.push(dataPoint.price);
@@ -462,7 +531,7 @@ export default function CrossOraclePage() {
       }
       return point;
     });
-  }, [historicalData, selectedOracles]);
+  }, [historicalData, selectedOracles, timeRange]);
 
   const heatmapData = useMemo((): PriceDeviationDataPoint[] => {
     const result: PriceDeviationDataPoint[] = [];
@@ -539,6 +608,7 @@ export default function CrossOraclePage() {
           ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
           : 0;
       const stdDev = Math.sqrt(variance);
+      // 基于价格稳定性计算（标准差相对于均值的比例）
       const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
 
       const latencies: number[] = [];
@@ -551,18 +621,27 @@ export default function CrossOraclePage() {
       const avgLatency =
         latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
 
+      // 基于实际价格数据计算准确率（与平均价格的偏差）
+      const avgPrice =
+        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+      const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
+      const priceDeviation = avgPrice > 0 ? Math.abs((currentPrice - avgPrice) / avgPrice) : 0;
+      // 准确率：偏差越小，准确率越高（基于实际数据计算）
+      const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
+
       return {
         provider: oracle,
         name: oracleNames[oracle],
         responseTime: Math.round(avgLatency),
-        accuracy: Math.min(99.5, 95 + Math.random() * 4.5),
+        accuracy: accuracy,
         stability: Math.min(100, Math.max(0, stability)),
-        dataSources: Math.floor(3 + Math.random() * 10),
-        supportedChains: Math.floor(5 + Math.random() * 15),
+        // 标记为模拟数据，待接入真实数据源
+        dataSources: 0,
+        supportedChains: 0,
         color: oracleChartColors[oracle],
       };
     });
-  }, [historicalData, selectedOracles]);
+  }, [historicalData, selectedOracles, validPrices]);
 
   const qualityScoreData = useMemo(() => {
     const successCount = priceData.filter((d) => d.price > 0).length;
@@ -867,6 +946,7 @@ export default function CrossOraclePage() {
           onExpandRow={setExpandedRow}
           onSetHoveredRow={setHoveredRowIndex}
           onSetSelectedRow={setSelectedRowIndex}
+          onHoverOracle={setHoveredOracle}
           t={t}
         />
       </div>
@@ -1030,14 +1110,23 @@ export default function CrossOraclePage() {
                     type="monotone"
                     dataKey={oracleNames[oracle]}
                     stroke={oracleChartColors[oracle]}
-                    strokeWidth={2.5}
+                    strokeWidth={hoveredOracle === oracle || hoveredOracle === null ? 2.5 : 1}
+                    strokeDasharray={getLineStrokeDasharray(oracle)}
+                    strokeOpacity={hoveredOracle === oracle ? 1 : hoveredOracle === null ? 1 : 0.3}
                     dot={false}
                     activeDot={{
-                      r: 6,
+                      r: hoveredOracle === oracle ? 8 : 6,
                       strokeWidth: 2,
                       stroke: '#ffffff',
                       fill: oracleChartColors[oracle],
                     }}
+                    onMouseEnter={() => setHoveredOracle(oracle)}
+                    onMouseLeave={() => setHoveredOracle(null)}
+                    onClick={() => {
+                      setSelectedOracleFromChart(oracle);
+                      setOracleFilter(oracle);
+                    }}
+                    style={{ cursor: 'pointer' }}
                   />
                 ))}
               </LineChart>
@@ -1162,14 +1251,23 @@ export default function CrossOraclePage() {
                   type="monotone"
                   dataKey={oracleNames[oracle]}
                   stroke={oracleChartColors[oracle]}
-                  strokeWidth={2.5}
+                  strokeWidth={hoveredOracle === oracle || hoveredOracle === null ? 2.5 : 1}
+                  strokeDasharray={getLineStrokeDasharray(oracle)}
+                  strokeOpacity={hoveredOracle === oracle ? 1 : hoveredOracle === null ? 1 : 0.3}
                   dot={false}
                   activeDot={{
-                    r: 6,
+                    r: hoveredOracle === oracle ? 8 : 6,
                     strokeWidth: 2,
                     stroke: '#ffffff',
                     fill: oracleChartColors[oracle],
                   }}
+                  onMouseEnter={() => setHoveredOracle(oracle)}
+                  onMouseLeave={() => setHoveredOracle(null)}
+                  onClick={() => {
+                    setSelectedOracleFromChart(oracle);
+                    setOracleFilter(oracle);
+                  }}
+                  style={{ cursor: 'pointer' }}
                 />
               ))}
             </LineChart>
@@ -1179,7 +1277,7 @@ export default function CrossOraclePage() {
 
       {heatmapData.length > 0 && (
         <div className="mb-8">
-          <PriceDeviationHeatmap data={heatmapData} />
+          <PriceDeviationHeatmap data={heatmapData} useAccessibleColors={useAccessibleColors} />
         </div>
       )}
 
@@ -1547,6 +1645,34 @@ export default function CrossOraclePage() {
               t={t}
             />
           </div>
+
+          <button
+            onClick={() => setUseAccessibleColors(!useAccessibleColors)}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm border transition-colors ${
+              useAccessibleColors
+                ? 'bg-purple-50 border-purple-300 text-purple-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+            title={useAccessibleColors ? '切换标准颜色' : '切换色盲友好颜色'}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            <span className="hidden sm:inline">
+              {useAccessibleColors ? '色盲模式' : '标准模式'}
+            </span>
+          </button>
 
           <button
             onClick={fetchPriceData}

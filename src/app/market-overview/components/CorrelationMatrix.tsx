@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
 import {
@@ -16,6 +16,8 @@ import {
 interface CorrelationMatrixProps {
   data: CorrelationData;
   loading?: boolean;
+  onCellClick?: (oracleA: string, oracleB: string) => void;
+  linkedOracle?: { primary: string; secondary: string } | null;
 }
 
 const CORRELATION_COLORS = {
@@ -54,11 +56,26 @@ function getCorrelationIcon(value: number) {
   return <Minus className="w-4 h-4" />;
 }
 
-export default function CorrelationMatrix({ data, loading = false }: CorrelationMatrixProps) {
+export default function CorrelationMatrix({
+  data,
+  loading = false,
+  onCellClick,
+  linkedOracle,
+}: CorrelationMatrixProps) {
   const { t, locale } = useI18n();
   const [selectedPair, setSelectedPair] = useState<CorrelationPair | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [sortBy, setSortBy] = useState<'correlation' | 'name'>('correlation');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const sortedPairs = useMemo(() => {
     if (!data.pairs) return [];
@@ -84,6 +101,50 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
       totalPairs: correlations.length,
     };
   }, [data.pairs]);
+
+  // 移动端列表视图组件
+  const MobileCorrelationList = () => (
+    <div className="space-y-3">
+      {sortedPairs.map((pair) => {
+        const color = getCorrelationColor(pair.correlation);
+        return (
+          <div
+            key={`${pair.oracleA}-${pair.oracleB}`}
+            className="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer active:bg-gray-50"
+            onClick={() => {
+              setSelectedPair(pair);
+              setShowDetails(true);
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-900 text-sm">{pair.oracleA}</span>
+                <span className="text-gray-400">→</span>
+                <span className="font-medium text-gray-900 text-sm">{pair.oracleB}</span>
+              </div>
+              <span className="font-bold text-lg" style={{ color }}>
+                {pair.correlation.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span style={{ color }}>{getCorrelationIcon(pair.correlation)}</span>
+                <span className="text-xs text-gray-600">
+                  {getCorrelationLabel(pair.correlation, locale)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <span>{locale === 'zh-CN' ? '置信度' : 'Confidence'}:</span>
+                <span className="font-medium text-gray-700">
+                  {(pair.confidence * 100).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -149,8 +210,8 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
         </div>
       )}
 
-      {/* 热力图 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* 热力图 - 桌面端显示，移动端隐藏 */}
+      <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200">
           <h4 className="font-semibold text-gray-900">
             {locale === 'zh-CN' ? '相关性热力图' : 'Correlation Heatmap'}
@@ -186,11 +247,17 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
                 {data.oracles.map((oracleB, j) => {
                   const value = i === j ? 1 : (data.matrix[i]?.[j] ?? 0);
                   const color = getCorrelationColor(value);
+                  const isLinked =
+                    linkedOracle &&
+                    (linkedOracle.primary === oracleA || linkedOracle.primary === oracleB) &&
+                    (linkedOracle.secondary === oracleA || linkedOracle.secondary === oracleB);
 
                   return (
                     <div
                       key={`${oracleA}-${oracleB}`}
-                      className="w-20 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:z-10"
+                      className={`w-20 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:z-10 ${
+                        isLinked ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+                      }`}
                       style={{ backgroundColor: color }}
                       onClick={() => {
                         if (i !== j) {
@@ -203,6 +270,7 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
                             setSelectedPair(pair);
                             setShowDetails(true);
                           }
+                          onCellClick?.(oracleA, oracleB);
                         }
                       }}
                     >
@@ -262,6 +330,23 @@ export default function CorrelationMatrix({ data, loading = false }: Correlation
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* 移动端列表视图 */}
+      <div className="md:hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-200">
+          <h4 className="font-semibold text-gray-900">
+            {locale === 'zh-CN' ? '相关性列表' : 'Correlation List'}
+          </h4>
+          <p className="text-sm text-gray-500 mt-1">
+            {locale === 'zh-CN'
+              ? '基于 TVS 历史数据计算的皮尔逊相关系数'
+              : 'Pearson correlation coefficient based on TVS historical data'}
+          </p>
+        </div>
+        <div className="p-4 bg-gray-50">
+          <MobileCorrelationList />
         </div>
       </div>
 

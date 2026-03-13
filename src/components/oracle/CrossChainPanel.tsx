@@ -15,6 +15,8 @@ import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/ora
 import { RequestTrendChart } from './RequestTrendChart';
 import { ChainComparison } from './ChainComparison';
 import { RequestTypeDistribution } from './RequestTypeDistribution';
+import { CrossChainTrendChart } from './CrossChainTrendChart';
+import { DataExportButton } from './DataExportButton';
 import { useI18n } from '@/lib/i18n/provider';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
@@ -421,20 +423,35 @@ export function CrossChainPanel({
             {t('crossChainPanel.bandProtocolDistribution')}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-          {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
-            <button
-              key={key}
-              onClick={() => setTimeRange(key)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                timeRange === key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {TIME_RANGE_CONFIG[key].label}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <DataExportButton
+            data={stats?.chains || []}
+            filename="band_cross_chain_stats"
+            columns={[
+              { key: 'chainName', label: 'Chain' },
+              { key: 'chainId', label: 'Chain ID' },
+              { key: 'requestCount24h', label: '24h Requests' },
+              { key: 'requestCount7d', label: '7d Requests' },
+              { key: 'requestCount30d', label: '30d Requests' },
+              { key: 'avgGasCost', label: 'Avg Gas Cost' },
+            ]}
+            compact
+          />
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
+              <button
+                key={key}
+                onClick={() => setTimeRange(key)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  timeRange === key
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {TIME_RANGE_CONFIG[key].label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -488,6 +505,14 @@ export function CrossChainPanel({
           }
         />
       </div>
+
+      <CrossChainTrendChart
+        client={client}
+        chains={stats?.chains.map((c) => c.chainName) || []}
+        defaultMetric="requests"
+        defaultTimeRange="7d"
+        height={350}
+      />
 
       <RequestTrendChart client={client} autoUpdate={autoUpdate} updateInterval={updateInterval} />
 

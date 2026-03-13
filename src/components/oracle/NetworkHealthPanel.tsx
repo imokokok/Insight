@@ -172,8 +172,15 @@ function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
   );
 }
 
-function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
+function ActivityHeatmap({
+  hourlyData,
+  onHourClick,
+}: {
+  hourlyData: number[];
+  onHourClick?: (hour: number) => void;
+}) {
   const { t } = useI18n();
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const maxValue = Math.max(...hourlyData);
   const minValue = Math.min(...hourlyData);
 
@@ -188,6 +195,11 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
 
   const getHourLabel = (index: number) => {
     return `${index.toString().padStart(2, '0')}:00`;
+  };
+
+  const handleHourClick = (hour: number) => {
+    setSelectedHour(hour);
+    onHourClick?.(hour);
   };
 
   return (
@@ -218,8 +230,11 @@ function ActivityHeatmap({ hourlyData }: { hourlyData: number[] }) {
         {hourlyData.map((value, index) => (
           <div key={index} className="group relative">
             <div
-              className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-blue-300 cursor-pointer`}
+              className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-blue-300 cursor-pointer ${
+                selectedHour === index ? 'ring-2 ring-blue-500' : ''
+              }`}
               title={`${getHourLabel(index)}: ${value.toLocaleString()} ${t('networkHealth.activityHeatmap.requests')}`}
+              onClick={() => handleHourClick(index)}
             />
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
               {getHourLabel(index)}: {value.toLocaleString()}
@@ -786,17 +801,30 @@ interface NetworkHealthPanelProps {
   config: NetworkDataConfig;
   autoUpdate?: boolean;
   updateInterval?: number;
+  onTimeRangeChange?: (startTime: number, endTime: number) => void;
 }
 
 export function NetworkHealthPanel({
   config: initialConfig,
   autoUpdate = true,
   updateInterval = 30000,
+  onTimeRangeChange,
 }: NetworkHealthPanelProps) {
   const { t } = useI18n();
   const [networkData, setNetworkData] = useState(initialConfig);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleHourClick = useCallback(
+    (hour: number) => {
+      const now = Date.now();
+      const oneHour = 60 * 60 * 1000;
+      const endTime = now - (23 - hour) * oneHour;
+      const startTime = endTime - oneHour;
+      onTimeRangeChange?.(startTime, endTime);
+    },
+    [onTimeRangeChange]
+  );
 
   const simulateDataUpdate = useCallback(() => {
     setNetworkData((prev) => {
@@ -1053,7 +1081,7 @@ export function NetworkHealthPanel({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ActivityHeatmap hourlyData={networkData.hourlyActivity} />
+          <ActivityHeatmap hourlyData={networkData.hourlyActivity} onHourClick={handleHourClick} />
         </div>
 
         <DataFreshnessIndicator lastUpdated={lastUpdated} latency={networkData.latency} />

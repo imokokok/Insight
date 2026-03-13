@@ -22,13 +22,13 @@ function ScrollIndicator({
   onIndicatorClick: (index: number) => void;
 }) {
   return (
-    <div className="flex justify-center gap-1.5 mt-3 md:hidden">
+    <div className="flex justify-center gap-2 mt-4 md:hidden">
       {Array.from({ length: totalItems }).map((_, index) => (
         <button
           key={index}
           onClick={() => onIndicatorClick(index)}
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            index === currentIndex ? 'w-6 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+          className={`p-2 rounded-full transition-all duration-300 ${
+            index === currentIndex ? 'w-8 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
           }`}
           aria-label={`跳转到第 ${index + 1} 页`}
         />
@@ -125,7 +125,7 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
           <div className="flex items-baseline gap-1">
             <span className="text-gray-400 text-lg">$</span>
             <span
-              className={`text-2xl font-bold text-gray-900 transition-all duration-200 ${
+              className={`text-xl md:text-2xl font-bold text-gray-900 transition-all duration-200 ${
                 isFlashing ? 'text-blue-500 scale-105' : ''
               }`}
             >
@@ -158,9 +158,11 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
 function PriceChangeCard({
   priceChange24h,
   priceChangePercent,
+  colorBlindMode = false,
 }: {
   priceChange24h: number;
   priceChangePercent: number;
+  colorBlindMode?: boolean;
 }) {
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPercentRef = useRef(priceChangePercent);
@@ -187,12 +189,13 @@ function PriceChangeCard({
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">24h 价格变化</p>
           <div className="flex items-baseline gap-2">
-            <span className={`text-2xl font-bold ${colorClass}`}>
-              {arrow} {Math.abs(priceChangePercent).toFixed(2)}%
+            <span className={`text-xl md:text-2xl font-bold ${colorClass}`}>
+              <span className="font-bold">{arrow}</span> {Math.abs(priceChangePercent).toFixed(2)}%
             </span>
           </div>
           <div className={`inline-flex items-center gap-1 mt-2 px-2 py-1 rounded ${bgClass}`}>
             <span className={`text-xs font-medium ${colorClass}`}>
+              <span className="font-bold">{isPositive ? '▲' : '▼'}</span>
               {isPositive ? '+' : ''}
               {priceChange24h >= 0 ? '+' : ''}
               {priceChange24h.toFixed(4)}
@@ -200,14 +203,20 @@ function PriceChangeCard({
           </div>
         </div>
         <div className={`p-2.5 rounded-lg ${bgClass} ${colorClass}`}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d={isPositive ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'}
-            />
-          </svg>
+          {colorBlindMode ? (
+            <span className="text-lg font-bold">{isPositive ? '▲' : '▼'}</span>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={
+                  isPositive ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'
+                }
+              />
+            </svg>
+          )}
         </div>
       </div>
     </div>
@@ -246,7 +255,9 @@ function UpdateFrequencyCard({
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">更新频率</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-gray-900">{frequency.toFixed(1)}</span>
+            <span className="text-xl md:text-2xl font-bold text-gray-900">
+              {frequency.toFixed(1)}
+            </span>
             <span className="text-gray-500 text-sm">次/秒</span>
           </div>
           <div className="flex items-end gap-0.5 h-8 mt-3">
@@ -290,7 +301,13 @@ function UpdateFrequencyCard({
   );
 }
 
-function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critical' }) {
+function NetworkHealthCard({
+  health,
+  colorBlindMode = false,
+}: {
+  health: 'healthy' | 'warning' | 'critical';
+  colorBlindMode?: boolean;
+}) {
   const [borderFlash, setBorderFlash] = useState(false);
   const prevHealthRef = useRef(health);
 
@@ -304,6 +321,7 @@ function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critic
   }, [health]);
 
   const config = healthConfig[health];
+  const healthShape = health === 'healthy' ? '✓' : health === 'warning' ? '!' : '✕';
 
   return (
     <div
@@ -321,26 +339,39 @@ function NetworkHealthCard({ health }: { health: 'healthy' | 'warning' | 'critic
                 className={`relative inline-flex rounded-full h-3 w-3 ${config.bgColor}`}
               ></span>
             </span>
-            <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
+            <span className={`text-xl md:text-2xl font-bold ${config.textColor}`}>
+              {colorBlindMode && <span className="mr-1">{healthShape}</span>}
+              {config.label}
+            </span>
           </div>
           <p className="text-xs text-gray-400 mt-2">实时监控中</p>
         </div>
         <div className={`p-2.5 rounded-lg ${config.lightBg} ${config.textColor}`}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          {colorBlindMode ? (
+            <span className="text-lg font-bold">{healthShape}</span>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function DataQualityGauge({ score }: { score: number }) {
+function DataQualityGauge({
+  score,
+  colorBlindMode = false,
+}: {
+  score: number;
+  colorBlindMode?: boolean;
+}) {
   const [borderFlash, setBorderFlash] = useState(false);
   const prevScoreRef = useRef(score);
 
@@ -358,6 +389,7 @@ function DataQualityGauge({ score }: { score: number }) {
   const strokeDashoffset = circumference - (score / 100) * circumference;
   const color = getQualityColor(score);
   const level = getQualityLevel(score);
+  const qualityShape = score >= 90 ? '★' : score >= 70 ? '◆' : score >= 50 ? '▲' : '●';
 
   return (
     <div
@@ -388,20 +420,27 @@ function DataQualityGauge({ score }: { score: number }) {
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">{level}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {colorBlindMode && <span className="mr-1">{qualityShape}</span>}
+                {level}
+              </p>
               <p className="text-xs text-gray-400">综合评分</p>
             </div>
           </div>
         </div>
         <div className="p-2.5 bg-cyan-50 rounded-lg text-cyan-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
+          {colorBlindMode ? (
+            <span className="text-lg font-bold">{qualityShape}</span>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          )}
         </div>
       </div>
     </div>
@@ -422,6 +461,7 @@ export function KPIDashboard({
   const lastUpdateRef = useRef<number>(Date.now());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [colorBlindMode, setColorBlindMode] = useState(false);
 
   const kpiCards = useMemo(
     () => [
@@ -436,6 +476,7 @@ export function KPIDashboard({
             key="priceChange"
             priceChange24h={priceChange24h}
             priceChangePercent={priceChangePercent}
+            colorBlindMode={colorBlindMode}
           />
         ),
       },
@@ -451,11 +492,23 @@ export function KPIDashboard({
       },
       {
         id: 'networkHealth',
-        component: <NetworkHealthCard key="networkHealth" health={networkHealth} />,
+        component: (
+          <NetworkHealthCard
+            key="networkHealth"
+            health={networkHealth}
+            colorBlindMode={colorBlindMode}
+          />
+        ),
       },
       {
         id: 'dataQuality',
-        component: <DataQualityGauge key="dataQuality" score={dataQualityScore} />,
+        component: (
+          <DataQualityGauge
+            key="dataQuality"
+            score={dataQualityScore}
+            colorBlindMode={colorBlindMode}
+          />
+        ),
       },
     ],
     [
@@ -517,13 +570,40 @@ export function KPIDashboard({
 
   return (
     <div className={className}>
+      <div className="flex justify-end mb-3">
+        <button
+          onClick={() => setColorBlindMode(!colorBlindMode)}
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            colorBlindMode
+              ? 'bg-blue-100 text-blue-700 border border-blue-200'
+              : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+          }`}
+          title={colorBlindMode ? '关闭色盲模式' : '开启色盲模式'}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+          </svg>
+          <span>{colorBlindMode ? '色盲模式: 开' : '色盲模式'}</span>
+        </button>
+      </div>
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:grid md:grid-cols-3 lg:grid-cols-5"
-        style={{ scrollSnapType: 'x mandatory' }}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-6 md:gap-4 md:grid md:grid-cols-3 lg:grid-cols-5 touch-pan-x"
+        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
       >
         {kpiCards.map((card, index) => (
-          <div key={card.id} className="flex-shrink-0 w-[calc(50%-0.5rem)] md:w-auto snap-start">
+          <div key={card.id} className="flex-shrink-0 w-[calc(50%-0.75rem)] md:w-auto snap-start">
             {card.component}
           </div>
         ))}

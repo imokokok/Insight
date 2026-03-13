@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('UpdateFrequencyHeatmap');
 
 interface HourlyData {
   hour: number;
@@ -14,13 +18,16 @@ interface HourlyData {
 interface UpdateFrequencyHeatmapProps {
   hourlyActivity?: number[];
   updateFrequency?: number;
+  date?: Date;
 }
 
 export function UpdateFrequencyHeatmap({
   hourlyActivity,
   updateFrequency = 1,
+  date = new Date(),
 }: UpdateFrequencyHeatmapProps) {
   const { t } = useI18n();
+  const { selectedHour, setSelectedHour, setSelectedTimeRange, syncEnabled } = useTimeRange();
   const [hoveredCell, setHoveredCell] = useState<{ hour: number; count: number } | null>(null);
 
   const hourlyData: HourlyData[] = useMemo(() => {
@@ -69,6 +76,31 @@ export function UpdateFrequencyHeatmap({
     return 'text-purple-900';
   };
 
+  const handleCellClick = useCallback((hour: number) => {
+    if (!syncEnabled) return;
+
+    const selectedDate = new Date(date);
+    selectedDate.setHours(hour, 0, 0, 0);
+    const startTime = selectedDate.getTime();
+    const endTime = startTime + 60 * 60 * 1000; // 1 hour later
+
+    const timeRange: SelectedTimeRange = {
+      startTime,
+      endTime,
+      startHour: hour,
+      endHour: hour + 1,
+      label: `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`,
+    };
+
+    setSelectedHour(hour);
+    setSelectedTimeRange(timeRange);
+    logger.info(`Selected hour ${hour}, time range: ${timeRange.label}`);
+  }, [date, setSelectedHour, setSelectedTimeRange, syncEnabled]);
+
+  const isCellSelected = (hour: number) => {
+    return selectedHour === hour;
+  };
+
   return (
     <DashboardCard
       title={t('updateFrequency.title')}
@@ -112,22 +144,44 @@ export function UpdateFrequencyHeatmap({
 
         <div className="relative">
           <div className="grid grid-cols-12 gap-1">
-            {hourlyData.map((data) => (
-              <div
-                key={data.hour}
-                className={`relative aspect-square rounded-md ${getIntensityColor(
-                  data.updateCount,
-                  data.isAnomaly
-                )} ${getIntensityText(data.updateCount)} flex items-center justify-center text-xs font-medium cursor-pointer transition-transform hover:scale-110 hover:z-10`}
-                onMouseEnter={() => setHoveredCell({ hour: data.hour, count: data.updateCount })}
-                onMouseLeave={() => setHoveredCell(null)}
-              >
-                {data.hour}
-                {data.isAnomaly && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-pulse" />
-                )}
-              </div>
-            ))}
+            {hourlyData.map((data) => {
+              const isSelected = isCellSelected(data.hour);
+              return (
+                <div
+                  key={data.hour}
+                  className={`relative aspect-square rounded-md ${getIntensityColor(
+                    data.updateCount,
+                    data.isAnomaly
+                  )} ${getIntensityText(data.updateCount)} flex items-center justify-center text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10 ${
+                    isSelected ? 'ring-3 ring-blue-500 ring-offset-2 scale-110 z-20 shadow-lg' : ''
+                  } ${syncEnabled ? '' : 'cursor-not-allowed opacity-80'}`}
+                  onMouseEnter={() => setHoveredCell({ hour: data.hour, count: data.updateCount })}
+                  onMouseLeave={() => setHoveredCell(null)}
+                  onClick={() => handleCellClick(data.hour)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleCellClick(data.hour);
+                    }
+                  }}
+                  aria-label={`${data.hour.toString().padStart(2, '0')}:00 - ${(data.hour + 1).toString().padStart(2, '0')}:00, ${data.updateCount} updates`}
+                  aria-pressed={isSelected}
+                >
+                  {data.hour}
+                  {data.isAnomaly && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-pulse" />
+                  )}
+                  {isSelected && (
+                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex justify-between mt-2 text-xs text-gray-500">
@@ -148,7 +202,7 @@ export function UpdateFrequencyHeatmap({
                 {t('updateFrequency.updateCount')}: {hoveredCell.count.toLocaleString()}
               </div>
               <div className="text-gray-400 text-xs mt-1">
-                {t('updateFrequency.clickForDetails')}
+                {syncEnabled ? (selectedHour === hoveredCell.hour ? '已选中' : '点击查看详情') : '同步已禁用'}
               </div>
             </div>
           )}

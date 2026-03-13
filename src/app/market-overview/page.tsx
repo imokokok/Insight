@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { useI18n } from '@/lib/i18n/provider';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { REFRESH_OPTIONS, CHAIN_SUPPORT_DATA } from './constants';
@@ -21,9 +23,13 @@ import {
   BarChart,
   Bar,
   Legend,
+  Brush,
+  ReferenceDot,
+  Area,
 } from 'recharts';
+import { Image as ImageIcon } from 'lucide-react';
 import { TooltipProps } from '@/lib/types/recharts';
-import { OracleMarketData } from './types';
+import { OracleMarketData, TVSTrendData } from './types';
 import {
   PieChart as PieChartIcon,
   TrendingUp,
@@ -49,6 +55,8 @@ import {
   GitCompare,
   Target,
   ActivitySquare,
+  Link2,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import ChainBreakdownChart from './components/ChainBreakdownChart';
@@ -70,6 +78,76 @@ import { exportWithConfig, downloadExport } from '@/lib/services/marketData';
 export default function MarketOverviewPage() {
   const { t, locale } = useI18n();
   const data = useMarketOverviewData();
+
+  // 图表容器 ref，用于导出图片
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // 移动端检测
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // 图表类型配置
+  const chartTypes = [
+    { key: 'pie', label: locale === 'zh-CN' ? '市场份额' : 'Market Share', icon: PieChartIcon },
+    { key: 'trend', label: locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend', icon: TrendingUp },
+    { key: 'bar', label: locale === 'zh-CN' ? '链支持' : 'Chain Support', icon: BarChart3 },
+    { key: 'chain', label: locale === 'zh-CN' ? '链分布' : 'Chain Breakdown', icon: Network },
+    { key: 'protocol', label: locale === 'zh-CN' ? '协议' : 'Protocols', icon: Building2 },
+    {
+      key: 'asset',
+      label: locale === 'zh-CN' ? '资产类别' : 'Asset Categories',
+      icon: PieChartIcon2,
+    },
+    {
+      key: 'comparison',
+      label: locale === 'zh-CN' ? '多预言机对比' : 'Oracle Comparison',
+      icon: GitCompare,
+    },
+    { key: 'benchmark', label: locale === 'zh-CN' ? '行业基准' : 'Benchmark', icon: Target },
+    {
+      key: 'correlation',
+      label: locale === 'zh-CN' ? '相关性' : 'Correlation',
+      icon: ActivitySquare,
+    },
+  ];
+
+  // 时间轴缩放状态
+  const [zoomRange, setZoomRange] = useState<{ startIndex?: number; endIndex?: number } | null>(
+    null
+  );
+
+  // 异常检测配置和状态
+  const [anomalyThreshold, setAnomalyThreshold] = useState<number>(0.1); // 默认10%
+  const [selectedAnomaly, setSelectedAnomaly] = useState<{
+    dataKey: string;
+    date: string;
+    value: number;
+    prevValue: number;
+    changeRate: number;
+  } | null>(null);
+
+  // 图表联动状态
+  const [linkedOracle, setLinkedOracle] = useState<{ primary: string; secondary: string } | null>(
+    null
+  );
+
+  // 对比模式状态
+  const [comparisonMode, setComparisonMode] = useState<'none' | 'yoy' | 'mom'>('none');
+  const [comparisonTimeRange, setComparisonTimeRange] = useState<string>('7d');
+  const [trendComparisonData, setTrendComparisonData] = useState<TVSTrendData[]>([]);
+  const [showComparisonSelector, setShowComparisonSelector] = useState(false);
+
+  // 置信区间显示状态
+  const [showConfidenceInterval, setShowConfidenceInterval] = useState(false);
 
   const {
     oracleData,
@@ -159,6 +237,93 @@ export default function MarketOverviewPage() {
     return null;
   };
 
+  // 异常检测函数
+  const detectAnomalies = (data: TVSTrendData[], dataKey: string, threshold: number = 0.1) => {
+    return data
+      .map((item, index) => {
+        if (index === 0) return null;
+        const prev = data[index - 1];
+        const currentValue = item[dataKey as keyof TVSTrendData] as number;
+        const prevValue = prev[dataKey as keyof TVSTrendData] as number;
+        if (prevValue === 0) return null;
+        const change = Math.abs((currentValue - prevValue) / prevValue);
+        if (change > threshold) {
+          return {
+            index,
+            date: item.date,
+            value: currentValue,
+            prevValue,
+            changeRate: change,
+            dataKey,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  };
+
+  // 对比数据准备函数
+  const prepareComparisonData = (currentData: TVSTrendData[], compareData: TVSTrendData[]) => {
+    return currentData.map((item, index) => {
+      const compareItem = compareData[index];
+      const result: any = { ...item };
+
+      // 为每个预言机添加对比值和差异
+      ['chainlink', 'pyth', 'band', 'api3', 'uma'].forEach((key) => {
+        const currentValue = item[key as keyof TVSTrendData] as number;
+        const compareValue = compareItem?.[key as keyof TVSTrendData] as number;
+        result[`${key}Compare`] = compareValue || 0;
+        result[`${key}Diff`] = currentValue - (compareValue || 0);
+        result[`${key}DiffPercent`] = compareValue
+          ? ((currentValue - compareValue) / compareValue) * 100
+          : 0;
+      });
+
+      return result;
+    });
+  };
+
+  // 生成模拟对比数据（实际项目中应从API获取）
+  const generateComparisonData = (
+    baseData: TVSTrendData[],
+    mode: 'yoy' | 'mom'
+  ): TVSTrendData[] => {
+    return baseData.map((item) => {
+      const variance = mode === 'yoy' ? 0.15 : 0.08; // 同比变化更大
+      return {
+        ...item,
+        chainlink: item.chainlink * (1 + (Math.random() - 0.5) * variance),
+        pyth: item.pyth * (1 + (Math.random() - 0.5) * variance),
+        band: item.band * (1 + (Math.random() - 0.5) * variance),
+        api3: item.api3 * (1 + (Math.random() - 0.5) * variance),
+        uma: item.uma * (1 + (Math.random() - 0.5) * variance),
+      };
+    });
+  };
+
+  // 切换对比模式
+  const toggleComparisonMode = (mode: 'yoy' | 'mom') => {
+    if (comparisonMode === mode) {
+      setComparisonMode('none');
+      setTrendComparisonData([]);
+    } else {
+      setComparisonMode(mode);
+      const newComparisonData = generateComparisonData(trendData, mode);
+      setTrendComparisonData(newComparisonData);
+    }
+  };
+
+  // 判断单元格是否高亮（图表联动功能）
+  const isCellHighlighted = (name: string) => {
+    if (!linkedOracle) return true;
+    return name === linkedOracle.primary || name === linkedOracle.secondary;
+  };
+
+  const isLineHighlighted = (name: string) => {
+    if (!linkedOracle) return true;
+    return name === linkedOracle.primary || name === linkedOracle.secondary;
+  };
+
   // 渲染图表
   const renderChart = () => {
     if (viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart)) {
@@ -186,27 +351,132 @@ export default function MarketOverviewPage() {
                 setSelectedItem(name === selectedItem ? null : name);
               }}
             >
-              {sortedOracleData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.color}
-                  stroke={
-                    selectedItem === entry.name
-                      ? chartColors.pie.stroke.selected
-                      : chartColors.pie.stroke.none
-                  }
-                  strokeWidth={selectedItem === entry.name ? 3 : 0}
-                  opacity={hoveredItem && hoveredItem !== entry.name ? 0.6 : 1}
-                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-                />
-              ))}
+              {sortedOracleData.map((entry, index) => {
+                const isHighlighted = isCellHighlighted(entry.name);
+                return (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.color}
+                    stroke={
+                      selectedItem === entry.name
+                        ? chartColors.pie.stroke.selected
+                        : chartColors.pie.stroke.none
+                    }
+                    strokeWidth={selectedItem === entry.name ? 3 : 0}
+                    opacity={!linkedOracle ? (hoveredItem && hoveredItem !== entry.name ? 0.6 : 1) : (isHighlighted ? 1 : 0.2)}
+                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                  />
+                );
+              })}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
           </PieChart>
         );
-      case 'trend':
+      case 'trend': {
+        const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma'];
+        const oracleColors: Record<string, string> = {
+          chainlink: chartColors.marketOverview.chainlink,
+          pyth: chartColors.marketOverview.pyth,
+          band: chartColors.marketOverview.band,
+          api3: chartColors.marketOverview.api3,
+          uma: chartColors.marketOverview.uma,
+        };
+        const oracleNames: Record<string, string> = {
+          chainlink: 'Chainlink',
+          pyth: 'Pyth Network',
+          band: 'Band Protocol',
+          api3: 'API3',
+          uma: 'UMA',
+        };
+        // 从外部作用域读取 showConfidenceInterval
+        const showCI = showConfidenceInterval;
+
+        // 对比模式下的数据准备
+        const chartData =
+          comparisonMode !== 'none' && trendComparisonData.length > 0
+            ? prepareComparisonData(trendData, trendComparisonData)
+            : trendData;
+
+        // 对比模式下的自定义Tooltip
+        const ComparisonTooltip = ({ active, payload, label }: TooltipProps<any>) => {
+          if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+              <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 max-w-xs">
+                <p className="font-medium text-gray-900 mb-2">{label}</p>
+                {comparisonMode !== 'none' ? (
+                  <div className="space-y-2">
+                    {oracleKeys.map((key) => {
+                      const currentValue = data[key] as number;
+                      const compareValue = data[`${key}Compare`] as number;
+                      const diffPercent = data[`${key}DiffPercent`] as number;
+                      return (
+                        <div key={key} className="text-sm">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: oracleColors[key] }}
+                            />
+                            <span className="text-gray-600">{oracleNames[key]}:</span>
+                          </div>
+                          <div className="ml-5 mt-1 space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">
+                                {locale === 'zh-CN' ? '当期' : 'Current'}:
+                              </span>
+                              <span className="font-medium">${currentValue?.toFixed(2)}B</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">
+                                {comparisonMode === 'yoy'
+                                  ? locale === 'zh-CN'
+                                    ? '同比'
+                                    : 'YoY'
+                                  : locale === 'zh-CN'
+                                    ? '环比'
+                                    : 'MoM'}
+                                :
+                              </span>
+                              <span className="font-medium text-gray-600">
+                                ${compareValue?.toFixed(2)}B
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">
+                                {locale === 'zh-CN' ? '变化' : 'Change'}:
+                              </span>
+                              <span
+                                className={`font-medium ${diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                              >
+                                {diffPercent >= 0 ? '+' : ''}
+                                {diffPercent?.toFixed(2)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  payload.map((entry, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: entry.color }}
+                      />
+                      <span className="text-gray-600">{entry.name}:</span>
+                      <span className="font-medium text-gray-900">${entry.value}B</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            );
+          }
+          return null;
+        };
+
         return (
-          <LineChart data={trendData}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} />
             <XAxis dataKey="date" stroke={chartColors.lineChart.axis} fontSize={12} />
             <YAxis
@@ -214,50 +484,101 @@ export default function MarketOverviewPage() {
               fontSize={12}
               tickFormatter={(v) => `$${v}B`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<ComparisonTooltip />} />
             <Legend />
-            <Line
-              type="monotone"
-              dataKey="chainlink"
-              name="Chainlink"
-              stroke={chartColors.marketOverview.chainlink}
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="pyth"
-              name="Pyth Network"
-              stroke={chartColors.marketOverview.pyth}
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="band"
-              name="Band Protocol"
-              stroke={chartColors.marketOverview.band}
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="api3"
-              name="API3"
-              stroke={chartColors.marketOverview.api3}
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="uma"
-              name="UMA"
-              stroke={chartColors.marketOverview.uma}
-              strokeWidth={2}
-              dot={false}
+            {oracleKeys.map((key) => {
+              const isHighlighted = isLineHighlighted(oracleNames[key]);
+              return (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  name={oracleNames[key]}
+                  stroke={oracleColors[key]}
+                  strokeWidth={comparisonMode !== 'none' ? 3 : (isHighlighted ? 3 : 1)}
+                  dot={false}
+                  activeDot={{ r: comparisonMode !== 'none' ? 6 : 4 }}
+                  opacity={!linkedOracle ? 1 : (isHighlighted ? 1 : 0.2)}
+                  strokeDasharray={!isHighlighted && linkedOracle ? '3 3' : undefined}
+                />
+              );
+            })}
+            {/* 置信区间区域 */}
+            {showCI &&
+              comparisonMode === 'none' &&
+              oracleKeys.map((key) => (
+                <Area
+                  key={`${key}-confidence`}
+                  type="monotone"
+                  dataKey={`${key}Upper`}
+                  stroke="none"
+                  fill={oracleColors[key]}
+                  fillOpacity={0.15}
+                  isAnimationActive={false}
+                />
+              ))}
+            {showCI &&
+              comparisonMode === 'none' &&
+              oracleKeys.map((key) => (
+                <Area
+                  key={`${key}-confidence-lower`}
+                  type="monotone"
+                  dataKey={`${key}Lower`}
+                  stroke="none"
+                  fill="#ffffff"
+                  fillOpacity={1}
+                  isAnimationActive={false}
+                />
+              ))}
+            {/* 对比期线条（虚线） */}
+            {comparisonMode !== 'none' &&
+              trendComparisonData.length > 0 &&
+              oracleKeys.map((key) => (
+                <Line
+                  key={`${key}-compare`}
+                  type="monotone"
+                  dataKey={`${key}Compare`}
+                  name={`${oracleNames[key]} ${comparisonMode === 'yoy' ? (locale === 'zh-CN' ? '(同比)' : '(YoY)') : locale === 'zh-CN' ? '(环比)' : '(MoM)'}`}
+                  stroke={oracleColors[key]}
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  opacity={0.7}
+                />
+              ))}
+            {oracleKeys.map((key) =>
+              detectAnomalies(trendData, key, anomalyThreshold).map((anomaly, idx) => (
+                <ReferenceDot
+                  key={`${key}-anomaly-${idx}`}
+                  x={anomaly.date}
+                  y={anomaly.value}
+                  r={6}
+                  fill="#ef4444"
+                  stroke="#fff"
+                  strokeWidth={2}
+                  onClick={() =>
+                    setSelectedAnomaly({
+                      dataKey: oracleNames[key],
+                      date: anomaly.date,
+                      value: anomaly.value,
+                      prevValue: anomaly.prevValue,
+                      changeRate: anomaly.changeRate,
+                    })
+                  }
+                />
+              ))
+            )}
+            <Brush
+              dataKey="date"
+              height={30}
+              stroke="#8884d8"
+              startIndex={zoomRange?.startIndex}
+              endIndex={zoomRange?.endIndex}
+              onChange={(range) => setZoomRange(range)}
             />
           </LineChart>
         );
+      }
       case 'bar':
         return (
           <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical">
@@ -276,9 +597,16 @@ export default function MarketOverviewPage() {
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]}>
-              {CHAIN_SUPPORT_DATA.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
+              {CHAIN_SUPPORT_DATA.map((entry, index) => {
+                const isHighlighted = isCellHighlighted(entry.name);
+                return (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.color} 
+                    opacity={!linkedOracle ? 1 : (isHighlighted ? 1 : 0.3)}
+                  />
+                );
+              })}
             </Bar>
           </BarChart>
         );
@@ -305,7 +633,7 @@ export default function MarketOverviewPage() {
       case 'benchmark':
         return <BenchmarkComparison data={benchmarkData} loading={loadingComparison} />;
       case 'correlation':
-        return <CorrelationMatrix data={correlationData} loading={loadingComparison} />;
+        return <CorrelationMatrix data={correlationData} loading={loadingComparison} onCellClick={(primary, secondary) => setLinkedOracle({ primary, secondary })} linkedOracle={linkedOracle} />;
       default:
         return null;
     }
@@ -436,6 +764,70 @@ export default function MarketOverviewPage() {
     }
   };
 
+  // 导出图表为 PNG 图片
+  const exportChartToImage = async () => {
+    if (!chartContainerRef.current) return;
+
+    try {
+      const canvas = await html2canvas(chartContainerRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      // 创建新的 canvas 添加标题和时间戳
+      const title = getChartTitle();
+      const timestamp = new Date().toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US');
+
+      const finalCanvas = document.createElement('canvas');
+      const ctx = finalCanvas.getContext('2d');
+      if (!ctx) return;
+
+      const padding = 20;
+      const titleHeight = 40;
+      const timestampHeight = 24;
+      const extraHeight = titleHeight + timestampHeight + padding * 2;
+
+      finalCanvas.width = canvas.width;
+      finalCanvas.height = canvas.height + extraHeight;
+
+      // 填充白色背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // 绘制标题
+      ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#111827';
+      ctx.textAlign = 'left';
+      ctx.fillText(title, padding, padding + 24);
+
+      // 绘制时间戳
+      ctx.font = '14px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText(
+        locale === 'zh-CN' ? `导出时间: ${timestamp}` : `Exported: ${timestamp}`,
+        padding,
+        padding + titleHeight + 16
+      );
+
+      // 绘制原图表
+      ctx.drawImage(canvas, 0, extraHeight);
+
+      // 下载图片
+      const link = document.createElement('a');
+      const fileName = `market-overview-${activeChart}-${Date.now()}.png`;
+      link.download = fileName;
+      link.href = finalCanvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('导出图片失败:', error);
+      alert(
+        locale === 'zh-CN' ? '导出图片失败，请重试' : 'Failed to export image, please try again'
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -482,6 +874,15 @@ export default function MarketOverviewPage() {
               >
                 <Download className="w-4 h-4" />
                 JSON
+              </button>
+              <button
+                onClick={exportChartToImage}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                title={locale === 'zh-CN' ? '导出为 PNG 图片' : 'Export as PNG image'}
+              >
+                <ImageIcon className="w-4 h-4" />
+                {locale === 'zh-CN' ? '图片' : 'Image'}
               </button>
             </div>
 
@@ -779,6 +1180,83 @@ export default function MarketOverviewPage() {
               </div>
             </div>
 
+            {/* 对比模式切换 - 仅在趋势图显示 */}
+            {activeChart === 'trend' && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {locale === 'zh-CN' ? '对比:' : 'Compare:'}
+                </span>
+                <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                  <button
+                    onClick={() => toggleComparisonMode('yoy')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      comparisonMode === 'yoy'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
+                  >
+                    {locale === 'zh-CN' ? '同比' : 'YoY'}
+                  </button>
+                  <button
+                    onClick={() => toggleComparisonMode('mom')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      comparisonMode === 'mom'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
+                  >
+                    {locale === 'zh-CN' ? '环比' : 'MoM'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 异常检测阈值配置 - 仅在趋势图显示 */}
+            {activeChart === 'trend' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100">
+                <span className="text-sm text-red-600">
+                  {locale === 'zh-CN' ? '异常阈值:' : 'Anomaly Threshold:'}
+                </span>
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  value={anomalyThreshold * 100}
+                  onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
+                  className="w-20 h-1.5 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-500"
+                />
+                <span className="text-sm font-medium text-red-600 min-w-[3rem]">
+                  {(anomalyThreshold * 100).toFixed(0)}%
+                </span>
+              </div>
+            )}
+
+            {/* 置信区间开关 - 仅在趋势图显示 */}
+            {activeChart === 'trend' && comparisonMode === 'none' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
+                <span className="text-sm text-purple-600">
+                  {locale === 'zh-CN' ? '置信区间:' : 'Confidence:'}
+                </span>
+                <button
+                  onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                    showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      showConfidenceInterval ? 'translate-x-5' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                <span className="text-xs text-purple-500">
+                  {showConfidenceInterval ? (locale === 'zh-CN' ? '95%' : '95%') : ''}
+                </span>
+              </div>
+            )}
+
             {/* 视图切换 */}
             <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
               <button
@@ -809,18 +1287,88 @@ export default function MarketOverviewPage() {
           {/* 图表和详情区 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 主图表 */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
+            <div
+              ref={chartContainerRef}
+              className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6"
+            >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
-                {selectedItem && (
-                  <button
-                    onClick={() => setSelectedItem(null)}
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    {locale === 'zh-CN' ? '清除选择' : 'Clear Selection'}
-                    <ChevronRight className="w-4 h-4 rotate-90" />
-                  </button>
-                )}
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()}</h3>
+                  {/* 联动指示器 */}
+                  {linkedOracle && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
+                      <Link2 className="w-4 h-4 text-purple-600" />
+                      <span className="text-xs text-purple-600 font-medium">
+                        {locale === 'zh-CN' ? '联动' : 'Linked'}:
+                      </span>
+                      <span className="text-sm font-semibold text-purple-700">
+                        {linkedOracle.primary} ↔ {linkedOracle.secondary}
+                      </span>
+                      <button
+                        onClick={() => setLinkedOracle(null)}
+                        className="ml-1 p-0.5 hover:bg-purple-200 rounded transition-colors"
+                        title={locale === 'zh-CN' ? '清除联动' : 'Clear Link'}
+                      >
+                        <X className="w-3 h-3 text-purple-600" />
+                      </button>
+                    </div>
+                  )}
+                  {/* 对比模式差异统计 */}
+                  {activeChart === 'trend' &&
+                    comparisonMode !== 'none' &&
+                    trendComparisonData.length > 0 && (
+                      <div className="flex items-center gap-3 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
+                        <span className="text-xs text-blue-600 font-medium">
+                          {comparisonMode === 'yoy'
+                            ? locale === 'zh-CN'
+                              ? '同比差异'
+                              : 'YoY Diff'
+                            : locale === 'zh-CN'
+                              ? '环比差异'
+                              : 'MoM Diff'}
+                          :
+                        </span>
+                        {(() => {
+                          const latestData = prepareComparisonData(trendData, trendComparisonData)[
+                            trendData.length - 1
+                          ];
+                          const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma'];
+                          const avgDiff =
+                            oracleKeys.reduce((sum, key) => {
+                              return sum + (latestData[`${key}DiffPercent`] || 0);
+                            }, 0) / oracleKeys.length;
+                          return (
+                            <span
+                              className={`text-sm font-bold ${avgDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                            >
+                              {avgDiff >= 0 ? '+' : ''}
+                              {avgDiff.toFixed(2)}%
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {activeChart === 'trend' && zoomRange && (
+                    <button
+                      onClick={() => setZoomRange(null)}
+                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      {locale === 'zh-CN' ? '重置缩放' : 'Reset Zoom'}
+                    </button>
+                  )}
+                  {selectedItem && (
+                    <button
+                      onClick={() => setSelectedItem(null)}
+                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      {locale === 'zh-CN' ? '清除选择' : 'Clear Selection'}
+                      <ChevronRight className="w-4 h-4 rotate-90" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {loading && !['chain', 'protocol', 'asset'].includes(activeChart) ? (
@@ -1109,6 +1657,118 @@ export default function MarketOverviewPage() {
           </div>
         </div>
       </div>
+
+      {/* 异常点详情弹窗 */}
+      {selectedAnomaly && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedAnomaly(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {locale === 'zh-CN' ? '数据异常检测' : 'Anomaly Detected'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedAnomaly(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                <p className="text-sm text-red-600 mb-1">
+                  {locale === 'zh-CN' ? '检测到异常波动' : 'Abnormal fluctuation detected'}
+                </p>
+                <p className="text-2xl font-bold text-red-700">
+                  {(selectedAnomaly.changeRate * 100).toFixed(2)}%
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">
+                    {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                  </p>
+                  <p className="font-medium text-gray-900">{selectedAnomaly.dataKey}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">
+                    {locale === 'zh-CN' ? '日期' : 'Date'}
+                  </p>
+                  <p className="font-medium text-gray-900">{selectedAnomaly.date}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">
+                    {locale === 'zh-CN' ? '当前值' : 'Current Value'}
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    ${selectedAnomaly.value.toFixed(2)}B
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">
+                    {locale === 'zh-CN' ? '上一期值' : 'Previous Value'}
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    ${selectedAnomaly.prevValue.toFixed(2)}B
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">
+                    {locale === 'zh-CN' ? '变化量' : 'Change'}
+                  </span>
+                  <span
+                    className={`font-medium ${
+                      selectedAnomaly.value > selectedAnomaly.prevValue
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {selectedAnomaly.value > selectedAnomaly.prevValue ? '+' : ''}
+                    {(selectedAnomaly.value - selectedAnomaly.prevValue).toFixed(2)}B
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                <p className="text-xs text-amber-700">
+                  {locale === 'zh-CN'
+                    ? '该数据点的变化率超过了设定的阈值，可能存在异常波动。建议进一步调查原因。'
+                    : 'This data point exceeds the configured threshold. Further investigation is recommended.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setSelectedAnomaly(null)}
+                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                {locale === 'zh-CN' ? '关闭' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

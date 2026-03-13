@@ -1,12 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from './useCrossChainData';
 import { CrossChainFilters } from './components/CrossChainFilters';
 import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
+import { RollingCorrelationChart } from './components/RollingCorrelationChart';
 import { CointegrationAnalysis } from './components/CointegrationAnalysis';
+import { StandardBoxPlot } from './components/StandardBoxPlot';
+import { InteractivePriceChart } from './components/InteractivePriceChart';
+import { VolatilitySurface } from './components/VolatilitySurface';
 import { ProgressBar, JumpIndicator, TrendIndicator } from './components/SmallComponents';
 import {
   BarChart,
@@ -37,10 +42,16 @@ import {
   formatPrice,
 } from './utils';
 import { ChainStats, RefreshInterval } from './constants';
+import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
+
+type ViewMode = 'price' | 'volatility';
 
 export default function CrossChainPage() {
   const { t } = useI18n();
   const data = useCrossChainData();
+  const colorblindMode = useColorblindMode();
+  const setColorblindMode = useSetColorblindMode();
+  const [viewMode, setViewMode] = useState<ViewMode>('price');
 
   const {
     loading,
@@ -56,6 +67,7 @@ export default function CrossChainPage() {
     filteredChains,
     selectedSymbol,
     priceDifferences,
+    chartData,
     chartDataWithMA,
     priceDistributionData,
     boxPlotData,
@@ -227,33 +239,6 @@ export default function CrossChainPage() {
     }
   };
 
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<Record<string, number>>) => {
-    if (!active || !payload || payload.length === 0) return null;
-    const priceData = payload.filter(
-      (p) => !p.dataKey?.includes('_MA') && filteredChains.includes(p.dataKey as Blockchain)
-    );
-    return (
-      <div className="bg-white border border-gray-200 shadow-lg p-4 min-w-[280px]">
-        <p className="text-gray-600 text-xs mb-3 font-medium border-b border-gray-100 pb-2">
-          {label}
-        </p>
-        {priceData.map((entry, index: number) => (
-          <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm font-medium text-gray-900">
-                {chainNames[entry.dataKey as Blockchain]}
-              </span>
-            </div>
-            <div className="text-sm text-gray-700 pl-5 font-mono">
-              ${Number(entry.value).toFixed(4)}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
@@ -261,7 +246,47 @@ export default function CrossChainPage() {
           <h1 className="text-2xl font-semibold text-gray-900">{t('crossChain.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
+        <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap">
+          {/* 色盲友好模式切换 */}
+          <button
+            onClick={() => setColorblindMode(!colorblindMode)}
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded transition-colors ${
+              colorblindMode
+                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+            title={colorblindMode ? '色盲友好模式已开启' : '切换到色盲友好模式'}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            <span>色盲友好</span>
+            {colorblindMode && (
+              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </button>
           <span className="text-sm text-gray-500">{t('crossChain.export')}:</span>
           <button
             onClick={exportToCSV}
@@ -407,175 +432,101 @@ export default function CrossChainPage() {
                   {t('crossChain.chainPriceBoxPlot')}
                 </h4>
                 <div className="h-64 bg-gray-50 p-4 rounded-lg">
-                  {boxPlotData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={boxPlotData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" tickFormatter={(v) => `$${v.toFixed(0)}`} />
-                        <YAxis type="category" dataKey="chainName" width={80} />
-                        <Tooltip
-                          formatter={(v) => (typeof v === 'number' ? `$${v.toFixed(4)}` : v)}
-                        />
-                        {boxPlotData.map((d, i) => (
-                          <Scatter
-                            key={i}
-                            data={[d]}
-                            fill={d.color}
-                            shape={(props: unknown) => {
-                              const { cx, cy } = props as { cx: number; cy: number };
-                              const boxHeight = 30;
-                              const y = cy;
-                              return (
-                                <g>
-                                  <line
-                                    x1={cx - 50}
-                                    y1={y}
-                                    x2={cx + 50}
-                                    y2={y}
-                                    stroke={d.color}
-                                    strokeDasharray="2 2"
-                                  />
-                                  <rect
-                                    x={cx - 30}
-                                    y={y - 15}
-                                    width={60}
-                                    height={30}
-                                    fill={d.color}
-                                    fillOpacity={0.3}
-                                    stroke={d.color}
-                                    strokeWidth={2}
-                                  />
-                                </g>
-                              );
-                            }}
-                          />
-                        ))}
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-400">
-                      数据不足
-                    </div>
-                  )}
+                  <StandardBoxPlot data={boxPlotData} />
                 </div>
               </div>
             </div>
           </div>
 
-          <PriceComparisonTable data={data} />
-          <CorrelationMatrix data={data} />
-          <CointegrationAnalysis data={data} />
+          {viewMode === 'price' ? (
+            <>
+              <PriceComparisonTable data={data} />
+              <CorrelationMatrix data={data} />
+              <RollingCorrelationChart data={data} />
+              <CointegrationAnalysis data={data} />
 
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
-              {t('crossChain.stabilityAnalysis')}
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500">
-                      {t('crossChain.blockchain')}
-                    </th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500">数据完整性</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500">价格波动率</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500">价格跳动频率</th>
-                    <th className="py-3 px-4 text-xs font-medium text-gray-500 text-right">
-                      {t('crossChain.stabilityRating')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredChains.map((chain) => {
-                    const volatility = chainVolatility[chain] ?? 0;
-                    const delay = updateDelays[chain];
-                    const stabilityRating = getStabilityRating(volatility);
-                    const freshness = getDataFreshness(delay);
-                    const integrity = dataIntegrity[chain] ?? 0;
-                    const jumpCount = priceJumpFrequency[chain] ?? 0;
-                    return (
-                      <tr key={chain} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center">
-                            <div
-                              className="w-3 h-3 mr-2"
-                              style={{ backgroundColor: chainColors[chain] }}
-                            />
-                            <span className="text-sm font-medium">{chainNames[chain]}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
-                        </td>
-                        <td className="py-3 px-4">
-                          <ProgressBar
-                            value={volatility}
-                            color={getVolatilityColor(volatility)}
-                            max={1}
-                            suffix="%"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <JumpIndicator count={jumpCount} />
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <span
-                            className={`text-sm font-medium ${stabilityRating === 'stable' ? 'text-green-600' : stabilityRating === 'moderate' ? 'text-yellow-600' : 'text-red-600'}`}
-                          >
-                            {volatility > 0 ? t(`crossChain.stability.${stabilityRating}`) : '-'}
-                          </span>
-                        </td>
+              <div className="mb-8 pb-8 border-b border-gray-200">
+                <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+                  {t('crossChain.stabilityAnalysis')}
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="py-3 px-4 text-xs font-medium text-gray-500">
+                          {t('crossChain.blockchain')}
+                        </th>
+                        <th className="py-3 px-4 text-xs font-medium text-gray-500">数据完整性</th>
+                        <th className="py-3 px-4 text-xs font-medium text-gray-500">价格波动率</th>
+                        <th className="py-3 px-4 text-xs font-medium text-gray-500">价格跳动频率</th>
+                        <th className="py-3 px-4 text-xs font-medium text-gray-500 text-right">
+                          {t('crossChain.stabilityRating')}
+                        </th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    </thead>
+                    <tbody>
+                      {filteredChains.map((chain) => {
+                        const volatility = chainVolatility[chain] ?? 0;
+                        const delay = updateDelays[chain];
+                        const stabilityRating = getStabilityRating(volatility);
+                        const freshness = getDataFreshness(delay);
+                        const integrity = dataIntegrity[chain] ?? 0;
+                        const jumpCount = priceJumpFrequency[chain] ?? 0;
+                        return (
+                          <tr key={chain} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center">
+                                <div
+                                  className="w-3 h-3 mr-2"
+                                  style={{ backgroundColor: chainColors[chain] }}
+                                />
+                                <span className="text-sm font-medium">{chainNames[chain]}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
+                            </td>
+                            <td className="py-3 px-4">
+                              <ProgressBar
+                                value={volatility}
+                                color={getVolatilityColor(volatility)}
+                                max={1}
+                                suffix="%"
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <JumpIndicator count={jumpCount} />
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span
+                                className={`text-sm font-medium ${stabilityRating === 'stable' ? 'text-green-600' : stabilityRating === 'moderate' ? 'text-yellow-600' : 'text-red-600'}`}
+                              >
+                                {volatility > 0 ? t(`crossChain.stability.${stabilityRating}`) : '-'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
-              {t('crossChain.priceChart')}
-            </h3>
-            <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
-                  data={chartDataWithMA}
-                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis
-                    domain={['auto', 'auto']}
-                    tickFormatter={(v) => `$${Number(v).toLocaleString()}`}
-                    width={70}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend onClick={handleLegendClick} />
-                  <Brush dataKey="time" height={30} />
-                  {filteredChains.map((chain) => (
-                    <Line
-                      key={chain}
-                      type="monotone"
-                      dataKey={chain}
-                      name={chainNames[chain]}
-                      stroke={chainColors[chain]}
-                      strokeWidth={2}
-                      dot={false}
-                      hide={hiddenLines.has(chain)}
-                    />
-                  ))}
-                  {scatterData.length > 0 && (
-                    <Scatter
-                      data={scatterData}
-                      fill="#F97316"
-                      name={t('crossChain.anomalyPoint')}
-                    />
-                  )}
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+              <InteractivePriceChart
+                chartData={chartData}
+                chartDataWithMA={chartDataWithMA}
+                filteredChains={filteredChains}
+                hiddenLines={hiddenLines}
+                scatterData={scatterData}
+                avgPrice={avgPrice}
+                medianPrice={medianPrice}
+                onLegendClick={handleLegendClick}
+                onLegendDoubleClick={handleLegendDoubleClick}
+              />
+            </>
+          ) : (
+            <VolatilitySurface data={data} />
+          )}
         </>
       )}
     </div>

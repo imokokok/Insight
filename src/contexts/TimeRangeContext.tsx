@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { TimeRange } from '@/components/oracle/TabNavigation';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   TIME_RANGE: 'insight_timeRange',
   SYNC_ENABLED: 'insight_syncEnabled',
   CUSTOM_DATE_RANGE: 'insight_customDateRange',
+  SELECTED_HOUR: 'insight_selectedHour',
 } as const;
 
 export interface TimeRangeContextValue {
@@ -21,6 +22,13 @@ export interface TimeRangeContextValue {
   setCustomDateRange: (range: CustomDateRange | null) => void;
   brushRange: BrushRange | null;
   setBrushRange: (range: BrushRange | null) => void;
+  selectedHour: number | null;
+  setSelectedHour: (hour: number | null) => void;
+  selectedTimeRange: SelectedTimeRange | null;
+  setSelectedTimeRange: (range: SelectedTimeRange | null) => void;
+  onTimeRangeChange: ((range: SelectedTimeRange) => void) | null;
+  registerTimeRangeCallback: (callback: (range: SelectedTimeRange) => void) => void;
+  unregisterTimeRangeCallback: (callback: (range: SelectedTimeRange) => void) => void;
 }
 
 export interface CustomDateRange {
@@ -33,6 +41,14 @@ export interface BrushRange {
   endIndex: number;
   startTime: number;
   endTime: number;
+}
+
+export interface SelectedTimeRange {
+  startTime: number;
+  endTime: number;
+  startHour: number;
+  endHour: number;
+  label: string;
 }
 
 const TimeRangeContext = createContext<TimeRangeContextValue | undefined>(undefined);
@@ -95,6 +111,25 @@ function getStoredCustomDateRange(): CustomDateRange | null {
   return null;
 }
 
+function getStoredSelectedHour(): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.SELECTED_HOUR);
+    if (stored !== null) {
+      const hour = parseInt(stored, 10);
+      if (!isNaN(hour) && hour >= 0 && hour <= 23) {
+        return hour;
+      }
+    }
+  } catch (error) {
+    logger.warn(
+      'Failed to read selectedHour from localStorage',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+  return null;
+}
+
 export function TimeRangeProvider({
   children,
   defaultTimeRange = '24H',
@@ -110,6 +145,12 @@ export function TimeRangeProvider({
     getStoredCustomDateRange()
   );
   const [brushRange, setBrushRangeState] = useState<BrushRange | null>(null);
+  const [selectedHour, setSelectedHourState] = useState<number | null>(() =>
+    getStoredSelectedHour()
+  );
+  const [selectedTimeRange, setSelectedTimeRangeState] = useState<SelectedTimeRange | null>(null);
+  
+  const callbacksRef = useRef<Set<(range: SelectedTimeRange) => void>>(new Set());
 
   const setGlobalTimeRange = useCallback((range: TimeRange) => {
     setGlobalTimeRangeState(range);
@@ -173,6 +214,60 @@ export function TimeRangeProvider({
     setBrushRangeState(range);
   }, []);
 
+  const setSelectedHour = useCallback((hour: number | null) => {
+    setSelectedHourState(hour);
+    if (hour !== null) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.SELECTED_HOUR, String(hour));
+      } catch (error) {
+        logger.warn(
+          'Failed to save selectedHour to localStorage',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.SELECTED_HOUR);
+      } catch (error) {
+        logger.warn(
+          'Failed to remove selectedHour from localStorage',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    }
+  }, []);
+
+  const setSelectedTimeRange = useCallback((range: SelectedTimeRange | null) => {
+    setSelectedTimeRangeState(range);
+    if (range) {
+      callbacksRef.current.forEach((callback) => {
+        try {
+          callback(range);
+        } catch (error) {
+          logger.error('Error in time range callback', error instanceof Error ? error : new Error(String(error)));
+        }
+      });
+    }
+  }, []);
+
+  const registerTimeRangeCallback = useCallback((callback: (range: SelectedTimeRange) => void) => {
+    callbacksRef.current.add(callback);
+  }, []);
+
+  const unregisterTimeRangeCallback = useCallback((callback: (range: SelectedTimeRange) => void) => {
+    callbacksRef.current.delete(callback);
+  }, []);
+
+  const onTimeRangeChange = useCallback((range: SelectedTimeRange) => {
+    callbacksRef.current.forEach((callback) => {
+      try {
+        callback(range);
+      } catch (error) {
+        logger.error('Error in time range callback', error instanceof Error ? error : new Error(String(error)));
+      }
+    });
+  }, []);
+
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEYS.TIME_RANGE && e.newValue) {
@@ -211,6 +306,13 @@ export function TimeRangeProvider({
     setCustomDateRange,
     brushRange,
     setBrushRange,
+    selectedHour,
+    setSelectedHour,
+    selectedTimeRange,
+    setSelectedTimeRange,
+    onTimeRangeChange: null,
+    registerTimeRangeCallback,
+    unregisterTimeRangeCallback,
   };
 
   return <TimeRangeContext.Provider value={value}>{children}</TimeRangeContext.Provider>;

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { createLogger } from '@/lib/utils/logger';
+import { getPythHermesClient, PythPriceUpdate } from '@/lib/oracles/pythHermesClient';
 
 const logger = createLogger('PriceStream');
 
@@ -84,16 +85,18 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
   const [showAlertSettings, setShowAlertSettings] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isPreferencesLoaded, setIsPreferencesLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const updateCountRef = useRef(0);
   const latencySumRef = useRef(0);
   const confidenceWidthSumRef = useRef(0);
   const lastSecondCountRef = useRef(0);
   const lastSecondTimeRef = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const priceRef = useRef(initialPrice);
   const idCounterRef = useRef(0);
   const isInitializedRef = useRef(false);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const pythClientRef = useRef(getPythHermesClient());
 
   useEffect(() => {
     const prefs = loadPreferences();
@@ -107,90 +110,92 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     }
   }, [preferences, isPreferencesLoaded]);
 
-  const generatePriceUpdate = useCallback(() => {
-    const currentPriceValue = priceRef.current;
-    const changePercent = (Math.random() - 0.5) * 0.1;
-    const newPrice = currentPriceValue * (1 + changePercent / 100);
-    const change = newPrice - currentPriceValue;
+  // Initialize and subscribe to real Pyth data
+  useEffect(() => {
+    if (isInitializedRef.current) return;
 
-    const direction = change > 0.0001 ? 'up' : change < -0.0001 ? 'down' : 'neutral';
+    setIsLoading(true);
+    setError(null);
 
-    priceRef.current = newPrice;
+    const client = pythClientRef.current;
 
-    const latency = Math.random() * 50 + 10;
-    const confidenceWidth = Math.random() * 0.3 + 0.05;
-
-    return {
-      price: newPrice,
-      change,
-      direction: direction as 'up' | 'down' | 'neutral',
-      latency,
-      confidenceWidth,
-    };
-  }, []);
-
-  const updatePrice = useCallback(() => {
-    const update = generatePriceUpdate();
-    const now = new Date();
-
-    setCurrentPrice(update.price);
-
-    const newUpdate: PriceUpdate = {
-      id: ++idCounterRef.current,
-      price: update.price,
-      timestamp: now,
-      change: update.change,
-      direction: update.direction,
-      confidenceWidth: update.confidenceWidth,
-    };
-
-    setPriceHistory((prev) => {
-      const newHistory = [newUpdate, ...prev];
-      return newHistory.slice(0, 20);
-    });
-
-    updateCountRef.current++;
-    latencySumRef.current += update.latency;
-    confidenceWidthSumRef.current += update.confidenceWidth;
-
-    const currentTime = Date.now();
-    const timeDiff = currentTime - lastSecondTimeRef.current;
-
-    if (timeDiff >= 1000) {
-      const updatesInLastSecond = updateCountRef.current - lastSecondCountRef.current;
-      const avgLatency = latencySumRef.current / updateCountRef.current;
-      const avgConfidenceWidth = confidenceWidthSumRef.current / updateCountRef.current;
-
-      setStats({
-        updatesPerSecond: updatesInLastSecond,
-        avgLatency: Math.round(avgLatency * 100) / 100,
-        totalUpdates: updateCountRef.current,
-        avgConfidenceWidth: Math.round(avgConfidenceWidth * 10000) / 10000,
+    // Get initial price
+    client
+      .getLatestPrice(symbol)
+      .then((priceData) => {
+        if (priceData) {
+          setCurrentPrice(priceData.price);
+          setIsLoading(false);
+        } else {
+          setError('无法获取价格数据');
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        logger.error('Failed to get initial price:', err);
+        setError('获取价格数据失败');
+        setIsLoading(false);
       });
 
-      lastSecondCountRef.current = updateCountRef.current;
-      lastSecondTimeRef.current = currentTime;
-    }
-  }, [generatePriceUpdate]);
+    // Subscribe to real-time updates
+    const unsubscribe = client.subscribeToPriceUpdates(symbol, (update: PythPriceUpdate) => {
+      if (isPaused) return;
 
-  useEffect(() => {
-    if (!isInitializedRef.current) {
-      lastSecondTimeRef.current = Date.now();
-      isInitializedRef.current = true;
-    }
-  }, []);
+      const now = new Date();
+      const change = update.price - currentPrice;
+      const direction = change > 0.0001 ? 'up' : change < -0.0001 ? 'down' : 'neutral';
+      const confidenceWidth = update.confidence / update.price;
 
-  useEffect(() => {
-    if (!isPaused && isInitializedRef.current) {
-      intervalRef.current = setInterval(updatePrice, updateInterval);
-    }
+      setCurrentPrice(update.price);
+
+      const newUpdate: PriceUpdate = {
+        id: ++idCounterRef.current,
+        price: update.price,
+        timestamp: now,
+        change,
+        direction,
+        confidenceWidth,
+      };
+
+      setPriceHistory((prev) => {
+        const newHistory = [newUpdate, ...prev];
+        return newHistory.slice(0, 20);
+      });
+
+      updateCountRef.current++;
+      latencySumRef.current += Math.random() * 50 + 10; // Simulated latency for now
+      confidenceWidthSumRef.current += confidenceWidth;
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastSecondTimeRef.current;
+
+      if (timeDiff >= 1000) {
+        const updatesInLastSecond = updateCountRef.current - lastSecondCountRef.current;
+        const avgLatency = latencySumRef.current / updateCountRef.current;
+        const avgConfidenceWidth = confidenceWidthSumRef.current / updateCountRef.current;
+
+        setStats({
+          updatesPerSecond: updatesInLastSecond,
+          avgLatency: Math.round(avgLatency * 100) / 100,
+          totalUpdates: updateCountRef.current,
+          avgConfidenceWidth: Math.round(avgConfidenceWidth * 10000) / 10000,
+        });
+
+        lastSecondCountRef.current = updateCountRef.current;
+        lastSecondTimeRef.current = currentTime;
+      }
+    });
+
+    unsubscribeRef.current = unsubscribe;
+    isInitializedRef.current = true;
+    lastSecondTimeRef.current = Date.now();
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
       }
     };
-  }, [isPaused, updateInterval, updatePrice]);
+  }, [symbol, isPaused, currentPrice]);
 
   const handlePause = () => {
     setIsPaused(true);
@@ -243,6 +248,41 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
       alertThreshold: Math.max(0.05, Math.min(0.5, value)),
     }));
   };
+
+  if (isLoading) {
+    return (
+      <DashboardCard title="实时价格流">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">正在连接 Pyth Network...</span>
+        </div>
+      </DashboardCard>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardCard title="实时价格流">
+        <div className="flex flex-col items-center justify-center h-64 text-red-600">
+          <svg className="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            重试
+          </button>
+        </div>
+      </DashboardCard>
+    );
+  }
 
   return (
     <DashboardCard

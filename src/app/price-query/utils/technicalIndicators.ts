@@ -163,3 +163,115 @@ export function calculateCurrentVolatility(prices: number[]): number | null {
 
   return stdDev * Math.sqrt(365) * 100;
 }
+
+/**
+ * 布林带计算结果
+ */
+export interface BollingerBands {
+  upper: (number | null)[];
+  middle: (number | null)[];
+  lower: (number | null)[];
+  stdDev: (number | null)[];
+}
+
+/**
+ * 计算布林带 (Bollinger Bands)
+ * @param data 价格数据数组
+ * @param period 周期，默认20
+ * @param multiplier 标准差倍数，默认2
+ * @returns 布林带数据
+ */
+export function calculateBollingerBands(
+  data: number[],
+  period: number = 20,
+  multiplier: number = 2
+): BollingerBands {
+  const upper: (number | null)[] = [];
+  const middle: (number | null)[] = [];
+  const lower: (number | null)[] = [];
+  const stdDev: (number | null)[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      upper.push(null);
+      middle.push(null);
+      lower.push(null);
+      stdDev.push(null);
+      continue;
+    }
+
+    // 计算SMA作为中轨
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j];
+    }
+    const sma = sum / period;
+
+    // 计算标准差
+    let varianceSum = 0;
+    for (let j = 0; j < period; j++) {
+      varianceSum += Math.pow(data[i - j] - sma, 2);
+    }
+    const currentStdDev = Math.sqrt(varianceSum / period);
+
+    upper.push(sma + multiplier * currentStdDev);
+    middle.push(sma);
+    lower.push(sma - multiplier * currentStdDev);
+    stdDev.push(currentStdDev);
+  }
+
+  return { upper, middle, lower, stdDev };
+}
+
+/**
+ * 计算置信区间
+ * @param data 价格数据数组
+ * @param period 周期，默认20
+ * @returns 置信区间数据
+ */
+export function calculateConfidenceIntervals(
+  data: number[],
+  period: number = 20
+): {
+  upper1: (number | null)[];
+  lower1: (number | null)[];
+  upper2: (number | null)[];
+  lower2: (number | null)[];
+} {
+  const upper1: (number | null)[] = [];
+  const lower1: (number | null)[] = [];
+  const upper2: (number | null)[] = [];
+  const lower2: (number | null)[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      upper1.push(null);
+      lower1.push(null);
+      upper2.push(null);
+      lower2.push(null);
+      continue;
+    }
+
+    // 计算均值
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j];
+    }
+    const mean = sum / period;
+
+    // 计算标准差
+    let varianceSum = 0;
+    for (let j = 0; j < period; j++) {
+      varianceSum += Math.pow(data[i - j] - mean, 2);
+    }
+    const currentStdDev = Math.sqrt(varianceSum / period);
+
+    // ±1σ 和 ±2σ 置信区间
+    upper1.push(mean + currentStdDev);
+    lower1.push(mean - currentStdDev);
+    upper2.push(mean + 2 * currentStdDev);
+    lower2.push(mean - 2 * currentStdDev);
+  }
+
+  return { upper1, lower1, upper2, lower2 };
+}
