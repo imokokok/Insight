@@ -11,6 +11,7 @@ import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
+import { ToastProvider } from '@/components/ui/Toast';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -45,16 +46,18 @@ export default function RootLayout({
               <AuthProvider>
                 <TimeRangeProvider>
                   <RealtimeProvider>
-                    <ErrorBoundary>
-                      <Navbar />
-                      <main className="flex-1 bg-gray-50">{children}</main>
-                      <Footer />
-                      <ConnectionStatusIndicator
-                        showLabel={false}
-                        showReconnectButton={true}
-                        className="fixed bottom-4 right-4 z-50"
-                      />
-                    </ErrorBoundary>
+                    <ToastProvider>
+                      <ErrorBoundary>
+                        <Navbar />
+                        <main className="flex-1 bg-gray-50">{children}</main>
+                        <Footer />
+                        <ConnectionStatusIndicator
+                          showLabel={false}
+                          showReconnectButton={true}
+                          className="fixed bottom-4 right-4 z-50"
+                        />
+                      </ErrorBoundary>
+                    </ToastProvider>
                   </RealtimeProvider>
                 </TimeRangeProvider>
               </AuthProvider>

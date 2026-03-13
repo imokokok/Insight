@@ -211,9 +211,9 @@ export function PriceResultsTable({
                 .replace('{total}', results.length.toString())}
             </div>
           )}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <div
-              className="grid text-sm"
+              className="grid text-sm min-w-[900px]"
               style={{
                 gridTemplateColumns:
                   'minmax(140px, 1.2fr) minmax(120px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(100px, 0.8fr) minmax(100px, 0.8fr) minmax(120px, 1fr) minmax(100px, 0.8fr)',

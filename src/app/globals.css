@@ -3,38 +3,78 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  
+
+  /* Primary Brand Colors */
   --finance-primary: #1e40af;
   --finance-secondary: #3b82f6;
   --finance-accent: #60a5fa;
+
+  /* Status Colors */
   --finance-success: #10b981;
+  --finance-success-light: #d1fae5;
   --finance-warning: #f59e0b;
+  --finance-warning-light: #fef3c7;
   --finance-danger: #ef4444;
+  --finance-danger-light: #fee2e2;
   --finance-neutral: #64748b;
-  
+  --finance-neutral-light: #f1f5f9;
+
+  /* Gradients */
   --finance-gradient-blue: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
   --finance-gradient-green: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
   --finance-gradient-purple: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
   --finance-gradient-gold: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
-  
+
+  /* Shadows */
   --shadow-finance-soft: 0 4px 20px -2px rgba(30, 64, 175, 0.1);
   --shadow-finance-medium: 0 8px 30px -4px rgba(30, 64, 175, 0.15);
   --shadow-finance-strong: 0 12px 40px -6px rgba(30, 64, 175, 0.2);
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.75;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Brand Colors */
   --color-finance-primary: var(--finance-primary);
   --color-finance-secondary: var(--finance-secondary);
   --color-finance-accent: var(--finance-accent);
+
+  /* Status Colors */
   --color-finance-success: var(--finance-success);
+  --color-finance-success-light: var(--finance-success-light);
   --color-finance-warning: var(--finance-warning);
+  --color-finance-warning-light: var(--finance-warning-light);
   --color-finance-danger: var(--finance-danger);
+  --color-finance-danger-light: var(--finance-danger-light);
   --color-finance-neutral: var(--finance-neutral);
+  --color-finance-neutral-light: var(--finance-neutral-light);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,7 +91,73 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus Visible Styles for Accessibility */
+:focus-visible {
+  outline: 2px solid var(--finance-primary);
+  outline-offset: 2px;
+}
+
+/* Button Base Styles */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Card Base Styles */
+.card {
+  @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+}
+
+.card-hover {
+  @apply card transition-all duration-300 hover:shadow-md hover:border-gray-300;
+}
+
+/* Form Input Styles */
+.input {
+  @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+/* Table Styles */
+.table-container {
+  @apply overflow-x-auto rounded-lg border border-gray-200;
+}
+
+.table {
+  @apply w-full text-left border-collapse;
+}
+
+.table th {
+  @apply sticky top-0 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200;
+}
+
+.table td {
+  @apply px-4 py-3 border-b border-gray-100;
+}
+
+.table tr:hover {
+  @apply bg-gray-50;
 }
 
 ::selection {

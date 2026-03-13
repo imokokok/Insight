@@ -19,10 +19,15 @@ interface FeatureFlags {
   enablePerformanceMonitoring: boolean;
 }
 
+interface WebSocketConfig {
+  url: string | undefined;
+}
+
 interface EnvConfig {
   supabase: SupabaseConfig;
   app: AppConfig;
   features: FeatureFlags;
+  websocket: WebSocketConfig;
 }
 
 function getEnvironment(): Environment {
@@ -60,6 +65,9 @@ export const env: EnvConfig = {
     enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
     enablePerformanceMonitoring: process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING === 'true',
   },
+  websocket: {
+    url: process.env.NEXT_PUBLIC_WS_URL,
+  },
 };
 
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
@@ -74,4 +82,8 @@ export function getAppConfig(): AppConfig {
   return env.app;
 }
 
-export type { EnvConfig, SupabaseConfig, AppConfig, FeatureFlags, Environment };
+export function getWebSocketConfig(): WebSocketConfig {
+  return env.websocket;
+}
+
+export type { EnvConfig, SupabaseConfig, AppConfig, FeatureFlags, Environment, WebSocketConfig };

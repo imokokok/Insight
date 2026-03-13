@@ -3,7 +3,7 @@ import { oracleColors } from '@/lib/constants';
 
 export const ORACLE_COLORS = {
   chainlink: oracleColors['chainlink'] || '#375BD2',
-  pyth: oracleColors['pyth-network'] || '#E6B800',
+  pyth: oracleColors['pyth'] || '#E6B800',
   band: oracleColors['band-protocol'] || '#516BEB',
   api3: oracleColors['api3'] || '#7CE3CB',
   uma: oracleColors['uma'] || '#FF4A8D',

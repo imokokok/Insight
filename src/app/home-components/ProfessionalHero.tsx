@@ -100,8 +100,8 @@ export default function ProfessionalHero() {
               </span>
             </div>
 
-            {/* Title with enhanced typography */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-[1.1] mb-6 tracking-tight">
+            {/* Title with enhanced typography - Responsive font sizes */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight mb-6 tracking-tight">
               {title}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 animate-gradient">
@@ -146,27 +146,27 @@ export default function ProfessionalHero() {
                         ? '搜索交易对、预言机或区块链...'
                         : 'Search trading pairs, oracles, or blockchains...'
                     }
-                    className="flex-1 px-4 py-5 text-base text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+                    className="flex-1 px-3 sm:px-4 py-3 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent outline-none min-w-0"
                   />
-                  <button className="mr-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300">
+                  <button className="mr-1 sm:mr-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg sm:rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 text-sm sm:text-base whitespace-nowrap">
                     {isZh ? '搜索' : 'Search'}
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* CTA Buttons - Primary and Secondary */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            {/* CTA Buttons - Primary and Secondary - Responsive sizing */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">
               <Link
                 href="/price-query"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300 group"
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300 group w-full sm:w-auto justify-center"
               >
                 {t('home.hero.ctaPrimary') || '开始探索'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
               <Link
                 href="/docs"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white/80 backdrop-blur-sm text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-white hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-300 group"
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/80 backdrop-blur-sm text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-white hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-300 group w-full sm:w-auto justify-center"
               >
                 <BookOpen className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors duration-300" />
                 {isZh ? '查看文档' : 'View Documentation'}

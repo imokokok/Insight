@@ -31,7 +31,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const hasPriceSpike = payload.some((p) => p.payload?.isPriceSpike);
 
   return (
-    <div className="bg-white border border-gray-200 shadow-lg p-3 min-w-[200px]">
+    <div className="bg-white border border-gray-200 shadow-xl rounded-lg p-3 min-w-[200px] max-w-[280px]">
       <div className="text-xs font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">
         {t('priceQuery.chart.tooltip.time')}: {label}
       </div>

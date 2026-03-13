@@ -8,7 +8,7 @@
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
     "uma": "UMA",
-    "pythNetwork": "Pyth Network",
+    "pythNetwork": "Pyth",
     "api3": "API3",
     "market": "Market",
     "overview": "Overview",
@@ -56,7 +56,7 @@
       "badge": "Professional Oracle Data Platform",
       "title": "Insight Oracle Data",
       "titleHighlight": "Power Smart Decisions",
-      "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
+      "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
       "ctaPrimary": "Start Exploring",
       "ctaSecondary": "View Documentation",
       "stats": {
@@ -137,7 +137,7 @@
         "feature3": "Optimistic Verification"
       },
       "pyth": {
-        "name": "Pyth Network",
+        "name": "Pyth",
         "description": "High-frequency financial data oracle",
         "feature1": "Sub-second Latency",
         "feature2": "First-party Data",
@@ -260,7 +260,7 @@
           "title": "Insight Oracle Data",
           "titleHighlight": "Power Smart Decisions",
           "badge": "Professional Oracle Data Platform",
-          "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
+          "description": "Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions.",
           "ctaPrimary": "Start Exploring",
           "ctaSecondary": "View Documentation",
           "metrics": {
@@ -460,7 +460,7 @@
       }
     },
     "aboutTitle": "About Insight",
-    "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth Network, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
+    "aboutDescription": "Insight provides comprehensive tools to analyze and compare leading oracle solutions including Chainlink, Band Protocol, UMA, Pyth, and API3. Explore cross-oracle and cross-chain comparisons, view detailed price data, and make informed decisions about oracle integration.",
     "builtWith": "Built with modern technologies, designed for developers and analysts in the Web3 space.",
     "loading": "Loading...",
     "unavailable": "Unavailable",
@@ -550,11 +550,11 @@
     "presets": {
       "title": "Preset Configurations",
       "mainstream": "Mainstream",
-      "mainstreamDesc": "Chainlink + Pyth Network + API3",
+      "mainstreamDesc": "Chainlink + Pyth + API3",
       "decentralized": "Decentralized",
       "decentralizedDesc": "Chainlink + Band Protocol + UMA",
       "highFrequency": "High Frequency",
-      "highFrequencyDesc": "Pyth Network + API3",
+      "highFrequencyDesc": "Pyth + API3",
       "comprehensive": "Comprehensive",
       "comprehensiveDesc": "All 5 oracles",
       "active": "Current Config"
@@ -1748,7 +1748,7 @@
     }
   },
   "pythNetwork": {
-    "title": "Pyth Network",
+    "title": "Pyth",
     "subtitle": "High-frequency financial data oracle with first-party exchange data and sub-second latency.",
     "dataQuality": {
       "title": "Data Quality Composite Score",
@@ -1899,8 +1899,8 @@
       "importantEvents": "Important Events"
     },
     "info": {
-      "title": "About Pyth Network Accuracy",
-      "description": "Pyth Network provides high-frequency price data from first-party sources including major exchanges and trading firms. The accuracy analysis shows the deviation between Pyth prices and actual market prices across different market conditions.",
+      "title": "About Pyth Accuracy",
+      "description": "Pyth provides high-frequency price data from first-party sources including major exchanges and trading firms. The accuracy analysis shows the deviation between Pyth prices and actual market prices across different market conditions.",
       "learnMore": "Learn More",
       "documentation": "Documentation"
     }
@@ -3284,7 +3284,7 @@
     "crossChainRisk": "Cross-Chain Consistency Risk",
     "crossChainRiskDesc": "Evaluate price consistency across different chains",
     "riskDetailsTitle": "Risk Assessment Details",
-    "pythOnlyMessage": "Full risk assessment features are currently only available for Pyth Network",
+    "pythOnlyMessage": "Full risk assessment features are currently only available for Pyth",
     "comingSoonMessage": "Risk assessment for other Oracle providers coming soon"
   },
   "volatilityAlert": {

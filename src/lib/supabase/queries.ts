@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { OracleProvider, Blockchain } from '../types/oracle';
 import { createLogger } from '@/lib/utils/logger';
+import { normalizeTimestamp } from '@/lib/utils/timestamp';
 
 const logger = createLogger('supabase-queries');
 
@@ -194,10 +195,7 @@ export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
-    const timestamp =
-      typeof record.timestamp === 'number'
-        ? new Date(record.timestamp * 1000).toISOString()
-        : record.timestamp;
+    const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
 
     const { data, error } = await this.client
       .from('price_records')
@@ -233,10 +231,7 @@ export class DatabaseQueries {
       symbol: record.symbol,
       chain: record.chain || null,
       price: record.price,
-      timestamp:
-        typeof record.timestamp === 'number'
-          ? new Date(record.timestamp * 1000).toISOString()
-          : record.timestamp,
+      timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
       confidence: record.confidence || null,
       source: record.source || null,
       ttl: record.ttl || '1h',
@@ -277,12 +272,12 @@ export class DatabaseQueries {
     }
 
     if (filters.startTime) {
-      const startTimeStr = new Date(filters.startTime * 1000).toISOString();
+      const startTimeStr = new Date(normalizeTimestamp(filters.startTime)).toISOString();
       query = query.gte('timestamp', startTimeStr);
     }
 
     if (filters.endTime) {
-      const endTimeStr = new Date(filters.endTime * 1000).toISOString();
+      const endTimeStr = new Date(normalizeTimestamp(filters.endTime)).toISOString();
       query = query.lte('timestamp', endTimeStr);
     }
 

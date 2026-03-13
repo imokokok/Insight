@@ -401,7 +401,7 @@ export function MarketDataPanelRealtime({
       setPrice(priceData.price);
       setLastUpdated(new Date());
 
-      if (client.name === OracleProvider.PYTH_NETWORK) {
+      if (client.name === OracleProvider.PYTH) {
         const multiplier = priceData.price * (1 + (Math.random() - 0.5) * 0.02);
         const ema7 = priceData.price * (1 + (Math.random() - 0.5) * 0.01);
         const ema14 = priceData.price * (1 + (Math.random() - 0.5) * 0.015);
@@ -630,7 +630,7 @@ export function MarketDataPanelRealtime({
             </div>
           )}
 
-          {client.name === OracleProvider.PYTH_NETWORK && emaData.length > 0 && (
+          {client.name === OracleProvider.PYTH && emaData.length > 0 && (
             <EMADisplay
               emaData={emaData}
               selectedPeriod={emaPeriod}

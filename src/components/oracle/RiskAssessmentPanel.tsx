@@ -110,7 +110,7 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
 
   const overallRisk = getRiskLevel(riskScores.overall, t);
 
-  const isPythNetwork = provider === OracleProvider.PYTH_NETWORK;
+  const isPythNetwork = provider === OracleProvider.PYTH;
 
   return (
     <div className="space-y-6">

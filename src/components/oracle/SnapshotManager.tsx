@@ -27,7 +27,7 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
   [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth Network',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
 };
 

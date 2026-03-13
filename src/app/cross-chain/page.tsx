@@ -345,22 +345,23 @@ export default function CrossChainPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-0 mb-8 pb-8 border-b border-gray-200">
+          {/* Stats Grid - Responsive layout */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b border-gray-200">
             {statsData.map((stat, index) => (
               <div
                 key={index}
-                className={`px-4 py-3 ${index > 0 ? 'border-l border-gray-200' : ''}`}
+                className={`px-3 sm:px-4 py-3 bg-white sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-gray-100 ${index > 0 ? 'sm:border-l sm:border-gray-200' : ''}`}
                 title={stat.tooltip}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 uppercase truncate">{stat.label}</div>
                   {stat.trend !== null && stat.trend !== undefined && (
                     <TrendIndicator changePercent={stat.trend} />
                   )}
                 </div>
-                <div className="text-lg font-semibold text-gray-900 mt-1">{stat.value}</div>
+                <div className="text-base sm:text-lg font-semibold text-gray-900 mt-1 truncate">{stat.value}</div>
                 {stat.subValue && (
-                  <div className="text-xs text-gray-400 mt-0.5">{stat.subValue}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">{stat.subValue}</div>
                 )}
               </div>
             ))}

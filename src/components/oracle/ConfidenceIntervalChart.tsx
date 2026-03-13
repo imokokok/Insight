@@ -15,6 +15,7 @@ import {
 import { DashboardCard } from './DashboardCard';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
+import { NotImplementedError } from '@/lib/errors';
 
 const logger = createLogger('ConfidenceIntervalChart');
 
@@ -223,7 +224,13 @@ export function ConfidenceIntervalChart({
         setUseMockData(false);
       } catch (err) {
         logger.error('Failed to fetch confidence interval data:', err instanceof Error ? err : new Error(String(err)));
-        setError('无法获取数据，使用模拟数据');
+        
+        if (err instanceof NotImplementedError) {
+          setError('Pyth API 不支持历史价格查询，使用模拟数据');
+        } else {
+          setError('无法获取数据，使用模拟数据');
+        }
+        
         setData(generateMockData(timeRange));
         setUseMockData(true);
       } finally {

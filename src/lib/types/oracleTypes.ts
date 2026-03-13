@@ -261,9 +261,9 @@ export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
     website: 'https://umaproject.org',
     active: true,
   },
-  [OracleProvider.PYTH_NETWORK]: {
-    provider: OracleProvider.PYTH_NETWORK,
-    name: 'Pyth Network',
+  [OracleProvider.PYTH]: {
+    provider: OracleProvider.PYTH,
+    name: 'Pyth',
     supportedChains: [
       Blockchain.ETHEREUM,
       Blockchain.ARBITRUM,

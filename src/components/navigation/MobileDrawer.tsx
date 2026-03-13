@@ -38,12 +38,15 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-50 animate-slide-in-right">
+      {/* Drawer - Full width on mobile */}
+      <div className="fixed inset-y-0 right-0 w-full sm:max-w-sm bg-white shadow-2xl z-50 animate-slide-in-right">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-            <div className="text-lg font-semibold text-gray-900">{t('navbar.menu')}</div>
+            <div className="flex items-center gap-3">
+              <div className="text-xl font-bold text-blue-600">Insight</div>
+              <div className="text-lg font-semibold text-gray-900">{t('navbar.menu')}</div>
+            </div>
             <button
               onClick={onClose}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -54,7 +57,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-4">
+          <nav className="flex-1 overflow-y-auto py-4 px-2">
             {navStructure.map((navItem) => {
               if ('items' in navItem) {
                 const group = navItem as NavGroup;

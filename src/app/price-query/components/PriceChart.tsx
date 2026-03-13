@@ -550,7 +550,7 @@ export function PriceChart({
         </label>
       </div>
       <div ref={chartContainerRef} className="overflow-hidden">
-        <div className="h-96">
+        <div className="h-[300px] sm:h-[400px] lg:h-96">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={annotatedChartData}

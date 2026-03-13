@@ -196,7 +196,7 @@ export function OraclePageTemplate({
       ];
     }
 
-    if (config.provider === OracleProvider.PYTH_NETWORK) {
+    if (config.provider === OracleProvider.PYTH) {
       return [
         {
           title: t('pythNetwork.stats.updateFrequencyPerSecond'),
@@ -595,7 +595,7 @@ export function OraclePageTemplate({
             </div>
           )}
 
-          {activeTab === 'market' && config.provider === OracleProvider.PYTH_NETWORK && (
+          {activeTab === 'market' && config.provider === OracleProvider.PYTH && (
             <>
               <div className="mb-6">
                 <PriceStream
@@ -616,7 +616,7 @@ export function OraclePageTemplate({
             </>
           )}
 
-          {activeTab === 'market' && config.provider === OracleProvider.PYTH_NETWORK && (
+          {activeTab === 'market' && config.provider === OracleProvider.PYTH && (
             <div className="mb-6">
               <AccuracyAnalysisPanel />
             </div>
@@ -656,7 +656,7 @@ export function OraclePageTemplate({
                   <DataSourceCredibility sources={dataSourceCredibilityData} />
                 </div>
               )}
-              {config.provider === OracleProvider.PYTH_NETWORK && (
+              {config.provider === OracleProvider.PYTH && (
                 <>
                   <div className="mb-6">
                     <UpdateFrequencyHeatmap
@@ -722,7 +722,7 @@ export function OraclePageTemplate({
 
           {activeTab === 'ecosystem' && (
             <div className="mb-6">
-              {config.provider === OracleProvider.PYTH_NETWORK ? (
+              {config.provider === OracleProvider.PYTH ? (
                 <EcosystemPanel />
               ) : config.provider === OracleProvider.BAND_PROTOCOL &&
                 config.client instanceof BandProtocolClient ? (

@@ -150,19 +150,6 @@ export type {
   BatchIndicatorOptions,
 } from './useTechnicalIndicators';
 
-// WebSocket Hooks
-export {
-  useWebSocket,
-  useWebSocketChannel,
-} from './useWebSocket';
-export type {
-  WebSocketStatus,
-  WebSocketMessage,
-  WebSocketOptions,
-  UseWebSocketReturn,
-} from './useWebSocket';
-
-// API3 WebSocket Hooks
 export {
   useAPI3Price as useAPI3WebSocketPrice,
   useAPI3Prices as useAPI3WebSocketPrices,

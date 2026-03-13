@@ -1,7 +1,7 @@
 export { ChainlinkClient } from './chainlink';
 export { BandProtocolClient } from './bandProtocol';
 export { UMAClient } from './uma';
-export { PythNetworkClient } from './pythNetwork';
+export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
 export {
   PythHermesClient,
@@ -11,7 +11,6 @@ export {
 } from './pythHermesClient';
 export {
   BaseOracleClient,
-  UNIFIED_BASE_PRICES,
   shouldUseDatabase,
   configureStorage,
   getStorageConfig,
@@ -25,4 +24,11 @@ export {
   savePriceWithFallback,
   saveHistoricalPricesWithFallback,
 } from './storage';
+export {
+  UNIFIED_BASE_PRICES,
+  updateBasePrices,
+  resetBasePrices,
+  DEFAULT_BASE_PRICES,
+} from '@/lib/config/basePrices';
+export type { BasePrices } from '@/lib/config/basePrices';
 export * from '@/lib/types/oracle';

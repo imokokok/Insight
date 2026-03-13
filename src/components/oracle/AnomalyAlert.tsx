@@ -7,7 +7,7 @@ import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
-  PythNetworkClient,
+  PythClient,
   API3Client,
   PriceData,
   OracleProvider,
@@ -62,7 +62,7 @@ interface AnomalyDetectionConfig {
 
 const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.PYTH_NETWORK]: 'Pyth',
+  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.BAND_PROTOCOL]: 'Band',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.API3]: 'API3',
@@ -374,7 +374,7 @@ export function AnomalyAlert() {
     setLoading(true);
     try {
       const chainlinkClient = new ChainlinkClient();
-      const pythClient = new PythNetworkClient();
+      const pythClient = new PythClient();
       const bandClient = new BandProtocolClient();
       const umaClient = new UMAClient();
       const api3Client = new API3Client();

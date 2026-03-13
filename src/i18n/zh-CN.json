@@ -8,7 +8,7 @@
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
     "uma": "UMA",
-    "pythNetwork": "Pyth Network",
+    "pythNetwork": "Pyth",
     "api3": "API3",
     "market": "市场",
     "overview": "概览",
@@ -56,7 +56,7 @@
       "badge": "专业预言机数据平台",
       "title": "洞察预言机数据",
       "titleHighlight": "驱动智能决策",
-      "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth Network、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
+      "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
       "ctaPrimary": "开始探索",
       "ctaSecondary": "查看文档",
       "stats": {
@@ -137,7 +137,7 @@
         "feature3": "乐观验证"
       },
       "pyth": {
-        "name": "Pyth Network",
+        "name": "Pyth",
         "description": "高频金融数据预言机",
         "feature1": "亚秒级延迟",
         "feature2": "第一方数据",
@@ -260,7 +260,7 @@
           "title": "洞察预言机数据",
           "titleHighlight": "驱动智能决策",
           "badge": "专业预言机数据平台",
-          "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth Network、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
+          "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
           "ctaPrimary": "开始探索",
           "ctaSecondary": "查看文档",
           "metrics": {
@@ -460,7 +460,7 @@
       }
     },
     "aboutTitle": "关于 Insight",
-    "aboutDescription": "Insight 提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth Network 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",
+    "aboutDescription": "Insight 提供全面的工具来分析和比较领先的预言机解决方案，包括 Chainlink、Band Protocol、UMA、Pyth 和 API3。探索跨预言机和跨链比较，查看详细的价格数据，并做出关于预言机集成的明智决策。",
     "builtWith": "采用现代技术构建，为 Web3 领域的开发者和分析师设计。",
     "loading": "加载中...",
     "unavailable": "不可用",
@@ -550,11 +550,11 @@
     "presets": {
       "title": "预设配置",
       "mainstream": "主流组合",
-      "mainstreamDesc": "Chainlink + Pyth Network + API3",
+      "mainstreamDesc": "Chainlink + Pyth + API3",
       "decentralized": "去中心化组合",
       "decentralizedDesc": "Chainlink + Band Protocol + UMA",
       "highFrequency": "高频数据组合",
-      "highFrequencyDesc": "Pyth Network + API3",
+      "highFrequencyDesc": "Pyth + API3",
       "comprehensive": "全面对比",
       "comprehensiveDesc": "所有 5 个预言机",
       "active": "当前配置"
@@ -1812,7 +1812,7 @@
     }
   },
   "pythNetwork": {
-    "title": "Pyth Network",
+    "title": "Pyth",
     "subtitle": "具有第一方交易所数据和亚秒级延迟的高频金融数据预言机。",
     "dataQuality": {
       "title": "数据质量综合评分",
@@ -1963,8 +1963,8 @@
       "importantEvents": "重要事件"
     },
     "info": {
-      "title": "关于 Pyth Network 准确率",
-      "description": "Pyth Network 提供来自第一方数据源的高频价格数据，包括主要交易所和交易公司。准确率分析显示 Pyth 价格与实际市场价格在不同市场条件下的偏差情况。",
+      "title": "关于 Pyth 准确率",
+      "description": "Pyth 提供来自第一方数据源的高频价格数据，包括主要交易所和交易公司。准确率分析显示 Pyth 价格与实际市场价格在不同市场条件下的偏差情况。",
       "learnMore": "了解更多",
       "documentation": "文档"
     }
@@ -3404,7 +3404,7 @@
     "crossChainRisk": "跨链一致性风险",
     "crossChainRiskDesc": "评估不同链上价格的一致性",
     "riskDetailsTitle": "风险评估详情",
-    "pythOnlyMessage": "完整的风险评估功能目前仅支持 Pyth Network",
+    "pythOnlyMessage": "完整的风险评估功能目前仅支持 Pyth",
     "comingSoonMessage": "其他 Oracle 提供商的风险评估功能即将推出"
   },
   "dataSourceCoverage": {
