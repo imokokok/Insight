@@ -68,15 +68,7 @@ import AssetCategoryChart from './components/AssetCategoryChart';
 import OracleComparison from './components/OracleComparison';
 import BenchmarkComparison from './components/BenchmarkComparison';
 import CorrelationMatrix from './components/CorrelationMatrix';
-import RiskDashboard from './components/RiskDashboard';
-import AnomalyAlert from './components/AnomalyAlert';
 import RealtimeIndicator from './components/RealtimeIndicator';
-import PriceAlertConfig from './components/PriceAlertConfig';
-import ExportConfigComponent from './components/ExportConfig';
-import ScheduledExportConfig from './components/ScheduledExportConfig';
-import { ExportConfig } from '@/lib/export/exportConfig';
-import { ScheduledExportTask } from '@/lib/export/scheduledExport';
-import { exportWithConfig, downloadExport } from '@/lib/services/marketData';
 
 export default function MarketOverviewPage() {
   const { t, locale } = useI18n();
@@ -1442,86 +1434,6 @@ export default function MarketOverviewPage() {
                     : `Covering ${marketStats.oracleCount} major oracles`}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* 风险指标、异常预警和价格预警 - 扁平化风格 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
-                <RiskDashboard data={riskMetrics} loading={loadingRiskMetrics} />
-              </div>
-            </div>
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
-                <AnomalyAlert
-                  anomalies={anomalies}
-                  loading={loadingAnomalies}
-                  onAcknowledge={acknowledgeAnomaly}
-                  maxDisplay={5}
-                />
-              </div>
-            </div>
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden h-full">
-                <PriceAlertConfig
-                  alerts={priceAlerts}
-                  history={alertHistory}
-                  onAddAlert={addPriceAlert}
-                  onRemoveAlert={removePriceAlert}
-                  onToggleAlert={togglePriceAlert}
-                  onAcknowledgeHistory={acknowledgeAlertHistory}
-                  onClearHistory={clearAlertHistory}
-                  onRequestNotificationPermission={requestNotificationPermission}
-                  hasNotificationPermission={hasNotificationPermission}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 导出配置和定时导出 - 扁平化风格 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <ExportConfigComponent
-                locale={locale}
-                onExport={(config: ExportConfig) => {
-                  const { content, fileName, mimeType } = exportWithConfig(config, {
-                    oracleData,
-                    assets,
-                    trendData,
-                    chainBreakdown,
-                    protocolDetails,
-                    assetCategories,
-                    comparisonData,
-                    benchmarkData,
-                    correlationData,
-                    riskMetrics: riskMetrics || undefined,
-                    anomalies,
-                  });
-                  downloadExport(content, fileName, mimeType);
-                }}
-              />
-            </div>
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <ScheduledExportConfig
-                locale={locale}
-                onRunTask={async (task: ScheduledExportTask) => {
-                  const { content, fileName, mimeType } = exportWithConfig(task.config, {
-                    oracleData,
-                    assets,
-                    trendData,
-                    chainBreakdown,
-                    protocolDetails,
-                    assetCategories,
-                    comparisonData,
-                    benchmarkData,
-                    correlationData,
-                    riskMetrics: riskMetrics || undefined,
-                    anomalies,
-                  });
-                  downloadExport(content, fileName, mimeType);
-                }}
-              />
             </div>
           </div>
 
