@@ -43,6 +43,7 @@ import {
 } from './crossOracleConfig';
 import { useSorting } from './useSorting';
 import { TrendIndicator } from './TrendIndicator';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 const logger = createLogger('CrossOracleComparison');
 
@@ -632,7 +633,7 @@ export function CrossOracleComparison() {
         <DashboardCard title={`${t('crossOracle.selectOraclesTitle')} (${selectedOracles.length}/3)`}>
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              {Object.values(OracleProvider).map((provider) => (
+              {getOracleProvidersSortedByMarketCap().map((provider) => (
                 <button
                   key={provider}
                   onClick={() => toggleOracle(provider)}

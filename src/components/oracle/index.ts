@@ -20,5 +20,4 @@ export {
 export {
   ATRIndicator,
   type ATRIndicatorProps,
-  type ATRPriceDataPoint,
 } from './indicators';

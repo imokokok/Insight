@@ -11,6 +11,24 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
+  [OracleProvider.WINKLINK]: 'WINkLink',
+};
+
+// i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键
+export const oracleI18nKeys: Record<OracleProvider, string> = {
+  [OracleProvider.CHAINLINK]: 'chainlink',
+  [OracleProvider.BAND_PROTOCOL]: 'bandProtocol',
+  [OracleProvider.UMA]: 'uma',
+  [OracleProvider.PYTH]: 'pythNetwork',
+  [OracleProvider.API3]: 'api3',
+  [OracleProvider.REDSTONE]: 'redstone',
+  [OracleProvider.DIA]: 'dia',
+  [OracleProvider.TELLAR]: 'tellar',
+  [OracleProvider.CHRONICLE]: 'chronicle',
+  [OracleProvider.WINKLINK]: 'winklink',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -72,6 +90,10 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: configChartColors.oracle['pyth'],
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
+  [OracleProvider.DIA]: configChartColors.oracle.dia,
+  [OracleProvider.TELLAR]: configChartColors.oracle.tellar,
+  [OracleProvider.CHRONICLE]: configChartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: configChartColors.oracle.winklink,
 };
 
 export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];

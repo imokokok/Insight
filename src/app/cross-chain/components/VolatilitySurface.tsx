@@ -25,7 +25,7 @@ import {
   type VolatilityConePoint,
 } from '../utils';
 import { Blockchain } from '@/types/oracle';
-import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface VolatilitySurfaceProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -158,10 +158,10 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
 
   const getCorrelationColor = (correlation: number): string => {
     const absCorr = Math.abs(correlation);
-    if (absCorr >= 0.7) return configChartColors.recharts.primary;
-    if (absCorr >= 0.4) return configChartColors.recharts.primaryLight;
-    if (absCorr >= 0.2) return configChartColors.semantic.neutral;
-    return configChartColors.recharts.grid;
+    if (absCorr >= 0.7) return chartColors.recharts.primary;
+    if (absCorr >= 0.4) return chartColors.recharts.primaryLight;
+    if (absCorr >= 0.2) return chartColors.semantic.neutral;
+    return chartColors.recharts.grid;
   };
 
   const handleLegendClick = (e: unknown) => {
@@ -326,7 +326,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 data={rollingVolatilityData}
                 margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={configChartColors.recharts.grid} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                 <XAxis
                   dataKey="time"
                   tick={{ fontSize: 10 }}
@@ -453,7 +453,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <div
                   className="w-32 h-3"
                   style={{
-                    background: `linear-gradient(to right, ${configChartColors.recharts.grid}, ${configChartColors.semantic.neutral}, ${configChartColors.recharts.primaryLight}, ${configChartColors.recharts.primary})`,
+                    background: `linear-gradient(to right, ${chartColors.recharts.grid}, ${chartColors.semantic.neutral}, ${chartColors.recharts.primaryLight}, ${chartColors.recharts.primary})`,
                   }}
                 />
                 <span className="text-xs text-gray-500">弱 → 强</span>
@@ -570,7 +570,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p75"
-                  stroke={configChartColors.recharts.primaryLight}
+                  stroke={chartColors.recharts.primaryLight}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -585,7 +585,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="meanVolatility"
-                  stroke={configChartColors.recharts.indigo}
+                  stroke={chartColors.recharts.indigo}
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   strokeDasharray="5 5"
@@ -593,7 +593,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p25"
-                  stroke={configChartColors.recharts.primaryLight}
+                  stroke={chartColors.recharts.primaryLight}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"

@@ -58,6 +58,10 @@ export function createMockFactory(
         [OracleProvider.PYTH]: clients[OracleProvider.PYTH] ?? createMockClient(OracleProvider.PYTH),
         [OracleProvider.API3]: clients[OracleProvider.API3] ?? createMockClient(OracleProvider.API3),
         [OracleProvider.REDSTONE]: clients[OracleProvider.REDSTONE] ?? createMockClient(OracleProvider.REDSTONE),
+        [OracleProvider.DIA]: clients[OracleProvider.DIA] ?? createMockClient(OracleProvider.DIA),
+        [OracleProvider.TELLAR]: clients[OracleProvider.TELLAR] ?? createMockClient(OracleProvider.TELLAR),
+        [OracleProvider.CHRONICLE]: clients[OracleProvider.CHRONICLE] ?? createMockClient(OracleProvider.CHRONICLE),
+        [OracleProvider.WINKLINK]: clients[OracleProvider.WINKLINK] ?? createMockClient(OracleProvider.WINKLINK),
       };
       return allClients;
     }),

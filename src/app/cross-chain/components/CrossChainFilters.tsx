@@ -6,6 +6,7 @@ import { TIME_RANGES, providerNames, chainNames, symbols } from '../constants';
 import { useCrossChainData } from '../useCrossChainData';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 import { ThresholdType } from '../utils';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -43,7 +44,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
   const thresholdConfig = useCrossChainStore((state) => state.thresholdConfig);
   const setThresholdConfig = useCrossChainStore((state) => state.setThresholdConfig);
 
-  const providerOptions = Object.values(OracleProvider).map((provider) => ({
+  const providerOptions = getOracleProvidersSortedByMarketCap().map((provider) => ({
     value: provider,
     label: providerNames[provider],
   }));

@@ -13,6 +13,10 @@ import {
   PythClient,
   API3Client,
   RedStoneClient,
+  DIAClient,
+  TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
 } from '@/lib/oracles';
 import {
   saveQueryHistory,
@@ -21,7 +25,7 @@ import {
   QueryHistoryItem,
 } from '@/utils/queryHistory';
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
-import { QueryResult, providerNames, chainNames, oracleColors, chainColors } from './constants';
+import { QueryResult, providerNames, chainNames, oracleColors, chainColors, oracleI18nKeys } from './constants';
 import {
   PageHeader,
   Selectors,
@@ -48,6 +52,10 @@ const oracleClients = {
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
+  [OracleProvider.DIA]: new DIAClient(),
+  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
+  [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export default function PriceQueryPage() {
@@ -452,7 +460,7 @@ export default function PriceQueryPage() {
     return sortedQueryResults.filter((result) => {
       const oracleName = providerNames[result.provider].toLowerCase();
       const chainName = chainNames[result.chain].toLowerCase();
-      const oracleTranslation = t(`navbar.${result.provider.toLowerCase()}`).toLowerCase();
+      const oracleTranslation = t(`navbar.${oracleI18nKeys[result.provider]}`).toLowerCase();
       const chainTranslation = t(`blockchain.${result.chain.toLowerCase()}`).toLowerCase();
       return (
         oracleName.includes(lowerFilter) ||

@@ -9,6 +9,10 @@ import {
   PythClient,
   API3Client,
   RedStoneClient,
+  DIAClient,
+  TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
 } from '@/lib/oracles';
 import { providerNames, type RefreshInterval } from '@/lib/constants';
 import {
@@ -26,6 +30,10 @@ export const oracleClients = {
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
+  [OracleProvider.DIA]: new DIAClient(),
+  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
+  [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export const oracleNames = providerNames;

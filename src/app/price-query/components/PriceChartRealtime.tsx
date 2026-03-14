@@ -18,7 +18,7 @@ import {
 import { Icons } from './Icons';
 import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
-import { QueryResult, oracleColors } from '../constants';
+import { QueryResult, oracleColors, oracleI18nKeys } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
 import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
@@ -208,7 +208,7 @@ export function PriceChartRealtime({
         canvas.width = img.width * 2;
         canvas.height = img.height * 2;
         ctx.scale(2, 2);
-        ctx.fillStyle = baseColors.white;
+        ctx.fillStyle = chartColors.recharts.white;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
 
@@ -229,7 +229,7 @@ export function PriceChartRealtime({
 
   const legendPayload = useMemo(() => {
     const payload = queryResults.map(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       return { value: label, color: oracleColors[provider] };
     });
 
@@ -419,7 +419,7 @@ export function PriceChartRealtime({
               {/* 原始查询结果价格线 */}
               {queryResults.map(({ provider, chain }) => {
                 const key = `${provider}-${chain}`;
-                const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                 const color = oracleColors[provider];
                 const isHidden = hiddenSeries.has(label);
                 const opacity = getLineOpacity(provider, chain);
@@ -457,7 +457,7 @@ export function PriceChartRealtime({
                       : {
                           r: 6,
                           strokeWidth: 2,
-                          stroke: baseColors.white,
+                          stroke: chartColors.recharts.white,
                           fill: flashDirection === 'up' ? semanticColors.success.main : flashDirection === 'down' ? semanticColors.danger.main : semanticColors.success.main,
                         }
                   }

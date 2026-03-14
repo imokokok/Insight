@@ -67,6 +67,23 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
+  [OracleProvider.WINKLINK]: 'WINkLink',
+};
+
+const ORACLE_COLORS: Record<OracleProvider, string> = {
+  [OracleProvider.CHAINLINK]: '#375BD2',
+  [OracleProvider.PYTH]: '#E6B800',
+  [OracleProvider.BAND_PROTOCOL]: '#516BEB',
+  [OracleProvider.UMA]: '#FF4D4D',
+  [OracleProvider.API3]: '#7B3FE4',
+  [OracleProvider.REDSTONE]: '#FF4D4D',
+  [OracleProvider.DIA]: '#6366F1',
+  [OracleProvider.TELLAR]: '#06B6D4',
+  [OracleProvider.CHRONICLE]: '#E11D48',
+  [OracleProvider.WINKLINK]: '#FF4D4D',
 };
 
 const SEVERITY_COLORS = {

@@ -58,7 +58,7 @@ export interface UseCrossOraclePageReturn {
   setExpandedRow: React.Dispatch<React.SetStateAction<number | null>>;
   isFilterPanelOpen: boolean;
   setIsFilterPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  filterPanelRef: React.RefObject<HTMLDivElement>;
+  filterPanelRef: React.RefObject<HTMLDivElement | null>;
   isChartFullscreen: boolean;
   setIsChartFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
   historyMinMax: HistoryMinMax;
@@ -69,10 +69,10 @@ export interface UseCrossOraclePageReturn {
   selectedRowIndex: number | null;
   hoveredRowIndex: number | null;
   highlightedOutlierIndex: number | null;
-  tableRef: React.RefObject<HTMLTableSectionElement>;
+  tableRef: React.RefObject<HTMLTableSectionElement | null>;
   showFavoritesDropdown: boolean;
   setShowFavoritesDropdown: React.Dispatch<React.SetStateAction<boolean>>;
-  favoritesDropdownRef: React.RefObject<HTMLDivElement>;
+  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
   useAccessibleColors: boolean;
   setUseAccessibleColors: React.Dispatch<React.SetStateAction<boolean>>;
   hoveredOracle: OracleProvider | null;

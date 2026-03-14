@@ -139,6 +139,8 @@ export default function CrossOraclePage() {
     getConsistencyRating,
     activeTab,
     handleTabChange,
+    setHoveredRowIndex,
+    setSelectedRowIndex,
   } = useCrossOraclePage();
 
   const CustomTooltip = ({

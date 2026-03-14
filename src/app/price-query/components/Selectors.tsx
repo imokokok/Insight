@@ -3,7 +3,8 @@
 import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
-import { symbols, oracleColors, chainColors, TIME_RANGES } from '../constants';
+import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface SelectorsProps {
   selectedOracles: OracleProvider[];
@@ -105,7 +106,7 @@ export function Selectors({
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setSelectedOracles(Object.values(OracleProvider))}
+              onClick={() => setSelectedOracles(getOracleProvidersSortedByMarketCap())}
               className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               全选
@@ -119,13 +120,14 @@ export function Selectors({
           </div>
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-labelledby="oracle-selector-label">
-          {Object.values(OracleProvider).map((oracle) => {
+          {getOracleProvidersSortedByMarketCap().map((oracle) => {
             const isSelected = selectedOracles.includes(oracle);
+            const i18nKey = oracleI18nKeys[oracle];
             return (
               <button
                 key={oracle}
                 onClick={() => toggleOracle(oracle)}
-                aria-label={`${t('priceQuery.selectors.oracle')}: ${t(`navbar.${oracle.toLowerCase()}`)}`}
+                aria-label={`${t('priceQuery.selectors.oracle')}: ${t(`navbar.${i18nKey}`)}`}
                 aria-pressed={isSelected}
                 className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${
                   isSelected
@@ -138,7 +140,7 @@ export function Selectors({
                   style={{ backgroundColor: oracleColors[oracle] }}
                   aria-hidden="true"
                 />
-                {t(`navbar.${oracle.toLowerCase()}`)}
+                {t(`navbar.${i18nKey}`)}
               </button>
             );
           })}

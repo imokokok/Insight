@@ -2,6 +2,7 @@
 
 import { OracleProvider } from '@/types/oracle';
 import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -120,7 +121,7 @@ export function FilterPanel({
             className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">全部预言机</option>
-            {Object.values(OracleProvider).map((oracle) => (
+            {getOracleProvidersSortedByMarketCap().map((oracle) => (
               <option key={oracle} value={oracle}>
                 {oracleNames[oracle]}
               </option>

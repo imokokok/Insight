@@ -11,6 +11,8 @@ import {
   RedStoneClient,
   DIAClient,
   TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
   BaseOracleClient,
 } from '@/lib/oracles';
 import {
@@ -48,6 +50,8 @@ const oracleClients = {
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
   [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
+  [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export interface UseCrossChainDataReturn {
@@ -1080,6 +1084,10 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       [OracleProvider.PYTH]: 'Pyth Network',
       [OracleProvider.API3]: 'API3',
       [OracleProvider.REDSTONE]: 'RedStone',
+      [OracleProvider.DIA]: 'DIA',
+      [OracleProvider.TELLAR]: 'Tellar',
+      [OracleProvider.CHRONICLE]: 'Chronicle',
+      [OracleProvider.WINKLINK]: 'WINkLink',
     };
 
     const getConsistencyRating = (stdDevPercent: number): string => {

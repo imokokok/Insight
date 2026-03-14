@@ -7,6 +7,7 @@ import {
   oracleColors,
   TIME_RANGES,
   DEVIATION_THRESHOLD,
+  oracleI18nKeys,
 } from '@/lib/constants';
 
 export type { PriceData };
@@ -25,4 +26,5 @@ export {
   oracleColors,
   TIME_RANGES,
   DEVIATION_THRESHOLD,
+  oracleI18nKeys,
 };

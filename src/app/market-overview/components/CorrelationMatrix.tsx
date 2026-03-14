@@ -24,8 +24,8 @@ interface CorrelationMatrixProps {
 const CORRELATION_COLORS = {
   strongPositive: semanticColors.success.main,
   moderatePositive: semanticColors.success.light,
-  weakPositive: semanticColors.success.lighter,
-  neutral: chartColors.recharts.neutral,
+  weakPositive: '#a7f3d0', // lighter green
+  neutral: semanticColors.neutral.main,
   weakNegative: semanticColors.danger.light,
   moderateNegative: semanticColors.danger.main,
   strongNegative: semanticColors.danger.dark,

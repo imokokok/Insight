@@ -4,6 +4,7 @@ import React from 'react';
 import { OracleProvider, PriceData } from '@/types/oracle';
 import { oracleNames, symbols, SortColumn, SortDirection } from '../constants';
 import { PriceTable } from './PriceTable';
+import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface PriceTableSectionProps {
   priceData: PriceData[];
@@ -79,7 +80,7 @@ export function PriceTableSection({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {Object.values(OracleProvider).map((oracle) => (
+          {getOracleProvidersSortedByMarketCap().map((oracle) => (
             <button
               key={oracle}
               onClick={() => onToggleOracle(oracle)}
