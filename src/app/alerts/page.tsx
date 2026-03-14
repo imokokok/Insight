@@ -8,8 +8,10 @@ import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertList } from '@/components/alerts/AlertList';
 import { AlertHistory } from '@/components/alerts/AlertHistory';
 import { AlertNotificationContainer } from '@/components/alerts/AlertNotification';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function AlertsPage() {
+  const { t } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const { alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useAlerts();
   const { events, isLoading: eventsLoading, refetch: refetchEvents } = useAlertEvents();
@@ -58,13 +60,15 @@ export default function AlertsPage() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          <h2 className="mt-4 text-xl font-semibold text-gray-900">请先登录</h2>
-          <p className="mt-2 text-gray-500">登录后即可使用价格告警功能</p>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">
+            {t('alerts.page.loginRequired')}
+          </h2>
+          <p className="mt-2 text-gray-500">{t('alerts.page.loginRequiredDesc')}</p>
           <Link
             href="/login"
             className="mt-6 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            前往登录
+            {t('alerts.page.goToLogin')}
           </Link>
         </div>
       </div>
@@ -82,8 +86,8 @@ export default function AlertsPage() {
       />
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">价格告警</h1>
-        <p className="mt-1 text-sm text-gray-500">设置价格告警，当价格达到目标时自动通知您</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('alerts.page.title')}</h1>
+        <p className="mt-1 text-sm text-gray-500">{t('alerts.page.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,13 +122,15 @@ export default function AlertsPage() {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-blue-800">使用说明</h3>
+            <h3 className="text-sm font-medium text-blue-800">
+              {t('alerts.page.instructions.title')}
+            </h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>选择交易对和告警条件，设置目标价格或变化百分比</li>
-                <li>可选择特定预言机和链，或监控所有来源</li>
-                <li>告警触发后会在页面顶部显示通知</li>
-                <li>请在告警历史中确认已触发的告警</li>
+                <li>{t('alerts.page.instructions.items.1')}</li>
+                <li>{t('alerts.page.instructions.items.2')}</li>
+                <li>{t('alerts.page.instructions.items.3')}</li>
+                <li>{t('alerts.page.instructions.items.4')}</li>
               </ul>
             </div>
           </div>

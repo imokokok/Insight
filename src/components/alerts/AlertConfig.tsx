@@ -1,23 +1,19 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { providerNames, chainNames, symbols, oracleColors, chainColors } from '@/lib/constants';
 import { useCreateAlert, CreateAlertInput } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
 }
 
-const CONDITION_OPTIONS: { value: AlertConditionType; label: string; description: string }[] = [
-  { value: 'above', label: '高于', description: '当价格高于目标值时触发' },
-  { value: 'below', label: '低于', description: '当价格低于目标值时触发' },
-  { value: 'change_percent', label: '变化百分比', description: '当价格变化超过目标百分比时触发' },
-];
-
 export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
+  const { t } = useI18n();
   const [alertName, setAlertName] = useState<string>('');
   const [symbol, setSymbol] = useState<string>('BTC');
   const [provider, setProvider] = useState<OracleProvider | ''>('');
@@ -28,6 +24,28 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { createAlert, isCreating } = useCreateAlert();
+
+  const CONDITION_OPTIONS: { value: AlertConditionType; label: string; description: string }[] =
+    useMemo(
+      () => [
+        {
+          value: 'above',
+          label: t('alerts.condition.above'),
+          description: t('alerts.condition.aboveDesc'),
+        },
+        {
+          value: 'below',
+          label: t('alerts.condition.below'),
+          description: t('alerts.condition.belowDesc'),
+        },
+        {
+          value: 'change_percent',
+          label: t('alerts.condition.changePercent'),
+          description: t('alerts.condition.changePercentDesc'),
+        },
+      ],
+      [t]
+    );
 
   const handleProviderChange = useCallback((value: OracleProvider | '') => {
     setProvider(value);
@@ -43,14 +61,19 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
       const numericTarget = parseFloat(targetValue);
       if (isNaN(numericTarget) || numericTarget <= 0) {
-        setError('请输入有效的目标值');
+        setError(t('alerts.error.invalidTargetValue'));
         return;
       }
 
+      const conditionLabel =
+        conditionType === 'above'
+          ? t('alerts.condition.above')
+          : conditionType === 'below'
+            ? t('alerts.condition.below')
+            : t('alerts.condition.changePercent');
+
       const input: CreateAlertInput = {
-        name:
-          alertName ||
-          `${symbol} ${conditionType === 'above' ? '高于' : conditionType === 'below' ? '低于' : '变化'} ${numericTarget}`,
+        name: alertName || `${symbol} ${conditionLabel} ${numericTarget}`,
         symbol,
         provider: provider || null,
         chain: chain || null,
@@ -82,37 +105,43 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
       isActive,
       createAlert,
       onAlertCreated,
+      t,
     ]
   );
 
-  const getTargetPlaceholder = () => {
+  const getTargetPlaceholder = useCallback(() => {
     switch (conditionType) {
       case 'above':
       case 'below':
-        return '输入目标价格';
+        return t('alerts.placeholder.targetPrice');
       case 'change_percent':
-        return '输入百分比 (如: 5 表示 5%)';
+        return t('alerts.placeholder.percentage');
       default:
-        return '输入目标值';
+        return t('alerts.placeholder.targetValue');
     }
-  };
+  }, [conditionType, t]);
 
   return (
-    <DashboardCard title="创建价格告警">
+    <DashboardCard title={t('alerts.create.title')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">告警名称 (可选)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.nameLabel')}{' '}
+            <span className="text-gray-400">{t('alerts.create.nameOptional')}</span>
+          </label>
           <input
             type="text"
             value={alertName}
             onChange={(e) => setAlertName(e.target.value)}
-            placeholder="为告警起个名字"
+            placeholder={t('alerts.create.namePlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">交易对</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.symbolLabel')}
+          </label>
           <select
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
@@ -127,13 +156,16 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">预言机 (可选)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.providerLabel')}{' '}
+            <span className="text-gray-400">{t('alerts.create.providerOptional')}</span>
+          </label>
           <select
             value={provider}
             onChange={(e) => handleProviderChange(e.target.value as OracleProvider | '')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
-            <option value="">所有预言机</option>
+            <option value="">{t('alerts.create.allProviders')}</option>
             {Object.entries(providerNames).map(([key, name]) => (
               <option key={key} value={key}>
                 <span
@@ -147,14 +179,19 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">链 (可选)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.chainLabel')}{' '}
+            <span className="text-gray-400">{t('alerts.create.chainOptional')}</span>
+          </label>
           <select
             value={chain}
             onChange={(e) => setChain(e.target.value as Blockchain | '')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
             disabled={!provider}
           >
-            <option value="">{provider ? '所有链' : '请先选择预言机'}</option>
+            <option value="">
+              {provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')}
+            </option>
             {Object.entries(chainNames).map(([key, name]) => (
               <option key={key} value={key}>
                 {name}
@@ -164,7 +201,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">告警条件</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.conditionLabel')}
+          </label>
           <div className="space-y-2">
             {CONDITION_OPTIONS.map((option) => (
               <label
@@ -193,7 +232,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">目标值</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('alerts.create.targetValueLabel')}
+          </label>
           <input
             type="number"
             step="any"
@@ -205,7 +246,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700">启用告警</label>
+          <label className="text-sm font-medium text-gray-700">
+            {t('alerts.create.enableAlert')}
+          </label>
           <button
             type="button"
             onClick={() => setIsActive(!isActive)}
@@ -234,7 +277,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >
-          {isCreating ? '创建中...' : '创建告警'}
+          {isCreating ? t('alerts.create.submitting') : t('alerts.create.submit')}
         </button>
       </form>
     </DashboardCard>

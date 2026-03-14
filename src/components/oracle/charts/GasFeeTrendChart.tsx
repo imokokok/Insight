@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { chartColors } from '@/lib/config/colors';
 
 type TimeRange = '24H' | '7D' | '30D' | '90D';
 
@@ -198,22 +199,22 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <defs>
               <linearGradient id="gasFeeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} opacity={0.5} />
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               minTickGap={30}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               tickFormatter={(value) => `${value} Gwei`}
             />
             <Tooltip
@@ -230,19 +231,19 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
             />
             <ReferenceLine
               y={stats.avg}
-              stroke="#9ca3af"
+              stroke={chartColors.recharts.axis}
               strokeDasharray="3 3"
               label={{
                 value: `平均: ${stats.avg}`,
                 position: 'right',
                 fontSize: 10,
-                fill: '#6b7280',
+                fill: chartColors.recharts.tick,
               }}
             />
             <Area
               type="monotone"
               dataKey="gasFee"
-              stroke="#3b82f6"
+              stroke={chartColors.recharts.primary}
               strokeWidth={2}
               fill="url(#gasFeeGradient)"
               name="Gas费用"

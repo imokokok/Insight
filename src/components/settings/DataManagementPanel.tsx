@@ -15,8 +15,10 @@ import {
   CheckCircle,
   X,
 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 export function DataManagementPanel() {
+  const { t } = useI18n();
   const { user, signOut } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -62,10 +64,10 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess('用户数据已导出');
+      setSuccess(t('settings.data.exportSuccess'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('导出失败，请重试');
+      setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -100,10 +102,10 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess('价格历史已导出');
+      setSuccess(t('settings.data.priceHistoryExportSuccess'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('导出失败，请重试');
+      setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -134,17 +136,17 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess('快照数据已导出');
+      setSuccess(t('settings.data.snapshotsExportSuccess'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('导出失败，请重试');
+      setError(t('settings.data.exportError'));
     } finally {
       setIsExporting(false);
     }
   };
 
   const clearLocalData = async () => {
-    if (!confirm('确定要清除所有本地数据吗？这将清除您的偏好设置和缓存数据。')) {
+    if (!confirm(t('settings.data.clearLocalDataConfirm'))) {
       return;
     }
 
@@ -160,10 +162,10 @@ export function DataManagementPanel() {
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
-      setSuccess('本地数据已清除');
+      setSuccess(t('settings.data.clearLocalDataSuccess'));
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('清除失败，请重试');
+      setError(t('settings.data.clearLocalDataError'));
     } finally {
       setIsClearing(false);
     }
@@ -183,7 +185,7 @@ export function DataManagementPanel() {
       const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
 
       if (deleteError) {
-        setError('删除账户失败，请联系管理员');
+        setError(t('settings.data.deleteAccountError'));
         return;
       }
 
@@ -202,9 +204,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Database className="w-5 h-5 text-gray-400" />
-            数据管理
+            {t('settings.data.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">导出和管理您的数据</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.data.subtitle')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -229,9 +231,9 @@ export function DataManagementPanel() {
                     <FileJson className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">导出用户数据</div>
+                    <div className="font-medium text-gray-900">{t('settings.data.exportUserData')}</div>
                     <div className="text-sm text-gray-500">
-                      导出您的个人资料、收藏、告警和快照数据
+                      {t('settings.data.exportUserDataDesc')}
                     </div>
                   </div>
                 </div>
@@ -245,7 +247,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  导出
+                  {t('settings.data.export')}
                 </button>
               </div>
             </div>
@@ -257,8 +259,8 @@ export function DataManagementPanel() {
                     <Download className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">导出价格历史</div>
-                    <div className="text-sm text-gray-500">导出最近 10000 条价格记录</div>
+                    <div className="font-medium text-gray-900">{t('settings.data.exportPriceHistory')}</div>
+                    <div className="text-sm text-gray-500">{t('settings.data.exportPriceHistoryDesc')}</div>
                   </div>
                 </div>
                 <button
@@ -271,7 +273,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  导出
+                  {t('settings.data.export')}
                 </button>
               </div>
             </div>
@@ -283,8 +285,8 @@ export function DataManagementPanel() {
                     <Database className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">导出快照</div>
-                    <div className="text-sm text-gray-500">导出您保存的所有价格快照</div>
+                    <div className="font-medium text-gray-900">{t('settings.data.exportSnapshots')}</div>
+                    <div className="text-sm text-gray-500">{t('settings.data.exportSnapshotsDesc')}</div>
                   </div>
                 </div>
                 <button
@@ -297,7 +299,7 @@ export function DataManagementPanel() {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  导出
+                  {t('settings.data.export')}
                 </button>
               </div>
             </div>
@@ -309,9 +311,9 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-gray-400" />
-            清除数据
+            {t('settings.data.clearData')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">清除本地存储的数据</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.data.clearDataDesc')}</p>
         </div>
 
         <div className="p-6">
@@ -319,9 +321,9 @@ export function DataManagementPanel() {
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
-                <p className="font-medium">注意</p>
+                <p className="font-medium">{t('settings.data.note')}</p>
                 <p className="mt-1">
-                  清除本地数据将删除您的偏好设置和缓存数据，但不会影响服务器上的数据。
+                  {t('settings.data.clearDataWarning')}
                 </p>
               </div>
             </div>
@@ -337,7 +339,7 @@ export function DataManagementPanel() {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
-            清除本地数据
+            {t('settings.data.clearLocalData')}
           </button>
         </div>
       </div>
@@ -346,33 +348,33 @@ export function DataManagementPanel() {
         <div className="px-6 py-4 border-b border-red-100 bg-red-50">
           <h2 className="text-lg font-semibold text-red-900 flex items-center gap-2">
             <UserX className="w-5 h-5 text-red-600" />
-            危险区域
+            {t('settings.data.dangerZone')}
           </h2>
-          <p className="text-sm text-red-700 mt-1">不可逆的操作，请谨慎处理</p>
+          <p className="text-sm text-red-700 mt-1">{t('settings.data.dangerZoneDesc')}</p>
         </div>
 
         <div className="p-6">
           {!showDeleteConfirm ? (
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                删除账户将永久删除您的所有数据，包括个人资料、收藏、告警和快照。此操作不可撤销。
+                {t('settings.data.deleteAccountWarning')}
               </p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 <UserX className="w-4 h-4" />
-                删除账户
+                {t('settings.data.deleteAccount')}
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-800 font-medium mb-2">
-                  您确定要删除账户吗？此操作不可撤销！
+                  {t('settings.data.deleteAccountConfirm')}
                 </p>
                 <p className="text-sm text-red-700">
-                  请输入 <span className="font-mono font-bold">DELETE</span> 以确认删除：
+                  {t('settings.data.deleteAccountConfirmHint')}
                 </p>
               </div>
 
@@ -380,7 +382,7 @@ export function DataManagementPanel() {
                 type="text"
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="输入 DELETE"
+                placeholder={t('settings.data.deleteAccountConfirmPlaceholder')}
                 className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
               />
 
@@ -395,7 +397,7 @@ export function DataManagementPanel() {
                   ) : (
                     <UserX className="w-4 h-4" />
                   )}
-                  确认删除账户
+                  {t('settings.data.confirmDeleteAccount')}
                 </button>
                 <button
                   onClick={() => {
@@ -405,7 +407,7 @@ export function DataManagementPanel() {
                   className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   <X className="w-4 h-4" />
-                  取消
+                  {t('settings.data.cancel')}
                 </button>
               </div>
             </div>

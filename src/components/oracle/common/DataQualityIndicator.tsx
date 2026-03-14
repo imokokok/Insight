@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface DataQualityIndicatorProps {
   completeness: number;
@@ -58,9 +59,9 @@ function GaugeChart({ value, size = 140 }: { value: number; size?: number }) {
   const strokeDashoffset = arcLength - (clampedValue / 100) * arcLength;
 
   const getColor = (score: number) => {
-    if (score >= 80) return '#16A34A';
-    if (score >= 60) return '#CA8A04';
-    return '#DC2626';
+    if (score >= 80) return semanticColors.success.dark;
+    if (score >= 60) return semanticColors.warning.dark;
+    return semanticColors.danger.dark;
   };
 
   const color = getColor(clampedValue);
@@ -78,7 +79,7 @@ function GaugeChart({ value, size = 140 }: { value: number; size?: number }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#E5E7EB"
+          stroke={chartColors.grid.line}
           strokeWidth={strokeWidth}
           strokeDasharray={arcLength}
           strokeDashoffset={0}
@@ -211,8 +212,11 @@ export default function DataQualityIndicator({
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-purple-500 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((sourceCount / 10) * 100, 100)}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${Math.min((sourceCount / 10) * 100, 100)}%`,
+                    backgroundColor: chartColors.recharts.purple 
+                  }}
                 />
               </div>
             </div>

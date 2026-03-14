@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n/provider';
 import { ArrowRight, Search, TrendingUp, Shield, Zap, BookOpen, Activity } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { chartColors } from '@/lib/config/colors';
 
 // 生成模拟趋势数据
 const generateTrendData = (baseValue: number, points: number = 20) => {
@@ -19,30 +20,30 @@ const generateTrendData = (baseValue: number, points: number = 20) => {
 };
 
 // 三个指标数据，包含迷你图表数据
-const metrics = [
+const getMetrics = (t: (key: string) => string) => [
   {
     label: 'tvs',
     value: '$42.1B',
-    subLabel: '总保障价值',
+    subLabel: t('home.hero.metrics.totalValueSecured'),
     icon: Shield,
     trend: generateTrendData(40),
-    color: '#3b82f6',
+    color: chartColors.chart.blueLight,
   },
   {
     label: 'oracles',
     value: '5',
-    subLabel: '活跃预言机',
+    subLabel: t('home.hero.metrics.activeOracles'),
     icon: Zap,
     trend: generateTrendData(5, 15),
-    color: '#10b981',
+    color: chartColors.chart.emeraldLight,
   },
   {
     label: 'pairs',
     value: '1200+',
-    subLabel: '支持交易对',
+    subLabel: t('home.hero.metrics.supportedPairs'),
     icon: TrendingUp,
     trend: generateTrendData(1100, 25),
-    color: '#8b5cf6',
+    color: chartColors.chart.violetLight,
   },
 ];
 
@@ -58,7 +59,7 @@ function StaticBackground() {
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle at center, #3b82f6 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle at center, ${chartColors.chart.blueLight} 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
         }}
       />
@@ -67,13 +68,11 @@ function StaticBackground() {
 }
 
 export default function ProfessionalHero() {
-  const { t, locale } = useI18n();
-  const isZh = locale === 'zh-CN';
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const title = isZh ? '洞察预言机数据' : 'Insight Oracle Data';
-  const titleHighlight = isZh ? '驱动智能决策' : 'Power Smart Decisions';
+  const metrics = getMetrics(t);
 
   return (
     <section className="relative min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50 overflow-hidden">
@@ -92,7 +91,7 @@ export default function ProfessionalHero() {
               </span>
               <Activity className="w-3.5 h-3.5 text-emerald-600" />
               <span className="text-sm font-semibold text-emerald-700">
-                {isZh ? '实时数据' : 'Live Data'}
+                {t('home.hero.liveData')}
               </span>
               <span className="w-1 h-1 rounded-full bg-emerald-400/50"></span>
               <span className="text-xs text-emerald-600/70">
@@ -102,10 +101,10 @@ export default function ProfessionalHero() {
 
             {/* Title with enhanced typography - Responsive font sizes */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 leading-tight mb-6 tracking-tight">
-              {title}
+              {t('home.hero.title.part1')}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 animate-gradient">
-                {titleHighlight}
+                {t('home.hero.title.part2')}
               </span>
             </h1>
 
@@ -141,15 +140,11 @@ export default function ProfessionalHero() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    placeholder={
-                      isZh
-                        ? '搜索交易对、预言机或区块链...'
-                        : 'Search trading pairs, oracles, or blockchains...'
-                    }
+                    placeholder={t('home.hero.searchPlaceholder')}
                     className="flex-1 px-3 sm:px-4 py-3 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent outline-none min-w-0"
                   />
                   <button className="mr-1 sm:mr-2 px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg sm:rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 text-sm sm:text-base whitespace-nowrap">
-                    {isZh ? '搜索' : 'Search'}
+                    {t('common.search')}
                   </button>
                 </div>
               </div>
@@ -169,7 +164,7 @@ export default function ProfessionalHero() {
                 className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/80 backdrop-blur-sm text-gray-700 font-semibold rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-white hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-0.5 transition-all duration-300 group w-full sm:w-auto justify-center"
               >
                 <BookOpen className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors duration-300" />
-                {isZh ? '查看文档' : 'View Documentation'}
+                {t('home.hero.viewDocumentation')}
               </Link>
             </div>
 

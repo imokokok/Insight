@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { BoxPlotData } from '../constants';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface StandardBoxPlotProps {
   data: BoxPlotData[];
@@ -242,24 +243,24 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
             layout="vertical"
             margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis
               type="number"
               domain={yDomain}
               tickFormatter={(v) => `$${v.toFixed(0)}`}
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.secondaryAxis }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <YAxis
               type="category"
               dataKey="chainName"
               width={70}
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.secondaryAxis }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <Tooltip content={<CustomTooltip />} />
 
@@ -277,7 +278,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
                 dataKey="value"
                 name={t('crossChain.boxPlot.outliers')}
                 shape="circle"
-                fill="#F97316"
+                fill={semanticColors.warning.dark}
                 stroke="#fff"
                 strokeWidth={1}
               >

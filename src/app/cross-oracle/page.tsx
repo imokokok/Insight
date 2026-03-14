@@ -1,9 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useI18n } from '@/lib/i18n/provider';
-import { OracleProvider, PriceData } from '@/types/oracle';
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -17,24 +14,18 @@ import {
 } from 'recharts';
 import {
   PriceDeviationHeatmap,
-  PriceDeviationDataPoint,
 } from '@/components/oracle/charts/PriceDeviationHeatmap';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import {
   PriceDistributionBoxPlot,
-  OraclePriceData,
 } from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
-import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
 import {
   PriceCorrelationMatrix,
-  OraclePriceSeries,
 } from '@/components/oracle/charts/PriceCorrelationMatrix';
-import { PriceVolatilityChart, OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
+import { PriceVolatilityChart } from '@/components/oracle/charts/PriceVolatilityChart';
 import {
   OraclePerformanceRanking,
-  OraclePerformanceData,
 } from '@/components/oracle/common/OraclePerformanceRanking';
 import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
 import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
@@ -43,806 +34,112 @@ import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
-import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/types/oracle';
 import { FloatingActionButton } from '@/components/oracle/common/FloatingActionButton';
 import { FavoriteButton } from '@/components/favorites';
-import {
-  useFavorites,
-  useIsFavorited,
-  mapConfigTypeFromDB,
-  FavoriteConfig,
-} from '@/hooks/useFavorites';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  oracleClients,
-  oracleNames,
-  symbols,
-  TimeRange,
-  DeviationFilter,
-  RefreshInterval,
-  SortColumn,
-  SortDirection,
-  calculateWeightedAverage,
-  calculateVariance,
-  calculateStandardDeviation,
-  getConsistencyRating,
-  calculateZScore,
-  isOutlier,
-  exportToCSV,
-  exportToJSON,
-  timeRanges,
-  HistoryMinMax,
-  initialHistoryMinMax,
-  updateHistoryMinMax,
-} from './constants';
+import { OracleProvider } from '@/types/oracle';
+import { oracleNames, TimeRange } from './constants';
 import {
   FilterPanel,
-  StatsCards,
-  MobileStatsCards,
-  PriceTable,
   TabNavigation,
-  useTabNavigation,
-  TabId,
+  StatsSection,
+  PriceTableSection,
 } from './components';
-import { createLogger } from '@/lib/utils/logger';
-import { chartColors, baseColors, accessibleColors } from '@/lib/config/colors';
-import { lttbDownsample, calculateOptimalThreshold } from '@/lib/utils/lttb';
-
-const logger = createLogger('cross-oracle-page');
-
-// 根据时间范围确定最大数据点数
-const getMaxPointsForTimeRange = (timeRange: TimeRange): number => {
-  switch (timeRange) {
-    case '1H':
-      return 60; // 每分钟一个点
-    case '24H':
-      return 200; // 每7分钟一个点
-    case '7D':
-      return 300; // 每30分钟一个点
-    case '30D':
-      return 400; // 每1.8小时一个点
-    case '90D':
-      return 500; // 每4.3小时一个点
-    case '1Y':
-      return 500; // 每17小时一个点
-    case 'ALL':
-      return 500;
-    default:
-      return 200;
-  }
-};
+import { useCrossOraclePage } from './useCrossOraclePage';
+import { chartColors, baseColors } from '@/lib/config/colors';
+import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
 
 export default function CrossOraclePage() {
-  const { t } = useI18n();
-  const router = useRouter();
-  const { user } = useAuth();
-  const { activeTab, handleTabChange } = useTabNavigation();
-  const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
-    OracleProvider.CHAINLINK,
-    OracleProvider.BAND_PROTOCOL,
-  ]);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC/USD');
-  const [priceData, setPriceData] = useState<PriceData[]>([]);
-  const [historicalData, setHistoricalData] = useState<
-    Partial<Record<OracleProvider, PriceData[]>>
-  >({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
-  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
-  const [prevStats, setPrevStats] = useState<SnapshotStats | null>(null);
-  const [lastStats, setLastStats] = useState<SnapshotStats | null>(null);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [deviationFilter, setDeviationFilter] = useState<DeviationFilter>('all');
-  const [oracleFilter, setOracleFilter] = useState<OracleProvider | 'all'>('all');
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const filterPanelRef = useRef<HTMLDivElement>(null);
-  const [isChartFullscreen, setIsChartFullscreen] = useState(false);
-  const [historyMinMax, setHistoryMinMax] = useState<HistoryMinMax>(initialHistoryMinMax);
-  const [selectedSnapshot, setSelectedSnapshot] = useState<OracleSnapshot | null>(null);
-  const [showComparison, setShowComparison] = useState(false);
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
-  const [highlightedOutlierIndex, setHighlightedOutlierIndex] = useState<number | null>(null);
-  const tableRef = useRef<HTMLTableSectionElement>(null);
-  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
-  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
-  const [useAccessibleColors, setUseAccessibleColors] = useState(false);
-  const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
-  const [selectedOracleFromChart, setSelectedOracleFromChart] = useState<OracleProvider | null>(
-    null
-  );
-
-  const currentFavoriteConfig: FavoriteConfig = useMemo(
-    () => ({
-      selectedOracles: selectedOracles.map((o) => o as string),
-      symbol: selectedSymbol,
-    }),
-    [selectedOracles, selectedSymbol]
-  );
-
-  const { favorites: oracleFavorites } = useFavorites({ configType: 'oracle_config' });
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        favoritesDropdownRef.current &&
-        !favoritesDropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowFavoritesDropdown(false);
-      }
-    };
-    if (showFavoritesDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showFavoritesDropdown]);
-
-  const handleApplyFavorite = useCallback((config: FavoriteConfig) => {
-    if (config.selectedOracles) {
-      setSelectedOracles(config.selectedOracles as OracleProvider[]);
-    }
-    if (config.symbol) {
-      setSelectedSymbol(config.symbol);
-    }
-    setShowFavoritesDropdown(false);
-  }, []);
-
-  const validPrices = useMemo(
-    () => priceData.map((d) => d.price).filter((p) => p > 0),
-    [priceData]
-  );
-  const avgPrice = useMemo(
-    () =>
-      validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0,
-    [validPrices]
-  );
-  const weightedAvgPrice = useMemo(() => calculateWeightedAverage(priceData), [priceData]);
-  const maxPrice = useMemo(
-    () => (validPrices.length > 0 ? Math.max(...validPrices) : 0),
-    [validPrices]
-  );
-  const minPrice = useMemo(
-    () => (validPrices.length > 0 ? Math.min(...validPrices) : 0),
-    [validPrices]
-  );
-  const priceRange = maxPrice - minPrice;
-  const variance = useMemo(() => calculateVariance(validPrices, avgPrice), [validPrices, avgPrice]);
-  const standardDeviation = useMemo(() => calculateStandardDeviation(variance), [variance]);
-  const standardDeviationPercent = useMemo(
-    () => (avgPrice > 0 ? (standardDeviation / avgPrice) * 100 : 0),
-    [avgPrice, standardDeviation]
-  );
-
-  const currentStats: SnapshotStats = useMemo(
-    () => ({
-      avgPrice,
-      weightedAvgPrice,
-      maxPrice,
-      minPrice,
-      priceRange,
-      variance,
-      standardDeviation,
-      standardDeviationPercent,
-    }),
-    [
-      avgPrice,
-      weightedAvgPrice,
-      maxPrice,
-      minPrice,
-      priceRange,
-      variance,
-      standardDeviation,
-      standardDeviationPercent,
-    ]
-  );
-
-  const handleSaveSnapshot = useCallback(() => {
-    if (priceData.length === 0) return;
-    saveSnapshot({
-      timestamp: Date.now(),
-      symbol: selectedSymbol,
-      selectedOracles,
-      priceData,
-      stats: currentStats,
-    });
-  }, [priceData, selectedSymbol, selectedOracles, currentStats]);
-
-  const handleSelectSnapshot = useCallback((snapshot: OracleSnapshot) => {
-    setSelectedSnapshot(snapshot);
-    setShowComparison(true);
-  }, []);
-
-  const handleSort = (column: SortColumn) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  };
-
-  const sortedPriceData = useMemo(() => {
-    return [...priceData].sort((a, b) => {
-      if (!sortColumn) return 0;
-      if (sortColumn === 'price') {
-        return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
-      }
-      if (sortColumn === 'timestamp') {
-        return sortDirection === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
-      }
-      return 0;
-    });
-  }, [priceData, sortColumn, sortDirection]);
-
-  const fetchPriceData = useCallback(async () => {
-    setIsLoading(true);
-    const prices: PriceData[] = [];
-    const histories: Partial<Record<OracleProvider, PriceData[]>> = {};
-
-    const getHoursForTimeRange = (range: TimeRange): number | undefined => {
-      switch (range) {
-        case '1H':
-          return 1;
-        case '24H':
-          return 24;
-        case '7D':
-          return 168;
-        case '30D':
-          return 720;
-        case '90D':
-          return 2160;
-        case '1Y':
-          return 8760;
-        case 'ALL':
-          return undefined;
-        default:
-          return 24;
-      }
-    };
-
-    const hours = getHoursForTimeRange(timeRange);
-
-    for (const oracle of selectedOracles) {
-      try {
-        const client = oracleClients[oracle];
-        const price = await client.getPrice(selectedSymbol.split('/')[0]);
-        const history = await client.getHistoricalPrices(
-          selectedSymbol.split('/')[0],
-          undefined,
-          hours
-        );
-        prices.push(price);
-        histories[oracle] = history;
-      } catch (error) {
-        logger.error(
-          `Error fetching data from ${oracle}`,
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-    }
-
-    const currentValidPrices = prices.map((d) => d.price).filter((p) => p > 0);
-    const currentAvgPrice =
-      currentValidPrices.length > 0
-        ? currentValidPrices.reduce((a, b) => a + b, 0) / currentValidPrices.length
-        : 0;
-    const currentMaxPrice = currentValidPrices.length > 0 ? Math.max(...currentValidPrices) : 0;
-    const currentMinPrice = currentValidPrices.length > 0 ? Math.min(...currentValidPrices) : 0;
-    const currentPriceRange = currentMaxPrice - currentMinPrice;
-    const currentWeightedAvgPrice = calculateWeightedAverage(prices);
-    const currentVariance = calculateVariance(currentValidPrices, currentAvgPrice);
-    const currentStandardDeviation = calculateStandardDeviation(currentVariance);
-    const currentStandardDeviationPercent =
-      currentAvgPrice > 0 ? (currentStandardDeviation / currentAvgPrice) * 100 : 0;
-
-    setLastStats(prevStats);
-    setPrevStats({
-      avgPrice: currentAvgPrice,
-      weightedAvgPrice: currentWeightedAvgPrice,
-      maxPrice: currentMaxPrice,
-      minPrice: currentMinPrice,
-      priceRange: currentPriceRange,
-      variance: currentVariance,
-      standardDeviation: currentStandardDeviation,
-      standardDeviationPercent: currentStandardDeviationPercent,
-    });
-
-    updateHistoryMinMax(setHistoryMinMax, {
-      avgPrice: currentAvgPrice,
-      weightedAvgPrice: currentWeightedAvgPrice,
-      maxPrice: currentMaxPrice,
-      minPrice: currentMinPrice,
-      priceRange: currentPriceRange,
-      variance: currentVariance,
-      standardDeviationPercent: currentStandardDeviationPercent,
-    });
-
-    setPriceData(prices);
-    setHistoricalData(histories);
-    setLastUpdated(new Date());
-    setIsLoading(false);
-  }, [selectedOracles, selectedSymbol, timeRange]);
-
-  const calculateChangePercent = (current: number, previous: number): number | null => {
-    if (previous === 0 || current === 1) return null;
-    return ((current - previous) / previous) * 100;
-  };
-
-  useEffect(() => {
-    fetchPriceData();
-  }, [fetchPriceData]);
-
-  useEffect(() => {
-    if (refreshInterval === 0) return;
-    const intervalId = setInterval(() => {
-      fetchPriceData();
-    }, refreshInterval);
-    return () => clearInterval(intervalId);
-  }, [refreshInterval, fetchPriceData]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterPanelRef.current && !filterPanelRef.current.contains(event.target as Node)) {
-        setIsFilterPanelOpen(false);
-      }
-    };
-    if (isFilterPanelOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isFilterPanelOpen]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (deviationFilter !== 'all') count++;
-    if (oracleFilter !== 'all') count++;
-    if (timeRange !== '24H') count++;
-    return count;
-  }, [deviationFilter, oracleFilter, timeRange]);
-
-  const handleClearFilters = useCallback(() => {
-    setDeviationFilter('all');
-    setOracleFilter('all');
-    setTimeRange('24H');
-  }, []);
-
-  const getFilterSummary = useCallback(() => {
-    const summary: string[] = [];
-    if (deviationFilter !== 'all') {
-      const label =
-        deviationFilter === 'excellent'
-          ? '<0.1%'
-          : deviationFilter === 'good'
-            ? '0.1-0.5%'
-            : '>0.5%';
-      summary.push(`偏差: ${label}`);
-    }
-    if (oracleFilter !== 'all') {
-      summary.push(`预言机: ${oracleNames[oracleFilter]}`);
-    }
-    if (timeRange !== '24H') {
-      summary.push(`时间: ${timeRange}`);
-    }
-    return summary;
-  }, [deviationFilter, oracleFilter, timeRange]);
-
-  const toggleOracle = (oracle: OracleProvider) => {
-    setSelectedOracles((prev) =>
-      prev.includes(oracle) ? prev.filter((o) => o !== oracle) : [...prev, oracle]
-    );
-  };
-
-  // 使用统一的颜色配置 - 创建本地映射（支持色盲友好模式）
-  const oracleChartColors: Record<OracleProvider, string> = useMemo(() => {
-    if (useAccessibleColors) {
-      return {
-        [OracleProvider.CHAINLINK]: accessibleColors.chart.sequence[0],
-        [OracleProvider.BAND_PROTOCOL]: accessibleColors.chart.sequence[1],
-        [OracleProvider.UMA]: accessibleColors.chart.sequence[2],
-        [OracleProvider.PYTH]: accessibleColors.chart.sequence[3],
-        [OracleProvider.API3]: accessibleColors.chart.sequence[4],
-      } as Record<OracleProvider, string>;
-    }
-    return {
-      [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-      [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-      [OracleProvider.UMA]: chartColors.oracle.uma,
-      [OracleProvider.PYTH]: chartColors.oracle.pyth,
-      [OracleProvider.API3]: chartColors.oracle.api3,
-    } as Record<OracleProvider, string>;
-  }, [useAccessibleColors]);
-
-  // 获取线条样式（用于色盲友好的双重编码）
-  const getLineStrokeDasharray = (oracle: OracleProvider): string => {
-    if (!useAccessibleColors) return '0';
-    const patternMap: Record<OracleProvider, string> = {
-      [OracleProvider.CHAINLINK]: accessibleColors.linePatterns.solid,
-      [OracleProvider.BAND_PROTOCOL]: accessibleColors.linePatterns.dashed,
-      [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
-      [OracleProvider.PYTH]: accessibleColors.linePatterns.dashDot,
-      [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
-      [OracleProvider.REDSTONE]: '5 5',
-    };
-    return patternMap[oracle] || '0';
-  };
-
-  const getChartData = useCallback(() => {
-    if (Object.keys(historicalData).length === 0) return [];
-
-    // 应用LTTB下采样优化性能
-    const maxPoints = getMaxPointsForTimeRange(timeRange);
-    const downsampledData: Partial<Record<OracleProvider, PriceData[]>> = {};
-
-    selectedOracles.forEach((oracle) => {
-      const data = historicalData[oracle];
-      if (data && data.length > maxPoints) {
-        downsampledData[oracle] = lttbDownsample(
-          data.map((d) => ({ timestamp: d.timestamp, price: d.price })),
-          maxPoints
-        ).map((d) => ({ ...d, provider: oracle, confidence: 1 }) as PriceData);
-      } else {
-        downsampledData[oracle] = data || [];
-      }
-    });
-
-    const timestamps = new Set<number>();
-    Object.values(downsampledData).forEach((history) => {
-      history?.forEach((data) => timestamps.add(data.timestamp));
-    });
-    const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b);
-
-    return sortedTimestamps.map((timestamp) => {
-      const point: Record<string, string | number | Date | undefined> = {
-        timestamp: new Date(timestamp).toLocaleTimeString(),
-        fullTimestamp: new Date(timestamp),
-        rawTimestamp: timestamp,
-      };
-      const pricesAtTime: number[] = [];
-
-      selectedOracles.forEach((oracle) => {
-        const dataPoint = downsampledData[oracle]?.find((d) => d.timestamp === timestamp);
-        if (dataPoint) {
-          point[oracleNames[oracle]] = dataPoint.price;
-          pricesAtTime.push(dataPoint.price);
-        }
-      });
-
-      if (pricesAtTime.length > 0) {
-        const avg = pricesAtTime.reduce((a, b) => a + b, 0) / pricesAtTime.length;
-        const variance =
-          pricesAtTime.length > 1
-            ? pricesAtTime.reduce((sum, p) => sum + Math.pow(p - avg, 2), 0) / pricesAtTime.length
-            : 0;
-        const stdDev = Math.sqrt(variance);
-        point.avgPrice = avg;
-        point.stdDev = stdDev;
-        point.upperBound1 = avg + stdDev;
-        point.lowerBound1 = avg - stdDev;
-        point.upperBound2 = avg + stdDev * 2;
-        point.lowerBound2 = avg - stdDev * 2;
-        point.oracleCount = pricesAtTime.length;
-      }
-      return point;
-    });
-  }, [historicalData, selectedOracles, timeRange]);
-
-  const heatmapData = useMemo((): PriceDeviationDataPoint[] => {
-    const result: PriceDeviationDataPoint[] = [];
-    const chartDataPoints = getChartData();
-    chartDataPoints.forEach((point) => {
-      const avgPriceVal = point.avgPrice as number | undefined;
-      if (!avgPriceVal) return;
-      selectedOracles.forEach((oracle) => {
-        const price = point[oracleNames[oracle]] as number | undefined;
-        if (price !== undefined) {
-          const deviationPercent = ((price - avgPriceVal) / avgPriceVal) * 100;
-          result.push({
-            timestamp: point.rawTimestamp as number,
-            oracleName: oracleNames[oracle],
-            deviationPercent,
-            price,
-          });
-        }
-      });
-    });
-    return result;
-  }, [historicalData, selectedOracles, avgPrice, getChartData]);
-
-  const boxPlotData = useMemo((): OraclePriceData[] => {
-    return selectedOracles.map((oracle) => ({
-      oracleId: oracle,
-      prices: (historicalData[oracle] || []).map((d) => d.price),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const volatilityData = useMemo((): OraclePriceHistory[] => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const correlationData = useMemo((): OraclePriceSeries[] => {
-    return selectedOracles.map((oracle) => ({
-      oracleId: oracle,
-      data: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const latencyData = useMemo((): number[] => {
-    const latencies: number[] = [];
-    selectedOracles.forEach((oracle) => {
-      const history = historicalData[oracle] || [];
-      for (let i = 1; i < history.length; i++) {
-        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
-        if (timeDiff > 0 && timeDiff < 3600000) {
-          latencies.push(timeDiff);
-        }
-      }
-    });
-    return latencies.length > 0
-      ? latencies
-      : [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
-  }, [historicalData, selectedOracles]);
-
-  const performanceData = useMemo((): OraclePerformanceData[] => {
-    return selectedOracles.map((oracle) => {
-      const history = historicalData[oracle] || [];
-      const prices = history.map((d) => d.price);
-      const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-      const variance =
-        prices.length > 1
-          ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
-          : 0;
-      const stdDev = Math.sqrt(variance);
-      // 基于价格稳定性计算（标准差相对于均值的比例）
-      const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
-
-      const latencies: number[] = [];
-      for (let i = 1; i < history.length; i++) {
-        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
-        if (timeDiff > 0 && timeDiff < 3600000) {
-          latencies.push(timeDiff);
-        }
-      }
-      const avgLatency =
-        latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
-
-      // 基于实际价格数据计算准确率（与平均价格的偏差）
-      const avgPrice =
-        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-      const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
-      const priceDeviation = avgPrice > 0 ? Math.abs((currentPrice - avgPrice) / avgPrice) : 0;
-      // 准确率：偏差越小，准确率越高（基于实际数据计算）
-      const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
-
-      return {
-        provider: oracle,
-        name: oracleNames[oracle],
-        responseTime: Math.round(avgLatency),
-        accuracy: accuracy,
-        stability: Math.min(100, Math.max(0, stability)),
-        // 标记为模拟数据，待接入真实数据源
-        dataSources: 0,
-        supportedChains: 0,
-        color: oracleChartColors[oracle],
-      };
-    });
-  }, [historicalData, selectedOracles, validPrices]);
-
-  // Advanced tab data - moved to top level to follow React Hooks rules
-  const maData = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const gasFeeData = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      chain: 'Ethereum',
-      updateCost: 45000 + Math.random() * 20000,
-      updateFrequency: 300 + Math.random() * 600,
-      avgGasPrice: 20 + Math.random() * 30,
-      lastUpdate: Date.now() - Math.random() * 3600000,
-    }));
-  }, [selectedOracles]);
-
-  const atrData = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-        high: d.price * (1 + Math.random() * 0.002),
-        low: d.price * (1 - Math.random() * 0.002),
-        close: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const bollingerData = useMemo(() => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-        high: d.price * (1 + Math.random() * 0.003),
-        low: d.price * (1 - Math.random() * 0.003),
-        close: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
-
-  const qualityTrendData = useMemo(() => {
-    return selectedOracles.map((oracle) => {
-      const history = historicalData[oracle] || [];
-      const data: any[] = [];
-
-      for (let i = 0; i < history.length; i++) {
-        const point = history[i];
-        const pricesAtTime = selectedOracles
-          .map((o) => historicalData[o]?.find((d) => d.timestamp === point.timestamp)?.price)
-          .filter((p): p is number => p !== undefined);
-
-        const median =
-          pricesAtTime.length > 0
-            ? pricesAtTime.sort((a, b) => a - b)[Math.floor(pricesAtTime.length / 2)]
-            : point.price;
-
-        data.push({
-          timestamp: point.timestamp,
-          updateLatency: Math.random() * 500 + 100,
-          deviationFromMedian: Math.abs((point.price - median) / median),
-          isOutlier: Math.abs((point.price - median) / median) > 0.005,
-          isStale: Math.random() > 0.95,
-          heartbeatCompliance: 0.95 + Math.random() * 0.05,
-        });
-      }
-
-      return {
-        oracle,
-        data,
-      };
-    });
-  }, [historicalData, selectedOracles]);
-
-  const qualityScoreData = useMemo(() => {
-    const successCount = priceData.filter((d) => d.price > 0).length;
-    const totalCount = selectedOracles.length;
-    const latestTimestamp =
-      priceData.length > 0 ? Math.max(...priceData.map((d) => d.timestamp)) : Date.now();
-    const avgAccuracy =
-      performanceData.length > 0
-        ? performanceData.reduce((sum, d) => sum + d.accuracy, 0) / performanceData.length
-        : 95;
-
-    return {
-      freshness: { lastUpdated: new Date(latestTimestamp) },
-      completeness: { successCount, totalCount },
-      reliability: {
-        historicalAccuracy: avgAccuracy,
-        responseSuccessRate: totalCount > 0 ? (successCount / totalCount) * 100 : 0,
-      },
-    };
-  }, [priceData, selectedOracles, performanceData]);
-
-  const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev * 1.5, 5));
-  const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev / 1.5, 0.5));
-  const handleResetZoom = () => setZoomLevel(1);
-
-  const filteredPriceData = useMemo(() => {
-    return sortedPriceData.filter((data) => {
-      if (oracleFilter !== 'all' && data.provider !== oracleFilter) return false;
-      if (deviationFilter === 'all') return true;
-
-      let deviationPercent: number | null = null;
-      if (validPrices.length > 1 && avgPrice > 0 && data.price > 0) {
-        deviationPercent = Math.abs(((data.price - avgPrice) / avgPrice) * 100);
-      }
-
-      if (deviationFilter === 'excellent')
-        return deviationPercent !== null && deviationPercent < 0.1;
-      if (deviationFilter === 'good')
-        return deviationPercent !== null && deviationPercent >= 0.1 && deviationPercent < 0.5;
-      if (deviationFilter === 'poor') return deviationPercent !== null && deviationPercent >= 0.5;
-      return true;
-    });
-  }, [sortedPriceData, oracleFilter, deviationFilter, validPrices, avgPrice]);
-
-  const outlierStats = useMemo(() => {
-    const outliers: {
-      index: number;
-      provider: OracleProvider;
-      zScore: number;
-      deviation: number;
-    }[] = [];
-    filteredPriceData.forEach((data, index) => {
-      const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
-      if (isOutlier(zScore)) {
-        const deviation = avgPrice > 0 ? Math.abs(((data.price - avgPrice) / avgPrice) * 100) : 0;
-        outliers.push({ index, provider: data.provider, zScore: zScore!, deviation });
-      }
-    });
-    const avgDeviation =
-      outliers.length > 0 ? outliers.reduce((sum, o) => sum + o.deviation, 0) / outliers.length : 0;
-    return {
-      count: outliers.length,
-      avgDeviation,
-      outliers,
-      oracleNames: outliers.map((o) => oracleNames[o.provider]),
-    };
-  }, [filteredPriceData, avgPrice, standardDeviation]);
-
-  const scrollToOutlier = useCallback(() => {
-    if (outlierStats.outliers.length === 0) return;
-    const firstOutlier = outlierStats.outliers[0];
-    setHighlightedOutlierIndex(firstOutlier.index);
-    handleTabChange('overview');
-    setTimeout(() => {
-      const rowElement = document.getElementById(`outlier-row-${firstOutlier.index}`);
-      if (rowElement) {
-        rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
-    setTimeout(() => {
-      setHighlightedOutlierIndex(null);
-    }, 3000);
-  }, [outlierStats.outliers, handleTabChange]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (filteredPriceData.length === 0) return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedRowIndex((prev) =>
-          prev === null ? 0 : Math.min(prev + 1, filteredPriceData.length - 1)
-        );
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedRowIndex((prev) =>
-          prev === null ? filteredPriceData.length - 1 : Math.max(prev - 1, 0)
-        );
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (selectedRowIndex !== null) {
-          setExpandedRow(expandedRow === selectedRowIndex ? null : selectedRowIndex);
-        }
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setSelectedRowIndex(null);
-        setExpandedRow(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filteredPriceData.length, selectedRowIndex, expandedRow]);
-
-  const handleExportCSV = useCallback(() => {
-    exportToCSV(priceData, oracleNames, avgPrice, validPrices);
-  }, [priceData, avgPrice, validPrices]);
-
-  const handleExportJSON = useCallback(() => {
-    exportToJSON(priceData, oracleNames, avgPrice, validPrices);
-  }, [priceData, avgPrice, validPrices]);
+  const {
+    selectedOracles,
+    selectedSymbol,
+    setSelectedSymbol,
+    priceData,
+    isLoading,
+    lastUpdated,
+    sortColumn,
+    sortDirection,
+    timeRange,
+    setTimeRange,
+    lastStats,
+    historyMinMax,
+    zoomLevel,
+    deviationFilter,
+    setDeviationFilter,
+    oracleFilter,
+    setOracleFilter,
+    expandedRow,
+    setExpandedRow,
+    isFilterPanelOpen,
+    setIsFilterPanelOpen,
+    filterPanelRef,
+    isChartFullscreen,
+    setIsChartFullscreen,
+    selectedSnapshot,
+    setSelectedSnapshot,
+    showComparison,
+    setShowComparison,
+    selectedRowIndex,
+    hoveredRowIndex,
+    highlightedOutlierIndex,
+    showFavoritesDropdown,
+    setShowFavoritesDropdown,
+    favoritesDropdownRef,
+    useAccessibleColors,
+    setUseAccessibleColors,
+    hoveredOracle,
+    setHoveredOracle,
+    t,
+    router,
+    user,
+    oracleFavorites,
+    currentFavoriteConfig,
+    validPrices,
+    avgPrice,
+    weightedAvgPrice,
+    maxPrice,
+    minPrice,
+    priceRange,
+    variance,
+    standardDeviation,
+    standardDeviationPercent,
+    currentStats,
+    filteredPriceData,
+    activeFilterCount,
+    outlierStats,
+    oracleChartColors,
+    getChartData,
+    heatmapData,
+    boxPlotData,
+    volatilityData,
+    correlationData,
+    latencyData,
+    performanceData,
+    maData,
+    gasFeeData,
+    atrData,
+    bollingerData,
+    qualityTrendData,
+    qualityScoreData,
+    handleSort,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetZoom,
+    handleSaveSnapshot,
+    handleSelectSnapshot,
+    handleClearFilters,
+    getFilterSummary,
+    toggleOracle,
+    handleApplyFavorite,
+    handleExportCSV,
+    handleExportJSON,
+    scrollToOutlier,
+    calculateChangePercent,
+    fetchPriceData,
+    getLineStrokeDasharray,
+    getConsistencyRating,
+    activeTab,
+    handleTabChange,
+  } = useCrossOraclePage();
 
   const CustomTooltip = ({
     active,
@@ -932,106 +229,47 @@ export default function CrossOraclePage() {
 
   const renderOverviewTab = () => (
     <>
-      <div className="mb-8">
-        <DataQualityScoreCard
-          freshness={qualityScoreData.freshness}
-          completeness={qualityScoreData.completeness}
-          reliability={qualityScoreData.reliability}
-        />
-      </div>
+      <StatsSection
+        qualityScoreData={qualityScoreData}
+        avgPrice={avgPrice}
+        weightedAvgPrice={weightedAvgPrice}
+        maxPrice={maxPrice}
+        minPrice={minPrice}
+        priceRange={priceRange}
+        standardDeviationPercent={standardDeviationPercent}
+        variance={variance}
+        lastStats={lastStats}
+        historyMinMax={historyMinMax}
+        calculateChangePercent={calculateChangePercent}
+        getConsistencyRating={getConsistencyRating}
+        t={t}
+      />
 
-      <div className="mb-8">
-        <StatsCards
-          avgPrice={avgPrice}
-          weightedAvgPrice={weightedAvgPrice}
-          maxPrice={maxPrice}
-          minPrice={minPrice}
-          priceRange={priceRange}
-          standardDeviationPercent={standardDeviationPercent}
-          variance={variance}
-          lastStats={lastStats}
-          historyMinMax={historyMinMax}
-          calculateChangePercent={calculateChangePercent}
-          getConsistencyRating={getConsistencyRating}
-          t={t}
-        />
-        <MobileStatsCards
-          avgPrice={avgPrice}
-          maxPrice={maxPrice}
-          minPrice={minPrice}
-          priceRange={priceRange}
-          standardDeviationPercent={standardDeviationPercent}
-          variance={variance}
-          lastStats={lastStats}
-          calculateChangePercent={calculateChangePercent}
-          getConsistencyRating={getConsistencyRating}
-          t={t}
-        />
-      </div>
-
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('crossOracle.currentPriceComparison')}
-          </h2>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">交易对:</span>
-            <select
-              value={selectedSymbol}
-              onChange={(e) => setSelectedSymbol(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {symbols.map((symbol) => (
-                <option key={symbol} value={symbol}>
-                  {symbol}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {Object.values(OracleProvider).map((oracle) => (
-            <button
-              key={oracle}
-              onClick={() => toggleOracle(oracle)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                selectedOracles.includes(oracle)
-                  ? 'bg-blue-50 border-blue-300 text-blue-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: oracleChartColors[oracle] }}
-              />
-              {oracleNames[oracle]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <PriceTable
-          priceData={priceData}
-          filteredPriceData={filteredPriceData}
-          isLoading={isLoading}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          expandedRow={expandedRow}
-          selectedRowIndex={selectedRowIndex}
-          hoveredRowIndex={hoveredRowIndex}
-          chartColors={oracleChartColors}
-          avgPrice={avgPrice}
-          standardDeviation={standardDeviation}
-          validPrices={validPrices}
-          onSort={handleSort}
-          onExpandRow={setExpandedRow}
-          onSetHoveredRow={setHoveredRowIndex}
-          onSetSelectedRow={setSelectedRowIndex}
-          onHoverOracle={setHoveredOracle}
-          t={t}
-        />
-      </div>
+      <PriceTableSection
+        priceData={priceData}
+        filteredPriceData={filteredPriceData}
+        isLoading={isLoading}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        expandedRow={expandedRow}
+        selectedRowIndex={selectedRowIndex}
+        hoveredRowIndex={hoveredRowIndex}
+        chartColors={oracleChartColors}
+        avgPrice={avgPrice}
+        standardDeviation={standardDeviation}
+        validPrices={validPrices}
+        selectedSymbol={selectedSymbol}
+        selectedOracles={selectedOracles}
+        oracleChartColors={oracleChartColors}
+        onSort={handleSort}
+        onExpandRow={setExpandedRow}
+        onSetHoveredRow={setHoveredRowIndex}
+        onSetSelectedRow={setSelectedRowIndex}
+        onHoverOracle={setHoveredOracle}
+        onSymbolChange={setSelectedSymbol}
+        onToggleOracle={toggleOracle}
+        t={t}
+      />
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -1120,12 +358,12 @@ export default function CrossOraclePage() {
               <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <defs>
                   <linearGradient id="stdDevGradient1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
+                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="stdDevGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.05} />
-                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.01} />
+                    <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
+                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
@@ -1156,7 +394,7 @@ export default function CrossOraclePage() {
                   type="monotone"
                   dataKey="lowerBound2"
                   stroke="none"
-                  fill="#ffffff"
+                  fill={chartColors.recharts.white}
                   fillOpacity={1}
                   isAnimationActive={false}
                 />
@@ -1172,14 +410,14 @@ export default function CrossOraclePage() {
                   type="monotone"
                   dataKey="lowerBound1"
                   stroke="none"
-                  fill="#ffffff"
+                  fill={chartColors.recharts.white}
                   fillOpacity={1}
                   isAnimationActive={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="avgPrice"
-                  stroke="#6366f1"
+                  stroke={chartColors.recharts.purple}
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
@@ -1199,13 +437,12 @@ export default function CrossOraclePage() {
                     activeDot={{
                       r: hoveredOracle === oracle ? 8 : 6,
                       strokeWidth: 2,
-                      stroke: '#ffffff',
+                      stroke: chartColors.recharts.white,
                       fill: oracleChartColors[oracle],
                     }}
                     onMouseEnter={() => setHoveredOracle(oracle)}
                     onMouseLeave={() => setHoveredOracle(null)}
                     onClick={() => {
-                      setSelectedOracleFromChart(oracle);
                       setOracleFilter(oracle);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -1266,18 +503,18 @@ export default function CrossOraclePage() {
             <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <defs>
                 <linearGradient id="stdDevGradient1Charts" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.15} />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                  <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
                 </linearGradient>
                 <linearGradient id="stdDevGradient2Charts" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.05} />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.01} />
+                  <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
+                  <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="timestamp" stroke="#6B7280" fontSize={12} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
+              <XAxis dataKey="timestamp" stroke={baseColors.gray[500]} fontSize={12} tickLine={false} />
               <YAxis
-                stroke="#6B7280"
+                stroke={baseColors.gray[500]}
                 fontSize={12}
                 tickLine={false}
                 domain={['auto', 'auto']}
@@ -1297,7 +534,7 @@ export default function CrossOraclePage() {
                 type="monotone"
                 dataKey="lowerBound2"
                 stroke="none"
-                fill="#ffffff"
+                fill={chartColors.recharts.white}
                 fillOpacity={1}
                 isAnimationActive={false}
               />
@@ -1313,14 +550,14 @@ export default function CrossOraclePage() {
                 type="monotone"
                 dataKey="lowerBound1"
                 stroke="none"
-                fill="#ffffff"
+                fill={chartColors.recharts.white}
                 fillOpacity={1}
                 isAnimationActive={false}
               />
               <Line
                 type="monotone"
                 dataKey="avgPrice"
-                stroke="#6366f1"
+                stroke={chartColors.recharts.purple}
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -1346,7 +583,6 @@ export default function CrossOraclePage() {
                   onMouseEnter={() => setHoveredOracle(oracle)}
                   onMouseLeave={() => setHoveredOracle(null)}
                   onClick={() => {
-                    setSelectedOracleFromChart(oracle);
                     setOracleFilter(oracle);
                   }}
                   style={{ cursor: 'pointer' }}
@@ -1751,7 +987,7 @@ export default function CrossOraclePage() {
                   </div>
                   <div className="p-1">
                     {oracleFavorites.map((favorite) => {
-                      const config = favorite.config_data as FavoriteConfig;
+                      const config = favorite.config_data as typeof currentFavoriteConfig;
                       return (
                         <button
                           key={favorite.id}
@@ -1879,18 +1115,18 @@ export default function CrossOraclePage() {
               <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <defs>
                   <linearGradient id="stdDevGradient1Fullscreen" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
+                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="stdDevGradient2Fullscreen" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.05} />
-                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.01} />
+                    <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
+                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="timestamp" stroke="#6B7280" fontSize={12} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
+                <XAxis dataKey="timestamp" stroke={baseColors.gray[500]} fontSize={12} tickLine={false} />
                 <YAxis
-                  stroke="#6B7280"
+                  stroke={baseColors.gray[500]}
                   fontSize={12}
                   tickLine={false}
                   domain={['auto', 'auto']}
@@ -1910,7 +1146,7 @@ export default function CrossOraclePage() {
                   type="monotone"
                   dataKey="lowerBound2"
                   stroke="none"
-                  fill="#ffffff"
+                  fill={chartColors.recharts.white}
                   fillOpacity={1}
                   isAnimationActive={false}
                 />
@@ -1926,14 +1162,14 @@ export default function CrossOraclePage() {
                   type="monotone"
                   dataKey="lowerBound1"
                   stroke="none"
-                  fill="#ffffff"
+                  fill={chartColors.recharts.white}
                   fillOpacity={1}
                   isAnimationActive={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="avgPrice"
-                  stroke="#6366f1"
+                  stroke={chartColors.recharts.purple}
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
@@ -1963,7 +1199,7 @@ export default function CrossOraclePage() {
             <div className="flex items-center gap-2">
               <span
                 className="w-5 h-0.5 bg-indigo-500"
-                style={{ borderTop: '2px dashed #6366f1' }}
+                style={{ borderTop: `2px dashed ${chartColors.chart.indigoLight}` }}
               />
               <span>平均价格线</span>
             </div>

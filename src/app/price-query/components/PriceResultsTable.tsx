@@ -13,6 +13,7 @@ import {
   chainNames,
   DEVIATION_THRESHOLD,
 } from '../constants';
+import { semanticColors } from '@/lib/config/colors';
 
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -31,10 +32,10 @@ interface PriceResultsTableProps {
 }
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: '#10b981', bgColor: 'bg-green-500', label: '优秀' },
-  good: { color: '#3b82f6', bgColor: 'bg-blue-500', label: '良好' },
-  warning: { color: '#f59e0b', bgColor: 'bg-yellow-500', label: '警告' },
-  critical: { color: '#ef4444', bgColor: 'bg-red-500', label: '异常' },
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: '优秀' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: '良好' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: '警告' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: '异常' },
 };
 
 function getScoreLevel(score: number): ScoreLevel {

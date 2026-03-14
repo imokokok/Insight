@@ -17,6 +17,7 @@ import {
   Legend,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 type NodeType = 'data_provider' | 'validator' | 'aggregator';
 
@@ -43,10 +44,10 @@ interface NodeReputationPanelProps {
 }
 
 const COLORS = {
-  excellent: '#10B981',
-  good: '#3B82F6',
-  fair: '#F59E0B',
-  poor: '#EF4444',
+  excellent: chartColors.semantic.success,
+  good: chartColors.recharts.primary,
+  fair: chartColors.semantic.warning,
+  poor: chartColors.semantic.danger,
 };
 
 const NODE_TYPE_COLORS: Record<NodeType, string> = {
@@ -147,7 +148,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
       <div className="flex items-center justify-center">
         <div className="relative w-32 h-32">
           <svg className="w-full h-full transform -rotate-90">
-            <circle cx="64" cy="64" r="45" stroke="#E5E7EB" strokeWidth="10" fill="none" />
+            <circle cx="64" cy="64" r="45" stroke={chartColors.recharts.grid} strokeWidth="10" fill="none" />
             <circle
               cx="64"
               cy="64"
@@ -245,7 +246,7 @@ function AccuracyStats({
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis type="number" domain={[95, 100]} tick={{ fontSize: 12 }} />
             <YAxis type="category" dataKey="period" tick={{ fontSize: 12 }} width={40} />
             <Tooltip
@@ -255,12 +256,12 @@ function AccuracyStats({
               ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${chartColors.recharts.grid}`,
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
-            <Bar dataKey="accuracy" fill="#3B82F6" radius={[0, 4, 4, 0]}>
+            <Bar dataKey="accuracy" fill={chartColors.recharts.primary} radius={[0, 4, 4, 0]}>
               {data.map((entry, index) => {
                 const color =
                   entry.accuracy >= 99
@@ -326,7 +327,7 @@ function ResponseTimeDistribution({
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis dataKey="range" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
@@ -336,12 +337,12 @@ function ResponseTimeDistribution({
               ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${chartColors.recharts.grid}`,
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
-            <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="count" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => {
                 if (entry.range === '0-50ms')
                   return <Cell key={`cell-${index}`} fill={COLORS.excellent} />;
@@ -466,7 +467,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#10B981"
+                  stroke={chartColors.semantic.success}
                   strokeWidth={2}
                   dot={false}
                 />
@@ -502,7 +503,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
     type,
   }));
 
-  const COLORS_MAP = ['#3B82F6', '#10B981', '#8B5CF6'];
+  const COLORS_MAP = [chartColors.recharts.primary, chartColors.semantic.success, chartColors.recharts.purple];
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -538,7 +539,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
               ]}
               contentStyle={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${chartColors.recharts.grid}`,
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}

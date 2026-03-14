@@ -12,6 +12,7 @@ import {
   BarChart3,
   Info,
 } from 'lucide-react';
+import { semanticColors } from '@/lib/config/colors';
 
 interface RiskDashboardProps {
   data: RiskMetrics | null;
@@ -69,22 +70,22 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
     if (value < 1500) {
       return {
         label: locale === 'zh-CN' ? '竞争型市场' : 'Competitive Market',
-        color: '#10B981',
+        color: semanticColors.success.main,
       };
     } else if (value < 2500) {
       return {
         label: locale === 'zh-CN' ? '中度集中' : 'Moderate Concentration',
-        color: '#F59E0B',
+        color: semanticColors.warning.main,
       };
     } else if (value < 3500) {
       return {
         label: locale === 'zh-CN' ? '高度集中' : 'High Concentration',
-        color: '#EF4444',
+        color: semanticColors.danger.main,
       };
     } else {
       return {
         label: locale === 'zh-CN' ? '垄断型市场' : 'Monopoly Market',
-        color: '#7C3AED',
+        color: semanticColors.info.dark,
       };
     }
   };

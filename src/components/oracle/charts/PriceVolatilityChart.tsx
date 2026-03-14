@@ -20,7 +20,7 @@ import { TooltipProps } from '@/types/ui/recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { VolatilityAlert } from '../common/VolatilityAlert';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, getOracleColor } from '@/lib/config/colors';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -80,12 +80,12 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 const TIME_SCALE_WINDOW = {
@@ -95,9 +95,9 @@ const TIME_SCALE_WINDOW = {
 };
 
 const TIME_SCALE_COLORS = {
-  short: '#3B82F6',
-  mid: '#10B981',
-  long: '#8B5CF6',
+  short: chartColors.sequence[0],
+  mid: chartColors.sequence[1],
+  long: chartColors.recharts.purple,
 };
 
 const TIME_SCALE_CONFIG: {
@@ -119,11 +119,11 @@ function getVolatilityLevel(cv: number): {
   color: string;
   label: string;
 } {
-  if (cv < 0.5) return { levelKey: 'extremelyLow', color: '#10B981', label: '极低' };
-  if (cv < 1.0) return { levelKey: 'low', color: '#3B82F6', label: '低' };
-  if (cv < 2.0) return { levelKey: 'medium', color: '#F59E0B', label: '中等' };
-  if (cv < 5.0) return { levelKey: 'high', color: '#EF4444', label: '高' };
-  return { levelKey: 'extremelyHigh', color: '#991B1B', label: '极高' };
+  if (cv < 0.5) return { levelKey: 'extremelyLow', color: semanticColors.success.DEFAULT, label: '极低' };
+  if (cv < 1.0) return { levelKey: 'low', color: chartColors.sequence[0], label: '低' };
+  if (cv < 2.0) return { levelKey: 'medium', color: semanticColors.warning.DEFAULT, label: '中等' };
+  if (cv < 5.0) return { levelKey: 'high', color: semanticColors.danger.DEFAULT, label: '高' };
+  return { levelKey: 'extremelyHigh', color: semanticColors.danger.dark, label: '极高' };
 }
 
 function calculateStandardDeviation(prices: number[]): number {

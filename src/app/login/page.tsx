@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/lib/i18n/provider';
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, signInWithOAuth, loading, error, user } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -60,8 +62,8 @@ export default function LoginPage() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">登录您的账户</h2>
-            <p className="mt-2 text-sm text-gray-500">欢迎回来，请输入您的登录信息</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">{t('auth.login.title')}</h2>
+            <p className="mt-2 text-sm text-gray-500">{t('auth.login.subtitle')}</p>
           </div>
 
           {displayError && (
@@ -73,7 +75,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                邮箱地址
+                {t('auth.login.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -85,7 +87,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="your@email.com"
+                  placeholder={t('auth.login.emailPlaceholder')}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
@@ -93,7 +95,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                {t('auth.login.passwordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -105,7 +107,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="输入您的密码"
+                  placeholder={t('auth.login.passwordPlaceholder')}
                   className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
                 <button
@@ -128,13 +130,13 @@ export default function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-600">记住我</span>
+                <span className="ml-2 text-sm text-gray-600">{t('auth.login.rememberMe')}</span>
               </label>
               <Link
                 href="/forgot-password"
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
-                忘记密码？
+                {t('auth.login.forgotPassword')}
               </Link>
             </div>
 
@@ -148,7 +150,7 @@ export default function LoginPage() {
               ) : (
                 <LogIn className="w-5 h-5" />
               )}
-              <span>{isLoading || loading ? '登录中...' : '登录'}</span>
+              <span>{isLoading || loading ? t('auth.login.submitting') : t('auth.login.submit')}</span>
             </button>
           </form>
 
@@ -158,7 +160,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">或使用以下方式登录</span>
+                <span className="px-4 bg-white text-gray-500">{t('auth.login.orSignInWith')}</span>
               </div>
             </div>
 
@@ -207,12 +209,12 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            还没有账户？{' '}
+            {t('auth.login.noAccount')}{' '}
             <Link
               href="/register"
               className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              立即注册
+              {t('auth.login.registerNow')}
             </Link>
           </p>
         </div>

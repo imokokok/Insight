@@ -16,6 +16,7 @@ import {
   Line,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, chainColors } from '@/lib/config/colors';
 
 interface LatencyDataPoint {
   range: string;
@@ -65,10 +66,10 @@ interface LatencyStats {
 }
 
 const CHAIN_COLORS: Record<string, string> = {
-  Ethereum: '#627eea',
+  Ethereum: chainColors.ethereum,
   Arbitrum: '#28a0f0',
   Optimism: '#ff0420',
-  Polygon: '#8247e5',
+  Polygon: chainColors.polygon,
 };
 
 const STATUS_CONFIG = {
@@ -294,19 +295,19 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
 
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="range"
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}%`}
           />
           <Tooltip
@@ -330,10 +331,10 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
           />
           <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => {
-              let color = '#10b981';
-              if (index >= 7) color = '#f43f5e';
-              else if (index >= 5) color = '#f59e0b';
-              else if (index >= 3) color = '#3b82f6';
+              let color: string = chartColors.recharts.success;
+              if (index >= 7) color = chartColors.recharts.danger;
+              else if (index >= 5) color = chartColors.recharts.warning;
+              else if (index >= 3) color = chartColors.recharts.primary;
               return <Cell key={`cell-${index}`} fill={color} />;
             })}
           </Bar>
@@ -429,20 +430,20 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
 
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="time"
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             minTickGap={30}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}ms`}
           />
           <Tooltip
@@ -478,7 +479,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
           <Area
             type="monotone"
             dataKey="latency"
-            fill="#3b82f6"
+            fill={chartColors.recharts.primary}
             fillOpacity={0.1}
             stroke="none"
             name={t('latencyAnalysis.trend.current')}
@@ -486,7 +487,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="p50"
-            stroke="#10b981"
+            stroke={chartColors.recharts.success}
             strokeWidth={2}
             dot={false}
             name="P50"
@@ -494,7 +495,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="p95"
-            stroke="#f59e0b"
+            stroke={chartColors.recharts.warning}
             strokeWidth={2}
             dot={false}
             name="P95"
@@ -502,7 +503,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="p99"
-            stroke="#f43f5e"
+            stroke={chartColors.recharts.danger}
             strokeWidth={2}
             dot={false}
             name="P99"

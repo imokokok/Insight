@@ -39,17 +39,18 @@ const logger = createLogger('API3PageContent');
 
 type AP3Tab = 'market' | 'network' | 'airnode' | 'coverage' | 'advantages' | 'advanced';
 
-const TABS: { id: AP3Tab; label: string }[] = [
-  { id: 'market', label: '市场数据' },
-  { id: 'network', label: '网络健康' },
-  { id: 'airnode', label: 'Airnode' },
-  { id: 'coverage', label: '保险池' },
-  { id: 'advantages', label: '第一方预言机' },
-  { id: 'advanced', label: '高级分析' },
+const TABS: { id: AP3Tab; labelKey: string }[] = [
+  { id: 'market', labelKey: 'api3.tabs.overview' },
+  { id: 'network', labelKey: 'api3.tabs.networkHealth' },
+  { id: 'airnode', labelKey: 'api3.tabs.airnodes' },
+  { id: 'coverage', labelKey: 'api3.tabs.coveragePool' },
+  { id: 'advantages', labelKey: 'api3.tabs.firstPartyOracles' },
+  { id: 'advanced', labelKey: 'api3.tabs.advanced' },
 ];
 
 // 错误边界组件
 function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
@@ -68,15 +69,15 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
             />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">数据加载失败</h3>
+        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{t('api3.error.loadingFailed')}</h3>
         <p className="text-sm text-gray-500 text-center mb-6">
-          {error.message || '获取 API3 数据时发生错误，请稍后重试'}
+          {error.message || t('api3.error.loadingFailed')}
         </p>
         <button
           onClick={onRetry}
           className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
-          重试
+          {t('common.retry')}
         </button>
       </div>
     </div>
@@ -85,11 +86,12 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
 
 // 加载状态组件
 function LoadingState() {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
-        <p className="text-gray-500">加载 API3 数据...</p>
+        <p className="text-gray-500">{t('api3.loading')}</p>
       </div>
     </div>
   );
@@ -164,18 +166,6 @@ export function API3PageContent() {
     minLoadingTime: 500,
   });
 
-  // 处理错误重试
-  const handleRetry = async () => {
-    await refetchAll();
-  };
-
-  // 显示错误状态
-  if (isError && !isLoading) {
-    const firstError = errors[0];
-    logger.error('API3 data fetch error', firstError);
-    return <ErrorFallback error={firstError} onRetry={handleRetry} />;
-  }
-
   // 构建统计数据 - 必须在所有条件返回之前调用
   const stats = useMemo(() => {
     const activeAirnodes = airnodeStats?.activeAirnodes ?? 0;
@@ -185,7 +175,7 @@ export function API3PageContent() {
 
     return [
       {
-        title: '活跃 Airnode',
+        title: t('api3.stats.activeAirnodes'),
         value: activeAirnodes > 0 ? `${activeAirnodes}+` : '-',
         change: '+3%',
         changeType: 'positive' as const,
@@ -201,7 +191,7 @@ export function API3PageContent() {
         ),
       },
       {
-        title: 'dAPI 数据源',
+        title: t('api3.stats.dapiFeeds'),
         value: totalDapis > 0 ? `${totalDapis}+` : '-',
         change: '+8%',
         changeType: 'positive' as const,
@@ -217,7 +207,7 @@ export function API3PageContent() {
         ),
       },
       {
-        title: '质押 APR',
+        title: t('api3.stats.stakingApr'),
         value: `${stakingApr}%`,
         change: '+2.1%',
         changeType: 'positive' as const,
@@ -233,7 +223,7 @@ export function API3PageContent() {
         ),
       },
       {
-        title: '网络在线率',
+        title: t('api3.stats.networkUptime'),
         value: `${nodeUptime}%`,
         change: '+0.1%',
         changeType: 'positive' as const,
@@ -249,7 +239,7 @@ export function API3PageContent() {
         ),
       },
     ];
-  }, [airnodeStats, dapiCoverage, staking]);
+  }, [airnodeStats, dapiCoverage, staking, t]);
 
   // 构建 Airnode 数据
   const airnodeData = useMemo(() => {
@@ -277,17 +267,29 @@ export function API3PageContent() {
     return [{ oracle: OracleProvider.API3, data: qualityHistory }];
   }, [qualityHistory]);
 
-  // 显示加载状态 - 必须在所有 useMemo 之后
+  // 处理错误重试
+  const handleRetry = async () => {
+    await refetchAll();
+  };
+
+  // 显示加载状态
   if (isLoading) {
     return <LoadingState />;
+  }
+
+  // 显示错误状态
+  if (isError && !isLoading) {
+    const firstError = errors[0];
+    logger.error('API3 data fetch error', firstError);
+    return <ErrorFallback error={firstError} onRetry={handleRetry} />;
   }
 
   return (
     <TimeRangeProvider defaultTimeRange={timeRange}>
       <div className="min-h-screen bg-gray-50">
         <PageHeader
-          title="API3 数据分析"
-          subtitle="第一方预言机网络"
+          title={t('api3.title')}
+          subtitle={t('api3.subtitle')}
           icon={config.icon}
           onRefresh={refresh}
           onExport={exportData}
@@ -310,7 +312,7 @@ export function API3PageContent() {
                   }
                 `}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               ))}
             </nav>
@@ -357,7 +359,7 @@ export function API3PageContent() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                  <DashboardCard title="价格走势" className="lg:col-span-2">
+                  <DashboardCard title={t('api3.priceTrend')} className="lg:col-span-2">
                     <PriceChart
                       client={client}
                       symbol={config.symbol}
@@ -368,28 +370,28 @@ export function API3PageContent() {
                     />
                   </DashboardCard>
 
-                  <DashboardCard title="快速统计">
+                  <DashboardCard title={t('api3.quickStats')}>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">24h 交易量</span>
+                        <span className="text-sm text-gray-600">{t('api3.stats.volume24h')}</span>
                         <span className="text-sm font-semibold text-gray-900">
                           ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">市值</span>
+                        <span className="text-sm text-gray-600">{t('api3.stats.marketCap')}</span>
                         <span className="text-sm font-semibold text-gray-900">
                           ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">流通供应</span>
+                        <span className="text-sm text-gray-600">{t('api3.stats.circulatingSupply')}</span>
                         <span className="text-sm font-semibold text-gray-900">
                           {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M API3
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-sm text-gray-600">质押 APR</span>
+                        <span className="text-sm text-gray-600">{t('api3.stats.stakingApr')}</span>
                         <span className="text-sm font-semibold text-green-600">
                           {staking?.stakingApr ?? 12.5}%
                         </span>
@@ -423,7 +425,7 @@ export function API3PageContent() {
 
             {activeTab === 'airnode' && !airnodeData && (
               <DashboardCard>
-                <p className="text-gray-500 text-center py-8">暂无 Airnode 数据</p>
+                <p className="text-gray-500 text-center py-8">{t('api3.noAirnodeData')}</p>
               </DashboardCard>
             )}
 
@@ -443,7 +445,7 @@ export function API3PageContent() {
 
             {activeTab === 'coverage' && !staking && (
               <DashboardCard>
-                <p className="text-gray-500 text-center py-8">暂无保险池数据</p>
+                <p className="text-gray-500 text-center py-8">{t('api3.noCoveragePoolData')}</p>
               </DashboardCard>
             )}
 
@@ -453,7 +455,7 @@ export function API3PageContent() {
 
             {activeTab === 'advantages' && !firstParty?.advantages && (
               <DashboardCard>
-                <p className="text-gray-500 text-center py-8">暂无第一方预言机数据</p>
+                <p className="text-gray-500 text-center py-8">{t('api3.noFirstPartyOracleData')}</p>
               </DashboardCard>
             )}
 

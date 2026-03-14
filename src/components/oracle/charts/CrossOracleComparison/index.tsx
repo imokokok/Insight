@@ -20,108 +20,31 @@ import {
   Cell,
   ReferenceLine,
   ComposedChart,
-  Area,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  PythClient,
-  API3Client,
-  RedStoneClient,
-} from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import { DashboardCard, MetricCard } from '../common/DashboardCard';
-import { PriceDeviationHistoryChart } from './PriceDeviationHistoryChart';
+import { DashboardCard, MetricCard } from '../../common/DashboardCard';
+import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
 import { createLogger } from '@/lib/utils/logger';
 import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
+import { chartColors, semanticColors } from '@/lib/config/colors';
+import {
+  oracleClients,
+  oracleNames,
+  oracleColors,
+  symbols,
+  defaultPerformanceData,
+  PriceComparisonData,
+  PriceHistoryPoint,
+  DeviationData,
+  PriceDeviationDetail,
+  OraclePerformance,
+  TimeWindow,
+} from './crossOracleConfig';
+import { useSorting } from './useSorting';
+import { TrendIndicator } from './TrendIndicator';
 
 const logger = createLogger('CrossOracleComparison');
-
-type SortField = 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name';
-type SortDirection = 'asc' | 'desc' | null;
-type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
-
-interface SortConfig {
-  field: SortField;
-  direction: SortDirection;
-}
-
-interface PriceHistoryPoint {
-  timestamp: number;
-  price: number;
-}
-
-const oracleClients = {
-  [OracleProvider.CHAINLINK]: new ChainlinkClient(),
-  [OracleProvider.BAND_PROTOCOL]: new BandProtocolClient(),
-  [OracleProvider.UMA]: new UMAClient(),
-  [OracleProvider.PYTH]: new PythClient(),
-  [OracleProvider.API3]: new API3Client(),
-  [OracleProvider.REDSTONE]: new RedStoneClient(),
-};
-
-const oracleNames: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-};
-
-const oracleColors: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
-};
-
-interface OraclePerformance {
-  provider: OracleProvider;
-  responseTime: number;
-  updateFrequency: number;
-  dataSources: number;
-  supportedChains: number;
-  reliability: number;
-  accuracy: number;
-  decentralization: number;
-}
-
-interface PriceComparisonData {
-  provider: OracleProvider;
-  price: number;
-  timestamp: number;
-  confidence?: number;
-  responseTime: number;
-  previousPrice?: number;
-}
-
-interface DeviationData {
-  provider: OracleProvider;
-  name: string;
-  price: number;
-  deviationPercent: number;
-  deviationFromAvg: number;
-  rank: number;
-  responseTime: number;
-  confidence?: number;
-  color: string;
-  trend: 'up' | 'down' | 'stable';
-}
-
-interface PriceDeviationDetail {
-  provider: OracleProvider;
-  name: string;
-  price: number;
-  deviationFromAvg: number;
-  deviationFromMedian: number;
-  deviationFromBenchmark: number;
-  rank: number;
-}
 
 export function CrossOracleComparison() {
   const { t } = useI18n();
@@ -141,71 +64,13 @@ export function CrossOracleComparison() {
     {} as Record<OracleProvider, PriceHistoryPoint[]>
   );
   const [deviationThreshold, setDeviationThreshold] = useState<number>(1);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'name', direction: null });
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h');
   const [benchmarkOracle, setBenchmarkOracle] = useState<OracleProvider>(OracleProvider.CHAINLINK);
 
-  const symbols = ['BTC', 'ETH', 'SOL', 'USDC', 'LINK', 'AVAX', 'MATIC', 'ARB'];
-
-  const performanceData: OraclePerformance[] = useMemo(
-    () => [
-      {
-        provider: OracleProvider.CHAINLINK,
-        responseTime: 85,
-        updateFrequency: 30,
-        dataSources: 350,
-        supportedChains: 12,
-        reliability: 99.8,
-        accuracy: 99.5,
-        decentralization: 95,
-      },
-      {
-        provider: OracleProvider.PYTH,
-        responseTime: 45,
-        updateFrequency: 0.4,
-        dataSources: 180,
-        supportedChains: 8,
-        reliability: 99.9,
-        accuracy: 99.7,
-        decentralization: 90,
-      },
-      {
-        provider: OracleProvider.BAND_PROTOCOL,
-        responseTime: 150,
-        updateFrequency: 30,
-        dataSources: 180,
-        supportedChains: 8,
-        reliability: 99.5,
-        accuracy: 99.2,
-        decentralization: 85,
-      },
-      {
-        provider: OracleProvider.API3,
-        responseTime: 180,
-        updateFrequency: 60,
-        dataSources: 168,
-        supportedChains: 3,
-        reliability: 99.7,
-        accuracy: 99.4,
-        decentralization: 80,
-      },
-      {
-        provider: OracleProvider.UMA,
-        responseTime: 300,
-        updateFrequency: 120,
-        dataSources: 50,
-        supportedChains: 2,
-        reliability: 99.5,
-        accuracy: 98.8,
-        decentralization: 88,
-      },
-    ],
-    []
-  );
+  const performanceData: OraclePerformance[] = useMemo(() => defaultPerformanceData, []);
 
   const fetchPrices = useCallback(async () => {
     setIsLoading(true);
-    const startTime = Date.now();
 
     try {
       const promises = selectedOracles.map(async (provider) => {
@@ -235,7 +100,6 @@ export function CrossOracleComparison() {
       const validResults = results.filter((r) => r !== null) as PriceComparisonData[];
 
       setPriceData((prevData) => {
-        // 使用前一个 priceData 来获取 previousPrice
         const prevDataMap = new Map(prevData.map(d => [d.provider, d.price]));
         const resultsWithPrevious = validResults.map(result => ({
           ...result,
@@ -461,7 +325,7 @@ export function CrossOracleComparison() {
         ),
       },
       {
-        metric: '准确性',
+        metric: t('crossOracle.metrics.accuracy'),
         ...selectedPerformance.reduce(
           (acc, p) => {
             acc[oracleNames[p.provider]] = p.accuracy;
@@ -471,7 +335,7 @@ export function CrossOracleComparison() {
         ),
       },
       {
-        metric: '去中心化',
+        metric: t('crossOracle.metrics.decentralization'),
         ...selectedPerformance.reduce(
           (acc, p) => {
             acc[oracleNames[p.provider]] = p.decentralization;
@@ -513,6 +377,27 @@ export function CrossOracleComparison() {
     };
   }, [priceStats, deviationData]);
 
+  const { handleSort, getSortIcon, sortedPriceData } = useSorting(priceData, priceStats);
+
+  const deviationAlerts = useMemo(() => {
+    if (!priceStats || priceData.length < 2) return [];
+
+    return priceData
+      .map((data) => {
+        const deviation = Math.abs((data.price - priceStats.avg) / priceStats.avg) * 100;
+        if (deviation > deviationThreshold) {
+          return {
+            provider: data.provider,
+            name: oracleNames[data.provider],
+            deviation,
+            price: data.price,
+          };
+        }
+        return null;
+      })
+      .filter((alert): alert is NonNullable<typeof alert> => alert !== null);
+  }, [priceData, priceStats, deviationThreshold]);
+
   const toggleOracle = (provider: OracleProvider) => {
     setSelectedOracles((prev) => {
       if (prev.includes(provider)) {
@@ -535,164 +420,6 @@ export function CrossOracleComparison() {
       OracleProvider.PYTH,
       OracleProvider.BAND_PROTOCOL,
     ]);
-  };
-
-  const handleSort = (field: SortField) => {
-    setSortConfig((prev) => {
-      if (prev.field === field) {
-        if (prev.direction === 'asc') {
-          return { field, direction: 'desc' };
-        } else if (prev.direction === 'desc') {
-          return { field, direction: null };
-        }
-      }
-      return { field, direction: 'asc' };
-    });
-  };
-
-  const getSortIcon = (field: SortField) => {
-    if (sortConfig.field !== field) {
-      return (
-        <svg
-          className="w-4 h-4 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-          />
-        </svg>
-      );
-    }
-    if (sortConfig.direction === 'asc') {
-      return (
-        <svg
-          className="w-4 h-4 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        </svg>
-      );
-    }
-    if (sortConfig.direction === 'desc') {
-      return (
-        <svg
-          className="w-4 h-4 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      );
-    }
-    return null;
-  };
-
-  const sortedPriceData = useMemo(() => {
-    if (!sortConfig.direction) return priceData;
-
-    return [...priceData].sort((a, b) => {
-      let aValue: number | string;
-      let bValue: number | string;
-
-      switch (sortConfig.field) {
-        case 'name':
-          aValue = oracleNames[a.provider];
-          bValue = oracleNames[b.provider];
-          break;
-        case 'price':
-          aValue = a.price;
-          bValue = b.price;
-          break;
-        case 'deviation':
-          aValue = priceStats ? Math.abs((a.price - priceStats.avg) / priceStats.avg) * 100 : 0;
-          bValue = priceStats ? Math.abs((b.price - priceStats.avg) / priceStats.avg) * 100 : 0;
-          break;
-        case 'confidence':
-          aValue = a.confidence || 0;
-          bValue = b.confidence || 0;
-          break;
-        case 'responseTime':
-          aValue = a.responseTime;
-          bValue = b.responseTime;
-          break;
-        default:
-          return 0;
-      }
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      return sortConfig.direction === 'asc'
-        ? (aValue as number) - (bValue as number)
-        : (bValue as number) - (aValue as number);
-    });
-  }, [priceData, sortConfig, priceStats]);
-
-  const deviationAlerts = useMemo(() => {
-    if (!priceStats || priceData.length < 2) return [];
-
-    return priceData
-      .map((data) => {
-        const deviation = Math.abs((data.price - priceStats.avg) / priceStats.avg) * 100;
-        if (deviation > deviationThreshold) {
-          return {
-            provider: data.provider,
-            name: oracleNames[data.provider],
-            deviation,
-            price: data.price,
-          };
-        }
-        return null;
-      })
-      .filter((alert): alert is NonNullable<typeof alert> => alert !== null);
-  }, [priceData, priceStats, deviationThreshold]);
-
-  const TrendIndicator = ({ trend }: { trend: 'up' | 'down' | 'stable' }) => {
-    if (trend === 'up') {
-      return (
-        <svg
-          className="w-4 h-4 text-green-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
-        </svg>
-      );
-    }
-    if (trend === 'down') {
-      return (
-        <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      );
-    }
-    return (
-      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-      </svg>
-    );
   };
 
   const exportData = useMemo(() => {
@@ -802,7 +529,7 @@ export function CrossOracleComparison() {
       {extendedStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
-            label="最高价格"
+            label={t('crossOracle.stats.highestPrice')}
             value={`$${priceStats?.max.toFixed(2)}`}
             subValue={extendedStats.maxPriceOracle?.name}
             icon={
@@ -822,7 +549,7 @@ export function CrossOracleComparison() {
             }
           />
           <MetricCard
-            label="最低价格"
+            label={t('crossOracle.stats.lowestPrice')}
             value={`$${priceStats?.min.toFixed(2)}`}
             subValue={extendedStats.minPriceOracle?.name}
             icon={
@@ -842,9 +569,9 @@ export function CrossOracleComparison() {
             }
           />
           <MetricCard
-            label="最大价格差异"
+            label={t('crossOracle.stats.maxPriceDifference')}
             value={`${extendedStats.maxDeviation.toFixed(3)}%`}
-            subValue="偏离平均值"
+            subValue={t('crossOracle.stats.deviationFromAverage')}
             icon={
               <svg
                 className="w-5 h-5 text-amber-500"
@@ -862,7 +589,7 @@ export function CrossOracleComparison() {
             }
           />
           <MetricCard
-            label="平均响应时间"
+            label={t('crossOracle.stats.avgResponseTime')}
             value={`${Math.round(extendedStats.avgResponseTime)}ms`}
             icon={
               <svg
@@ -884,7 +611,7 @@ export function CrossOracleComparison() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title="选择交易对">
+        <DashboardCard title={t('crossOracle.selectTradingPair')}>
           <div className="flex flex-wrap gap-2">
             {symbols.map((symbol) => (
               <button
@@ -902,7 +629,7 @@ export function CrossOracleComparison() {
           </div>
         </DashboardCard>
 
-        <DashboardCard title={`选择预言机 (已选 ${selectedOracles.length}/3)`}>
+        <DashboardCard title={`${t('crossOracle.selectOraclesTitle')} (${selectedOracles.length}/3)`}>
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {Object.values(OracleProvider).map((provider) => (
@@ -938,16 +665,16 @@ export function CrossOracleComparison() {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                快速对比主流预言机
+                {t('crossOracleComparison.quickCompare')}
               </span>
             </button>
           </div>
         </DashboardCard>
       </div>
 
-      <DashboardCard title="偏离阈值设置">
+      <DashboardCard title={t('crossOracle.deviationThresholdSettings')}>
         <div className="flex items-center gap-4">
-          <label className="text-sm text-gray-700">价格偏离预警阈值:</label>
+          <label className="text-sm text-gray-700">{t('crossOracle.priceDeviationThreshold')}</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -990,7 +717,7 @@ export function CrossOracleComparison() {
                 />
               </svg>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-amber-800 mb-2">价格偏离预警</h3>
+                <h3 className="text-sm font-semibold text-amber-800 mb-2">{t('crossOracle.priceDeviationAlert')}</h3>
                 <div className="space-y-2">
                   {deviationAlerts.map((alert) => (
                     <div
@@ -1002,7 +729,7 @@ export function CrossOracleComparison() {
                         style={{ backgroundColor: oracleColors[alert.provider] }}
                       />
                       <span className="font-medium">{alert.name}</span>
-                      <span>偏离 {alert.deviation.toFixed(3)}%</span>
+                      <span>{t('crossOracleComparison.deviation')} {alert.deviation.toFixed(3)}%</span>
                       <span className="text-amber-600">(${alert.price.toFixed(2)})</span>
                     </div>
                   ))}
@@ -1014,29 +741,29 @@ export function CrossOracleComparison() {
       )}
 
       {deviationData.length > 0 && (
-        <DashboardCard title="差异分析面板">
+        <DashboardCard title={t('crossOracle.differenceAnalysisPanel')}>
           <div className="space-y-4">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      排名
+                      {t('crossOracle.oraclePerformanceRanking.rank')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      预言机
+                      {t('crossOracle.oracle')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      价格
+                      {t('crossOracle.price')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      偏离平均值
+                      {t('crossOracle.stats.deviationFromAverage')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      置信度
+                      {t('crossOracle.confidence')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      响应时间
+                      {t('crossOracleComparison.avgResponseTime')}
                     </th>
                   </tr>
                 </thead>
@@ -1096,7 +823,7 @@ export function CrossOracleComparison() {
       )}
 
       {deviationChartData.length > 0 && (
-        <DashboardCard title="价格差异可视化">
+        <DashboardCard title={t('crossOracle.priceDifferenceVisualization')}>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -1112,17 +839,17 @@ export function CrossOracleComparison() {
                 />
                 <YAxis type="category" dataKey="name" width={90} />
                 <Tooltip
-                  formatter={(value: any) => [`${Number(value) > 0 ? '+' : ''}${Number(value).toFixed(3)}%`, '偏离平均值']}
+                  formatter={(value: any) => [`${Number(value) > 0 ? '+' : ''}${Number(value).toFixed(3)}%`, t('crossOracle.stats.deviationFromAverage')]}
                   labelFormatter={(label) =>
                     `${label} - $${deviationChartData.find((d) => d.name === label)?.price.toFixed(2)}`
                   }
                 />
-                <ReferenceLine x={0} stroke="#666" strokeWidth={2} />
+                <ReferenceLine x={0} stroke={chartColors.recharts.tick} strokeWidth={2} />
                 <Bar dataKey="deviation" radius={[4, 4, 4, 4]}>
                   {deviationChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.deviation >= 0 ? '#10B981' : '#EF4444'}
+                      fill={entry.deviation >= 0 ? chartColors.recharts.success : chartColors.recharts.danger}
                     />
                   ))}
                 </Bar>
@@ -1132,21 +859,21 @@ export function CrossOracleComparison() {
           <div className="flex items-center justify-center gap-6 mt-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-green-500"></div>
-              <span className="text-gray-600">高于平均值</span>
+              <span className="text-gray-600">{t('crossOracle.aboveAverage')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-red-500"></div>
-              <span className="text-gray-600">低于平均值</span>
+              <span className="text-gray-600">{t('crossOracle.belowAverage')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-gray-600"></div>
-              <span className="text-gray-600">零线（平均值）</span>
+              <span className="text-gray-600">{t('crossOracle.zeroLineAverage')}</span>
             </div>
           </div>
         </DashboardCard>
       )}
 
-      <DashboardCard title="多预言机价格对比">
+      <DashboardCard title={t('crossOracle.multiOraclePriceComparison')}>
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={lineChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -1155,7 +882,7 @@ export function CrossOracleComparison() {
               <YAxis domain={['auto', 'auto']} tickFormatter={(value) => `$${value?.toFixed(2) || 0}`} />
               <Tooltip
                 formatter={(value: any, name: any) => [`$${Number(value)?.toFixed(2) || 0}`, name]}
-                labelFormatter={() => '价格历史'}
+                labelFormatter={() => t('crossOracle.priceHistory')}
               />
               <Legend />
               {selectedOracles.map((provider) => (
@@ -1171,9 +898,9 @@ export function CrossOracleComparison() {
               ))}
               <ReferenceLine
                 y={priceStats?.avg}
-                stroke="#666"
+                stroke={chartColors.recharts.tick}
                 strokeDasharray="3 3"
-                label={{ value: '平均值', position: 'right' }}
+                label={{ value: t('crossOracle.average'), position: 'right' }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -1190,7 +917,7 @@ export function CrossOracleComparison() {
         chainlinkPrice={priceData.find((d) => d.provider === OracleProvider.CHAINLINK)?.price}
       />
 
-      <DashboardCard title="价格对比详情">
+      <DashboardCard title={t('crossOracle.priceComparisonDetails')}>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -1200,7 +927,7 @@ export function CrossOracleComparison() {
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
-                    预言机
+                    {t('crossOracle.oracle')}
                     {getSortIcon('name')}
                   </div>
                 </th>
@@ -1209,7 +936,7 @@ export function CrossOracleComparison() {
                   onClick={() => handleSort('price')}
                 >
                   <div className="flex items-center gap-1">
-                    价格
+                    {t('crossOracle.price')}
                     {getSortIcon('price')}
                   </div>
                 </th>
@@ -1218,7 +945,7 @@ export function CrossOracleComparison() {
                   onClick={() => handleSort('deviation')}
                 >
                   <div className="flex items-center gap-1">
-                    偏离度
+                    {t('crossOracle.deviation')}
                     {getSortIcon('deviation')}
                   </div>
                 </th>
@@ -1227,7 +954,7 @@ export function CrossOracleComparison() {
                   onClick={() => handleSort('confidence')}
                 >
                   <div className="flex items-center gap-1">
-                    置信度
+                    {t('crossOracle.confidence')}
                     {getSortIcon('confidence')}
                   </div>
                 </th>
@@ -1236,12 +963,12 @@ export function CrossOracleComparison() {
                   onClick={() => handleSort('responseTime')}
                 >
                   <div className="flex items-center gap-1">
-                    响应时间
+                    {t('crossOracleComparison.avgResponseTime')}
                     {getSortIcon('responseTime')}
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  趋势
+                  {t('crossOracle.trend')}
                 </th>
               </tr>
             </thead>
@@ -1280,7 +1007,7 @@ export function CrossOracleComparison() {
                         </span>
                         {shouldHighlight && (
                           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                            高偏离
+                            {t('crossOracleComparison.highDeviation')}
                           </span>
                         )}
                       </div>
@@ -1310,15 +1037,15 @@ export function CrossOracleComparison() {
       </DashboardCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title="当前价格对比">
+        <DashboardCard title={t('crossOracle.currentPriceComparison')}>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} />
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, '价格']} />
-                <Bar dataKey="price" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]} />
+                <Bar dataKey="price" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -1328,7 +1055,7 @@ export function CrossOracleComparison() {
           </div>
         </DashboardCard>
 
-        <DashboardCard title="价格趋势对比">
+        <DashboardCard title={t('crossOracle.priceTrendComparison')}>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData}>
@@ -1354,31 +1081,31 @@ export function CrossOracleComparison() {
         </DashboardCard>
       </div>
 
-      <DashboardCard title="性能对比">
+      <DashboardCard title={t('crossOracle.performanceComparison')}>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  预言机
+                  {t('crossOracle.oracle')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  平均响应时间
+                  {t('crossOracle.stats.avgResponseTime')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  更新频率
+                  {t('crossOracle.dataQualityScoreCard.metrics.updateFrequency')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  数据源数量
+                  {t('crossOracleComparison.dataSources')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  支持链数
+                  {t('crossOracleComparison.supportedChains')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  可靠性
+                  {t('crossOracle.dataQualityScoreCard.dimensions.reliability')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  准确性
+                  {t('crossOracle.metrics.accuracy')}
                 </th>
               </tr>
             </thead>
@@ -1425,7 +1152,7 @@ export function CrossOracleComparison() {
         </div>
       </DashboardCard>
 
-      <DashboardCard title="综合性能雷达图">
+      <DashboardCard title={t('crossOracle.comprehensivePerformanceRadar')}>
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData}>
@@ -1449,7 +1176,7 @@ export function CrossOracleComparison() {
         </div>
       </DashboardCard>
 
-      <DashboardCard title="自动刷新设置">
+      <DashboardCard title={t('crossOracle.autoRefreshSettings')}>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <input
@@ -1458,7 +1185,7 @@ export function CrossOracleComparison() {
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">启用自动刷新</span>
+            <span className="text-sm text-gray-700">{t('crossOracle.enableAutoRefresh')}</span>
           </label>
           {autoRefresh && (
             <select

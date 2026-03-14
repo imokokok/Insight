@@ -5,6 +5,7 @@ import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
 import { UMAScoreExplanationModal } from './UMAScoreExplanationModal';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('UMADataQualityScoreCard');
 
@@ -174,7 +175,7 @@ export function UMADataQualityScoreCard() {
             score={data.networkHealth.score}
             trend={data.networkHealth.trend}
             weight={0.3}
-            color="#10B981"
+            color={semanticColors.success.DEFAULT}
             icon={
               <svg
                 className="w-6 h-6 text-green-600"
@@ -197,7 +198,7 @@ export function UMADataQualityScoreCard() {
             score={data.dataIntegrity.score}
             trend={data.dataIntegrity.trend}
             weight={0.25}
-            color="#3B82F6"
+            color={chartColors.recharts.primary}
             icon={
               <svg
                 className="w-6 h-6 text-blue-600"
@@ -220,7 +221,7 @@ export function UMADataQualityScoreCard() {
             score={data.responseTime.score}
             trend={data.responseTime.trend}
             weight={0.25}
-            color="#8B5CF6"
+            color={chartColors.recharts.purple}
             icon={
               <svg
                 className="w-6 h-6 text-purple-600"
@@ -243,7 +244,7 @@ export function UMADataQualityScoreCard() {
             score={data.validatorActivity.score}
             trend={data.validatorActivity.trend}
             weight={0.2}
-            color="#F59E0B"
+            color={semanticColors.warning.DEFAULT}
             icon={
               <svg
                 className="w-6 h-6 text-yellow-600"

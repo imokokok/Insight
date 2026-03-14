@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { semanticColors } from '@/lib/config/colors';
 
 export interface VolatilityAlertProps {
   threshold: number;
@@ -37,27 +38,27 @@ function getAlertLevel(
     return {
       level: 'low',
       label: t('volatilityAlert.riskLevel.low'),
-      color: '#059669',
-      bgColor: '#ECFDF5',
-      borderColor: '#10B981',
+      color: semanticColors.success.dark,
+      bgColor: semanticColors.success.light,
+      borderColor: semanticColors.success.DEFAULT,
       icon: '✓',
     };
   } else if (ratio < 1.5) {
     return {
       level: 'medium',
       label: t('volatilityAlert.riskLevel.medium'),
-      color: '#D97706',
-      bgColor: '#FFFBEB',
-      borderColor: '#F59E0B',
+      color: semanticColors.warning.dark,
+      bgColor: semanticColors.warning.light,
+      borderColor: semanticColors.warning.DEFAULT,
       icon: '⚠',
     };
   } else {
     return {
       level: 'high',
       label: t('volatilityAlert.riskLevel.high'),
-      color: '#DC2626',
-      bgColor: '#FEF2F2',
-      borderColor: '#EF4444',
+      color: semanticColors.danger.dark,
+      bgColor: semanticColors.danger.light,
+      borderColor: semanticColors.danger.DEFAULT,
       icon: '⚠',
     };
   }

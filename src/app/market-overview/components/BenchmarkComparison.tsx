@@ -24,6 +24,7 @@ import {
   Info,
   ChevronDown,
 } from 'lucide-react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface BenchmarkComparisonProps {
   data: BenchmarkData[];
@@ -204,18 +205,18 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical" margin={{ left: 100 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={false} />
-            <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
-            <YAxis dataKey="name" type="category" stroke="#6B7280" fontSize={12} width={90} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
+            <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
+            <YAxis dataKey="name" type="category" stroke={chartColors.recharts.secondaryAxis} fontSize={12} width={90} />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine
               x={currentMetric.metric.industryAverage}
-              stroke="#F59E0B"
+              stroke={semanticColors.warning.main}
               strokeDasharray="5 5"
               label={{
                 value: locale === 'zh-CN' ? '平均' : 'Avg',
                 position: 'top',
-                fill: '#F59E0B',
+                fill: semanticColors.warning.main,
                 fontSize: 10,
               }}
             />

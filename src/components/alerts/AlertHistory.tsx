@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AlertHistoryProps {
   events: AlertEvent[];
@@ -15,6 +16,7 @@ type FilterStatus = 'all' | 'acknowledged' | 'unacknowledged';
 type SortOrder = 'newest' | 'oldest';
 
 export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps) {
+  const { t } = useI18n();
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();
@@ -49,7 +51,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
   if (isLoading) {
     return (
-      <DashboardCard title="告警历史">
+      <DashboardCard title={t('alerts.history.title')}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
         </div>
@@ -59,12 +61,15 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
   return (
     <DashboardCard
-      title="告警历史"
+      title={t('alerts.history.title')}
       headerAction={
         <div className="flex items-center gap-2">
           {unacknowledgedCount > 0 && (
             <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-              {unacknowledgedCount} 未确认
+              {t('alerts.history.unacknowledgedCount').replace(
+                '{count}',
+                String(unacknowledgedCount)
+              )}
             </span>
           )}
         </div>
@@ -73,27 +78,27 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
       <div className="space-y-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">状态:</label>
+            <label className="text-sm text-gray-600">{t('alerts.history.status')}</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
               className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
             >
-              <option value="all">全部</option>
-              <option value="unacknowledged">未确认</option>
-              <option value="acknowledged">已确认</option>
+              <option value="all">{t('alerts.history.all')}</option>
+              <option value="unacknowledged">{t('alerts.history.unacknowledged')}</option>
+              <option value="acknowledged">{t('alerts.history.acknowledged')}</option>
             </select>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">排序:</label>
+            <label className="text-sm text-gray-600">{t('alerts.history.sort')}</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as SortOrder)}
               className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
             >
-              <option value="newest">最新优先</option>
-              <option value="oldest">最早优先</option>
+              <option value="newest">{t('alerts.history.newest')}</option>
+              <option value="oldest">{t('alerts.history.oldest')}</option>
             </select>
           </div>
         </div>
@@ -113,7 +118,7 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="mt-2 text-sm">暂无告警历史</p>
+            <p className="mt-2 text-sm">{t('alerts.history.empty')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -136,18 +141,26 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                             : 'bg-yellow-100 text-yellow-700'
                         }`}
                       >
-                        {event.acknowledged ? '已确认' : '待确认'}
+                        {event.acknowledged
+                          ? t('alerts.history.acknowledged')
+                          : t('alerts.history.pending')}
                       </span>
                     </div>
 
                     <p className="text-sm font-medium text-gray-900">{event.condition_met}</p>
 
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                      <span>触发价格: {event.price.toFixed(4)}</span>
-                      <span>时间: {new Date(event.triggered_at).toLocaleString('zh-CN')}</span>
+                      <span>
+                        {t('alerts.history.triggerPrice')} {event.price.toFixed(4)}
+                      </span>
+                      <span>
+                        {t('alerts.history.time')}{' '}
+                        {new Date(event.triggered_at).toLocaleString('zh-CN')}
+                      </span>
                       {event.acknowledged && event.acknowledged_at && (
                         <span>
-                          确认时间: {new Date(event.acknowledged_at).toLocaleString('zh-CN')}
+                          {t('alerts.history.acknowledgeTime')}{' '}
+                          {new Date(event.acknowledged_at).toLocaleString('zh-CN')}
                         </span>
                       )}
                     </div>
@@ -159,7 +172,9 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
                       disabled={isAcknowledging}
                       className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
                     >
-                      {isAcknowledging ? '确认中...' : '确认'}
+                      {isAcknowledging
+                        ? t('alerts.history.acknowledging')
+                        : t('alerts.history.acknowledge')}
                     </button>
                   )}
                 </div>
@@ -170,7 +185,9 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
 
         {events.length > 0 && (
           <div className="pt-3 border-t border-gray-200 text-xs text-gray-400 text-center">
-            共 {events.length} 条记录，显示 {filteredAndSortedEvents.length} 条
+            {t('alerts.history.totalRecords')
+              .replace('{total}', String(events.length))
+              .replace('{shown}', String(filteredAndSortedEvents.length))}
           </div>
         )}
       </div>

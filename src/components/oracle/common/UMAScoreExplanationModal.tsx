@@ -14,7 +14,7 @@ import {
   Area,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 import { UMAClient } from '@/lib/oracles/uma';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -63,7 +63,7 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
       { name: 'ActiveValidators', description: '活跃验证者数量' },
       { name: 'DisputeSuccessRate', description: '争议成功率 (%)' },
     ],
-    color: '#10B981',
+    color: semanticColors.success.DEFAULT,
   },
   {
     key: 'dataIntegrity',
@@ -75,7 +75,7 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
       { name: 'DataSourceDiversityFactor', description: '数据源多样性系数 (0.9-1.1)' },
       { name: 'Random(0, 10)', description: '随机波动因子，模拟实时变化' },
     ],
-    color: '#3B82F6',
+    color: chartColors.recharts.primary,
   },
   {
     key: 'responseTime',
@@ -87,7 +87,7 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
       { name: 'AvgResponseTime', description: '平均响应时间 (ms)' },
       { name: '100', description: '基准响应时间 (ms)' },
     ],
-    color: '#8B5CF6',
+    color: chartColors.recharts.purple,
   },
   {
     key: 'validatorActivity',
@@ -101,7 +101,7 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
       { name: 'TotalStaked', description: '总质押量' },
       { name: '30M', description: '目标总质押量 (30,000,000)' },
     ],
-    color: '#F59E0B',
+    color: semanticColors.warning.DEFAULT,
   },
 ];
 
@@ -449,14 +449,14 @@ export function UMAScoreExplanationModal({
                               />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <ReferenceLine y={90} stroke="#10B981" strokeDasharray="3 3" label="优秀" />
-                              <ReferenceLine y={70} stroke="#F59E0B" strokeDasharray="3 3" label="良好" />
+                              <ReferenceLine y={90} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="优秀" />
+                              <ReferenceLine y={70} stroke={semanticColors.warning.DEFAULT} strokeDasharray="3 3" label="良好" />
 
                               <Line
                                 type="monotone"
                                 dataKey="overallScore"
                                 name="综合评分"
-                                stroke="#2563EB"
+                                stroke={chartColors.recharts.chainlink}
                                 strokeWidth={3}
                                 dot={false}
                                 activeDot={{ r: 5 }}

@@ -58,7 +58,7 @@ export default function RedStonePage() {
   const stats = useMemo(
     () => [
       {
-        title: '数据提供者',
+        title: t('redstone.stats.dataProviders'),
         value: '25+',
         change: '+8%',
         changeType: 'positive' as const,
@@ -74,7 +74,7 @@ export default function RedStonePage() {
         ),
       },
       {
-        title: '支持资产',
+        title: t('redstone.stats.supportedAssets'),
         value: '1000+',
         change: '+15%',
         changeType: 'positive' as const,
@@ -90,7 +90,7 @@ export default function RedStonePage() {
         ),
       },
       {
-        title: '支持链数',
+        title: t('redstone.stats.supportedChains'),
         value: `${config.supportedChains.length}+`,
         change: '0%',
         changeType: 'neutral' as const,
@@ -106,7 +106,7 @@ export default function RedStonePage() {
         ),
       },
       {
-        title: '数据新鲜度',
+        title: t('redstone.stats.dataFreshness'),
         value: '98.5',
         suffix: '/100',
         change: '+2%',
@@ -123,33 +123,33 @@ export default function RedStonePage() {
         ),
       },
     ],
-    [config.supportedChains.length]
+    [config.supportedChains.length, t]
   );
 
   const networkStatusData = useMemo(
     () => [
       {
-        label: '活跃节点',
+        label: t('redstone.stats.activeNodes'),
         value: config.networkData.activeNodes.toLocaleString(),
         status: 'healthy' as const,
       },
       {
-        label: '数据流',
+        label: t('redstone.stats.dataStreams'),
         value: config.networkData.dataFeeds.toLocaleString(),
         status: 'healthy' as const,
       },
       {
-        label: '响应时间',
+        label: t('redstone.stats.responseTime'),
         value: `${config.networkData.avgResponseTime}ms`,
         status: config.networkData.avgResponseTime < 200 ? 'healthy' : 'warning',
       },
       {
-        label: '正常运行',
+        label: t('redstone.stats.uptime'),
         value: `${config.networkData.nodeUptime}%`,
         status: 'healthy' as const,
       },
     ],
-    [config.networkData]
+    [config.networkData, t]
   );
 
   const dataSources = useMemo(
@@ -181,8 +181,8 @@ export default function RedStonePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader
-        title={`${config.name} 数据分析`}
-        subtitle="模块化预言机解决方案"
+        title={t('redstone.title')}
+        subtitle={t('redstone.subtitle')}
         icon={config.icon}
         onRefresh={refresh}
         onExport={exportData}
@@ -222,7 +222,7 @@ export default function RedStonePage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title="价格图表" className="lg:col-span-2">
+                <DashboardCard title={t('redstone.priceChart')} className="lg:col-span-2">
                   <PriceChart
                     client={client}
                     symbol={config.symbol}
@@ -233,32 +233,32 @@ export default function RedStonePage() {
                   />
                 </DashboardCard>
 
-                <DashboardCard title="快速统计">
+                <DashboardCard title={t('redstone.quickStats')}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">24h 交易量</span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.volume24h')}</span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">市值</span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.marketCap')}</span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.marketCap / 1e9).toFixed(1)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">流通供应量</span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.circulatingSupply')}</span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M {config.symbol}
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">模块化费用</span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.modularFees')}</span>
                       <span className="text-sm font-semibold text-green-600">$0.0001</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">网络正常运行</span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.networkUptime')}</span>
                       <span className="text-sm font-semibold text-green-600">
                         {config.networkData.nodeUptime}%
                       </span>
@@ -268,7 +268,7 @@ export default function RedStonePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <DashboardCard title="网络状态" className="lg:col-span-2">
+                <DashboardCard title={t('redstone.networkStatus')} className="lg:col-span-2">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {networkStatusData.map((item, index) => (
                       <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
@@ -281,7 +281,7 @@ export default function RedStonePage() {
                             }`}
                           />
                           <span className="text-xs text-gray-500">
-                            {item.status === 'healthy' ? '正常' : '警告'}
+                            {item.status === 'healthy' ? t('redstone.status.normal') : t('redstone.status.warning')}
                           </span>
                         </div>
                       </div>
@@ -289,7 +289,7 @@ export default function RedStonePage() {
                   </div>
                 </DashboardCard>
 
-                <DashboardCard title="数据源">
+                <DashboardCard title={t('redstone.dataSources')}>
                   <div className="space-y-3">
                     {dataSources.map((source, index) => (
                       <div key={index} className="flex items-center justify-between py-1.5">

@@ -1,32 +1,34 @@
+import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
+
 export const chartColors = {
-  primary: '#3b82f6',
-  secondary: '#6b7280',
-  success: '#22c55e',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  info: '#06b6d4',
-  neutral: '#9ca3af',
-  grid: '#e5e7eb',
-  text: '#374151',
-  background: '#ffffff',
+  primary: configChartColors.recharts.primary,
+  secondary: configChartColors.recharts.tick,
+  success: semanticColors.success.DEFAULT,
+  warning: semanticColors.warning.DEFAULT,
+  danger: semanticColors.danger.DEFAULT,
+  info: configChartColors.recharts.cyan,
+  neutral: configChartColors.recharts.tick,
+  grid: configChartColors.recharts.grid,
+  text: configChartColors.recharts.tickDark,
+  background: configChartColors.recharts.background,
 
-  price: '#3b82f6',
-  volume: '#8b5cf6',
-  ma7: '#f59e0b',
-  ma20: '#ec4899',
-  ma50: '#14b8a6',
+  price: configChartColors.recharts.primary,
+  volume: configChartColors.recharts.purple,
+  ma7: semanticColors.warning.DEFAULT,
+  ma20: configChartColors.recharts.pink,
+  ma50: configChartColors.recharts.teal,
 
-  up: '#22c55e',
-  down: '#ef4444',
+  up: semanticColors.success.DEFAULT,
+  down: semanticColors.danger.DEFAULT,
 
-  anomaly: '#ef4444',
-  prediction: '#3b82f6',
+  anomaly: semanticColors.danger.DEFAULT,
+  prediction: configChartColors.recharts.primary,
   predictionFill: 'rgba(59, 130, 246, 0.1)',
 
   heatmap: {
-    low: '#22c55e',
-    medium: '#f59e0b',
-    high: '#ef4444',
+    low: semanticColors.success.DEFAULT,
+    medium: semanticColors.warning.DEFAULT,
+    high: semanticColors.danger.DEFAULT,
   },
 };
 

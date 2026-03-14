@@ -193,7 +193,12 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
     other: 'bg-slate-50',
   };
 
-  const typeLabels = DisputeTypeLabels;
+  const typeLabels: Record<DisputeType, string> = {
+    price: t('uma.disputeTypes.price'),
+    state: t('uma.disputeTypes.state'),
+    liquidation: t('uma.disputeTypes.liquidation'),
+    other: t('uma.disputeTypes.other'),
+  };
 
   // 获取争议类型图标
   const getTypeChartIcon = (type: DisputeType, className = 'w-4 h-4') => {
@@ -381,6 +386,13 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
+  const typeLabels: Record<DisputeType, string> = {
+    price: t('uma.disputeTypes.price'),
+    state: t('uma.disputeTypes.state'),
+    liquidation: t('uma.disputeTypes.liquidation'),
+    other: t('uma.disputeTypes.other'),
+  };
+
   const filteredDisputes = disputes.filter((dispute) => {
     if (filter !== 'all' && dispute.status !== filter) return false;
     if (typeFilter !== 'all' && dispute.type !== typeFilter) return false;
@@ -499,7 +511,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${styles.bgColor} ${styles.color} ${styles.borderColor} ${styles.hoverBgColor} transition-colors duration-200`}
       >
         {getTypeIcon(type, 'w-3.5 h-3.5')}
-        {DisputeTypeLabels[type]}
+        {typeLabels[type]}
       </span>
     );
   };

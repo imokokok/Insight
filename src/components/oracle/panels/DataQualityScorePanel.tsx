@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { Publisher } from '@/types/oracle';
+import { chartColors } from '@/lib/config/colors';
 
 export interface DataQualityScorePanelProps {
   symbol?: string;
@@ -83,13 +84,13 @@ function getScoreRingColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'excellent':
-      return '#22C55E';
+      return chartColors.semantic.success;
     case 'good':
-      return '#3B82F6';
+      return chartColors.recharts.primary;
     case 'fair':
-      return '#EAB308';
+      return chartColors.semantic.warning;
     case 'poor':
-      return '#EF4444';
+      return chartColors.semantic.danger;
   }
 }
 

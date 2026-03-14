@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ComposedChart,
   Line,
@@ -17,13 +17,13 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { BandProtocolClient, HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
+import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
 import { Blockchain } from '@/types/oracle';
-import { TimeRange } from '../common/TabNavigation';
-import { AnomalyMarker, AnomalyPoint } from '../common/AnomalyMarker';
-import { ChartExportButton } from '../forms/ChartExportButton';
-import { MoreOptionsDropdown } from '../common/MoreOptionsDropdown';
+import { TimeRange } from '../../common/TabNavigation';
+import { AnomalyMarker, AnomalyPoint } from '../../common/AnomalyMarker';
+import { ChartExportButton } from '../../forms/ChartExportButton';
+import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
 import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
 import { ChartExportData } from '@/utils/chartExport';
 import { downsampleData } from '@/utils/downsampling';
@@ -32,585 +32,28 @@ import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 import { useUMARealtimePrice, UMAPriceData } from '@/hooks/useUMARealtime';
 import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
-import { useChartZoom, useBrushZoom } from '@/hooks/useChartZoom';
+import { useBrushZoom } from '@/hooks/useChartZoom';
+import {
+  ChartType,
+  DataGranularity,
+  ComparisonPeriod,
+  GRANULARITY_CONFIG,
+} from './priceChartConfig';
+import { useChartSettings, useScreenSize } from './usePriceChartSettings';
+import {
+  calculatePredictionIntervals,
+  generateHistoricalData,
+  convertHistoricalPricePoints,
+  generateDataWithGranularity,
+} from './priceChartUtils';
+import {
+  MainChartTooltip,
+  RSITooltip,
+  MACDTooltip,
+  CandlestickShape,
+} from './PriceChartTooltip';
 
 const logger = createLogger('PriceChart');
-
-const CHART_SETTINGS_STORAGE_KEY = 'priceChart_settings';
-
-interface ChartSettings {
-  anomalyDetectionEnabled: boolean;
-  showPredictionInterval: boolean;
-  confidenceLevel: ConfidenceLevel;
-  comparisonEnabled: boolean;
-}
-
-function loadChartSettings(): ChartSettings | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const stored = localStorage.getItem(CHART_SETTINGS_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    logger.warn('Failed to load chart settings', e instanceof Error ? e : new Error(String(e)));
-  }
-  return null;
-}
-
-function saveChartSettings(settings: ChartSettings): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(CHART_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  } catch (e) {
-    logger.warn('Failed to save chart settings', e instanceof Error ? e : new Error(String(e)));
-  }
-}
-
-function useChartSettings() {
-  const [settings, setSettings] = useState<ChartSettings>({
-    anomalyDetectionEnabled: true,
-    showPredictionInterval: false,
-    confidenceLevel: 95,
-    comparisonEnabled: false,
-  });
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    const saved = loadChartSettings();
-    if (saved) {
-      setSettings((prev) => ({ ...prev, ...saved }));
-    }
-    setIsLoaded(true);
-  }, []);
-
-  const updateSettings = useCallback((updates: Partial<ChartSettings>) => {
-    setSettings((prev) => {
-      const newSettings = { ...prev, ...updates };
-      saveChartSettings(newSettings);
-      return newSettings;
-    });
-  }, []);
-
-  return { settings, updateSettings, isLoaded };
-}
-
-type ScreenSize = 'mobile' | 'tablet' | 'desktop';
-
-function useScreenSize(): ScreenSize {
-  const [screenSize, setScreenSize] = useState<ScreenSize>('desktop');
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      const width = window.innerWidth;
-      if (width < 640) {
-        setScreenSize('mobile');
-      } else if (width < 1024) {
-        setScreenSize('tablet');
-      } else {
-        setScreenSize('desktop');
-      }
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
-  return screenSize;
-}
-
-type ChartType = 'line' | 'candlestick';
-type DataGranularity = 'minute' | 'hour' | 'day';
-type ConfidenceLevel = 90 | 95 | 99;
-
-interface TimeRangeOption {
-  value: TimeRange;
-  label: string;
-  hours: number;
-}
-
-interface ComparisonPeriod {
-  enabled: boolean;
-  period1Start: string;
-  period1End: string;
-  period2Start: string;
-  period2End: string;
-}
-
-const TIME_RANGE_OPTIONS: TimeRangeOption[] = [
-  { value: '1H', label: '1H', hours: 1 },
-  { value: '24H', label: '24H', hours: 24 },
-  { value: '7D', label: '7D', hours: 24 * 7 },
-  { value: '30D', label: '30D', hours: 24 * 30 },
-  { value: '90D', label: '90D', hours: 24 * 90 },
-  { value: '1Y', label: '1Y', hours: 24 * 365 },
-];
-
-const TIME_RANGE_CONFIG: Record<TimeRange, { hours: number; interval: number; label: string }> = {
-  '1H': { hours: 1, interval: 2, label: '1小时' },
-  '24H': { hours: 24, interval: 30, label: '24小时' },
-  '7D': { hours: 24 * 7, interval: 4, label: '7天' },
-  '30D': { hours: 24 * 30, interval: 24, label: '30天' },
-  '90D': { hours: 24 * 90, interval: 72, label: '90天' },
-  '1Y': { hours: 24 * 365, interval: 168, label: '1年' },
-  ALL: { hours: 24 * 365 * 2, interval: 336, label: '全部' },
-};
-
-const GRANULARITY_CONFIG: Record<DataGranularity, { intervalMinutes: number; label: string }> = {
-  minute: { intervalMinutes: 1, label: '分钟' },
-  hour: { intervalMinutes: 60, label: '小时' },
-  day: { intervalMinutes: 1440, label: '天' },
-};
-
-const CONFIDENCE_Z_SCORES: Record<ConfidenceLevel, number> = {
-  90: 1.645,
-  95: 1.96,
-  99: 2.576,
-};
-
-function calculatePredictionIntervals(
-  data: IndicatorDataPoint[],
-  windowSize: number = 20,
-  confidenceLevel: ConfidenceLevel
-): IndicatorDataPoint[] {
-  const zScore = CONFIDENCE_Z_SCORES[confidenceLevel];
-
-  return data.map((point, index) => {
-    if (index < windowSize - 1) {
-      return {
-        ...point,
-        predictionUpper: point.price,
-        predictionLower: point.price,
-        predictionMean: point.price,
-      };
-    }
-
-    const windowData = data.slice(index - windowSize + 1, index + 1);
-    const prices = windowData.map((d) => d.price);
-
-    const mean = prices.reduce((sum, p) => sum + p, 0) / windowSize;
-
-    const squaredDiffs = prices.map((p) => Math.pow(p - mean, 2));
-    const variance = squaredDiffs.reduce((sum, diff) => sum + diff, 0) / windowSize;
-    const stdDev = Math.sqrt(variance);
-
-    const upper = mean + zScore * stdDev;
-    const lower = mean - zScore * stdDev;
-
-    return {
-      ...point,
-      predictionUpper: upper,
-      predictionLower: lower,
-      predictionMean: mean,
-    };
-  });
-}
-
-function generateHistoricalData(basePrice: number, timeRange: TimeRange): IndicatorDataPoint[] {
-  const config = TIME_RANGE_CONFIG[timeRange];
-  const now = Date.now();
-  const dataPoints: IndicatorDataPoint[] = [];
-
-  const totalMinutes = config.hours * 60;
-  const dataCount = Math.min(Math.floor(totalMinutes / config.interval), 500);
-
-  let currentPrice = basePrice;
-  const volatility = 0.015;
-
-  for (let i = dataCount; i >= 0; i--) {
-    const timestamp = now - i * config.interval * 60 * 1000;
-    const date = new Date(timestamp);
-
-    const change = (Math.random() - 0.5) * 2 * volatility;
-    const open = currentPrice;
-    const close = currentPrice * (1 + change);
-    const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-    const low = Math.min(open, close) * (1 - Math.random() * 0.01);
-
-    const volumeBase = 1000000 + Math.random() * 2000000;
-    const volume = Math.floor(volumeBase * (1 + Math.abs(change) * 10));
-
-    let timeLabel: string;
-    if (config.hours <= 24) {
-      timeLabel = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    } else if (config.hours <= 24 * 7) {
-      timeLabel = date.toLocaleDateString('zh-CN', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-      });
-    } else {
-      timeLabel = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-    }
-
-    dataPoints.push({
-      time: timeLabel,
-      timestamp,
-      price: close,
-      volume,
-      open,
-      high,
-      low,
-      close,
-    });
-
-    currentPrice = close;
-  }
-
-  return dataPoints;
-}
-
-function convertHistoricalPricePoints(
-  points: HistoricalPricePoint[],
-  isComparison: boolean = false
-): IndicatorDataPoint[] {
-  return points.map((point) => {
-    const date = new Date(point.timestamp);
-    let timeLabel: string;
-    const hoursDiff = (Date.now() - point.timestamp) / (1000 * 60 * 60);
-
-    if (hoursDiff <= 24) {
-      timeLabel = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    } else if (hoursDiff <= 24 * 7) {
-      timeLabel = date.toLocaleDateString('zh-CN', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-      });
-    } else {
-      timeLabel = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-    }
-
-    return {
-      time: timeLabel,
-      timestamp: point.timestamp,
-      price: point.price,
-      volume: point.volume,
-      open: point.open,
-      high: point.high,
-      low: point.low,
-      close: point.close,
-      ma7: point.ma7,
-      ma20: point.ma20,
-      isComparison,
-    };
-  });
-}
-
-function generateDataWithGranularity(
-  basePrice: number,
-  startDate: Date,
-  endDate: Date,
-  granularity: DataGranularity
-): IndicatorDataPoint[] {
-  const dataPoints: IndicatorDataPoint[] = [];
-  const granularityConfig = GRANULARITY_CONFIG[granularity];
-  const intervalMs = granularityConfig.intervalMinutes * 60 * 1000;
-
-  const startTime = startDate.getTime();
-  const endTime = endDate.getTime();
-  let currentPrice = basePrice;
-  const volatility = 0.015;
-
-  for (let timestamp = startTime; timestamp <= endTime; timestamp += intervalMs) {
-    const date = new Date(timestamp);
-    const change = (Math.random() - 0.5) * 2 * volatility;
-    const open = currentPrice;
-    const close = currentPrice * (1 + change);
-    const high = Math.max(open, close) * (1 + Math.random() * 0.01);
-    const low = Math.min(open, close) * (1 - Math.random() * 0.01);
-
-    const volumeBase = 1000000 + Math.random() * 2000000;
-    const volume = Math.floor(volumeBase * (1 + Math.abs(change) * 10));
-
-    let timeLabel: string;
-    if (granularity === 'minute') {
-      timeLabel = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    } else if (granularity === 'hour') {
-      timeLabel = date.toLocaleDateString('zh-CN', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-      });
-    } else {
-      timeLabel = date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-    }
-
-    dataPoints.push({
-      time: timeLabel,
-      timestamp,
-      price: close,
-      volume,
-      open,
-      high,
-      low,
-      close,
-    });
-
-    currentPrice = close;
-  }
-
-  return dataPoints;
-}
-
-// ==================== Tooltip 组件 ====================
-
-const MainChartTooltip = memo(function MainChartTooltip({
-  active,
-  payload,
-  label,
-  chartType,
-  showBollingerBands,
-  showRSI,
-  showMACD,
-  isMobile,
-}: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
-  label?: string;
-  chartType: ChartType;
-  showBollingerBands: boolean;
-  showRSI: boolean;
-  showMACD: boolean;
-  isMobile?: boolean;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data) return null;
-
-  const isUp = data.close !== undefined && data.open !== undefined ? data.close >= data.open : true;
-
-  return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-xl ${isMobile ? 'p-2 max-w-[200px]' : 'p-3 max-w-xs'}`}>
-      <p className={`text-gray-600 mb-2 font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{label}</p>
-
-      {chartType === 'candlestick' && data.open !== undefined ? (
-        <div className="space-y-1">
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">开盘:</span>
-            <span className="text-gray-900 font-mono">${data.open.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">最高:</span>
-            <span className="text-green-600 font-mono">${data.high?.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">最低:</span>
-            <span className="text-red-600 font-mono">${data.low?.toFixed(4)}</span>
-          </div>
-          <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">收盘:</span>
-            <span className={`font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`}>
-              ${data.close?.toFixed(4)}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">价格:</span>
-          <span className="text-blue-600 font-mono">${data.price.toFixed(4)}</span>
-        </div>
-      )}
-
-      {data.ma7 !== undefined && chartType === 'line' && (
-        <div className={`flex justify-between gap-4 mt-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">MA7:</span>
-          <span className="text-amber-600 font-mono">${data.ma7.toFixed(4)}</span>
-        </div>
-      )}
-
-      {!isMobile && data.ma14 !== undefined && chartType === 'line' && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">MA14:</span>
-          <span className="text-blue-600 font-mono">${data.ma14.toFixed(4)}</span>
-        </div>
-      )}
-
-      {!isMobile && data.ma30 !== undefined && chartType === 'line' && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">MA30:</span>
-          <span className="text-purple-600 font-mono">${data.ma30.toFixed(4)}</span>
-        </div>
-      )}
-
-      {showBollingerBands && !isMobile && data.bbUpper !== undefined && (
-        <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">布林带</p>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">上轨:</span>
-            <span className="text-purple-500 font-mono">${data.bbUpper.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">中轨:</span>
-            <span className="text-purple-400 font-mono">${data.bbMiddle?.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">下轨:</span>
-            <span className="text-purple-500 font-mono">${data.bbLower?.toFixed(4)}</span>
-          </div>
-        </div>
-      )}
-
-      {data.predictionUpper !== undefined && data.predictionLower !== undefined && data.predictionUpper !== null && data.predictionLower !== null && (
-        <div className={`space-y-1 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-500">预测上界:</span>
-            <span className="text-blue-600 font-mono">${Number(data.predictionUpper).toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-500">预测下界:</span>
-            <span className="text-blue-600 font-mono">${Number(data.predictionLower).toFixed(4)}</span>
-          </div>
-        </div>
-      )}
-
-      <div className={`flex justify-between gap-4 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-        <span className="text-gray-500">成交量:</span>
-        <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
-      </div>
-
-      {showRSI && !isMobile && data.rsi !== undefined && (
-        <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">RSI:</span>
-          <span className={`font-mono ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-700'}`}>
-            {data.rsi.toFixed(2)}
-          </span>
-        </div>
-      )}
-
-      {showMACD && !isMobile && data.macd !== undefined && (
-        <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">MACD</p>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">MACD:</span>
-            <span className="text-blue-600 font-mono">{data.macd.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">信号:</span>
-            <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">柱状:</span>
-            <span className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {data.macdHistogram?.toFixed(4)}
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
-
-const RSITooltip = memo(function RSITooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
-  label?: string;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data || data.rsi === undefined) return null;
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-xl">
-      <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
-      <div className="flex justify-between gap-4 text-xs">
-        <span className="text-gray-500">RSI:</span>
-        <span className={`font-mono font-medium ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-900'}`}>
-          {data.rsi.toFixed(2)}
-        </span>
-      </div>
-    </div>
-  );
-});
-
-const MACDTooltip = memo(function MACDTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string; payload: IndicatorDataPoint }>;
-  label?: string;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-
-  const data = payload[0]?.payload;
-  if (!data) return null;
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-xl">
-      <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
-      <div className="space-y-1">
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">MACD:</span>
-          <span className="text-blue-600 font-mono">{data.macd?.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">信号:</span>
-          <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">柱状:</span>
-          <span className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {data.macdHistogram?.toFixed(4)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-const CandlestickShape = memo(function CandlestickShape(props: {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  payload?: IndicatorDataPoint;
-}) {
-  const { x = 0, y = 0, width = 0, payload } = props;
-  if (!payload) return null;
-
-  const { open, high, low, close } = payload;
-  if (open === undefined || high === undefined || low === undefined || close === undefined) {
-    return null;
-  }
-
-  const isUp = close >= open;
-  const color = isUp ? '#10b981' : '#f43f5e';
-  const bodyHeight = Math.abs(close - open);
-
-  const centerX = x + width / 2;
-
-  return (
-    <g>
-      <line
-        x1={centerX}
-        y1={y}
-        x2={centerX}
-        y2={y + (props.height || 0)}
-        stroke={color}
-        strokeWidth={1}
-      />
-      <rect
-        x={x + width * 0.2}
-        y={y + (isUp ? 0 : (props.height || 0) * 0.5)}
-        width={width * 0.6}
-        height={Math.max(bodyHeight, 2)}
-        fill={color}
-        rx={1}
-      />
-    </g>
-  );
-});
-
-// ==================== 主组件 ====================
 
 interface PriceChartProps {
   client: BaseOracleClient;
@@ -635,7 +78,6 @@ export function PriceChart({
   const { globalTimeRange, selectedTimeRange, registerTimeRangeCallback, unregisterTimeRangeCallback, syncEnabled } = useTimeRange();
   const { settings: chartSettings, updateSettings: updateChartSettings, isLoaded: chartSettingsLoaded } = useChartSettings();
   
-  // 使用新的技术指标 Hook
   const isMobile = screenSize === 'mobile';
   const isTablet = screenSize === 'tablet';
   const {
@@ -674,7 +116,6 @@ export function PriceChart({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const lastRealtimeUpdateRef = useRef<number>(Date.now());
 
-  // 同步缩放状态
   const [brushRange, setBrushRange] = useState<{ startIndex?: number; endIndex?: number }>({});
   const [brushStartIndex, setBrushStartIndex] = useState<number | undefined>(undefined);
   const [brushEndIndex, setBrushEndIndex] = useState<number | undefined>(undefined);
@@ -705,16 +146,13 @@ export function PriceChart({
   const isBandClient = client instanceof BandProtocolClient;
   const isUMAClient = client instanceof UMAClient;
 
-  // 使用 BrushZoom Hook
   const brushZoom = useBrushZoom({
     dataLength: data.length,
-    defaultRange: isMobile ? 0.5 : 0.3, // 移动端默认显示更多数据
+    defaultRange: isMobile ? 0.5 : 0.3,
     minVisiblePoints: isMobile ? 5 : 10,
   });
 
-  // 计算图表高度分配 - 移动端优化
   const chartHeights = useMemo(() => {
-    // 移动端最小高度限制
     const minHeight = isMobile ? 300 : 400;
     const availableHeight = Math.max(minHeight, height - (showToolbar ? (isMobile ? 140 : 180) : 0));
     const gap = isMobile ? 4 : 8;
@@ -732,7 +170,6 @@ export function PriceChart({
     }
   }, [height, showToolbar, isMobile, showRSI, showMACD]);
 
-  // 使用技术指标 Hook 计算指标
   useEffect(() => {
     if (rawData.length > 0) {
       const dataWithIndicators = calculateIndicatorsFn(rawData);
@@ -740,7 +177,6 @@ export function PriceChart({
     }
   }, [rawData, calculateIndicatorsFn]);
 
-  // UMA 实时价格数据订阅
   const handlePriceUpdate = useCallback((priceData: UMAPriceData) => {
     const now = Date.now();
     if (now - lastRealtimeUpdateRef.current < 1000) return;
@@ -1018,7 +454,6 @@ export function PriceChart({
     return calculatePredictionIntervals(data, 20, confidenceLevel);
   }, [data, showPredictionInterval, confidenceLevel]);
 
-  // 处理 Brush 变化（同步缩放）
   const handleBrushChange = useCallback((range: { startIndex?: number; endIndex?: number }) => {
     setBrushRange(range);
     brushZoom.handleBrushChange(range);
@@ -1028,7 +463,6 @@ export function PriceChart({
     }
   }, [brushZoom]);
 
-  // 监听 TimeRangeContext 的时间范围变化
   useEffect(() => {
     if (!syncEnabled || !selectedTimeRange || data.length === 0) return;
 
@@ -1060,7 +494,6 @@ export function PriceChart({
     }
   }, [selectedTimeRange, data, syncEnabled]);
 
-  // 注册时间范围变化回调
   useEffect(() => {
     const handleTimeRangeChange = (range: SelectedTimeRange) => {
       logger.info('Time range changed from external source', { range });
@@ -1178,7 +611,6 @@ export function PriceChart({
             </div>
           </div>
 
-          {/* 指标控制面板 - 移动端优化 */}
           <div className={`flex flex-wrap items-center gap-2 ${isMobile ? 'gap-1' : ''}`}>
             {!isMobile && (
               <div className="flex items-center gap-2">
@@ -1204,7 +636,6 @@ export function PriceChart({
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>指标:</span>
               <div className={`flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}>
-                {/* 主图指标 */}
                 {!isMobile && (
                   <button
                     onClick={toggleBollingerBands}
@@ -1260,7 +691,6 @@ export function PriceChart({
                   </button>
                 )}
 
-                {/* 副图指标 - 仅桌面端显示 */}
                 {!isMobile && (
                   <>
                     <div className="w-px h-4 bg-gray-300 mx-1" />
@@ -1289,7 +719,6 @@ export function PriceChart({
                       MACD
                     </button>
 
-                    {/* 成交量 */}
                     <div className="w-px h-4 bg-gray-300 mx-1" />
                     <button
                       onClick={toggleVolume}
@@ -1397,7 +826,6 @@ export function PriceChart({
         className={`flex-1 min-h-0 bg-gray-50 rounded-lg transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}
         style={{ opacity: chartOpacity }}
       >
-        {/* 主图区域 */}
         <ResponsiveContainer width="100%" height={chartHeights.main}>
           <ComposedChart
             data={dataWithPrediction}
@@ -1472,7 +900,6 @@ export function PriceChart({
               />
             )}
 
-            {/* 成交量 */}
             {showVolume && (
               <Bar
                 yAxisId="volume"
@@ -1499,7 +926,6 @@ export function PriceChart({
 
             {chartType === 'line' && (
               <>
-                {/* 布林带 */}
                 {showBollingerBands && (
                   <>
                     <Area
@@ -1507,7 +933,7 @@ export function PriceChart({
                       type="monotone"
                       dataKey="bbUpper"
                       stroke="none"
-                      fill="#a855f7"
+                      fill={chartColors.recharts.purple}
                       fillOpacity={0.1}
                       dot={false}
                       activeDot={false}
@@ -1517,7 +943,7 @@ export function PriceChart({
                       type="monotone"
                       dataKey="bbLower"
                       stroke="none"
-                      fill="#ffffff"
+                      fill={chartColors.recharts.white}
                       fillOpacity={1}
                       dot={false}
                       activeDot={false}
@@ -1526,7 +952,7 @@ export function PriceChart({
                       yAxisId="price"
                       type="monotone"
                       dataKey="bbUpper"
-                      stroke="#a855f7"
+                      stroke={chartColors.recharts.purple}
                       strokeWidth={1}
                       strokeDasharray="3 3"
                       dot={false}
@@ -1536,7 +962,7 @@ export function PriceChart({
                       yAxisId="price"
                       type="monotone"
                       dataKey="bbMiddle"
-                      stroke="#c084fc"
+                      stroke={chartColors.recharts.purple}
                       strokeWidth={1.5}
                       dot={false}
                       activeDot={false}
@@ -1545,7 +971,7 @@ export function PriceChart({
                       yAxisId="price"
                       type="monotone"
                       dataKey="bbLower"
-                      stroke="#a855f7"
+                      stroke={chartColors.recharts.purple}
                       strokeWidth={1}
                       strokeDasharray="3 3"
                       dot={false}
@@ -1591,7 +1017,6 @@ export function PriceChart({
                   </>
                 )}
 
-                {/* 价格线 */}
                 <Line
                   yAxisId="price"
                   type="monotone"
@@ -1618,7 +1043,6 @@ export function PriceChart({
                   />
                 )}
 
-                {/* 移动平均线 */}
                 {showMA7 && (
                   <Line
                     yAxisId="price"
@@ -1637,7 +1061,7 @@ export function PriceChart({
                     yAxisId="price"
                     type="monotone"
                     dataKey="ma14"
-                    stroke="#3b82f6"
+                    stroke={chartColors.recharts.primaryLight}
                     strokeWidth={1.5}
                     strokeDasharray="10 5"
                     dot={false}
@@ -1650,7 +1074,7 @@ export function PriceChart({
                     yAxisId="price"
                     type="monotone"
                     dataKey="ma30"
-                    stroke="#8b5cf6"
+                    stroke={chartColors.recharts.purple}
                     strokeWidth={1.5}
                     strokeDasharray="3 3"
                     dot={false}
@@ -1663,7 +1087,7 @@ export function PriceChart({
                     yAxisId="price"
                     type="monotone"
                     dataKey="ma60"
-                    stroke="#22c55e"
+                    stroke={chartColors.recharts.success}
                     strokeWidth={1.5}
                     strokeDasharray="15 5 3 5"
                     dot={false}
@@ -1676,7 +1100,7 @@ export function PriceChart({
                     yAxisId="price"
                     type="monotone"
                     dataKey="ma20"
-                    stroke="#06b6d4"
+                    stroke={chartColors.recharts.cyan}
                     strokeWidth={1.5}
                     strokeDasharray="5 5"
                     dot={false}
@@ -1695,7 +1119,6 @@ export function PriceChart({
               <AnomalyMarker anomalies={anomalies} yAxisId="price" />
             )}
 
-            {/* Brush - 移动端优化高度 */}
             {!showRSI && !showMACD && (
               <Brush
                 dataKey="time"
@@ -1711,7 +1134,6 @@ export function PriceChart({
           </ComposedChart>
         </ResponsiveContainer>
 
-        {/* RSI 副图 */}
         {showRSI && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
@@ -1750,17 +1172,17 @@ export function PriceChart({
                 />
                 <Tooltip content={<RSITooltip />} />
 
-                <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="3 3" strokeOpacity={0.5} />
-                <ReferenceLine y={30} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.5} />
+                <ReferenceLine y={70} stroke={chartColors.rsi.overbought.line} strokeDasharray="3 3" strokeOpacity={0.5} />
+                <ReferenceLine y={30} stroke={chartColors.rsi.oversold.line} strokeDasharray="3 3" strokeOpacity={0.5} />
                 <ReferenceLine y={50} stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
 
                 <Line
                   type="monotone"
                   dataKey="rsi"
-                  stroke="#22c55e"
+                  stroke={chartColors.rsi.line}
                   strokeWidth={isMobile ? 1 : 1.5}
                   dot={false}
-                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: '#22c55e' }}
+                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: chartColors.rsi.line }}
                 />
 
                 {!showMACD && (
@@ -1780,7 +1202,6 @@ export function PriceChart({
           </div>
         )}
 
-        {/* MACD 副图 */}
         {showMACD && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
@@ -1822,7 +1243,7 @@ export function PriceChart({
                   {dataWithPrediction.map((entry, index) => (
                     <Cell
                       key={`macd-cell-${index}`}
-                      fill={(entry.macdHistogram || 0) >= 0 ? '#22c55e' : '#ef4444'}
+                      fill={(entry.macdHistogram || 0) >= 0 ? chartColors.macd.histogram.positive : chartColors.macd.histogram.negative}
                     />
                   ))}
                 </Bar>
@@ -1830,19 +1251,19 @@ export function PriceChart({
                 <Line
                   type="monotone"
                   dataKey="macd"
-                  stroke="#3b82f6"
+                  stroke={chartColors.macd.line}
                   strokeWidth={isMobile ? 1 : 1.5}
                   dot={false}
-                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: '#3b82f6' }}
+                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: chartColors.macd.line }}
                 />
 
                 <Line
                   type="monotone"
                   dataKey="macdSignal"
-                  stroke="#f97316"
+                  stroke={chartColors.macd.signal}
                   strokeWidth={isMobile ? 1 : 1.5}
                   dot={false}
-                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: '#f97316' }}
+                  activeDot={{ r: isMobile ? 2 : 3, strokeWidth: 0, fill: chartColors.macd.signal }}
                 />
 
                 <Brush
@@ -1863,11 +1284,9 @@ export function PriceChart({
 
       {showAnomalyStats && anomalyDetectionEnabled && anomalies.length > 0 && (
         <div className="mt-4">
-          {/* AnomalyStatsPanel component would go here */}
         </div>
       )}
 
-      {/* 图例 - 移动端简化 */}
       {chartType === 'line' && (
         <div className={`flex items-center justify-center gap-4 mt-3 flex-wrap ${isMobile ? 'gap-2' : ''}`}>
           <div className="flex items-center gap-2">
@@ -1935,3 +1354,5 @@ export function PriceChart({
     </div>
   );
 }
+
+export { PriceChart as default };

@@ -17,6 +17,7 @@ import { Blockchain } from '@/lib/oracles';
 import { chainNames, chainColors } from '../utils';
 import { ChartDataPoint } from '../constants';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface ReferenceLineConfig {
   id: string;
@@ -290,17 +291,17 @@ export function InteractivePriceChart({
             y = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
           }
           label = t('crossChain.currentPrice');
-          color = '#3B82F6';
+          color = chartColors.recharts.primary;
           break;
         case 'avg':
           y = avgPrice;
           label = t('crossChain.averagePrice');
-          color = '#10B981';
+          color = semanticColors.success.main;
           break;
         case 'median':
           y = medianPrice;
           label = t('crossChain.medianPrice');
-          color = '#F59E0B';
+          color = semanticColors.warning.main;
           break;
         case 'custom':
           y =
@@ -309,7 +310,7 @@ export function InteractivePriceChart({
               : (priceDomain[0] as number) +
                 ((priceDomain[1] as number) - (priceDomain[0] as number)) / 2;
           label = t('crossChain.customLine');
-          color = '#8B5CF6';
+          color = semanticColors.info.main;
           break;
       }
 
@@ -636,7 +637,7 @@ export function InteractivePriceChart({
                   const index = chartData.findIndex((cd) => cd.timestamp === d.timestamp);
                   return index >= viewState.startIndex && index <= viewState.endIndex;
                 })}
-                fill="#F97316"
+                fill={semanticColors.warning.dark}
                 name={t('crossChain.anomalyPoint')}
               />
             )}

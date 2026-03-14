@@ -43,19 +43,19 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 const CHAIN_COLORS: Record<string, string> = {
-  ethereum: '#627EEA',
+  ethereum: chartColors.recharts.chainlink,
   arbitrum: '#28A0F0',
   optimism: '#FF0420',
-  polygon: '#8247E5',
+  polygon: chartColors.oracle['pyth'],
   base: '#0052FF',
   avalanche: '#E84142',
   bnb: '#F3BA2F',
@@ -340,11 +340,11 @@ export function GasFeeComparison({
                         fill={
                           viewMode === 'efficiency'
                             ? entry.efficiency > 80
-                              ? '#10B981'
+                              ? chartColors.semantic.success
                               : entry.efficiency > 50
-                                ? '#F59E0B'
-                                : '#EF4444'
-                            : ORACLE_COLORS[entry.oracleId as OracleProvider] || '#6B7280'
+                                ? chartColors.semantic.warning
+                                : chartColors.semantic.danger
+                            : ORACLE_COLORS[entry.oracleId as OracleProvider] || chartColors.recharts.tick
                         }
                       />
                     ))}
@@ -391,7 +391,7 @@ export function GasFeeComparison({
                           className="w-3 h-3 rounded-full mr-2"
                           style={{
                             backgroundColor:
-                              ORACLE_COLORS[row.oracleId as OracleProvider] || '#6B7280',
+                              ORACLE_COLORS[row.oracleId as OracleProvider] || chartColors.recharts.tick,
                           }}
                         />
                         <span className="text-sm font-medium text-gray-900">{row.oracle}</span>

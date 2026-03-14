@@ -30,6 +30,7 @@ import {
   Droplets,
   Zap,
 } from 'lucide-react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface AssetCategoryChartProps {
   data: AssetCategory[];
@@ -261,22 +262,22 @@ export default function AssetCategoryChart({
               >
                 {data.map((entry) => (
                   <Cell
-                    key={`cell-${entry.category}`}
-                    fill={entry.color}
-                    stroke={selectedItem === entry.category ? '#3B82F6' : 'transparent'}
-                    strokeWidth={selectedItem === entry.category ? 3 : 0}
-                    opacity={hoveredItem && hoveredItem !== entry.category ? 0.6 : 1}
-                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-                  />
+                  key={`cell-${entry.category}`}
+                  fill={entry.color}
+                  stroke={selectedItem === entry.category ? chartColors.recharts.primary : 'transparent'}
+                  strokeWidth={selectedItem === entry.category ? 3 : 0}
+                  opacity={hoveredItem && hoveredItem !== entry.category ? 0.6 : 1}
+                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           ) : chartType === 'bar' ? (
             <BarChart data={data} layout="vertical" margin={{ left: 100 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={false} />
-              <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
-              <YAxis dataKey="label" type="category" stroke="#9CA3AF" fontSize={11} width={90} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
+              <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
+              <YAxis dataKey="label" type="category" stroke={chartColors.recharts.axis} fontSize={11} width={90} />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="share"
@@ -301,21 +302,21 @@ export default function AssetCategoryChart({
             </BarChart>
           ) : (
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-              <PolarGrid stroke="#E5E7EB" />
+              <PolarGrid stroke={chartColors.recharts.grid} />
               <PolarAngleAxis dataKey="category" tick={{ fontSize: 10 }} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
               <Radar
                 name="Liquidity"
                 dataKey="liquidity"
-                stroke="#10B981"
-                fill="#10B981"
+                stroke={semanticColors.success.main}
+                fill={semanticColors.success.main}
                 fillOpacity={0.3}
               />
               <Radar
                 name="Volatility (x10)"
                 dataKey="volatility"
-                stroke="#F59E0B"
-                fill="#F59E0B"
+                stroke={semanticColors.warning.main}
+                fill={semanticColors.warning.main}
                 fillOpacity={0.3}
               />
               <Legend />

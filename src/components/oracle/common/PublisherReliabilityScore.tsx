@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface PublisherReliabilityScoreProps {
   publisher: Publisher;
@@ -103,7 +104,7 @@ function MiniChart({ data, color = 'blue' }: { data: number[]; color?: string })
     return `${x},${y}`;
   });
 
-  const colorClass = color === 'green' ? '#10b981' : color === 'red' ? '#ef4444' : '#3b82f6';
+  const colorClass = color === 'green' ? chartColors.semantic.success : color === 'red' ? chartColors.semantic.danger : chartColors.recharts.primary;
 
   return (
     <svg className="w-full h-12" viewBox="0 0 100 100" preserveAspectRatio="none">

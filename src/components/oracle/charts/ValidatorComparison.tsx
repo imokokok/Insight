@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 type ComparisonDimension = 'responseTime' | 'successRate' | 'earnings';
 
@@ -30,7 +31,6 @@ function ResponseTimeComparison({ validators }: { validators: ValidatorData[] })
       <div className="space-y-3">
         {validators.map((validator, index) => {
           const width = (validator.responseTime / maxResponseTime) * 100;
-          const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'];
 
           return (
             <div key={validator.id} className="space-y-1">
@@ -43,7 +43,7 @@ function ResponseTimeComparison({ validators }: { validators: ValidatorData[] })
                   className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
                   style={{
                     width: `${width}%`,
-                    backgroundColor: colors[index % colors.length],
+                    backgroundColor: chartColors.sequence[index % chartColors.sequence.length],
                   }}
                 >
                   {width > 20 && (
@@ -86,8 +86,6 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
     return { x, y };
   };
 
-  const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'];
-
   return (
     <DashboardCard title={t('uma.validatorComparison.successRateRadar')}>
       <div className="flex items-center justify-center">
@@ -104,7 +102,7 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
                 })
                 .join(' ')}
               fill="none"
-              stroke="#E5E7EB"
+              stroke={chartColors.recharts.grid}
               strokeWidth="1"
             />
           ))}
@@ -145,9 +143,9 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
               <polygon
                 key={validator.id}
                 points={points}
-                fill={colors[vIndex % colors.length]}
+                fill={chartColors.sequence[vIndex % chartColors.sequence.length]}
                 fillOpacity="0.2"
-                stroke={colors[vIndex % colors.length]}
+                stroke={chartColors.sequence[vIndex % chartColors.sequence.length]}
                 strokeWidth="2"
               />
             );
@@ -168,7 +166,7 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
                   cx={pos.x}
                   cy={pos.y}
                   r="4"
-                  fill={colors[vIndex % colors.length]}
+                  fill={chartColors.sequence[vIndex % chartColors.sequence.length]}
                 />
               );
             });
@@ -181,7 +179,7 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
           <div key={validator.id} className="flex items-center gap-2">
             <div
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: colors[index % colors.length] }}
+              style={{ backgroundColor: chartColors.sequence[index % chartColors.sequence.length] }}
             />
             <span className="text-sm text-gray-600">{validator.name}</span>
           </div>
@@ -200,7 +198,6 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
       <div className="space-y-4">
         {validators.map((validator, index) => {
           const width = (validator.earnings / maxEarnings) * 100;
-          const colors = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'];
 
           return (
             <div key={validator.id} className="space-y-2">
@@ -215,7 +212,7 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
                   className="h-full rounded-lg transition-all duration-500 flex items-center justify-end pr-3"
                   style={{
                     width: `${width}%`,
-                    backgroundColor: colors[index % colors.length],
+                    backgroundColor: chartColors.sequence[index % chartColors.sequence.length],
                   }}
                 >
                   {width > 15 && (

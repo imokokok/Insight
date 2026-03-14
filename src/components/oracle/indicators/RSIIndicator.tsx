@@ -13,6 +13,7 @@ import {
   ReferenceArea,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
+import { chartColors } from '@/lib/config/colors';
 
 export interface RSIDataPoint {
   time: string;
@@ -145,19 +146,19 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
       <div style={{ height: `${height}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rsiData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} opacity={0.5} />
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               minTickGap={30}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               ticks={[0, 30, 50, 70, 100]}
             />
             <Tooltip
@@ -181,22 +182,22 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
               }}
             />
             {/* 超买区域 */}
-            <ReferenceArea y1={70} y2={100} fill="#ef4444" fillOpacity={0.1} />
+            <ReferenceArea y1={70} y2={100} fill={chartColors.rsi.overbought.line} fillOpacity={0.1} />
             {/* 超卖区域 */}
-            <ReferenceArea y1={0} y2={30} fill="#22c55e" fillOpacity={0.1} />
+            <ReferenceArea y1={0} y2={30} fill={chartColors.rsi.oversold.line} fillOpacity={0.1} />
             {/* 中性线 */}
-            <ReferenceLine y={50} stroke="#9ca3af" strokeDasharray="3 3" />
+            <ReferenceLine y={50} stroke={chartColors.rsi.neutral} strokeDasharray="3 3" />
             {/* 超买线 */}
-            <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="3 3" />
+            <ReferenceLine y={70} stroke={chartColors.rsi.overbought.line} strokeDasharray="3 3" />
             {/* 超卖线 */}
-            <ReferenceLine y={30} stroke="#22c55e" strokeDasharray="3 3" />
+            <ReferenceLine y={30} stroke={chartColors.rsi.oversold.line} strokeDasharray="3 3" />
             <Line
               type="monotone"
               dataKey="rsi"
-              stroke="#3b82f6"
+              stroke={chartColors.recharts.primary}
               strokeWidth={1.5}
               dot={false}
-              activeDot={{ r: 3, fill: '#3b82f6' }}
+              activeDot={{ r: 3, fill: chartColors.recharts.primary }}
             />
           </LineChart>
         </ResponsiveContainer>

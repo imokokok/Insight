@@ -3,6 +3,7 @@
  */
 
 import { useCallback, useRef } from 'react';
+import { exportColors } from '@/lib/config/colors';
 
 export interface ExportOptions {
   filename?: string;
@@ -27,7 +28,7 @@ export function useChartExport() {
     const { 
       filename = 'chart-export', 
       quality = 1,
-      backgroundColor = '#ffffff' 
+      backgroundColor = exportColors.background 
     } = options;
 
     if (!element) {

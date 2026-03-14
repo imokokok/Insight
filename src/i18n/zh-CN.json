@@ -63,7 +63,19 @@
         "oracles": "集成预言机",
         "chains": "支持区块链",
         "feeds": "数据 Feeds"
-      }
+      },
+      "metrics": {
+        "totalValueSecured": "总保障价值",
+        "activeOracles": "活跃预言机",
+        "supportedPairs": "支持交易对"
+      },
+      "title": {
+        "part1": "洞察预言机数据",
+        "part2": "驱动智能决策"
+      },
+      "liveData": "实时数据",
+      "searchPlaceholder": "搜索交易对、预言机或区块链...",
+      "viewDocumentation": "查看文档"
     },
     "platformStats": {
       "oraclesIntegrated": "集成预言机",
@@ -91,17 +103,30 @@
     "features": {
       "title": "核心功能",
       "subtitle": "全方位的预言机数据分析工具",
+      "sectionBadge": "核心功能",
+      "sectionTitle": "功能入口",
+      "sectionDescription": "探索平台核心功能，获取全面的预言机数据分析",
+      "liveData": "实时数据",
+      "learnMore": "了解更多 →",
+      "priceQuery": {
+        "title": "价格查询",
+        "description": "多预言机实时价格数据查询",
+        "stats": "次查询"
+      },
       "crossOracle": {
         "title": "跨预言机比较",
-        "description": "对比不同预言机的价格数据、延迟、准确性等关键指标"
+        "description": "对比不同预言机的价格数据、延迟、准确性等关键指标",
+        "stats": "个预言机"
       },
       "crossChain": {
         "title": "跨链比较",
-        "description": "分析同一预言机在不同区块链上的性能表现"
+        "description": "分析同一预言机在不同区块链上的性能表现",
+        "stats": "条链"
       },
-      "priceQuery": {
-        "title": "价格查询",
-        "description": "灵活查询任意预言机、任意链的实时和历史价格数据"
+      "history": {
+        "title": "历史分析",
+        "description": "查看历史价格趋势和图表",
+        "stats": "数据历史"
       },
       "analytics": {
         "title": "深度分析",
@@ -592,6 +617,37 @@
         "critical": "异常范围"
       }
     },
+    "metrics": {
+      "accuracy": "准确性",
+      "decentralization": "去中心化"
+    },
+    "stats": {
+      "highestPrice": "最高价格",
+      "lowestPrice": "最低价格",
+      "maxPriceDifference": "最大价格差异",
+      "deviationFromAverage": "偏离平均值",
+      "avgResponseTime": "平均响应时间"
+    },
+    "selectTradingPair": "选择交易对",
+    "deviationThresholdSettings": "偏离阈值设置",
+    "priceDeviationThreshold": "价格偏离预警阈值:",
+    "priceDeviationAlert": "价格偏离预警",
+    "differenceAnalysisPanel": "差异分析面板",
+    "priceDifferenceVisualization": "价格差异可视化",
+    "aboveAverage": "高于平均值",
+    "belowAverage": "低于平均值",
+    "zeroLineAverage": "零线（平均值）",
+    "multiOraclePriceComparison": "多预言机价格对比",
+    "priceHistory": "价格历史",
+    "average": "平均值",
+    "priceComparisonDetails": "价格对比详情",
+    "currentPriceComparison": "当前价格对比",
+    "price": "价格",
+    "priceTrendComparison": "价格趋势对比",
+    "performanceComparison": "性能对比",
+    "comprehensivePerformanceRadar": "综合性能雷达图",
+    "autoRefreshSettings": "自动刷新设置",
+    "enableAutoRefresh": "启用自动刷新",
     "priceDistributionBoxPlot": {
       "title": "价格分布箱线图",
       "subtitle": "各预言机价格分布统计",
@@ -1811,6 +1867,38 @@
       "viewOnEtherscan": "在 Etherscan 查看"
     }
   },
+  "redstone": {
+    "title": "Redstone 数据分析",
+    "subtitle": "模块化预言机解决方案",
+    "stats": {
+      "dataProviders": "数据提供者",
+      "supportedAssets": "支持资产",
+      "supportedChains": "支持链数",
+      "dataFreshness": "数据新鲜度",
+      "activeNodes": "活跃节点",
+      "dataStreams": "数据流",
+      "responseTime": "响应时间",
+      "uptime": "正常运行",
+      "volume24h": "24h 交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量",
+      "modularFees": "模块化费用",
+      "networkUptime": "网络正常运行"
+    },
+    "tabs": {
+      "overview": "概览",
+      "providers": "数据提供者",
+      "feeds": "数据源"
+    },
+    "priceChart": "价格图表",
+    "quickStats": "快速统计",
+    "networkStatus": "网络状态",
+    "status": {
+      "normal": "正常",
+      "warning": "警告"
+    },
+    "dataSources": "数据源"
+  },
   "pythNetwork": {
     "title": "Pyth",
     "subtitle": "具有第一方交易所数据和亚秒级延迟的高频金融数据预言机。",
@@ -2356,7 +2444,58 @@
       "indicators": "技术指标",
       "tooltip": {
         "time": "时间",
-        "dataPoints": "数据点数"
+        "dataPoints": "数据点数",
+        "open": "开盘:",
+        "high": "最高:",
+        "low": "最低:",
+        "close": "收盘:",
+        "price": "价格:",
+        "ma7": "MA7:",
+        "ma14": "MA14:",
+        "ma30": "MA30:",
+        "bollingerBands": "布林带",
+        "upperBand": "上轨:",
+        "middleBand": "中轨:",
+        "lowerBand": "下轨:",
+        "predictionUpper": "预测上界:",
+        "predictionLower": "预测下界:",
+        "volume": "成交量:",
+        "rsi": "RSI:",
+        "macd": "MACD",
+        "macdValue": "MACD:",
+        "signal": "信号:",
+        "histogram": "柱状:"
+      },
+      "indicators": {
+        "bollingerBands": "布林带",
+        "ma7": "7日移动平均线",
+        "ma14": "14日移动平均线",
+        "ma30": "30日移动平均线",
+        "rsi": "相对强弱指标",
+        "macd": "指数平滑异同移动平均线",
+        "volume": "成交量"
+      },
+      "timeRange": {
+        "all": "全部",
+        "label": "时间范围"
+      },
+      "granularity": {
+        "minute": "分钟",
+        "hour": "小时",
+        "day": "天",
+        "label": "粒度:"
+      },
+      "realtimeStatus": {
+        "live": "实时",
+        "connecting": "连接中",
+        "reconnecting": "重连中",
+        "disconnected": "断开"
+      },
+      "timeComparison": {
+        "title": "时间段对比",
+        "period1": "时间段 1",
+        "period2": "时间段 2",
+        "to": "至"
       }
     },
     "quickLinks": {
@@ -2776,6 +2915,9 @@
     "dataSources": "数据源",
     "supportedChains": "支持的链",
     "reliability": "可靠性",
+    "quickCompare": "快速对比主流预言机",
+    "highDeviation": "高偏离",
+    "deviation": "偏离",
     "radar": {
       "responseTime": "响应时间",
       "updateFrequency": "更新频率",
@@ -3761,6 +3903,129 @@
       "description": "皮尔逊相关系数衡量两个预言机价格序列之间的线性相关程度。 系数范围从 -1 到 1，其中 1 表示完全正相关，-1 表示完全负相关，0 表示无线性相关。高相关系数表明预言机价格走势高度一致，数据质量可靠。"
     }
   },
+  "settings": {
+    "profile": {
+      "title": "个人资料",
+      "subtitle": "管理您的个人信息和头像",
+      "avatarLabel": "头像",
+      "avatarHint": "支持 JPEG, PNG, GIF, WebP 格式，最大 2MB",
+      "displayNameLabel": "显示名称",
+      "displayNamePlaceholder": "输入您的显示名称",
+      "emailLabel": "邮箱地址",
+      "emailNotEditable": "邮箱地址不可修改",
+      "saveChanges": "保存更改",
+      "saveSuccess": "个人资料已保存",
+      "saveError": "保存失败，请重试",
+      "invalidImageType": "请上传有效的图片文件",
+      "imageSizeExceeded": "图片大小不能超过 2MB",
+      "uploadError": "上传失败: ",
+      "avatarUpdateError": "更新头像失败",
+      "avatarUpdateSuccess": "头像已更新",
+      "uploadFailed": "上传失败，请重试",
+      "passwordManagement": "密码管理",
+      "passwordManagementDesc": "更新您的登录密码",
+      "changePassword": "修改密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "confirmNewPassword": "确认新密码",
+      "confirmNewPasswordPlaceholder": "再次输入新密码",
+      "updatePassword": "更新密码",
+      "passwordMinLength": "密码至少需要 6 个字符",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordUpdateSuccess": "密码已更新",
+      "passwordUpdateError": "密码更新失败",
+      "cancel": "取消"
+    },
+    "notifications": {
+      "title": "通知设置",
+      "subtitle": "管理您接收通知的方式",
+      "emailNotifications": "邮件通知",
+      "emailNotificationsDesc": "通过邮件接收重要通知",
+      "browserNotifications": "浏览器通知",
+      "browserNotificationsDesc": "在浏览器中显示实时通知",
+      "browserPermissionDenied": "浏览器通知权限被拒绝。请在浏览器设置中允许通知。",
+      "permissionDeniedHint": "通知权限已被拒绝，请在浏览器设置中允许",
+      "authorize": "授权",
+      "alertNotifications": "告警通知",
+      "alertNotificationsDesc": "配置价格告警的通知方式",
+      "alertTriggerNotification": "告警触发通知",
+      "alertTriggerNotificationDesc": "当价格告警触发时发送通知",
+      "priceChangeNotification": "价格变动通知",
+      "priceChangeNotificationDesc": "当价格变动超过阈值时自动通知",
+      "enablePriceChangeNotification": "启用价格变动通知",
+      "enablePriceChangeNotificationDesc": "当价格变动超过设定阈值时通知",
+      "changeThreshold": "变动阈值 (%)",
+      "changeThresholdHint": "当价格在短时间内变动超过此百分比时发送通知",
+      "saveSettings": "保存设置",
+      "saveSuccess": "通知设置已保存"
+    },
+    "preferences": {
+      "title": "偏好设置",
+      "subtitle": "自定义应用的默认行为",
+      "defaultOracle": "默认预言机",
+      "defaultOracleHint": "打开预言机页面时默认显示",
+      "defaultSymbol": "默认交易对",
+      "defaultSymbolHint": "查询价格时默认的交易对",
+      "defaultTimeRange": "默认时间范围",
+      "defaultTimeRangeHint": "图表显示的默认时间范围",
+      "language": "语言",
+      "languageHint": "应用界面语言",
+      "themeSettings": "主题设置",
+      "themeSettingsDesc": "选择应用的外观主题",
+      "themeLight": "亮色",
+      "themeDark": "暗色",
+      "themeSystem": "跟随系统",
+      "themeLightDesc": "使用亮色主题",
+      "themeDarkDesc": "使用暗色主题",
+      "themeSystemDesc": "自动跟随系统设置",
+      "saveSettings": "保存设置",
+      "saveSuccess": "偏好设置已保存",
+      "timeRange": {
+        "hour1": "1 小时",
+        "hour6": "6 小时",
+        "day1": "24 小时",
+        "day7": "7 天",
+        "day30": "30 天"
+      },
+      "languages": {
+        "zhCN": "简体中文",
+        "en": "English"
+      }
+    },
+    "data": {
+      "title": "数据管理",
+      "subtitle": "导出和管理您的数据",
+      "exportUserData": "导出用户数据",
+      "exportUserDataDesc": "导出您的个人资料、收藏、告警和快照数据",
+      "exportPriceHistory": "导出价格历史",
+      "exportPriceHistoryDesc": "导出最近 10000 条价格记录",
+      "exportSnapshots": "导出快照",
+      "exportSnapshotsDesc": "导出您保存的所有价格快照",
+      "clearData": "清除数据",
+      "clearDataDesc": "清除本地存储的数据",
+      "clearDataWarning": "清除本地数据将删除您的偏好设置和缓存数据，但不会影响服务器上的数据。",
+      "clearLocalData": "清除本地数据",
+      "clearLocalDataConfirm": "确定要清除所有本地数据吗？这将清除您的偏好设置和缓存数据。",
+      "clearLocalDataSuccess": "本地数据已清除",
+      "clearLocalDataError": "清除失败，请重试",
+      "exportSuccess": "用户数据已导出",
+      "priceHistoryExportSuccess": "价格历史已导出",
+      "snapshotsExportSuccess": "快照数据已导出",
+      "exportError": "导出失败，请重试",
+      "dangerZone": "危险区域",
+      "dangerZoneDesc": "不可逆的操作，请谨慎处理",
+      "deleteAccountWarning": "删除账户将永久删除您的所有数据，包括个人资料、收藏、告警和快照。此操作不可撤销。",
+      "deleteAccount": "删除账户",
+      "deleteAccountConfirm": "您确定要删除账户吗？此操作不可撤销！",
+      "deleteAccountConfirmHint": "请输入 DELETE 以确认删除：",
+      "deleteAccountConfirmPlaceholder": "输入 DELETE",
+      "confirmDeleteAccount": "确认删除账户",
+      "deleteAccountError": "删除账户失败，请联系管理员",
+      "cancel": "取消",
+      "export": "导出",
+      "note": "注意"
+    }
+  },
   "priceDistribution": {
     "title": "价格分布箱线图",
     "noData": "暂无数据",
@@ -3791,6 +4056,207 @@
       "iqr": "IQR",
       "outliers": "离群值",
       "outlierCount": "个"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "登录您的账户",
+      "subtitle": "欢迎回来，请输入您的登录信息",
+      "emailLabel": "邮箱地址",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "输入您的密码",
+      "rememberMe": "记住我",
+      "forgotPassword": "忘记密码？",
+      "submitting": "登录中...",
+      "submit": "登录",
+      "orSignInWith": "或使用以下方式登录",
+      "noAccount": "还没有账户？",
+      "registerNow": "立即注册"
+    },
+    "register": {
+      "title": "创建新账户",
+      "subtitle": "填写以下信息开始使用",
+      "displayNameLabel": "显示名称",
+      "displayNameOptional": "(可选)",
+      "displayNamePlaceholder": "您的显示名称",
+      "emailLabel": "邮箱地址",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "至少 6 位字符",
+      "confirmPasswordLabel": "确认密码",
+      "confirmPasswordPlaceholder": "再次输入密码",
+      "termsAgreement": "我已阅读并同意 {terms} 和 {privacy}",
+      "terms": "服务条款",
+      "privacy": "隐私政策",
+      "submitting": "注册中...",
+      "submit": "注册",
+      "hasAccount": "已有账户？",
+      "loginNow": "立即登录",
+      "success": {
+        "title": "注册成功！",
+        "emailSent": "我们已向 {email} 发送了一封验证邮件，请点击邮件中的链接完成验证。",
+        "goToLogin": "前往登录",
+        "useOtherEmail": "使用其他邮箱注册"
+      },
+      "error": {
+        "emailRequired": "请输入邮箱地址",
+        "passwordRequired": "请输入密码",
+        "passwordMinLength": "密码长度至少为 6 位",
+        "passwordMismatch": "两次输入的密码不一致"
+      }
+    }
+  },
+  "common": {
+    "cancel": "取消",
+    "save": "保存",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleting": "删除中...",
+    "search": "搜索",
+    "refresh": "刷新",
+    "export": "导出",
+    "apply": "应用",
+    "notice": "注意"
+  },
+  "alerts": {
+    "page": {
+      "title": "价格告警",
+      "subtitle": "设置价格告警，当价格达到目标时自动通知您",
+      "loginRequired": "请先登录",
+      "loginRequiredDesc": "登录后即可使用价格告警功能",
+      "goToLogin": "前往登录",
+      "instructions": {
+        "title": "使用说明",
+        "items": {
+          "1": "选择您想要监控的交易对",
+          "2": "设置告警条件（高于/低于目标价格，或变化百分比）",
+          "3": "输入目标价格或百分比",
+          "4": "告警触发后，您将收到通知"
+        }
+      }
+    },
+    "create": {
+      "title": "创建价格告警",
+      "nameLabel": "告警名称",
+      "nameOptional": "(可选)",
+      "namePlaceholder": "为告警起个名字",
+      "symbolLabel": "交易对",
+      "providerLabel": "预言机",
+      "providerOptional": "(可选)",
+      "allProviders": "所有预言机",
+      "chainLabel": "链",
+      "chainOptional": "(可选)",
+      "allChains": "所有链",
+      "selectProviderFirst": "请先选择预言机",
+      "conditionLabel": "告警条件",
+      "targetValueLabel": "目标值",
+      "enableAlert": "启用告警",
+      "submitting": "创建中...",
+      "submit": "创建告警"
+    },
+    "condition": {
+      "above": "高于",
+      "aboveDesc": "当价格高于目标值时触发",
+      "below": "低于",
+      "belowDesc": "当价格低于目标值时触发",
+      "changePercent": "变化百分比",
+      "changePercentDesc": "当价格变化超过目标百分比时触发"
+    },
+    "placeholder": {
+      "targetPrice": "输入目标价格",
+      "percentage": "输入百分比 (如: 5 表示 5%)",
+      "targetValue": "输入目标值"
+    },
+    "error": {
+      "invalidTargetValue": "请输入有效的目标值"
+    },
+    "list": {
+      "title": "我的告警",
+      "empty": "暂无告警",
+      "emptyHint": "创建您的第一个价格告警",
+      "statusActive": "活跃",
+      "statusTriggered": "已触发",
+      "statusDisabled": "已禁用",
+      "lastTriggered": "最后触发",
+      "enable": "启用",
+      "disable": "禁用",
+      "confirm": "确认"
+    },
+    "history": {
+      "title": "告警历史",
+      "empty": "暂无告警历史",
+      "status": "状态:",
+      "all": "全部",
+      "unacknowledged": "未确认",
+      "acknowledged": "已确认",
+      "sort": "排序:",
+      "newest": "最新优先",
+      "oldest": "最早优先",
+      "unacknowledgedCount": "{count} 未确认",
+      "pending": "待确认",
+      "triggerPrice": "触发价格:",
+      "time": "时间:",
+      "acknowledgeTime": "确认时间:",
+      "acknowledge": "确认",
+      "acknowledging": "确认中...",
+      "totalRecords": "共 {total} 条记录，显示 {shown} 条"
+    }
+  },
+  "favorites": {
+    "page": {
+      "title": "我的收藏",
+      "subtitle": "管理您保存的配置和快速访问入口"
+    },
+    "card": {
+      "symbol": "交易对:",
+      "chain": "链:",
+      "type": {
+        "oracleConfig": "预言机配置",
+        "symbol": "交易对",
+        "chainConfig": "链配置"
+      },
+      "deleteConfirm": {
+        "title": "确认删除",
+        "message": "确定要删除收藏 \"{name}\" 吗？此操作无法撤销。"
+      }
+    }
+  },
+  "error": {
+    "boundary": {
+      "somethingWrong": "出现错误",
+      "tryAgain": "重试",
+      "global": {
+        "title": "出现错误",
+        "description": "很抱歉，发生了意外错误。我们的团队已收到通知，正在努力修复。"
+      },
+      "section": {
+        "title": "区域错误",
+        "description": "此区域遇到错误。您可以尝试刷新此部分，或联系支持团队获取帮助。"
+      },
+      "refreshPage": "刷新页面"
+    }
+  },
+  "emptyState": {
+    "search": {
+      "title": "未找到结果",
+      "description": "尝试调整搜索关键词或筛选条件"
+    },
+    "data": {
+      "title": "暂无数据",
+      "description": "数据正在加载中，请稍后再试"
+    },
+    "error": {
+      "title": "加载失败",
+      "description": "数据加载时出现问题，请稍后重试"
+    },
+    "filter": {
+      "title": "没有符合条件的数据",
+      "description": "尝试调整筛选条件查看更多数据"
+    },
+    "default": {
+      "title": "暂无内容",
+      "description": "这里还没有任何内容"
     }
   }
 }

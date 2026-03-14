@@ -1,6 +1,7 @@
 'use client';
 
 import { ReferenceDot } from 'recharts';
+import { semanticColors } from '@/lib/config/colors';
 
 export interface AnomalyPoint {
   timestamp: number;
@@ -105,7 +106,7 @@ export function AnomalyMarker({ anomalies, yAxisId = 'price', onDataClick }: Ano
           x={anomaly.time}
           y={anomaly.price}
           r={8}
-          fill="#ef4444"
+          fill={semanticColors.danger.DEFAULT}
           stroke="#fff"
           strokeWidth={2}
           yAxisId={yAxisId}
@@ -120,11 +121,11 @@ export function AnomalyMarker({ anomalies, yAxisId = 'price', onDataClick }: Ano
                   cx={cx}
                   cy={cy}
                   r={12}
-                  fill="#ef4444"
+                  fill={semanticColors.danger.DEFAULT}
                   fillOpacity={0.2}
                   className="animate-ping"
                 />
-                <circle cx={cx} cy={cy} r={8} fill="#ef4444" stroke="#fff" strokeWidth={2} />
+                <circle cx={cx} cy={cy} r={8} fill={semanticColors.danger.DEFAULT} stroke="#fff" strokeWidth={2} />
                 <circle cx={cx} cy={cy} r={4} fill="#fff" />
               </g>
             );

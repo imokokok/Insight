@@ -3,6 +3,7 @@
 import React from 'react';
 import { Search, Database, AlertCircle, FileX, Inbox } from 'lucide-react';
 import { Button } from './Button';
+import { useI18n } from '@/lib/i18n/provider';
 
 export type EmptyStateType = 'search' | 'data' | 'error' | 'filter' | 'default';
 
@@ -25,29 +26,6 @@ const icons = {
   default: Inbox,
 };
 
-const defaultMessages = {
-  search: {
-    title: '未找到结果',
-    description: '尝试调整搜索关键词或筛选条件',
-  },
-  data: {
-    title: '暂无数据',
-    description: '数据正在加载中，请稍后再试',
-  },
-  error: {
-    title: '加载失败',
-    description: '数据加载时出现问题，请稍后重试',
-  },
-  filter: {
-    title: '没有符合条件的数据',
-    description: '尝试调整筛选条件查看更多数据',
-  },
-  default: {
-    title: '暂无内容',
-    description: '这里还没有任何内容',
-  },
-};
-
 export function EmptyState({
   type = 'default',
   title,
@@ -58,8 +36,11 @@ export function EmptyState({
   onSecondaryAction,
   className = '',
 }: EmptyStateProps) {
+  const { t } = useI18n();
   const Icon = icons[type];
-  const messages = defaultMessages[type];
+
+  const defaultTitle = t(`emptyState.${type}.title`);
+  const defaultDescription = t(`emptyState.${type}.description`);
 
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
@@ -67,10 +48,10 @@ export function EmptyState({
         <Icon className="w-8 h-8 text-gray-400" />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        {title || messages.title}
+        {title || defaultTitle}
       </h3>
       <p className="text-sm text-gray-500 max-w-sm mb-6">
-        {description || messages.description}
+        {description || defaultDescription}
       </p>
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col sm:flex-row gap-3">
@@ -96,10 +77,11 @@ interface NoDataEmptyStateProps {
 }
 
 export function NoDataEmptyState({ onRefresh, className = '' }: NoDataEmptyStateProps) {
+  const { t } = useI18n();
   return (
     <EmptyState
       type="data"
-      actionLabel={onRefresh ? '刷新' : undefined}
+      actionLabel={onRefresh ? t('common.refresh') : undefined}
       onAction={onRefresh}
       className={className}
     />

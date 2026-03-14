@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
 import { Blockchain } from '@/types/oracle';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface RollingCorrelationChartProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -222,7 +223,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
               data={rollingCorrelationData}
               margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="index"
                 tick={{ fontSize: 11 }}
@@ -245,11 +246,11 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
               <Legend onClick={handleLegendClick} />
 
               {/* Reference lines for correlation thresholds */}
-              <ReferenceLine y={0.8} stroke="#10B981" strokeDasharray="5 5" strokeOpacity={0.5} />
-              <ReferenceLine y={-0.8} stroke="#10B981" strokeDasharray="5 5" strokeOpacity={0.5} />
-              <ReferenceLine y={0.2} stroke="#F59E0B" strokeDasharray="5 5" strokeOpacity={0.3} />
-              <ReferenceLine y={-0.2} stroke="#F59E0B" strokeDasharray="5 5" strokeOpacity={0.3} />
-              <ReferenceLine y={0} stroke="#6B7280" strokeDasharray="3 3" />
+              <ReferenceLine y={0.8} stroke={semanticColors.success.main} strokeDasharray="5 5" strokeOpacity={0.5} />
+              <ReferenceLine y={-0.8} stroke={semanticColors.success.main} strokeDasharray="5 5" strokeOpacity={0.5} />
+              <ReferenceLine y={0.2} stroke={semanticColors.warning.main} strokeDasharray="5 5" strokeOpacity={0.3} />
+              <ReferenceLine y={-0.2} stroke={semanticColors.warning.main} strokeDasharray="5 5" strokeOpacity={0.3} />
+              <ReferenceLine y={0} stroke={chartColors.recharts.secondaryAxis} strokeDasharray="3 3" />
 
               {chainPairs.map(({ chainX, chainY, key }) => (
                 <Line

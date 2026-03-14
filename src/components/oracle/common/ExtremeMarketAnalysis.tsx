@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { ExtremeMarketEvent } from '@/hooks/usePriceHistory';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface ExtremeMarketAnalysisProps {
   events: ExtremeMarketEvent[];
@@ -10,7 +11,7 @@ interface ExtremeMarketAnalysisProps {
 
 const EVENT_TYPE_CONFIG = {
   flash_crash: {
-    color: '#ef4444',
+    color: semanticColors.danger.DEFAULT,
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
     icon: (
@@ -25,7 +26,7 @@ const EVENT_TYPE_CONFIG = {
     ),
   },
   pump: {
-    color: '#10b981',
+    color: semanticColors.success.DEFAULT,
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
     icon: (
@@ -40,7 +41,7 @@ const EVENT_TYPE_CONFIG = {
     ),
   },
   high_volatility: {
-    color: '#f59e0b',
+    color: semanticColors.warning.DEFAULT,
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
     icon: (
@@ -55,7 +56,7 @@ const EVENT_TYPE_CONFIG = {
     ),
   },
   liquidity_crisis: {
-    color: '#8b5cf6',
+    color: chartColors.recharts.purple,
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
     icon: (
@@ -75,9 +76,9 @@ export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
   const { t } = useI18n();
 
   const SEVERITY_CONFIG = {
-    low: { color: '#10b981', label: t('pyth.extreme.severityLow') },
-    medium: { color: '#f59e0b', label: t('pyth.extreme.severityMedium') },
-    high: { color: '#ef4444', label: t('pyth.extreme.severityHigh') },
+    low: { color: semanticColors.success.DEFAULT, label: t('pyth.extreme.severityLow') },
+    medium: { color: semanticColors.warning.DEFAULT, label: t('pyth.extreme.severityMedium') },
+    high: { color: semanticColors.danger.DEFAULT, label: t('pyth.extreme.severityHigh') },
   };
 
   const stats = useMemo(() => {

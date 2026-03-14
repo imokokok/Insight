@@ -5,8 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Camera, Save, Key, Loader2, CheckCircle } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 export function ProfilePanel() {
+  const { t } = useI18n();
   const { user, profile, refreshProfile } = useAuth();
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
@@ -36,11 +38,11 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess('个人资料已保存');
+        setSuccess(t('settings.profile.saveSuccess'));
         await refreshProfile();
       }
     } catch {
-      setError('保存失败，请重试');
+      setError(t('settings.profile.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -52,12 +54,12 @@ export function ProfilePanel() {
 
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      setError('请上传有效的图片文件 (JPEG, PNG, GIF, WebP)');
+      setError(t('settings.profile.invalidImageType'));
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setError('图片大小不能超过 2MB');
+      setError(t('settings.profile.imageSizeExceeded'));
       return;
     }
 
@@ -73,7 +75,7 @@ export function ProfilePanel() {
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) {
-        setError('上传失败: ' + uploadError.message);
+        setError(t('settings.profile.uploadError') + uploadError.message);
         return;
       }
 
@@ -88,13 +90,13 @@ export function ProfilePanel() {
       });
 
       if (updateError) {
-        setError('更新头像失败');
+        setError(t('settings.profile.avatarUpdateError'));
       } else {
-        setSuccess('头像已更新');
+        setSuccess(t('settings.profile.avatarUpdateSuccess'));
         await refreshProfile();
       }
     } catch {
-      setError('上传失败，请重试');
+      setError(t('settings.profile.uploadFailed'));
     } finally {
       setIsUploading(false);
     }
@@ -102,12 +104,12 @@ export function ProfilePanel() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
-      setError('密码至少需要 6 个字符');
+      setError(t('settings.profile.passwordMinLength'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setError(t('settings.profile.passwordMismatch'));
       return;
     }
 
@@ -122,13 +124,13 @@ export function ProfilePanel() {
       if (updateError) {
         setError(updateError.message);
       } else {
-        setSuccess('密码已更新');
+        setSuccess(t('settings.profile.passwordUpdateSuccess'));
         setShowPasswordForm(false);
         setNewPassword('');
         setConfirmPassword('');
       }
     } catch {
-      setError('密码更新失败');
+      setError(t('settings.profile.passwordUpdateError'));
     } finally {
       setIsChangingPassword(false);
     }
@@ -140,9 +142,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <User className="w-5 h-5 text-gray-400" />
-            个人资料
+            {t('settings.profile.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">管理您的个人信息和头像</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.profile.subtitle')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -166,7 +168,7 @@ export function ProfilePanel() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl || profile?.avatar_url || ''}
-                    alt="头像"
+                    alt={t('settings.profile.avatarLabel')}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -195,18 +197,18 @@ export function ProfilePanel() {
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">头像</p>
-              <p className="text-xs text-gray-500 mt-1">支持 JPEG, PNG, GIF, WebP 格式，最大 2MB</p>
+              <p className="text-sm font-medium text-gray-700">{t('settings.profile.avatarLabel')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('settings.profile.avatarHint')}</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">显示名称</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.displayNameLabel')}</label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="输入您的显示名称"
+              placeholder={t('settings.profile.displayNamePlaceholder')}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
@@ -214,7 +216,7 @@ export function ProfilePanel() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <Mail className="w-4 h-4 text-gray-400" />
-              邮箱地址
+              {t('settings.profile.emailLabel')}
             </label>
             <input
               type="email"
@@ -222,7 +224,7 @@ export function ProfilePanel() {
               disabled
               className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
             />
-            <p className="text-xs text-gray-500 mt-1">邮箱地址不可修改</p>
+            <p className="text-xs text-gray-500 mt-1">{t('settings.profile.emailNotEditable')}</p>
           </div>
 
           <div className="pt-4 border-t border-gray-100">
@@ -236,7 +238,7 @@ export function ProfilePanel() {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              保存更改
+              {t('settings.profile.saveChanges')}
             </button>
           </div>
         </div>
@@ -246,9 +248,9 @@ export function ProfilePanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-gray-400" />
-            密码管理
+            {t('settings.profile.passwordManagement')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">更新您的登录密码</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.profile.passwordManagementDesc')}</p>
         </div>
 
         <div className="p-6">
@@ -258,28 +260,28 @@ export function ProfilePanel() {
               className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
             >
               <Key className="w-4 h-4" />
-              修改密码
+              {t('settings.profile.changePassword')}
             </button>
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">新密码</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.newPassword')}</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="输入新密码"
+                  placeholder={t('settings.profile.newPasswordPlaceholder')}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">确认新密码</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.confirmNewPassword')}</label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次输入新密码"
+                  placeholder={t('settings.profile.confirmNewPasswordPlaceholder')}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
@@ -295,7 +297,7 @@ export function ProfilePanel() {
                   ) : (
                     <CheckCircle className="w-4 h-4" />
                   )}
-                  更新密码
+                  {t('settings.profile.updatePassword')}
                 </button>
                 <button
                   onClick={() => {
@@ -305,7 +307,7 @@ export function ProfilePanel() {
                   }}
                   className="px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
                 >
-                  取消
+                  {t('settings.profile.cancel')}
                 </button>
               </div>
             </div>

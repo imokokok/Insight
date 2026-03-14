@@ -5,6 +5,7 @@ import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeAmountDistributionStats } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('DisputeAmountDistribution');
 
@@ -239,12 +240,12 @@ function AmountTrendChart({
           <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
             <defs>
               <linearGradient id="stakeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity="0" />
               </linearGradient>
               <linearGradient id="rewardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#22C55E" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#22C55E" stopOpacity="0" />
+                <stop offset="0%" stopColor={chartColors.recharts.success} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={chartColors.recharts.success} stopOpacity="0" />
               </linearGradient>
             </defs>
 
@@ -287,7 +288,7 @@ function AmountTrendChart({
                     })
                     .join(' ')}`}
               fill="none"
-              stroke="#3B82F6"
+              stroke={chartColors.recharts.primary}
               strokeWidth="2"
               vectorEffect="non-scaling-stroke"
             />
@@ -303,7 +304,7 @@ function AmountTrendChart({
                     })
                     .join(' ')}`}
               fill="none"
-              stroke="#22C55E"
+              stroke={chartColors.recharts.success}
               strokeWidth="2"
               vectorEffect="non-scaling-stroke"
             />
@@ -319,7 +320,7 @@ function AmountTrendChart({
                     cx={`${x}%`}
                     cy={`${yStake}%`}
                     r="3"
-                    fill="#3B82F6"
+                    fill={chartColors.recharts.primary}
                     className="cursor-pointer hover:r-5 transition-all"
                   >
                     <title>质押: {formatAmount(point.avgStake)} UMA</title>
@@ -328,7 +329,7 @@ function AmountTrendChart({
                     cx={`${x}%`}
                     cy={`${yReward}%`}
                     r="3"
-                    fill="#22C55E"
+                    fill={chartColors.recharts.success}
                     className="cursor-pointer hover:r-5 transition-all"
                   >
                     <title>奖励: {formatAmount(point.avgReward)} UMA</title>

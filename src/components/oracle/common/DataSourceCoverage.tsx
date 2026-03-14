@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
 
@@ -19,32 +20,32 @@ const getMockDataSources = (t: (key: string) => string): DataSourceType[] => [
     category: 'crypto',
     name: t('dataSourceCoverage.categories.crypto'),
     count: 380,
-    color: '#8B5CF6',
+    color: chartColors.sequence[3],
   },
   {
     category: 'forex',
     name: t('dataSourceCoverage.categories.forex'),
     count: 85,
-    color: '#3B82F6',
+    color: chartColors.sequence[0],
   },
   {
     category: 'commodities',
     name: t('dataSourceCoverage.categories.commodities'),
     count: 42,
-    color: '#F59E0B',
+    color: chartColors.sequence[2],
   },
   {
     category: 'stocks',
     name: t('dataSourceCoverage.categories.stocks'),
     count: 28,
-    color: '#10B981',
+    color: chartColors.sequence[1],
   },
-  { category: 'etf', name: t('dataSourceCoverage.categories.etf'), count: 10, color: '#EC4899' },
+  { category: 'etf', name: t('dataSourceCoverage.categories.etf'), count: 10, color: chartColors.sequence[4] },
   {
     category: 'indices',
     name: t('dataSourceCoverage.categories.indices'),
     count: 5,
-    color: '#6366F1',
+    color: chartColors.recharts.purple,
   },
 ];
 
@@ -176,7 +177,7 @@ export function DataSourceCoverage() {
                 formatter={(value, name) => [`${value} ${t('dataSourceCoverage.unit')}`, name]}
                 contentStyle={{
                   backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
+                  border: `1px solid ${chartColors.recharts.grid}`,
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                 }}

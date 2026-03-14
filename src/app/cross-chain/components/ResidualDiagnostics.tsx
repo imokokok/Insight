@@ -14,6 +14,7 @@ import {
   ComposedChart,
 } from 'recharts';
 import { calculateACF, calculateLjungBox, calculateResidualHistogram } from '../cointegration';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface ResidualDiagnosticsProps {
   residuals: number[];
@@ -68,10 +69,10 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
           <div className="h-40 bg-gray-50 rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={acfData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                <XAxis dataKey="lag" stroke="#9ca3af" tick={{ fontSize: 9 }} tickCount={6} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+                <XAxis dataKey="lag" stroke={chartColors.recharts.axis} tick={{ fontSize: 9 }} tickCount={6} />
                 <YAxis
-                  stroke="#9ca3af"
+                  stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 9 }}
                   domain={[-1, 1]}
                   tickFormatter={(v) => v.toFixed(1)}
@@ -81,23 +82,23 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                   labelFormatter={(label) => `Lag ${label}`}
                   contentStyle={{ fontSize: 12 }}
                 />
-                <ReferenceLine y={0} stroke="#6b7280" strokeWidth={1} />
+                <ReferenceLine y={0} stroke={chartColors.recharts.secondaryAxis} strokeWidth={1} />
                 <ReferenceLine
                   y={confidenceInterval}
-                  stroke="#ef4444"
+                  stroke={semanticColors.danger.main}
                   strokeDasharray="3 3"
                   strokeWidth={1}
                 />
                 <ReferenceLine
                   y={-confidenceInterval}
-                  stroke="#ef4444"
+                  stroke={semanticColors.danger.main}
                   strokeDasharray="3 3"
                   strokeWidth={1}
                 />
                 <Bar
                   dataKey="autocorrelation"
-                  fill="#6366f1"
-                  stroke="#4f46e5"
+                  fill={semanticColors.info.main}
+                  stroke={semanticColors.info.dark}
                   strokeWidth={1}
                   radius={[1, 1, 0, 0]}
                 />
@@ -132,10 +133,10 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                 data={histogramData}
                 margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
                 <XAxis
                   dataKey="bin"
-                  stroke="#9ca3af"
+                  stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 8 }}
                   interval={2}
                   angle={-45}
@@ -143,7 +144,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                   height={30}
                 />
                 <YAxis
-                  stroke="#9ca3af"
+                  stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 9 }}
                   tickFormatter={(v) => Number(v).toExponential(1)}
                 />
@@ -157,8 +158,8 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                 />
                 <Bar
                   dataKey="density"
-                  fill="#10b981"
-                  stroke="#059669"
+                  fill={semanticColors.success.main}
+                  stroke={semanticColors.success.dark}
                   strokeWidth={1}
                   fillOpacity={0.6}
                   name="density"
@@ -166,7 +167,7 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                 <Line
                   type="monotone"
                   dataKey="normalDensity"
-                  stroke="#ef4444"
+                  stroke={semanticColors.danger.main}
                   strokeWidth={2}
                   dot={false}
                   name="normalDensity"

@@ -5,6 +5,7 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 're
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { Globe, MapPin, Users, Coins } from 'lucide-react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 export interface ValidatorGeographicMapProps {
   validators: ValidatorInfo[];
@@ -94,17 +95,17 @@ const locationData: GeoLocation[] = [
 ];
 
 const regionColors: Record<string, string> = {
-  北美: '#3b82f6',
-  欧洲: '#8b5cf6',
-  亚洲: '#10b981',
-  其他: '#f59e0b',
+  北美: chartColors.region.northAmerica,
+  欧洲: chartColors.region.europe,
+  亚洲: chartColors.region.asia,
+  其他: chartColors.region.other,
 };
 
 function getRankColor(rank: number): string {
-  if (rank <= 5) return '#ef4444';
-  if (rank <= 15) return '#f97316';
-  if (rank <= 30) return '#eab308';
-  return '#6b7280';
+  if (rank <= 5) return semanticColors.danger.DEFAULT;
+  if (rank <= 15) return chartColors.recharts.warning;
+  if (rank <= 30) return chartColors.recharts.gold;
+  return chartColors.recharts.tick;
 }
 
 function getMarkerSize(tokens: number, maxTokens: number): number {

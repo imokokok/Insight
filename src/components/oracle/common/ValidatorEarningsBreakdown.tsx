@@ -40,9 +40,9 @@ export interface EfficiencyMetrics {
 
 // 收益来源颜色配置
 const sourceColors: Record<EarningsSourceType, string> = {
-  base: '#3B82F6', // 蓝色 - 基础奖励
-  dispute: '#F59E0B', // 橙色 - 争议奖励
-  other: '#10B981', // 绿色 - 其他奖励
+  base: chartColors.recharts.primary,
+  dispute: chartColors.recharts.warning,
+  other: chartColors.recharts.success,
 };
 
 const sourceBgColors: Record<EarningsSourceType, string> = {
@@ -107,6 +107,7 @@ function EarningsPieChart({
   data: { type: EarningsSourceType; value: number; percentage: number }[];
   size?: number;
 }) {
+  const { t } = useI18n();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   let currentAngle = 0;
@@ -172,7 +173,7 @@ function EarningsPieChart({
                 className="w-3 h-3 rounded"
                 style={{ backgroundColor: sourceColors[segment.type] }}
               />
-              <span className="text-gray-600">{EarningsSourceLabels[segment.type]}</span>
+              <span className="text-gray-600">{t(EarningsSourceLabels[segment.type])}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900">{segment.percentage.toFixed(1)}%</span>

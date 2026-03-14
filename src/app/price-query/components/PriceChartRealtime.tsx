@@ -23,6 +23,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
 import { format } from 'date-fns';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('price-query-PriceChartRealtime');
 
@@ -207,7 +208,7 @@ export function PriceChartRealtime({
         canvas.width = img.width * 2;
         canvas.height = img.height * 2;
         ctx.scale(2, 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = baseColors.white;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
 
@@ -236,7 +237,7 @@ export function PriceChartRealtime({
     if (enableRealtime) {
       payload.push({
         value: `${symbol} (API3 WebSocket)`,
-        color: '#10b981', // emerald-500
+        color: semanticColors.success.main,
       });
     }
 
@@ -357,10 +358,9 @@ export function PriceChartRealtime({
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 60 }}>
               <defs>
-                {/* API3 实时数据渐变 */}
                 <linearGradient id="colorApi3Realtime" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor={semanticColors.success.main} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={semanticColors.success.main} stopOpacity={0} />
                 </linearGradient>
 
                 {queryResults.map(({ provider, chain }) => {
@@ -374,11 +374,11 @@ export function PriceChartRealtime({
                   );
                 })}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.secondaryAxis }}
                 tickLine={false}
                 axisLine={false}
                 dy={10}
@@ -386,8 +386,8 @@ export function PriceChartRealtime({
               <YAxis
                 domain={[priceRange.min || 'auto', priceRange.max || 'auto']}
                 tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.secondaryAxis }}
                 tickLine={false}
                 axisLine={false}
                 width={70}
@@ -447,7 +447,7 @@ export function PriceChartRealtime({
                   type="monotone"
                   dataKey={api3Label}
                   name={`${symbol} (API3 WebSocket)`}
-                  stroke={isApi3Hidden ? 'transparent' : '#10b981'}
+                  stroke={isApi3Hidden ? 'transparent' : semanticColors.success.main}
                   strokeWidth={isFlashing ? 4 : 3}
                   strokeOpacity={isApi3Hidden ? 0 : isFlashing ? 1 : 0.9}
                   dot={false}
@@ -457,8 +457,8 @@ export function PriceChartRealtime({
                       : {
                           r: 6,
                           strokeWidth: 2,
-                          stroke: '#fff',
-                          fill: flashDirection === 'up' ? '#22c55e' : flashDirection === 'down' ? '#ef4444' : '#10b981',
+                          stroke: baseColors.white,
+                          fill: flashDirection === 'up' ? semanticColors.success.main : flashDirection === 'down' ? semanticColors.danger.main : semanticColors.success.main,
                         }
                   }
                   yAxisId="left"
@@ -466,12 +466,11 @@ export function PriceChartRealtime({
                 />
               )}
 
-              {/* Brush 组件 */}
               <Brush
                 dataKey="time"
                 height={30}
-                stroke="#6b7280"
-                fill="#f3f4f6"
+                stroke={chartColors.recharts.secondaryAxis}
+                fill={chartColors.recharts.grid}
                 travellerWidth={8}
               />
             </ComposedChart>

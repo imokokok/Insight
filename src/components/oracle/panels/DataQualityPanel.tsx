@@ -13,6 +13,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 type QualityStatus = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -73,12 +74,12 @@ interface DataQualityConfig {
 }
 
 const ORACLE_COLORS: Record<string, string> = {
-  Chainlink: '#3b82f6',
-  Pyth: '#8b5cf6',
-  Band: '#10b981',
-  UMA: '#f59e0b',
-  API3: '#ef4444',
-  DIA: '#06b6d4',
+  Chainlink: chartColors.recharts.primary,
+  Pyth: chartColors.recharts.purple,
+  Band: chartColors.semantic.success,
+  UMA: chartColors.recharts.warning,
+  API3: chartColors.semantic.danger,
+  DIA: chartColors.recharts.cyan,
 };
 
 const getStatusConfig = (t: (key: string) => string) => ({
@@ -390,19 +391,19 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
 
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="oracle"
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value.toFixed(1)}%`}
           />
           <Tooltip
@@ -431,21 +432,21 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
               );
             }}
           />
-          <ReferenceLine y={0} stroke="#9ca3af" strokeWidth={1} />
-          <ReferenceLine y={0.5} stroke="#f59e0b" strokeDasharray="5 5" />
-          <ReferenceLine y={-0.5} stroke="#f59e0b" strokeDasharray="5 5" />
-          <ReferenceLine y={1.0} stroke="#ef4444" strokeDasharray="5 5" />
-          <ReferenceLine y={-1.0} stroke="#ef4444" strokeDasharray="5 5" />
+          <ReferenceLine y={0} stroke={chartColors.recharts.tick} strokeWidth={1} />
+          <ReferenceLine y={0.5} stroke={chartColors.semantic.warning} strokeDasharray="5 5" />
+          <ReferenceLine y={-0.5} stroke={chartColors.semantic.warning} strokeDasharray="5 5" />
+          <ReferenceLine y={1.0} stroke={chartColors.semantic.danger} strokeDasharray="5 5" />
+          <ReferenceLine y={-1.0} stroke={chartColors.semantic.danger} strokeDasharray="5 5" />
           <Bar dataKey="deviationPercent" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={
                   entry.status === 'critical'
-                    ? '#ef4444'
+                    ? chartColors.semantic.danger
                     : entry.status === 'warning'
-                      ? '#f59e0b'
-                      : '#10b981'
+                      ? chartColors.semantic.warning
+                      : chartColors.semantic.success
                 }
               />
             ))}
@@ -534,19 +535,19 @@ function LatencyDistributionChart({
 
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="range"
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}%`}
           />
           <Tooltip
@@ -570,10 +571,10 @@ function LatencyDistributionChart({
           />
           <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => {
-              let color = '#10b981';
+              let color = chartColors.semantic.success;
               if (index >= 7) color = '#f43f5e';
-              else if (index >= 5) color = '#f59e0b';
-              else if (index >= 3) color = '#3b82f6';
+              else if (index >= 5) color = chartColors.semantic.warning;
+              else if (index >= 3) color = chartColors.recharts.primary;
               return <Cell key={`cell-${index}`} fill={color} />;
             })}
           </Bar>
@@ -731,23 +732,23 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
   const statusConfig = STATUS_CONFIG[overallStatus];
 
   const scoreItems = [
-    { label: t('dataQuality.priceAccuracy'), value: score.priceAccuracy, color: '#3b82f6' },
-    { label: t('dataQuality.latencyPerformance'), value: score.latency, color: '#8b5cf6' },
-    { label: t('dataQuality.reliability'), value: score.reliability, color: '#10b981' },
+    { label: t('dataQuality.priceAccuracy'), value: score.priceAccuracy, color: chartColors.recharts.primary },
+    { label: t('dataQuality.latencyPerformance'), value: score.latency, color: chartColors.recharts.purple },
+    { label: t('dataQuality.reliability'), value: score.reliability, color: chartColors.semantic.success },
   ];
 
   const getStrokeColor = () => {
     switch (overallStatus) {
       case 'excellent':
-        return '#10b981';
+        return chartColors.semantic.success;
       case 'good':
-        return '#3b82f6';
+        return chartColors.recharts.primary;
       case 'warning':
-        return '#f59e0b';
+        return chartColors.semantic.warning;
       case 'critical':
-        return '#ef4444';
+        return chartColors.semantic.danger;
       default:
-        return '#6b7280';
+        return chartColors.recharts.tick;
     }
   };
 
@@ -782,7 +783,7 @@ function QualityScoreCard({ score }: { score: QualityScore }) {
       <div className="flex items-center justify-center mb-6">
         <div className="relative">
           <svg className="w-32 h-32 transform -rotate-90">
-            <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+            <circle cx="64" cy="64" r="56" stroke={chartColors.recharts.grid} strokeWidth="8" fill="none" />
             <circle
               cx="64"
               cy="64"
