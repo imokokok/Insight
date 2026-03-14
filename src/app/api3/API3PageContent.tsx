@@ -176,12 +176,7 @@ export function API3PageContent() {
     return <ErrorFallback error={firstError} onRetry={handleRetry} />;
   }
 
-  // 显示加载状态
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
-  // 构建统计数据
+  // 构建统计数据 - 必须在所有条件返回之前调用
   const stats = useMemo(() => {
     const activeAirnodes = airnodeStats?.activeAirnodes ?? 0;
     const totalDapis = dapiCoverage?.totalDapis ?? 0;
@@ -281,6 +276,11 @@ export function API3PageContent() {
     if (!qualityHistory || qualityHistory.length === 0) return [];
     return [{ oracle: OracleProvider.API3, data: qualityHistory }];
   }, [qualityHistory]);
+
+  // 显示加载状态 - 必须在所有 useMemo 之后
+  if (isLoading) {
+    return <LoadingState />;
+  }
 
   return (
     <TimeRangeProvider defaultTimeRange={timeRange}>

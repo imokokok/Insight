@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-export interface UseOracleDataSWROptions<T> {
+export interface UseOracleDataQueryOptions<T> {
   key: string;
   staleTime?: number;
   refreshInterval?: number;
@@ -11,7 +11,7 @@ export interface UseOracleDataSWROptions<T> {
   enabled?: boolean;
 }
 
-export interface UseOracleDataSWRReturn<T> {
+export interface UseOracleDataQueryReturn<T> {
   data: T | undefined;
   error: Error | undefined;
   isLoading: boolean;
@@ -20,9 +20,9 @@ export interface UseOracleDataSWRReturn<T> {
   refetch: () => Promise<void>;
 }
 
-export function useOracleDataSWR<T>(
-  options: UseOracleDataSWROptions<T>
-): UseOracleDataSWRReturn<T> {
+export function useOracleDataQuery<T>(
+  options: UseOracleDataQueryOptions<T>
+): UseOracleDataQueryReturn<T> {
   const {
     key,
     staleTime = 30000,
@@ -104,3 +104,7 @@ export function useOraclePrefetch() {
     preload: preloadData,
   };
 }
+
+export const useOracleDataSWR = useOracleDataQuery;
+export type UseOracleDataSWROptions<T> = UseOracleDataQueryOptions<T>;
+export type UseOracleDataSWRReturn<T> = UseOracleDataQueryReturn<T>;

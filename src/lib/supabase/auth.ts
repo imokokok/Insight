@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
-import { Blockchain, OracleProvider } from '../types/oracle';
+import { Blockchain, OracleProvider } from '@/types/oracle';
 
 export interface AuthResponse {
   user: User | null;

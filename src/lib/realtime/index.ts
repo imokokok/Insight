@@ -28,7 +28,7 @@ export type {
   AlertType,
   PriceAlert,
   AlertHistory,
-  PriceData,
   AlertCheckResult,
   UsePriceAlertsReturn,
 } from './priceAlerts';
+export type { PriceDataForAlert } from './priceAlerts';

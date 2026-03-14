@@ -14,13 +14,13 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 
-interface RSIDataPoint {
+export interface RSIDataPoint {
   time: string;
   timestamp: number;
   rsi: number;
 }
 
-interface RSIIndicatorProps {
+export interface RSIIndicatorProps {
   data: Array<{
     time: string;
     timestamp: number;
@@ -216,4 +216,3 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
 }
 
 export { calculateRSI };
-export type { RSIDataPoint };
