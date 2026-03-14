@@ -12,10 +12,10 @@ import {
   Cell,
 } from 'recharts';
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
-import { RequestTrendChart } from './RequestTrendChart';
-import { ChainComparison } from './ChainComparison';
-import { RequestTypeDistribution } from './RequestTypeDistribution';
-import { CrossChainTrendChart } from './CrossChainTrendChart';
+import { RequestTrendChart } from '../charts/RequestTrendChart';
+import { ChainComparison } from '../charts/ChainComparison';
+import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
+import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton } from '../forms/DataExportButton';
 import { useI18n } from '@/lib/i18n/provider';
 

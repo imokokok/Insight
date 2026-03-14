@@ -12,6 +12,7 @@ import {
   Settings,
   Heart,
   Bell,
+  Flame,
 } from 'lucide-react';
 import { NavStructure } from './types';
 import { oracleColors } from '@/lib/constants';
@@ -94,6 +95,12 @@ export const navigationConfig: NavStructure = [
         label: 'navbar.uma',
         icon: Database,
         description: 'navbar.umaDesc',
+      },
+      {
+        href: '/redstone',
+        label: 'navbar.redstone',
+        icon: Flame,
+        description: 'navbar.redstoneDesc',
       },
     ],
   },

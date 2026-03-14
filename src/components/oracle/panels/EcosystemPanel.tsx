@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { IntegratedProtocols } from './IntegratedProtocols';
-import { DataSourceCoverage } from './DataSourceCoverage';
-import { DataSourceTrend } from './DataSourceTrend';
+import { IntegratedProtocols } from '../common/IntegratedProtocols';
+import { DataSourceCoverage } from '../common/DataSourceCoverage';
+import { DataSourceTrend } from '../charts/DataSourceTrend';
 
 interface EcosystemStats {
   totalProtocols: number;

@@ -1,6 +1,6 @@
 import { BaseOracleClient, OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface BandMarketData {
   symbol: string;

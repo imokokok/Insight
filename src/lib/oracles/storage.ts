@@ -1,4 +1,4 @@
-import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 import { getServerQueries } from '@/lib/supabase/server';
 import { PriceRecordInsert, PriceRecord } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';

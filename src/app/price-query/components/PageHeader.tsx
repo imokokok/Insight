@@ -4,7 +4,7 @@ import { useI18n } from '@/lib/i18n/provider';
 import { Icons } from './Icons';
 import { QueryHistoryItem } from '@/utils/queryHistory';
 import { formatHistoryTime } from '@/utils/queryHistory';
-import { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 
 interface PageHeaderProps {
   showHistory: boolean;

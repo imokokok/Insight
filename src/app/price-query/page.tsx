@@ -12,6 +12,7 @@ import {
   UMAClient,
   PythClient,
   API3Client,
+  RedStoneClient,
 } from '@/lib/oracles';
 import {
   saveQueryHistory,
@@ -46,6 +47,7 @@ const oracleClients = {
   [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
+  [OracleProvider.REDSTONE]: new RedStoneClient(),
 };
 
 export default function PriceQueryPage() {

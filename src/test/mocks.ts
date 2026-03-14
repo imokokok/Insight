@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { PriceData, OracleProvider, Blockchain, OracleError } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import { IMockOracleClient, IOracleClientFactory } from '@/lib/oracles/interfaces';
 import { createMockOracleClientBuilder, createMockPriceData } from '@/lib/oracles/__mocks__';
 
@@ -57,6 +57,7 @@ export function createMockFactory(
         [OracleProvider.UMA]: clients[OracleProvider.UMA] ?? createMockClient(OracleProvider.UMA),
         [OracleProvider.PYTH]: clients[OracleProvider.PYTH] ?? createMockClient(OracleProvider.PYTH),
         [OracleProvider.API3]: clients[OracleProvider.API3] ?? createMockClient(OracleProvider.API3),
+        [OracleProvider.REDSTONE]: clients[OracleProvider.REDSTONE] ?? createMockClient(OracleProvider.REDSTONE),
       };
       return allClients;
     }),

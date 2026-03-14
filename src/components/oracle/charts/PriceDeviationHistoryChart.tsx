@@ -15,7 +15,7 @@ import {
   Area,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 
 type BaselineType = 'average' | 'median' | 'chainlink';

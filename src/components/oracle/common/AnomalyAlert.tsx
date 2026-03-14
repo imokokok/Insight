@@ -66,6 +66,7 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.BAND_PROTOCOL]: 'Band',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 const SEVERITY_COLORS = {

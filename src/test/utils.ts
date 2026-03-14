@@ -1,7 +1,7 @@
 import { vi, beforeEach, afterEach } from 'vitest';
 import { container, SERVICE_TOKENS, clearServices } from '@/lib/di';
 import { IOracleClientFactory, IMockOracleClient } from '@/lib/oracles/interfaces';
-import { OracleProvider, Blockchain, PriceData } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 import { MockOracleClient, createMockOracleClientBuilder } from '@/lib/oracles/__mocks__';
 
 export function setupTestEnvironment(): void {
@@ -23,6 +23,7 @@ export function createMockOracleFactory(
     [OracleProvider.UMA]: clients?.[OracleProvider.UMA] ?? createMockOracleClientBuilder().build(),
     [OracleProvider.PYTH]: clients?.[OracleProvider.PYTH] ?? createMockOracleClientBuilder().build(),
     [OracleProvider.API3]: clients?.[OracleProvider.API3] ?? createMockOracleClientBuilder().build(),
+    [OracleProvider.REDSTONE]: clients?.[OracleProvider.REDSTONE] ?? createMockOracleClientBuilder().build(),
   };
 
   return {

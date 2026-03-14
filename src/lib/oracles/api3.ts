@@ -1,9 +1,9 @@
 import { BaseOracleClient, OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
-import { GasFeeData } from '@/components/oracle/GasFeeComparison';
-import { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
-import { PriceDataPoint } from '@/components/oracle/ATRIndicator';
+import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
+import { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
+import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
+import { PriceDataPoint } from '@/components/oracle/indicators/ATRIndicator';
 
 export interface DapiPriceDeviation {
   symbol: string;

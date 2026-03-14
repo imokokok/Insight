@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
-import { TimeRange } from '@/components/oracle/TabNavigation';
+import { TimeRange } from '@/components/oracle/common/TabNavigation';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('TimeRangeContext');

@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { PriceDeviationRisk } from './PriceDeviationRisk';
-import { ConcentrationRisk } from './ConcentrationRisk';
-import { CrossChainRisk } from './CrossChainRisk';
-import { OracleProvider } from '@/lib/types/oracle';
+import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
+import { ConcentrationRisk } from '../charts/ConcentrationRisk';
+import { CrossChainRisk } from '../charts/CrossChainRisk';
+import { OracleProvider } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
 
 interface RiskScore {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, RefObject } from 'react';
-import { DashboardCard } from './DashboardCard';
+import { DashboardCard } from '../common/DashboardCard';
 
 interface ExportData {
   symbol: string;

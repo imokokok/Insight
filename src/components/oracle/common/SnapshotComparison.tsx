@@ -6,9 +6,9 @@ import {
   SnapshotStats,
   SnapshotComparisonResult,
   compareSnapshots,
-  formatTimestamp,
-} from '@/lib/types/snapshot';
-import { PriceData, OracleProvider } from '@/lib/types/oracle';
+} from '@/types/oracle';
+import { formatTimestamp } from '@/types/common/timestamps';
+import { PriceData, OracleProvider } from '@/types/oracle';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { providerNames } from '@/lib/constants';
 

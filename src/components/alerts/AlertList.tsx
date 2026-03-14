@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';
-import { DashboardCard } from '@/components/oracle/DashboardCard';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 
 interface AlertListProps {
   alerts: PriceAlert[];

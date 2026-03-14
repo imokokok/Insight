@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePriceData, useHistoricalPrices, useMultiplePrices } from '../useOracleData';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { PriceData, Blockchain } from '@/lib/types/oracle';
+import { PriceData, Blockchain } from '@/types/oracle';
 
 class MockOracleClient extends BaseOracleClient {
   name = 'chainlink' as const;

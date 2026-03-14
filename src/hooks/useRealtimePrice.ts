@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import type { PriceUpdatePayload } from '@/lib/supabase/realtime';
-import type { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import type { OracleProvider, Blockchain } from '@/types/oracle';
 
 export interface RealtimePriceData {
   provider: OracleProvider;

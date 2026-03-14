@@ -17,7 +17,7 @@ import {
   Bar,
   ReferenceLine,
 } from 'recharts';
-import { TooltipProps, CustomLabelProps } from '@/lib/types/recharts';
+import { TooltipProps, CustomLabelProps } from '@/types/ui/recharts';
 import {
   PieChart as PieChartIcon,
   TrendingUp,

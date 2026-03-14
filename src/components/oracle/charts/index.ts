@@ -1,6 +1,6 @@
 export { PriceChart } from './PriceChart';
 export { PriceVolatilityChart } from './PriceVolatilityChart';
-export type { PriceVolatilityChartProps, OraclePriceHistory, VolatilityResult, VolatilityTrendPoint } from './PriceVolatilityChart';
+export type { PriceVolatilityChartProps, VolatilityResult, VolatilityTrendPoint } from './PriceVolatilityChart';
 export { DynamicPriceChart } from './DynamicPriceChart';
 export { MovingAverageChart } from './MovingAverageChart';
 export { AccuracyTrendChart } from './AccuracyTrendChart';

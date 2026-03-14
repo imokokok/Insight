@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain, OracleProvider, ConfidenceInterval } from '@/lib/types/oracle';
+import { Blockchain, OracleProvider, ConfidenceInterval } from '@/types/oracle';
 import { MetricCard } from '../common/DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
-import { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
+import { ConfidenceIntervalDisplay } from '../common/ConfidenceIntervalDisplay';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
 

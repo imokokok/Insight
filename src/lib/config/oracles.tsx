@@ -1,13 +1,14 @@
-import { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
   PythClient,
   API3Client,
+  RedStoneClient,
 } from '@/lib/oracles';
-import { MarketDataConfig } from '@/components/oracle/MarketDataPanel';
-import { NetworkDataConfig } from '@/components/oracle/NetworkHealthPanel';
+import { MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
+import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
 import { ReactNode } from 'react';
 
 export interface OracleConfig {
@@ -356,6 +357,73 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasQuantifiableSecurity: true,
       hasFirstPartyOracle: true,
       hasCoreFeatures: false,
+    },
+  },
+  [OracleProvider.REDSTONE]: {
+    provider: OracleProvider.REDSTONE,
+    name: 'RedStone',
+    symbol: 'REDSTONE',
+    defaultChain: Blockchain.ETHEREUM,
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+      Blockchain.AVALANCHE,
+      Blockchain.BASE,
+      Blockchain.BNB_CHAIN,
+      Blockchain.FANTOM,
+      Blockchain.LINEA,
+      Blockchain.MANTLE,
+      Blockchain.SCROLL,
+      Blockchain.ZKSYNC,
+    ],
+    client: new RedStoneClient(),
+    iconBgColor: 'bg-red-500',
+    icon: (
+      <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-xs">RED</span>
+      </div>
+    ),
+    marketData: {
+      symbol: 'REDSTONE',
+      tokenName: 'RedStone',
+      tokenSymbol: 'REDSTONE',
+      marketCap: 280000000,
+      volume24h: 12000000,
+      circulatingSupply: 0,
+      totalSupply: 0,
+      fullyDilutedValuation: 0,
+      marketCapRank: 200,
+      high24h: 0,
+      low24h: 0,
+      change24h: 4.2,
+      change24hValue: 0,
+    },
+    networkData: {
+      activeNodes: 25,
+      nodeUptime: 99.9,
+      avgResponseTime: 200,
+      updateFrequency: 60,
+      totalStaked: 0,
+      dataFeeds: 1000,
+      hourlyActivity: [
+        1200, 1100, 1000, 900, 800, 900, 1100, 1500, 2000, 2600, 3000, 3200, 3100, 3000, 2900,
+        2950, 3050, 3150, 3100, 2650, 2300, 1850, 1500, 1300,
+      ],
+      status: 'online',
+      latency: 80,
+      stakingTokenSymbol: '',
+    },
+    features: {
+      hasNodeAnalytics: false,
+      hasValidatorAnalytics: false,
+      hasPublisherAnalytics: false,
+      hasDisputeResolution: false,
+      hasPriceFeeds: true,
+      hasQuantifiableSecurity: false,
+      hasFirstPartyOracle: false,
+      hasCoreFeatures: true,
     },
   },
 };

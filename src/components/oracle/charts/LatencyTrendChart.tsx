@@ -17,7 +17,7 @@ import {
   ComposedChart,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { TooltipProps, CustomDotProps } from '@/lib/types/recharts';
+import { TooltipProps, CustomDotProps } from '@/types/ui/recharts';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';

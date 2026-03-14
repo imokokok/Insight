@@ -20,7 +20,7 @@ import {
   Radar,
   Legend,
 } from 'recharts';
-import { TooltipProps } from '@/lib/types/recharts';
+import { TooltipProps } from '@/types/ui/recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   PieChart as PieChartIcon,

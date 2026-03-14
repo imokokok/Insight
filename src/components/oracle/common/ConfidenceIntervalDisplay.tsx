@@ -1,6 +1,6 @@
 'use client';
 
-import { ConfidenceInterval } from '@/lib/types/oracle';
+import { ConfidenceInterval } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
 
 interface ConfidenceIntervalDisplayProps {

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleConfig } from '@/lib/config/oracles';
-import { PriceData, OracleProvider } from '@/lib/types/oracle';
+import { PriceData, OracleProvider } from '@/types/oracle';
 import {
   TabNavigation,
   PageHeader,

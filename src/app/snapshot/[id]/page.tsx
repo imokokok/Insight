@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getPublicSnapshot } from '@/lib/snapshots';
-import { OracleSnapshot, formatTimestamp } from '@/lib/types/snapshot';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleSnapshot } from '@/types/oracle';
+import { formatTimestamp } from '@/types/common/timestamps';
+import { OracleProvider } from '@/types/oracle';
 import { providerNames } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
 

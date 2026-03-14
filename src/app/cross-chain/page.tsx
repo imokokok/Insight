@@ -28,8 +28,8 @@ import {
   Legend,
   Brush,
 } from 'recharts';
-import { TooltipProps, LegendClickEvent, ScatterShapeProps } from '@/lib/types/recharts';
-import { Blockchain } from '@/lib/types/oracle';
+import { TooltipProps, LegendClickEvent, ScatterShapeProps } from '@/types/ui/recharts';
+import { Blockchain } from '@/types/oracle';
 import {
   chainNames,
   chainColors,

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { Blockchain, OracleProvider } from '@/lib/types/oracle';
+import { Blockchain, OracleProvider } from '@/types/oracle';
 import {
   createErrorResponse,
   ErrorCodes,

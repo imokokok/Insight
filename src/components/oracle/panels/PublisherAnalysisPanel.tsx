@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Publisher, PublisherStats } from '@/lib/types/oracle';
-import { PublisherList } from './PublisherList';
-import { PublisherReliabilityScore } from './PublisherReliabilityScore';
+import { Publisher, PublisherStats } from '@/types/oracle';
+import { PublisherList } from '../common/PublisherList';
+import { PublisherReliabilityScore } from '../common/PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';

@@ -26,7 +26,7 @@ export type {
   ConfidenceLevel,
 } from './ConfidenceScore';
 export { ConfidenceIntervalDisplay } from './ConfidenceIntervalDisplay';
-export { DataQualityIndicator } from './DataQualityIndicator';
+export { default as DataQualityIndicator } from './DataQualityIndicator';
 export { DataQualityScoreCard } from './DataQualityScoreCard';
 export type {
   DataQualityScoreCardProps,

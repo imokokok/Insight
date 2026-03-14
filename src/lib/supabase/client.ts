@@ -33,4 +33,8 @@ export function getQueries(): DatabaseQueries {
   return clientQueries;
 }
 
+export function getSupabaseClient(): SupabaseClient {
+  return supabase;
+}
+
 export const queries = getQueries();

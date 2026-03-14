@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain, OracleProvider } from '@/lib/types/oracle';
+import { Blockchain, OracleProvider } from '@/types/oracle';
 import { MetricCard } from '../common/DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { useI18n } from '@/lib/i18n/provider';

@@ -1,10 +1,11 @@
-import { OracleClient, OracleProvider, PriceData } from '@/lib/types/oracle';
+import { OracleClient, OracleProvider, PriceData } from '@/types/oracle';
 import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
   PythClient,
   API3Client,
+  RedStoneClient,
 } from './index';
 
 const clients: Record<OracleProvider, OracleClient> = {
@@ -13,6 +14,7 @@ const clients: Record<OracleProvider, OracleClient> = {
   [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
+  [OracleProvider.REDSTONE]: new RedStoneClient(),
 };
 
 export function getOracleClient(provider: OracleProvider): OracleClient {

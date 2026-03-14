@@ -64,6 +64,7 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.BAND_PROTOCOL]: 'Band',
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 const PROVIDER_COLORS: Record<OracleProvider, string> = {
@@ -72,6 +73,7 @@ const PROVIDER_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.BAND_PROTOCOL]: '#10b981',
   [OracleProvider.UMA]: '#f59e0b',
   [OracleProvider.API3]: '#ef4444',
+  [OracleProvider.REDSTONE]: '#EF4444',
 };
 
 function formatTime(timestamp: number): string {

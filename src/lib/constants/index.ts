@@ -6,6 +6,7 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -66,6 +67,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: '#F59E0B',
   [OracleProvider.PYTH]: '#8B5CF6',
   [OracleProvider.API3]: '#EC4899',
+  [OracleProvider.REDSTONE]: '#EF4444',
 };
 
 export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];

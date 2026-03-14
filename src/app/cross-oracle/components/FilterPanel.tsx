@@ -1,6 +1,6 @@
 'use client';
 
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
 
 interface FilterPanelProps {

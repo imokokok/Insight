@@ -5,7 +5,7 @@ import {
   UMAClient,
   API3Client,
 } from '@/lib/oracles';
-import { OracleProvider, Blockchain, PriceData } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
 import {
   createCachedJsonResponse,
   CacheConfig,

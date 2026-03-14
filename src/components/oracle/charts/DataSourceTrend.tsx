@@ -12,7 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { TooltipProps } from '@/lib/types/recharts';
+import { TooltipProps } from '@/types/ui/recharts';
 
 interface TrendDataPoint {
   month: string;

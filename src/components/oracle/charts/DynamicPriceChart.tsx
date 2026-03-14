@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { Blockchain } from '@/lib/types/oracle';
+import { Blockchain } from '@/types/oracle';
 
 interface DynamicPriceChartProps {
   client: BaseOracleClient;
@@ -13,7 +13,7 @@ interface DynamicPriceChartProps {
 }
 
 export const DynamicPriceChart = dynamic(
-  () => import('@/components/oracle/PriceChart').then((mod) => mod.PriceChart),
+  () => import('@/components/oracle/charts/PriceChart').then((mod) => mod.PriceChart),
   {
     ssr: false,
     loading: () => <ChartSkeleton height={400} showToolbar={true} variant="price" />,

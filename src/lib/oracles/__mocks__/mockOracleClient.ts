@@ -1,4 +1,4 @@
-import { PriceData, OracleProvider, Blockchain, OracleError } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import {
   IOracleClient,
   IMockOracleClient,

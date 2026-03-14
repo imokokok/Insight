@@ -1,4 +1,4 @@
-import { PriceData, OracleProvider, OracleError, Blockchain } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, OracleError, Blockchain } from '@/types/oracle';
 import {
   shouldUseDatabase,
   savePriceToDatabase,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 
@@ -65,6 +65,7 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 const oracleColors: Record<OracleProvider, string> = {
@@ -73,6 +74,7 @@ const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: '#FF6B6B',
   [OracleProvider.PYTH]: '#EC4899',
   [OracleProvider.API3]: '#10B981',
+  [OracleProvider.REDSTONE]: '#EF4444',
 };
 
 function normalizeResponseTime(responseTime: number, allResponseTimes: number[]): number {

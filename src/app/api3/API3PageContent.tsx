@@ -12,27 +12,27 @@ import {
   StatCard,
   TimeRange,
 } from '@/components/oracle';
-import { AirnodeDeploymentPanel } from '@/components/oracle/AirnodeDeploymentPanel';
-import { DapiCoveragePanel } from '@/components/oracle/DapiCoveragePanel';
-import { CoveragePoolPanel } from '@/components/oracle/CoveragePoolPanel';
-import { StakingMetricsPanel } from '@/components/oracle/StakingMetricsPanel';
-import { FirstPartyOracleAdvantages } from '@/components/oracle/FirstPartyOracleAdvantages';
-import { DataQualityScoreCard } from '@/components/oracle/DataQualityScoreCard';
-import { LatencyDistributionHistogram } from '@/components/oracle/LatencyDistributionHistogram';
-import { UpdateFrequencyHeatmap } from '@/components/oracle/UpdateFrequencyHeatmap';
+import { AirnodeDeploymentPanel } from '@/components/oracle/panels/AirnodeDeploymentPanel';
+import { DapiCoveragePanel } from '@/components/oracle/panels/DapiCoveragePanel';
+import { CoveragePoolPanel } from '@/components/oracle/panels/CoveragePoolPanel';
+import { StakingMetricsPanel } from '@/components/oracle/panels/StakingMetricsPanel';
+import { FirstPartyOracleAdvantages } from '@/components/oracle/common/FirstPartyOracleAdvantages';
+import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
+import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
+import { UpdateFrequencyHeatmap } from '@/components/oracle/charts/UpdateFrequencyHeatmap';
 import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
-import { DapiPriceDeviationMonitor } from '@/components/oracle/DapiPriceDeviationMonitor';
-import { DataSourceTraceabilityPanel } from '@/components/oracle/DataSourceTraceabilityPanel';
-import { CoveragePoolTimeline } from '@/components/oracle/CoveragePoolTimeline';
+import { DapiPriceDeviationMonitor } from '@/components/oracle/common/DapiPriceDeviationMonitor';
+import { DataSourceTraceabilityPanel } from '@/components/oracle/panels/DataSourceTraceabilityPanel';
+import { CoveragePoolTimeline } from '@/components/oracle/common/CoveragePoolTimeline';
 import { createLogger } from '@/lib/utils/logger';
-import { GasFeeComparison } from '@/components/oracle/GasFeeComparison';
-import { ATRIndicator } from '@/components/oracle/ATRIndicator';
-import { BollingerBands } from '@/components/oracle/BollingerBands';
-import { DataQualityTrend } from '@/components/oracle/DataQualityTrend';
-import { CrossOracleComparison } from '@/components/oracle/CrossOracleComparison';
+import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
+import { ATRIndicator } from '@/components/oracle/indicators/ATRIndicator';
+import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
+import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { useAPI3AllData } from '@/hooks/useAPI3Data';
 
 const logger = createLogger('API3PageContent');

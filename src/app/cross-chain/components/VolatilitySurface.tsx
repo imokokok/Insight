@@ -25,7 +25,7 @@ import {
   type RollingVolatilityPoint,
   type VolatilityConePoint,
 } from '../utils';
-import { Blockchain } from '@/lib/types/oracle';
+import { Blockchain } from '@/types/oracle';
 
 interface VolatilitySurfaceProps {
   data: ReturnType<typeof useCrossChainData>;

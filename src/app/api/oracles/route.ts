@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import {
   validateRequiredParams,
   validateProvider,

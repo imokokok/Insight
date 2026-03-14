@@ -14,7 +14,7 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-import { Publisher } from '@/lib/types/oracle';
+import { Publisher } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 

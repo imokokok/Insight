@@ -14,7 +14,7 @@ import {
   Legend,
 } from 'recharts';
 import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
-import { Blockchain } from '@/lib/types/oracle';
+import { Blockchain } from '@/types/oracle';
 
 interface RollingCorrelationChartProps {
   data: ReturnType<typeof useCrossChainData>;
