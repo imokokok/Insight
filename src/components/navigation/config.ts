@@ -15,6 +15,8 @@ import {
   Flame,
   Globe,
   TrendingUp,
+  Landmark,
+  Gamepad2,
 } from 'lucide-react';
 import { NavStructure } from './types';
 import { oracleColors } from '@/lib/constants';
@@ -115,6 +117,18 @@ export const navigationConfig: NavStructure = [
         label: 'navbar.tellar',
         icon: TrendingUp,
         description: 'navbar.tellarDesc',
+      },
+      {
+        href: '/chronicle',
+        label: 'navbar.chronicle',
+        icon: Landmark,
+        description: 'navbar.chronicleDesc',
+      },
+      {
+        href: '/winklink',
+        label: 'navbar.winklink',
+        icon: Gamepad2,
+        description: 'navbar.winklinkDesc',
       },
     ],
   },

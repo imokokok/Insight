@@ -6,6 +6,8 @@ export { API3Client } from './api3';
 export { RedStoneClient } from './redstone';
 export { DIAClient } from './dia';
 export { TellarClient } from './tellar';
+export { ChronicleClient } from './chronicle';
+export { WINkLinkClient } from './winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
 export type {
   DataSourceTransparency,
@@ -22,6 +24,25 @@ export type {
   MultiChainAggregation,
   TellarNetworkStats,
 } from './tellar';
+export type {
+  ScuttlebuttData,
+  MakerDAOAsset,
+  MakerDAOIntegration,
+  ChronicleValidator,
+  ValidatorNetwork,
+  ChronicleNetworkStats,
+} from './chronicle';
+export type {
+  TRONNetworkStats,
+  TRONDApp,
+  TRONEcosystem,
+  WINkLinkNode,
+  NodeStakingData,
+  GamingDataSource,
+  RandomNumberService,
+  GamingData,
+  WINkLinkNetworkStats,
+} from './winklink';
 export {
   PythHermesClient,
   getPythHermesClient,
