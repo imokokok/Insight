@@ -8,6 +8,8 @@ import {
   RedStoneClient,
   DIAClient,
   TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
 } from '@/lib/oracles';
 import { MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
@@ -538,6 +540,122 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       status: 'online',
       latency: 95,
       stakingTokenSymbol: 'TELLAR',
+    },
+    features: {
+      hasNodeAnalytics: false,
+      hasValidatorAnalytics: false,
+      hasPublisherAnalytics: false,
+      hasDisputeResolution: false,
+      hasPriceFeeds: true,
+      hasQuantifiableSecurity: false,
+      hasFirstPartyOracle: false,
+      hasCoreFeatures: true,
+    },
+  },
+  [OracleProvider.CHRONICLE]: {
+    provider: OracleProvider.CHRONICLE,
+    name: 'Chronicle',
+    symbol: 'CHRONICLE',
+    defaultChain: Blockchain.ETHEREUM,
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+      Blockchain.BASE,
+    ],
+    client: new ChronicleClient(),
+    iconBgColor: 'bg-amber-600',
+    icon: (
+      <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-xs">CHR</span>
+      </div>
+    ),
+    marketData: {
+      symbol: 'CHRONICLE',
+      tokenName: 'Chronicle',
+      tokenSymbol: 'CHRONICLE',
+      marketCap: 220000000,
+      volume24h: 9500000,
+      circulatingSupply: 85000000,
+      totalSupply: 150000000,
+      fullyDilutedValuation: 388000000,
+      marketCapRank: 210,
+      high24h: 2.85,
+      low24h: 2.52,
+      change24h: 3.8,
+      change24hValue: 0.1,
+    },
+    networkData: {
+      activeNodes: 45,
+      nodeUptime: 99.95,
+      avgResponseTime: 140,
+      updateFrequency: 60,
+      totalStaked: 25000000,
+      dataFeeds: 85,
+      hourlyActivity: [
+        1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800,
+        3600, 3400, 3200, 3300, 3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
+      ],
+      status: 'online',
+      latency: 140,
+      stakingTokenSymbol: 'MKR',
+    },
+    features: {
+      hasNodeAnalytics: false,
+      hasValidatorAnalytics: true,
+      hasPublisherAnalytics: false,
+      hasDisputeResolution: false,
+      hasPriceFeeds: false,
+      hasQuantifiableSecurity: false,
+      hasFirstPartyOracle: false,
+      hasCoreFeatures: true,
+    },
+  },
+  [OracleProvider.WINKLINK]: {
+    provider: OracleProvider.WINKLINK,
+    name: 'WINkLink',
+    symbol: 'WINKLINK',
+    defaultChain: Blockchain.BNB_CHAIN,
+    supportedChains: [
+      Blockchain.BNB_CHAIN,
+    ],
+    client: new WINkLinkClient(),
+    iconBgColor: 'bg-pink-600',
+    icon: (
+      <div className="w-8 h-8 bg-pink-600 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-xs">WIN</span>
+      </div>
+    ),
+    marketData: {
+      symbol: 'WINKLINK',
+      tokenName: 'WINkLink',
+      tokenSymbol: 'WINKLINK',
+      marketCap: 150000000,
+      volume24h: 6500000,
+      circulatingSupply: 650000000,
+      totalSupply: 999000000000,
+      fullyDilutedValuation: 230769230,
+      marketCapRank: 290,
+      high24h: 0.00028,
+      low24h: 0.00022,
+      change24h: 5.2,
+      change24hValue: 0.00001,
+    },
+    networkData: {
+      activeNodes: 85,
+      nodeUptime: 99.92,
+      avgResponseTime: 110,
+      updateFrequency: 30,
+      totalStaked: 45000000,
+      dataFeeds: 180,
+      hourlyActivity: [
+        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200,
+        8800, 8400, 8000, 8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
+      ],
+      status: 'online',
+      latency: 110,
+      stakingTokenSymbol: 'WIN',
     },
     features: {
       hasNodeAnalytics: false,

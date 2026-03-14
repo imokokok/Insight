@@ -32,6 +32,10 @@
     "diaDesc": "Decentralized Information Asset cross-chain data oracle",
     "tellar": "Tellar",
     "tellarDesc": "Real-time price stream and multi-chain aggregation oracle",
+    "chronicle": "Chronicle",
+    "chronicleDesc": "MakerDAO native oracle with Scuttlebutt security",
+    "winklink": "WINkLink",
+    "winklinkDesc": "TRON ecosystem oracle for gaming and DeFi",
     "favorites": "Favorites",
     "alerts": "Alerts",
     "settings": "Settings",
@@ -4292,5 +4296,108 @@
         "message": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
       }
     }
+  },
+  "chronicle": {
+    "subtitle": "MakerDAO Native Oracle - High-security decentralized price feeds with Scuttlebutt security protocol",
+    "tabs": {
+      "market": "Market Data",
+      "network": "Network Health",
+      "scuttlebutt": "Scuttlebutt Security",
+      "makerdao": "MakerDAO Integration",
+      "validators": "Validators"
+    },
+    "loading": "Loading Chronicle data...",
+    "error": {
+      "loadingFailed": "Failed to load Chronicle data"
+    },
+    "scuttlebutt": {
+      "title": "Scuttlebutt Security Protocol",
+      "securityLevel": "Security Level",
+      "auditScore": "Audit Score",
+      "features": "Security Features",
+      "securityFeatures": "Active Security Features"
+    },
+    "makerdao": {
+      "title": "MakerDAO Integration",
+      "tvl": "Total Value Locked",
+      "daiSupply": "DAI Supply",
+      "systemSurplus": "System Surplus",
+      "debtCeiling": "Debt Ceiling",
+      "asset": "Asset",
+      "type": "Type",
+      "price": "Price",
+      "collateralRatio": "Collateral Ratio",
+      "stabilityFee": "Stability Fee"
+    },
+    "validators": {
+      "title": "Validator Network",
+      "total": "Total Validators",
+      "active": "Active Validators",
+      "avgReputation": "Average Reputation",
+      "totalStaked": "Total Staked",
+      "name": "Name",
+      "reputation": "Reputation",
+      "uptime": "Uptime",
+      "responseTime": "Response Time",
+      "staked": "Staked",
+      "status": "Status"
+    }
+  },
+  "winklink": {
+    "subtitle": "TRON Ecosystem Oracle - Reliable off-chain data for gaming, DeFi, and entertainment",
+    "tabs": {
+      "market": "Market Data",
+      "network": "Network Health",
+      "tron": "TRON Ecosystem",
+      "staking": "Node Staking",
+      "gaming": "Gaming Data"
+    },
+    "loading": "Loading WINkLink data...",
+    "error": {
+      "loadingFailed": "Failed to load WINkLink data"
+    },
+    "tron": {
+      "title": "TRON Ecosystem Integration",
+      "totalTransactions": "Total Transactions",
+      "tps": "TPS",
+      "totalAccounts": "Total Accounts",
+      "dailyTransactions": "Daily Transactions",
+      "integratedDApps": "Integrated DApps",
+      "users": "Users",
+      "volume24h": "24h Volume"
+    },
+    "staking": {
+      "title": "Node Staking",
+      "totalStaked": "Total Staked",
+      "activeNodes": "Active Nodes",
+      "averageApr": "Average APR",
+      "rewardPool": "Reward Pool",
+      "tiers": "Staking Tiers",
+      "topNodes": "Top Nodes",
+      "node": "Node",
+      "region": "Region",
+      "tier": "Tier",
+      "staked": "Staked",
+      "uptime": "Uptime",
+      "rewards": "Rewards"
+    },
+    "gaming": {
+      "title": "Gaming & Entertainment Data",
+      "totalVolume": "Total Gaming Volume",
+      "activeGames": "Active Games",
+      "dailyRngRequests": "Daily RNG Requests",
+      "dataSources": "Data Sources",
+      "rngServices": "Random Number Services",
+      "users": "Users",
+      "volume24h": "24h Volume",
+      "reliability": "Reliability",
+      "chains": "Chains",
+      "requests": "requests",
+      "avgResponse": "avg response",
+      "security": "security"
+    }
+  },
+  "common": {
+    "retry": "Retry"
   }
 }

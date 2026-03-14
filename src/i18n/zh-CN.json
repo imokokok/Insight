@@ -32,6 +32,10 @@
     "diaDesc": "去中心化信息资产跨链数据预言机",
     "tellar": "Tellar",
     "tellarDesc": "实时价格流和多链聚合预言机",
+    "chronicle": "Chronicle",
+    "chronicleDesc": "MakerDAO 原生预言机，Scuttlebutt 安全协议",
+    "winklink": "WINkLink",
+    "winklinkDesc": "TRON 生态预言机，专注游戏和 DeFi",
     "favorites": "收藏",
     "alerts": "告警",
     "settings": "设置",
@@ -4389,5 +4393,108 @@
       "title": "暂无内容",
       "description": "这里还没有任何内容"
     }
+  },
+  "chronicle": {
+    "subtitle": "MakerDAO 原生预言机 - 采用 Scuttlebutt 安全协议的高安全性去中心化价格喂价",
+    "tabs": {
+      "market": "市场数据",
+      "network": "网络健康",
+      "scuttlebutt": "Scuttlebutt 安全",
+      "makerdao": "MakerDAO 集成",
+      "validators": "验证者"
+    },
+    "loading": "加载 Chronicle 数据中...",
+    "error": {
+      "loadingFailed": "加载 Chronicle 数据失败"
+    },
+    "scuttlebutt": {
+      "title": "Scuttlebutt 安全协议",
+      "securityLevel": "安全级别",
+      "auditScore": "审计评分",
+      "features": "安全特性",
+      "securityFeatures": "活跃安全特性"
+    },
+    "makerdao": {
+      "title": "MakerDAO 集成",
+      "tvl": "总锁仓价值",
+      "daiSupply": "DAI 供应量",
+      "systemSurplus": "系统盈余",
+      "debtCeiling": "债务上限",
+      "asset": "资产",
+      "type": "类型",
+      "price": "价格",
+      "collateralRatio": "抵押率",
+      "stabilityFee": "稳定费"
+    },
+    "validators": {
+      "title": "验证者网络",
+      "total": "总验证者",
+      "active": "活跃验证者",
+      "avgReputation": "平均声誉",
+      "totalStaked": "总质押",
+      "name": "名称",
+      "reputation": "声誉",
+      "uptime": "在线率",
+      "responseTime": "响应时间",
+      "staked": "质押",
+      "status": "状态"
+    }
+  },
+  "winklink": {
+    "subtitle": "TRON 生态预言机 - 为游戏、DeFi 和娱乐应用提供可靠的链下数据",
+    "tabs": {
+      "market": "市场数据",
+      "network": "网络健康",
+      "tron": "TRON 生态",
+      "staking": "节点质押",
+      "gaming": "游戏数据"
+    },
+    "loading": "加载 WINkLink 数据中...",
+    "error": {
+      "loadingFailed": "加载 WINkLink 数据失败"
+    },
+    "tron": {
+      "title": "TRON 生态集成",
+      "totalTransactions": "总交易数",
+      "tps": "TPS",
+      "totalAccounts": "总账户数",
+      "dailyTransactions": "日交易数",
+      "integratedDApps": "集成 DApps",
+      "users": "用户",
+      "volume24h": "24h 交易量"
+    },
+    "staking": {
+      "title": "节点质押",
+      "totalStaked": "总质押",
+      "activeNodes": "活跃节点",
+      "averageApr": "平均 APR",
+      "rewardPool": "奖励池",
+      "tiers": "质押等级",
+      "topNodes": "顶级节点",
+      "node": "节点",
+      "region": "地区",
+      "tier": "等级",
+      "staked": "质押",
+      "uptime": "在线率",
+      "rewards": "奖励"
+    },
+    "gaming": {
+      "title": "游戏与娱乐数据",
+      "totalVolume": "总游戏交易量",
+      "activeGames": "活跃游戏",
+      "dailyRngRequests": "日 RNG 请求",
+      "dataSources": "数据源",
+      "rngServices": "随机数服务",
+      "users": "用户",
+      "volume24h": "24h 交易量",
+      "reliability": "可靠性",
+      "chains": "链",
+      "requests": "请求",
+      "avgResponse": "平均响应",
+      "security": "安全"
+    }
+  },
+  "common": {
+    "retry": "重试"
   }
 }

@@ -8,6 +8,8 @@ import { API3Client } from './api3';
 import { RedStoneClient } from './redstone';
 import { DIAClient } from './dia';
 import { TellarClient } from './tellar';
+import { ChronicleClient } from './chronicle';
+import { WINkLinkClient } from './winklink';
 import { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
 import { container, SERVICE_TOKENS } from '@/lib/di';
@@ -73,6 +75,8 @@ export class OracleClientFactory {
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
       OracleProvider.TELLAR,
+      OracleProvider.CHRONICLE,
+      OracleProvider.WINKLINK,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -136,6 +140,10 @@ export class OracleClientFactory {
         return new DIAClient(this.config);
       case OracleProvider.TELLAR:
         return new TellarClient(this.config);
+      case OracleProvider.CHRONICLE:
+        return new ChronicleClient(this.config);
+      case OracleProvider.WINKLINK:
+        return new WINkLinkClient(this.config);
       default:
         throw new Error(`Unknown oracle provider: ${provider}`);
     }

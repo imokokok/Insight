@@ -7,6 +7,8 @@ export enum OracleProvider {
   REDSTONE = 'redstone',
   DIA = 'dia',
   TELLAR = 'tellar',
+  CHRONICLE = 'chronicle',
+  WINKLINK = 'winklink',
 }
 
 export enum Blockchain {
