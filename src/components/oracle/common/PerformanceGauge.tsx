@@ -181,10 +181,10 @@ function SingleGauge({
     };
   }, [clampedValue, max, showAnimation, animationDuration]);
 
-  const strokeWidth = size * 0.08;
-  const radius = (size - strokeWidth) / 2;
+  const strokeWidth = size * 0.1;
+  const radius = (size - strokeWidth) / 2 - 10;
   const centerX = size / 2;
-  const centerY = size / 2;
+  const centerY = size / 2 + 5;
 
   const startAngle = -180;
   const endAngle = 0;
@@ -212,40 +212,43 @@ function SingleGauge({
   const backgroundArc = describeArc(centerX, centerY, radius, startAngle, endAngle);
   const valueArc = describeArc(centerX, centerY, radius, gaugeStartAngle, gaugeEndAngle);
 
-  const tickCount = 10;
+  // 刻度在弧形内部
+  const tickCount = 5;
   const ticks = [];
   for (let i = 0; i <= tickCount; i++) {
     const angle = startAngle + (i / tickCount) * angleRange;
-    const innerRadius = radius - strokeWidth / 2 - 5;
-    const outerRadius = radius - strokeWidth / 2 - 12;
+    const outerRadius = radius - strokeWidth / 2 - 2;
+    const innerRadius = radius - strokeWidth / 2 - 8;
     const inner = polarToCartesian(centerX, centerY, innerRadius, angle);
     const outer = polarToCartesian(centerX, centerY, outerRadius, angle);
-    const isMajor = i % 2 === 0;
+    const labelRadius = radius - strokeWidth / 2 - 18;
+    const labelPos = polarToCartesian(centerX, centerY, labelRadius, angle);
     ticks.push({
       x1: inner.x,
       y1: inner.y,
       x2: outer.x,
       y2: outer.y,
-      isMajor,
+      labelX: labelPos.x,
+      labelY: labelPos.y,
       value: (i / tickCount) * max,
     });
   }
 
   const needleAngle = gaugeEndAngle;
-  const needleLength = radius - strokeWidth - 15;
+  const needleLength = radius - strokeWidth - 8;
   const needleBase = polarToCartesian(centerX, centerY, needleLength, needleAngle);
-  const needleWidth = 4;
+  const needleWidth = 3;
 
   const needleLeft = polarToCartesian(centerX, centerY, needleWidth, needleAngle - 90);
   const needleRight = polarToCartesian(centerX, centerY, needleWidth, needleAngle + 90);
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative" style={{ width: size, height: size * 0.65 }}>
+      <div className="relative" style={{ width: size, height: size * 0.6 }}>
         <svg
           width={size}
-          height={size * 0.65}
-          viewBox={`0 0 ${size} ${size * 0.65}`}
+          height={size * 0.6}
+          viewBox={`0 0 ${size} ${size * 0.6}`}
           className="overflow-visible"
         >
           <defs>
@@ -254,7 +257,7 @@ function SingleGauge({
               <stop offset="100%" stopColor={levelConfig.color} stopOpacity="0.7" />
             </linearGradient>
             <filter id={`glow-${label}`} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
               <feMerge>
                 <feMergeNode in="coloredBlur" />
                 <feMergeNode in="SourceGraphic" />
@@ -287,23 +290,22 @@ function SingleGauge({
                 y1={tick.y1}
                 x2={tick.x2}
                 y2={tick.y2}
-                stroke={tick.isMajor ? chartColors.grid.axis : chartColors.grid.line}
-                strokeWidth={tick.isMajor ? 2 : 1}
+                stroke={chartColors.grid.axis}
+                strokeWidth={1.5}
               />
-              {tick.isMajor && (
-                <text
-                  x={tick.x2}
-                  y={tick.y2 + 12}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#6B7280"
-                  fontWeight="500"
-                >
-                  {type === 'percentage'
-                    ? `${((tick.value / max) * 100).toFixed(0)}%`
-                    : tick.value.toFixed(0)}
-                </text>
-              )}
+              <text
+                x={tick.labelX}
+                y={tick.labelY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize="8"
+                fill="#9CA3AF"
+                fontWeight="500"
+              >
+                {type === 'percentage'
+                  ? `${((tick.value / max) * 100).toFixed(0)}%`
+                  : tick.value.toFixed(0)}
+              </text>
             </g>
           ))}
 
@@ -314,22 +316,22 @@ function SingleGauge({
             <polygon
               points={`${needleBase.x},${needleBase.y} ${needleLeft.x},${needleLeft.y} ${centerX},${centerY} ${needleRight.x},${needleRight.y}`}
               fill={levelConfig.color}
-              className="drop-shadow-md"
+              className="drop-shadow-sm"
             />
-            <circle cx={centerX} cy={centerY} r={strokeWidth / 2 + 2} fill={levelConfig.color} />
+            <circle cx={centerX} cy={centerY} r={strokeWidth / 2 + 1} fill={levelConfig.color} />
             <circle cx={centerX} cy={centerY} r={strokeWidth / 4} fill="white" />
           </g>
         </svg>
 
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center">
-          <div className="text-2xl font-bold" style={{ color: levelConfig.color }}>
+        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-center">
+          <div className="text-xl font-bold" style={{ color: levelConfig.color }}>
             {formatValue(currentDisplayValue, unit)}
           </div>
-          <div className="text-xs text-gray-500 mt-1">{levelConfig.label}</div>
+          <div className="text-xs text-gray-500">{levelConfig.label}</div>
         </div>
       </div>
 
-      <div className="mt-3 text-center">
+      <div className="mt-2 text-center">
         <p className="text-sm font-medium text-gray-700">{label}</p>
         {type === 'value' && (
           <p className="text-xs text-gray-400 mt-0.5">范围: 0 - {formatValue(max, unit)}</p>
@@ -356,16 +358,16 @@ interface PerformanceGaugeGroupProps {
 
 export function PerformanceGaugeGroup({
   gauges,
-  size = 180,
+  size = 140,
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeGroupProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {gauges.map((gauge, index) => (
         <div
           key={index}
-          className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
         >
           <SingleGauge
             value={gauge.value}
@@ -393,12 +395,12 @@ export function PerformanceGauge({
   type,
   warningThreshold = 80,
   dangerThreshold = 60,
-  size = 180,
+  size = 140,
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
       <SingleGauge
         value={value}
         max={max}
