@@ -28,6 +28,10 @@
     "umaDesc": "乐观预言机协议",
     "redstone": "Redstone",
     "redstoneDesc": "模块化预言机解决方案",
+    "dia": "DIA",
+    "diaDesc": "去中心化信息资产跨链数据预言机",
+    "tellar": "Tellar",
+    "tellarDesc": "实时价格流和多链聚合预言机",
     "favorites": "收藏",
     "alerts": "告警",
     "settings": "设置",
@@ -1419,6 +1423,131 @@
       "includeMetadata": "包含元数据",
       "cancel": "取消",
       "export": "导出"
+    }
+  },
+  "dia": {
+    "title": "DIA",
+    "subtitle": "去中心化信息资产跨链数据预言机",
+    "loading": "加载中...",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "tabs": {
+      "market": "市场数据",
+      "network": "网络健康",
+      "transparency": "数据透明度",
+      "coverage": "跨链覆盖",
+      "verification": "数据源验证"
+    },
+    "stats": {
+      "activeSources": "活跃数据源",
+      "crossChainAssets": "跨链资产",
+      "stakingApr": "质押 APR",
+      "networkUptime": "网络在线率",
+      "volume24h": "24小时交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
+    },
+    "error": {
+      "loadingFailed": "加载失败"
+    },
+    "noTransparencyData": "暂无数据透明度信息",
+    "noCoverageData": "暂无跨链覆盖信息",
+    "noVerificationData": "暂无数据源验证信息",
+    "dataTransparency": {
+      "title": "数据透明度",
+      "totalSources": "数据源总数",
+      "activeSources": "活跃数据源",
+      "avgCredibility": "平均可信度",
+      "sourceName": "数据源名称",
+      "type": "类型",
+      "credibility": "可信度",
+      "status": "状态",
+      "dataPoints": "数据点数",
+      "verification": "验证方式"
+    },
+    "dataSourceType": {
+      "exchange": "交易所",
+      "defi": "DeFi 协议",
+      "aggregator": "聚合器"
+    },
+    "crossChainCoverage": {
+      "title": "跨链资产覆盖",
+      "totalAssets": "总资产数",
+      "crypto": "加密货币",
+      "stablecoins": "稳定币",
+      "defi": "DeFi 代币",
+      "byChain": "按链分布",
+      "assets": "资产列表",
+      "confidence": "置信度",
+      "updateFreq": "更新频率",
+      "supportedChains": "支持的链",
+      "coverageStatus": "覆盖状态"
+    },
+    "dataSourceVerification": {
+      "title": "数据源验证",
+      "verified": "已验证",
+      "pending": "待验证",
+      "failed": "验证失败",
+      "source": "数据源",
+      "method": "验证方法",
+      "validators": "验证节点数"
+    }
+  },
+  "tellar": {
+    "title": "Tellar",
+    "subtitle": "实时价格流和多链聚合预言机",
+    "loading": "加载中...",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "tabs": {
+      "market": "市场数据",
+      "network": "网络健康",
+      "priceStream": "实时价格流",
+      "marketDepth": "市场深度",
+      "multiChain": "多链聚合"
+    },
+    "stats": {
+      "activeNodes": "活跃节点",
+      "totalLiquidity": "总流动性",
+      "stakingApr": "质押 APR",
+      "networkUptime": "网络在线率",
+      "volume24h": "24小时交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
+    },
+    "error": {
+      "loadingFailed": "加载失败"
+    },
+    "noPriceStreamData": "暂无实时价格流数据",
+    "noMarketDepthData": "暂无市场深度数据",
+    "noMultiChainData": "暂无多链聚合数据",
+    "priceStream": {
+      "title": "实时价格流",
+      "currentPrice": "当前价格",
+      "avgPrice": "平均价格",
+      "volume": "交易量",
+      "source": "来源"
+    },
+    "marketDepth": {
+      "title": "市场深度分析",
+      "symbol": "交易对",
+      "totalBid": "总买盘",
+      "totalAsk": "总卖盘",
+      "spread": "价差",
+      "bids": "买盘",
+      "asks": "卖盘"
+    },
+    "multiChain": {
+      "title": "多链价格聚合",
+      "symbol": "交易对",
+      "aggregatedPrice": "聚合价格",
+      "deviation": "价格偏差",
+      "maxDeviation": "最大偏差",
+      "consensusMethod": "共识方法",
+      "chainPrices": "各链价格",
+      "price": "价格",
+      "latency": "延迟",
+      "lastUpdate": "最后更新"
     }
   },
   "bandProtocol": {

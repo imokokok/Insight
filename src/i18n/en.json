@@ -28,6 +28,10 @@
     "umaDesc": "Optimistic oracle protocol",
     "redstone": "Redstone",
     "redstoneDesc": "Modular oracle solution",
+    "dia": "DIA",
+    "diaDesc": "Decentralized Information Asset cross-chain data oracle",
+    "tellar": "Tellar",
+    "tellarDesc": "Real-time price stream and multi-chain aggregation oracle",
     "favorites": "Favorites",
     "alerts": "Alerts",
     "settings": "Settings",
@@ -1407,6 +1411,131 @@
       "includeMetadata": "Include Metadata",
       "cancel": "Cancel",
       "export": "Export"
+    }
+  },
+  "dia": {
+    "title": "DIA",
+    "subtitle": "Decentralized Information Asset cross-chain data oracle",
+    "loading": "Loading...",
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "tabs": {
+      "market": "Market Data",
+      "network": "Network Health",
+      "transparency": "Data Transparency",
+      "coverage": "Cross-Chain Coverage",
+      "verification": "Data Source Verification"
+    },
+    "stats": {
+      "activeSources": "Active Sources",
+      "crossChainAssets": "Cross-Chain Assets",
+      "stakingApr": "Staking APR",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
+    },
+    "error": {
+      "loadingFailed": "Loading failed"
+    },
+    "noTransparencyData": "No data transparency information available",
+    "noCoverageData": "No cross-chain coverage information available",
+    "noVerificationData": "No data source verification information available",
+    "dataTransparency": {
+      "title": "Data Transparency",
+      "totalSources": "Total Sources",
+      "activeSources": "Active Sources",
+      "avgCredibility": "Avg Credibility",
+      "sourceName": "Source Name",
+      "type": "Type",
+      "credibility": "Credibility",
+      "status": "Status",
+      "dataPoints": "Data Points",
+      "verification": "Verification Method"
+    },
+    "dataSourceType": {
+      "exchange": "Exchange",
+      "defi": "DeFi Protocol",
+      "aggregator": "Aggregator"
+    },
+    "crossChainCoverage": {
+      "title": "Cross-Chain Asset Coverage",
+      "totalAssets": "Total Assets",
+      "crypto": "Cryptocurrency",
+      "stablecoins": "Stablecoins",
+      "defi": "DeFi Tokens",
+      "byChain": "By Chain",
+      "assets": "Asset List",
+      "confidence": "Confidence",
+      "updateFreq": "Update Frequency",
+      "supportedChains": "Supported Chains",
+      "coverageStatus": "Coverage Status"
+    },
+    "dataSourceVerification": {
+      "title": "Data Source Verification",
+      "verified": "Verified",
+      "pending": "Pending",
+      "failed": "Failed",
+      "source": "Source",
+      "method": "Method",
+      "validators": "Validators"
+    }
+  },
+  "tellar": {
+    "title": "Tellar",
+    "subtitle": "Real-time price stream and multi-chain aggregation oracle",
+    "loading": "Loading...",
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "tabs": {
+      "market": "Market Data",
+      "network": "Network Health",
+      "priceStream": "Price Stream",
+      "marketDepth": "Market Depth",
+      "multiChain": "Multi-Chain Aggregation"
+    },
+    "stats": {
+      "activeNodes": "Active Nodes",
+      "totalLiquidity": "Total Liquidity",
+      "stakingApr": "Staking APR",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
+    },
+    "error": {
+      "loadingFailed": "Loading failed"
+    },
+    "noPriceStreamData": "No price stream data available",
+    "noMarketDepthData": "No market depth data available",
+    "noMultiChainData": "No multi-chain aggregation data available",
+    "priceStream": {
+      "title": "Real-Time Price Stream",
+      "currentPrice": "Current Price",
+      "avgPrice": "Average Price",
+      "volume": "Volume",
+      "source": "Source"
+    },
+    "marketDepth": {
+      "title": "Market Depth Analysis",
+      "symbol": "Symbol",
+      "totalBid": "Total Bid Volume",
+      "totalAsk": "Total Ask Volume",
+      "spread": "Spread",
+      "bids": "Bids",
+      "asks": "Asks"
+    },
+    "multiChain": {
+      "title": "Multi-Chain Price Aggregation",
+      "symbol": "Symbol",
+      "aggregatedPrice": "Aggregated Price",
+      "deviation": "Price Deviation",
+      "maxDeviation": "Max Deviation",
+      "consensusMethod": "Consensus Method",
+      "chainPrices": "Chain Prices",
+      "price": "Price",
+      "latency": "Latency",
+      "lastUpdate": "Last Update"
     }
   },
   "bandProtocol": {

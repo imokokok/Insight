@@ -13,6 +13,8 @@ import {
   Heart,
   Bell,
   Flame,
+  Globe,
+  TrendingUp,
 } from 'lucide-react';
 import { NavStructure } from './types';
 import { oracleColors } from '@/lib/constants';
@@ -101,6 +103,18 @@ export const navigationConfig: NavStructure = [
         label: 'navbar.uma',
         icon: Database,
         description: 'navbar.umaDesc',
+      },
+      {
+        href: '/dia',
+        label: 'navbar.dia',
+        icon: Globe,
+        description: 'navbar.diaDesc',
+      },
+      {
+        href: '/tellar',
+        label: 'navbar.tellar',
+        icon: TrendingUp,
+        description: 'navbar.tellarDesc',
       },
     ],
   },

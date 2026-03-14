@@ -4,7 +4,24 @@ export { UMAClient } from './uma';
 export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
 export { RedStoneClient } from './redstone';
+export { DIAClient } from './dia';
+export { TellarClient } from './tellar';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
+export type {
+  DataSourceTransparency,
+  CrossChainAsset,
+  CrossChainCoverage,
+  DataSourceVerification,
+  DIANetworkStats,
+} from './dia';
+export type {
+  PriceStreamPoint,
+  MarketDepthLevel,
+  MarketDepth,
+  MultiChainPrice,
+  MultiChainAggregation,
+  TellarNetworkStats,
+} from './tellar';
 export {
   PythHermesClient,
   getPythHermesClient,
