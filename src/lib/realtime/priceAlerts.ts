@@ -99,7 +99,7 @@ function generateId(): string {
 }
 
 // 检查单个预警是否触发
-function checkAlert(alert: PriceAlert, priceData: PriceData): AlertCheckResult | null {
+function checkAlert(alert: PriceAlert, priceData: PriceDataForAlert): AlertCheckResult | null {
   if (!alert.isActive) return null;
 
   let triggered = false;
@@ -204,7 +204,7 @@ export interface UsePriceAlertsReturn {
   toggleAlert: (id: string) => void;
   acknowledgeHistory: (historyId: string) => void;
   clearHistory: () => void;
-  checkPriceAlerts: (priceData: PriceData[]) => AlertCheckResult[];
+  checkPriceAlerts: (priceData: PriceDataForAlert[]) => AlertCheckResult[];
   requestNotificationPermission: () => Promise<boolean>;
   hasNotificationPermission: boolean;
 }
@@ -213,7 +213,7 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [history, setHistory] = useState<AlertHistory[]>([]);
   const [hasNotificationPermission, setHasNotificationPermission] = useState(false);
-  const lastPricesRef = useRef<Map<string, PriceData>>(new Map());
+  const lastPricesRef = useRef<Map<string, PriceDataForAlert>>(new Map());
 
   // 初始加载
   useEffect(() => {
@@ -276,7 +276,7 @@ export function usePriceAlerts(): UsePriceAlertsReturn {
 
   // 检查价格预警
   const checkPriceAlerts = useCallback(
-    (priceData: PriceData[]): AlertCheckResult[] => {
+    (priceData: PriceDataForAlert[]): AlertCheckResult[] => {
       const results: AlertCheckResult[] = [];
       const newHistory: AlertHistory[] = [];
 

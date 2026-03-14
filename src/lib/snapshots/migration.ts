@@ -1,4 +1,4 @@
-import { OracleSnapshot } from '../types/snapshot';
+import { OracleSnapshot } from '@/types/oracle';
 import { saveSnapshotToDatabase } from './database';
 import { createLogger } from '@/lib/utils/logger';
 

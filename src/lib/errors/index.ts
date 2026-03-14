@@ -8,6 +8,7 @@ export {
   ConflictError,
   RateLimitError,
   InternalError,
+  NotImplementedError,
   type ValidationErrorDetails,
   type NotFoundErrorDetails,
   type AuthenticationErrorDetails,

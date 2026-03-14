@@ -10,12 +10,14 @@ export {
 } from './useDI';
 
 export { usePriceData, useHistoricalPrices, useMultiplePrices } from './useOracleData';
-export { useOracleDataSWR, useOraclePrefetch } from './useOracleDataSWR';
+export { useOracleDataQuery, useOraclePrefetch, useOracleDataSWR } from './useOracleDataQuery';
 export type {
+  UseOracleDataQueryOptions,
+  UseOracleDataQueryReturn,
+  UseOraclePrefetchOptions,
   UseOracleDataSWROptions,
   UseOracleDataSWRReturn,
-  UseOraclePrefetchOptions,
-} from './useOracleDataSWR';
+} from './useOracleDataQuery';
 export { useRefresh, useExport, useLocalStorage } from './useUtils';
 export type { ExportOptions, ExportFormat, DataType } from './useUtils';
 export { useOraclePrices } from './useOraclePrices';

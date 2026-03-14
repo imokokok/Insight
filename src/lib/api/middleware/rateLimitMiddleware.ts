@@ -28,6 +28,7 @@ export interface RateLimitMiddlewareOptions {
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   handler?: (request: NextRequest, retryAfter: number) => NextResponse;
+  preset?: 'strict' | 'moderate' | 'lenient' | 'api';
 }
 
 export type RateLimitMiddlewareResult = 

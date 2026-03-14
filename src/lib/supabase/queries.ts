@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { OracleProvider, Blockchain } from '../types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import { createLogger } from '@/lib/utils/logger';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 

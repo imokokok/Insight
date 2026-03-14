@@ -1088,10 +1088,6 @@ export function PriceChart({
     [data]
   );
 
-  if (loading || !indicatorsLoaded) {
-    return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
-  }
-
   const connectionStatusText = useMemo(() => {
     switch (umaConnectionStatus) {
       case 'connected':
@@ -1116,6 +1112,10 @@ export function PriceChart({
         return 'bg-red-500';
     }
   }, [umaConnectionStatus]);
+
+  if (loading || !indicatorsLoaded) {
+    return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
+  }
 
   return (
     <div className="h-full flex flex-col">

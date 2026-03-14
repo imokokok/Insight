@@ -25,12 +25,11 @@ export {
 
 export {
   compareSnapshots,
-  formatTimestamp,
-  getTimeAgo,
   type OracleSnapshot,
   type SnapshotStats,
   type SnapshotComparisonResult,
-} from '../types/snapshot';
+} from '@/types/oracle';
+export { formatTimestamp, getTimeAgo } from '@/types/common';
 
 export {
   saveSnapshot as saveSnapshotToLocalStorage,
@@ -38,4 +37,4 @@ export {
   deleteSnapshot as deleteSnapshotFromLocalStorage,
   clearAllSnapshots as clearAllLocalStorageSnapshots,
   getSnapshotById as getSnapshotByIdFromLocalStorage,
-} from '../types/snapshot';
+} from '@/types/oracle';

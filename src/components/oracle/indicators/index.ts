@@ -1,8 +1,8 @@
 export { RSIIndicator, calculateRSI } from './RSIIndicator';
-export type { RSIDataPoint } from './RSIIndicator';
+export type { RSIDataPoint, RSIIndicatorProps } from './RSIIndicator';
 
 export { MACDIndicator, calculateMACD } from './MACDIndicator';
-export type { MACDDataPoint } from './MACDIndicator';
+export type { MACDDataPoint, MACDIndicatorProps } from './MACDIndicator';
 
 export { BollingerBands } from './BollingerBands';
 export type { BollingerBandsProps, PriceDataPoint, OraclePriceHistory } from './BollingerBands';
