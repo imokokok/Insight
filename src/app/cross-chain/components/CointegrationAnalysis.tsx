@@ -20,6 +20,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface CointegrationAnalysisProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -179,28 +180,28 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
           <div className="h-48 bg-gray-50 rounded p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                <XAxis dataKey="index" stroke="#9ca3af" tick={{ fontSize: 10 }} hide />
-                <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} width={50} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+                <XAxis dataKey="index" stroke={chartColors.recharts.axis} tick={{ fontSize: 10 }} hide />
+                <YAxis stroke={chartColors.recharts.axis} tick={{ fontSize: 10 }} width={50} />
                 <Tooltip
                   formatter={(value) => [Number(value).toFixed(4), '']}
                   labelFormatter={() => ''}
                 />
-                <ReferenceLine y={result.spreadMean} stroke="#6366F1" strokeDasharray="3 3" />
+                <ReferenceLine y={result.spreadMean} stroke={semanticColors.info.DEFAULT} strokeDasharray="3 3" />
                 <ReferenceLine
                   y={result.spreadMean + 2 * result.spreadStd}
-                  stroke="#10B981"
+                  stroke={semanticColors.success.DEFAULT}
                   strokeDasharray="3 3"
                 />
                 <ReferenceLine
                   y={result.spreadMean - 2 * result.spreadStd}
-                  stroke="#EF4444"
+                  stroke={semanticColors.danger.DEFAULT}
                   strokeDasharray="3 3"
                 />
                 <Line
                   type="monotone"
                   dataKey="spread"
-                  stroke="#6366F1"
+                  stroke={semanticColors.info.DEFAULT}
                   strokeWidth={2}
                   dot={false}
                   name="Spread"
@@ -216,16 +217,16 @@ function CointegrationPairCard({ pair }: { pair: CointegrationPair }) {
             <div className="flex items-center gap-1">
               <div
                 className="w-3 h-0.5 bg-indigo-500 border-dashed"
-                style={{ borderTop: '1px dashed #6366F1' }}
+                style={{ borderTop: `1px dashed ${semanticColors.info.DEFAULT}` }}
               />
               <span className="text-xs text-gray-500">均值</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-green-500" style={{ borderTop: '1px dashed #10B981' }} />
+              <div className="w-3 h-0.5 bg-green-500" style={{ borderTop: `1px dashed ${semanticColors.success.DEFAULT}` }} />
               <span className="text-xs text-gray-500">+2σ</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-0.5 bg-red-500" style={{ borderTop: '1px dashed #EF4444' }} />
+              <div className="w-3 h-0.5 bg-red-500" style={{ borderTop: `1px dashed ${semanticColors.danger.DEFAULT}` }} />
               <span className="text-xs text-gray-500">-2σ</span>
             </div>
           </div>

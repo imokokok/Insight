@@ -6,8 +6,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FavoritesManager } from '@/components/favorites';
 import { FavoriteConfig } from '@/hooks/useFavorites';
 import type { ConfigType } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function FavoritesPage() {
+  const { t } = useI18n();
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -69,8 +71,8 @@ export default function FavoritesPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">我的收藏</h1>
-            <p className="text-sm text-gray-500 mt-0.5">管理您保存的配置和快速访问入口</p>
+            <h1 className="text-2xl font-semibold text-gray-900">{t('favorites.page.title')}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">{t('favorites.page.subtitle')}</p>
           </div>
         </div>
       </div>

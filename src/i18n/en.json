@@ -63,7 +63,19 @@
         "oracles": "Integrated Oracles",
         "chains": "Supported Blockchains",
         "feeds": "Data Feeds"
-      }
+      },
+      "metrics": {
+        "totalValueSecured": "Total Value Secured",
+        "activeOracles": "Active Oracles",
+        "supportedPairs": "Supported Pairs"
+      },
+      "title": {
+        "part1": "Insight Oracle Data",
+        "part2": "Power Smart Decisions"
+      },
+      "liveData": "Live Data",
+      "searchPlaceholder": "Search trading pairs, oracles, or blockchains...",
+      "viewDocumentation": "View Documentation"
     },
     "platformStats": {
       "oraclesIntegrated": "Oracles Integrated",
@@ -91,17 +103,30 @@
     "features": {
       "title": "Core Features",
       "subtitle": "Comprehensive oracle data analysis tools",
+      "sectionBadge": "Core Features",
+      "sectionTitle": "Features",
+      "sectionDescription": "Explore core platform features for comprehensive oracle data analysis",
+      "liveData": "Live Data",
+      "learnMore": "Learn more →",
+      "priceQuery": {
+        "title": "Price Query",
+        "description": "Real-time price data from multiple oracles",
+        "stats": "queries"
+      },
       "crossOracle": {
         "title": "Cross-Oracle Comparison",
-        "description": "Compare price data, latency, accuracy and other key metrics across different oracles"
+        "description": "Compare price data, latency, accuracy and other key metrics across different oracles",
+        "stats": "oracles"
       },
       "crossChain": {
         "title": "Cross-Chain Comparison",
-        "description": "Analyze performance of the same oracle across different blockchains"
+        "description": "Analyze performance of the same oracle across different blockchains",
+        "stats": "chains"
       },
-      "priceQuery": {
-        "title": "Price Query",
-        "description": "Flexibly query real-time and historical price data from any oracle on any chain"
+      "history": {
+        "title": "Historical Analysis",
+        "description": "View historical price trends and charts",
+        "stats": "data history"
       },
       "analytics": {
         "title": "Deep Analytics",
@@ -592,6 +617,37 @@
         "critical": "Critical Range"
       }
     },
+    "metrics": {
+      "accuracy": "Accuracy",
+      "decentralization": "Decentralization"
+    },
+    "stats": {
+      "highestPrice": "Highest Price",
+      "lowestPrice": "Lowest Price",
+      "maxPriceDifference": "Max Price Difference",
+      "deviationFromAverage": "Deviation from Average",
+      "avgResponseTime": "Avg Response Time"
+    },
+    "selectTradingPair": "Select Trading Pair",
+    "deviationThresholdSettings": "Deviation Threshold Settings",
+    "priceDeviationThreshold": "Price Deviation Alert Threshold:",
+    "priceDeviationAlert": "Price Deviation Alert",
+    "differenceAnalysisPanel": "Difference Analysis Panel",
+    "priceDifferenceVisualization": "Price Difference Visualization",
+    "aboveAverage": "Above Average",
+    "belowAverage": "Below Average",
+    "zeroLineAverage": "Zero Line (Average)",
+    "multiOraclePriceComparison": "Multi-Oracle Price Comparison",
+    "priceHistory": "Price History",
+    "average": "Average",
+    "priceComparisonDetails": "Price Comparison Details",
+    "currentPriceComparison": "Current Price Comparison",
+    "price": "Price",
+    "priceTrendComparison": "Price Trend Comparison",
+    "performanceComparison": "Performance Comparison",
+    "comprehensivePerformanceRadar": "Comprehensive Performance Radar",
+    "autoRefreshSettings": "Auto Refresh Settings",
+    "enableAutoRefresh": "Enable Auto Refresh",
     "priceDistributionBoxPlot": {
       "title": "Price Distribution Box Plot",
       "subtitle": "Oracle price distribution statistics",
@@ -1747,6 +1803,38 @@
       "viewOnEtherscan": "View on Etherscan"
     }
   },
+  "redstone": {
+    "title": "Redstone Analytics",
+    "subtitle": "Modular Oracle Solution",
+    "stats": {
+      "dataProviders": "Data Providers",
+      "supportedAssets": "Supported Assets",
+      "supportedChains": "Supported Chains",
+      "dataFreshness": "Data Freshness",
+      "activeNodes": "Active Nodes",
+      "dataStreams": "Data Streams",
+      "responseTime": "Response Time",
+      "uptime": "Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply",
+      "modularFees": "Modular Fees",
+      "networkUptime": "Network Uptime"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "providers": "Data Providers",
+      "feeds": "Data Feeds"
+    },
+    "priceChart": "Price Chart",
+    "quickStats": "Quick Stats",
+    "networkStatus": "Network Status",
+    "status": {
+      "normal": "Normal",
+      "warning": "Warning"
+    },
+    "dataSources": "Data Sources"
+  },
   "pythNetwork": {
     "title": "Pyth",
     "subtitle": "High-frequency financial data oracle with first-party exchange data and sub-second latency.",
@@ -2286,7 +2374,58 @@
       "indicators": "Indicators",
       "tooltip": {
         "time": "Time",
-        "dataPoints": "Data Points"
+        "dataPoints": "Data Points",
+        "open": "Open:",
+        "high": "High:",
+        "low": "Low:",
+        "close": "Close:",
+        "price": "Price:",
+        "ma7": "MA7:",
+        "ma14": "MA14:",
+        "ma30": "MA30:",
+        "bollingerBands": "Bollinger Bands",
+        "upperBand": "Upper Band:",
+        "middleBand": "Middle Band:",
+        "lowerBand": "Lower Band:",
+        "predictionUpper": "Prediction Upper:",
+        "predictionLower": "Prediction Lower:",
+        "volume": "Volume:",
+        "rsi": "RSI:",
+        "macd": "MACD",
+        "macdValue": "MACD:",
+        "signal": "Signal:",
+        "histogram": "Histogram:"
+      },
+      "indicators": {
+        "bollingerBands": "Bollinger Bands",
+        "ma7": "7-Day Moving Average",
+        "ma14": "14-Day Moving Average",
+        "ma30": "30-Day Moving Average",
+        "rsi": "Relative Strength Index",
+        "macd": "Moving Average Convergence Divergence",
+        "volume": "Volume"
+      },
+      "timeRange": {
+        "all": "All",
+        "label": "Time Range"
+      },
+      "granularity": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "label": "Granularity:"
+      },
+      "realtimeStatus": {
+        "live": "Live",
+        "connecting": "Connecting",
+        "reconnecting": "Reconnecting",
+        "disconnected": "Disconnected"
+      },
+      "timeComparison": {
+        "title": "Time Period Comparison",
+        "period1": "Period 1",
+        "period2": "Period 2",
+        "to": "to"
       }
     },
     "quickLinks": {
@@ -2685,6 +2824,9 @@
     "dataSources": "Data Sources",
     "supportedChains": "Supported Chains",
     "reliability": "Reliability",
+    "quickCompare": "Quick Compare Mainstream Oracles",
+    "highDeviation": "High Deviation",
+    "deviation": "Deviation",
     "radar": {
       "responseTime": "Response Time",
       "updateFrequency": "Update Frequency",
@@ -3664,6 +3806,129 @@
       "description": "Pearson correlation coefficient measures the linear correlation between two oracle price series. The coefficient ranges from -1 to 1, where 1 indicates perfect positive correlation, -1 indicates perfect negative correlation, and 0 indicates no linear correlation. High correlation coefficients indicate that oracle price movements are highly consistent and data quality is reliable."
     }
   },
+  "settings": {
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Manage your personal information and avatar",
+      "avatarLabel": "Avatar",
+      "avatarHint": "Supports JPEG, PNG, GIF, WebP formats, max 2MB",
+      "displayNameLabel": "Display Name",
+      "displayNamePlaceholder": "Enter your display name",
+      "emailLabel": "Email Address",
+      "emailNotEditable": "Email address cannot be changed",
+      "saveChanges": "Save Changes",
+      "saveSuccess": "Profile saved successfully",
+      "saveError": "Failed to save, please try again",
+      "invalidImageType": "Please upload a valid image file",
+      "imageSizeExceeded": "Image size cannot exceed 2MB",
+      "uploadError": "Upload failed: ",
+      "avatarUpdateError": "Failed to update avatar",
+      "avatarUpdateSuccess": "Avatar updated successfully",
+      "uploadFailed": "Upload failed, please try again",
+      "passwordManagement": "Password Management",
+      "passwordManagementDesc": "Update your login password",
+      "changePassword": "Change Password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmNewPasswordPlaceholder": "Enter new password again",
+      "updatePassword": "Update Password",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "passwordUpdateSuccess": "Password updated successfully",
+      "passwordUpdateError": "Failed to update password",
+      "cancel": "Cancel"
+    },
+    "notifications": {
+      "title": "Notification Settings",
+      "subtitle": "Manage how you receive notifications",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive important notifications via email",
+      "browserNotifications": "Browser Notifications",
+      "browserNotificationsDesc": "Display real-time notifications in browser",
+      "browserPermissionDenied": "Browser notification permission denied. Please allow notifications in browser settings.",
+      "permissionDeniedHint": "Notification permission denied, please allow in browser settings",
+      "authorize": "Authorize",
+      "alertNotifications": "Alert Notifications",
+      "alertNotificationsDesc": "Configure notification methods for price alerts",
+      "alertTriggerNotification": "Alert Trigger Notification",
+      "alertTriggerNotificationDesc": "Send notification when price alert is triggered",
+      "priceChangeNotification": "Price Change Notification",
+      "priceChangeNotificationDesc": "Auto-notify when price change exceeds threshold",
+      "enablePriceChangeNotification": "Enable Price Change Notification",
+      "enablePriceChangeNotificationDesc": "Notify when price change exceeds set threshold",
+      "changeThreshold": "Change Threshold (%)",
+      "changeThresholdHint": "Send notification when price changes more than this percentage in a short time",
+      "saveSettings": "Save Settings",
+      "saveSuccess": "Notification settings saved"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "subtitle": "Customize default application behavior",
+      "defaultOracle": "Default Oracle",
+      "defaultOracleHint": "Default oracle to display when opening oracle page",
+      "defaultSymbol": "Default Trading Pair",
+      "defaultSymbolHint": "Default trading pair for price queries",
+      "defaultTimeRange": "Default Time Range",
+      "defaultTimeRangeHint": "Default time range for chart display",
+      "language": "Language",
+      "languageHint": "Application interface language",
+      "themeSettings": "Theme Settings",
+      "themeSettingsDesc": "Choose application appearance theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "themeLightDesc": "Use light theme",
+      "themeDarkDesc": "Use dark theme",
+      "themeSystemDesc": "Follow system settings automatically",
+      "saveSettings": "Save Settings",
+      "saveSuccess": "Preferences saved",
+      "timeRange": {
+        "hour1": "1 Hour",
+        "hour6": "6 Hours",
+        "day1": "24 Hours",
+        "day7": "7 Days",
+        "day30": "30 Days"
+      },
+      "languages": {
+        "zhCN": "简体中文",
+        "en": "English"
+      }
+    },
+    "data": {
+      "title": "Data Management",
+      "subtitle": "Export and manage your data",
+      "exportUserData": "Export User Data",
+      "exportUserDataDesc": "Export your profile, favorites, alerts, and snapshots data",
+      "exportPriceHistory": "Export Price History",
+      "exportPriceHistoryDesc": "Export last 10000 price records",
+      "exportSnapshots": "Export Snapshots",
+      "exportSnapshotsDesc": "Export all your saved price snapshots",
+      "clearData": "Clear Data",
+      "clearDataDesc": "Clear locally stored data",
+      "clearDataWarning": "Clearing local data will delete your preferences and cached data, but will not affect server data.",
+      "clearLocalData": "Clear Local Data",
+      "clearLocalDataConfirm": "Are you sure you want to clear all local data? This will clear your preferences and cached data.",
+      "clearLocalDataSuccess": "Local data cleared",
+      "clearLocalDataError": "Failed to clear, please try again",
+      "exportSuccess": "User data exported",
+      "priceHistoryExportSuccess": "Price history exported",
+      "snapshotsExportSuccess": "Snapshots exported",
+      "exportError": "Export failed, please try again",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "Irreversible operations, proceed with caution",
+      "deleteAccountWarning": "Deleting your account will permanently remove all your data, including profile, favorites, alerts, and snapshots. This action cannot be undone.",
+      "deleteAccount": "Delete Account",
+      "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone!",
+      "deleteAccountConfirmHint": "Type DELETE to confirm:",
+      "deleteAccountConfirmPlaceholder": "Type DELETE",
+      "confirmDeleteAccount": "Confirm Delete Account",
+      "deleteAccountError": "Failed to delete account, please contact administrator",
+      "cancel": "Cancel",
+      "export": "Export",
+      "note": "Note"
+    }
+  },
   "priceDistribution": {
     "title": "Price Distribution Box Plot",
     "noData": "No Data Available",
@@ -3694,6 +3959,207 @@
       "iqr": "IQR",
       "outliers": "Outliers",
       "outlierCount": ""
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Welcome back, please enter your login details",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submitting": "Signing in...",
+      "submit": "Sign in",
+      "orSignInWith": "Or sign in with",
+      "noAccount": "Don't have an account?",
+      "registerNow": "Register now"
+    },
+    "register": {
+      "title": "Create a new account",
+      "subtitle": "Fill in the information below to get started",
+      "displayNameLabel": "Display name",
+      "displayNameOptional": "(optional)",
+      "displayNamePlaceholder": "Your display name",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 6 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Enter password again",
+      "termsAgreement": "I have read and agree to the {terms} and {privacy}",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "submitting": "Registering...",
+      "submit": "Register",
+      "hasAccount": "Already have an account?",
+      "loginNow": "Sign in now",
+      "success": {
+        "title": "Registration successful!",
+        "emailSent": "We have sent a verification email to {email}, please click the link in the email to complete verification.",
+        "goToLogin": "Go to login",
+        "useOtherEmail": "Register with another email"
+      },
+      "error": {
+        "emailRequired": "Please enter your email address",
+        "passwordRequired": "Please enter your password",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordMismatch": "The two passwords do not match"
+      }
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "search": "Search",
+    "refresh": "Refresh",
+    "export": "Export",
+    "apply": "Apply",
+    "notice": "Notice"
+  },
+  "error": {
+    "boundary": {
+      "somethingWrong": "Something went wrong",
+      "tryAgain": "Try again",
+      "global": {
+        "title": "Something went wrong",
+        "description": "We're sorry, but something unexpected happened. Please try refreshing the page."
+      },
+      "section": {
+        "title": "Section Error",
+        "description": "This section encountered an error. You can try again or continue with other parts of the page."
+      },
+      "refreshPage": "Refresh page"
+    }
+  },
+  "emptyState": {
+    "search": {
+      "title": "No results found",
+      "description": "Try adjusting your search keywords or filters"
+    },
+    "data": {
+      "title": "No data available",
+      "description": "Data is loading, please try again later"
+    },
+    "error": {
+      "title": "Failed to load",
+      "description": "There was a problem loading the data, please try again later"
+    },
+    "filter": {
+      "title": "No matching data",
+      "description": "Try adjusting your filters to see more data"
+    },
+    "default": {
+      "title": "No content",
+      "description": "There's nothing here yet"
+    }
+  },
+  "alerts": {
+    "page": {
+      "title": "Price Alerts",
+      "subtitle": "Set price alerts to get notified when prices reach your targets",
+      "loginRequired": "Please Login First",
+      "loginRequiredDesc": "Login to use the price alert feature",
+      "goToLogin": "Go to Login",
+      "instructions": {
+        "title": "Instructions",
+        "items": {
+          "1": "Select the trading pair you want to monitor",
+          "2": "Set alert conditions (above/below target price, or change percentage)",
+          "3": "Enter target price or percentage",
+          "4": "You will be notified when the alert triggers"
+        }
+      }
+    },
+    "create": {
+      "title": "Create Price Alert",
+      "nameLabel": "Alert Name",
+      "nameOptional": "(Optional)",
+      "namePlaceholder": "Give your alert a name",
+      "symbolLabel": "Trading Pair",
+      "providerLabel": "Oracle",
+      "providerOptional": "(Optional)",
+      "allProviders": "All Oracles",
+      "chainLabel": "Chain",
+      "chainOptional": "(Optional)",
+      "allChains": "All Chains",
+      "selectProviderFirst": "Please select an oracle first",
+      "conditionLabel": "Alert Condition",
+      "targetValueLabel": "Target Value",
+      "enableAlert": "Enable Alert",
+      "submitting": "Creating...",
+      "submit": "Create Alert"
+    },
+    "condition": {
+      "above": "Above",
+      "aboveDesc": "Trigger when price is above target",
+      "below": "Below",
+      "belowDesc": "Trigger when price is below target",
+      "changePercent": "Change Percentage",
+      "changePercentDesc": "Trigger when price change exceeds target percentage"
+    },
+    "placeholder": {
+      "targetPrice": "Enter target price",
+      "percentage": "Enter percentage (e.g., 5 for 5%)",
+      "targetValue": "Enter target value"
+    },
+    "error": {
+      "invalidTargetValue": "Please enter a valid target value"
+    },
+    "list": {
+      "title": "My Alerts",
+      "empty": "No alerts yet",
+      "emptyHint": "Create your first price alert",
+      "statusActive": "Active",
+      "statusTriggered": "Triggered",
+      "statusDisabled": "Disabled",
+      "lastTriggered": "Last triggered",
+      "enable": "Enable",
+      "disable": "Disable",
+      "confirm": "Confirm"
+    },
+    "history": {
+      "title": "Alert History",
+      "empty": "No alert history",
+      "status": "Status:",
+      "all": "All",
+      "unacknowledged": "Unacknowledged",
+      "acknowledged": "Acknowledged",
+      "sort": "Sort:",
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "unacknowledgedCount": "{count} Unacknowledged",
+      "pending": "Pending",
+      "triggerPrice": "Trigger Price:",
+      "time": "Time:",
+      "acknowledgeTime": "Acknowledged Time:",
+      "acknowledge": "Acknowledge",
+      "acknowledging": "Acknowledging...",
+      "totalRecords": "Total {total} records, showing {shown}"
+    }
+  },
+  "favorites": {
+    "page": {
+      "title": "My Favorites",
+      "subtitle": "Manage your saved configurations and quick access entries"
+    },
+    "card": {
+      "symbol": "Trading Pair:",
+      "chain": "Chain:",
+      "type": {
+        "oracleConfig": "Oracle Config",
+        "symbol": "Trading Pair",
+        "chainConfig": "Chain Config"
+      },
+      "deleteConfirm": {
+        "title": "Confirm Delete",
+        "message": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+      }
     }
   }
 }

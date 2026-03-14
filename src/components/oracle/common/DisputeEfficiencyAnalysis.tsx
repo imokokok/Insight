@@ -5,6 +5,7 @@ import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeEfficiencyStats } from '@/lib/oracles/uma';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('DisputeEfficiencyAnalysis');
 
@@ -109,8 +110,8 @@ export function DisputeEfficiencyAnalysis() {
             <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="successRateGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                  <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity="0" />
                 </linearGradient>
               </defs>
 
@@ -137,7 +138,7 @@ export function DisputeEfficiencyAnalysis() {
                       })
                       .join(' ')}`}
                 fill="none"
-                stroke="#3B82F6"
+                stroke={chartColors.recharts.primary}
                 strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
               />
@@ -151,7 +152,7 @@ export function DisputeEfficiencyAnalysis() {
                     cx={`${x}%`}
                     cy={`${y}%`}
                     r="4"
-                    fill="#3B82F6"
+                    fill={chartColors.recharts.primary}
                     className="cursor-pointer hover:r-6 transition-all"
                   />
                 );

@@ -1,13 +1,13 @@
 import { OracleMarketData, AssetData, TVSTrendData, ChainSupportData } from './types';
-import { oracleColors } from '@/lib/constants';
+import { chartColors } from '@/lib/config/colors';
 
 export const ORACLE_COLORS = {
-  chainlink: oracleColors['chainlink'] || '#375BD2',
-  pyth: oracleColors['pyth'] || '#E6B800',
-  band: oracleColors['band-protocol'] || '#516BEB',
-  api3: oracleColors['api3'] || '#7CE3CB',
-  uma: oracleColors['uma'] || '#FF4A8D',
-  others: '#9CA3AF',
+  chainlink: chartColors.oracle.chainlink,
+  pyth: chartColors.oracle.pyth,
+  band: chartColors.oracle['band-protocol'],
+  api3: chartColors.oracle.api3,
+  uma: chartColors.oracle.uma,
+  others: chartColors.recharts.tick,
 } as const;
 
 // 模拟市场数据 - 实际项目中应从API获取

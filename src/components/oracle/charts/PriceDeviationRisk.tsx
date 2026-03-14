@@ -12,6 +12,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface DeviationDataPoint {
   timestamp: string;
@@ -128,16 +129,16 @@ export function PriceDeviationRisk() {
           <div style={{ height: 280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={deviationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                 <XAxis
                   dataKey="timestamp"
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                   minTickGap={40}
                 />
                 <YAxis
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                   tickFormatter={(value) => `${value.toFixed(1)}%`}
                   width={50}
                 />
@@ -150,16 +151,16 @@ export function PriceDeviationRisk() {
                     borderRadius: '8px',
                   }}
                 />
-                <ReferenceLine y={DEVIATION_THRESHOLD} stroke="#f59e0b" strokeDasharray="5 5" />
-                <ReferenceLine y={-DEVIATION_THRESHOLD} stroke="#f59e0b" strokeDasharray="5 5" />
-                <ReferenceLine y={0} stroke="#9ca3af" strokeWidth={1} />
+                <ReferenceLine y={DEVIATION_THRESHOLD} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" />
+                <ReferenceLine y={-DEVIATION_THRESHOLD} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" />
+                <ReferenceLine y={0} stroke={chartColors.recharts.axis} strokeWidth={1} />
                 <Line
                   type="monotone"
                   dataKey="deviation"
-                  stroke="#8b5cf6"
+                  stroke={chartColors.recharts.purple}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, fill: '#8b5cf6' }}
+                  activeDot={{ r: 4, fill: chartColors.recharts.purple }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -174,7 +175,7 @@ export function PriceDeviationRisk() {
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-0.5 bg-orange-500 border-dashed"
-              style={{ borderTop: '2px dashed #f59e0b' }}
+              style={{ borderTop: `2px dashed ${semanticColors.warning.DEFAULT}` }}
             />
             <span className="text-xs text-gray-600">警告阈值 (±{DEVIATION_THRESHOLD}%)</span>
           </div>

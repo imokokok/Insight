@@ -50,12 +50,12 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 interface BollingerResult {
@@ -166,10 +166,10 @@ function getPositionDescription(position: number): string {
 }
 
 function getPositionColor(position: number): string {
-  if (position > 1) return '#EF4444';
-  if (position > 0.5) return '#F59E0B';
-  if (position > -0.5) return '#6B7280';
-  if (position > -1) return '#10B981';
+  if (position > 1) return chartColors.semantic.danger;
+  if (position > 0.5) return chartColors.semantic.warning;
+  if (position > -0.5) return chartColors.recharts.tick;
+  if (position > -1) return chartColors.semantic.success;
   return '#059669';
 }
 
@@ -428,7 +428,7 @@ export function BollingerBands({
                     type="monotone"
                     dataKey="upper"
                     stroke="none"
-                    fill="#10B981"
+                    fill={chartColors.semantic.success}
                     fillOpacity={0.1}
                     name="上轨"
                   />
@@ -438,7 +438,7 @@ export function BollingerBands({
                     type="monotone"
                     dataKey="lower"
                     stroke="none"
-                    fill="#ffffff"
+                    fill={chartColors.recharts.white}
                     fillOpacity={1}
                     name="下轨"
                   />
@@ -447,7 +447,7 @@ export function BollingerBands({
                   <Line
                     type="monotone"
                     dataKey="upper"
-                    stroke="#10B981"
+                    stroke={chartColors.semantic.success}
                     strokeWidth={1.5}
                     dot={false}
                     name={`上轨 (SMA${period}+${multiplier}σ)`}
@@ -457,7 +457,7 @@ export function BollingerBands({
                   <Line
                     type="monotone"
                     dataKey="middle"
-                    stroke="#6B7280"
+                    stroke={chartColors.recharts.tick}
                     strokeWidth={1.5}
                     strokeDasharray="5 5"
                     dot={false}
@@ -468,7 +468,7 @@ export function BollingerBands({
                   <Line
                     type="monotone"
                     dataKey="lower"
-                    stroke="#EF4444"
+                    stroke={chartColors.semantic.danger}
                     strokeWidth={1.5}
                     dot={false}
                     name={`下轨 (SMA${period}-${multiplier}σ)`}
@@ -488,8 +488,8 @@ export function BollingerBands({
                             cx={cx}
                             cy={cy}
                             r={4}
-                            fill="#10B981"
-                            stroke="#fff"
+                            fill={chartColors.semantic.success}
+                            stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
                         );
@@ -500,8 +500,8 @@ export function BollingerBands({
                             cx={cx}
                             cy={cy}
                             r={4}
-                            fill="#EF4444"
-                            stroke="#fff"
+                            fill={chartColors.semantic.danger}
+                            stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
                         );
@@ -537,8 +537,9 @@ export function BollingerBands({
                   <Area
                     type="monotone"
                     dataKey="bandwidthPercent"
-                    stroke="#8B5CF6"
-                    fill="#EDE9FE"
+                    stroke={chartColors.recharts.purple}
+                    fill={chartColors.recharts.purple}
+                    fillOpacity={0.2}
                     name="带宽 %"
                   />
                 </ComposedChart>
@@ -569,13 +570,13 @@ export function BollingerBands({
                   <Line
                     type="monotone"
                     dataKey="position"
-                    stroke="#3B82F6"
+                    stroke={chartColors.recharts.primary}
                     strokeWidth={2}
                     dot={false}
                     name="位置系数"
                   />
-                  <ReferenceLine y={1} stroke="#10B981" strokeDasharray="3 3" label="上轨边界" />
-                  <ReferenceLine y={-1} stroke="#EF4444" strokeDasharray="3 3" label="下轨边界" />
+                  <ReferenceLine y={1} stroke={chartColors.semantic.success} strokeDasharray="3 3" label="上轨边界" />
+                  <ReferenceLine y={-1} stroke={chartColors.semantic.danger} strokeDasharray="3 3" label="下轨边界" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

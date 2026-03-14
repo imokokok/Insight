@@ -48,12 +48,12 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 interface ATRResult {
@@ -121,11 +121,11 @@ function getVolatilityLevel(atrPercent: number): 'low' | 'medium' | 'high' | 'ex
 function getVolatilityColor(level: 'low' | 'medium' | 'high' | 'extreme'): string {
   switch (level) {
     case 'low':
-      return '#10B981';
+      return chartColors.semantic.success;
     case 'medium':
-      return '#F59E0B';
+      return chartColors.semantic.warning;
     case 'high':
-      return '#EF4444';
+      return chartColors.semantic.danger;
     case 'extreme':
       return '#991B1B';
   }
@@ -368,15 +368,15 @@ export function ATRIndicator({
                         type="monotone"
                         dataKey="upperChannel"
                         stroke="none"
-                        fill="#E0E7FF"
-                        fillOpacity={0.3}
+                        fill={chartColors.recharts.primary}
+                        fillOpacity={0.1}
                         name="上轨 (Price + 2×ATR)"
                       />
                       <Area
                         type="monotone"
                         dataKey="lowerChannel"
                         stroke="none"
-                        fill="#ffffff"
+                        fill={chartColors.recharts.white}
                         fillOpacity={1}
                         name="下轨 (Price - 2×ATR)"
                       />
@@ -416,7 +416,7 @@ export function ATRIndicator({
                     tickFormatter={(value) => `$${value.toFixed(2)}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="atr" stroke="#3B82F6" fill="#DBEAFE" name="ATR" />
+                  <Area type="monotone" dataKey="atr" stroke={chartColors.recharts.primary} fill={chartColors.recharts.primary} fillOpacity={0.2} name="ATR" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -441,7 +441,7 @@ export function ATRIndicator({
                     tickFormatter={(value) => `$${value.toFixed(2)}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="tr" fill="#F59E0B" name="真实波幅" />
+                  <Bar dataKey="tr" fill={chartColors.recharts.warning} name="真实波幅" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

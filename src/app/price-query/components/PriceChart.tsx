@@ -27,6 +27,7 @@ import {
   calculateBollingerBands,
   calculateConfidenceIntervals,
 } from '../utils/technicalIndicators';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('price-query-PriceChart');
 

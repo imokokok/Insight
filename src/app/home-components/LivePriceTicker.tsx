@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/i18n/provider';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
+import { semanticColors } from '@/lib/config/colors';
 
 interface TradingPair {
   symbol: string;
@@ -71,7 +72,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
   const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
   const isPositive = priceData.change24h >= 0;
-  const color = isPositive ? '#10b981' : '#ef4444';
+  const color = isPositive ? semanticColors.success.main : semanticColors.danger.main;
 
   return (
     <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50 hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 min-w-[240px] sm:min-w-[280px]">

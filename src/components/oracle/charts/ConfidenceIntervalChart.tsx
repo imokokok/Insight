@@ -16,6 +16,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('ConfidenceIntervalChart');
 
@@ -101,9 +102,9 @@ interface CustomDotProps {
 function CustomDot({ cx, cy, payload }: CustomDotProps) {
   if (!payload || cx === undefined || cy === undefined) return null;
   if (payload.isAboveThreshold) {
-    return <Dot cx={cx} cy={cy} r={4} fill="#EF4444" stroke="#FFF" strokeWidth={2} />;
+    return <Dot cx={cx} cy={cy} r={4} fill={semanticColors.danger.DEFAULT} stroke="#FFF" strokeWidth={2} />;
   }
-  return <Dot cx={cx} cy={cy} r={3} fill="#EC4899" stroke="#FFF" strokeWidth={2} />;
+  return <Dot cx={cx} cy={cy} r={3} fill={chartColors.recharts.pink} stroke="#FFF" strokeWidth={2} />;
 }
 
 interface CustomTooltipProps {
@@ -350,16 +351,16 @@ export function ConfidenceIntervalChart({
         <div style={{ height: 280 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="timestamp"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={timeRange === '24H' ? 20 : 40}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${(value * 100).toFixed(1)}%`}
                 domain={[0, 'auto']}
                 width={50}
@@ -367,22 +368,22 @@ export function ConfidenceIntervalChart({
               <Tooltip content={<CustomTooltip threshold={threshold} />} />
               <ReferenceLine
                 y={threshold}
-                stroke="#EF4444"
+                stroke={semanticColors.danger.DEFAULT}
                 strokeDasharray="5 5"
                 label={{
                   value: '阈值',
                   position: 'right',
-                  fill: '#EF4444',
+                  fill: semanticColors.danger.DEFAULT,
                   fontSize: 11,
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="width"
-                stroke="#EC4899"
+                stroke={chartColors.recharts.pink}
                 strokeWidth={2}
                 dot={<CustomDot />}
-                activeDot={{ r: 5, fill: '#EC4899', stroke: '#FFF', strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: chartColors.recharts.pink, stroke: '#FFF', strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

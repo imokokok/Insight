@@ -6,6 +6,7 @@
 
 import { createLogger } from '@/lib/utils/logger';
 import { OracleMarketData } from '@/app/market-overview/types';
+import { semanticColors, chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('riskMetrics');
 
@@ -538,10 +539,10 @@ export function calculateRiskMetrics(
  */
 export function getRiskLevelColor(level: RiskLevel): string {
   const colors: Record<RiskLevel, string> = {
-    low: '#10B981', // 绿色
-    medium: '#F59E0B', // 黄色
-    high: '#EF4444', // 红色
-    critical: '#7C3AED', // 紫色
+    low: semanticColors.success.DEFAULT,
+    medium: semanticColors.warning.DEFAULT,
+    high: semanticColors.danger.DEFAULT,
+    critical: chartColors.oracle['pyth'],
   };
   return colors[level];
 }

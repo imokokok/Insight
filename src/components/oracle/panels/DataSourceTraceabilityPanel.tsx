@@ -4,16 +4,17 @@ import { useState } from 'react';
 import { DataSourceInfo } from '@/lib/oracles/api3';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 interface DataSourceTraceabilityPanelProps {
   data: DataSourceInfo[];
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#10B981';
-  if (score >= 70) return '#3B82F6';
-  if (score >= 50) return '#F59E0B';
-  return '#EF4444';
+  if (score >= 90) return chartColors.semantic.success;
+  if (score >= 70) return chartColors.recharts.primary;
+  if (score >= 50) return chartColors.semantic.warning;
+  return chartColors.semantic.danger;
 }
 
 function getScoreColorClass(score: number): string {
@@ -54,7 +55,7 @@ function CircularProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#E5E7EB"
+          stroke={chartColors.recharts.grid}
           strokeWidth={strokeWidth}
           fill="none"
         />

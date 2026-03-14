@@ -17,6 +17,7 @@ import {
 import { Publisher } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 interface PublisherContributionPanelProps {
   publishers: Publisher[];
@@ -34,16 +35,16 @@ interface ContributionData {
 }
 
 const COLORS = [
-  '#6366f1',
-  '#8b5cf6',
+  chartColors.recharts.indigo,
+  chartColors.recharts.purple,
   '#a855f7',
   '#d946ef',
   '#ec4899',
   '#f43f5e',
-  '#f97316',
+  chartColors.recharts.warning,
   '#eab308',
-  '#22c55e',
-  '#14b8a6',
+  chartColors.semantic.success,
+  chartColors.recharts.cyan,
 ];
 
 function calculateContributionWeight(publisher: Publisher): number {
@@ -211,7 +212,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} layout="vertical" margin={{ left: 60, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                 <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                 <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 12 }} />
                 <Tooltip
@@ -219,7 +220,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     `${Number(value).toFixed(2)}%`,
                     t('publisherContribution.contributionWeight'),
                   ]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{ borderRadius: '8px', border: `1px solid ${chartColors.recharts.grid}` }}
                 />
                 <Bar dataKey="weight" radius={[0, 4, 4, 0]}>
                   {barData.map((entry, index) => (

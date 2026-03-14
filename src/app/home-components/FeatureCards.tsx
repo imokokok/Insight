@@ -23,22 +23,17 @@ import {
   LineChart as ReLineChart,
   Line,
 } from 'recharts';
+import { chartColors } from '@/lib/config/colors';
 
 interface FeatureCard {
   id: string;
-  title: string;
-  titleZh: string;
-  description: string;
-  descriptionZh: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ElementType;
   href: string;
   color: string;
-  stats: {
-    value: string;
-    valueZh: string;
-    label: string;
-    labelZh: string;
-  };
+  statsValue: string;
+  statsKey: string;
   chartType: 'area' | 'bar' | 'line';
   chartData: { value: number; label: string }[];
 }
@@ -54,37 +49,25 @@ const generateChartData = (baseValue: number, variance: number, count: number = 
 const features: FeatureCard[] = [
   {
     id: 'price-query',
-    title: 'Price Query',
-    titleZh: '价格查询',
-    description: 'Real-time price data from multiple oracles',
-    descriptionZh: '多预言机实时价格数据查询',
+    titleKey: 'home.features.priceQuery.title',
+    descriptionKey: 'home.features.priceQuery.description',
     icon: Search,
     href: '/price-query',
     color: 'blue',
-    stats: {
-      value: '1,000+',
-      valueZh: '1,000+',
-      label: 'queries',
-      labelZh: '次查询',
-    },
+    statsValue: '1,000+',
+    statsKey: 'home.features.priceQuery.stats',
     chartType: 'area',
     chartData: generateChartData(85, 15),
   },
   {
     id: 'cross-oracle',
-    title: 'Cross-Oracle Compare',
-    titleZh: '跨预言机比较',
-    description: 'Compare prices across different oracle providers',
-    descriptionZh: '比较不同预言机提供商的价格',
+    titleKey: 'home.features.crossOracle.title',
+    descriptionKey: 'home.features.crossOracle.description',
     icon: GitCompare,
     href: '/cross-oracle',
     color: 'indigo',
-    stats: {
-      value: '5+',
-      valueZh: '5+',
-      label: 'oracles',
-      labelZh: '个预言机',
-    },
+    statsValue: '5+',
+    statsKey: 'home.features.crossOracle.stats',
     chartType: 'bar',
     chartData: [
       { value: 92, label: 'CL' },
@@ -96,43 +79,31 @@ const features: FeatureCard[] = [
   },
   {
     id: 'cross-chain',
-    title: 'Cross-Chain Compare',
-    titleZh: '跨链比较',
-    description: 'Analyze price differences across chains',
-    descriptionZh: '分析不同链上的价格差异',
+    titleKey: 'home.features.crossChain.title',
+    descriptionKey: 'home.features.crossChain.description',
     icon: Globe,
     href: '/cross-chain',
     color: 'violet',
-    stats: {
-      value: '10+',
-      valueZh: '10+',
-      label: 'chains',
-      labelZh: '条链',
-    },
+    statsValue: '10+',
+    statsKey: 'home.features.crossChain.stats',
     chartType: 'line',
     chartData: generateChartData(75, 20),
   },
   {
     id: 'history',
-    title: 'Historical Analysis',
-    titleZh: '历史分析',
-    description: 'View historical price trends and charts',
-    descriptionZh: '查看历史价格趋势和图表',
+    titleKey: 'home.features.history.title',
+    descriptionKey: 'home.features.history.description',
     icon: History,
     href: '/history',
     color: 'emerald',
-    stats: {
-      value: '30D',
-      valueZh: '30天',
-      label: 'data history',
-      labelZh: '数据历史',
-    },
+    statsValue: '30D',
+    statsKey: 'home.features.history.stats',
     chartType: 'area',
     chartData: generateChartData(65, 25),
   },
 ];
 
-const colorMap: Record<
+const COLOR_THEMES: Record<
   string,
   {
     bg: string;
@@ -154,7 +125,7 @@ const colorMap: Record<
     borderHover: 'border-blue-300',
     text: 'text-blue-600',
     gradient: 'from-blue-500 to-blue-600',
-    chartColor: '#3b82f6',
+    chartColor: chartColors.chart.blueLight,
     chartGradient: 'url(#blueGradient)',
     iconBg: 'bg-blue-100',
     iconRing: 'ring-blue-200',
@@ -166,7 +137,7 @@ const colorMap: Record<
     borderHover: 'border-indigo-300',
     text: 'text-indigo-600',
     gradient: 'from-indigo-500 to-indigo-600',
-    chartColor: '#6366f1',
+    chartColor: chartColors.chart.indigoLight,
     chartGradient: 'url(#indigoGradient)',
     iconBg: 'bg-indigo-100',
     iconRing: 'ring-indigo-200',
@@ -178,7 +149,7 @@ const colorMap: Record<
     borderHover: 'border-violet-300',
     text: 'text-violet-600',
     gradient: 'from-violet-500 to-violet-600',
-    chartColor: '#8b5cf6',
+    chartColor: chartColors.chart.violetLight,
     chartGradient: 'url(#violetGradient)',
     iconBg: 'bg-violet-100',
     iconRing: 'ring-violet-200',
@@ -190,7 +161,7 @@ const colorMap: Record<
     borderHover: 'border-emerald-300',
     text: 'text-emerald-600',
     gradient: 'from-emerald-500 to-emerald-600',
-    chartColor: '#10b981',
+    chartColor: chartColors.chart.emeraldLight,
     chartGradient: 'url(#emeraldGradient)',
     iconBg: 'bg-emerald-100',
     iconRing: 'ring-emerald-200',
@@ -273,8 +244,7 @@ function MiniChart({
 }
 
 export default function FeatureCards() {
-  const { locale } = useI18n();
-  const isZh = locale === 'zh-CN';
+  const { t } = useI18n();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   return (
@@ -285,16 +255,14 @@ export default function FeatureCards() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm mb-4">
             <Activity className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-gray-600">
-              {isZh ? '核心功能' : 'Core Features'}
+              {t('home.features.sectionBadge')}
             </span>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-            {isZh ? '功能入口' : 'Features'}
+            {t('home.features.sectionTitle')}
           </h2>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-            {isZh
-              ? '探索平台核心功能，获取全面的预言机数据分析'
-              : 'Explore core platform features for comprehensive oracle data analysis'}
+            {t('home.features.sectionDescription')}
           </p>
         </div>
 
@@ -302,7 +270,7 @@ export default function FeatureCards() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
           {features.map((feature) => {
             const Icon = feature.icon;
-            const colors = colorMap[feature.color];
+            const colors = COLOR_THEMES[feature.color];
             const isHovered = hoveredCard === feature.id;
 
             return (
@@ -362,10 +330,10 @@ export default function FeatureCards() {
                     {/* Title and Description */}
                     <div className="flex-1 min-w-0 pt-1">
                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 group-hover:text-gray-800 transition-colors">
-                        {isZh ? feature.titleZh : feature.title}
+                        {t(feature.titleKey)}
                       </h3>
                       <p className="text-sm text-gray-500 line-clamp-2">
-                        {isZh ? feature.descriptionZh : feature.description}
+                        {t(feature.descriptionKey)}
                       </p>
                     </div>
 
@@ -407,7 +375,7 @@ export default function FeatureCards() {
                           <LineChart className={`w-3.5 h-3.5 ${colors.text}`} />
                         )}
                         <span className={`text-xs font-medium ${colors.text}`}>
-                          {isZh ? '实时数据' : 'Live Data'}
+                          {t('home.features.liveData')}
                         </span>
                       </div>
                     </div>
@@ -430,15 +398,12 @@ export default function FeatureCards() {
                         `}
                       >
                         <span className={`text-sm font-bold ${colors.text}`}>
-                          {isZh ? feature.stats.valueZh : feature.stats.value}
+                          {feature.statsValue}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {isZh ? feature.stats.labelZh : feature.stats.label}
-                      </span>
+                      <span className="text-xs text-gray-500">{t(feature.statsKey)}</span>
                     </div>
 
-                    {/* Learn more link */}
                     <span
                       className={`
                         text-xs font-medium ${colors.text}
@@ -446,7 +411,7 @@ export default function FeatureCards() {
                         ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}
                       `}
                     >
-                      {isZh ? '了解更多 →' : 'Learn more →'}
+                      {t('home.features.learnMore')}
                     </span>
                   </div>
                 </div>
@@ -459,20 +424,20 @@ export default function FeatureCards() {
         <svg width="0" height="0" className="absolute">
           <defs>
             <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
+              <stop offset="5%" stopColor={chartColors.chart.blueLight} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartColors.chart.blueLight} stopOpacity={0.05} />
             </linearGradient>
             <linearGradient id="indigoGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0.05} />
+              <stop offset="5%" stopColor={chartColors.chart.indigoLight} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartColors.chart.indigoLight} stopOpacity={0.05} />
             </linearGradient>
             <linearGradient id="violetGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.05} />
+              <stop offset="5%" stopColor={chartColors.chart.violetLight} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartColors.chart.violetLight} stopOpacity={0.05} />
             </linearGradient>
             <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+              <stop offset="5%" stopColor={chartColors.chart.emeraldLight} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartColors.chart.emeraldLight} stopOpacity={0.05} />
             </linearGradient>
           </defs>
         </svg>

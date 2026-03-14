@@ -14,6 +14,7 @@ import {
   Scatter,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
+import { chartColors } from '@/lib/config/colors';
 
 interface MACDDataPoint {
   time: string;
@@ -214,18 +215,18 @@ export function MACDIndicator({
       <div style={{ height: `${height}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={macdData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} opacity={0.5} />
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               minTickGap={30}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
             />
             <Tooltip
               content={({ active, payload, label }) => {
@@ -264,10 +265,10 @@ export function MACDIndicator({
                 );
               }}
             />
-            <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="3 3" />
+            <ReferenceLine y={0} stroke={chartColors.macd.zeroLine} strokeDasharray="3 3" />
             <Bar
               dataKey="macd"
-              fill="#9ca3af"
+              fill={chartColors.recharts.tick}
               opacity={0.6}
               shape={(props: {
                 x?: number;
@@ -284,7 +285,7 @@ export function MACDIndicator({
                     y={isPositive ? y : y + height}
                     width={width}
                     height={Math.abs(height)}
-                    fill={isPositive ? '#ef4444' : '#22c55e'}
+                    fill={isPositive ? chartColors.macd.histogram.positive : chartColors.macd.histogram.negative}
                     opacity={0.6}
                   />
                 );
@@ -293,25 +294,25 @@ export function MACDIndicator({
             <Line
               type="monotone"
               dataKey="dif"
-              stroke="#3b82f6"
+              stroke={chartColors.macd.line}
               strokeWidth={1.5}
               dot={false}
-              activeDot={{ r: 3, fill: '#3b82f6' }}
+              activeDot={{ r: 3, fill: chartColors.macd.line }}
             />
             <Line
               type="monotone"
               dataKey="dea"
-              stroke="#f97316"
+              stroke={chartColors.macd.signal}
               strokeWidth={1.5}
               dot={false}
-              activeDot={{ r: 3, fill: '#f97316' }}
+              activeDot={{ r: 3, fill: chartColors.macd.signal }}
             />
             {/* 金叉/死叉信号标记 */}
             {showSignals && (
               <>
                 <Scatter
                   dataKey="signalY"
-                  fill="#ef4444"
+                  fill={chartColors.semantic.danger}
                   shape={(props: { cx?: number; cy?: number; payload?: MACDDataPoint }) => {
                     const { cx = 0, cy = 0, payload } = props;
                     if (payload?.signalType === 'golden') {
@@ -321,11 +322,11 @@ export function MACDIndicator({
                             cx={cx}
                             cy={cy}
                             r={6}
-                            fill="#ef4444"
-                            stroke="#fff"
+                            fill={chartColors.semantic.danger}
+                            stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
-                          <text x={cx} y={cy - 10} textAnchor="middle" fill="#ef4444" fontSize={10}>
+                          <text x={cx} y={cy - 10} textAnchor="middle" fill={chartColors.semantic.danger} fontSize={10}>
                             金叉
                           </text>
                         </g>
@@ -336,7 +337,7 @@ export function MACDIndicator({
                 />
                 <Scatter
                   dataKey="signalY"
-                  fill="#22c55e"
+                  fill={chartColors.semantic.success}
                   shape={(props: { cx?: number; cy?: number; payload?: MACDDataPoint }) => {
                     const { cx = 0, cy = 0, payload } = props;
                     if (payload?.signalType === 'death') {
@@ -346,11 +347,11 @@ export function MACDIndicator({
                             cx={cx}
                             cy={cy}
                             r={6}
-                            fill="#22c55e"
-                            stroke="#fff"
+                            fill={chartColors.semantic.success}
+                            stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
-                          <text x={cx} y={cy - 10} textAnchor="middle" fill="#22c55e" fontSize={10}>
+                          <text x={cx} y={cy - 10} textAnchor="middle" fill={chartColors.semantic.success} fontSize={10}>
                             死叉
                           </text>
                         </g>

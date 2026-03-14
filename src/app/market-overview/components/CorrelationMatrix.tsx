@@ -12,6 +12,7 @@ import {
   Minus,
   ChevronDown,
 } from 'lucide-react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface CorrelationMatrixProps {
   data: CorrelationData;
@@ -21,13 +22,13 @@ interface CorrelationMatrixProps {
 }
 
 const CORRELATION_COLORS = {
-  strongPositive: '#10B981', // 0.7 - 1.0
-  moderatePositive: '#34D399', // 0.4 - 0.7
-  weakPositive: '#6EE7B7', // 0.1 - 0.4
-  neutral: '#9CA3AF', // -0.1 - 0.1
-  weakNegative: '#F87171', // -0.4 - -0.1
-  moderateNegative: '#EF4444', // -0.7 - -0.4
-  strongNegative: '#DC2626', // -1.0 - -0.7
+  strongPositive: semanticColors.success.main,
+  moderatePositive: semanticColors.success.light,
+  weakPositive: semanticColors.success.lighter,
+  neutral: chartColors.recharts.neutral,
+  weakNegative: semanticColors.danger.light,
+  moderateNegative: semanticColors.danger.main,
+  strongNegative: semanticColors.danger.dark,
 };
 
 function getCorrelationColor(value: number): string {

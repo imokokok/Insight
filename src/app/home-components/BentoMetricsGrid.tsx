@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface ChartDataPoint {
   time: string;
@@ -170,8 +171,8 @@ const colorMap: Record<
     border: 'border-blue-200/60',
     text: 'text-blue-700',
     gradient: 'from-blue-500/10 to-blue-600/5',
-    chart: '#2563eb',
-    chartFill: '#3b82f6',
+    chart: chartColors.chart.blue,
+    chartFill: chartColors.chart.blueLight,
     lightBg: 'bg-blue-500/5',
   },
   indigo: {
@@ -179,8 +180,8 @@ const colorMap: Record<
     border: 'border-indigo-200/60',
     text: 'text-indigo-700',
     gradient: 'from-indigo-500/10 to-indigo-600/5',
-    chart: '#4f46e5',
-    chartFill: '#6366f1',
+    chart: chartColors.chart.indigo,
+    chartFill: chartColors.chart.indigoLight,
     lightBg: 'bg-indigo-500/5',
   },
   violet: {
@@ -188,8 +189,8 @@ const colorMap: Record<
     border: 'border-violet-200/60',
     text: 'text-violet-700',
     gradient: 'from-violet-500/10 to-violet-600/5',
-    chart: '#7c3aed',
-    chartFill: '#8b5cf6',
+    chart: chartColors.chart.violet,
+    chartFill: chartColors.chart.violetLight,
     lightBg: 'bg-violet-500/5',
   },
   amber: {
@@ -197,8 +198,8 @@ const colorMap: Record<
     border: 'border-amber-200/60',
     text: 'text-amber-700',
     gradient: 'from-amber-500/10 to-amber-600/5',
-    chart: '#d97706',
-    chartFill: '#f59e0b',
+    chart: chartColors.chart.amber,
+    chartFill: chartColors.chart.amberLight,
     lightBg: 'bg-amber-500/5',
   },
   emerald: {
@@ -206,8 +207,8 @@ const colorMap: Record<
     border: 'border-emerald-200/60',
     text: 'text-emerald-700',
     gradient: 'from-emerald-500/10 to-emerald-600/5',
-    chart: '#059669',
-    chartFill: '#10b981',
+    chart: chartColors.chart.emerald,
+    chartFill: chartColors.chart.emeraldLight,
     lightBg: 'bg-emerald-500/5',
   },
   cyan: {
@@ -215,8 +216,8 @@ const colorMap: Record<
     border: 'border-cyan-200/60',
     text: 'text-cyan-700',
     gradient: 'from-cyan-500/10 to-cyan-600/5',
-    chart: '#0891b2',
-    chartFill: '#06b6d4',
+    chart: chartColors.chart.cyan,
+    chartFill: chartColors.chart.cyanLight,
     lightBg: 'bg-cyan-500/5',
   },
 };

@@ -106,6 +106,21 @@ export const financeColors = {
 } as const;
 
 // ============================================
+// 区块链品牌颜色
+// ============================================
+
+export const chainColors = {
+  cosmosHub: '#2E3359',
+  osmosis: '#9945FF',
+  ethereum: '#627EEA',
+  polygon: '#8247E5',
+  avalanche: '#E84142',
+  fantom: '#1969FF',
+  cronos: '#002D74',
+  juno: '#5B6EE1',
+} as const;
+
+// ============================================
 // 渐变定义
 // ============================================
 
@@ -124,20 +139,38 @@ export const gradients = {
 export const chartColors = {
   // 预言机品牌色 - 优化对比度和可区分性
   oracle: {
-    chainlink: '#2563EB', // 深蓝 - Chainlink品牌色
-    'band-protocol': '#059669', // 深绿 - Band Protocol
-    uma: '#D97706', // 深橙 - UMA
-    'pyth': '#7C3AED', // 深紫 - Pyth Network
-    api3: '#DB2777', // 深粉 - API3
+    chainlink: '#2563EB',
+    'band-protocol': '#059669',
+    uma: '#D97706',
+    'pyth': '#7C3AED',
+    api3: '#DB2777',
+    redstone: '#FF6B6B',
+    switchboard: '#4ECDC4',
+    dia: '#95E1D3',
+    flux: '#F38181',
+    tellor: '#AA96DA',
   } as const,
 
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
   oracleAccessible: {
-    chainlink: { color: '#1e40af', pattern: 'solid' }, // 深蓝
-    'band-protocol': { color: '#065f46', pattern: 'dashed' }, // 深绿
-    uma: { color: '#92400e', pattern: 'dotted' }, // 棕色
-    'pyth': { color: '#5b21b6', pattern: 'dashDot' }, // 深紫
-    api3: { color: '#9d174d', pattern: 'longDash' }, // 深粉
+    chainlink: { color: '#1e40af', pattern: 'solid' },
+    'band-protocol': { color: '#065f46', pattern: 'dashed' },
+    uma: { color: '#92400e', pattern: 'dotted' },
+    'pyth': { color: '#5b21b6', pattern: 'dashDot' },
+    api3: { color: '#9d174d', pattern: 'longDash' },
+    redstone: { color: '#dc2626', pattern: 'solid' },
+    switchboard: { color: '#0d9488', pattern: 'dashed' },
+    dia: { color: '#059669', pattern: 'dotted' },
+    flux: { color: '#ea580c', pattern: 'dashDot' },
+    tellor: { color: '#7c3aed', pattern: 'longDash' },
+  } as const,
+
+  // UMA 请求类型颜色
+  umaRequestType: {
+    price: '#3b82f6',
+    state: '#10b981',
+    liquidation: '#f59e0b',
+    other: '#64748b',
   } as const,
 
   // 地区颜色
@@ -145,7 +178,10 @@ export const chartColors = {
     northAmerica: '#3B82F6',
     europe: '#8B5CF6',
     asia: '#10B981',
-    other: '#F59E0B',
+    southAmerica: '#F59E0B',
+    africa: '#EF4444',
+    oceania: '#06B6D4',
+    other: '#64748b',
   },
 
   // 验证者类型颜色
@@ -153,6 +189,9 @@ export const chartColors = {
     institution: '#8B5CF6',
     independent: '#3B82F6',
     community: '#10B981',
+    exchange: '#F59E0B',
+    delegator: '#06B6D4',
+    unknown: '#64748b',
   },
 
   // 语义颜色（用于图表）
@@ -251,6 +290,47 @@ export const chartColors = {
     whiteLight: '#FFFFFF',
     // 透明
     none: 'none',
+  },
+
+  // RSI 技术指标颜色
+  rsi: {
+    line: '#8B5CF6',
+    overbought: {
+      line: '#EF4444',
+      area: 'rgba(239, 68, 68, 0.1)',
+    },
+    oversold: {
+      line: '#10B981',
+      area: 'rgba(16, 185, 129, 0.1)',
+    },
+    neutral: '#6B7280',
+  },
+
+  // MACD 技术指标颜色
+  macd: {
+    line: '#3B82F6',
+    signal: '#F59E0B',
+    histogram: {
+      positive: '#10B981',
+      negative: '#EF4444',
+    },
+    zeroLine: '#9CA3AF',
+  },
+
+  // 图表颜色 - 用于 BentoMetricsGrid 等组件
+  chart: {
+    blue: '#3B82F6',
+    blueLight: '#60A5FA',
+    indigo: '#6366F1',
+    indigoLight: '#818CF8',
+    violet: '#8B5CF6',
+    violetLight: '#A78BFA',
+    amber: '#F59E0B',
+    amberLight: '#FBBF24',
+    emerald: '#10B981',
+    emeraldLight: '#34D399',
+    cyan: '#06B6D4',
+    cyanLight: '#22D3EE',
   },
 } as const;
 
@@ -406,7 +486,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.UMA]: chartColors.oracle.uma,
     [OracleProvider.PYTH]: chartColors.oracle['pyth'],
     [OracleProvider.API3]: chartColors.oracle.api3,
-    [OracleProvider.REDSTONE]: '#EF4444',
+    [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
   };
   return colorMap[provider] || chartColors.sequence[0];
 }
@@ -466,6 +546,7 @@ export const colors = {
   base: baseColors,
   semantic: semanticColors,
   finance: financeColors,
+  chain: chainColors,
   gradients,
   chart: chartColors,
   shadow: shadowColors,

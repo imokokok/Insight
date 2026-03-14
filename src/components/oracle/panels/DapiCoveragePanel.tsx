@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '../common/DashboardCard';
+import { chartColors } from '@/lib/config/colors';
 
 interface DapiCoverage {
   totalDapis: number;
@@ -174,10 +175,10 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
   const { t } = useI18n();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const segments = [
-    { key: 'crypto', value: data.crypto, color: '#3B82F6' },
-    { key: 'forex', value: data.forex, color: '#10B981' },
-    { key: 'commodities', value: data.commodities, color: '#F59E0B' },
-    { key: 'stocks', value: data.stocks, color: '#8B5CF6' },
+    { key: 'crypto', value: data.crypto, color: chartColors.recharts.primary },
+    { key: 'forex', value: data.forex, color: chartColors.semantic.success },
+    { key: 'commodities', value: data.commodities, color: chartColors.recharts.warning },
+    { key: 'stocks', value: data.stocks, color: chartColors.recharts.purple },
   ];
 
   let cumulativePercentage = 0;
@@ -195,7 +196,7 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
   return (
     <div className="relative w-48 h-48 mx-auto">
       <svg viewBox="0 0 100 100" className="transform -rotate-90">
-        <circle cx="50" cy="50" r="40" fill="none" stroke="#F3F4F6" strokeWidth="12" />
+        <circle cx="50" cy="50" r="40" fill="none" stroke={chartColors.recharts.grid} strokeWidth="12" />
         {gradientStops.map((stop, index) => {
           const circumference = 2 * Math.PI * 40;
           const strokeDasharray = `${((stop.end - stop.start) * circumference) / 100} ${circumference}`;

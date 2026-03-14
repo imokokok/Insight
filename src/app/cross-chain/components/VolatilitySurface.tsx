@@ -21,11 +21,11 @@ import {
   calculateRollingVolatility,
   calculateVolatilityCone,
   calculatePearsonCorrelation,
-  getVolatilityColor,
   type RollingVolatilityPoint,
   type VolatilityConePoint,
 } from '../utils';
 import { Blockchain } from '@/types/oracle';
+import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
 
 interface VolatilitySurfaceProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -151,18 +151,17 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
 
   // 获取波动率颜色
   const getVolatilityLevelColor = (volatility: number): string => {
-    if (volatility < 30) return '#10B981'; // 低波动 - 绿色
-    if (volatility < 60) return '#F59E0B'; // 中等波动 - 黄色
-    return '#EF4444'; // 高波动 - 红色
+    if (volatility < 30) return semanticColors.success.DEFAULT;
+    if (volatility < 60) return semanticColors.warning.DEFAULT;
+    return semanticColors.danger.DEFAULT;
   };
 
-  // 获取相关性颜色
   const getCorrelationColor = (correlation: number): string => {
     const absCorr = Math.abs(correlation);
-    if (absCorr >= 0.7) return '#1e40af'; // 强相关 - 深蓝
-    if (absCorr >= 0.4) return '#60a5fa'; // 中等相关 - 浅蓝
-    if (absCorr >= 0.2) return '#d1d5db'; // 弱相关 - 灰色
-    return '#f3f4f6'; // 几乎无关 - 浅灰
+    if (absCorr >= 0.7) return configChartColors.recharts.primary;
+    if (absCorr >= 0.4) return configChartColors.recharts.primaryLight;
+    if (absCorr >= 0.2) return configChartColors.semantic.neutral;
+    return configChartColors.recharts.grid;
   };
 
   const handleLegendClick = (e: unknown) => {
@@ -327,7 +326,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 data={rollingVolatilityData}
                 margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={configChartColors.recharts.grid} />
                 <XAxis
                   dataKey="time"
                   tick={{ fontSize: 10 }}
@@ -349,9 +348,8 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Tooltip content={<VolatilityTooltip />} />
                 <Legend onClick={handleLegendClick} />
 
-                {/* 波动率水平参考线 */}
-                <ReferenceLine y={30} stroke="#10B981" strokeDasharray="5 5" strokeOpacity={0.5} />
-                <ReferenceLine y={60} stroke="#F59E0B" strokeDasharray="5 5" strokeOpacity={0.5} />
+                <ReferenceLine y={30} stroke={semanticColors.success.DEFAULT} strokeDasharray="5 5" strokeOpacity={0.5} />
+                <ReferenceLine y={60} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" strokeOpacity={0.5} />
 
                 {filteredChains.map((chain) => (
                   <Line
@@ -455,7 +453,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <div
                   className="w-32 h-3"
                   style={{
-                    background: 'linear-gradient(to right, #f3f4f6, #d1d5db, #60a5fa, #1e40af)',
+                    background: `linear-gradient(to right, ${configChartColors.recharts.grid}, ${configChartColors.semantic.neutral}, ${configChartColors.recharts.primaryLight}, ${configChartColors.recharts.primary})`,
                   }}
                 />
                 <span className="text-xs text-gray-500">弱 → 强</span>
@@ -499,7 +497,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 data={volatilityConeData}
                 margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                 <XAxis
                   dataKey="windowSize"
                   tick={{ fontSize: 11 }}
@@ -524,41 +522,39 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 />
                 <Tooltip content={<ConeTooltip />} />
 
-                {/* 波动率范围区域 */}
                 <Area
                   type="monotone"
                   dataKey="maxVolatility"
                   stroke="none"
-                  fill="#fee2e2"
+                  fill={semanticColors.danger.light}
                   fillOpacity={0.3}
                 />
                 <Area
                   type="monotone"
                   dataKey="p90"
                   stroke="none"
-                  fill="#fef3c7"
+                  fill={semanticColors.warning.light}
                   fillOpacity={0.4}
                 />
                 <Area
                   type="monotone"
                   dataKey="p75"
                   stroke="none"
-                  fill="#dbeafe"
+                  fill={semanticColors.info.light}
                   fillOpacity={0.5}
                 />
                 <Area
                   type="monotone"
                   dataKey="medianVolatility"
                   stroke="none"
-                  fill="#d1fae5"
+                  fill={semanticColors.success.light}
                   fillOpacity={0.6}
                 />
 
-                {/* 线条 */}
                 <Line
                   type="monotone"
                   dataKey="maxVolatility"
-                  stroke="#dc2626"
+                  stroke={semanticColors.danger.dark}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -566,7 +562,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p90"
-                  stroke="#f59e0b"
+                  stroke={semanticColors.warning.DEFAULT}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -574,7 +570,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p75"
-                  stroke="#3b82f6"
+                  stroke={configChartColors.recharts.primaryLight}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -582,14 +578,14 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="medianVolatility"
-                  stroke="#10b981"
+                  stroke={semanticColors.success.DEFAULT}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="meanVolatility"
-                  stroke="#6366f1"
+                  stroke={configChartColors.recharts.indigo}
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   strokeDasharray="5 5"
@@ -597,7 +593,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p25"
-                  stroke="#3b82f6"
+                  stroke={configChartColors.recharts.primaryLight}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -605,7 +601,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="p10"
-                  stroke="#f59e0b"
+                  stroke={semanticColors.warning.main}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"
@@ -613,7 +609,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Line
                   type="monotone"
                   dataKey="minVolatility"
-                  stroke="#16a34a"
+                  stroke={semanticColors.success.dark}
                   strokeWidth={1}
                   dot={false}
                   strokeDasharray="3 3"

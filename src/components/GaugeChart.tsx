@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { chartColors } from '@/lib/config/colors';
 
 interface GaugeChartProps {
   value: number;
@@ -16,10 +17,10 @@ export default function GaugeChart({ value, maxValue, label, size = 160 }: Gauge
   const percentage = (clampedValue / maxValue) * 100;
 
   const getColor = (percent: number) => {
-    if (percent < 20) return '#10B981';
-    if (percent < 40) return '#3B82F6';
-    if (percent < 60) return '#F59E0B';
-    return '#EF4444';
+    if (percent < 20) return chartColors.semantic.success;
+    if (percent < 40) return chartColors.recharts.primary;
+    if (percent < 60) return chartColors.semantic.warning;
+    return chartColors.semantic.danger;
   };
 
   const getRating = (percent: number) => {
@@ -57,7 +58,7 @@ export default function GaugeChart({ value, maxValue, label, size = 160 }: Gauge
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#E5E7EB"
+            stroke={chartColors.recharts.grid}
             strokeWidth={strokeWidth}
             strokeDasharray={arcLength}
             strokeDashoffset={0}

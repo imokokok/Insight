@@ -1,4 +1,8 @@
 import { OracleProvider, Blockchain } from '@/lib/oracles';
+import {
+  chartColors as configChartColors,
+  chainColors as configChainColors,
+} from '@/lib/config/colors';
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
@@ -36,16 +40,16 @@ export const chainNames: Record<Blockchain, string> = {
 };
 
 export const chainColors: Record<Blockchain, string> = {
-  [Blockchain.ETHEREUM]: '#6366F1',
+  [Blockchain.ETHEREUM]: configChainColors.ethereum,
   [Blockchain.ARBITRUM]: '#06B6D4',
   [Blockchain.OPTIMISM]: '#EF4444',
-  [Blockchain.POLYGON]: '#A855F7',
+  [Blockchain.POLYGON]: configChainColors.polygon,
   [Blockchain.SOLANA]: '#10B981',
-  [Blockchain.AVALANCHE]: '#E84133',
-  [Blockchain.FANTOM]: '#1969FF',
-  [Blockchain.CRONOS]: '#002D74',
+  [Blockchain.AVALANCHE]: configChainColors.avalanche,
+  [Blockchain.FANTOM]: configChainColors.fantom,
+  [Blockchain.CRONOS]: configChainColors.cronos,
   [Blockchain.JUNO]: '#DC1FFF',
-  [Blockchain.COSMOS]: '#2E3148',
+  [Blockchain.COSMOS]: configChainColors.cosmosHub,
   [Blockchain.OSMOSIS]: '#FAAB3B',
   [Blockchain.BNB_CHAIN]: '#F3BA2F',
   [Blockchain.BASE]: '#0052FF',
@@ -62,12 +66,12 @@ export const chainColors: Record<Blockchain, string> = {
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#3B82F6',
-  [OracleProvider.BAND_PROTOCOL]: '#10B981',
-  [OracleProvider.UMA]: '#F59E0B',
-  [OracleProvider.PYTH]: '#8B5CF6',
-  [OracleProvider.API3]: '#EC4899',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: configChartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: configChartColors.oracle.uma,
+  [OracleProvider.PYTH]: configChartColors.oracle['pyth'],
+  [OracleProvider.API3]: configChartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
 };
 
 export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 export interface RequestTypeData {
   type: string;
@@ -17,12 +18,12 @@ export interface RequestTypeDistributionProps {
 }
 
 const REQUEST_TYPE_KEYS = [
-  { key: 'priceData', color: '#8B5CF6' },
-  { key: 'randomNumber', color: '#06B6D4' },
-  { key: 'sportsData', color: '#F59E0B' },
-  { key: 'stockData', color: '#10B981' },
-  { key: 'commodityData', color: '#EF4444' },
-  { key: 'other', color: '#6B7280' },
+  { key: 'priceData', color: chartColors.recharts.purple },
+  { key: 'randomNumber', color: chartColors.recharts.cyan },
+  { key: 'sportsData', color: chartColors.recharts.warning },
+  { key: 'stockData', color: chartColors.recharts.success },
+  { key: 'commodityData', color: chartColors.recharts.danger },
+  { key: 'other', color: semanticColors.neutral.DEFAULT },
 ];
 
 interface CustomTooltipProps {

@@ -1,322 +1,23 @@
-import React from 'react';
-import { BaseOracleClient, OracleClientConfig } from './base';
+import { BaseOracleClient, OracleClientConfig } from '../base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
-
-export type DisputeType = 'price' | 'state' | 'liquidation' | 'other';
-
-export interface DisputeTypeConfig {
-  label: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  icon: React.ReactNode;
-}
-
-// SVG 图标组件 - 价格争议（价格标签/货币符号）
-export const PriceDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-  </svg>
-);
-
-// SVG 图标组件 - 状态争议（文档/状态指示器）
-export const StateDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-    <path d="M9 13h6" />
-    <path d="M9 17h3" />
-    <circle cx="17" cy="15" r="3" />
-    <path d="M17 13.5v3" />
-    <path d="M15.5 15h3" />
-  </svg>
-);
-
-// SVG 图标组件 - 清算争议（警告/清算）
-export const LiquidationDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-    <path d="M7 12l5-5 5 5" />
-    <path d="M7 16l5-5 5 5" opacity="0.5" />
-  </svg>
-);
-
-// SVG 图标组件 - 其他争议（通用/问号）
-export const OtherDisputeIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-    <path d="M8 8l-2 2M16 8l2 2" opacity="0.3" />
-  </svg>
-);
-
-export const DisputeTypeLabels: Record<DisputeType, string> = {
-  price: '价格争议',
-  state: '状态争议',
-  liquidation: '清算争议',
-  other: '其他争议',
-};
-
-// 争议类型样式配置
-export const DisputeTypeStyles: Record<
+import {
   DisputeType,
-  { color: string; bgColor: string; borderColor: string; hoverBgColor: string }
-> = {
-  price: {
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    hoverBgColor: 'hover:bg-blue-100',
-  },
-  state: {
-    color: 'text-emerald-700',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
-    hoverBgColor: 'hover:bg-emerald-100',
-  },
-  liquidation: {
-    color: 'text-amber-700',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    hoverBgColor: 'hover:bg-amber-100',
-  },
-  other: {
-    color: 'text-slate-700',
-    bgColor: 'bg-slate-50',
-    borderColor: 'border-slate-200',
-    hoverBgColor: 'hover:bg-slate-100',
-  },
-};
-
-// 争议类型图表颜色配置
-export const DisputeTypeChartColors: Record<DisputeType, string> = {
-  price: '#3b82f6', // blue-500
-  state: '#10b981', // emerald-500
-  liquidation: '#f59e0b', // amber-500
-  other: '#64748b', // slate-500
-};
-
-export interface ValidatorData {
-  id: string;
-  name: string;
-  type: 'institution' | 'independent' | 'community';
-  region: string;
-  responseTime: number;
-  successRate: number;
-  reputation: number;
-  staked: number;
-  earnings: number;
-  address: string;
-}
-
-export interface DisputeData {
-  id: string;
-  timestamp: number;
-  status: 'active' | 'resolved' | 'rejected';
-  reward: number;
-  resolutionTime?: number;
-  type: DisputeType;
-  transactionHash: string;
-  // 金额相关字段
-  stakeAmount: number; // 质押金额
-  rewardAmount: number; // 实际奖励金额
-  totalValue: number; // 争议总价值
-}
-
-// 争议金额分布统计
-export interface DisputeAmountDistributionStats {
-  avgStakeAmount: number; // 平均质押金额
-  avgRewardAmount: number; // 平均奖励金额
-  avgTotalValue: number; // 平均争议总价值
-  medianStakeAmount: number; // 质押金额中位数
-  medianRewardAmount: number; // 奖励金额中位数
-  totalStakeAmount: number; // 总质押金额
-  totalRewardAmount: number; // 总奖励金额
-  // 金额区间分布
-  amountRanges: {
-    range: string;
-    min: number;
-    max: number;
-    count: number;
-    avgReward: number;
-    roi: number;
-  }[];
-  // 奖励效率指标
-  efficiency: {
-    avgRewardToStakeRatio: number; // 平均奖励/质押比例
-    avgRoi: number; // 平均 ROI (%)
-    highEfficiencyCount: number; // 高效争议数量 (ROI > 50%)
-    lowEfficiencyCount: number; // 低效争议数量 (ROI < 10%)
-  };
-  // 金额趋势数据
-  amountTrends: {
-    date: string;
-    avgStake: number;
-    avgReward: number;
-    totalValue: number;
-    disputeCount: number;
-  }[];
-}
-
-export interface UMAMetworkStats {
-  activeValidators: number;
-  validatorUptime: number;
-  avgResponseTime: number;
-  updateFrequency: number;
-  totalStaked: number;
-  dataSources: number;
-  totalDisputes: number;
-  disputeSuccessRate: number;
-  avgResolutionTime: number;
-  activeDisputes: number;
-}
-
-export interface VerificationActivity {
-  hourly: number[];
-  total: number;
-  peakHour: number;
-  avgPerHour: number;
-  peakRequests: number;
-}
-
-export interface ValidatorPerformanceHeatmapData {
-  validatorId: string;
-  validatorName: string;
-  hourlyData: {
-    hour: number;
-    responseTime: number;
-    successRate: number;
-  }[];
-}
-
-export interface ValidatorPerformanceHeatmapDataByDay {
-  validatorId: string;
-  validatorName: string;
-  dailyData: {
-    date: string;
-    dayIndex: number;
-    avgResponseTime: number;
-    avgSuccessRate: number;
-  }[];
-}
-
-export type TimeRange = '24H' | '7D';
-
-export interface DisputeEfficiencyStats {
-  avgResolutionTime: number;
-  medianResolutionTime: number;
-  stdDeviation: number;
-  successRateTrend: {
-    date: string;
-    rate: number;
-  }[];
-  resolutionTimeDistribution: {
-    range: string;
-    count: number;
-  }[];
-}
-
-export interface DataQualityScore {
-  overallScore: number;
-  networkHealth: {
-    score: number;
-    trend: 'up' | 'down' | 'stable';
-  };
-  dataIntegrity: {
-    score: number;
-    trend: 'up' | 'down' | 'stable';
-  };
-  responseTime: {
-    score: number;
-    trend: 'up' | 'down' | 'stable';
-  };
-  validatorActivity: {
-    score: number;
-    trend: 'up' | 'down' | 'stable';
-  };
-}
-
-export interface ValidatorHistoryData {
-  date: string;
-  successRate: number;
-  responseTime: number;
-  reputation: number;
-}
-
-export interface StakingCalculation {
-  dailyReward: number;
-  monthlyReward: number;
-  yearlyReward: number;
-  apr: number;
-}
-
-// ============================================
-// 收益归因分析数据模型
-// ============================================
-
-export type EarningsSourceType = 'base' | 'dispute' | 'other';
-
-export const EarningsSourceLabels: Record<EarningsSourceType, string> = {
-  base: '基础奖励',
-  dispute: '争议奖励',
-  other: '其他奖励',
-};
-
-export interface EarningsSourceBreakdown {
-  type: EarningsSourceType;
-  amount: number;
-  percentage: number;
-  trend: 'up' | 'down' | 'stable';
-  trendValue: number;
-}
-
-export interface ValidatorEarningsAttribution {
-  validatorId: string;
-  validatorName: string;
-  totalEarnings: number;
-  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  sources: EarningsSourceBreakdown[];
-  // 单位质押收益效率指标
-  efficiency: {
-    earningsPerStaked: number; // 每单位质押收益
-    roi: number; // 投资回报率 (%)
-    yieldEfficiency: number; // 收益效率指数 (0-100)
-    comparisonToNetwork: number; // 相对于网络平均水平 (%)
-  };
-  // 历史趋势
-  history: {
-    date: string;
-    total: number;
-    base: number;
-    dispute: number;
-    other: number;
-  }[];
-}
-
-export interface NetworkEarningsAttribution {
-  totalNetworkEarnings: number;
-  averageEarningsPerValidator: number;
-  networkEfficiency: {
-    avgEarningsPerStaked: number;
-    avgRoi: number;
-    avgYieldEfficiency: number;
-  };
-  sourceDistribution: {
-    base: number;
-    dispute: number;
-    other: number;
-  };
-  topPerformers: {
-    validatorId: string;
-    validatorName: string;
-    earningsPerStaked: number;
-    efficiencyRank: number;
-  }[];
-}
+  ValidatorData,
+  DisputeData,
+  UMAMetworkStats,
+  VerificationActivity,
+  ValidatorPerformanceHeatmapData,
+  ValidatorPerformanceHeatmapDataByDay,
+  DisputeEfficiencyStats,
+  DataQualityScore,
+  ValidatorHistoryData,
+  StakingCalculation,
+  ValidatorEarningsAttribution,
+  NetworkEarningsAttribution,
+  EarningsSourceBreakdown,
+  DisputeAmountDistributionStats,
+} from './types';
 
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
@@ -493,9 +194,8 @@ export class UMAClient extends BaseOracleClient {
 
     for (let i = 0; i < 50; i++) {
       const isResolved = Math.random() > 0.3;
-      // 生成金额数据
-      const stakeAmount = Math.floor(Math.random() * 50000) + 5000; // 5,000 - 55,000
-      const rewardMultiplier = isResolved ? 0.8 + Math.random() * 1.5 : 0; // 已解决的争议有奖励
+      const stakeAmount = Math.floor(Math.random() * 50000) + 5000;
+      const rewardMultiplier = isResolved ? 0.8 + Math.random() * 1.5 : 0;
       const rewardAmount = Math.floor(stakeAmount * rewardMultiplier);
       const totalValue = stakeAmount + rewardAmount + Math.floor(Math.random() * 10000);
 
@@ -860,15 +560,6 @@ export class UMAClient extends BaseOracleClient {
     return this.getDisputes();
   }
 
-  // ============================================
-  // 收益归因分析方法
-  // ============================================
-
-  /**
-   * 获取验证者收益归因分析
-   * @param validatorId 验证者ID
-   * @param period 时间周期
-   */
   async getValidatorEarningsAttribution(
     validatorId: string,
     period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly'
@@ -880,7 +571,6 @@ export class UMAClient extends BaseOracleClient {
       throw new Error(`Validator not found: ${validatorId}`);
     }
 
-    // 计算周期乘数
     const periodMultiplier = {
       daily: 1 / 30,
       weekly: 7 / 30,
@@ -890,10 +580,9 @@ export class UMAClient extends BaseOracleClient {
 
     const totalEarnings = validator.earnings * periodMultiplier;
 
-    // 模拟收益来源分布
-    const baseRatio = 0.6 + Math.random() * 0.15; // 60-75% 基础奖励
-    const disputeRatio = 0.15 + Math.random() * 0.15; // 15-30% 争议奖励
-    const otherRatio = 1 - baseRatio - disputeRatio; // 剩余为其他奖励
+    const baseRatio = 0.6 + Math.random() * 0.15;
+    const disputeRatio = 0.15 + Math.random() * 0.15;
+    const otherRatio = 1 - baseRatio - disputeRatio;
 
     const baseAmount = totalEarnings * baseRatio;
     const disputeAmount = totalEarnings * disputeRatio;
@@ -923,17 +612,14 @@ export class UMAClient extends BaseOracleClient {
       },
     ];
 
-    // 计算效率指标
     const earningsPerStaked = totalEarnings / validator.staked;
     const roi = (totalEarnings / validator.staked) * 100 * (period === 'yearly' ? 1 : period === 'monthly' ? 12 : period === 'weekly' ? 52 : 365);
-    const yieldEfficiency = Math.min(100, (earningsPerStaked / 0.02) * 100); // 以2%为基准
+    const yieldEfficiency = Math.min(100, (earningsPerStaked / 0.02) * 100);
 
-    // 计算相对于网络平均水平
     const networkAvgEarningsPerStaked =
       validators.reduce((sum, v) => sum + v.earnings / v.staked, 0) / validators.length;
     const comparisonToNetwork = ((earningsPerStaked - networkAvgEarningsPerStaked) / networkAvgEarningsPerStaked) * 100;
 
-    // 生成历史数据
     const history: ValidatorEarningsAttribution['history'] = [];
     const days = period === 'daily' ? 1 : period === 'weekly' ? 7 : period === 'monthly' ? 30 : 365;
     const now = new Date();
@@ -971,27 +657,21 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
-  /**
-   * 获取网络整体收益归因统计
-   */
   async getNetworkEarningsAttribution(): Promise<NetworkEarningsAttribution> {
     const validators = await this.getValidators();
 
     const totalNetworkEarnings = validators.reduce((sum, v) => sum + v.earnings, 0);
     const averageEarningsPerValidator = totalNetworkEarnings / validators.length;
 
-    // 计算网络平均效率指标
     const totalStaked = validators.reduce((sum, v) => sum + v.staked, 0);
     const avgEarningsPerStaked = totalNetworkEarnings / totalStaked;
     const avgRoi = (averageEarningsPerValidator / (totalStaked / validators.length)) * 12 * 100;
     const avgYieldEfficiency = Math.min(100, (avgEarningsPerStaked / 0.02) * 100);
 
-    // 计算整体收益来源分布
     const baseRatio = 0.65;
     const disputeRatio = 0.22;
     const otherRatio = 0.13;
 
-    // 获取效率排名靠前的验证者
     const performers = validators
       .map((v) => ({
         validatorId: v.id,
@@ -1023,9 +703,6 @@ export class UMAClient extends BaseOracleClient {
     };
   }
 
-  /**
-   * 批量获取多个验证者的收益归因
-   */
   async getValidatorsEarningsAttribution(
     validatorIds?: string[],
     period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly'
@@ -1040,13 +717,6 @@ export class UMAClient extends BaseOracleClient {
     return attributions;
   }
 
-  // ============================================
-  // 争议金额分布分析方法
-  // ============================================
-
-  /**
-   * 获取争议金额分布统计
-   */
   async getDisputeAmountDistributionStats(): Promise<DisputeAmountDistributionStats> {
     const disputes = await this.getDisputes();
     const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
@@ -1071,7 +741,6 @@ export class UMAClient extends BaseOracleClient {
       };
     }
 
-    // 计算基础统计
     const stakeAmounts = disputes.map((d) => d.stakeAmount);
     const rewardAmounts = resolvedDisputes.map((d) => d.rewardAmount);
     const totalValues = disputes.map((d) => d.totalValue);
@@ -1088,7 +757,6 @@ export class UMAClient extends BaseOracleClient {
     const totalStakeAmount = stakeAmounts.reduce((a, b) => a + b, 0);
     const totalRewardAmount = rewardAmounts.reduce((a, b) => a + b, 0);
 
-    // 金额区间分布
     const ranges = [
       { min: 0, max: 10000, label: '<10K' },
       { min: 10000, max: 20000, label: '10K-20K' },
@@ -1121,7 +789,6 @@ export class UMAClient extends BaseOracleClient {
       };
     });
 
-    // 奖励效率指标
     const rewardToStakeRatios = resolvedDisputes.map((d) =>
       d.stakeAmount > 0 ? d.rewardAmount / d.stakeAmount : 0
     );
@@ -1141,7 +808,6 @@ export class UMAClient extends BaseOracleClient {
       return roi < 10;
     }).length;
 
-    // 金额趋势数据 (最近14天)
     const amountTrends: DisputeAmountDistributionStats['amountTrends'] = [];
     const now = new Date();
 

@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface UserPreferences {
   defaultOracle: string;
@@ -62,6 +63,7 @@ const languageOptions = [
 ];
 
 export function PreferencesPanel() {
+  const { t } = useI18n();
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     if (typeof window === 'undefined') return defaultPreferences;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -98,7 +100,7 @@ export function PreferencesPanel() {
     }
 
     setIsSaving(false);
-    setSuccess('偏好设置已保存');
+    setSuccess(t('settings.preferences.saveSuccess'));
 
     setTimeout(() => setSuccess(null), 3000);
   };
@@ -113,9 +115,9 @@ export function PreferencesPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Palette className="w-5 h-5 text-gray-400" />
-            偏好设置
+            {t('settings.preferences.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">自定义应用的默认行为</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.preferences.subtitle')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -130,7 +132,7 @@ export function PreferencesPanel() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Database className="w-4 h-4 text-gray-400" />
-                默认预言机
+                {t('settings.preferences.defaultOracle')}
               </label>
               <select
                 value={preferences.defaultOracle}
@@ -143,11 +145,11 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">打开预言机页面时默认显示</p>
+              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultOracleHint')}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">默认交易对</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.preferences.defaultSymbol')}</label>
               <select
                 value={preferences.defaultSymbol}
                 onChange={(e) => updatePreference('defaultSymbol', e.target.value)}
@@ -159,13 +161,13 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">查询价格时默认的交易对</p>
+              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultSymbolHint')}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gray-400" />
-                默认时间范围
+                {t('settings.preferences.defaultTimeRange')}
               </label>
               <select
                 value={preferences.defaultTimeRange}
@@ -178,13 +180,13 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">图表显示的默认时间范围</p>
+              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultTimeRangeHint')}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Globe className="w-4 h-4 text-gray-400" />
-                语言
+                {t('settings.preferences.language')}
               </label>
               <select
                 value={preferences.language}
@@ -197,7 +199,7 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">应用界面语言</p>
+              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.languageHint')}</p>
             </div>
           </div>
         </div>
@@ -211,17 +213,17 @@ export function PreferencesPanel() {
             ) : (
               <Sun className="w-5 h-5 text-gray-400" />
             )}
-            主题设置
+            {t('settings.preferences.themeSettings')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">选择应用的外观主题</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.preferences.themeSettingsDesc')}</p>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {[
-              { value: 'light', label: '亮色', icon: Sun, desc: '使用亮色主题' },
-              { value: 'dark', label: '暗色', icon: Moon, desc: '使用暗色主题' },
-              { value: 'system', label: '跟随系统', icon: Palette, desc: '自动跟随系统设置' },
+              { value: 'light', label: t('settings.preferences.themeLight'), icon: Sun, desc: t('settings.preferences.themeLightDesc') },
+              { value: 'dark', label: t('settings.preferences.themeDark'), icon: Moon, desc: t('settings.preferences.themeDarkDesc') },
+              { value: 'system', label: t('settings.preferences.themeSystem'), icon: Palette, desc: t('settings.preferences.themeSystemDesc') },
             ].map((option) => {
               const Icon = option.icon;
               const isSelected = preferences.theme === option.value;
@@ -261,7 +263,7 @@ export function PreferencesPanel() {
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          保存设置
+          {t('settings.preferences.saveSettings')}
         </button>
       </div>
     </div>

@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/lib/i18n/provider';
 import { Mail, Lock, Eye, EyeOff, User, UserPlus, Loader2, CheckCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { signUp, loading, error, user } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,19 +29,19 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     if (!email.trim()) {
-      setLocalError('请输入邮箱地址');
+      setLocalError(t('auth.register.error.emailRequired'));
       return false;
     }
     if (!password) {
-      setLocalError('请输入密码');
+      setLocalError(t('auth.register.error.passwordRequired'));
       return false;
     }
     if (password.length < 6) {
-      setLocalError('密码长度至少为 6 位');
+      setLocalError(t('auth.register.error.passwordMinLength'));
       return false;
     }
     if (password !== confirmPassword) {
-      setLocalError('两次输入的密码不一致');
+      setLocalError(t('auth.register.error.passwordMismatch'));
       return false;
     }
     return true;
@@ -76,23 +78,22 @@ export default function RegisterPage() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">注册成功！</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('auth.register.success.title')}</h2>
             <p className="text-gray-500 mb-6">
-              我们已向 <span className="font-medium text-gray-700">{email}</span>{' '}
-              发送了一封验证邮件，请点击邮件中的链接完成验证。
+              {t('auth.register.success.emailSent', { email })}
             </p>
             <div className="space-y-3">
               <Link
                 href="/login"
                 className="block w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300"
               >
-                前往登录
+                {t('auth.register.success.goToLogin')}
               </Link>
               <button
                 onClick={() => setIsSuccess(false)}
                 className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
               >
-                使用其他邮箱注册
+                {t('auth.register.success.useOtherEmail')}
               </button>
             </div>
           </div>
@@ -111,8 +112,8 @@ export default function RegisterPage() {
                 Insight
               </h1>
             </Link>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">创建新账户</h2>
-            <p className="mt-2 text-sm text-gray-500">填写以下信息开始使用</p>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">{t('auth.register.title')}</h2>
+            <p className="mt-2 text-sm text-gray-500">{t('auth.register.subtitle')}</p>
           </div>
 
           {displayError && (
@@ -124,7 +125,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
-                显示名称 <span className="text-gray-400">(可选)</span>
+                {t('auth.register.displayNameLabel')} <span className="text-gray-400">{t('auth.register.displayNameOptional')}</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -135,7 +136,7 @@ export default function RegisterPage() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="您的显示名称"
+                  placeholder={t('auth.register.displayNamePlaceholder')}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
@@ -143,7 +144,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                邮箱地址
+                {t('auth.register.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -155,7 +156,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="your@email.com"
+                  placeholder={t('auth.register.emailPlaceholder')}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
@@ -163,7 +164,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                {t('auth.register.passwordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -175,7 +176,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="至少 6 位字符"
+                  placeholder={t('auth.register.passwordPlaceholder')}
                   className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
                 <button
@@ -197,7 +198,7 @@ export default function RegisterPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                确认密码
+                {t('auth.register.confirmPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -209,7 +210,7 @@ export default function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  placeholder="再次输入密码"
+                  placeholder={t('auth.register.confirmPasswordPlaceholder')}
                   className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
                 <button
@@ -234,14 +235,27 @@ export default function RegisterPage() {
                 className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                我已阅读并同意{' '}
-                <Link href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
-                  服务条款
-                </Link>{' '}
-                和{' '}
-                <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
-                  隐私政策
-                </Link>
+                {t('auth.register.termsAgreement')
+                  .replace('{terms}', '')
+                  .replace('{privacy}', '')
+                  .split(/(\s+)/)
+                  .map((part, index) => {
+                    if (part === t('auth.register.terms')) {
+                      return (
+                        <Link key="terms" href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+                          {part}
+                        </Link>
+                      );
+                    }
+                    if (part === t('auth.register.privacy')) {
+                      return (
+                        <Link key="privacy" href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+                          {part}
+                        </Link>
+                      );
+                    }
+                    return part;
+                  })}
               </label>
             </div>
 
@@ -255,17 +269,17 @@ export default function RegisterPage() {
               ) : (
                 <UserPlus className="w-5 h-5" />
               )}
-              <span>{isLoading || loading ? '注册中...' : '注册'}</span>
+              <span>{isLoading || loading ? t('auth.register.submitting') : t('auth.register.submit')}</span>
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            已有账户？{' '}
+            {t('auth.register.hasAccount')}{' '}
             <Link
               href="/login"
               className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              立即登录
+              {t('auth.register.loginNow')}
             </Link>
           </p>
         </div>

@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 interface AnomalyData {
   timestamp: number;
@@ -28,14 +29,14 @@ interface AnomalyStatsPanelProps {
 }
 
 const COLORS = {
-  spike: '#ef4444',
-  drop: '#3b82f6',
+  spike: chartColors.semantic.danger,
+  drop: chartColors.recharts.primary,
 };
 
 const SEVERITY_COLORS = {
-  high: '#ef4444',
-  medium: '#f59e0b',
-  low: '#10b981',
+  high: chartColors.semantic.danger,
+  medium: chartColors.semantic.warning,
+  low: chartColors.semantic.success,
 };
 
 function getSeverity(deviation: number): 'high' | 'medium' | 'low' {
@@ -199,7 +200,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   formatter={(value) => [value, t('anomalyStats.count')]}
                   contentStyle={{
                     backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    border: `1px solid ${chartColors.recharts.grid}`,
                     borderRadius: '8px',
                   }}
                 />
@@ -263,16 +264,16 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={timeDistribution}>
-                <XAxis dataKey="hour" tick={{ fontSize: 10 }} stroke="#9ca3af" />
-                <YAxis tick={{ fontSize: 10 }} stroke="#9ca3af" />
+                <XAxis dataKey="hour" tick={{ fontSize: 10 }} stroke={chartColors.recharts.tick} />
+                <YAxis tick={{ fontSize: 10 }} stroke={chartColors.recharts.tick} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    border: `1px solid ${chartColors.recharts.grid}`,
                     borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

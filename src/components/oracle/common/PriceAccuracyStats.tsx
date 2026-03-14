@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import GaugeChart from '@/components/GaugeChart';
 import { useI18n } from '@/lib/i18n/provider';
 import { AccuracyStats } from '@/hooks/usePriceHistory';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface PriceAccuracyStatsProps {
   stats: AccuracyStats;
@@ -223,7 +224,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
                 <div
                   className="h-16 rounded relative overflow-hidden"
                   style={{
-                    background: `linear-gradient(to top, rgba(16, 185, 129, ${accuracy / 100}), rgba(16, 185, 129, ${accuracy / 200}))`,
+                    background: `linear-gradient(to top, ${semanticColors.success.DEFAULT}${Math.round(accuracy)}, ${semanticColors.success.DEFAULT}${Math.round(accuracy / 2)})`,
                   }}
                 >
                   <div className="absolute bottom-0 left-0 right-0 text-xs font-bold text-white p-1">

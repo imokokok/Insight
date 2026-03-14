@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 // ============================================
 // 类型定义
@@ -154,19 +154,19 @@ export const chainlinkMilestones: ChartAnnotation[] = [
 const getAnnotationColor = (type: AnnotationType, importance: ImportanceLevel): string => {
   const colors: Record<AnnotationType, Record<ImportanceLevel, string>> = {
     event: {
-      high: '#2563EB',    // blue-600
-      medium: '#3B82F6',  // blue-500
-      low: '#60A5FA',     // blue-400
+      high: chartColors.recharts.primary,
+      medium: chartColors.recharts.primary,
+      low: chartColors.recharts.primary,
     },
     alert: {
-      high: '#DC2626',    // red-600
-      medium: '#EF4444',  // red-500
-      low: '#F87171',     // red-400
+      high: semanticColors.danger.dark,
+      medium: semanticColors.danger.DEFAULT,
+      low: semanticColors.danger.light,
     },
     milestone: {
-      high: '#059669',    // emerald-600
-      medium: '#10B981',  // emerald-500
-      low: '#34D399',     // emerald-400
+      high: semanticColors.success.dark,
+      medium: semanticColors.success.DEFAULT,
+      low: semanticColors.success.light,
     },
   };
   return colors[type][importance];

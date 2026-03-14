@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors } from '@/lib/config/colors';
 
 interface PublisherData {
   name: string;
@@ -57,7 +58,7 @@ function calculateConcentrationMetrics(publishers: PublisherData[]): Concentrati
   };
 }
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6b7280'];
+const COLORS = [chartColors.recharts.purple, chartColors.recharts.primary, chartColors.recharts.success, chartColors.recharts.warning, chartColors.recharts.danger, chartColors.recharts.tick];
 
 export function ConcentrationRisk() {
   const { t } = useI18n();

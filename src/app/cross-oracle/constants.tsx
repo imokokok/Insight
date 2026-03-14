@@ -15,6 +15,7 @@ import {
   getDeviationColor,
   calculateStandardDeviation as calcStdDev,
 } from '@/lib/utils/chartSharedUtils';
+import { semanticColors } from '@/lib/config/colors';
 
 export { type RefreshInterval };
 
@@ -39,9 +40,9 @@ export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
 export const getDeviationColorClass = (deviationPercent: number | null): string => {
   if (deviationPercent === null) return 'text-gray-400';
   const color = getDeviationColor(deviationPercent);
-  if (color === '#22c55e') return 'text-green-600 bg-green-50';
-  if (color === '#f59e0b') return 'text-yellow-600 bg-yellow-50';
-  if (color === '#ef4444') return 'text-red-600 bg-red-50';
+  if (color === semanticColors.success.DEFAULT) return 'text-green-600 bg-green-50';
+  if (color === semanticColors.warning.DEFAULT) return 'text-yellow-600 bg-yellow-50';
+  if (color === semanticColors.danger.DEFAULT) return 'text-red-600 bg-red-50';
   return 'text-orange-600 bg-orange-50';
 };
 

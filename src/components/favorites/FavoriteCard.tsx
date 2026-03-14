@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import { mapConfigTypeFromDB, FavoriteConfig, useRemoveFavorite } from '@/hooks/useFavorites';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface FavoriteCardProps {
   favorite: UserFavorite;
@@ -14,6 +15,7 @@ interface FavoriteCardProps {
 
 export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCardProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -47,13 +49,13 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
     }
   };
 
-  const getConfigPreview = () => {
+  const getConfigPreview = useCallback(() => {
     switch (configType) {
       case 'oracle_config':
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">交易对:</span>
+              <span className="text-xs text-gray-500">{t('favorites.card.symbol')}</span>
               <span className="text-sm font-medium text-gray-900">{config.symbol}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -77,7 +79,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">交易对:</span>
+              <span className="text-xs text-gray-500">{t('favorites.card.symbol')}</span>
               <span className="text-sm font-medium text-gray-900">{config.symbol}</span>
             </div>
             {config.chains && config.chains.length > 0 && (
@@ -103,7 +105,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">链:</span>
+              <span className="text-xs text-gray-500">{t('favorites.card.chain')}</span>
               <span className="text-sm font-medium text-gray-900">{config.chain}</span>
             </div>
             {config.symbols && config.symbols.length > 0 && (
@@ -126,9 +128,9 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           </div>
         );
     }
-  };
+  }, [configType, config, t]);
 
-  const getTypeIcon = () => {
+  const getTypeIcon = useCallback(() => {
     switch (configType) {
       case 'oracle_config':
         return (
@@ -185,27 +187,27 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           </div>
         );
     }
-  };
+  }, [configType]);
 
-  const getTypeLabel = () => {
+  const getTypeLabel = useCallback(() => {
     switch (configType) {
       case 'oracle_config':
-        return '预言机配置';
+        return t('favorites.card.type.oracleConfig');
       case 'symbol':
-        return '交易对';
+        return t('favorites.card.type.symbol');
       case 'chain_config':
-        return '链配置';
+        return t('favorites.card.type.chainConfig');
     }
-  };
+  }, [configType, t]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
+  }, []);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-200">
@@ -221,7 +223,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           <button
             onClick={() => onEdit?.(favorite)}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="编辑"
+            title={t('common.edit')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -236,7 +238,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isRemoving}
             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-            title="删除"
+            title={t('common.delete')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -258,30 +260,32 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           onClick={handleApply}
           className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
         >
-          应用
+          {t('common.apply')}
         </button>
       </div>
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">确认删除</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {t('favorites.card.deleteConfirm.title')}
+            </h3>
             <p className="text-sm text-gray-600 mb-4">
-              确定要删除收藏 "{favorite.name}" 吗？此操作无法撤销。
+              {t('favorites.card.deleteConfirm.message').replace('{name}', favorite.name)}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isRemoving}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
               >
-                {isRemoving ? '删除中...' : '删除'}
+                {isRemoving ? t('common.deleting') : t('common.delete')}
               </button>
             </div>
           </div>

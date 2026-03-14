@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { createLogger } from '@/lib/utils/logger';
+import { exportColors } from '@/lib/config/colors';
 
 const logger = createLogger('useChartExport');
 
@@ -135,7 +136,7 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
     ): Promise<string> => {
       checkCancelled();
 
-      const { width, height, scale = defaultScale, quality = defaultQuality, backgroundColor = '#ffffff' } = config;
+      const { width, height, scale = defaultScale, quality = defaultQuality, backgroundColor = exportColors.background } = config;
 
       // 如果是 SVG 格式，直接返回序列化后的字符串
       if (format === 'svg') {
@@ -259,7 +260,7 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
           filename: options.filename || defaultFilename,
           scale: options.scale || defaultScale,
           quality: options.quality || defaultQuality,
-          backgroundColor: options.backgroundColor || '#ffffff',
+          backgroundColor: options.backgroundColor || exportColors.background,
           width: options.width,
           height: options.height,
           includeLegend: options.includeLegend ?? true,

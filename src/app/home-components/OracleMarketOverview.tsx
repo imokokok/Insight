@@ -32,15 +32,15 @@ import {
 } from 'lucide-react';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { chartColors } from '@/lib/config/colors';
 
-// 专业配色方案
 const COLORS = {
-  chainlink: '#1E3A8A', // 深蓝
-  pyth: '#3B82F6', // 亮蓝
-  band: '#06B6D4', // 青色
-  api3: '#8B5CF6', // 紫色
-  uma: '#EC4899', // 粉色
-  others: '#9CA3AF', // 灰色
+  chainlink: chartColors.oracle.chainlink,
+  pyth: chartColors.oracle.pyth,
+  band: chartColors.oracle.band,
+  api3: chartColors.oracle.api3,
+  uma: chartColors.oracle.uma,
+  others: chartColors.oracle.others,
 };
 
 const marketShareData = [
@@ -194,7 +194,7 @@ export default function OracleMarketOverview() {
               label={renderCustomizedLabel}
               outerRadius={140}
               innerRadius={80}
-              fill="#8884d8"
+              fill={chartColors.recharts.primary}
               dataKey="value"
               paddingAngle={2}
               onMouseEnter={(_, index) => setHoveredItem(marketShareData[index]?.name)}
@@ -224,11 +224,11 @@ export default function OracleMarketOverview() {
       case 'trend':
         return (
           <LineChart data={tvsTrendData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
-            <YAxis stroke="#9ca3af" fontSize={12} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+            <XAxis dataKey="month" stroke={chartColors.recharts.axis} fontSize={12} />
+            <YAxis stroke={chartColors.recharts.axis} fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine y={0} stroke="#e5e7eb" />
+            <ReferenceLine y={0} stroke={chartColors.recharts.grid} />
             <Line
               type="monotone"
               dataKey="chainlink"
@@ -299,9 +299,9 @@ export default function OracleMarketOverview() {
       case 'bar':
         return (
           <BarChart data={chainSupportData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-            <YAxis dataKey="name" type="category" stroke="#9ca3af" fontSize={12} width={100} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
+            <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
+            <YAxis dataKey="name" type="category" stroke={chartColors.recharts.axis} fontSize={12} width={100} />
             <Tooltip content={<CustomTooltip />} />
             <Bar
               dataKey="chains"

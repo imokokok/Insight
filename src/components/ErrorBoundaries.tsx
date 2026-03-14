@@ -2,6 +2,7 @@
 
 import React, { Component, ReactNode } from 'react';
 import { createLogger } from '@/lib/utils/logger';
+import { useI18n } from '@/lib/i18n/provider';
 
 const logger = createLogger('ErrorBoundaries');
 
@@ -11,6 +12,15 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   level?: 'global' | 'section' | 'component';
   resetKeys?: unknown[];
+  translations?: {
+    somethingWrong: string;
+    tryAgain: string;
+    globalTitle: string;
+    globalDescription: string;
+    sectionTitle: string;
+    sectionDescription: string;
+    refreshPage: string;
+  };
 }
 
 interface ErrorBoundaryState {
@@ -59,7 +69,13 @@ export class BaseErrorBoundary extends Component<ErrorBoundaryProps, ErrorBounda
         return this.props.fallback;
       }
 
-      return <DefaultErrorFallback error={this.state.error} onReset={this.reset} />;
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          onReset={this.reset}
+          translations={this.props.translations}
+        />
+      );
     }
 
     return this.props.children;
@@ -69,9 +85,13 @@ export class BaseErrorBoundary extends Component<ErrorBoundaryProps, ErrorBounda
 interface ErrorFallbackProps {
   error?: Error;
   onReset: () => void;
+  translations?: ErrorBoundaryProps['translations'];
 }
 
-function DefaultErrorFallback({ error, onReset }: ErrorFallbackProps) {
+function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
+  const somethingWrong = translations?.somethingWrong || 'Something went wrong';
+  const tryAgain = translations?.tryAgain || 'Try again';
+
   return (
     <div className="min-h-[200px] flex items-center justify-center p-4">
       <div className="text-center">
@@ -90,21 +110,26 @@ function DefaultErrorFallback({ error, onReset }: ErrorFallbackProps) {
             />
           </svg>
         </div>
-        <p className="text-sm text-gray-600 mb-3">Something went wrong</p>
+        <p className="text-sm text-gray-600 mb-3">{somethingWrong}</p>
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-3 p-2 bg-gray-100 rounded text-left max-w-sm">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
           </div>
         )}
         <button onClick={onReset} className="text-sm text-blue-600 hover:text-blue-700 underline">
-          Try again
+          {tryAgain}
         </button>
       </div>
     </div>
   );
 }
 
-export function GlobalErrorFallback({ error, onReset }: ErrorFallbackProps) {
+export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
+  const title = translations?.globalTitle || 'Something went wrong';
+  const description = translations?.globalDescription || "We're sorry, but something unexpected happened. Please try refreshing the page.";
+  const tryAgain = translations?.tryAgain || 'Try again';
+  const refreshPage = translations?.refreshPage || 'Refresh page';
+
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
       <div className="text-center max-w-md">
@@ -123,10 +148,8 @@ export function GlobalErrorFallback({ error, onReset }: ErrorFallbackProps) {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
-        <p className="text-gray-600 mb-6">
-          We're sorry, but something unexpected happened. Please try refreshing the page.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+        <p className="text-gray-600 mb-6">{description}</p>
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-6 p-4 bg-gray-100 rounded-lg text-left">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
@@ -137,13 +160,13 @@ export function GlobalErrorFallback({ error, onReset }: ErrorFallbackProps) {
             onClick={onReset}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Try again
+            {tryAgain}
           </button>
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Refresh page
+            {refreshPage}
           </button>
         </div>
       </div>
@@ -151,7 +174,11 @@ export function GlobalErrorFallback({ error, onReset }: ErrorFallbackProps) {
   );
 }
 
-export function SectionErrorFallback({ error, onReset }: ErrorFallbackProps) {
+export function SectionErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
+  const title = translations?.sectionTitle || 'Section Error';
+  const description = translations?.sectionDescription || 'This section encountered an error. You can try again or continue with other parts of the page.';
+  const tryAgain = translations?.tryAgain || 'Try again';
+
   return (
     <div className="min-h-[300px] flex items-center justify-center p-6 bg-white border border-gray-200 rounded-lg">
       <div className="text-center max-w-sm">
@@ -170,11 +197,8 @@ export function SectionErrorFallback({ error, onReset }: ErrorFallbackProps) {
             />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Section Error</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          This section encountered an error. You can try again or continue with other parts of the
-          page.
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">{title}</h2>
+        <p className="text-sm text-gray-600 mb-4">{description}</p>
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-4 p-3 bg-gray-100 rounded text-left">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
@@ -184,18 +208,32 @@ export function SectionErrorFallback({ error, onReset }: ErrorFallbackProps) {
           onClick={onReset}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
         >
-          Try again
+          {tryAgain}
         </button>
       </div>
     </div>
   );
 }
 
+function useErrorTranslations() {
+  const { t } = useI18n();
+  return {
+    somethingWrong: t('error.boundary.somethingWrong'),
+    tryAgain: t('error.boundary.tryAgain'),
+    globalTitle: t('error.boundary.global.title'),
+    globalDescription: t('error.boundary.global.description'),
+    sectionTitle: t('error.boundary.section.title'),
+    sectionDescription: t('error.boundary.section.description'),
+    refreshPage: t('error.boundary.refreshPage'),
+  };
+}
+
 export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
+  const translations = useErrorTranslations();
   return (
     <BaseErrorBoundary
       level="global"
-      fallback={<GlobalErrorFallback error={undefined} onReset={() => {}} />}
+      fallback={<GlobalErrorFallback error={undefined} onReset={() => {}} translations={translations} />}
     >
       {children}
     </BaseErrorBoundary>
@@ -203,10 +241,11 @@ export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 export function SectionErrorBoundary({ children }: { children: ReactNode }) {
+  const translations = useErrorTranslations();
   return (
     <BaseErrorBoundary
       level="section"
-      fallback={<SectionErrorFallback error={undefined} onReset={() => {}} />}
+      fallback={<SectionErrorFallback error={undefined} onReset={() => {}} translations={translations} />}
     >
       {children}
     </BaseErrorBoundary>
@@ -214,7 +253,12 @@ export function SectionErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 export function ComponentErrorBoundary({ children }: { children: ReactNode }) {
-  return <BaseErrorBoundary level="component">{children}</BaseErrorBoundary>;
+  const translations = useErrorTranslations();
+  return (
+    <BaseErrorBoundary level="component" translations={translations}>
+      {children}
+    </BaseErrorBoundary>
+  );
 }
 
 export { BaseErrorBoundary as ErrorBoundary };

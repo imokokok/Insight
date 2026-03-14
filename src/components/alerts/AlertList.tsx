@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AlertListProps {
   alerts: PriceAlert[];
@@ -24,52 +25,59 @@ function getAlertStatus(alert: PriceAlert): AlertStatus {
   return 'active';
 }
 
-function getStatusBadge(status: AlertStatus) {
-  switch (status) {
-    case 'active':
-      return {
-        label: '活跃',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-200',
-      };
-    case 'triggered':
-      return {
-        label: '已触发',
-        bgColor: 'bg-yellow-100',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-200',
-      };
-    case 'disabled':
-      return {
-        label: '已禁用',
-        bgColor: 'bg-gray-100',
-        textColor: 'text-gray-700',
-        borderColor: 'border-gray-200',
-      };
-  }
-}
-
-function getConditionLabel(conditionType: string, targetValue: number): string {
-  switch (conditionType) {
-    case 'above':
-      return `价格 ≥ ${targetValue.toFixed(4)}`;
-    case 'below':
-      return `价格 ≤ ${targetValue.toFixed(4)}`;
-    case 'change_percent':
-      return `变化 ≥ ${targetValue.toFixed(2)}%`;
-    default:
-      return `目标: ${targetValue}`;
-  }
-}
-
 export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
+  const { t } = useI18n();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { updateAlert, isUpdating } = useUpdateAlert();
   const { deleteAlert, isDeleting } = useDeleteAlert();
+
+  const getStatusBadge = useCallback(
+    (status: AlertStatus) => {
+      switch (status) {
+        case 'active':
+          return {
+            label: t('alerts.list.statusActive'),
+            bgColor: 'bg-green-100',
+            textColor: 'text-green-700',
+            borderColor: 'border-green-200',
+          };
+        case 'triggered':
+          return {
+            label: t('alerts.list.statusTriggered'),
+            bgColor: 'bg-yellow-100',
+            textColor: 'text-yellow-700',
+            borderColor: 'border-yellow-200',
+          };
+        case 'disabled':
+          return {
+            label: t('alerts.list.statusDisabled'),
+            bgColor: 'bg-gray-100',
+            textColor: 'text-gray-700',
+            borderColor: 'border-gray-200',
+          };
+      }
+    },
+    [t]
+  );
+
+  const getConditionLabel = useCallback(
+    (conditionType: string, targetValue: number): string => {
+      switch (conditionType) {
+        case 'above':
+          return `${t('alerts.condition.above')} ≥ ${targetValue.toFixed(4)}`;
+        case 'below':
+          return `${t('alerts.condition.below')} ≤ ${targetValue.toFixed(4)}`;
+        case 'change_percent':
+          return `${t('alerts.condition.changePercent')} ≥ ${targetValue.toFixed(2)}%`;
+        default:
+          return `${t('alerts.create.targetValueLabel')}: ${targetValue}`;
+      }
+    },
+    [t]
+  );
 
   const handleToggleActive = useCallback(
     async (alert: PriceAlert) => {
@@ -112,7 +120,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
 
   if (isLoading) {
     return (
-      <DashboardCard title="我的告警">
+      <DashboardCard title={t('alerts.list.title')}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent animate-spin" />
         </div>
@@ -122,7 +130,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
 
   if (alerts.length === 0) {
     return (
-      <DashboardCard title="我的告警">
+      <DashboardCard title={t('alerts.list.title')}>
         <div className="text-center py-8 text-gray-500">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
@@ -137,15 +145,15 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-          <p className="mt-2 text-sm">暂无告警</p>
-          <p className="text-xs text-gray-400">创建您的第一个价格告警</p>
+          <p className="mt-2 text-sm">{t('alerts.list.empty')}</p>
+          <p className="text-xs text-gray-400">{t('alerts.list.emptyHint')}</p>
         </div>
       </DashboardCard>
     );
   }
 
   return (
-    <DashboardCard title={`我的告警 (${alerts.length})`}>
+    <DashboardCard title={`${t('alerts.list.title')} (${alerts.length})`}>
       <div className="space-y-3">
         {alerts.map((alert) => {
           const status = getAlertStatus(alert);
@@ -209,13 +217,13 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                           disabled={isUpdating}
                           className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
-                          保存
+                          {t('common.save')}
                         </button>
                         <button
                           onClick={handleCancelEdit}
                           className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                         >
-                          取消
+                          {t('common.cancel')}
                         </button>
                       </div>
                     ) : (
@@ -225,7 +233,8 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
 
                   {alert.last_triggered_at && (
                     <p className="text-xs text-gray-400 mt-1">
-                      最后触发: {new Date(alert.last_triggered_at).toLocaleString('zh-CN')}
+                      {t('alerts.list.lastTriggered')}:{' '}
+                      {new Date(alert.last_triggered_at).toLocaleString('zh-CN')}
                     </p>
                   )}
                 </div>
@@ -237,7 +246,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                       alert.is_active ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
-                    title={alert.is_active ? '禁用' : '启用'}
+                    title={alert.is_active ? t('alerts.list.disable') : t('alerts.list.enable')}
                   >
                     <span
                       className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
@@ -250,7 +259,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                     onClick={() => handleEdit(alert)}
                     disabled={editingId === alert.id}
                     className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                    title="编辑"
+                    title={t('common.edit')}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -269,20 +278,20 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                         disabled={isDeleting}
                         className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
                       >
-                        确认
+                        {t('alerts.list.confirm')}
                       </button>
                       <button
                         onClick={() => setDeleteConfirmId(null)}
                         className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                       >
-                        取消
+                        {t('common.cancel')}
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => setDeleteConfirmId(alert.id!)}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                      title="删除"
+                      title={t('common.delete')}
                     >
                       <svg
                         className="w-4 h-4"

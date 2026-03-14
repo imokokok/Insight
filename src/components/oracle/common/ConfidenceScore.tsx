@@ -16,6 +16,7 @@ import {
   Radar,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
 
@@ -266,15 +267,15 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
   const getStrokeColor = () => {
     switch (level) {
       case 'excellent':
-        return '#10b981';
+        return semanticColors.success.DEFAULT;
       case 'good':
-        return '#3b82f6';
+        return chartColors.recharts.primary;
       case 'fair':
-        return '#f59e0b';
+        return semanticColors.warning.DEFAULT;
       case 'poor':
-        return '#ef4444';
+        return semanticColors.danger.DEFAULT;
       default:
-        return '#6b7280';
+        return chartColors.recharts.tick;
     }
   };
 
@@ -307,7 +308,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
       <div className="flex items-center justify-center mb-6">
         <div className="relative">
           <svg className="w-40 h-40 transform -rotate-90">
-            <circle cx="80" cy="80" r="70" stroke="#e5e7eb" strokeWidth="10" fill="none" />
+            <circle cx="80" cy="80" r="70" stroke={chartColors.recharts.grid} strokeWidth="10" fill="none" />
             <circle
               cx="80"
               cy="80"
@@ -363,14 +364,14 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
 
       <ResponsiveContainer width="100%" height={280}>
         <RadarChart data={radarData}>
-          <PolarGrid stroke="#e5e7eb" />
-          <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} />
-          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+          <PolarGrid stroke={chartColors.recharts.grid} />
+          <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: chartColors.recharts.tick }} />
+          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: chartColors.recharts.tickDark }} />
           <Radar
             name={locale === 'zh-CN' ? '评分' : 'Score'}
             dataKey="score"
-            stroke="#3b82f6"
-            fill="#3b82f6"
+            stroke={chartColors.recharts.primary}
+            fill={chartColors.recharts.primary}
             fillOpacity={0.3}
             strokeWidth={2}
           />
@@ -384,10 +385,10 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
   const { locale } = useI18n();
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return '#10b981';
-    if (score >= 70) return '#3b82f6';
-    if (score >= 50) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 90) return semanticColors.success.DEFAULT;
+    if (score >= 70) return chartColors.recharts.primary;
+    if (score >= 50) return semanticColors.warning.DEFAULT;
+    return semanticColors.danger.DEFAULT;
   };
 
   return (
@@ -477,20 +478,20 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
 
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
           <XAxis
             dataKey="timestamp"
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={formatTime}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.tick}
+            tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             domain={[0, 100]}
           />
           <Tooltip
@@ -547,7 +548,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="score"
-            stroke="#3b82f6"
+            stroke={chartColors.recharts.primary}
             strokeWidth={2}
             dot={false}
             name={locale === 'zh-CN' ? '综合评分' : 'Overall Score'}
@@ -555,7 +556,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="consensusScore"
-            stroke="#8b5cf6"
+            stroke={chartColors.recharts.purple}
             strokeWidth={1.5}
             dot={false}
             strokeDasharray="5 5"
@@ -564,7 +565,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
           <Line
             type="monotone"
             dataKey="accuracyScore"
-            stroke="#10b981"
+            stroke={semanticColors.success.DEFAULT}
             strokeWidth={1.5}
             dot={false}
             strokeDasharray="5 5"

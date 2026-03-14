@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { createLogger } from '@/lib/utils/logger';
+import { useI18n } from '@/lib/i18n/provider';
 
 const logger = createLogger('NotificationPanel');
 
@@ -60,6 +61,7 @@ function Toggle({
 }
 
 export function NotificationPanel() {
+  const { t } = useI18n();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -88,7 +90,7 @@ export function NotificationPanel() {
       setBrowserPermission(permission);
 
       if (permission === 'denied') {
-        alert('浏览器通知权限被拒绝。请在浏览器设置中允许通知。');
+        alert(t('settings.notifications.browserPermissionDenied'));
       }
     }
   };
@@ -101,7 +103,7 @@ export function NotificationPanel() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
     setIsSaving(false);
-    setSuccess('通知设置已保存');
+    setSuccess(t('settings.notifications.saveSuccess'));
 
     setTimeout(() => setSuccess(null), 3000);
   };
@@ -119,9 +121,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-gray-400" />
-            通知设置
+            {t('settings.notifications.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">管理您接收通知的方式</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.notifications.subtitle')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -139,8 +141,8 @@ export function NotificationPanel() {
                   <Mail className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">邮件通知</div>
-                  <div className="text-sm text-gray-500">通过邮件接收重要通知</div>
+                  <div className="font-medium text-gray-900">{t('settings.notifications.emailNotifications')}</div>
+                  <div className="text-sm text-gray-500">{t('settings.notifications.emailNotificationsDesc')}</div>
                 </div>
               </div>
               <Toggle
@@ -155,11 +157,11 @@ export function NotificationPanel() {
                   <Globe className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">浏览器通知</div>
-                  <div className="text-sm text-gray-500">在浏览器中显示实时通知</div>
+                  <div className="font-medium text-gray-900">{t('settings.notifications.browserNotifications')}</div>
+                  <div className="text-sm text-gray-500">{t('settings.notifications.browserNotificationsDesc')}</div>
                   {browserPermission === 'denied' && (
                     <div className="text-xs text-red-500 mt-1">
-                      通知权限已被拒绝，请在浏览器设置中允许
+                      {t('settings.notifications.permissionDeniedHint')}
                     </div>
                   )}
                 </div>
@@ -170,7 +172,7 @@ export function NotificationPanel() {
                     onClick={requestBrowserPermission}
                     className="text-xs text-blue-600 hover:text-blue-700 mr-2"
                   >
-                    授权
+                    {t('settings.notifications.authorize')}
                   </button>
                 )}
                 <Toggle
@@ -192,9 +194,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-400" />
-            告警通知
+            {t('settings.notifications.alertNotifications')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">配置价格告警的通知方式</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.notifications.alertNotificationsDesc')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -204,8 +206,8 @@ export function NotificationPanel() {
                 <AlertTriangle className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">告警触发通知</div>
-                <div className="text-sm text-gray-500">当价格告警触发时发送通知</div>
+                <div className="font-medium text-gray-900">{t('settings.notifications.alertTriggerNotification')}</div>
+                <div className="text-sm text-gray-500">{t('settings.notifications.alertTriggerNotificationDesc')}</div>
               </div>
             </div>
             <Toggle
@@ -220,9 +222,9 @@ export function NotificationPanel() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-400" />
-            价格变动通知
+            {t('settings.notifications.priceChangeNotification')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">当价格变动超过阈值时自动通知</p>
+          <p className="text-sm text-gray-500 mt-1">{t('settings.notifications.priceChangeNotificationDesc')}</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -232,8 +234,8 @@ export function NotificationPanel() {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">启用价格变动通知</div>
-                <div className="text-sm text-gray-500">当价格变动超过设定阈值时通知</div>
+                <div className="font-medium text-gray-900">{t('settings.notifications.enablePriceChangeNotification')}</div>
+                <div className="text-sm text-gray-500">{t('settings.notifications.enablePriceChangeNotificationDesc')}</div>
               </div>
             </div>
             <Toggle
@@ -244,7 +246,7 @@ export function NotificationPanel() {
 
           {settings.priceChangeEnabled && (
             <div className="pl-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">变动阈值 (%)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.notifications.changeThreshold')}</label>
               <div className="flex items-center gap-4">
                 <input
                   type="range"
@@ -262,7 +264,7 @@ export function NotificationPanel() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                当价格在短时间内变动超过此百分比时发送通知
+                {t('settings.notifications.changeThresholdHint')}
               </p>
             </div>
           )}
@@ -276,7 +278,7 @@ export function NotificationPanel() {
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          保存设置
+          {t('settings.notifications.saveSettings')}
         </button>
       </div>
     </div>

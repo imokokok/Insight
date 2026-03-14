@@ -28,7 +28,6 @@ import {
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
-
 const logger = createLogger('PriceDeviationMonitor');
 
 interface DeviationData {
@@ -68,12 +67,12 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
 };
 
 const PROVIDER_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#3b82f6',
-  [OracleProvider.PYTH]: '#8b5cf6',
-  [OracleProvider.BAND_PROTOCOL]: '#10b981',
-  [OracleProvider.UMA]: '#f59e0b',
-  [OracleProvider.API3]: '#ef4444',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.PYTH]: chartColors.oracle.pyth,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 function formatTime(timestamp: number): string {

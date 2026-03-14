@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type GaugeType = 'percentage' | 'value';
 type GaugeLevel = 'excellent' | 'good' | 'warning' | 'danger';
@@ -28,28 +29,28 @@ interface GaugeConfig {
 
 const LEVEL_CONFIGS: Record<GaugeLevel, GaugeConfig> = {
   excellent: {
-    color: '#10B981',
+    color: semanticColors.success.DEFAULT,
     bgColor: 'bg-green-500',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
     label: '优秀',
   },
   good: {
-    color: '#3B82F6',
+    color: chartColors.recharts.primary,
     bgColor: 'bg-blue-500',
     lightBg: 'bg-blue-50',
     borderColor: 'border-blue-200',
     label: '良好',
   },
   warning: {
-    color: '#F59E0B',
+    color: semanticColors.warning.DEFAULT,
     bgColor: 'bg-yellow-500',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
     label: '警告',
   },
   danger: {
-    color: '#EF4444',
+    color: semanticColors.danger.DEFAULT,
     bgColor: 'bg-red-500',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
@@ -264,7 +265,7 @@ function SingleGauge({
           <path
             d={backgroundArc}
             fill="none"
-            stroke="#E5E7EB"
+            stroke={chartColors.grid.line}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
@@ -286,7 +287,7 @@ function SingleGauge({
                 y1={tick.y1}
                 x2={tick.x2}
                 y2={tick.y2}
-                stroke={tick.isMajor ? '#9CA3AF' : '#D1D5DB'}
+                stroke={tick.isMajor ? chartColors.grid.axis : chartColors.grid.line}
                 strokeWidth={tick.isMajor ? 2 : 1}
               />
               {tick.isMajor && (

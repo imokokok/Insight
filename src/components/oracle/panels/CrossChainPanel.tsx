@@ -18,6 +18,7 @@ import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton } from '../forms/DataExportButton';
 import { useI18n } from '@/lib/i18n/provider';
+import { chainColors, chartColors } from '@/lib/config/colors';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -28,26 +29,17 @@ interface CrossChainPanelProps {
 }
 
 const CHAIN_COLORS: Record<string, string> = {
-  'Cosmos Hub': '#2E3359',
-  Osmosis: '#9945FF',
-  Ethereum: '#627EEA',
-  Polygon: '#8247E5',
-  Avalanche: '#E84142',
-  Fantom: '#1969FF',
-  Cronos: '#002D74',
-  Juno: '#5B6EE1',
+  'Cosmos Hub': chainColors.cosmosHub,
+  Osmosis: chainColors.osmosis,
+  Ethereum: chainColors.ethereum,
+  Polygon: chainColors.polygon,
+  Avalanche: chainColors.avalanche,
+  Fantom: chainColors.fantom,
+  Cronos: chainColors.cronos,
+  Juno: chainColors.juno,
 };
 
-const DEFAULT_COLORS = [
-  '#3B82F6',
-  '#10B981',
-  '#F59E0B',
-  '#EF4444',
-  '#8B5CF6',
-  '#EC4899',
-  '#06B6D4',
-  '#84CC16',
-];
+const DEFAULT_COLORS = chartColors.sequence;
 
 function getChainColor(chainName: string, index: number): string {
   return CHAIN_COLORS[chainName] || DEFAULT_COLORS[index % DEFAULT_COLORS.length];
@@ -537,25 +529,25 @@ export function CrossChainPanel({
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 40 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#e5e7eb"
+                stroke={chartColors.recharts.grid}
                 strokeOpacity={0.5}
                 vertical={false}
               />
               <XAxis
                 dataKey="name"
-                stroke="#9ca3af"
-                tick={{ fontSize: 10, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
                 tickLine={false}
-                axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                 angle={-35}
                 textAnchor="end"
                 height={60}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickLine={false}
-                axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                 tickFormatter={(value) => formatNumber(value)}
                 width={50}
               />

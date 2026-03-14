@@ -8,6 +8,7 @@
  */
 
 import { createLogger } from '@/lib/utils/logger';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('anomalyDetection');
 
@@ -521,10 +522,10 @@ export function detectAllAnomalies(data: {
  */
 export function getAnomalyLevelColor(level: AnomalyLevel): string {
   const colors: Record<AnomalyLevel, string> = {
-    low: '#3B82F6', // 蓝色
-    medium: '#F59E0B', // 黄色
-    high: '#EF4444', // 红色
-    critical: '#7C3AED', // 紫色
+    low: chartColors.recharts.primary,
+    medium: semanticColors.warning.DEFAULT,
+    high: semanticColors.danger.DEFAULT,
+    critical: chartColors.oracle['pyth'],
   };
   return colors[level];
 }

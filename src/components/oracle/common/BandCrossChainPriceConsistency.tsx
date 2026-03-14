@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
+import { semanticColors } from '@/lib/config/colors';
 
 export interface BandChainPriceData {
   chain: string;
@@ -35,6 +36,12 @@ const SYMBOLS = ['BTC/USD', 'ETH/USD', 'USDC/USD'];
 const DEVIATION_THRESHOLDS = {
   normal: 0.1,
   warning: 0.5,
+};
+
+const STATUS_COLORS = {
+  consistent: semanticColors.success.dark,
+  warning: semanticColors.warning.dark,
+  inconsistent: semanticColors.danger.dark,
 };
 
 function generateMockPriceData(): Map<string, BandChainPriceData[]> {

@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { QueryResult } from '../constants';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface DataQualityMetrics {
   oracle: string;
@@ -49,17 +50,17 @@ interface DataQualityPanelProps {
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: '#10b981', bgColor: 'bg-green-500', label: '优秀' },
-  good: { color: '#3b82f6', bgColor: 'bg-blue-500', label: '良好' },
-  warning: { color: '#f59e0b', bgColor: 'bg-yellow-500', label: '警告' },
-  critical: { color: '#ef4444', bgColor: 'bg-red-500', label: '异常' },
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: '优秀' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: '良好' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: '警告' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: '异常' },
 };
 
 const LATENCY_COLORS = {
-  excellent: '#10b981',
-  good: '#3b82f6',
-  warning: '#f59e0b',
-  critical: '#ef4444',
+  excellent: semanticColors.success.main,
+  good: semanticColors.info.main,
+  warning: semanticColors.warning.main,
+  critical: semanticColors.danger.main,
 };
 
 function getScoreLevel(score: number): ScoreLevel {
@@ -398,20 +399,20 @@ function LatencyDistributionChart({
 
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={distribution} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="range"
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.axis}
+            tick={{ fontSize: 10, fill: chartColors.recharts.secondaryAxis }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             label={{ value: 'ms', position: 'insideBottom', offset: -5, fontSize: 10 }}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.axis}
+            tick={{ fontSize: 10, fill: chartColors.recharts.secondaryAxis }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             tickFormatter={(value) => `${value}%`}
           />
           <Tooltip
@@ -493,11 +494,11 @@ function FreshnessTrendChart({
   }, [results, historicalData]);
 
   const oracleColors: Record<string, string> = {
-    Chainlink: '#3b82f6',
-    Pyth: '#8b5cf6',
-    Band: '#10b981',
-    UMA: '#f59e0b',
-    API3: '#ef4444',
+    Chainlink: chartColors.oracle.chainlink,
+    Pyth: chartColors.oracle.pyth,
+    Band: chartColors.oracle.band,
+    UMA: chartColors.oracle.uma,
+    API3: chartColors.oracle.api3,
   };
 
   const toggleSeries = (key: string) => {
@@ -555,7 +556,7 @@ function FreshnessTrendChart({
               <span
                 className="w-2 h-2 rounded-full"
                 style={{
-                  backgroundColor: isHidden ? '#9ca3af' : oracleColors[provider] || '#6b7280',
+                  backgroundColor: isHidden ? chartColors.recharts.neutral : oracleColors[provider] || chartColors.recharts.secondaryAxis,
                 }}
               />
               <span>
@@ -580,30 +581,30 @@ function FreshnessTrendChart({
               >
                 <stop
                   offset="5%"
-                  stopColor={oracleColors[provider] || '#6b7280'}
+                  stopColor={oracleColors[provider] || chartColors.recharts.secondaryAxis}
                   stopOpacity={0.3}
                 />
                 <stop
                   offset="95%"
-                  stopColor={oracleColors[provider] || '#6b7280'}
+                  stopColor={oracleColors[provider] || chartColors.recharts.secondaryAxis}
                   stopOpacity={0}
                 />
               </linearGradient>
             ))}
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
           <XAxis
             dataKey="time"
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.axis}
+            tick={{ fontSize: 10, fill: chartColors.recharts.secondaryAxis }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
           />
           <YAxis
-            stroke="#9ca3af"
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            stroke={chartColors.recharts.axis}
+            tick={{ fontSize: 10, fill: chartColors.recharts.secondaryAxis }}
             tickLine={false}
-            axisLine={{ stroke: '#e5e7eb' }}
+            axisLine={{ stroke: chartColors.recharts.grid }}
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
           />
@@ -636,7 +637,7 @@ function FreshnessTrendChart({
                 type="monotone"
                 dataKey={key}
                 name={`${provider} (${chain})`}
-                stroke={oracleColors[provider] || '#6b7280'}
+                stroke={oracleColors[provider] || chartColors.recharts.secondaryAxis}
                 fill={`url(#gradient-${provider})`}
                 strokeWidth={2}
                 dot={false}

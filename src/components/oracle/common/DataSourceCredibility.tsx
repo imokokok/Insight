@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { DashboardCard } from './DashboardCard';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface DataSourceCredibilityProps {
   sources: Array<{
@@ -25,9 +26,9 @@ interface DataSourceCredibilityProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return '#10B981';
-  if (score >= 60) return '#F59E0B';
-  return '#EF4444';
+  if (score >= 80) return semanticColors.success.DEFAULT;
+  if (score >= 60) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 }
 
 function getScoreColorClass(score: number): string {
@@ -60,7 +61,7 @@ function CircularProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#E5E7EB"
+          stroke={chartColors.grid.line}
           strokeWidth={strokeWidth}
           fill="none"
         />

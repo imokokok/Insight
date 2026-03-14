@@ -51,18 +51,18 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
 };
 
 const MA_CONFIGS: MovingAverageConfig[] = [
-  { window: 5, label: 'MA5', color: '#F59E0B' },
-  { window: 10, label: 'MA10', color: '#10B981' },
-  { window: 20, label: 'MA20', color: '#8B5CF6' },
+  { window: 5, label: 'MA5', color: chartColors.recharts.warning },
+  { window: 10, label: 'MA10', color: chartColors.recharts.success },
+  { window: 20, label: 'MA20', color: chartColors.recharts.purple },
 ];
 
 function calculateSMA(prices: number[], window: number): number[] {
@@ -416,7 +416,7 @@ export function MovingAverageChart({
                         type="monotone"
                         dataKey="bbUpper"
                         stroke="none"
-                        fill="#E0E7FF"
+                        fill={chartColors.recharts.indigo}
                         fillOpacity={0.3}
                         name="布林上轨"
                       />
@@ -424,14 +424,14 @@ export function MovingAverageChart({
                         type="monotone"
                         dataKey="bbLower"
                         stroke="none"
-                        fill="#ffffff"
+                        fill={chartColors.recharts.white}
                         fillOpacity={1}
                         name="布林下轨"
                       />
                       <Line
                         type="monotone"
                         dataKey="bbMiddle"
-                        stroke="#6366F1"
+                        stroke={chartColors.recharts.indigo}
                         strokeWidth={1}
                         strokeDasharray="5 5"
                         dot={false}
@@ -473,7 +473,7 @@ export function MovingAverageChart({
                         key={`EMA${window}`}
                         type="monotone"
                         dataKey={`EMA${window}`}
-                        stroke="#EC4899"
+                        stroke={chartColors.recharts.pink}
                         strokeWidth={1.5}
                         strokeDasharray="3 3"
                         dot={false}
@@ -511,8 +511,9 @@ export function MovingAverageChart({
                     <Area
                       type="monotone"
                       dataKey="rollingStdDev"
-                      stroke="#F59E0B"
-                      fill="#FEF3C7"
+                      stroke={chartColors.recharts.warning}
+                      fill={chartColors.recharts.warning}
+                      fillOpacity={0.3}
                       name="滚动标准差"
                     />
                   </ComposedChart>

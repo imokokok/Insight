@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { chartColors } from '@/lib/config/colors';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { formatNumber } from '@/lib/utils/format';
@@ -66,7 +67,7 @@ function DonutChart({
           cy={center}
           r={radius}
           fill="none"
-          stroke="#e5e7eb"
+          stroke={chartColors.recharts.grid}
           strokeWidth={strokeWidth}
         />
 
@@ -119,21 +120,21 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
         label: '支持',
         value: votingData.votesFor,
         percentage: (votingData.votesFor / totalVotes) * 100,
-        color: '#10b981',
+        color: chartColors.semantic.success,
         lightColor: '#d1fae5',
       },
       {
         label: '反对',
         value: votingData.votesAgainst,
         percentage: (votingData.votesAgainst / totalVotes) * 100,
-        color: '#ef4444',
+        color: chartColors.semantic.danger,
         lightColor: '#fee2e2',
       },
       {
         label: '弃权',
         value: votingData.votesAbstain,
         percentage: (votingData.votesAbstain / totalVotes) * 100,
-        color: '#9ca3af',
+        color: chartColors.recharts.tick,
         lightColor: '#f3f4f6',
       },
     ];

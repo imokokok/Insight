@@ -2,6 +2,7 @@
 
 import { useState, useCallback, RefObject } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
+import { exportColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface ExportData {
   symbol: string;
@@ -118,22 +119,22 @@ export function ComparisonReportExporter({
       ctx.scale(2, 2);
       
       // 绘制白色背景
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = exportColors.background;
       ctx.fillRect(0, 0, rect.width, rect.height);
       
       // 绘制标题
-      ctx.fillStyle = '#111827';
+      ctx.fillStyle = baseColors.gray[900];
       ctx.font = 'bold 20px sans-serif';
       ctx.fillText(`Oracle Comparison Report - ${data.symbol}`, 20, 30);
       
-      ctx.fillStyle = '#6B7280';
+      ctx.fillStyle = baseColors.gray[500];
       ctx.font = '14px sans-serif';
       ctx.fillText(`Generated: ${new Date().toLocaleString()}`, 20, 55);
       
       // 绘制统计信息
       let yOffset = 90;
       if (data.statistics) {
-        ctx.fillStyle = '#111827';
+        ctx.fillStyle = baseColors.gray[900];
         ctx.font = 'bold 16px sans-serif';
         ctx.fillText('Statistics:', 20, yOffset);
         yOffset += 25;
@@ -148,7 +149,7 @@ export function ComparisonReportExporter({
       }
       
       // 绘制表格
-      ctx.fillStyle = '#111827';
+      ctx.fillStyle = baseColors.gray[900];
       ctx.font = 'bold 16px sans-serif';
       ctx.fillText('Oracle Data:', 20, yOffset);
       yOffset += 25;
@@ -157,10 +158,10 @@ export function ComparisonReportExporter({
       const colWidths = [120, 100, 100, 120, 150];
       const headers = ['Provider', 'Price', 'Confidence', 'Response Time', 'Deviation'];
       
-      ctx.fillStyle = '#F3F4F6';
+      ctx.fillStyle = baseColors.gray[100];
       ctx.fillRect(20, yOffset - 15, colWidths.reduce((a, b) => a + b, 0), 25);
       
-      ctx.fillStyle = '#374151';
+      ctx.fillStyle = baseColors.gray[700];
       ctx.font = 'bold 12px sans-serif';
       let xOffset = 20;
       headers.forEach((header, index) => {
@@ -173,11 +174,11 @@ export function ComparisonReportExporter({
       ctx.font = '12px sans-serif';
       data.oracles.forEach((oracle, rowIndex) => {
         if (rowIndex % 2 === 0) {
-          ctx.fillStyle = '#F9FAFB';
+          ctx.fillStyle = baseColors.gray[50];
           ctx.fillRect(20, yOffset - 12, colWidths.reduce((a, b) => a + b, 0), 20);
         }
         
-        ctx.fillStyle = '#111827';
+        ctx.fillStyle = baseColors.gray[900];
         xOffset = 20;
         
         ctx.fillText(oracle.provider, xOffset, yOffset);
@@ -192,7 +193,7 @@ export function ComparisonReportExporter({
         ctx.fillText(`${oracle.responseTime}ms`, xOffset, yOffset);
         xOffset += colWidths[3];
         
-        const deviationColor = Math.abs(oracle.deviation) > 1 ? '#EF4444' : '#10B981';
+        const deviationColor = Math.abs(oracle.deviation) > 1 ? semanticColors.danger.DEFAULT : semanticColors.success.DEFAULT;
         ctx.fillStyle = deviationColor;
         ctx.fillText(`${oracle.deviation > 0 ? '+' : ''}${oracle.deviation.toFixed(3)}%`, xOffset, yOffset);
         
