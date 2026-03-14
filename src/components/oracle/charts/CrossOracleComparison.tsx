@@ -215,16 +215,12 @@ export function CrossOracleComparison() {
           const price = await client.getPrice(selectedSymbol, Blockchain.ETHEREUM);
           const responseTime = Date.now() - requestStart;
 
-          const previousHistory = priceHistory[provider];
-          const previousPrice = previousHistory?.[previousHistory.length - 1]?.price;
-
           return {
             provider,
             price: price.price,
             timestamp: price.timestamp,
             confidence: price.confidence,
             responseTime,
-            previousPrice,
           };
         } catch (error) {
           logger.error(
@@ -238,7 +234,15 @@ export function CrossOracleComparison() {
       const results = await Promise.all(promises);
       const validResults = results.filter((r) => r !== null) as PriceComparisonData[];
 
-      setPriceData(validResults);
+      setPriceData((prevData) => {
+        // 使用前一个 priceData 来获取 previousPrice
+        const prevDataMap = new Map(prevData.map(d => [d.provider, d.price]));
+        const resultsWithPrevious = validResults.map(result => ({
+          ...result,
+          previousPrice: prevDataMap.get(result.provider),
+        }));
+        return resultsWithPrevious;
+      });
       setLastUpdated(new Date());
 
       setPriceHistory((prev) => {
@@ -262,7 +266,7 @@ export function CrossOracleComparison() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSymbol, selectedOracles, priceHistory]);
+  }, [selectedSymbol, selectedOracles]);
 
   useEffect(() => {
     fetchPrices();

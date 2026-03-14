@@ -45,24 +45,36 @@
   - [x] SubTask 7.3: 更新相关性矩阵
   - [x] SubTask 7.4: 验证对比数据准确性
 
-## Phase 3: 文档与优化
+## Phase 3: Tab 内容修复（已完成）
 
-- [ ] Task 8: 更新文档
-  - [ ] SubTask 8.1: 更新 ORACLE_INTEGRATION.md 添加 RedStone 章节
-  - [ ] SubTask 8.2: 更新 ARCHITECTURE.md 相关部分
-  - [ ] SubTask 8.3: 更新 API 文档
-  - [ ] SubTask 8.4: 添加 RedStone 集成说明
+- [x] Task 8: 修复 RedStone 页面跨预言机对比 Tab
+  - [x] SubTask 8.1: 在 redstone/page.tsx 中添加 cross-oracle Tab 的内容渲染
+  - [x] SubTask 8.2: 导入 CrossOracleComparison 组件
+  - [x] SubTask 8.3: 验证 Tab 切换时内容正确显示
 
-- [x] Task 9: 性能优化
-  - [x] SubTask 9.1: 实现 RedStone 数据缓存策略（复用 BaseOracleClient 的数据库缓存）
-  - [x] SubTask 9.2: 优化 API 调用频率
-  - [x] SubTask 9.3: 添加错误处理和降级机制
+- [x] Task 9: 修复 RedStone 页面风险评估 Tab
+  - [x] SubTask 9.1: 在 redstone/page.tsx 中添加 risk Tab 的内容渲染
+  - [x] SubTask 9.2: 导入 RiskAssessmentPanel 组件
+  - [x] SubTask 9.3: 验证 Tab 切换时内容正确显示
 
-- [ ] Task 10: 测试与验证
-  - [ ] SubTask 10.1: 集成测试 RedStone 客户端
-  - [ ] SubTask 10.2: 端到端测试 RedStone 页面
-  - [ ] SubTask 10.3: 验证数据准确性
-  - [ ] SubTask 10.4: 性能测试
+## Phase 4: 文档与优化
+
+- [ ] Task 10: 更新文档
+  - [ ] SubTask 10.1: 更新 ORACLE_INTEGRATION.md 添加 RedStone 章节
+  - [ ] SubTask 10.2: 更新 ARCHITECTURE.md 相关部分
+  - [ ] SubTask 10.3: 更新 API 文档
+  - [ ] SubTask 10.4: 添加 RedStone 集成说明
+
+- [x] Task 11: 性能优化
+  - [x] SubTask 11.1: 实现 RedStone 数据缓存策略（复用 BaseOracleClient 的数据库缓存）
+  - [x] SubTask 11.2: 优化 API 调用频率
+  - [x] SubTask 11.3: 添加错误处理和降级机制
+
+- [ ] Task 12: 测试与验证
+  - [ ] SubTask 12.1: 集成测试 RedStone 客户端
+  - [ ] SubTask 12.2: 端到端测试 RedStone 页面
+  - [ ] SubTask 12.3: 验证数据准确性
+  - [ ] SubTask 12.4: 性能测试
 
 ---
 
@@ -74,15 +86,15 @@
 - [Task 5] depends on [Task 4] (页面需要真实数据)
 - [Task 6] depends on [Task 5] (导航指向已完成页面)
 - [Task 7] depends on [Task 4] (对比分析需要市场数据)
-- [Task 8] depends on [Task 5, Task 7] (文档描述已实现功能)
-- [Task 9] depends on [Task 4] (优化基于已实现的数据服务)
-- [Task 10] depends on [Task 5, Task 7, Task 9] (测试覆盖所有实现)
+- [Task 8] depends on [Task 5] (Tab 内容修复基于已有页面)
+- [Task 9] depends on [Task 5] (Tab 内容修复基于已有页面)
+- [Task 10] depends on [Task 5, Task 7, Task 8, Task 9] (文档描述已实现功能)
+- [Task 11] depends on [Task 4] (优化基于已实现的数据服务)
+- [Task 12] depends on [Task 5, Task 7, Task 8, Task 9, Task 11] (测试覆盖所有实现)
 
 ---
 
 # Parallelizable Tasks
 
 以下任务可以并行执行：
-- Task 1 + Task 2 (客户端实现和类型定义可并行)
-- Task 5 + Task 7 (页面开发和对比分析更新可并行)
-- Task 8 + Task 9 (文档和优化可并行)
+- Task 8 + Task 9 (跨预言机对比和风险评估 Tab 修复可并行)

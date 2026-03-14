@@ -3,7 +3,7 @@ import { AppError, AppErrorDetails } from './AppError';
 export interface ValidationErrorDetails extends AppErrorDetails {
   field?: string;
   value?: unknown;
-  constraints?: Record<string, string>;
+  constraints?: Record<string, unknown>;
 }
 
 export class ValidationError extends AppError {
