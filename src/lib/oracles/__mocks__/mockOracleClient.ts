@@ -107,7 +107,7 @@ export class MockOracleClient implements IMockOracleClient {
       return prices.map((p) => ({ ...p, chain: chain ?? p.chain }));
     }
 
-    return this.createDefaultHistoricalPrices(symbol, chain, period);
+    return this.createDefaultHistoricalPrices(symbol, period, chain);
   }
 
   private createDefaultPrice(symbol: string, chain?: Blockchain): PriceData {
@@ -126,12 +126,12 @@ export class MockOracleClient implements IMockOracleClient {
 
   private createDefaultHistoricalPrices(
     symbol: string,
-    chain?: Blockchain,
-    period: number
+    period: number,
+    chain?: Blockchain
   ): PriceData[] {
     const prices: PriceData[] = [];
     const now = Date.now();
-    const dataPoints = period * 4;
+    const dataPoints = period * 60 * 1000;
     const interval = (period * 60 * 60 * 1000) / dataPoints;
 
     for (let i = 0; i < dataPoints; i++) {

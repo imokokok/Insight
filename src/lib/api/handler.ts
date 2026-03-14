@@ -50,7 +50,7 @@ export interface CreateApiHandlerOptions {
 export function createApiHandler<T = unknown>(
   handler: ApiHandler<T>,
   options: CreateApiHandlerOptions = {}
-): (request: NextRequest, params?: { params: Record<string, string> }) => Promise<NextResponse> {
+): (request: NextRequest, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
   const { middlewares = {}, onError } = options;
 
   const authMiddleware = middlewares.auth
@@ -79,25 +79,25 @@ export function createApiHandler<T = unknown>(
 
   return async (
     request: NextRequest,
-    params?: { params: Record<string, string> }
+    context?: { params: Promise<Record<string, string>> }
   ): Promise<NextResponse> => {
     const startTime = Date.now();
-    const context: ApiHandlerContext = {
+    const apiContext: ApiHandlerContext = {
       requestId: '',
     };
 
     try {
       if (loggingMiddleware) {
         const logResult = await loggingMiddleware(request);
-        context.requestId = logResult.requestId;
+        apiContext.requestId = logResult.requestId;
       } else {
-        context.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        apiContext.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       }
 
       if (rateLimitMiddleware) {
         const rateLimitResult = await rateLimitMiddleware(request);
         if (!rateLimitResult.success) {
-          logResponse(context.requestId, 429, startTime);
+          logResponse(apiContext.requestId, 429, startTime);
           return rateLimitResult.response;
         }
       }
@@ -105,38 +105,39 @@ export function createApiHandler<T = unknown>(
       if (authMiddleware) {
         const authResult = await authMiddleware(request);
         if (!authResult.success) {
-          logResponse(context.requestId, 401, startTime);
+          logResponse(apiContext.requestId, 401, startTime);
           return authResult.response;
         }
-        context.auth = authResult.context;
+        apiContext.auth = authResult.context;
       }
 
       if (validationMiddleware) {
-        const validationResult = await validationMiddleware(request, params?.params);
+        const resolvedParams = context?.params ? await context.params : undefined;
+        const validationResult = await validationMiddleware(request, resolvedParams);
         if (!validationResult.success) {
-          logResponse(context.requestId, 400, startTime);
+          logResponse(apiContext.requestId, 400, startTime);
           return validationResult.response;
         }
-        context.validated = validationResult.data;
+        apiContext.validated = validationResult.data;
       }
 
-      const response = await handler(request, context);
+      const response = await handler(request, apiContext);
       
-      logResponse(context.requestId, response.status, startTime);
+      logResponse(apiContext.requestId, response.status, startTime);
       return response;
     } catch (error) {
-      logResponse(context.requestId, 500, startTime);
+      logResponse(apiContext.requestId, 500, startTime);
 
       if (onError) {
         try {
-          return await onError(error, context);
+          return await onError(error, apiContext);
         } catch (handlerError) {
           logger.error('Error in custom error handler', handlerError instanceof Error ? handlerError : new Error(String(handlerError)));
-          return errorMiddleware(error, context.requestId);
+          return errorMiddleware(error, apiContext.requestId);
         }
       }
 
-      return errorMiddleware(error, context.requestId);
+      return errorMiddleware(error, apiContext.requestId);
     }
   };
 }

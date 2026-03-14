@@ -47,6 +47,16 @@
 - [x] 相关性矩阵包含 RedStone
 - [x] 对比数据准确性验证通过
 
+## Tab 内容修复（已完成）
+- [x] 跨预言机对比 Tab 在 RedStone 页面正常显示
+  - [x] 导入 CrossOracleComparison 组件
+  - [x] 在 activeTab === 'cross-oracle' 时渲染组件
+  - [x] 组件正确展示 RedStone 与其他预言机的对比数据
+- [x] 风险评估 Tab 在 RedStone 页面正常显示
+  - [x] 导入 RiskAssessmentPanel 组件
+  - [x] 在 activeTab === 'risk' 时渲染组件
+  - [x] 组件正确展示 RedStone 相关的风险指标
+
 ## 文档
 - [ ] ORACLE_INTEGRATION.md 更新完成
 - [ ] ARCHITECTURE.md 相关部分更新

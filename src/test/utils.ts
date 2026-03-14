@@ -1,4 +1,4 @@
-import { vi, beforeEach, afterEach } from 'vitest';
+import { jest, beforeEach, afterEach } from '@jest/globals';
 import { container, SERVICE_TOKENS, clearServices } from '@/lib/di';
 import { IOracleClientFactory, IMockOracleClient } from '@/lib/oracles/interfaces';
 import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
@@ -6,12 +6,11 @@ import { MockOracleClient, createMockOracleClientBuilder } from '@/lib/oracles/_
 
 export function setupTestEnvironment(): void {
   clearServices();
-  vi.clearAllMocks();
+  jest.clearAllMocks();
 }
-
 export function teardownTestEnvironment(): void {
   clearServices();
-  vi.restoreAllMocks();
+  jest.restoreAllMocks();
 }
 
 export function createMockOracleFactory(
@@ -64,21 +63,17 @@ export function waitForCondition(
 
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
-
     const check = () => {
       if (condition()) {
         resolve();
         return;
       }
-
       if (Date.now() - startTime >= timeout) {
         reject(new Error(`Condition not met within ${timeout}ms`));
         return;
       }
-
       setTimeout(check, interval);
     };
-
     check();
   });
 }
@@ -86,16 +81,14 @@ export function waitForCondition(
 export function createSpyableAsyncFunction<T>(
   returnValue: T,
   options: { delay?: number; shouldThrow?: boolean; error?: Error } = {}
-): ReturnType<typeof vi.fn> {
-  return vi.fn(async () => {
+): (...args: unknown[]) => Promise<T> {
+  return jest.fn(async () => {
     if (options.delay) {
       await createTestTimeout(options.delay);
     }
-
     if (options.shouldThrow) {
       throw options.error ?? new Error('Async function error');
     }
-
     return returnValue;
   });
 }
@@ -110,14 +103,11 @@ export function withMockedDate(timestamp: number, fn: () => void | Promise<void>
         super(...args as [number]);
       }
     }
-
     static now() {
       return timestamp;
     }
   };
-
   global.Date = MockDate as typeof Date;
-
   try {
     const result = fn();
     if (result instanceof Promise) {
@@ -136,19 +126,16 @@ export function withMockedDate(timestamp: number, fn: () => void | Promise<void>
 export function createTestSuiteSetup(options: { useMockOracle?: boolean } = {}) {
   const { useMockOracle = true } = options;
   let mockFactory: IOracleClientFactory | null = null;
-
   beforeEach(() => {
     setupTestEnvironment();
     if (useMockOracle) {
       mockFactory = registerMockOracleFactory();
     }
   });
-
   afterEach(() => {
     teardownTestEnvironment();
     mockFactory = null;
   });
-
   return {
     getMockFactory: () => mockFactory,
   };

@@ -43,7 +43,7 @@ import {
 } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 import { useWebSocket, WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
-import { usePriceAlerts, AlertCheckResult } from '@/lib/realtime/priceAlerts';
+import { usePriceAlerts, AlertCheckResult, PriceDataForAlert } from '@/lib/realtime/priceAlerts';
 import type { PriceData } from '@/types/oracle';
 
 export type { PriceData };
@@ -684,7 +684,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
         );
 
         // 检查价格预警
-        const priceAlertData: PriceData = {
+        const priceAlertData: PriceDataForAlert = {
           symbol: priceData.symbol,
           price: priceData.price,
           change24h: priceData.change24h,

@@ -92,7 +92,7 @@ export const commonSchemas = {
     required: false,
     transform: (v: unknown) => (v === undefined ? 20 : Number(v)),
   },
-} as const;
+};
 
 export function createStringSchema(options?: {
   required?: boolean;
@@ -125,7 +125,6 @@ export function createNumberSchema(options?: {
   integer?: boolean;
 }): FieldSchema {
   const validators: ValidatorFn[] = [options?.integer ? isInteger : isNumber];
-
   if (options?.min !== undefined) {
     validators.push(min(options.min));
   }

@@ -16,6 +16,8 @@ import {
   StatCard,
   PriceChart,
 } from '@/components/oracle';
+import { RiskAssessmentPanel } from '@/components/oracle/panels/RiskAssessmentPanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { useRefresh, useExport } from '@/hooks';
 import { useGlobalTimeRange } from '@/contexts/TimeRangeContext';
 import { createLogger } from '@/lib/utils/logger';
@@ -319,6 +321,10 @@ export default function RedStonePage() {
           {activeTab === 'ecosystem' && (
             <RedStoneMetricsPanel client={client} />
           )}
+
+          {activeTab === 'risk' && <RiskAssessmentPanel provider={OracleProvider.REDSTONE} />}
+
+          {activeTab === 'cross-oracle' && <CrossOracleComparison />}
         </div>
       </main>
     </div>
