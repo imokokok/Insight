@@ -9,6 +9,8 @@ import {
   PythClient,
   API3Client,
   RedStoneClient,
+  DIAClient,
+  TellarClient,
   BaseOracleClient,
 } from '@/lib/oracles';
 import {
@@ -44,6 +46,8 @@ const oracleClients = {
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
+  [OracleProvider.DIA]: new DIAClient(),
+  [OracleProvider.TELLAR]: new TellarClient(),
 };
 
 export interface UseCrossChainDataReturn {

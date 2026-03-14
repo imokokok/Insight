@@ -6,6 +6,8 @@ import { UMAClient } from './uma';
 import { PythClient } from './pythNetwork';
 import { API3Client } from './api3';
 import { RedStoneClient } from './redstone';
+import { DIAClient } from './dia';
+import { TellarClient } from './tellar';
 import { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
 import { container, SERVICE_TOKENS } from '@/lib/di';
@@ -69,6 +71,8 @@ export class OracleClientFactory {
       OracleProvider.PYTH,
       OracleProvider.API3,
       OracleProvider.REDSTONE,
+      OracleProvider.DIA,
+      OracleProvider.TELLAR,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -128,6 +132,10 @@ export class OracleClientFactory {
         return new API3Client(this.config);
       case OracleProvider.REDSTONE:
         return new RedStoneClient(this.config);
+      case OracleProvider.DIA:
+        return new DIAClient(this.config);
+      case OracleProvider.TELLAR:
+        return new TellarClient(this.config);
       default:
         throw new Error(`Unknown oracle provider: ${provider}`);
     }

@@ -146,7 +146,8 @@ export const chartColors = {
     api3: '#DB2777',
     redstone: '#FF6B6B',
     switchboard: '#4ECDC4',
-    dia: '#95E1D3',
+    dia: '#6366F1',
+    tellar: '#06B6D4',
     flux: '#F38181',
     tellor: '#AA96DA',
   } as const,
@@ -487,6 +488,8 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.PYTH]: chartColors.oracle['pyth'],
     [OracleProvider.API3]: chartColors.oracle.api3,
     [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
+    [OracleProvider.DIA]: chartColors.oracle.dia,
+    [OracleProvider.TELLAR]: chartColors.oracle.tellar,
   };
   return colorMap[provider] || chartColors.sequence[0];
 }

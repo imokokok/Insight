@@ -137,20 +137,6 @@ export function downsampleData(data: DataPoint[], config: DownsamplingConfig = {
   return result;
 }
 
-export function downsampleDataForChart(
-  data: DataPoint[],
-  chartWidth: number,
-  devicePixelRatio: number = 1
-): DataPoint[] {
-  const targetPoints = Math.min(Math.floor(chartWidth * devicePixelRatio * 0.8), 500);
-  return downsampleData(data, {
-    targetPoints,
-    preservePeaks: true,
-    preserveTrends: true,
-    performanceMode: false,
-  });
-}
-
 export function downsampleDataForPerformance(data: DataPoint[]): DataPoint[] {
   return downsampleData(data, {
     targetPoints: 150,
@@ -185,4 +171,4 @@ export function adaptiveDownsample(
   });
 }
 
-export { DEFAULT_CONFIG };
+
