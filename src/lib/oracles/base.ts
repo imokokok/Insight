@@ -10,6 +10,7 @@ import {
   getStorageConfig,
 } from './storage';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
+import { PriceFetchError, OracleClientError } from '@/lib/errors';
 
 export { shouldUseDatabase, configureStorage, getStorageConfig };
 export type { OracleStorageConfig };
@@ -184,20 +185,37 @@ export abstract class BaseOracleClient {
     chain: Blockchain | undefined,
     mockGenerator: () => PriceData
   ): Promise<PriceData> {
-    if (this.config.useDatabase && shouldUseDatabase()) {
-      const dbPrice = await getPriceFromDatabase(this.name, symbol, chain);
-      if (dbPrice) {
-        return dbPrice;
+    try {
+      if (this.config.useDatabase && shouldUseDatabase()) {
+        const dbPrice = await getPriceFromDatabase(this.name, symbol, chain);
+        if (dbPrice) {
+          return dbPrice;
+        }
       }
+
+      const priceData = mockGenerator();
+
+      if (this.config.useDatabase && shouldUseDatabase()) {
+        await savePriceToDatabase(priceData);
+      }
+
+      return priceData;
+    } catch (error) {
+      if (error instanceof PriceFetchError || error instanceof OracleClientError) {
+        throw error;
+      }
+      throw new PriceFetchError(
+        `Failed to fetch price for ${symbol} from ${this.name}`,
+        {
+          provider: this.name,
+          symbol,
+          chain,
+          retryable: true,
+        },
+        undefined,
+        error instanceof Error ? error : undefined
+      );
     }
-
-    const priceData = mockGenerator();
-
-    if (this.config.useDatabase && shouldUseDatabase()) {
-      await savePriceToDatabase(priceData);
-    }
-
-    return priceData;
   }
 
   async fetchHistoricalPricesWithDatabase(
@@ -206,19 +224,37 @@ export abstract class BaseOracleClient {
     period: number,
     mockGenerator: () => PriceData[]
   ): Promise<PriceData[]> {
-    if (this.config.useDatabase && shouldUseDatabase()) {
-      const dbPrices = await getHistoricalPricesFromDatabase(this.name, symbol, chain, period);
-      if (dbPrices && dbPrices.length > 0) {
-        return dbPrices;
+    try {
+      if (this.config.useDatabase && shouldUseDatabase()) {
+        const dbPrices = await getHistoricalPricesFromDatabase(this.name, symbol, chain, period);
+        if (dbPrices && dbPrices.length > 0) {
+          return dbPrices;
+        }
       }
+
+      const pricesData = mockGenerator();
+
+      if (this.config.useDatabase && shouldUseDatabase()) {
+        await savePricesToDatabase(pricesData);
+      }
+
+      return pricesData;
+    } catch (error) {
+      if (error instanceof PriceFetchError || error instanceof OracleClientError) {
+        throw error;
+      }
+      throw new PriceFetchError(
+        `Failed to fetch historical prices for ${symbol} from ${this.name}`,
+        {
+          provider: this.name,
+          symbol,
+          chain,
+          timestamp: Date.now(),
+          retryable: true,
+        },
+        undefined,
+        error instanceof Error ? error : undefined
+      );
     }
-
-    const pricesData = mockGenerator();
-
-    if (this.config.useDatabase && shouldUseDatabase()) {
-      await savePricesToDatabase(pricesData);
-    }
-
-    return pricesData;
   }
 }

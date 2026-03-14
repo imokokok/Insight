@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
 
@@ -39,26 +39,27 @@ export function useAPI3QualityMetrics(
 ): UseAPI3QualityMetricsReturn {
   const { enabled = true, refreshInterval = 60000 } = options;
 
-  const key = enabled ? 'api3-quality-metrics' : null;
-
   const fetcher = useCallback(async (): Promise<API3QualityMetrics> => {
     return api3Client.getDataQualityMetrics();
   }, []);
 
-  const { data, error, isLoading, mutate } = useSWR<API3QualityMetrics>(key, fetcher, {
-    refreshInterval,
-    revalidateOnFocus: false,
-    dedupingInterval: 5000,
+  const { data, error, isLoading, refetch } = useQuery<API3QualityMetrics, Error>({
+    queryKey: ['api3-quality-metrics'],
+    queryFn: fetcher,
+    enabled,
+    staleTime: refreshInterval,
+    gcTime: refreshInterval * 2,
+    refetchInterval: refreshInterval,
+    refetchOnWindowFocus: false,
+    retry: 3,
   });
-
-  const refetch = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
 
   return {
     data,
     isLoading,
-    error,
-    refetch,
+    error: error ?? undefined,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }

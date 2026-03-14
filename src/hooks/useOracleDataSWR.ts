@@ -1,10 +1,9 @@
 'use client';
 
-import useSWR, { SWRConfiguration, mutate } from 'swr';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { useSWRGlobal } from '@/providers/SWRProvider';
 
-export interface UseOracleDataSWROptions<T> extends Omit<SWRConfiguration<T>, 'fallback'> {
+export interface UseOracleDataSWROptions<T> {
   key: string;
   staleTime?: number;
   refreshInterval?: number;
@@ -30,42 +29,47 @@ export function useOracleDataSWR<T>(
     refreshInterval,
     revalidateOnFocus = false,
     enabled = true,
-    ...restOptions
   } = options;
 
-  const swrOptions: SWRConfiguration<T> = {
-    ...restOptions,
-    revalidateOnFocus,
-    dedupingInterval: 2000,
-    ...(refreshInterval ? { refreshInterval } : {}),
-  };
+  const queryClient = useQueryClient();
 
-  const {
-    data,
-    error,
-    isLoading,
-    isValidating,
-    mutate: swrMutate,
-  } = useSWR<T>(enabled ? key : null, swrOptions);
+  const { data, error, isLoading, isFetching, refetch } = useQuery<T, Error>({
+    queryKey: [key],
+    queryFn: async () => {
+      const response = await fetch(key);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch data');
+      }
+      return response.json();
+    },
+    enabled,
+    staleTime,
+    gcTime: staleTime * 2,
+    refetchOnWindowFocus: revalidateOnFocus,
+    refetchInterval: refreshInterval,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
   const handleMutate = useCallback(
     async (newData?: T) => {
-      await swrMutate(newData, false);
+      if (newData !== undefined) {
+        queryClient.setQueryData([key], newData);
+      }
     },
-    [swrMutate]
+    [queryClient, key]
   );
-
-  const refetch = useCallback(async () => {
-    await mutate(key, (current: T | undefined) => current, { revalidate: true });
-  }, [key]);
 
   return {
     data,
-    error,
+    error: error ?? undefined,
     isLoading,
-    isValidating,
+    isValidating: isFetching,
     mutate: handleMutate,
-    refetch,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }
 
@@ -75,14 +79,25 @@ export interface UseOraclePrefetchOptions {
 }
 
 export function useOraclePrefetch() {
-  const { prefetch } = useSWRGlobal();
+  const queryClient = useQueryClient();
 
   const preloadData = useCallback(
     async (key: string, customStaleTime?: number) => {
-      const finalKey = customStaleTime ? `${key}?staleTime=${customStaleTime}` : key;
-      await prefetch(finalKey);
+      const staleTime = customStaleTime || 30000;
+      await queryClient.prefetchQuery({
+        queryKey: [key],
+        queryFn: async () => {
+          const response = await fetch(key);
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch data');
+          }
+          return response.json();
+        },
+        staleTime,
+      });
     },
-    [prefetch]
+    [queryClient]
   );
 
   return {

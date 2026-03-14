@@ -1,3 +1,14 @@
+// DI Hooks
+export {
+  useService,
+  useOracleClient,
+  useOracleClientFactory,
+  useAlertService,
+  useFavoriteService,
+  useSnapshotService,
+  useDI,
+} from './useDI';
+
 export { usePriceData, useHistoricalPrices, useMultiplePrices } from './useOracleData';
 export { useOracleDataSWR, useOraclePrefetch } from './useOracleDataSWR';
 export type {

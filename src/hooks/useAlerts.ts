@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import useSWR, { mutate } from 'swr';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, queries, PriceAlert, AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import type { OracleProvider, Blockchain } from '@/lib/types/oracle';
@@ -72,41 +72,33 @@ export function useAlerts(): UseAlertsReturn {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const {
-    data,
-    error,
-    isLoading,
-    mutate: swrMutate,
-  } = useSWR(
-    userId ? `${ALERTS_KEY}-${userId}` : null,
-    async (): Promise<PriceAlert[]> => {
+  const { data, error, isLoading, refetch } = useQuery<PriceAlert[], Error>({
+    queryKey: [ALERTS_KEY, userId],
+    queryFn: async () => {
       if (!userId) return [];
       const result = await queries.getAlerts(userId);
       return (result as PriceAlert[]) ?? [];
     },
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
-  );
-
-  const refetch = useCallback(async () => {
-    if (userId) {
-      await swrMutate();
-    }
-  }, [userId, swrMutate]);
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   return {
     alerts: data ?? [],
     isLoading,
     error: error ?? null,
-    refetch,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }
 
 export function useCreateAlert(): UseCreateAlertReturn {
   const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
+  const queryClient = useQueryClient();
 
   const createAlert = useCallback(
     async (input: CreateAlertInput) => {
@@ -130,7 +122,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
           return { alert: null, error: new Error('创建告警失败') };
         }
 
-        await mutate(`${ALERTS_KEY}-${user.id}`);
+        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
 
         return { alert: alert as PriceAlert, error: null };
       } catch (err) {
@@ -139,7 +131,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
         setIsCreating(false);
       }
     },
-    [user?.id]
+    [user?.id, queryClient]
   );
 
   return { createAlert, isCreating };
@@ -148,6 +140,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
 export function useUpdateAlert(): UseUpdateAlertReturn {
   const { user } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const updateAlert = useCallback(
     async (id: string, input: UpdateAlertInput) => {
@@ -167,7 +160,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
           return { alert: null, error: new Error('更新告警失败') };
         }
 
-        await mutate(`${ALERTS_KEY}-${user.id}`);
+        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
 
         return { alert: alert as PriceAlert, error: null };
       } catch (err) {
@@ -176,7 +169,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
         setIsUpdating(false);
       }
     },
-    [user?.id]
+    [user?.id, queryClient]
   );
 
   return { updateAlert, isUpdating };
@@ -185,6 +178,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
 export function useDeleteAlert(): UseDeleteAlertReturn {
   const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const deleteAlert = useCallback(
     async (id: string) => {
@@ -200,7 +194,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
           return { success: false, error: new Error('删除告警失败') };
         }
 
-        await mutate(`${ALERTS_KEY}-${user.id}`);
+        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
 
         return { success: true, error: null };
       } catch (err) {
@@ -209,7 +203,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
         setIsDeleting(false);
       }
     },
-    [user?.id]
+    [user?.id, queryClient]
   );
 
   return { deleteAlert, isDeleting };
@@ -219,41 +213,33 @@ export function useAlertEvents(): UseAlertEventsReturn {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const {
-    data,
-    error,
-    isLoading,
-    mutate: swrMutate,
-  } = useSWR(
-    userId ? `${ALERT_EVENTS_KEY}-${userId}` : null,
-    async (): Promise<AlertEvent[]> => {
+  const { data, error, isLoading, refetch } = useQuery<AlertEvent[], Error>({
+    queryKey: [ALERT_EVENTS_KEY, userId],
+    queryFn: async () => {
       if (!userId) return [];
       const result = await queries.getAlertEvents(userId);
       return (result as AlertEvent[]) ?? [];
     },
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
-  );
-
-  const refetch = useCallback(async () => {
-    if (userId) {
-      await swrMutate();
-    }
-  }, [userId, swrMutate]);
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   return {
     events: data ?? [],
     isLoading,
     error: error ?? null,
-    refetch,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }
 
 export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   const { user } = useAuth();
   const [isAcknowledging, setIsAcknowledging] = useState(false);
+  const queryClient = useQueryClient();
 
   const acknowledge = useCallback(
     async (eventId: string) => {
@@ -269,7 +255,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
           return { event: null, error: new Error('确认告警失败') };
         }
 
-        await mutate(`${ALERT_EVENTS_KEY}-${user.id}`);
+        await queryClient.invalidateQueries({ queryKey: [ALERT_EVENTS_KEY, user.id] });
 
         return { event: event as AlertEvent, error: null };
       } catch (err) {
@@ -278,7 +264,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
         setIsAcknowledging(false);
       }
     },
-    [user?.id]
+    [user?.id, queryClient]
   );
 
   return { acknowledge, isAcknowledging };

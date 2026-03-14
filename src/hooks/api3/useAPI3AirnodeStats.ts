@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client, AirnodeNetworkStats } from '@/lib/oracles/api3';
 
@@ -23,26 +23,27 @@ export function useAPI3AirnodeStats(
 ): UseAPI3AirnodeStatsReturn {
   const { enabled = true, refreshInterval = 60000 } = options;
 
-  const key = enabled ? 'api3-airnode-stats' : null;
-
   const fetcher = useCallback(async (): Promise<AirnodeNetworkStats> => {
     return api3Client.getAirnodeNetworkStats();
   }, []);
 
-  const { data, error, isLoading, mutate } = useSWR<AirnodeNetworkStats>(key, fetcher, {
-    refreshInterval,
-    revalidateOnFocus: false,
-    dedupingInterval: 5000,
+  const { data, error, isLoading, refetch } = useQuery<AirnodeNetworkStats, Error>({
+    queryKey: ['api3-airnode-stats'],
+    queryFn: fetcher,
+    enabled,
+    staleTime: refreshInterval,
+    gcTime: refreshInterval * 2,
+    refetchInterval: refreshInterval,
+    refetchOnWindowFocus: false,
+    retry: 3,
   });
-
-  const refetch = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
 
   return {
     data,
     isLoading,
-    error,
-    refetch,
+    error: error ?? undefined,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }

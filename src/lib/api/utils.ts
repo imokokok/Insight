@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createLogger } from '@/lib/utils/logger';
-import { ApiResponseBuilder } from './types';
+import { 
+  ApiResponseBuilder, 
+  CacheConfig as NewCacheConfig,
+  withCacheHeaders as newWithCacheHeaders,
+  createCachedJsonResponse as newCreateCachedJsonResponse,
+  ApiErrorResponse,
+  ApiSuccessResponse,
+} from './response';
 
 const logger = createLogger('api-utils');
 
-export interface ApiErrorResponse {
+export interface ApiErrorResponseLegacy {
   error: {
     code: string;
     message: string;
@@ -47,7 +54,7 @@ export const CacheConfig = {
   },
 } as const;
 
-export function createErrorResponse(options: ApiErrorOptions): NextResponse<ApiErrorResponse> {
+export function createErrorResponse(options: ApiErrorOptions): NextResponse<ApiErrorResponseLegacy> {
   const { code, message, retryable, statusCode } = options;
 
   logger.error(`API Error - Code: ${code}, Message: ${message}, Retryable: ${retryable}`);
@@ -88,7 +95,7 @@ export function handleApiError(
     symbol?: string;
     operation: string;
   }
-): NextResponse<ApiErrorResponse> {
+): NextResponse<ApiErrorResponseLegacy> {
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
   const isNetworkError =
@@ -106,11 +113,6 @@ export function handleApiError(
   });
 }
 
-/**
- * Extracts and validates the user ID from the authorization header
- * @param request - The Next.js request object
- * @returns The user ID if authentication is successful, null otherwise
- */
 export async function getUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -142,3 +144,12 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 
   return user.id;
 }
+
+export {
+  ApiResponseBuilder,
+  NewCacheConfig as NewCacheConfig,
+  newWithCacheHeaders as withCacheHeadersNew,
+  newCreateCachedJsonResponse as createCachedJsonResponseNew,
+};
+
+export type { ApiSuccessResponse, ApiErrorResponse };

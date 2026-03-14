@@ -32,10 +32,14 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     State Management Layer                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │ React Query  │  │     SWR      │  │   Zustand    │          │
-│  │ (Server)     │  │ (Fetching)   │  │ (Client)     │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    React Query                            │   │
+│  │         (Server State & Data Fetching)                    │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    Zustand                                │   │
+│  │              (Client UI State)                            │   │
+│  └──────────────────────────────────────────────────────────┘   │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
 │  │ AuthContext  │  │RealtimeCtx   │  │TimeRangeCtx  │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
@@ -81,12 +85,14 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Frontend | Next.js 16, React 19 | User interface with SSR/SSG |
-| State Management | React Query, SWR, Zustand | Server and client state |
+| State Management | React Query, Zustand | Server state & Client UI state |
 | Real-time | WebSocket, Supabase Realtime | Live price updates |
-| API | Next.js API Routes | Backend endpoints |
-| Oracle Clients | Custom TypeScript clients | Oracle provider integration |
+| API | Next.js API Routes + Middleware | Backend endpoints with unified handler |
+| Oracle Clients | Custom TypeScript clients + DI | Oracle provider integration |
 | Database | Supabase PostgreSQL | Data persistence |
 | Authentication | Supabase Auth | User management |
+| Error Handling | Custom Error Classes | Unified error handling |
+| Dependency Injection | Custom DI Container | Testability & decoupling |
 
 ### 1.3 Data Flow
 

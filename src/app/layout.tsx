@@ -5,7 +5,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { I18nProvider } from '@/lib/i18n/provider';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { SWRProvider } from '@/providers/SWRProvider';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -42,26 +41,24 @@ export default function RootLayout({
       >
         <I18nProvider>
           <ReactQueryProvider>
-            <SWRProvider>
-              <AuthProvider>
-                <TimeRangeProvider>
-                  <RealtimeProvider>
-                    <ToastProvider>
-                      <ErrorBoundary>
-                        <Navbar />
-                        <main className="flex-1 bg-gray-50">{children}</main>
-                        <Footer />
-                        <ConnectionStatusIndicator
-                          showLabel={false}
-                          showReconnectButton={true}
-                          className="fixed bottom-4 right-4 z-50"
-                        />
-                      </ErrorBoundary>
-                    </ToastProvider>
-                  </RealtimeProvider>
-                </TimeRangeProvider>
-              </AuthProvider>
-            </SWRProvider>
+            <AuthProvider>
+              <TimeRangeProvider>
+                <RealtimeProvider>
+                  <ToastProvider>
+                    <ErrorBoundary>
+                      <Navbar />
+                      <main className="flex-1 bg-gray-50">{children}</main>
+                      <Footer />
+                      <ConnectionStatusIndicator
+                        showLabel={false}
+                        showReconnectButton={true}
+                        className="fixed bottom-4 right-4 z-50"
+                      />
+                    </ErrorBoundary>
+                  </ToastProvider>
+                </RealtimeProvider>
+              </TimeRangeProvider>
+            </AuthProvider>
           </ReactQueryProvider>
         </I18nProvider>
         <Analytics />

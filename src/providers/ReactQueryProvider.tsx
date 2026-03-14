@@ -1,14 +1,29 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
+import { isAppError } from '@/lib/errors';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ReactQuery');
 
 interface ReactQueryProviderProps {
   children: ReactNode;
 }
 
-const STALE_TIME = 5 * 60 * 1000;
-const GC_TIME = 10 * 60 * 1000;
+const STALE_TIME_CONFIG = {
+  price: 30 * 1000,
+  history: 5 * 60 * 1000,
+  network: 60 * 1000,
+  default: 5 * 60 * 1000,
+} as const;
+
+const GC_TIME_CONFIG = {
+  price: 60 * 1000,
+  history: 10 * 60 * 1000,
+  network: 2 * 60 * 1000,
+  default: 10 * 60 * 1000,
+} as const;
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   const [queryClient] = useState(
@@ -16,21 +31,71 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: STALE_TIME,
-            gcTime: GC_TIME,
+            staleTime: STALE_TIME_CONFIG.default,
+            gcTime: GC_TIME_CONFIG.default,
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
-            retry: 3,
+            refetchOnMount: true,
+            retry: (failureCount, error) => {
+              if (isAppError(error) && !error.isOperational) {
+                return false;
+              }
+              if (failureCount >= 3) {
+                return false;
+              }
+              return true;
+            },
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            structuralSharing: true,
           },
           mutations: {
             retry: 1,
+            retryDelay: 1000,
           },
         },
+        queryCache: new QueryCache({
+          onError: (error, query) => {
+            if (isAppError(error)) {
+              logger.error(`Query error [${query.queryHash}]: ${error.code} - ${error.message}`, error, {
+                statusCode: error.statusCode,
+                details: error.details,
+                queryKey: query.queryKey,
+              });
+            } else if (error instanceof Error) {
+              logger.error(`Query error [${query.queryHash}]: ${error.message}`, error, {
+                queryKey: query.queryKey,
+              });
+            } else {
+              logger.error(`Query error [${query.queryHash}]: Unknown error`, undefined, {
+                queryKey: query.queryKey,
+                error,
+              });
+            }
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError: (error, variables, context, mutation) => {
+            if (isAppError(error)) {
+              logger.error(`Mutation error: ${error.code} - ${error.message}`, error, {
+                statusCode: error.statusCode,
+                details: error.details,
+                mutationKey: mutation.options.mutationKey,
+              });
+            } else if (error instanceof Error) {
+              logger.error(`Mutation error: ${error.message}`, error, {
+                mutationKey: mutation.options.mutationKey,
+              });
+            } else {
+              logger.error('Mutation error: Unknown error', undefined, {
+                error,
+              });
+            }
+          },
+        }),
       })
   );
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
-export { STALE_TIME, GC_TIME };
+export { STALE_TIME_CONFIG, GC_TIME_CONFIG };

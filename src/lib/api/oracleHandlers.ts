@@ -7,15 +7,21 @@ import {
 } from '@/lib/oracles';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/types/oracle';
 import {
-  createErrorResponse,
   createCachedJsonResponse,
-  handleApiError,
-  ErrorCodes,
   CacheConfig,
 } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import { PriceRecord } from '@/lib/supabase/queries';
+import {
+  ValidationError,
+  NotFoundError,
+  InternalError,
+  PriceFetchError,
+  OracleClientError,
+  errorToResponse,
+  isAppError,
+} from '@/lib/errors';
 
 export const PRICE_CACHE_TTL = 30 * 1000;
 export const HISTORY_STALE_THRESHOLD = 5 * 60 * 1000;
@@ -52,12 +58,15 @@ export function isValidProvider(provider: string): provider is OracleProvider {
 
 export function validateProvider(provider: string): NextResponse | null {
   if (!isValidProvider(provider)) {
-    return createErrorResponse({
-      code: ErrorCodes.INVALID_PROVIDER,
-      message: `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
-      retryable: false,
-      statusCode: 400,
-    });
+    return errorToResponse(
+      new ValidationError(`Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`, {
+        field: 'provider',
+        value: provider,
+        constraints: {
+          allowedValues: Object.values(OracleProvider).join(', '),
+        },
+      })
+    );
   }
   return null;
 }
@@ -66,20 +75,24 @@ export function validateRequiredParams(
   params: Partial<OracleQueryParams>
 ): NextResponse | null {
   if (!params.provider || !params.symbol) {
-    return createErrorResponse({
-      code: ErrorCodes.MISSING_PARAMS,
-      message: 'Missing required parameters: provider, symbol',
-      retryable: false,
-      statusCode: 400,
-    });
+    return errorToResponse(
+      new ValidationError('Missing required parameters: provider, symbol', {
+        constraints: {
+          required: 'provider, symbol',
+        },
+      })
+    );
   }
   if (!isValidProvider(params.provider)) {
-    return createErrorResponse({
-      code: ErrorCodes.INVALID_PROVIDER,
-      message: `Invalid provider: ${params.provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
-      retryable: false,
-      statusCode: 400,
-    });
+    return errorToResponse(
+      new ValidationError(`Invalid provider: ${params.provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`, {
+        field: 'provider',
+        value: params.provider,
+        constraints: {
+          allowedValues: Object.values(OracleProvider).join(', '),
+        },
+      })
+    );
   }
   return null;
 }
@@ -93,12 +106,15 @@ export function validatePeriod(period: string | null): { valid: boolean; value?:
   if (isNaN(periodNum) || periodNum < 1) {
     return {
       valid: false,
-      error: createErrorResponse({
-        code: ErrorCodes.INVALID_PARAMS,
-        message: 'Invalid period. Must be a positive integer.',
-        retryable: false,
-        statusCode: 400,
-      }),
+      error: errorToResponse(
+        new ValidationError('Invalid period. Must be a positive integer.', {
+          field: 'period',
+          value: period,
+          constraints: {
+            type: 'positive integer',
+          },
+        })
+      ),
     };
   }
   return { valid: true, value: periodNum };
@@ -125,12 +141,12 @@ export async function handleGetPrice(
   const queries = getServerQueries();
 
   if (!client) {
-    return createErrorResponse({
-      code: ErrorCodes.CLIENT_NOT_FOUND,
-      message: `Client not found for provider: ${provider}`,
-      retryable: false,
-      statusCode: 500,
-    });
+    return errorToResponse(
+      new NotFoundError(`Client not found for provider: ${provider}`, {
+        resource: 'OracleClient',
+        identifier: provider,
+      })
+    );
   }
 
   try {
@@ -181,11 +197,22 @@ export async function handleGetPrice(
       CacheConfig.PRICE
     );
   } catch (error) {
-    return handleApiError(error, {
-      provider,
-      symbol,
-      operation: 'fetch price',
-    });
+    if (isAppError(error)) {
+      return errorToResponse(error);
+    }
+    return errorToResponse(
+      new PriceFetchError(
+        `Failed to fetch price for ${symbol} from ${provider}`,
+        {
+          provider,
+          symbol,
+          chain,
+          retryable: true,
+        },
+        undefined,
+        error instanceof Error ? error : undefined
+      )
+    );
   }
 }
 
@@ -197,12 +224,12 @@ export async function handleGetHistoricalPrices(
   const queries = getServerQueries();
 
   if (!client) {
-    return createErrorResponse({
-      code: ErrorCodes.CLIENT_NOT_FOUND,
-      message: `Client not found for provider: ${provider}`,
-      retryable: false,
-      statusCode: 500,
-    });
+    return errorToResponse(
+      new NotFoundError(`Client not found for provider: ${provider}`, {
+        resource: 'OracleClient',
+        identifier: provider,
+      })
+    );
   }
 
   const endTime = Date.now();
@@ -274,11 +301,23 @@ export async function handleGetHistoricalPrices(
       CacheConfig.HISTORY
     );
   } catch (error) {
-    return handleApiError(error, {
-      provider,
-      symbol,
-      operation: 'fetch historical prices',
-    });
+    if (isAppError(error)) {
+      return errorToResponse(error);
+    }
+    return errorToResponse(
+      new PriceFetchError(
+        `Failed to fetch historical prices for ${symbol} from ${provider}`,
+        {
+          provider,
+          symbol,
+          chain,
+          timestamp: Date.now(),
+          retryable: true,
+        },
+        undefined,
+        error instanceof Error ? error : undefined
+      )
+    );
   }
 }
 
@@ -293,7 +332,10 @@ export async function handleBatchPrices(
       const client = getOracleClient(provider);
 
       if (!client) {
-        throw new Error(`Invalid provider: ${provider}`);
+        throw new ValidationError(`Invalid provider: ${provider}`, {
+          field: 'provider',
+          value: provider,
+        });
       }
 
       const cachedPrice = await queries.getLatestPrice(provider, symbol, chain);
@@ -349,10 +391,7 @@ export async function handleBatchPrices(
 }
 
 export function createUnexpectedErrorResponse(): NextResponse {
-  return createErrorResponse({
-    code: ErrorCodes.INTERNAL_ERROR,
-    message: 'An unexpected error occurred',
-    retryable: true,
-    statusCode: 500,
-  });
+  return errorToResponse(
+    new InternalError('An unexpected error occurred')
+  );
 }

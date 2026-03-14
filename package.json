@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "clean:dev": "rm -rf .next && next dev",
+    "clean:start": "rm -rf .next && next build && next start"
   },
   "dependencies": {
     "@pythnetwork/hermes-client": "^2.0.0",

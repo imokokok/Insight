@@ -16,6 +16,15 @@ export {
   getStorageConfig,
 } from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
+export type {
+  IOracleClient,
+  IOracleClientFactory,
+  IMockOracleClient,
+  IOracleClientConfig,
+  MockCallHistory,
+  IOracleClientBuilder,
+  MockDataConfig,
+} from './interfaces';
 export {
   savePriceToDatabase,
   savePricesToDatabase,
@@ -31,4 +40,12 @@ export {
   DEFAULT_BASE_PRICES,
 } from '@/lib/config/basePrices';
 export type { BasePrices } from '@/lib/config/basePrices';
+export {
+  OracleClientFactory,
+  getOracleClient,
+  getAllOracleClients,
+  getOracleClientFromDI,
+  registerMockOracleFactory,
+  unregisterMockOracleFactory,
+} from './factory';
 export * from '@/lib/types/oracle';
