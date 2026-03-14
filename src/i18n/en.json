@@ -26,6 +26,8 @@
     "pythNetworkDesc": "High-frequency financial data oracle",
     "api3Desc": "First-party oracle network",
     "umaDesc": "Optimistic oracle protocol",
+    "redstone": "Redstone",
+    "redstoneDesc": "Modular oracle solution",
     "favorites": "Favorites",
     "alerts": "Alerts",
     "settings": "Settings",

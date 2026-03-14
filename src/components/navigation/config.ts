@@ -73,16 +73,16 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.chainlinkDesc',
       },
       {
-        href: '/band-protocol',
-        label: 'navbar.bandProtocol',
-        icon: Layers,
-        description: 'navbar.bandProtocolDesc',
-      },
-      {
         href: '/pyth-network',
         label: 'navbar.pythNetwork',
         icon: Zap,
         description: 'navbar.pythNetworkDesc',
+      },
+      {
+        href: '/band-protocol',
+        label: 'navbar.bandProtocol',
+        icon: Layers,
+        description: 'navbar.bandProtocolDesc',
       },
       {
         href: '/api3',
@@ -91,16 +91,16 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.api3Desc',
       },
       {
-        href: '/uma',
-        label: 'navbar.uma',
-        icon: Database,
-        description: 'navbar.umaDesc',
-      },
-      {
         href: '/redstone',
         label: 'navbar.redstone',
         icon: Flame,
         description: 'navbar.redstoneDesc',
+      },
+      {
+        href: '/uma',
+        label: 'navbar.uma',
+        icon: Database,
+        description: 'navbar.umaDesc',
       },
     ],
   },

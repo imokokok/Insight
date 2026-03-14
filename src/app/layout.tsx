@@ -4,7 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { I18nProvider } from '@/lib/i18n/provider';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundaries';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { TimeRangeProvider } from '@/contexts/TimeRangeContext';
 import { AuthProvider } from '@/contexts/AuthContext';

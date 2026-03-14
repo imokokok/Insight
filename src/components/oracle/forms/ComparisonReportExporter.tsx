@@ -3,6 +3,9 @@
 import { useState, useCallback, RefObject } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { exportColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ComparisonReportExporter');
 
 interface ExportData {
   symbol: string;
@@ -207,7 +210,7 @@ export function ComparisonReportExporter({
       link.click();
       
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error instanceof Error ? error : new Error(String(error)));
       alert('导出失败，请重试');
     } finally {
       setIsExporting(false);

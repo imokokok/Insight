@@ -2,6 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('DataExportButton');
 
 export type ExportFormat = 'csv' | 'json';
 
@@ -121,7 +124,7 @@ export function DataExportButton({
           downloadFile(jsonContent, fullFilename, 'application/json;charset=utf-8;');
         }
       } catch (error) {
-        console.error('Export failed:', error);
+        logger.error('Export failed', error instanceof Error ? error : new Error(String(error)));
       } finally {
         setTimeout(() => {
           setIsExporting(false);

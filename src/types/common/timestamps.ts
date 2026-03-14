@@ -8,11 +8,6 @@ export interface TimeRangeValue {
   end: number;
 }
 
-export interface TimestampedData<T> {
-  data: T;
-  timestamp: number;
-}
-
 export function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString('zh-CN', {
     year: 'numeric',

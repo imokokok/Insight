@@ -17,14 +17,8 @@ import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors } from '@/lib/config/colors';
-
-export interface PriceDataPoint {
-  timestamp: number;
-  price: number;
-  high?: number;
-  low?: number;
-  close?: number;
-}
+import { calculateATR, calculateTrueRange } from '@/lib/indicators';
+import type { PriceDataPoint } from '@/lib/indicators';
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -68,49 +62,6 @@ interface ATRResult {
   volatilityLevel: 'low' | 'medium' | 'high' | 'extreme';
 }
 
-function calculateTrueRange(current: PriceDataPoint, previous: PriceDataPoint | null): number {
-  if (!previous) {
-    return (current.high || current.price) - (current.low || current.price);
-  }
-
-  const high = current.high || current.price;
-  const low = current.low || current.price;
-  const previousClose = previous.close || previous.price;
-
-  const tr1 = high - low;
-  const tr2 = Math.abs(high - previousClose);
-  const tr3 = Math.abs(low - previousClose);
-
-  return Math.max(tr1, tr2, tr3);
-}
-
-function calculateATR(
-  prices: PriceDataPoint[],
-  period: number = 14
-): { tr: number[]; atr: number[] } {
-  const tr: number[] = [];
-  const atr: number[] = [];
-
-  for (let i = 0; i < prices.length; i++) {
-    const previous = i > 0 ? prices[i - 1] : null;
-    const trueRange = calculateTrueRange(prices[i], previous);
-    tr.push(trueRange);
-
-    if (i < period - 1) {
-      atr.push(NaN);
-    } else if (i === period - 1) {
-      const sum = tr.slice(0, period).reduce((a, b) => a + b, 0);
-      atr.push(sum / period);
-    } else {
-      const previousATR = atr[i - 1];
-      const currentATR = (previousATR * (period - 1) + trueRange) / period;
-      atr.push(currentATR);
-    }
-  }
-
-  return { tr, atr };
-}
-
 function getVolatilityLevel(atrPercent: number): 'low' | 'medium' | 'high' | 'extreme' {
   if (atrPercent < 0.5) return 'low';
   if (atrPercent < 1.0) return 'medium';
@@ -152,7 +103,7 @@ export function ATRIndicator({
   const chartData = useMemo(() => {
     if (!selectedOracleData) return [];
 
-    const sortedPrices = [...selectedOracleData.prices].sort((a, b) => a.timestamp - b.timestamp);
+    const sortedPrices = [...selectedOracleData.prices].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
     const { tr, atr } = calculateATR(sortedPrices, period);
 
@@ -164,11 +115,11 @@ export function ATRIndicator({
       const volatilityLevel = getVolatilityLevel(atrPercent);
 
       return {
-        timestamp: new Date(point.timestamp).toLocaleTimeString('zh-CN', {
+        timestamp: new Date(point.timestamp || 0).toLocaleTimeString('zh-CN', {
           hour: '2-digit',
           minute: '2-digit',
         }),
-        rawTimestamp: point.timestamp,
+        rawTimestamp: point.timestamp || 0,
         price: point.price,
         tr: tr[index],
         atr: currentATR,
@@ -262,7 +213,6 @@ export function ATRIndicator({
     <div className="space-y-6">
       <DashboardCard title="ATR 平均真实波幅" className={className}>
         <div className="space-y-6">
-          {/* Controls */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">预言机:</span>
@@ -304,7 +254,6 @@ export function ATRIndicator({
             </label>
           </div>
 
-          {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
@@ -339,7 +288,6 @@ export function ATRIndicator({
             </div>
           )}
 
-          {/* Price Chart with ATR Channels */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">价格与ATR通道</h4>
             <div style={{ height: 350 }}>
@@ -361,7 +309,6 @@ export function ATRIndicator({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
 
-                  {/* ATR Channels */}
                   {showChannels && (
                     <>
                       <Area
@@ -383,7 +330,6 @@ export function ATRIndicator({
                     </>
                   )}
 
-                  {/* Price Line */}
                   <Line
                     type="monotone"
                     dataKey="price"
@@ -397,7 +343,6 @@ export function ATRIndicator({
             </div>
           </div>
 
-          {/* ATR Chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">ATR 趋势 ({period}周期)</h4>
             <div style={{ height: 200 }}>
@@ -422,7 +367,6 @@ export function ATRIndicator({
             </div>
           </div>
 
-          {/* True Range Chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">真实波幅 (TR)</h4>
             <div style={{ height: 200 }}>
@@ -447,7 +391,6 @@ export function ATRIndicator({
             </div>
           </div>
 
-          {/* Explanation */}
           <div className="bg-blue-50 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">ATR 指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">

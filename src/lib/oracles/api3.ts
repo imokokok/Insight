@@ -3,7 +3,7 @@ import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 import { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import { PriceDataPoint } from '@/components/oracle/indicators/ATRIndicator';
+import { PriceDataPoint } from '@/lib/indicators';
 
 export interface DapiPriceDeviation {
   symbol: string;

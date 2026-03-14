@@ -68,23 +68,4 @@ export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
 }
 
-/**
- * Checks if a timestamp is in seconds (before year 5000 in seconds = before year 2286 in ms).
- * Used to detect the unit of a numeric timestamp.
- *
- * @param timestamp - Numeric timestamp to check
- * @returns true if timestamp is in seconds, false if in milliseconds
- */
-export function isSeconds(timestamp: number): boolean {
-  return timestamp < 1e12;
-}
 
-/**
- * Checks if a timestamp is in milliseconds.
- *
- * @param timestamp - Numeric timestamp to check
- * @returns true if timestamp is in milliseconds, false if in seconds
- */
-export function isMilliseconds(timestamp: number): boolean {
-  return timestamp >= 1e12;
-}

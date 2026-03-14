@@ -17,6 +17,9 @@ import {
   RiskMetrics,
   AnomalyData,
 } from '@/app/market-overview/types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ExportConfig');
 
 /**
  * 导出格式类型
@@ -749,7 +752,7 @@ export function loadExportConfigsFromStorage(): ExportConfig[] {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Failed to load export configs from storage:', error);
+    logger.error('Failed to load export configs from storage', error instanceof Error ? error : new Error(String(error)));
   }
   return [];
 }
@@ -763,7 +766,7 @@ export function saveExportConfigsToStorage(configs: ExportConfig[]): void {
   try {
     localStorage.setItem('oracle_export_configs', JSON.stringify(configs));
   } catch (error) {
-    console.error('Failed to save export configs to storage:', error);
+    logger.error('Failed to save export configs to storage', error instanceof Error ? error : new Error(String(error)));
   }
 }
 

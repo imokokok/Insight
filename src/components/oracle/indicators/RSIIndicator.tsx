@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
+import { calculateRSIFromData } from '@/lib/indicators';
 
 export interface RSIDataPoint {
   time: string;
@@ -34,64 +35,9 @@ export interface RSIIndicatorProps {
   height?: number;
 }
 
-function calculateRSI(
-  data: Array<{ price: number; high?: number; low?: number; close?: number }>,
-  period: number = 14
-): number[] {
-  if (data.length < period + 1) {
-    return new Array(data.length).fill(50);
-  }
-
-  const closes = data.map((d) => d.close || d.price);
-  const rsiValues: number[] = new Array(data.length).fill(50);
-
-  let gains = 0;
-  let losses = 0;
-
-  // 计算初始平均收益和损失
-  for (let i = 1; i <= period; i++) {
-    const change = closes[i] - closes[i - 1];
-    if (change > 0) {
-      gains += change;
-    } else {
-      losses += Math.abs(change);
-    }
-  }
-
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-
-  // 计算第一个RSI值
-  if (avgLoss === 0) {
-    rsiValues[period] = 100;
-  } else {
-    const rs = avgGain / avgLoss;
-    rsiValues[period] = 100 - 100 / (1 + rs);
-  }
-
-  // 使用平滑公式计算后续RSI值
-  for (let i = period + 1; i < data.length; i++) {
-    const change = closes[i] - closes[i - 1];
-    const gain = change > 0 ? change : 0;
-    const loss = change < 0 ? Math.abs(change) : 0;
-
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-    if (avgLoss === 0) {
-      rsiValues[i] = 100;
-    } else {
-      const rs = avgGain / avgLoss;
-      rsiValues[i] = 100 - 100 / (1 + rs);
-    }
-  }
-
-  return rsiValues;
-}
-
 export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorProps) {
   const rsiData = useMemo<RSIDataPoint[]>(() => {
-    const rsiValues = calculateRSI(data, period);
+    const rsiValues = calculateRSIFromData(data, period);
     return data.map((point, index) => ({
       time: point.time,
       timestamp: point.timestamp,
@@ -181,15 +127,10 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
                 );
               }}
             />
-            {/* 超买区域 */}
             <ReferenceArea y1={70} y2={100} fill={chartColors.rsi.overbought.line} fillOpacity={0.1} />
-            {/* 超卖区域 */}
             <ReferenceArea y1={0} y2={30} fill={chartColors.rsi.oversold.line} fillOpacity={0.1} />
-            {/* 中性线 */}
             <ReferenceLine y={50} stroke={chartColors.rsi.neutral} strokeDasharray="3 3" />
-            {/* 超买线 */}
             <ReferenceLine y={70} stroke={chartColors.rsi.overbought.line} strokeDasharray="3 3" />
-            {/* 超卖线 */}
             <ReferenceLine y={30} stroke={chartColors.rsi.oversold.line} strokeDasharray="3 3" />
             <Line
               type="monotone"
@@ -216,4 +157,4 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
   );
 }
 
-export { calculateRSI };
+export { calculateRSIFromData as calculateRSI };

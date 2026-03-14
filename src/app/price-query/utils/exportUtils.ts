@@ -6,6 +6,9 @@ import html2canvas from 'html2canvas';
 import { QueryResult, providerNames, chainNames } from '../constants';
 import { ExportConfigData } from '../components/ExportConfig';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ExportUtils');
 
 interface StatsData {
   avgPrice: number;
@@ -272,7 +275,7 @@ export async function exportToPDF(
       doc.addImage(imgData, 'PNG', 14, yPos + 5, imgWidth, imgHeight);
       yPos += imgHeight + 15;
     } catch (error) {
-      console.error('Failed to capture chart:', error);
+      logger.error('Failed to capture chart', error instanceof Error ? error : new Error(String(error)));
     }
   }
 
