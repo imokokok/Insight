@@ -12,10 +12,10 @@ import type {
   DataSourceInfo,
   CoveragePoolEvent,
 } from '@/lib/oracles/api3';
-import type { GasFeeData } from '@/components/oracle/GasFeeComparison';
-import type { QualityDataPoint } from '@/components/oracle/DataQualityTrend';
-import type { PriceDataPoint } from '@/components/oracle/ATRIndicator';
-import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
+import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
+import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
+import type { PriceDataPoint } from '@/components/oracle/indicators/ATRIndicator';
+import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 const api3Client = new API3Client();
 

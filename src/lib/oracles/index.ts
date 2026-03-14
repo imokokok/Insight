@@ -3,6 +3,8 @@ export { BandProtocolClient } from './bandProtocol';
 export { UMAClient } from './uma';
 export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
+export { RedStoneClient } from './redstone';
+export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
 export {
   PythHermesClient,
   getPythHermesClient,
@@ -48,4 +50,4 @@ export {
   registerMockOracleFactory,
   unregisterMockOracleFactory,
 } from './factory';
-export * from '@/lib/types/oracle';
+export * from '@/types/oracle';

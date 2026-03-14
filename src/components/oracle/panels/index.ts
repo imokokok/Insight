@@ -50,3 +50,5 @@ export type {
   HistoricalScore,
   QualityAlert,
 } from './DataQualityScorePanel';
+export { RedStoneMetricsPanel } from './RedStoneMetricsPanel';
+export type { RedStoneMetrics, RedStoneProviderInfo } from '@/lib/oracles/redstone';

@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import {
   ChainlinkClient,
   BandProtocolClient,
   UMAClient,
   PythClient,
   API3Client,
+  RedStoneClient,
 } from '@/lib/oracles';
 import { providerNames, type RefreshInterval } from '@/lib/constants';
 import {
@@ -23,6 +24,7 @@ export const oracleClients = {
   [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
+  [OracleProvider.REDSTONE]: new RedStoneClient(),
 };
 
 export const oracleNames = providerNames;

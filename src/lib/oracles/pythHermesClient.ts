@@ -1,5 +1,5 @@
 import { HermesClient } from '@pythnetwork/hermes-client';
-import { PriceData, ConfidenceInterval, Blockchain, OracleProvider } from '@/lib/types/oracle';
+import { PriceData, ConfidenceInterval, Blockchain, OracleProvider } from '@/types/oracle';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
 

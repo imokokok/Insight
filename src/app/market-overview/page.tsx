@@ -28,7 +28,7 @@ import {
   Area,
 } from 'recharts';
 import { Image as ImageIcon, LayoutDashboard, Table, FileJson } from 'lucide-react';
-import { TooltipProps } from '@/lib/types/recharts';
+import { TooltipProps } from '@/types/ui/recharts';
 import { OracleMarketData, TVSTrendData } from './types';
 import {
   PieChart as PieChartIcon,

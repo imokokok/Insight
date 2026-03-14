@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { OracleProvider, Blockchain } from '@/types/oracle';
 import { providerNames, chainNames, symbols, oracleColors, chainColors } from '@/lib/constants';
 import { useCreateAlert, CreateAlertInput } from '@/hooks/useAlerts';
-import { DashboardCard } from '@/components/oracle/DashboardCard';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 
 interface AlertConfigProps {

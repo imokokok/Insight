@@ -3,7 +3,7 @@
  * 集中管理项目中所有颜色，避免硬编码
  */
 
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 // ============================================
 // 基础颜色系统
@@ -406,6 +406,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.UMA]: chartColors.oracle.uma,
     [OracleProvider.PYTH]: chartColors.oracle['pyth'],
     [OracleProvider.API3]: chartColors.oracle.api3,
+    [OracleProvider.REDSTONE]: '#EF4444',
   };
   return colorMap[provider] || chartColors.sequence[0];
 }

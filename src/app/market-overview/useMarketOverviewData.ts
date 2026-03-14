@@ -43,7 +43,10 @@ import {
 } from '@/lib/services/marketData';
 import { createLogger } from '@/lib/utils/logger';
 import { useWebSocket, WebSocketStatus, WebSocketMessage } from '@/lib/realtime/websocket';
-import { usePriceAlerts, PriceData, AlertCheckResult } from '@/lib/realtime/priceAlerts';
+import { usePriceAlerts, AlertCheckResult } from '@/lib/realtime/priceAlerts';
+import type { PriceData } from '@/types/oracle';
+
+export type { PriceData };
 
 const logger = createLogger('useMarketOverviewData');
 

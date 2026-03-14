@@ -16,7 +16,7 @@ import {
   Info,
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
-import { TooltipProps } from '@/lib/types/recharts';
+import { TooltipProps } from '@/types/ui/recharts';
 
 interface ChartDataPoint {
   time: string;

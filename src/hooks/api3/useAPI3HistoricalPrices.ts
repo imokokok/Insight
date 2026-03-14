@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
-import { PriceData } from '@/lib/types/oracle';
-import { Blockchain } from '@/lib/types/oracle';
+import { PriceData } from '@/types/oracle';
+import { Blockchain } from '@/types/oracle';
 
 const api3Client = new API3Client();
 

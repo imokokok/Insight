@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from 'react';
 import { container, registerServices, isServicesRegistered } from '@/lib/di';
 import { SERVICE_TOKENS } from '@/lib/di/tokens';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { IOracleClient, IOracleClientFactory } from '@/lib/oracles/interfaces';
 import { IAlertService, IFavoriteService, ISnapshotService } from '@/lib/di/serviceInterfaces';
 

@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors } from '@/lib/config/colors';
@@ -47,6 +47,7 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
@@ -55,6 +56,7 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: '#FF6B6B',
   [OracleProvider.PYTH]: '#EC4899',
   [OracleProvider.API3]: '#10B981',
+  [OracleProvider.REDSTONE]: '#EF4444',
 };
 
 const MA_CONFIGS: MovingAverageConfig[] = [

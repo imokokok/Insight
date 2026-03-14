@@ -1,4 +1,4 @@
-import { PriceData, OracleProvider, Blockchain } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 import { createMockPriceData, createMockHistoricalPriceData, MOCK_PRICES } from '@/lib/oracles/__mocks__';
 
 export const fixtures = {

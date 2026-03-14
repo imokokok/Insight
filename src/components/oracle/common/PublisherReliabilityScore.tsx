@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Publisher, PublisherStats } from '@/lib/types/oracle';
+import { Publisher, PublisherStats } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
 
 interface PublisherReliabilityScoreProps {

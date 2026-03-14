@@ -8,6 +8,7 @@ import {
   UMAClient,
   PythClient,
   API3Client,
+  RedStoneClient,
   BaseOracleClient,
 } from '@/lib/oracles';
 import {
@@ -42,6 +43,7 @@ const oracleClients = {
   [OracleProvider.UMA]: new UMAClient(),
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
+  [OracleProvider.REDSTONE]: new RedStoneClient(),
 };
 
 export interface UseCrossChainDataReturn {
@@ -1073,6 +1075,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       [OracleProvider.UMA]: 'UMA',
       [OracleProvider.PYTH]: 'Pyth Network',
       [OracleProvider.API3]: 'API3',
+      [OracleProvider.REDSTONE]: 'RedStone',
     };
 
     const getConsistencyRating = (stdDevPercent: number): string => {

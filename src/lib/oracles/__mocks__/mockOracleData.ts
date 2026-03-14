@@ -1,4 +1,4 @@
-import { PriceData, OracleProvider, Blockchain, OracleError } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 
 export const MOCK_PRICES: Record<string, number> = {
   BTC: 68000,

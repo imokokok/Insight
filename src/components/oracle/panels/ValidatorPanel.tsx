@@ -5,11 +5,11 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
-import { StakingDistributionChart } from './StakingDistributionChart';
-import { ValidatorComparison } from './ValidatorComparison';
-import { StakingCalculator } from './StakingCalculator';
-import { ValidatorHistoryChart } from './ValidatorHistoryChart';
-import { MultiValidatorComparison } from './MultiValidatorComparison';
+import { StakingDistributionChart } from '../charts/StakingDistributionChart';
+import { ValidatorComparison } from '../charts/ValidatorComparison';
+import { StakingCalculator } from '../common/StakingCalculator';
+import { ValidatorHistoryChart } from '../charts/ValidatorHistoryChart';
+import { MultiValidatorComparison } from '../charts/MultiValidatorComparison';
 
 type SortField = 'tokens' | 'commissionRate' | 'uptime' | 'rank';
 type SortDirection = 'asc' | 'desc';

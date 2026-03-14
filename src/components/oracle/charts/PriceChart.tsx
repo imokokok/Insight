@@ -19,7 +19,7 @@ import {
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { BandProtocolClient, HistoricalPricePoint } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
-import { Blockchain } from '@/lib/types/oracle';
+import { Blockchain } from '@/types/oracle';
 import { TimeRange } from '../common/TabNavigation';
 import { AnomalyMarker, AnomalyPoint } from '../common/AnomalyMarker';
 import { ChartExportButton } from '../forms/ChartExportButton';

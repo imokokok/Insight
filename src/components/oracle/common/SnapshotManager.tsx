@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { OracleSnapshot, formatTimestamp, getTimeAgo } from '@/lib/types/snapshot';
+import { OracleSnapshot } from '@/types/oracle';
+import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
 import {
   getSnapshotsFromDatabase,
   deleteSnapshotFromDatabase,
@@ -17,7 +18,7 @@ import {
   clearLocalStorageSnapshots,
   markMigrationComplete,
 } from '@/lib/snapshots';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -29,6 +30,7 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.UMA]: 'UMA',
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
 };
 
 interface SnapshotManagerProps {

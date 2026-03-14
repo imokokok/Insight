@@ -1,6 +1,6 @@
 import { BaseOracleClient, OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
-import { PriceData, OracleProvider, Blockchain, ConfidenceInterval } from '@/lib/types/oracle';
+import { PriceData, OracleProvider, Blockchain, ConfidenceInterval } from '@/types/oracle';
 
 const SPREAD_PERCENTAGES: Record<string, number> = {
   BTC: 0.02,

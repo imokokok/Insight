@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/provider';
-import { OracleProvider, PriceData } from '@/lib/types/oracle';
+import { OracleProvider, PriceData } from '@/types/oracle';
 import {
   LineChart,
   Line,
@@ -18,33 +18,33 @@ import {
 import {
   PriceDeviationHeatmap,
   PriceDeviationDataPoint,
-} from '@/components/oracle/PriceDeviationHeatmap';
+} from '@/components/oracle/charts/PriceDeviationHeatmap';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import {
   PriceDistributionBoxPlot,
   OraclePriceData,
-} from '@/components/oracle/PriceDistributionBoxPlot';
-import { DataQualityScoreCard } from '@/components/oracle/DataQualityScoreCard';
-import { LatencyDistributionHistogram } from '@/components/oracle/LatencyDistributionHistogram';
+} from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
+import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
 import {
   PriceCorrelationMatrix,
   OraclePriceSeries,
-} from '@/components/oracle/PriceCorrelationMatrix';
-import { PriceVolatilityChart, OraclePriceHistory } from '@/components/oracle/PriceVolatilityChart';
+} from '@/components/oracle/charts/PriceCorrelationMatrix';
+import { PriceVolatilityChart, OraclePriceHistory } from '@/components/oracle/charts/PriceVolatilityChart';
 import {
   OraclePerformanceRanking,
   OraclePerformanceData,
-} from '@/components/oracle/OraclePerformanceRanking';
-import { MovingAverageChart } from '@/components/oracle/MovingAverageChart';
-import { GasFeeComparison } from '@/components/oracle/GasFeeComparison';
-import { ATRIndicator } from '@/components/oracle/ATRIndicator';
-import { BollingerBands } from '@/components/oracle/BollingerBands';
-import { DataQualityTrend } from '@/components/oracle/DataQualityTrend';
-import { SnapshotManager } from '@/components/oracle/SnapshotManager';
-import { SnapshotComparison } from '@/components/oracle/SnapshotComparison';
-import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/lib/types/snapshot';
-import { FloatingActionButton } from '@/components/oracle/FloatingActionButton';
+} from '@/components/oracle/common/OraclePerformanceRanking';
+import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
+import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
+import { ATRIndicator } from '@/components/oracle/indicators/ATRIndicator';
+import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
+import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
+import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
+import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
+import { saveSnapshot, OracleSnapshot, SnapshotStats } from '@/types/oracle';
+import { FloatingActionButton } from '@/components/oracle/common/FloatingActionButton';
 import { FavoriteButton } from '@/components/favorites';
 import {
   useFavorites,
@@ -469,6 +469,7 @@ export default function CrossOraclePage() {
       [OracleProvider.UMA]: accessibleColors.linePatterns.dotted,
       [OracleProvider.PYTH]: accessibleColors.linePatterns.dashDot,
       [OracleProvider.API3]: accessibleColors.linePatterns.longDash,
+      [OracleProvider.REDSTONE]: '5 5',
     };
     return patternMap[oracle] || '0';
   };

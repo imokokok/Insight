@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { PerformanceGaugeGroup } from './PerformanceGauge';
-import { DataQualityScoreCard } from './DataQualityScoreCard';
+import { PerformanceGaugeGroup } from '../common/PerformanceGauge';
+import { DataQualityScoreCard } from '../common/DataQualityScoreCard';
 import { formatCompactNumber } from '@/lib/utils/format';
 
 type NetworkStatus = 'online' | 'warning' | 'offline';

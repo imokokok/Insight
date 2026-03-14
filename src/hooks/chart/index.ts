@@ -13,7 +13,7 @@ export type { ExportOptions, ChartData } from './useChartExport';
 
 export { useTechnicalIndicators } from './useTechnicalIndicators';
 export type {
-  PriceData,
+  PriceDataForTechnicalAnalysis,
   RSIData,
   MACDData,
   BollingerBandsData,

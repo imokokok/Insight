@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { usePriceHistory } from '@/hooks';
-import { PriceAccuracyStats } from './PriceAccuracyStats';
-import { ExtremeMarketAnalysis } from './ExtremeMarketAnalysis';
-import { AccuracyTrendChart } from './AccuracyTrendChart';
+import { PriceAccuracyStats } from '../common/PriceAccuracyStats';
+import { ExtremeMarketAnalysis } from '../common/ExtremeMarketAnalysis';
+import { AccuracyTrendChart } from '../charts/AccuracyTrendChart';
 
 type ViewMode = 'stats' | 'extreme' | 'trend';
 type TrendType = 'improving' | 'stable' | 'declining';

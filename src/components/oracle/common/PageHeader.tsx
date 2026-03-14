@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { TimeRange } from './TabNavigation';
-import { ExportModal } from './ExportModal';
+import { ExportModal } from '../forms/ExportModal';
 import { ExportOptions } from '@/hooks';
 import { useTimeRange } from '@/contexts/TimeRangeContext';
 

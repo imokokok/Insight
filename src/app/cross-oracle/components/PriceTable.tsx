@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { OracleProvider, PriceData } from '@/lib/types/oracle';
+import { OracleProvider, PriceData } from '@/types/oracle';
 import {
   oracleNames,
   getDeviationColorClass,

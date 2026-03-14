@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 
 export interface PriceDeviationDataPoint {
   timestamp: number;

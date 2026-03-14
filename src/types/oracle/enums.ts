@@ -4,6 +4,7 @@ export enum OracleProvider {
   UMA = 'uma',
   PYTH = 'pyth',
   API3 = 'api3',
+  REDSTONE = 'redstone',
 }
 
 export enum Blockchain {

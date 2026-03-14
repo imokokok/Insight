@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
-import { DashboardCard } from '@/components/oracle/DashboardCard';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 
 interface AlertHistoryProps {
   events: AlertEvent[];

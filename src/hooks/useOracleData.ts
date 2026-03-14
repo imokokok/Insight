@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BaseOracleClient } from '@/lib/oracles/base';
-import { PriceData, Blockchain } from '@/lib/types/oracle';
+import { PriceData, Blockchain } from '@/types/oracle';
 
 interface UsePriceDataOptions {
   symbol: string;

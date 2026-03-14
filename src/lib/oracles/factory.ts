@@ -1,10 +1,11 @@
-import { OracleProvider } from '@/lib/types/oracle';
+import { OracleProvider } from '@/types/oracle';
 import { BaseOracleClient } from './base';
 import { ChainlinkClient } from './chainlink';
 import { BandProtocolClient } from './bandProtocol';
 import { UMAClient } from './uma';
 import { PythClient } from './pythNetwork';
 import { API3Client } from './api3';
+import { RedStoneClient } from './redstone';
 import { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
 import { container, SERVICE_TOKENS } from '@/lib/di';
@@ -67,6 +68,7 @@ export class OracleClientFactory {
       OracleProvider.UMA,
       OracleProvider.PYTH,
       OracleProvider.API3,
+      OracleProvider.REDSTONE,
     ];
 
     const clients: Partial<Record<OracleProvider, BaseOracleClient>> = {};
@@ -124,6 +126,8 @@ export class OracleClientFactory {
         return new PythClient(this.config);
       case OracleProvider.API3:
         return new API3Client(this.config);
+      case OracleProvider.REDSTONE:
+        return new RedStoneClient(this.config);
       default:
         throw new Error(`Unknown oracle provider: ${provider}`);
     }

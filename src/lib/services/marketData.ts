@@ -1165,6 +1165,15 @@ export async function fetchProtocolDetails(): Promise<ProtocolDetail[]> {
 
 const ORACLE_LIST = ['Chainlink', 'Pyth Network', 'Band Protocol', 'API3', 'UMA', 'RedStone'];
 
+const ORACLE_PROVIDER_MAP: Record<string, string> = {
+  'Chainlink': 'chainlink',
+  'Pyth Network': 'pyth',
+  'Band Protocol': 'band-protocol',
+  'API3': 'api3',
+  'UMA': 'uma',
+  'RedStone': 'redstone',
+};
+
 const ORACLE_COLOR_MAP: Record<string, string> = {
   Chainlink: '#375BD2',
   'Pyth Network': '#E6B800',
