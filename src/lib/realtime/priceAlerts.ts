@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createLogger } from '@/lib/utils/logger';
+import type { PriceDataForAlert } from '@/types/oracle';
 
 const logger = createLogger('PriceAlerts');
 
@@ -37,20 +38,14 @@ export interface AlertHistory {
   acknowledged: boolean;
 }
 
-export interface PriceData {
-  symbol: string;
-  price: number;
-  change24h: number;
-  changePercent24h: number;
-  timestamp: number;
-}
-
 export interface AlertCheckResult {
   triggered: boolean;
   alert: PriceAlert;
   currentValue: number;
   history: AlertHistory;
 }
+
+export type { PriceDataForAlert };
 
 // 从 localStorage 加载预警规则
 function loadAlertsFromStorage(): PriceAlert[] {

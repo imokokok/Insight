@@ -3,11 +3,9 @@
  */
 
 import { useMemo, useCallback } from 'react';
+import type { PriceDataForTechnicalAnalysis } from '@/types/oracle';
 
-export interface PriceData {
-  price: number;
-  timestamp: number;
-}
+export type { PriceDataForTechnicalAnalysis };
 
 // 简单移动平均 (SMA)
 export function calculateSMA(prices: number[], period: number): number[] {
@@ -229,7 +227,7 @@ export function detectMACDSignals(macdData: MACDData[]): MACDSignal[] {
 }
 
 // Hook 封装
-export function useTechnicalIndicators(data: PriceData[]) {
+export function useTechnicalIndicators(data: PriceDataForTechnicalAnalysis[]) {
   const prices = useMemo(() => data.map(d => d.price), [data]);
   const timestamps = useMemo(() => data.map(d => d.timestamp), [data]);
 

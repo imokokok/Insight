@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
 import { PriceData } from '@/lib/types/oracle';
@@ -25,26 +25,27 @@ export interface UseAPI3PriceReturn {
 export function useAPI3Price(options: UseAPI3PriceOptions): UseAPI3PriceReturn {
   const { symbol, chain, enabled = true, refreshInterval = 10000 } = options;
 
-  const key = enabled ? `api3-price-${symbol}-${chain || 'default'}` : null;
-
   const fetcher = useCallback(async (): Promise<PriceData> => {
     return api3Client.getPrice(symbol, chain);
   }, [symbol, chain]);
 
-  const { data, error, isLoading, mutate } = useSWR<PriceData>(key, fetcher, {
-    refreshInterval,
-    revalidateOnFocus: false,
-    dedupingInterval: 2000,
+  const { data, error, isLoading, refetch } = useQuery<PriceData, Error>({
+    queryKey: ['api3-price', symbol, chain ?? 'default'],
+    queryFn: fetcher,
+    enabled,
+    staleTime: refreshInterval,
+    gcTime: refreshInterval * 2,
+    refetchInterval: refreshInterval,
+    refetchOnWindowFocus: false,
+    retry: 3,
   });
-
-  const refetch = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
 
   return {
     data,
     isLoading,
-    error,
-    refetch,
+    error: error ?? undefined,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client, DapiCoverage } from '@/lib/oracles/api3';
 
@@ -23,26 +23,27 @@ export function useAPI3DapiCoverage(
 ): UseAPI3DapiCoverageReturn {
   const { enabled = true, refreshInterval = 300000 } = options;
 
-  const key = enabled ? 'api3-dapi-coverage' : null;
-
   const fetcher = useCallback(async (): Promise<DapiCoverage> => {
     return api3Client.getDapiCoverage();
   }, []);
 
-  const { data, error, isLoading, mutate } = useSWR<DapiCoverage>(key, fetcher, {
-    refreshInterval,
-    revalidateOnFocus: false,
-    dedupingInterval: 10000,
+  const { data, error, isLoading, refetch } = useQuery<DapiCoverage, Error>({
+    queryKey: ['api3-dapi-coverage'],
+    queryFn: fetcher,
+    enabled,
+    staleTime: refreshInterval,
+    gcTime: refreshInterval * 2,
+    refetchInterval: refreshInterval,
+    refetchOnWindowFocus: false,
+    retry: 3,
   });
-
-  const refetch = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
 
   return {
     data,
     isLoading,
-    error,
-    refetch,
+    error: error ?? undefined,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }

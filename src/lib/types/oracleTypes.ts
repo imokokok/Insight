@@ -1,290 +1,43 @@
-import {
+export {
   OracleProvider,
   Blockchain,
+  TimeRange,
+  DataStatus,
+  TrendDirection,
+  DEFAULT_CHART_THEME,
+  ORACLE_PROVIDERS,
+} from '@/types/oracle';
+
+export type {
   ConfidenceInterval,
   PriceData,
   PublisherStatus,
-} from './oracle';
-import { financeColors, baseColors, semanticColors } from '@/lib/config/colors';
+  PublisherStatusType,
+  ConfidenceIntervalData,
+  PriceDataExtended,
+  PriceDeviation,
+  GenericValidator,
+  GenericNetworkStats,
+  DataQualityMetrics,
+  LoadingState,
+  FilterState,
+  OracleProviderConfig,
+  ValidationResult,
+  ExportOptions,
+  ChartThemeColors,
+} from '@/types/oracle';
 
-export { OracleProvider, Blockchain };
-export type { ConfidenceInterval, PriceData, PublisherStatus };
+export type {
+  PaginationState,
+  SortConfig,
+  FilterOption,
+} from '@/types/common';
 
-export enum TimeRange {
-  '1H' = 3600,
-  '6H' = 21600,
-  '24H' = 86400,
-  '7D' = 604800,
-  '30D' = 2592000,
-}
-
-export enum DataStatus {
-  NORMAL = 'normal',
-  WARNING = 'warning',
-  CRITICAL = 'critical',
-  STALE = 'stale',
-}
-
-export enum TrendDirection {
-  IMPROVING = 'improving',
-  STABLE = 'stable',
-  DECLINING = 'declining',
-  EXPANDING = 'expanding',
-  SHRINKING = 'shrinking',
-}
-
-export type PublisherStatusType = 'active' | 'inactive' | 'degraded';
-
-export interface ConfidenceIntervalData {
-  bid: number;
-  ask: number;
-  widthPercentage: number;
-}
-
-export interface PriceDataExtended {
-  provider: OracleProvider;
-  chain?: Blockchain;
-  symbol: string;
-  price: number;
-  timestamp: number;
-  decimals: number;
-  confidence?: number;
-  source?: string;
-  change?: number;
-  changePercent?: number;
-  confidenceInterval?: ConfidenceInterval;
-}
-
-export interface PriceDeviation {
-  symbol: string;
-  oraclePrice: number;
-  marketPrice?: number;
-  deviation: number;
-  deviationPercent: number;
-  trend: TrendDirection;
-  status: DataStatus;
-}
-
-export interface GenericValidator {
-  id: string;
-  name: string;
-  reliabilityScore: number;
-  latency: number;
-  status: PublisherStatus;
-  staked: number;
-  region?: string;
-  uptime?: number;
-  commission?: number;
-  totalResponses?: number;
-}
-
-export interface GenericNetworkStats {
-  activeValidators: number;
-  totalValidators: number;
-  avgResponseTime: number;
-  updateFrequency: number;
-  totalStaked: number;
-  timestamp: number;
-}
-
-export interface DataQualityMetrics {
-  freshness: {
-    lastUpdated: number;
-    updateInterval: number;
-  };
-  completeness: {
-    successCount: number;
-    totalCount: number;
-  };
-  reliability: {
-    historicalAccuracy: number;
-    responseSuccessRate: number;
-    uptime: number;
-  };
-}
-
-export interface ChartDataPoint {
-  x: number | string | Date;
-  y: number;
-  label?: string;
-  color?: string;
-}
-
-export interface TimeSeriesData {
-  timestamp: number;
-  value: number;
-  metadata?: Record<string, unknown>;
-}
-
-export interface HeatmapCell {
-  x: string;
-  y: string;
-  value: number;
-  color?: string;
-}
-
-export interface StatsSummary {
-  label: string;
-  value: number | string;
-  change?: number;
-  changePercent?: number;
-  trend?: TrendDirection;
-}
-
-export interface FilterOption {
-  value: string;
-  label: string;
-  count?: number;
-}
-
-export interface TabConfig {
-  id: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  badge?: number | string;
-}
-
-export interface PageConfig {
-  title: string;
-  description?: string;
-  provider: OracleProvider;
-  tabs: TabConfig[];
-  refreshInterval?: number;
-}
-
-export interface LoadingState {
-  isLoading: boolean;
-  error?: string;
-  lastUpdated?: number;
-}
-
-export interface PaginationState {
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
-export interface SortConfig {
-  field: string;
-  direction: 'asc' | 'desc';
-}
-
-export interface FilterState {
-  timeRange?: TimeRange;
-  chain?: Blockchain;
-  symbol?: string;
-  status?: DataStatus;
-}
-
-export interface OracleProviderConfig {
-  provider: OracleProvider;
-  name: string;
-  supportedChains: Blockchain[];
-  description: string;
-  website?: string;
-  logo?: string;
-  active: boolean;
-}
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings?: string[];
-}
-
-export interface ExportOptions {
-  format: 'csv' | 'json' | 'png';
-  filename?: string;
-  includeMetadata?: boolean;
-}
-
-export interface ChartThemeColors {
-  primary: string;
-  secondary: string;
-  success: string;
-  warning: string;
-  danger: string;
-  info: string;
-  neutral: string;
-  grid: string;
-  text: string;
-  background: string;
-}
-
-export const DEFAULT_CHART_THEME: ChartThemeColors = {
-  primary: financeColors.secondary,
-  secondary: baseColors.gray[500],
-  success: semanticColors.success.DEFAULT,
-  warning: semanticColors.warning.DEFAULT,
-  danger: semanticColors.danger.DEFAULT,
-  info: baseColors.primary[500],
-  neutral: baseColors.gray[400],
-  grid: baseColors.gray[200],
-  text: baseColors.gray[700],
-  background: '#ffffff',
-};
-
-export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
-  [OracleProvider.CHAINLINK]: {
-    provider: OracleProvider.CHAINLINK,
-    name: 'Chainlink',
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.POLYGON,
-      Blockchain.AVALANCHE,
-      Blockchain.BASE,
-    ],
-    description: ' decentralized oracle network',
-    website: 'https://chain.link',
-    active: true,
-  },
-  [OracleProvider.BAND_PROTOCOL]: {
-    provider: OracleProvider.BAND_PROTOCOL,
-    name: 'Band Protocol',
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.COSMOS,
-      Blockchain.OSMOSIS,
-      Blockchain.BNB_CHAIN,
-    ],
-    description: 'Cross-chain data oracle platform',
-    website: 'https://bandprotocol.com',
-    active: true,
-  },
-  [OracleProvider.UMA]: {
-    provider: OracleProvider.UMA,
-    name: 'UMA',
-    supportedChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM],
-    description: 'Optimistic oracle and dispute arbitration',
-    website: 'https://umaproject.org',
-    active: true,
-  },
-  [OracleProvider.PYTH]: {
-    provider: OracleProvider.PYTH,
-    name: 'Pyth',
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.SOLANA,
-    ],
-    description: 'Low-latency price oracle',
-    website: 'https://pyth.network',
-    active: true,
-  },
-  [OracleProvider.API3]: {
-    provider: OracleProvider.API3,
-    name: 'API3',
-    supportedChains: [
-      Blockchain.ETHEREUM,
-      Blockchain.ARBITRUM,
-      Blockchain.OPTIMISM,
-      Blockchain.POLYGON,
-    ],
-    description: 'First-party oracle infrastructure',
-    website: 'https://api3.org',
-    active: true,
-  },
-};
+export type {
+  ChartDataPoint,
+  TimeSeriesData,
+  HeatmapCell,
+  StatsSummary,
+  TabConfig,
+  PageConfig,
+} from '@/types/ui';

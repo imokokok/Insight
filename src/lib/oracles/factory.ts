@@ -7,6 +7,8 @@ import { PythClient } from './pythNetwork';
 import { API3Client } from './api3';
 import { OracleClientConfig } from './base';
 import { createLogger } from '@/lib/utils/logger';
+import { container, SERVICE_TOKENS } from '@/lib/di';
+import { IOracleClient, IOracleClientFactory } from './interfaces';
 
 const logger = createLogger('OracleClientFactory');
 
@@ -23,6 +25,14 @@ export class OracleClientFactory {
   }
 
   static getClient(provider: OracleProvider): BaseOracleClient {
+    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+      const client = factory.getClient(provider);
+      if (client instanceof BaseOracleClient) {
+        return client;
+      }
+    }
+
     if (!this.instances.has(provider)) {
       this.instances.set(provider, this.createClient(provider));
       logger.info(`Created new oracle client instance for ${provider}`);
@@ -30,7 +40,27 @@ export class OracleClientFactory {
     return this.instances.get(provider)!;
   }
 
+  static getClientFromDI(provider: OracleProvider): IOracleClient | null {
+    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+      return factory.getClient(provider);
+    }
+    return null;
+  }
+
   static getAllClients(): Record<OracleProvider, BaseOracleClient> {
+    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+      const clients = factory.getAllClients();
+      const result: Partial<Record<OracleProvider, BaseOracleClient>> = {};
+      for (const [key, client] of Object.entries(clients)) {
+        if (client instanceof BaseOracleClient) {
+          result[key as OracleProvider] = client;
+        }
+      }
+      return result as Record<OracleProvider, BaseOracleClient>;
+    }
+
     const providers = [
       OracleProvider.CHAINLINK,
       OracleProvider.BAND_PROTOCOL,
@@ -48,12 +78,38 @@ export class OracleClientFactory {
   }
 
   static clearInstances(): void {
+    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+      factory.clearInstances();
+    }
     this.instances.clear();
     logger.info('Cleared all oracle client instances');
   }
 
   static hasClient(provider: OracleProvider): boolean {
+    if (container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY)) {
+      const factory = container.resolve<IOracleClientFactory>(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+      return factory.hasClient(provider);
+    }
     return this.instances.has(provider);
+  }
+
+  static registerMockFactory(mockFactory: IOracleClientFactory): void {
+    container.register<IOracleClientFactory>(
+      SERVICE_TOKENS.ORACLE_CLIENT_FACTORY,
+      () => mockFactory,
+      true
+    );
+    logger.info('Mock oracle client factory registered');
+  }
+
+  static unregisterMockFactory(): void {
+    container.unregister(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
+    logger.info('Mock oracle client factory unregistered');
+  }
+
+  static isUsingDI(): boolean {
+    return container.has(SERVICE_TOKENS.ORACLE_CLIENT_FACTORY);
   }
 
   private static createClient(provider: OracleProvider): BaseOracleClient {
@@ -80,4 +136,16 @@ export function getOracleClient(provider: OracleProvider): BaseOracleClient {
 
 export function getAllOracleClients(): Record<OracleProvider, BaseOracleClient> {
   return OracleClientFactory.getAllClients();
+}
+
+export function getOracleClientFromDI(provider: OracleProvider): IOracleClient | null {
+  return OracleClientFactory.getClientFromDI(provider);
+}
+
+export function registerMockOracleFactory(mockFactory: IOracleClientFactory): void {
+  OracleClientFactory.registerMockFactory(mockFactory);
+}
+
+export function unregisterMockOracleFactory(): void {
+  OracleClientFactory.unregisterMockFactory();
 }

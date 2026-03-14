@@ -1,0 +1,94 @@
+import { financeColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { OracleProvider, Blockchain } from './enums';
+import { OracleProviderConfig } from './oracle';
+
+export interface ChartThemeColors {
+  primary: string;
+  secondary: string;
+  success: string;
+  warning: string;
+  danger: string;
+  info: string;
+  neutral: string;
+  grid: string;
+  text: string;
+  background: string;
+}
+
+export const DEFAULT_CHART_THEME: ChartThemeColors = {
+  primary: financeColors.secondary,
+  secondary: baseColors.gray[500],
+  success: semanticColors.success.DEFAULT,
+  warning: semanticColors.warning.DEFAULT,
+  danger: semanticColors.danger.DEFAULT,
+  info: baseColors.primary[500],
+  neutral: baseColors.gray[400],
+  grid: baseColors.gray[200],
+  text: baseColors.gray[700],
+  background: '#ffffff',
+};
+
+export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
+  [OracleProvider.CHAINLINK]: {
+    provider: OracleProvider.CHAINLINK,
+    name: 'Chainlink',
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+      Blockchain.AVALANCHE,
+      Blockchain.BASE,
+    ],
+    description: ' decentralized oracle network',
+    website: 'https://chain.link',
+    active: true,
+  },
+  [OracleProvider.BAND_PROTOCOL]: {
+    provider: OracleProvider.BAND_PROTOCOL,
+    name: 'Band Protocol',
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.COSMOS,
+      Blockchain.OSMOSIS,
+      Blockchain.BNB_CHAIN,
+    ],
+    description: 'Cross-chain data oracle platform',
+    website: 'https://bandprotocol.com',
+    active: true,
+  },
+  [OracleProvider.UMA]: {
+    provider: OracleProvider.UMA,
+    name: 'UMA',
+    supportedChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM],
+    description: 'Optimistic oracle and dispute arbitration',
+    website: 'https://umaproject.org',
+    active: true,
+  },
+  [OracleProvider.PYTH]: {
+    provider: OracleProvider.PYTH,
+    name: 'Pyth',
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.SOLANA,
+    ],
+    description: 'Low-latency price oracle',
+    website: 'https://pyth.network',
+    active: true,
+  },
+  [OracleProvider.API3]: {
+    provider: OracleProvider.API3,
+    name: 'API3',
+    supportedChains: [
+      Blockchain.ETHEREUM,
+      Blockchain.ARBITRUM,
+      Blockchain.OPTIMISM,
+      Blockchain.POLYGON,
+    ],
+    description: 'First-party oracle infrastructure',
+    website: 'https://api3.org',
+    active: true,
+  },
+};

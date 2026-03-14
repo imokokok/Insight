@@ -1,6 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
 import { PriceData } from '@/lib/types/oracle';
@@ -37,26 +37,27 @@ export function useAPI3HistoricalPrices(
 ): UseAPI3HistoricalPricesReturn {
   const { symbol, timeRange = '24h', chain, enabled = true } = options;
 
-  const key = enabled ? `api3-historical-${symbol}-${timeRange}-${chain || 'default'}` : null;
-
   const fetcher = useCallback(async (): Promise<PriceData[]> => {
     const period = timeRangeToPeriod[timeRange];
     return api3Client.getHistoricalPrices(symbol, chain, period);
   }, [symbol, chain, timeRange]);
 
-  const { data, error, isLoading, mutate } = useSWR<PriceData[]>(key, fetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 5000,
+  const { data, error, isLoading, refetch } = useQuery<PriceData[], Error>({
+    queryKey: ['api3-historical', symbol, timeRange, chain ?? 'default'],
+    queryFn: fetcher,
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
   });
-
-  const refetch = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
 
   return {
     data,
     isLoading,
-    error,
-    refetch,
+    error: error ?? undefined,
+    refetch: async () => {
+      await refetch();
+    },
   };
 }

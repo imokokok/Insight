@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import useSWR, { mutate } from 'swr';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { queries } from '@/lib/supabase/client';
 import type { ConfigType } from '@/lib/supabase/database.types';
@@ -23,20 +23,13 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
   const { user } = useAuth();
   const { configType } = options;
 
-  const key = user
-    ? configType
-      ? `favorites-${user.id}-${configType}`
-      : `favorites-${user.id}`
-    : null;
+  const queryKey = configType
+    ? ['favorites', user?.id, configType]
+    : ['favorites', user?.id];
 
-  const {
-    data: favorites,
-    error,
-    isLoading,
-    mutate: mutateFavorites,
-  } = useSWR<UserFavorite[]>(
-    key,
-    async () => {
+  const { data: favorites, error, isLoading, refetch } = useQuery<UserFavorite[], Error>({
+    queryKey,
+    queryFn: async () => {
       if (!user) return [];
       let result;
       if (configType) {
@@ -49,23 +42,24 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
       }
       return result || [];
     },
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    }
-  );
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   return {
     favorites: favorites || [],
     isLoading,
     error,
-    mutate: mutateFavorites,
+    refetch,
   };
 }
 
 export function useAddFavorite() {
   const { user } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
+  const queryClient = useQueryClient();
 
   const addFavorite = useCallback(
     async (name: string, configType: ConfigType, configData: FavoriteConfig) => {
@@ -82,8 +76,8 @@ export function useAddFavorite() {
         });
 
         if (favorite) {
-          await mutate(`favorites-${user.id}`);
-          await mutate(`favorites-${user.id}-${configType}`);
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
         }
 
         return favorite;
@@ -91,7 +85,7 @@ export function useAddFavorite() {
         setIsAdding(false);
       }
     },
-    [user]
+    [user, queryClient]
   );
 
   return {
@@ -103,6 +97,7 @@ export function useAddFavorite() {
 export function useRemoveFavorite() {
   const { user } = useAuth();
   const [isRemoving, setIsRemoving] = useState(false);
+  const queryClient = useQueryClient();
 
   const removeFavorite = useCallback(
     async (favoriteId: string, configType?: ConfigType) => {
@@ -115,9 +110,9 @@ export function useRemoveFavorite() {
         const success = await queries.deleteFavorite(favoriteId);
 
         if (success) {
-          await mutate(`favorites-${user.id}`);
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
           if (configType) {
-            await mutate(`favorites-${user.id}-${configType}`);
+            await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
           }
         }
 
@@ -126,7 +121,7 @@ export function useRemoveFavorite() {
         setIsRemoving(false);
       }
     },
-    [user]
+    [user, queryClient]
   );
 
   return {
@@ -137,7 +132,7 @@ export function useRemoveFavorite() {
 
 export function useToggleFavorite() {
   const { user } = useAuth();
-  const { favorites, mutate: mutateFavorites } = useFavorites();
+  const { favorites, refetch } = useFavorites();
   const { addFavorite, isAdding } = useAddFavorite();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [isToggling, setIsToggling] = useState(false);
@@ -158,10 +153,10 @@ export function useToggleFavorite() {
 
         if (existingFavorite) {
           await removeFavorite(existingFavorite.id!, configType);
-          return { action: 'removed', favorite: existingFavorite };
+          return { action: 'removed' as const, favorite: existingFavorite };
         } else {
           const newFavorite = await addFavorite(name, configType, configData);
-          return { action: 'added', favorite: newFavorite };
+          return { action: 'added' as const, favorite: newFavorite };
         }
       } finally {
         setIsToggling(false);
@@ -196,6 +191,7 @@ export function useIsFavorited(configType: ConfigType, configData: FavoriteConfi
 export function useUpdateFavorite() {
   const { user } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const updateFavorite = useCallback(
     async (
@@ -216,9 +212,9 @@ export function useUpdateFavorite() {
         const favorite = await queries.updateFavorite(favoriteId, updateData);
 
         if (favorite) {
-          await mutate(`favorites-${user.id}`);
+          await queryClient.invalidateQueries({ queryKey: ['favorites', user.id] });
           if (configType) {
-            await mutate(`favorites-${user.id}-${configType}`);
+            await queryClient.invalidateQueries({ queryKey: ['favorites', user.id, configType] });
           }
         }
 
@@ -227,7 +223,7 @@ export function useUpdateFavorite() {
         setIsUpdating(false);
       }
     },
-    [user]
+    [user, queryClient]
   );
 
   return {
