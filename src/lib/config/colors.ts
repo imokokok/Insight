@@ -3,8 +3,6 @@
  * 集中管理项目中所有颜色，避免硬编码
  */
 
-import { OracleProvider } from '@/types/oracle';
-
 // ============================================
 // 基础颜色系统
 // ============================================
@@ -64,30 +62,35 @@ export const semanticColors = {
     DEFAULT: '#10b981',
     dark: '#059669',
     text: '#065f46',
+    main: '#10b981',
   },
   warning: {
     light: '#fef3c7',
     DEFAULT: '#f59e0b',
     dark: '#d97706',
     text: '#92400e',
+    main: '#f59e0b',
   },
   danger: {
     light: '#fee2e2',
     DEFAULT: '#ef4444',
     dark: '#dc2626',
     text: '#991b1b',
+    main: '#ef4444',
   },
   info: {
     light: '#dbeafe',
     DEFAULT: '#3b82f6',
     dark: '#2563eb',
     text: '#1e40af',
+    main: '#3b82f6',
   },
   neutral: {
     light: '#f1f5f9',
     DEFAULT: '#64748b',
     dark: '#475569',
     text: '#334155',
+    main: '#64748b',
   },
 } as const;
 
@@ -150,6 +153,8 @@ export const chartColors = {
     tellar: '#06B6D4',
     flux: '#F38181',
     tellor: '#AA96DA',
+    chronicle: '#E11D48',
+    winklink: '#FF4D4D',
   } as const,
 
   // 预言机颜色 - 色盲友好版本（使用形状+颜色双重编码）
@@ -164,6 +169,8 @@ export const chartColors = {
     dia: { color: '#059669', pattern: 'dotted' },
     flux: { color: '#ea580c', pattern: 'dashDot' },
     tellor: { color: '#7c3aed', pattern: 'longDash' },
+    chronicle: { color: '#be123c', pattern: 'solid' },
+    winklink: { color: '#dc2626', pattern: 'dashed' },
   } as const,
 
   // UMA 请求类型颜色
@@ -257,6 +264,7 @@ export const chartColors = {
     // 轴线
     axis: '#9ca3af',
     axisLight: '#9CA3AF',
+    secondaryAxis: '#6b7280',
     // 刻度文字
     tick: '#6b7280',
     tickLight: '#6B7280',
@@ -398,6 +406,8 @@ export const accessibleColors = {
       '#f95d6a', // 粉红
       '#ff7c43', // 橙色
       '#ffa600', // 黄色
+      '#00b4d8', // 青色 - Chronicle
+      '#e63946', // 红色 - WINkLink
     ],
     // 高对比度模式
     highContrast: [
@@ -476,23 +486,6 @@ export const tailwindClasses = {
 // ============================================
 // 辅助函数
 // ============================================
-
-/**
- * 获取预言机颜色
- */
-export function getOracleColor(provider: OracleProvider): string {
-  const colorMap: Record<OracleProvider, string> = {
-    [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-    [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-    [OracleProvider.UMA]: chartColors.oracle.uma,
-    [OracleProvider.PYTH]: chartColors.oracle['pyth'],
-    [OracleProvider.API3]: chartColors.oracle.api3,
-    [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-    [OracleProvider.DIA]: chartColors.oracle.dia,
-    [OracleProvider.TELLAR]: chartColors.oracle.tellar,
-  };
-  return colorMap[provider] || chartColors.sequence[0];
-}
 
 /**
  * 获取涨跌颜色配置

@@ -8,6 +8,9 @@ import {
   MarketDataPanel,
   NetworkHealthPanel,
 } from '@/components/oracle';
+import { ChronicleScuttlebuttPanel } from '@/components/oracle/panels/ChronicleScuttlebuttPanel';
+import { ChronicleMakerDAOIntegrationPanel } from '@/components/oracle/panels/ChronicleMakerDAOIntegrationPanel';
+import { ChronicleValidatorPanel } from '@/components/oracle/panels/ChronicleValidatorPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -97,9 +100,8 @@ export function ChroniclePageContent() {
     filename: `chronicle-data-${new Date().toISOString().split('T')[0]}`,
   });
 
-  const { isRefreshing, handleRefresh, lastUpdateTime } = useRefresh({
+  const { isRefreshing, refresh: handleRefresh } = useRefresh({
     onRefresh: refetchAll,
-    interval: 60000,
   });
 
   if (isLoading) {
@@ -119,7 +121,6 @@ export function ChroniclePageContent() {
         onRefresh={handleRefresh}
         onExport={exportData}
         isRefreshing={isRefreshing}
-        lastUpdateTime={lastUpdateTime}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -158,153 +159,15 @@ export function ChroniclePageContent() {
           )}
 
           {activeTab === 'scuttlebutt' && scuttlebuttData && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('chronicle.scuttlebutt.title')}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.securityLevel')}</p>
-                  <p className="text-2xl font-bold text-gray-900 capitalize">{scuttlebuttData.securityLevel}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.auditScore')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{scuttlebuttData.auditScore}/100</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.scuttlebutt.features')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{scuttlebuttData.securityFeatures.length}</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-gray-900">{t('chronicle.scuttlebutt.securityFeatures')}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {scuttlebuttData.securityFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
-                      <span className="text-green-600">✓</span>
-                      <span className="text-sm text-gray-700">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <ChronicleScuttlebuttPanel data={scuttlebuttData} />
           )}
 
           {activeTab === 'makerdao' && makerDAOData && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('chronicle.makerdao.title')}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.makerdao.tvl')}</p>
-                  <p className="text-2xl font-bold text-gray-900">${(makerDAOData.totalValueLocked / 1e9).toFixed(2)}B</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.makerdao.daiSupply')}</p>
-                  <p className="text-2xl font-bold text-gray-900">${(makerDAOData.daiSupply / 1e9).toFixed(2)}B</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.makerdao.systemSurplus')}</p>
-                  <p className="text-2xl font-bold text-green-600">${(makerDAOData.systemSurplus / 1e6).toFixed(2)}M</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.makerdao.debtCeiling')}</p>
-                  <p className="text-2xl font-bold text-gray-900">${(makerDAOData.globalDebtCeiling / 1e9).toFixed(2)}B</p>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.makerdao.asset')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.makerdao.type')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.makerdao.price')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.makerdao.collateralRatio')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.makerdao.stabilityFee')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {makerDAOData.supportedAssets.map((asset, index) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-3 px-4">
-                          <span className="font-semibold text-gray-900">{asset.symbol}</span>
-                          <span className="text-sm text-gray-500 ml-2">{asset.name}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 capitalize">{asset.type}</span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-900">${asset.price.toLocaleString()}</td>
-                        <td className="py-3 px-4 text-gray-900">{asset.collateralRatio}%</td>
-                        <td className="py-3 px-4 text-gray-900">{asset.stabilityFee}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <ChronicleMakerDAOIntegrationPanel data={makerDAOData} />
           )}
 
           {activeTab === 'validators' && validatorData && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('chronicle.validators.title')}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.validators.total')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{validatorData.totalValidators}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.validators.active')}</p>
-                  <p className="text-2xl font-bold text-green-600">{validatorData.activeValidators}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.validators.avgReputation')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{validatorData.averageReputation}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500">{t('chronicle.validators.totalStaked')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{(validatorData.totalStaked / 1e6).toFixed(2)}M</p>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.name')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.reputation')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.uptime')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.responseTime')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.staked')}</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.status')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {validatorData.validators.map((validator, index) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-3 px-4">
-                          <p className="font-semibold text-gray-900">{validator.name}</p>
-                          <p className="text-xs text-gray-500">{validator.address}</p>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div className="h-full bg-amber-500" style={{ width: `${validator.reputationScore}%` }} />
-                            </div>
-                            <span className="text-sm text-gray-700">{validator.reputationScore}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-900">{validator.uptime}%</td>
-                        <td className="py-3 px-4 text-gray-900">{validator.responseTime}ms</td>
-                        <td className="py-3 px-4 text-gray-900">{(validator.stakedAmount / 1e6).toFixed(2)}M</td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            validator.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {validator.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <ChronicleValidatorPanel data={validatorData} />
           )}
         </div>
       </div>

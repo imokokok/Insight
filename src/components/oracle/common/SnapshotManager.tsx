@@ -31,6 +31,10 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
+  [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
 interface SnapshotManagerProps {

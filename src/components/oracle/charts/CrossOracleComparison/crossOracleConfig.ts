@@ -5,6 +5,10 @@ import {
   PythClient,
   API3Client,
   RedStoneClient,
+  DIAClient,
+  TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
 } from '@/lib/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
@@ -73,6 +77,10 @@ export const oracleClients = {
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
+  [OracleProvider.DIA]: new DIAClient(),
+  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
+  [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export const oracleNames: Record<OracleProvider, string> = {
@@ -82,6 +90,10 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
+  [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
@@ -91,6 +103,10 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLAR]: chartColors.oracle.tellar,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 export const symbols = ['BTC', 'ETH', 'SOL', 'USDC', 'LINK', 'AVAX', 'MATIC', 'ARB'];

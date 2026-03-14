@@ -496,7 +496,7 @@ function FreshnessTrendChart({
   const oracleColors: Record<string, string> = {
     Chainlink: chartColors.oracle.chainlink,
     Pyth: chartColors.oracle.pyth,
-    Band: chartColors.oracle.band,
+    Band: chartColors.oracle['band-protocol'],
     UMA: chartColors.oracle.uma,
     API3: chartColors.oracle.api3,
   };
@@ -556,7 +556,7 @@ function FreshnessTrendChart({
               <span
                 className="w-2 h-2 rounded-full"
                 style={{
-                  backgroundColor: isHidden ? chartColors.recharts.neutral : oracleColors[provider] || chartColors.recharts.secondaryAxis,
+                  backgroundColor: isHidden ? semanticColors.neutral.main : oracleColors[provider] || chartColors.recharts.secondaryAxis,
                 }}
               />
               <span>

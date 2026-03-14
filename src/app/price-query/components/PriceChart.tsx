@@ -20,7 +20,7 @@ import {
 import { Icons } from './Icons';
 import { CustomTooltip } from './CustomTooltip';
 import { CustomLegend } from './CustomLegend';
-import { QueryResult, oracleColors } from '../constants';
+import { QueryResult, oracleColors, oracleI18nKeys } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
 import {
   addTechnicalIndicators,
@@ -233,7 +233,7 @@ export function PriceChart({
 
   const legendPayload = useMemo(() => {
     return queryResults.map(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       return { value: label, color: oracleColors[provider] };
     });
   }, [queryResults, t]);
@@ -243,7 +243,7 @@ export function PriceChart({
     if (chartData.length === 0) return [];
 
     return queryResults.map(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       const prices = chartData
         .map((d) => d[label] as number)
         .filter((p) => typeof p === 'number' && !isNaN(p));
@@ -272,7 +272,7 @@ export function PriceChart({
     const map: Record<string, string> = {};
     if (!needsMultipleYAxes) {
       queryResults.forEach(({ provider, chain }) => {
-        const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+        const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
         map[label] = 'left';
       });
       return map;
@@ -308,7 +308,7 @@ export function PriceChart({
 
     // Add MA indicators, Bollinger Bands, and Confidence Intervals for each series
     queryResults.forEach(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       const prices = enhanced.map((d) => d[label] as number).filter((p) => typeof p === 'number');
 
       if (prices.length === 0) return;
@@ -358,7 +358,7 @@ export function PriceChart({
 
     const allAnomalies: AnomalyPoint[] = [];
     queryResults.forEach(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       if (hiddenSeries.has(label)) return;
 
       const anomalies = detectAnomalies(enhancedChartData, label, 2);
@@ -374,7 +374,7 @@ export function PriceChart({
 
     const allEvents: PriceSpikeEvent[] = [];
     queryResults.forEach(({ provider, chain }) => {
-      const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+      const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
       if (hiddenSeries.has(label)) return;
 
       const events = detectPriceSpikes(enhancedChartData, label, 0.05, 3);
@@ -635,7 +635,7 @@ export function PriceChart({
               {showConfidenceInterval &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-ci2`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain);
                   if (isHidden || opacity < 0.5) return null;
@@ -658,7 +658,7 @@ export function PriceChart({
               {showConfidenceInterval &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-ci1`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain);
                   if (isHidden || opacity < 0.5) return null;
@@ -681,7 +681,7 @@ export function PriceChart({
               {showBollingerBands &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-bb-lower`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain);
@@ -707,7 +707,7 @@ export function PriceChart({
               {showBollingerBands &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-bb-middle`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain);
@@ -733,7 +733,7 @@ export function PriceChart({
               {showBollingerBands &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-bb-upper`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain);
@@ -759,7 +759,7 @@ export function PriceChart({
               {showMA30 &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-MA30`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const maKey = `${label}_MA30`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
@@ -786,7 +786,7 @@ export function PriceChart({
               {showMA7 &&
                 queryResults.map(({ provider, chain }) => {
                   const key = `${provider}-${chain}-MA7`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const maKey = `${label}_MA7`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
@@ -874,7 +874,7 @@ export function PriceChart({
               {compareMode &&
                 compareQueryResults.map(({ provider, chain }) => {
                   const key = `compare-${provider}-${chain}`;
-                  const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                  const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                   const color = oracleColors[provider];
                   const isHidden = hiddenSeries.has(label);
                   const opacity = getLineOpacity(provider, chain) * 0.5; // 对比数据使用半透明度
@@ -900,7 +900,7 @@ export function PriceChart({
               {/* 主价格线 */}
               {queryResults.map(({ provider, chain }) => {
                 const key = `${provider}-${chain}`;
-                const label = `${t(`navbar.${provider.toLowerCase()}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
+                const label = `${t(`navbar.${oracleI18nKeys[provider]}`)} (${t(`blockchain.${chain.toLowerCase()}`)})`;
                 const color = oracleColors[provider];
                 const isHidden = hiddenSeries.has(label);
                 const opacity = getLineOpacity(provider, chain);

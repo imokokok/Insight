@@ -12,6 +12,7 @@ import {
   providerNames,
   chainNames,
   DEVIATION_THRESHOLD,
+  oracleI18nKeys,
 } from '../constants';
 import { semanticColors } from '@/lib/config/colors';
 
@@ -390,7 +391,7 @@ export function PriceResultsTable({
                           aria-hidden="true"
                         />
                         <span className="font-medium text-gray-900 truncate">
-                          {t(`navbar.${result.provider.toLowerCase()}`)}
+                          {t(`navbar.${oracleI18nKeys[result.provider]}`)}
                         </span>
                       </div>
                     </div>

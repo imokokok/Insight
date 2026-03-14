@@ -23,6 +23,10 @@ export function createMockOracleFactory(
     [OracleProvider.PYTH]: clients?.[OracleProvider.PYTH] ?? createMockOracleClientBuilder().build(),
     [OracleProvider.API3]: clients?.[OracleProvider.API3] ?? createMockOracleClientBuilder().build(),
     [OracleProvider.REDSTONE]: clients?.[OracleProvider.REDSTONE] ?? createMockOracleClientBuilder().build(),
+    [OracleProvider.DIA]: clients?.[OracleProvider.DIA] ?? createMockOracleClientBuilder().build(),
+    [OracleProvider.TELLAR]: clients?.[OracleProvider.TELLAR] ?? createMockOracleClientBuilder().build(),
+    [OracleProvider.CHRONICLE]: clients?.[OracleProvider.CHRONICLE] ?? createMockOracleClientBuilder().build(),
+    [OracleProvider.WINKLINK]: clients?.[OracleProvider.WINKLINK] ?? createMockOracleClientBuilder().build(),
   };
 
   return {

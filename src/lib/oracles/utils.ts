@@ -6,6 +6,10 @@ import {
   PythClient,
   API3Client,
   RedStoneClient,
+  DIAClient,
+  TellarClient,
+  ChronicleClient,
+  WINkLinkClient,
 } from './index';
 
 const clients: Record<OracleProvider, OracleClient> = {
@@ -15,6 +19,10 @@ const clients: Record<OracleProvider, OracleClient> = {
   [OracleProvider.PYTH]: new PythClient(),
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
+  [OracleProvider.DIA]: new DIAClient(),
+  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.CHRONICLE]: new ChronicleClient(),
+  [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
 
 export function getOracleClient(provider: OracleProvider): OracleClient {

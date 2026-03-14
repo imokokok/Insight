@@ -681,3 +681,13 @@ export function getOracleConfig(provider: OracleProvider): OracleConfig {
 export function getAllOracleConfigs(): OracleConfig[] {
   return Object.values(oracleConfigs);
 }
+
+export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
+  return Object.values(oracleConfigs).sort((a, b) => b.marketData.marketCap - a.marketData.marketCap);
+}
+
+export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
+  return Object.values(oracleConfigs)
+    .sort((a, b) => b.marketData.marketCap - a.marketData.marketCap)
+    .map((config) => config.provider);
+}

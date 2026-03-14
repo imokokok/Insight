@@ -89,3 +89,4 @@ export {
   unregisterMockOracleFactory,
 } from './factory';
 export * from '@/types/oracle';
+export { getOracleColor } from './colors';

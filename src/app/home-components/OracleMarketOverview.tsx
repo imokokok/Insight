@@ -37,10 +37,10 @@ import { chartColors } from '@/lib/config/colors';
 const COLORS = {
   chainlink: chartColors.oracle.chainlink,
   pyth: chartColors.oracle.pyth,
-  band: chartColors.oracle.band,
+  band: chartColors.oracle['band-protocol'],
   api3: chartColors.oracle.api3,
   uma: chartColors.oracle.uma,
-  others: chartColors.oracle.others,
+  others: chartColors.oracle.redstone,
 };
 
 const marketShareData = [

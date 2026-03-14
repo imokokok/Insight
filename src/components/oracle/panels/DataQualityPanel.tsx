@@ -571,7 +571,7 @@ function LatencyDistributionChart({
           />
           <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => {
-              let color = chartColors.semantic.success;
+              let color: string = chartColors.semantic.success;
               if (index >= 7) color = '#f43f5e';
               else if (index >= 5) color = chartColors.semantic.warning;
               else if (index >= 3) color = chartColors.recharts.primary;
