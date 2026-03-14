@@ -4,6 +4,9 @@ import { RefObject } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, ChevronDown, Table, FileJson, Image as ImageIcon } from 'lucide-react';
 import { ChartType } from '../types';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ExportSection');
 
 interface ExportSectionProps {
   loading: boolean;
@@ -74,7 +77,7 @@ export default function ExportSection({
       link.href = finalCanvas.toDataURL('image/png');
       link.click();
     } catch (error) {
-      console.error('导出图片失败:', error);
+      logger.error('导出图片失败', error instanceof Error ? error : new Error(String(error)));
       alert(
         locale === 'zh-CN' ? '导出图片失败，请重试' : 'Failed to export image, please try again'
       );

@@ -1,3 +1,7 @@
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('BasePrices');
+
 export interface BasePrices {
   BTC: number;
   ETH: number;
@@ -58,7 +62,7 @@ function getBasePrices(): BasePrices {
         ...parsed,
       };
     } catch (e) {
-      console.warn('Failed to parse BASE_PRICES env, using defaults');
+      logger.warn('Failed to parse BASE_PRICES env, using defaults');
     }
   }
 

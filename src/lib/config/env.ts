@@ -1,3 +1,7 @@
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('EnvConfig');
+
 type Environment = 'development' | 'production' | 'test';
 
 interface SupabaseConfig {
@@ -39,7 +43,7 @@ function validateEnvVar(name: string, value: string | undefined): string {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(`Missing required environment variable: ${name}`);
     }
-    console.warn(`Missing environment variable: ${name}, using fallback`);
+    logger.warn(`Missing environment variable: ${name}, using fallback`);
     return '';
   }
   return value;

@@ -5,7 +5,9 @@ export { MACDIndicator, calculateMACD } from './MACDIndicator';
 export type { MACDDataPoint, MACDIndicatorProps } from './MACDIndicator';
 
 export { BollingerBands } from './BollingerBands';
-export type { BollingerBandsProps, PriceDataPoint, OraclePriceHistory } from './BollingerBands';
+export type { BollingerBandsProps, OraclePriceHistory } from './BollingerBands';
 
 export { ATRIndicator } from './ATRIndicator';
-export type { ATRIndicatorProps, PriceDataPoint as ATRPriceDataPoint } from './ATRIndicator';
+export type { ATRIndicatorProps } from './ATRIndicator';
+
+export type { PriceDataPoint } from '@/lib/indicators';

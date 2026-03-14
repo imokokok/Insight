@@ -18,14 +18,8 @@ import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors } from '@/lib/config/colors';
-
-export interface PriceDataPoint {
-  timestamp: number;
-  price: number;
-  high?: number;
-  low?: number;
-  close?: number;
-}
+import { calculateBollingerBandsExtended } from '@/lib/indicators';
+import type { PriceDataPoint } from '@/lib/indicators';
 
 export interface OraclePriceHistory {
   oracle: OracleProvider;
@@ -72,91 +66,6 @@ interface BollingerResult {
   breakout: 'upper' | 'lower' | null;
 }
 
-function calculateSMA(prices: number[], period: number): number[] {
-  const sma: number[] = [];
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period - 1) {
-      sma.push(NaN);
-    } else {
-      const sum = prices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-      sma.push(sum / period);
-    }
-  }
-  return sma;
-}
-
-function calculateStdDev(prices: number[], period: number): number[] {
-  const stdDev: number[] = [];
-  for (let i = 0; i < prices.length; i++) {
-    if (i < period - 1) {
-      stdDev.push(NaN);
-    } else {
-      const slice = prices.slice(i - period + 1, i + 1);
-      const mean = slice.reduce((a, b) => a + b, 0) / period;
-      const squaredDiffs = slice.map((p) => Math.pow(p - mean, 2));
-      const variance = squaredDiffs.reduce((a, b) => a + b, 0) / period;
-      stdDev.push(Math.sqrt(variance));
-    }
-  }
-  return stdDev;
-}
-
-function calculateBollingerBands(
-  prices: PriceDataPoint[],
-  period: number = 20,
-  multiplier: number = 2
-): BollingerResult[] {
-  const sortedPrices = [...prices].sort((a, b) => a.timestamp - b.timestamp);
-  const priceValues = sortedPrices.map((p) => p.price);
-
-  const sma = calculateSMA(priceValues, period);
-  const stdDev = calculateStdDev(priceValues, period);
-
-  const results: BollingerResult[] = [];
-  let previousBandwidth = 0;
-
-  for (let i = 0; i < sortedPrices.length; i++) {
-    const middle = sma[i];
-    const sd = stdDev[i];
-    const upper = middle + sd * multiplier;
-    const lower = middle - sd * multiplier;
-    const price = priceValues[i];
-
-    const bandwidth = upper - lower;
-    const bandwidthPercent = middle > 0 ? (bandwidth / middle) * 100 : 0;
-
-    const position = sd > 0 ? (price - middle) / (sd * multiplier) : 0;
-
-    const squeeze =
-      bandwidthPercent < 5 || (previousBandwidth > 0 && bandwidth < previousBandwidth * 0.8);
-
-    let breakout: 'upper' | 'lower' | null = null;
-    if (price > upper) breakout = 'upper';
-    else if (price < lower) breakout = 'lower';
-
-    results.push({
-      timestamp: new Date(sortedPrices[i].timestamp).toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      rawTimestamp: sortedPrices[i].timestamp,
-      price,
-      middle,
-      upper,
-      lower,
-      bandwidth,
-      bandwidthPercent,
-      position,
-      squeeze,
-      breakout,
-    });
-
-    previousBandwidth = bandwidth;
-  }
-
-  return results;
-}
-
 function getPositionDescription(position: number): string {
   if (position > 1) return '超买区';
   if (position > 0.5) return '强势区';
@@ -195,7 +104,46 @@ export function BollingerBands({
 
   const chartData = useMemo(() => {
     if (!selectedOracleData) return [];
-    return calculateBollingerBands(selectedOracleData.prices, period, multiplier);
+
+    const pricesWithTimestamp = selectedOracleData.prices.map((p, i) => ({
+      ...p,
+      timestamp: p.timestamp || i,
+    }));
+
+    const result = calculateBollingerBandsExtended(pricesWithTimestamp, period, multiplier);
+    const sortedPrices = [...pricesWithTimestamp].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+    let previousBandwidth = 0;
+
+    return sortedPrices.map((point, i) => {
+      const bandwidth = result.bandwidth[i];
+      const bandwidthPercent = result.bandwidthPercent[i];
+      const squeeze =
+        bandwidthPercent < 5 || (previousBandwidth > 0 && bandwidth < previousBandwidth * 0.8);
+
+      let breakout: 'upper' | 'lower' | null = null;
+      if (point.price > result.upper[i]) breakout = 'upper';
+      else if (point.price < result.lower[i]) breakout = 'lower';
+
+      previousBandwidth = bandwidth;
+
+      return {
+        timestamp: new Date(point.timestamp || 0).toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        rawTimestamp: point.timestamp || 0,
+        price: point.price,
+        middle: result.middle[i],
+        upper: result.upper[i],
+        lower: result.lower[i],
+        bandwidth,
+        bandwidthPercent,
+        position: result.position[i],
+        squeeze,
+        breakout,
+      } as BollingerResult;
+    });
   }, [selectedOracleData, period, multiplier]);
 
   const stats = useMemo(() => {
@@ -306,7 +254,6 @@ export function BollingerBands({
     <div className="space-y-6">
       <DashboardCard title="布林带 (Bollinger Bands)" className={className}>
         <div className="space-y-6">
-          {/* Controls */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">预言机:</span>
@@ -362,7 +309,6 @@ export function BollingerBands({
             </label>
           </div>
 
-          {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
@@ -401,7 +347,6 @@ export function BollingerBands({
             </div>
           )}
 
-          {/* Bollinger Bands Chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">布林带价格通道</h4>
             <div style={{ height: 400 }}>
@@ -423,7 +368,6 @@ export function BollingerBands({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
 
-                  {/* Upper Band Area */}
                   <Area
                     type="monotone"
                     dataKey="upper"
@@ -433,7 +377,6 @@ export function BollingerBands({
                     name="上轨"
                   />
 
-                  {/* Lower Band Area - creates the band effect */}
                   <Area
                     type="monotone"
                     dataKey="lower"
@@ -443,7 +386,6 @@ export function BollingerBands({
                     name="下轨"
                   />
 
-                  {/* Upper Band Line */}
                   <Line
                     type="monotone"
                     dataKey="upper"
@@ -453,7 +395,6 @@ export function BollingerBands({
                     name={`上轨 (SMA${period}+${multiplier}σ)`}
                   />
 
-                  {/* Middle Band (SMA) */}
                   <Line
                     type="monotone"
                     dataKey="middle"
@@ -464,7 +405,6 @@ export function BollingerBands({
                     name={`中轨 (SMA${period})`}
                   />
 
-                  {/* Lower Band Line */}
                   <Line
                     type="monotone"
                     dataKey="lower"
@@ -474,7 +414,6 @@ export function BollingerBands({
                     name={`下轨 (SMA${period}-${multiplier}σ)`}
                   />
 
-                  {/* Price Line */}
                   <Line
                     type="monotone"
                     dataKey="price"
@@ -515,7 +454,6 @@ export function BollingerBands({
             </div>
           </div>
 
-          {/* Bandwidth Chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">带宽百分比趋势</h4>
             <div style={{ height: 200 }}>
@@ -547,7 +485,6 @@ export function BollingerBands({
             </div>
           </div>
 
-          {/* Position Chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">价格位置系数</h4>
             <div style={{ height: 200 }}>
@@ -582,7 +519,6 @@ export function BollingerBands({
             </div>
           </div>
 
-          {/* Explanation */}
           <div className="bg-blue-50 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">布林带指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">

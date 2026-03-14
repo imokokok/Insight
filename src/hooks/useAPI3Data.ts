@@ -14,7 +14,7 @@ import type {
 } from '@/lib/oracles/api3';
 import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import type { PriceDataPoint } from '@/components/oracle/indicators/ATRIndicator';
+import type { PriceDataPoint } from '@/lib/indicators';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 const api3Client = new API3Client();

@@ -15,6 +15,8 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
+import { calculateMACDExtended } from '@/lib/indicators';
+import type { MACDExtendedResult } from '@/lib/indicators';
 
 interface MACDDataPoint {
   time: string;
@@ -30,90 +32,13 @@ interface MACDDataPoint {
 
 export interface MACDIndicatorProps {
   data: Array<{ price: number; timestamp: number }>;
-  fastPeriod?: number; // 默认12
-  slowPeriod?: number; // 默认26
-  signalPeriod?: number; // 默认9
+  fastPeriod?: number;
+  slowPeriod?: number;
+  signalPeriod?: number;
   height?: number;
   showSignals?: boolean;
 }
 
-/**
- * 计算指数移动平均 (EMA)
- * EMA = (今日收盘价 × 2 / (N + 1)) + (昨日EMA × (N - 1) / (N + 1))
- */
-function calculateEMA(data: number[], period: number): number[] {
-  const ema: number[] = [];
-  const multiplier = 2 / (period + 1);
-
-  // 第一个EMA使用简单移动平均
-  let sum = 0;
-  for (let i = 0; i < period && i < data.length; i++) {
-    sum += data[i];
-  }
-  ema[period - 1] = sum / period;
-
-  // 计算后续EMA
-  for (let i = period; i < data.length; i++) {
-    ema[i] = (data[i] - ema[i - 1]) * multiplier + ema[i - 1];
-  }
-
-  // 填充前面的值
-  for (let i = 0; i < period - 1; i++) {
-    ema[i] = data[i];
-  }
-
-  return ema;
-}
-
-/**
- * 计算 MACD 指标
- * MACD 公式：
- * EMA12 = 12日指数移动平均
- * EMA26 = 26日指数移动平均
- * DIF = EMA12 - EMA26
- * DEA = DIF的9日EMA
- * MACD柱状图 = (DIF - DEA) * 2
- */
-function calculateMACD(
-  data: Array<{ price: number }>,
-  fastPeriod: number = 12,
-  slowPeriod: number = 26,
-  signalPeriod: number = 9
-): { dif: number[]; dea: number[]; macd: number[]; signals: Array<'golden' | 'death' | null> } {
-  const prices = data.map((d) => d.price);
-
-  // 计算快速和慢速EMA
-  const ema12 = calculateEMA(prices, fastPeriod);
-  const ema26 = calculateEMA(prices, slowPeriod);
-
-  // 计算DIF (快线) = EMA12 - EMA26
-  const dif = ema12.map((fast, i) => fast - ema26[i]);
-
-  // 计算DEA (慢线/信号线) = DIF的9日EMA
-  const dea = calculateEMA(dif, signalPeriod);
-
-  // 计算MACD柱状图 = (DIF - DEA) * 2
-  const macd = dif.map((d, i) => (d - dea[i]) * 2);
-
-  // 检测金叉和死叉
-  const signals: Array<'golden' | 'death' | null> = new Array(data.length).fill(null);
-  for (let i = 1; i < data.length; i++) {
-    // 金叉: DIF从下向上穿越DEA (DIF上穿DEA)
-    if (dif[i - 1] < dea[i - 1] && dif[i] >= dea[i]) {
-      signals[i] = 'golden';
-    }
-    // 死叉: DIF从上向下穿越DEA (DIF下穿DEA)
-    else if (dif[i - 1] > dea[i - 1] && dif[i] <= dea[i]) {
-      signals[i] = 'death';
-    }
-  }
-
-  return { dif, dea, macd, signals };
-}
-
-/**
- * 格式化时间戳为显示时间
- */
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -130,7 +55,7 @@ export function MACDIndicator({
   const macdData = useMemo<MACDDataPoint[]>(() => {
     if (data.length === 0) return [];
 
-    const { dif, dea, macd, signals } = calculateMACD(data, fastPeriod, slowPeriod, signalPeriod);
+    const { dif, dea, macd, signals } = calculateMACDExtended(data, fastPeriod, slowPeriod, signalPeriod);
 
     return data.map((point, index) => {
       const signal = signals[index];
@@ -141,7 +66,6 @@ export function MACDIndicator({
         dea: dea[index],
         macd: macd[index],
         signal: signal,
-        // 为散点图准备信号点数据
         signalX: signal ? index : undefined,
         signalY: signal ? dif[index] : undefined,
         signalType: signal || undefined,
@@ -307,7 +231,6 @@ export function MACDIndicator({
               dot={false}
               activeDot={{ r: 3, fill: chartColors.macd.signal }}
             />
-            {/* 金叉/死叉信号标记 */}
             {showSignals && (
               <>
                 <Scatter
@@ -385,5 +308,5 @@ export function MACDIndicator({
   );
 }
 
-export { calculateMACD };
+export { calculateMACDExtended as calculateMACD };
 export type { MACDDataPoint };

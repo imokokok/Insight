@@ -573,9 +573,8 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 
 if (!WS_URL) {
-  console.warn(
-    'NEXT_PUBLIC_WS_URL is not configured. ' +
-    'Real-time features will be disabled.'
+  logger.warn(
+    'NEXT_PUBLIC_WS_URL is not configured. Real-time features will be disabled.'
   );
 }
 

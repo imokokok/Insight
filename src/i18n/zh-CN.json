@@ -26,6 +26,8 @@
     "pythNetworkDesc": "高频金融数据预言机",
     "api3Desc": "第一方预言机网络",
     "umaDesc": "乐观预言机协议",
+    "redstone": "Redstone",
+    "redstoneDesc": "模块化预言机解决方案",
     "favorites": "收藏",
     "alerts": "告警",
     "settings": "设置",

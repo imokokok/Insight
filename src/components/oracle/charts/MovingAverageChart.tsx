@@ -16,6 +16,12 @@ import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors } from '@/lib/config/colors';
+import {
+  calculateSMA,
+  calculateEMA,
+  calculateBollingerBands,
+  calculateRollingStdDev,
+} from '@/lib/indicators';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -65,73 +71,6 @@ const MA_CONFIGS: MovingAverageConfig[] = [
   { window: 20, label: 'MA20', color: chartColors.recharts.purple },
 ];
 
-function calculateSMA(prices: number[], window: number): number[] {
-  const result: number[] = [];
-  for (let i = 0; i < prices.length; i++) {
-    if (i < window - 1) {
-      result.push(NaN);
-    } else {
-      const sum = prices.slice(i - window + 1, i + 1).reduce((a, b) => a + b, 0);
-      result.push(sum / window);
-    }
-  }
-  return result;
-}
-
-function calculateEMA(prices: number[], window: number): number[] {
-  const result: number[] = [];
-  const multiplier = 2 / (window + 1);
-
-  for (let i = 0; i < prices.length; i++) {
-    if (i === 0) {
-      result.push(prices[0]);
-    } else {
-      const ema = prices[i] * multiplier + result[i - 1] * (1 - multiplier);
-      result.push(ema);
-    }
-  }
-  return result;
-}
-
-function calculateRollingStdDev(prices: number[], window: number): number[] {
-  const result: number[] = [];
-  for (let i = 0; i < prices.length; i++) {
-    if (i < window - 1) {
-      result.push(NaN);
-    } else {
-      const windowPrices = prices.slice(i - window + 1, i + 1);
-      const mean = windowPrices.reduce((a, b) => a + b, 0) / window;
-      const variance = windowPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / window;
-      result.push(Math.sqrt(variance));
-    }
-  }
-  return result;
-}
-
-function calculateBollingerBands(
-  prices: number[],
-  window: number = 20,
-  multiplier: number = 2
-): { upper: number[]; middle: number[]; lower: number[] } {
-  const sma = calculateSMA(prices, window);
-  const stdDev = calculateRollingStdDev(prices, window);
-
-  const upper: number[] = [];
-  const lower: number[] = [];
-
-  for (let i = 0; i < prices.length; i++) {
-    if (isNaN(sma[i]) || isNaN(stdDev[i])) {
-      upper.push(NaN);
-      lower.push(NaN);
-    } else {
-      upper.push(sma[i] + stdDev[i] * multiplier);
-      lower.push(sma[i] - stdDev[i] * multiplier);
-    }
-  }
-
-  return { upper, middle: sma, lower };
-}
-
 interface ChartDataPoint {
   timestamp: string;
   rawTimestamp: number;
@@ -177,13 +116,11 @@ export function MovingAverageChart({
         price: point.price,
       };
 
-      // Calculate SMAs
       selectedMA.forEach((window) => {
         const sma = calculateSMA(prices.slice(0, index + 1), window);
         dataPoint[`SMA${window}`] = sma[index];
       });
 
-      // Calculate EMAs
       if (showEMA) {
         selectedMA.forEach((window) => {
           const ema = calculateEMA(prices.slice(0, index + 1), window);
@@ -191,14 +128,12 @@ export function MovingAverageChart({
         });
       }
 
-      // Add Bollinger Bands
       if (bollinger) {
         dataPoint.bbUpper = bollinger.upper[index];
         dataPoint.bbMiddle = bollinger.middle[index];
         dataPoint.bbLower = bollinger.lower[index];
       }
 
-      // Add Rolling StdDev
       if (rollingStdDev) {
         dataPoint.rollingStdDev = rollingStdDev[index];
       }
@@ -215,7 +150,6 @@ export function MovingAverageChart({
     const prices = selectedOracleData.prices.map((p) => p.price);
     const currentPrice = prices[prices.length - 1];
 
-    // Calculate SMA trends
     const sma5 = calculateSMA(prices, 5);
     const sma10 = calculateSMA(prices, 10);
     const sma20 = calculateSMA(prices, 20);
@@ -224,7 +158,6 @@ export function MovingAverageChart({
     const currentSMA10 = sma10[sma10.length - 1];
     const currentSMA20 = sma20[sma20.length - 1];
 
-    // Determine trend
     let trend: 'bullish' | 'bearish' | 'neutral' = 'neutral';
     if (currentSMA5 > currentSMA10 && currentSMA10 > currentSMA20) {
       trend = 'bullish';
@@ -232,7 +165,6 @@ export function MovingAverageChart({
       trend = 'bearish';
     }
 
-    // Calculate distance from BB
     const bb = calculateBollingerBands(prices);
     const lastIdx = prices.length - 1;
     const bbPosition = (currentPrice - bb.lower[lastIdx]) / (bb.upper[lastIdx] - bb.lower[lastIdx]);
@@ -280,7 +212,6 @@ export function MovingAverageChart({
     <div className="space-y-6">
       <DashboardCard title="滑动窗口统计分析" className={className}>
         <div className="space-y-6">
-          {/* Controls */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">预言机:</span>
@@ -341,7 +272,6 @@ export function MovingAverageChart({
             </label>
           </div>
 
-          {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
@@ -363,7 +293,6 @@ export function MovingAverageChart({
             </div>
           )}
 
-          {/* Trend Indicator */}
           {stats && (
             <div className="flex items-center gap-4">
               <div
@@ -387,7 +316,6 @@ export function MovingAverageChart({
             </div>
           )}
 
-          {/* Price Chart with MAs */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">价格与移动平均线</h4>
             <div style={{ height: 350 }}>
@@ -409,7 +337,6 @@ export function MovingAverageChart({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
 
-                  {/* Bollinger Bands */}
                   {showBollingerBands && (
                     <>
                       <Area
@@ -440,7 +367,6 @@ export function MovingAverageChart({
                     </>
                   )}
 
-                  {/* Price Line */}
                   <Line
                     type="monotone"
                     dataKey="price"
@@ -450,7 +376,6 @@ export function MovingAverageChart({
                     name="价格"
                   />
 
-                  {/* SMA Lines */}
                   {selectedMA.map((window) => {
                     const config = MA_CONFIGS.find((c) => c.window === window);
                     return (
@@ -466,7 +391,6 @@ export function MovingAverageChart({
                     );
                   })}
 
-                  {/* EMA Lines */}
                   {showEMA &&
                     selectedMA.map((window) => (
                       <Line
@@ -485,7 +409,6 @@ export function MovingAverageChart({
             </div>
           </div>
 
-          {/* Rolling StdDev Chart */}
           {showRollingStdDev && (
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-3">滚动标准差 (20周期)</h4>
@@ -522,7 +445,6 @@ export function MovingAverageChart({
             </div>
           )}
 
-          {/* Explanation */}
           <div className="bg-blue-50 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">

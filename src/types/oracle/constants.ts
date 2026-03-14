@@ -21,8 +21,6 @@ export enum TrendDirection {
   SHRINKING = 'shrinking',
 }
 
-export type PublisherStatusType = 'active' | 'inactive' | 'degraded';
-
 export interface ConfidenceIntervalData {
   bid: number;
   ask: number;

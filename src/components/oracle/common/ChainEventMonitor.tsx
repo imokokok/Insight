@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { ChainEvent, EventType, BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from './DashboardCard';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('ChainEventMonitor');
 
 export interface ChainEventMonitorProps {
   client: BandProtocolClient;
@@ -114,7 +117,7 @@ export function ChainEventMonitor({ client, refreshInterval = 30000 }: ChainEven
       setEvents(data);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to fetch chain events:', error);
+      logger.error('Failed to fetch chain events', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsLoading(false);
     }
