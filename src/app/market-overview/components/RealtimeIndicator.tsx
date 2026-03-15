@@ -34,7 +34,7 @@ export default function RealtimeIndicator({
   connectedChannels,
   messageCount = 0,
 }: RealtimeIndicatorProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
   const [showDetails, setShowDetails] = useState(false);
 

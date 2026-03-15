@@ -113,10 +113,10 @@ export const navigationConfig: NavStructure = [
         description: 'navbar.diaDesc',
       },
       {
-        href: '/tellar',
-        label: 'navbar.tellar',
+        href: '/tellor',
+        label: 'navbar.tellor',
         icon: TrendingUp,
-        description: 'navbar.tellarDesc',
+        description: 'navbar.tellorDesc',
       },
       {
         href: '/chronicle',

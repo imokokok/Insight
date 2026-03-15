@@ -5,7 +5,6 @@ import { OracleProvider, PriceData, saveSnapshot, SnapshotStats } from '@/types/
 import {
   oracleClients,
   oracleNames,
-  symbols,
   TimeRange,
   DeviationFilter,
   RefreshInterval,
@@ -78,6 +77,7 @@ export interface UseCrossOraclePageReturn {
   hoveredOracle: OracleProvider | null;
   setHoveredOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
   selectedOracleFromChart: OracleProvider | null;
+  setSelectedOracleFromChart: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
   t: (key: string) => string;
   router: ReturnType<typeof useRouter>;
   user: ReturnType<typeof useAuth>['user'];
@@ -873,6 +873,7 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     hoveredOracle,
     setHoveredOracle,
     selectedOracleFromChart,
+    setSelectedOracleFromChart,
     t,
     router,
     user,

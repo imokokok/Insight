@@ -228,11 +228,9 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
   const ConeTooltip = ({
     active,
     payload,
-    label,
   }: {
     active?: boolean;
     payload?: ReadonlyArray<{ dataKey: string; value: number; color?: string; payload?: VolatilityConePoint }>;
-    label?: number;
   }) => {
     if (!active || !payload || payload.length === 0) return null;
 

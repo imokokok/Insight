@@ -91,17 +91,6 @@ const TABS: Tab[] = [
 const STORAGE_KEY = 'cross-oracle-active-tab';
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   return (
     <div className="border-b border-gray-200 mb-6">
       <nav

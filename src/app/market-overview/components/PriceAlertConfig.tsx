@@ -24,10 +24,6 @@ import {
   Volume2,
   TrendingUp,
   TrendingDown,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Settings,
 } from 'lucide-react';
 
 interface PriceAlertConfigProps {
@@ -53,7 +49,7 @@ export default function PriceAlertConfig({
   onRequestNotificationPermission,
   hasNotificationPermission,
 }: PriceAlertConfigProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
   const [showAddForm, setShowAddForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

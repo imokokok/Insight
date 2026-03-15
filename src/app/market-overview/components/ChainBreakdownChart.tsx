@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import { Layers, TrendingUp, TrendingDown, Minus, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 interface ChainBreakdownChartProps {
   data: ChainBreakdown[];
@@ -29,7 +29,7 @@ export default function ChainBreakdownChart({
   loading = false,
   viewType = 'chart',
 }: ChainBreakdownChartProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);

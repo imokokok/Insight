@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { AnomalyData, AnomalyLevel } from '../types';
-import { getAnomalyLevelColor, getAnomalyIcon } from '@/lib/analytics/anomalyDetection';
+import { getAnomalyLevelColor } from '@/lib/analytics/anomalyDetection';
 import {
   AlertTriangle,
   Bell,
@@ -33,7 +33,7 @@ export default function AnomalyAlert({
   onAcknowledge,
   maxDisplay = 5,
 }: AnomalyAlertProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [expanded, setExpanded] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState<AnomalyLevel | 'all'>('all');
 

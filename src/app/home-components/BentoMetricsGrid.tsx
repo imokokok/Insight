@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors } from '@/lib/config/colors';
 
 interface ChartDataPoint {
   time: string;
@@ -376,7 +376,7 @@ function InfoTooltip({ content }: { content: string }) {
 }
 
 export default function BentoMetricsGrid() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [animatedValues, setAnimatedValues] = useState<Record<string, boolean>>({});

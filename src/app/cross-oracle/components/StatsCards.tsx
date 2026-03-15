@@ -20,25 +20,19 @@ interface StatsCardsProps {
   t: (key: string) => string;
 }
 
-const ConsistencyBadge = ({ rating }: { rating: string }) => {
+const ConsistencyBadge = ({ rating, t }: { rating: string; t: (key: string) => string }) => {
   const colors: Record<string, string> = {
     excellent: 'bg-emerald-100 text-emerald-700',
     good: 'bg-blue-100 text-blue-700',
     fair: 'bg-amber-100 text-amber-700',
     poor: 'bg-red-100 text-red-700',
   };
-  const labels: Record<string, string> = {
-    excellent: '优秀',
-    good: '良好',
-    fair: '一般',
-    poor: '较差',
-  };
 
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors[rating] || colors.poor}`}
     >
-      {labels[rating] || rating}
+      {t(`crossOracle.consistency.${rating}`) || rating}
     </span>
   );
 };
@@ -93,7 +87,7 @@ export function StatsCards({
         </p>
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>
-            Wtd:{' '}
+            {t('crossOracle.weighted')}:{' '}
             {weightedAvgPrice > 0
               ? `$${weightedAvgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : '-'}
@@ -101,7 +95,7 @@ export function StatsCards({
         </div>
         {historyMinMax.avgPrice.max > -Infinity && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-400">历史范围</span>
+            <span className="text-gray-400">{t('crossOracle.historyRange')}</span>
             <span className="text-gray-600 font-medium">
               ${historyMinMax.avgPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })}{' '}
               - $
@@ -142,7 +136,7 @@ export function StatsCards({
         </p>
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>
-            Low:{' '}
+            {t('crossOracle.low')}:{' '}
             {minPrice > 0
               ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : '-'}
@@ -150,7 +144,7 @@ export function StatsCards({
         </div>
         {historyMinMax.maxPrice.max > -Infinity && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-400">历史范围</span>
+            <span className="text-gray-400">{t('crossOracle.historyRange')}</span>
             <span className="text-gray-600 font-medium">
               ${historyMinMax.maxPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })}{' '}
               - $
@@ -183,7 +177,7 @@ export function StatsCards({
               </svg>
             </div>
             <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
-              价格范围
+              {t('crossOracle.priceRange')}
             </span>
           </div>
         </div>
@@ -193,11 +187,11 @@ export function StatsCards({
             : '-'}
         </p>
         <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>占均价: {avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%</span>
+          <span>{t('crossOracle.ofAverage')}: {avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%</span>
         </div>
         {historyMinMax.priceRange.max > -Infinity && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-400">历史范围</span>
+            <span className="text-gray-400">{t('crossOracle.historyRange')}</span>
             <span className="text-gray-600 font-medium">
               $
               {historyMinMax.priceRange.min.toLocaleString(undefined, { maximumFractionDigits: 0 })}{' '}
@@ -231,7 +225,7 @@ export function StatsCards({
               </svg>
             </div>
             <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
-              标准差
+              {t('crossOracle.standardDeviation')}
             </span>
           </div>
         </div>
@@ -243,7 +237,7 @@ export function StatsCards({
         </div>
         {historyMinMax.standardDeviationPercent.max > -Infinity && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-400">历史范围</span>
+            <span className="text-gray-400">{t('crossOracle.historyRange')}</span>
             <span className="text-gray-600 font-medium">
               {historyMinMax.standardDeviationPercent.min.toFixed(3)}% -{' '}
               {historyMinMax.standardDeviationPercent.max.toFixed(3)}%
@@ -275,7 +269,7 @@ export function StatsCards({
               </svg>
             </div>
             <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
-              方差
+              {t('crossOracle.variance')}
             </span>
           </div>
         </div>
@@ -287,7 +281,7 @@ export function StatsCards({
         </div>
         {historyMinMax.variance.max > -Infinity && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-400">历史范围</span>
+            <span className="text-gray-400">{t('crossOracle.historyRange')}</span>
             <span className="text-gray-600 font-medium">
               ${historyMinMax.variance.min.toFixed(2)} - ${historyMinMax.variance.max.toFixed(2)}
             </span>
@@ -318,14 +312,14 @@ export function StatsCards({
               </svg>
             </div>
             <span className={`text-xs font-medium uppercase tracking-wide ${healthColor.text}`}>
-              一致性
+              {t('crossOracle.consistencyRating')}
             </span>
           </div>
         </div>
         <div className="mt-1">
-          <ConsistencyBadge rating={consistencyRating} />
+          <ConsistencyBadge rating={consistencyRating} t={t} />
         </div>
-        <div className="mt-2 text-xs text-gray-400">基于标准差</div>
+        <div className="mt-2 text-xs text-gray-400">{t('crossOracle.basedOnStdDev')}</div>
       </div>
     </div>
   );
@@ -360,7 +354,6 @@ export function MobileStatsCards({
   t,
 }: MobileStatsCardsProps) {
   const consistencyRating = getConsistencyRating(standardDeviationPercent);
-  const healthColor = getHealthColor('deviation', standardDeviationPercent);
 
   const stats = [
     {
@@ -373,23 +366,23 @@ export function MobileStatsCards({
       label: t('crossOracle.highestPrice'),
       value: maxPrice,
       change: calculateChangePercent(maxPrice, lastStats?.maxPrice || 0),
-      subValue: `Low: ${minPrice > 0 ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}`,
+      subValue: `${t('crossOracle.low')}: ${minPrice > 0 ? `$${minPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}`,
     },
     {
-      label: '价格范围',
+      label: t('crossOracle.priceRange'),
       value: priceRange,
       change: null,
       subValue: `${avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}% of avg`,
     },
     {
-      label: '标准差',
+      label: t('crossOracle.standardDeviation'),
       value: standardDeviationPercent,
       change: null,
       isPercent: true,
       subValue: `σ: ${variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}`,
     },
-    { label: '方差', value: variance, change: null, isCurrency: true, subValue: 'V[x]' },
-    { label: '一致性', value: consistencyRating, isBadge: true },
+    { label: t('crossOracle.variance'), value: variance, change: null, isCurrency: true, subValue: 'V[x]' },
+    { label: t('crossOracle.consistencyRating'), value: consistencyRating, isBadge: true },
   ];
 
   return (
@@ -403,7 +396,7 @@ export function MobileStatsCards({
             {stat.label}
           </div>
           {stat.isBadge ? (
-            <ConsistencyBadge rating={stat.value as string} />
+            <ConsistencyBadge rating={stat.value as string} t={t} />
           ) : (
             <>
               <div className="flex items-center gap-1 mb-0.5">

@@ -24,23 +24,7 @@ interface PriceSpreadHeatmapProps {
 
 export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
   const { t } = useI18n();
-  const colorblindMode = useColorblindMode();
-  const {
-    filteredChains,
-    heatmapData,
-    maxHeatmapValue,
-    hoveredCell,
-    setHoveredCell,
-    selectedCell,
-    setSelectedCell,
-    tooltipPosition,
-    setTooltipPosition,
-    currentPrices,
-    chainsWithHighDeviation,
-  } = data;
-
-  // 根据色盲模式获取热力图颜色
-  const getHeatmapColorFn = colorblindMode ? getColorblindHeatmapColor : getHeatmapColor;
+  const { chainsWithHighDeviation } = data;
 
   if (chainsWithHighDeviation.length > 0) {
     return (

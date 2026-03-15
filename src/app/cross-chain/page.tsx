@@ -22,20 +22,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  ComposedChart,
-  Scatter,
-  Line,
-  Legend,
-  Brush,
 } from 'recharts';
-import { TooltipProps, LegendClickEvent, ScatterShapeProps } from '@/types/ui/recharts';
 import { Blockchain } from '@/types/oracle';
 import {
   chainNames,
   chainColors,
   getIntegrityColor,
   getVolatilityColor,
-  getDataFreshness,
   getConsistencyRating,
   getStabilityRating,
   calculateChangePercent,
@@ -51,7 +44,7 @@ export default function CrossChainPage() {
   const data = useCrossChainData();
   const colorblindMode = useColorblindMode();
   const setColorblindMode = useSetColorblindMode();
-  const [viewMode, setViewMode] = useState<ViewMode>('price');
+  const [viewMode] = useState<ViewMode>('price');
 
   const {
     loading,
@@ -63,10 +56,7 @@ export default function CrossChainPage() {
     exportToJSON,
     refreshInterval,
     setRefreshInterval,
-    supportedChains,
     filteredChains,
-    selectedSymbol,
-    priceDifferences,
     chartData,
     chartDataWithMA,
     priceDistributionData,
@@ -84,41 +74,18 @@ export default function CrossChainPage() {
     kurtosis,
     confidenceInterval95,
     totalDataPoints,
-    validPrices,
-    iqrOutliers,
     scatterData,
     chainVolatility,
     updateDelays,
     dataIntegrity,
     priceJumpFrequency,
-    priceChangePercent,
     meanBinIndex,
     medianBinIndex,
-    stdDevBinRange,
     prevStats,
-    showMA,
-    setShowMA,
-    maPeriod,
-    setMaPeriod,
-    chartKey,
-    setChartKey,
     hiddenLines,
     setHiddenLines,
     focusedChain,
     setFocusedChain,
-    hoveredCell,
-    setHoveredCell,
-    selectedCell,
-    setSelectedCell,
-    tooltipPosition,
-    setTooltipPosition,
-    tableFilter,
-    setTableFilter,
-    sortedPriceDifferences,
-    handleSort,
-    sortColumn,
-    sortDirection,
-    historicalPrices,
     currentPrices,
   } = data;
 
@@ -470,7 +437,6 @@ export default function CrossChainPage() {
                         const volatility = chainVolatility[chain] ?? 0;
                         const delay = updateDelays[chain];
                         const stabilityRating = getStabilityRating(volatility);
-                        const freshness = getDataFreshness(delay);
                         const integrity = dataIntegrity[chain] ?? 0;
                         const jumpCount = priceJumpFrequency[chain] ?? 0;
                         return (

@@ -32,12 +32,6 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     setMaPeriod,
     chartKey,
     setChartKey,
-    refreshInterval,
-    setRefreshInterval,
-    fetchData,
-    refreshStatus,
-    showRefreshSuccess,
-    lastUpdated,
     recommendedBaseChain,
   } = data;
 

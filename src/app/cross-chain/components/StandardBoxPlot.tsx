@@ -10,7 +10,6 @@ import {
   Tooltip,
   Scatter,
   Cell,
-  ReferenceLine,
 } from 'recharts';
 import { BoxPlotData } from '../constants';
 import { useI18n } from '@/lib/i18n/provider';
@@ -118,7 +117,7 @@ interface BoxPlotShapeProps {
   xAxis?: { scale: (value: number) => number };
 }
 
-function BoxPlotShape({ cx = 0, cy = 0, payload }: BoxPlotShapeProps) {
+function BoxPlotShape({ cx = 0, payload }: BoxPlotShapeProps) {
   if (!payload) return null;
 
   const { min, q1, median, q3, max, color } = payload;

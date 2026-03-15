@@ -30,8 +30,8 @@
     "redstoneDesc": "模块化预言机解决方案",
     "dia": "DIA",
     "diaDesc": "去中心化信息资产跨链数据预言机",
-    "tellar": "Tellar",
-    "tellarDesc": "实时价格流和多链聚合预言机",
+    "tellor": "Tellor",
+    "tellorDesc": "去中心化加密原生预言机，专注透明度和去中心化",
     "chronicle": "Chronicle",
     "chronicleDesc": "MakerDAO 原生预言机，Scuttlebutt 安全协议",
     "winklink": "WINkLink",
@@ -528,9 +528,9 @@
     "price": "价格",
     "confidence": "置信度",
     "timestamp": "时间戳",
-    "averagePrice": "平均价格",
-    "highestPrice": "最高价格",
-    "lowestPrice": "最低价格",
+    "averagePrice": "预言机均价",
+    "highestPrice": "预言机最高价",
+    "lowestPrice": "预言机最低价",
     "priceRange": "价格区间",
     "deviation": "偏差百分比",
     "standardDeviation": "标准差",
@@ -543,6 +543,11 @@
       "fair": "一般",
       "poor": "较差"
     },
+    "basedOnStdDev": "基于标准差",
+    "historyRange": "历史范围",
+    "ofAverage": "占均价",
+    "weighted": "加权",
+    "low": "最低",
     "outlier": "异常",
     "trend": "趋势",
     "weightedAverage": "加权平均",
@@ -1497,9 +1502,9 @@
       "validators": "验证节点数"
     }
   },
-  "tellar": {
-    "title": "Tellar",
-    "subtitle": "实时价格流和多链聚合预言机",
+  "tellor": {
+    "title": "Tellor",
+    "subtitle": "去中心化加密原生预言机，专注透明度和去中心化",
     "loading": "加载中...",
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",

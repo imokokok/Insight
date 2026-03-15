@@ -150,7 +150,6 @@ export const chartColors = {
     redstone: '#FF6B6B',
     switchboard: '#4ECDC4',
     dia: '#6366F1',
-    tellar: '#06B6D4',
     flux: '#F38181',
     tellor: '#AA96DA',
     chronicle: '#E11D48',

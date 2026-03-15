@@ -56,8 +56,6 @@ import {
   RefreshCw,
   Download,
   Filter,
-  ChevronDown,
-  ChevronUp,
   Bell,
   Mail,
 } from 'lucide-react';
