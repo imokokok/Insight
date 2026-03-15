@@ -290,7 +290,7 @@ export function RealtimeIndicatorCompact({
   lastUpdated,
   onReconnect,
 }: RealtimeIndicatorCompactProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
 
   const getStatusIcon = () => {

@@ -91,7 +91,7 @@ interface MarketShareDataItem {
 }
 
 export default function OracleMarketOverview() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [selectedRange, setSelectedRange] = useState('30D');
   const [activeChart, setActiveChart] = useState<ChartType>('pie');
   const [viewType, setViewType] = useState<ViewType>('chart');
@@ -376,7 +376,7 @@ export default function OracleMarketOverview() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((item, index: number) => (
+            {data.map((item, _index: number) => (
               <tr
                 key={item.name}
                 className={`hover:bg-blue-50 transition-colors cursor-pointer ${

@@ -9,12 +9,9 @@ import {
   TrendingUp,
   Save,
   Loader2,
-  CheckCircle,
+import { CheckCircle,
 } from 'lucide-react';
-import { createLogger } from '@/lib/utils/logger';
 import { useI18n } from '@/lib/i18n/provider';
-
-const logger = createLogger('NotificationPanel');
 
 interface NotificationSettings {
   emailNotifications: boolean;
