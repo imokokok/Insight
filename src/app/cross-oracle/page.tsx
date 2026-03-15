@@ -233,6 +233,8 @@ export default function CrossOraclePage() {
     <>
       <StatsSection
         qualityScoreData={qualityScoreData}
+        selectedSymbol={selectedSymbol}
+        selectedOracles={selectedOracles}
         avgPrice={avgPrice}
         weightedAvgPrice={weightedAvgPrice}
         maxPrice={maxPrice}
@@ -245,6 +247,7 @@ export default function CrossOraclePage() {
         calculateChangePercent={calculateChangePercent}
         getConsistencyRating={getConsistencyRating}
         t={t}
+        onSymbolChange={setSelectedSymbol}
       />
 
       <PriceTableSection
