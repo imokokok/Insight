@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData, OracleProvider } from '@/types/oracle';
+import { UMAMetworkStats } from '@/lib/oracles/uma/types';
 import {
   TabNavigation,
   PageHeader,
@@ -81,17 +82,31 @@ export function OraclePageTemplate({
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingStateProps>({ show: true });
   const [error, setError] = useState<Error | null>(null);
+  const [umaNetworkStats, setUmaNetworkStats] = useState<UMAMetworkStats | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoadingState({ show: true });
     setError(null);
     try {
-      const [price, history] = await Promise.all([
+      const promises: Promise<unknown>[] = [
         config.client.getPrice(config.symbol, config.defaultChain),
         config.client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
-      ]);
-      setPriceData(price);
-      setHistoricalData(history);
+      ];
+
+      // Fetch UMA network stats if using UMA client
+      if (config.provider === OracleProvider.UMA && config.client instanceof UMAClient) {
+        promises.push(config.client.getNetworkStats());
+      }
+
+      const results = await Promise.all(promises);
+      setPriceData(results[0] as PriceData);
+      setHistoricalData(results[1] as PriceData[]);
+
+      // Set UMA network stats if available
+      if (results[2]) {
+        setUmaNetworkStats(results[2] as UMAMetworkStats);
+      }
+
       setLoadingState({ show: false });
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch data');
@@ -128,10 +143,15 @@ export function OraclePageTemplate({
 
   const stats = useMemo(() => {
     if (config.provider === OracleProvider.UMA && config.client instanceof UMAClient) {
+      // Use fetched network stats or fallback to defaults
+      const activeValidators = umaNetworkStats?.activeValidators ?? 850;
+      const totalDisputes = umaNetworkStats?.totalDisputes ?? 1250;
+      const disputeSuccessRate = umaNetworkStats?.disputeSuccessRate ?? 78;
+
       return [
         {
           title: t('uma.stats.activeValidators'),
-          value: '850+',
+          value: `${activeValidators.toLocaleString()}+`,
           change: '+3%',
           changeType: 'positive' as 'positive' | 'negative' | 'neutral',
           icon: (
@@ -146,7 +166,7 @@ export function OraclePageTemplate({
         },
         {
           title: t('uma.stats.totalDisputes'),
-          value: '1,250+',
+          value: `${totalDisputes.toLocaleString()}+`,
           change: '+15%',
           changeType: 'positive' as 'positive' | 'negative' | 'neutral',
           icon: (
@@ -161,7 +181,7 @@ export function OraclePageTemplate({
         },
         {
           title: t('uma.stats.disputeSuccessRate'),
-          value: '78%',
+          value: `${disputeSuccessRate}%`,
           change: '+5%',
           changeType: 'positive' as 'positive' | 'negative' | 'neutral',
           icon: (
@@ -317,7 +337,7 @@ export function OraclePageTemplate({
         ),
       },
     ];
-  }, [config, t]);
+  }, [config, t, umaNetworkStats]);
 
   const networkStatusData = useMemo(
     () => [
@@ -507,7 +527,7 @@ export function OraclePageTemplate({
         return 'uma';
       case OracleProvider.BAND_PROTOCOL:
         return 'bandProtocol';
-      case OracleProvider.PYTH_NETWORK:
+      case OracleProvider.PYTH:
         return 'pythNetwork';
       case OracleProvider.API3:
         return 'api3';

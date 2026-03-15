@@ -2260,14 +2260,6 @@
     "timestamp": "时间戳",
     "confidence": "置信度",
     "na": "不适用",
-    "ema": {
-      "period": "{days}日 EMA",
-      "trend": {
-        "up": "上涨",
-        "down": "下跌",
-        "neutral": "稳定"
-      }
-    },
     "tabs": {
       "stats": "准确率统计",
       "extreme": "极端行情",
@@ -2326,6 +2318,98 @@
       "learnMore": "了解更多",
       "documentation": "文档"
     }
+  },
+  "pyth": {
+    "title": "Pyth",
+    "subtitle": "高频金融数据预言机，具有第一方交易所数据和亚秒级延迟",
+    "description": "Pyth 提供来自第一方数据源的高频价格数据，包括主要交易所和交易公司。",
+    "analytics": "Pyth 数据分析",
+    "platform": "高频金融数据预言机平台",
+    "menu": {
+      "marketData": "市场数据",
+      "networkHealth": "网络健康度",
+      "publishers": "Publishers",
+      "ecosystem": "生态系统",
+      "riskAssessment": "风险评估",
+      "crossOracleComparison": "跨预言机对比"
+    },
+    "pageTitles": {
+      "market": "市场数据概览",
+      "network": "网络健康监控",
+      "publishers": "Publishers 分析",
+      "ecosystem": "生态系统集成",
+      "risk": "风险评估仪表板"
+    },
+    "timeRange": {
+      "1H": "1小时",
+      "24H": "24小时",
+      "7D": "7天",
+      "30D": "30天",
+      "90D": "90天",
+      "1Y": "1年",
+      "ALL": "全部"
+    },
+    "stats": {
+      "updateFrequency": "更新频率",
+      "publisherCount": "Publisher 数量",
+      "crossChainSupport": "跨链支持",
+      "networkUptime": "网络在线率",
+      "volume24h": "交易量 (24H)",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
+    },
+    "marketData": {
+      "currentPrice": "当前价格",
+      "24hChange": "24小时涨跌",
+      "marketCap": "市值",
+      "volume": "24小时交易量",
+      "circulatingSupply": "流通供应量",
+      "fdv": "完全稀释估值",
+      "rank": "市值排名",
+      "supplyRatio": "供应比例",
+      "24hHigh": "24小时最高",
+      "24hLow": "24小时最低",
+      "ofTotalSupply": "占总供应量",
+      "atCurrentPrice": "按当前价格",
+      "amongAllCryptocurrencies": "在所有加密货币中",
+      "loading": "加载市场数据中..."
+    },
+    "priceChart": {
+      "title": "PYTH 价格图表",
+      "lineChart": "折线图",
+      "candlestickChart": "K线图",
+      "volume": "成交量",
+      "price": "价格",
+      "open": "开盘",
+      "high": "最高",
+      "low": "最低",
+      "close": "收盘",
+      "ma7": "MA7",
+      "loading": "加载图表数据..."
+    },
+    "networkHealth": {
+      "title": "网络健康度",
+      "activePublishers": "活跃 Publishers",
+      "nodeUptime": "网络在线率",
+      "responseTime": "响应时间",
+      "updateFrequency": "更新频率",
+      "totalStaked": "总质押量",
+      "dataFeeds": "数据源",
+      "networkStatus": "网络状态",
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线",
+      "monitoring": "实时监控中",
+      "lastCheck": "最后检查",
+      "justNow": "刚刚",
+      "vsLastWeek": "较上周",
+      "every": "每",
+      "seconds": "秒"
+    },
+    "refresh": "刷新",
+    "export": "导出",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计"
   },
   "api3": {
     "title": "API3",
@@ -4725,6 +4809,8 @@
     "title": "Chronicle",
     "subtitle": "MakerDAO 原生预言机，采用 Scuttlebutt 安全协议提供高安全性的去中心化价格喂价",
     "analytics": "Chronicle 数据分析",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",
@@ -4735,6 +4821,15 @@
     "loading": "加载 Chronicle 数据中...",
     "error": {
       "loadingFailed": "加载 Chronicle 数据失败"
+    },
+    "stats": {
+      "activeValidators": "活跃验证者",
+      "makerDAOSupport": "MakerDAO 支持",
+      "stakingApr": "质押 APR",
+      "networkUptime": "网络在线率",
+      "volume24h": "24h 交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
     },
     "scuttlebutt": {
       "title": "Scuttlebutt 安全协议",
@@ -4773,6 +4868,8 @@
     "title": "WINkLink",
     "subtitle": "TRON 生态原生预言机，为游戏、DeFi 和娱乐应用提供可靠的链下数据服务",
     "analytics": "WINkLink 数据分析",
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",
@@ -4783,6 +4880,15 @@
     "loading": "加载 WINkLink 数据中...",
     "error": {
       "loadingFailed": "加载 WINkLink 数据失败"
+    },
+    "stats": {
+      "activeNodes": "活跃节点",
+      "tronIntegrations": "TRON 集成",
+      "stakingApr": "质押 APR",
+      "networkUptime": "网络在线率",
+      "volume24h": "24h 交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
     },
     "tron": {
       "title": "TRON 生态集成",
@@ -4826,7 +4932,11 @@
     }
   },
   "common": {
-    "retry": "重试"
+    "retry": "重试",
+    "favorite": "收藏",
+    "favorited": "已收藏",
+    "export": "导出",
+    "refresh": "刷新"
   },
   "validator": {
     "earningsAttribution": "收益归因分析",
@@ -5034,6 +5144,24 @@
     "24hHigh": "24小时最高",
     "24hLow": "24小时最低"
   },
+  "oracle": {
+    "chart": {
+      "granularity": {
+        "minute": "分钟",
+        "hour": "小时",
+        "day": "天"
+      },
+      "timeRange": {
+        "1h": "1小时",
+        "24h": "24小时",
+        "7d": "7天",
+        "30d": "30天",
+        "90d": "90天",
+        "1y": "1年",
+        "all": "全部"
+      }
+    }
+  },
   "priceChart": {
     "status": {
       "realtime": "实时",
@@ -5062,7 +5190,58 @@
     "price": "价格",
     "comparisonPrice": "对比价格",
     "signal": "信号",
-    "anomalyPoints": "异常点"
+    "anomalyPoints": "异常点",
+    "moreOptions": "更多选项",
+    "more": "更多",
+    "advancedFeatures": "高级功能",
+    "timeComparisonDescription": "对比两个时间段的价格走势",
+    "anomalyDetection": "异常检测",
+    "anomalyDetectionDescription": "检测价格异常波动",
+    "viewStats": "查看统计",
+    "viewAnomalyStats": "查看异常统计",
+    "predictionInterval": "预测区间",
+    "predictionIntervalDescription": "显示价格预测置信区间",
+    "confidence": "置信度",
+    "confidenceSelection": "置信度选择",
+    "export": {
+      "title": "导出",
+      "exportChart": "导出图表",
+      "exporting": "导出中...",
+      "exportComplete": "导出完成",
+      "exportFailed": "导出失败",
+      "settings": "导出设置",
+      "settingsDescription": "自定义导出选项",
+      "range": "导出范围",
+      "currentView": "当前视图",
+      "allData": "全部数据",
+      "dateRange": "日期范围",
+      "filenameTemplate": "文件名模板",
+      "filenameTemplateHint": "可用变量: {title}, {date}, {time}, {source}",
+      "customFilename": "自定义文件名",
+      "includeMetadata": "包含元数据",
+      "includeWatermark": "添加水印",
+      "cancel": "取消",
+      "confirmExport": "确认导出",
+      "batchExport": "批量导出",
+      "batchExportDescription": "选择要导出的图表",
+      "resolution": "分辨率",
+      "selectResolution": "选择分辨率",
+      "selectCharts": "选择图表",
+      "selected": "已选",
+      "preview": "导出预览",
+      "previewDescription": "预览导出内容",
+      "filename": "文件名",
+      "dataRange": "数据范围",
+      "recordCount": "记录数",
+      "close": "关闭",
+      "formats": {
+        "png": "PNG 图片",
+        "svg": "SVG 矢量图",
+        "csv": "CSV 数据",
+        "json": "JSON 数据",
+        "pdf": "PDF 文档"
+      }
+    }
   },
   "kpiDashboard": {
     "goToPage": "跳转到第 {page} 页",
@@ -5528,40 +5707,6 @@
     "status": {
       "active": "活跃",
       "jailed": "监禁中"
-    }
-  },
-  "uma": {
-    "dataQuality": {
-      "title": "数据质量评分",
-      "subtitle": "UMA网络数据质量综合评估",
-      "overallScore": "综合评分",
-      "networkHealth": "网络健康度",
-      "dataIntegrity": "数据完整性",
-      "responseTime": "响应时间",
-      "validatorActivity": "验证者活跃度",
-      "improving": "改善中",
-      "declining": "下降中",
-      "stable": "稳定",
-      "excellent": "优秀 (90-100)",
-      "good": "良好 (70-89)",
-      "needsImprovement": "需改进 (<70)",
-      "viewDetails": "查看详情"
-    },
-    "scoreExplanation": {
-      "title": "UMA数据质量评分算法说明",
-      "subtitle": "了解评分如何计算及各维度权重配置",
-      "overview": "评分概览",
-      "dimensions": "维度详情",
-      "history": "历史趋势",
-      "overallFormula": "综合评分计算公式",
-      "dimensionDetails": "维度详情",
-      "scoreGrades": {
-        "excellent": "优秀",
-        "good": "良好",
-        "pass": "及格",
-        "needsImprovement": "需改进"
-      },
-      "last30Days": "最近30天趋势"
     }
   },
   "realtimeUpdate": {

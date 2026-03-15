@@ -72,22 +72,7 @@ export function PageHeader({
 
   return (
     <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push('/price-query')}
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{symbol || 'Price Query'}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">{chain || '-'}</span>
-            <span className="text-gray-300">·</span>
-            <span className="text-sm text-gray-500">{provider || '-'}</span>
-          </div>
-        </div>
-      </div>
+      <h1 className="text-2xl font-semibold text-gray-900">{t('navbar.priceQuery')}</h1>
 
       <div className="flex items-center gap-3">
         {onToggleFavorite && (
@@ -100,13 +85,7 @@ export function PageHeader({
             }`}
           >
             <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-            {isFavorite
-              ? locale === 'zh-CN'
-                ? '已收藏'
-                : 'Favorited'
-              : locale === 'zh-CN'
-                ? '收藏'
-                : 'Favorite'}
+            {isFavorite ? t('common.favorited') : t('common.favorite')}
           </button>
         )}
 
@@ -116,7 +95,7 @@ export function PageHeader({
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
           >
             <Download className="w-4 h-4" />
-            {locale === 'zh-CN' ? '导出' : 'Export'}
+            {t('common.export')}
           </button>
         )}
 
@@ -127,7 +106,7 @@ export function PageHeader({
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300 transition-colors font-medium disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {locale === 'zh-CN' ? '刷新' : 'Refresh'}
+            {t('common.refresh')}
           </button>
         )}
       </div>

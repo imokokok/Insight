@@ -441,7 +441,7 @@ export function MarketDataPanel({
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
           {icon ? (
-            <div className="w-12 h-12 flex items-center justify-center [&>*]:w-full [&>*]:h-full">{icon}</div>
+            <div className={`w-12 h-12 ${iconBgColor} flex items-center justify-center`}>{icon}</div>
           ) : (
             <div className={`w-12 h-12 ${iconBgColor} flex items-center justify-center`}>
               <span className="text-white font-bold text-xl">{config.tokenSymbol}</span>

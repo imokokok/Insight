@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 
 type ConfidenceLevel = 90 | 95 | 99;
 
@@ -33,6 +34,7 @@ export function MoreOptionsDropdown({
   onShowAnomalyStats,
   compact = false,
 }: MoreOptionsDropdownProps) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [showConfidenceSubmenu, setShowConfidenceSubmenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,7 @@ export function MoreOptionsDropdown({
               ? 'bg-blue-100 text-blue-600'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          title="更多选项"
+          title={t('priceChart.moreOptions')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -93,7 +95,7 @@ export function MoreOptionsDropdown({
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
-                时间段对比
+                {t('priceChart.timeComparison')}
               </span>
               {(comparisonEnabled || showComparisonPanel) && (
                 <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -122,7 +124,7 @@ export function MoreOptionsDropdown({
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                异常检测
+                {t('priceChart.anomalyDetection')}
                 {anomalyDetectionEnabled && anomaliesCount > 0 && (
                   <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white  text-xs">
                     {anomaliesCount}
@@ -155,7 +157,7 @@ export function MoreOptionsDropdown({
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
-                查看统计
+                {t('priceChart.viewStats')}
               </button>
             )}
 
@@ -171,7 +173,7 @@ export function MoreOptionsDropdown({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                预测区间
+                {t('priceChart.predictionInterval')}
               </span>
               {showPredictionInterval && (
                 <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -186,7 +188,7 @@ export function MoreOptionsDropdown({
 
             {showPredictionInterval && (
               <div className="border-t border-gray-100 mt-1 pt-1">
-                <div className="px-4 py-2 text-xs text-gray-500 font-medium">置信度</div>
+                <div className="px-4 py-2 text-xs text-gray-500 font-medium">{t('priceChart.confidence')}</div>
                 {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
                   <button
                     key={level}
@@ -238,7 +240,7 @@ export function MoreOptionsDropdown({
             d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
           />
         </svg>
-        更多
+        {t('priceChart.more')}
         {(anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled) && (
           <span className="ml-1 w-1.5 h-1.5 bg-blue-500 " />
         )}
@@ -247,7 +249,7 @@ export function MoreOptionsDropdown({
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 w-64 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">高级功能</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.advancedFeatures')}</h3>
           </div>
 
           <div className="py-1">
@@ -284,8 +286,8 @@ export function MoreOptionsDropdown({
                     </svg>
                   </div>
                   <div>
-                    <span className="font-medium">时间段对比</span>
-                    <p className="text-xs text-gray-500">对比两个时间段的价格走势</p>
+                    <span className="font-medium">{t('priceChart.timeComparison')}</span>
+                    <p className="text-xs text-gray-500">{t('priceChart.timeComparisonDescription')}</p>
                   </div>
                 </div>
                 {(comparisonEnabled || showComparisonPanel) && (
@@ -329,8 +331,8 @@ export function MoreOptionsDropdown({
                     </svg>
                   </div>
                   <div>
-                    <span className="font-medium">异常检测</span>
-                    <p className="text-xs text-gray-500">检测价格异常波动</p>
+                    <span className="font-medium">{t('priceChart.anomalyDetection')}</span>
+                    <p className="text-xs text-gray-500">{t('priceChart.anomalyDetectionDescription')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -368,7 +370,7 @@ export function MoreOptionsDropdown({
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
-                查看异常统计
+                {t('priceChart.viewAnomalyStats')}
               </button>
             )}
 
@@ -401,8 +403,8 @@ export function MoreOptionsDropdown({
                     </svg>
                   </div>
                   <div>
-                    <span className="font-medium">预测区间</span>
-                    <p className="text-xs text-gray-500">显示价格预测置信区间</p>
+                    <span className="font-medium">{t('priceChart.predictionInterval')}</span>
+                    <p className="text-xs text-gray-500">{t('priceChart.predictionIntervalDescription')}</p>
                   </div>
                 </div>
                 {showPredictionInterval && (
@@ -419,7 +421,7 @@ export function MoreOptionsDropdown({
 
             {showPredictionInterval && (
               <div className="mt-1 px-4 py-2 border-t border-gray-100">
-                <div className="text-xs text-gray-500 font-medium mb-2">置信度选择</div>
+                <div className="text-xs text-gray-500 font-medium mb-2">{t('priceChart.confidenceSelection')}</div>
                 <div className="flex items-center gap-2">
                   {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
                     <button

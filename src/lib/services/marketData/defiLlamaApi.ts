@@ -13,7 +13,7 @@ import {
   RadarDataPoint,
 } from '@/app/market-overview/types';
 import { ORACLE_COLORS } from '@/app/market-overview/constants';
-import { chartColors, chainColors, baseColors } from '@/lib/config/colors';
+import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('marketData:defiLlamaApi');
 
