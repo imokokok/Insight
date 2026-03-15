@@ -31,7 +31,7 @@ export interface RateLimitMiddlewareOptions {
   preset?: 'strict' | 'moderate' | 'lenient' | 'api';
 }
 
-export type RateLimitMiddlewareResult = 
+export type RateLimitMiddlewareResult =
   | { success: true; remaining: number; resetTime: number }
   | { success: false; response: NextResponse };
 
@@ -82,12 +82,12 @@ function defaultRateLimitHandler(request: NextRequest, retryAfter: number): Next
     }),
     { status: 429 }
   );
-  
+
   response.headers.set('Retry-After', String(retryAfter));
   response.headers.set('X-RateLimit-Limit', '100');
   response.headers.set('X-RateLimit-Remaining', '0');
   response.headers.set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + retryAfter));
-  
+
   return response;
 }
 

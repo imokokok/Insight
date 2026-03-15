@@ -110,7 +110,7 @@ function calculateOverallQualityScore(point: QualityDataPoint): number {
   const accuracyWeight = point.accuracy !== undefined ? point.accuracy * 0.2 : 0;
   const availabilityWeight = point.availability !== undefined ? point.availability * 0.15 : 0;
   const consistencyWeight = point.consistency !== undefined ? point.consistency * 0.15 : 0;
-  
+
   return Math.min(100, baseScore * 0.5 + accuracyWeight + availabilityWeight + consistencyWeight);
 }
 
@@ -147,8 +147,9 @@ export function DataQualityTrend({
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d'>('24h');
   const [showRadarChart, setShowRadarChart] = useState(true);
   const [showRanking, setShowRanking] = useState(true);
-  
-  const { selectedTimeRange, registerTimeRangeCallback, unregisterTimeRangeCallback, syncEnabled } = useTimeRange();
+
+  const { selectedTimeRange, registerTimeRangeCallback, unregisterTimeRangeCallback, syncEnabled } =
+    useTimeRange();
   const [brushStartIndex, setBrushStartIndex] = useState<number | undefined>(undefined);
   const [brushEndIndex, setBrushEndIndex] = useState<number | undefined>(undefined);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -290,14 +291,14 @@ export function DataQualityTrend({
   // 雷达图数据
   const radarData = useMemo(() => {
     const dimensions = ['准确性', '可用性', '一致性', '响应速度', '心跳合规', '基础质量'];
-    
+
     return dimensions.map((dimension) => {
       const dataPoint: any = { metric: dimension };
-      
+
       rankingData.forEach((item) => {
         const stat = stats[item.provider];
         if (!stat) return;
-        
+
         switch (dimension) {
           case '准确性':
             dataPoint[item.name] = stat.avgAccuracy;
@@ -319,7 +320,7 @@ export function DataQualityTrend({
             break;
         }
       });
-      
+
       return dataPoint;
     });
   }, [rankingData, stats]);
@@ -328,7 +329,7 @@ export function DataQualityTrend({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[240px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[240px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
         <div className="space-y-2">
           {selectedOracles.map((oracle) => {
@@ -402,7 +403,7 @@ export function DataQualityTrend({
     if (!syncEnabled || !selectedTimeRange || chartData.length === 0) return;
 
     const { startTime, endTime } = selectedTimeRange;
-    
+
     setIsSyncing(true);
 
     const startIndex = chartData.findIndex((d) => d.rawTimestamp >= startTime);
@@ -415,7 +416,7 @@ export function DataQualityTrend({
       requestAnimationFrame(() => {
         setBrushStartIndex(targetStartIndex);
         setBrushEndIndex(targetEndIndex);
-        
+
         setTimeout(() => {
           setIsSyncing(false);
         }, 300);
@@ -445,7 +446,7 @@ export function DataQualityTrend({
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as any)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="1h">1小时</option>
                 <option value="6h">6小时</option>
@@ -528,7 +529,7 @@ export function DataQualityTrend({
                       name={`${oracleNames[oracle]} 质量分`}
                     />
                   ))}
-                  
+
                   <Brush
                     dataKey="timestamp"
                     height={25}
@@ -555,12 +556,12 @@ export function DataQualityTrend({
               return (
                 <div
                   key={oracle.oracle}
-                  className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border-2"
+                  className="bg-gray-100 border border-gray-200  p-4 border-2"
                   style={{ borderColor: `${ORACLE_COLORS[oracle.oracle]}30` }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-3 h-3 "
                       style={{ backgroundColor: ORACLE_COLORS[oracle.oracle] }}
                     />
                     <span className="text-sm font-medium text-gray-900">
@@ -682,7 +683,7 @@ export function DataQualityTrend({
                   <tr key={item.provider} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                        className={`inline-flex items-center justify-center w-8 h-8  text-sm font-bold ${
                           item.rank === 1
                             ? 'bg-yellow-100 text-yellow-800'
                             : item.rank === 2
@@ -697,10 +698,7 @@ export function DataQualityTrend({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: item.color }}
-                        />
+                        <div className="w-3 h-3  mr-2" style={{ backgroundColor: item.color }} />
                         <span className="font-medium text-gray-900">{item.name}</span>
                       </div>
                     </td>
@@ -776,12 +774,24 @@ export function DataQualityTrend({
           <div className="mt-4 text-sm text-gray-600">
             <p className="font-medium mb-2">维度说明:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              <div>• <strong>准确性</strong>: 价格准确度评分</div>
-              <div>• <strong>可用性</strong>: 服务可用性百分比</div>
-              <div>• <strong>一致性</strong>: 数据一致性评分</div>
-              <div>• <strong>响应速度</strong>: 数据更新延迟</div>
-              <div>• <strong>心跳合规</strong>: 更新频率合规率</div>
-              <div>• <strong>基础质量</strong>: 综合基础质量分</div>
+              <div>
+                • <strong>准确性</strong>: 价格准确度评分
+              </div>
+              <div>
+                • <strong>可用性</strong>: 服务可用性百分比
+              </div>
+              <div>
+                • <strong>一致性</strong>: 数据一致性评分
+              </div>
+              <div>
+                • <strong>响应速度</strong>: 数据更新延迟
+              </div>
+              <div>
+                • <strong>心跳合规</strong>: 更新频率合规率
+              </div>
+              <div>
+                • <strong>基础质量</strong>: 综合基础质量分
+              </div>
             </div>
           </div>
         </DashboardCard>
@@ -933,19 +943,19 @@ export function DataQualityTrend({
           </ul>
           <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-green-500" />
+              <span className="w-3 h-3  bg-green-500" />
               <span>优秀 (90-100)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="w-3 h-3  bg-blue-500" />
               <span>良好 (75-89)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-amber-500" />
+              <span className="w-3 h-3  bg-amber-500" />
               <span>及格 (60-74)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-red-500" />
+              <span className="w-3 h-3  bg-red-500" />
               <span>不及格 (&lt;60)</span>
             </span>
           </div>

@@ -1,6 +1,8 @@
 import { ValidationError } from '@/lib/errors';
 
-export type ValidatorResult = { valid: true; value: unknown } | { valid: false; error: ValidationError };
+export type ValidatorResult =
+  | { valid: true; value: unknown }
+  | { valid: false; error: ValidationError };
 
 export type ValidatorFn = (value: unknown, field?: string) => ValidatorResult;
 

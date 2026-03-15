@@ -3,11 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { WINkLinkClient } from '@/lib/oracles/winklink';
-import {
-  PageHeader,
-  MarketDataPanel,
-  NetworkHealthPanel,
-} from '@/components/oracle';
+import { PageHeader, MarketDataPanel, NetworkHealthPanel } from '@/components/oracle';
 import { WINkLinkTRONEcosystemPanel } from '@/components/oracle/panels/WINkLinkTRONEcosystemPanel';
 import { WINkLinkStakingPanel } from '@/components/oracle/panels/WINkLinkStakingPanel';
 import { WINkLinkGamingDataPanel } from '@/components/oracle/panels/WINkLinkGamingDataPanel';
@@ -35,12 +31,26 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="py-4 border-b border-gray-100 max-w-md w-full mx-4">
         <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4 mx-auto">
-          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 text-center mb-2">{t('winklink.error.loadingFailed')}</h3>
-        <p className="text-sm text-gray-500 text-center mb-6">{error.message || t('winklink.error.loadingFailed')}</p>
+        <h3 className="text-sm font-semibold text-gray-900 text-center mb-2">
+          {t('winklink.error.loadingFailed')}
+        </h3>
+        <p className="text-sm text-gray-500 text-center mb-6">
+          {error.message || t('winklink.error.loadingFailed')}
+        </p>
         <button
           onClick={onRetry}
           className="w-full px-3 py-1.5 bg-pink-600 text-white rounded-md text-sm hover:bg-pink-700 transition-colors"
@@ -146,7 +156,11 @@ export function WINkLinkPageContent() {
           {activeTab === 'market' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <MarketDataPanel client={client} config={config.marketData} iconBgColor={config.iconBgColor} />
+                <MarketDataPanel
+                  client={client}
+                  config={config.marketData}
+                  iconBgColor={config.iconBgColor}
+                />
               </div>
               <div>
                 <NetworkHealthPanel config={config.networkData} />
@@ -154,21 +168,13 @@ export function WINkLinkPageContent() {
             </div>
           )}
 
-          {activeTab === 'network' && (
-            <NetworkHealthPanel config={config.networkData} />
-          )}
+          {activeTab === 'network' && <NetworkHealthPanel config={config.networkData} />}
 
-          {activeTab === 'tron' && tronData && (
-            <WINkLinkTRONEcosystemPanel data={tronData} />
-          )}
+          {activeTab === 'tron' && tronData && <WINkLinkTRONEcosystemPanel data={tronData} />}
 
-          {activeTab === 'staking' && stakingData && (
-            <WINkLinkStakingPanel data={stakingData} />
-          )}
+          {activeTab === 'staking' && stakingData && <WINkLinkStakingPanel data={stakingData} />}
 
-          {activeTab === 'gaming' && gamingData && (
-            <WINkLinkGamingDataPanel data={gamingData} />
-          )}
+          {activeTab === 'gaming' && gamingData && <WINkLinkGamingDataPanel data={gamingData} />}
         </div>
       </div>
     </div>

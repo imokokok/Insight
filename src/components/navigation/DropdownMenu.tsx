@@ -71,7 +71,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium  transition-all duration-200 ${
           isActive || isGroupActive
             ? 'text-blue-600 bg-blue-50'
             : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
@@ -85,13 +85,13 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
         {(isActive || isGroupActive) && (
-          <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
+          <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 " />
         )}
       </button>
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in"
+          className="absolute top-full left-0 mt-1 w-64 bg-white   border border-gray-100 py-2 z-50 animate-fade-in"
           role="menu"
         >
           {group.items.map((item) => {
@@ -108,14 +108,14 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                   setIsOpen(false);
                   onItemClick?.();
                 }}
-                className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 group ${
+                className={`flex items-start gap-3 px-4 py-3 mx-2  transition-all duration-200 group ${
                   isItemActive ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 text-gray-700'
                 }`}
                 role="menuitem"
               >
                 {ItemIcon && (
                   <div
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-2  transition-colors ${
                       isItemActive ? 'bg-blue-100' : 'bg-gray-100 group-hover:bg-white'
                     }`}
                     style={
@@ -136,7 +136,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                     </div>
                   )}
                 </div>
-                {isItemActive && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2" />}
+                {isItemActive && <div className="w-1.5 h-1.5 bg-blue-600  mt-2" />}
               </Link>
             );
           })}

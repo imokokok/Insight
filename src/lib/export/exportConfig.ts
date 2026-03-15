@@ -752,7 +752,10 @@ export function loadExportConfigsFromStorage(): ExportConfig[] {
       return JSON.parse(stored);
     }
   } catch (error) {
-    logger.error('Failed to load export configs from storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to load export configs from storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return [];
 }
@@ -766,7 +769,10 @@ export function saveExportConfigsToStorage(configs: ExportConfig[]): void {
   try {
     localStorage.setItem('oracle_export_configs', JSON.stringify(configs));
   } catch (error) {
-    logger.error('Failed to save export configs to storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to save export configs to storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 

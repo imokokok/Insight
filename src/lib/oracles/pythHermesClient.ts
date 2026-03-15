@@ -56,7 +56,9 @@ function isPythPriceData(data: unknown): data is PythPriceData {
   const obj = data as Record<string, unknown>;
   return (
     (typeof obj.price === 'string' || typeof obj.price === 'number') &&
-    (obj.confidence === undefined || typeof obj.confidence === 'string' || typeof obj.confidence === 'number') &&
+    (obj.confidence === undefined ||
+      typeof obj.confidence === 'string' ||
+      typeof obj.confidence === 'number') &&
     (obj.exponent === undefined || typeof obj.exponent === 'number') &&
     (obj.expo === undefined || typeof obj.expo === 'number') &&
     (obj.publish_time === undefined || typeof obj.publish_time === 'number') &&
@@ -97,24 +99,24 @@ export class PythHermesClient {
       }
 
       const parsed = priceUpdates.parsed[0] as any;
-      
+
       if (!parsed.price || !isPythPriceData(parsed.price)) {
-        logger.error('Invalid price data format in getLatestPrice', new Error(`Expected PythPriceData, got: ${JSON.stringify(parsed.price)}`));
+        logger.error(
+          'Invalid price data format in getLatestPrice',
+          new Error(`Expected PythPriceData, got: ${JSON.stringify(parsed.price)}`)
+        );
         return null;
       }
 
       const priceData = parsed.price;
       const price = this.convertPythPrice(priceData);
       const exponent = priceData.exponent ?? priceData.expo ?? 0;
-      const confidenceValue = typeof priceData.confidence === 'string' 
-        ? priceData.confidence 
-        : String(priceData.confidence ?? '0');
-      
-      const confidenceInterval = this.calculateConfidenceInterval(
-        price,
-        confidenceValue,
-        exponent
-      );
+      const confidenceValue =
+        typeof priceData.confidence === 'string'
+          ? priceData.confidence
+          : String(priceData.confidence ?? '0');
+
+      const confidenceInterval = this.calculateConfidenceInterval(price, confidenceValue, exponent);
 
       return {
         provider: OracleProvider.PYTH,
@@ -132,20 +134,23 @@ export class PythHermesClient {
         change24hPercent: 0,
       };
     } catch (error) {
-      logger.error(`Failed to get latest price for ${symbol}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        `Failed to get latest price for ${symbol}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       return null;
     }
   }
 
   /**
    * Get historical prices for a symbol
-   * 
+   *
    * Note: Pyth Hermes API does not support historical price range queries.
    * It only supports:
    * - getLatestPriceUpdates: Get current prices
    * - getPriceUpdatesAtTimestamp: Get price at a specific timestamp
    * - getLatestTwaps: Get TWAP for up to 10 minutes
-   * 
+   *
    * For historical price data, consider:
    * - Using on-chain price feeds
    * - External data sources like Dune Analytics
@@ -154,8 +159,8 @@ export class PythHermesClient {
   async getHistoricalPrices(symbol: string, hours: number = 24): Promise<PriceData[]> {
     throw new NotImplementedError(
       'Historical prices are not supported by Pyth Hermes API. ' +
-      'Pyth only provides real-time prices and prices at specific timestamps. ' +
-      'Consider using on-chain price feeds, external data sources, or storing price data locally over time.'
+        'Pyth only provides real-time prices and prices at specific timestamps. ' +
+        'Consider using on-chain price feeds, external data sources, or storing price data locally over time.'
     );
   }
 
@@ -216,7 +221,10 @@ export class PythHermesClient {
       logger.info(`Getting publishers for ${symbol} - feature pending`);
       return [];
     } catch (error) {
-      logger.error(`Failed to get publishers for ${symbol}:`, error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        `Failed to get publishers for ${symbol}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
       return [];
     }
   }
@@ -253,7 +261,10 @@ export class PythHermesClient {
             this.handlePriceUpdate(data);
           }
         } catch (error) {
-          logger.error('Failed to parse WebSocket message:', error instanceof Error ? error : new Error(String(error)));
+          logger.error(
+            'Failed to parse WebSocket message:',
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       };
 
@@ -266,7 +277,10 @@ export class PythHermesClient {
         this.handleReconnect();
       };
     } catch (error) {
-      logger.error('Failed to initialize WebSocket:', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to initialize WebSocket:',
+        error instanceof Error ? error : new Error(String(error))
+      );
       this.handleReconnect();
     }
   }
@@ -293,15 +307,19 @@ export class PythHermesClient {
       }
 
       if (!isPythPriceData(data.price)) {
-        logger.error('Invalid price data format', new Error(`Expected PythPriceData, got: ${JSON.stringify(data.price)}`));
+        logger.error(
+          'Invalid price data format',
+          new Error(`Expected PythPriceData, got: ${JSON.stringify(data.price)}`)
+        );
         return;
       }
 
       const priceData = data.price;
       const exponent = priceData.exponent ?? priceData.expo ?? 0;
-      const confidenceValue = typeof priceData.confidence === 'string' 
-        ? parseInt(priceData.confidence, 10) 
-        : (priceData.confidence ?? 0);
+      const confidenceValue =
+        typeof priceData.confidence === 'string'
+          ? parseInt(priceData.confidence, 10)
+          : (priceData.confidence ?? 0);
 
       const priceUpdate: PythPriceUpdate = {
         price: this.convertPythPrice(priceData),
@@ -315,16 +333,18 @@ export class PythHermesClient {
         try {
           callback(priceUpdate);
         } catch (error) {
-          logger.error('Error in price callback:', error instanceof Error ? error : new Error(String(error)));
+          logger.error(
+            'Error in price callback:',
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       });
     }
   }
 
   private convertPythPrice(pythPrice: PythPriceData): number {
-    const priceValue = typeof pythPrice.price === 'string' 
-      ? parseInt(pythPrice.price, 10) 
-      : pythPrice.price;
+    const priceValue =
+      typeof pythPrice.price === 'string' ? parseInt(pythPrice.price, 10) : pythPrice.price;
     const exponent = pythPrice.exponent ?? pythPrice.expo ?? 0;
     return priceValue * Math.pow(10, exponent);
   }

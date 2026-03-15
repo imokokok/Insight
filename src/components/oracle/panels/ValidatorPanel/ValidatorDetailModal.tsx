@@ -33,30 +33,25 @@ function ValidatorDetailModalContent({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden">
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-sm">#{validator.rank}</span>
+            <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center">
+              <span className="text-gray-600 font-bold text-sm">#{validator.rank}</span>
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{validator.moniker}</h2>
               <p className="text-xs text-gray-500">验证者详情</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 transition-colors">
             <svg
               className="w-5 h-5 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -100,7 +95,7 @@ function ValidatorDetailModalContent({
           {activeTab === 'overview' && (
             <>
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">质押量</p>
                   <p className="text-xl font-bold text-gray-900">
                     {formatNumber(validator.tokens, true)} BAND
@@ -109,7 +104,7 @@ function ValidatorDetailModalContent({
                     约 ${formatNumber(validator.tokens * 2.5, true)}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">佣金率</p>
                   <p className="text-xl font-bold text-gray-900">
                     {(validator.commissionRate * 100).toFixed(2)}%
@@ -118,25 +113,25 @@ function ValidatorDetailModalContent({
                     最大 {(validator.maxCommissionRate * 100).toFixed(2)}%
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">在线率</p>
                   <p className="text-xl font-bold text-green-600">{validator.uptime.toFixed(2)}%</p>
-                  <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="mt-2 h-2 bg-gray-200 overflow-hidden">
                     <div
-                      className="h-full bg-green-500 rounded-full transition-all duration-500"
+                      className="h-full bg-green-500 transition-all duration-500"
                       style={{ width: `${validator.uptime}%` }}
                     />
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">状态</p>
                   <div className="flex items-center gap-2">
                     <span className={`relative flex h-3 w-3`}>
                       <span
-                        className={`animate-ping absolute inline-flex h-full w-full rounded-full ${validator.jailed ? 'bg-red-400' : 'bg-green-400'} opacity-75`}
+                        className={`animate-ping absolute inline-flex h-full w-full ${validator.jailed ? 'bg-red-400' : 'bg-green-400'} opacity-75`}
                       />
                       <span
-                        className={`relative inline-flex rounded-full h-3 w-3 ${validator.jailed ? 'bg-red-500' : 'bg-green-500'}`}
+                        className={`relative inline-flex h-3 w-3 ${validator.jailed ? 'bg-red-500' : 'bg-green-500'}`}
                       />
                     </span>
                     <span
@@ -149,18 +144,18 @@ function ValidatorDetailModalContent({
               </div>
 
               <div className="space-y-4">
-                <div className="border border-gray-200 rounded-xl p-4">
+                <div className="border border-gray-200 p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">验证者信息</p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-500">操作地址</span>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700 max-w-[200px] truncate">
+                      <code className="text-xs bg-gray-100 px-2 py-1 text-gray-700 max-w-[200px] truncate">
                         {validator.operatorAddress}
                       </code>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-500">身份标识</span>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
+                      <code className="text-xs bg-gray-100 px-2 py-1 text-gray-700">
                         {validator.identity}
                       </code>
                     </div>
@@ -193,7 +188,7 @@ function ValidatorDetailModalContent({
                 </div>
 
                 {validator.details && (
-                  <div className="border border-gray-200 rounded-xl p-4">
+                  <div className="border border-gray-200 p-4">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">描述</p>
                     <p className="text-sm text-gray-700">{validator.details}</p>
                   </div>
@@ -204,7 +199,7 @@ function ValidatorDetailModalContent({
 
           {activeTab === 'history' && (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">历史趋势分析</h3>
                 <p className="text-xs text-gray-500">
                   查看验证者过去 7/30/90 天的在线率、质押量和佣金率变化趋势
@@ -221,7 +216,7 @@ function ValidatorDetailModalContent({
 
           {activeTab === 'calculator' && (
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">质押收益计算器</h3>
                 <p className="text-xs text-gray-500">输入质押金额，计算预期收益</p>
               </div>

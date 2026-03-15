@@ -87,7 +87,6 @@ export function FavoriteButton({
       viewBox="0 0 24 24"
     >
       <path
-        strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
@@ -104,7 +103,7 @@ export function FavoriteButton({
       <button
         onClick={handleClick}
         disabled={isToggling}
-        className={`${buttonSize} rounded-lg transition-all hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`${buttonSize}  transition-all hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
         title={isFavorited ? '取消收藏' : '添加收藏'}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
@@ -169,7 +168,7 @@ export function FavoriteButton({
     <button
       onClick={handleClick}
       disabled={isToggling}
-      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${
+      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium  border transition-all ${
         isFavorited
           ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
           : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-red-300'

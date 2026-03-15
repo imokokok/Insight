@@ -162,24 +162,24 @@ export function PriceTable({
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
                       {isHighest && (
-                        <span className="text-xs font-medium text-red-600 bg-red-100 px-1 py-0.5 rounded">
+                        <span className="text-xs font-medium text-red-600 bg-red-100 px-1 py-0.5">
                           最高
                         </span>
                       )}
                       {isLowest && (
-                        <span className="text-xs font-medium text-green-600 bg-green-100 px-1 py-0.5 rounded">
+                        <span className="text-xs font-medium text-green-600 bg-green-100 px-1 py-0.5">
                           最低
                         </span>
                       )}
                       <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        className="w-2 h-2 flex-shrink-0"
                         style={{ backgroundColor: chartColors[data.provider] }}
                       />
                       <span className="font-medium text-gray-900">
                         {oracleNames[data.provider]}
                       </span>
                       {outlier && (
-                        <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5 rounded">
+                        <span className="text-amber-600 text-xs font-medium bg-amber-100 px-1 py-0.5">
                           {t('crossOracle.outlier')}
                         </span>
                       )}
@@ -201,7 +201,7 @@ export function PriceTable({
                   <td className="py-2.5 px-3 text-right relative">
                     <div className="relative">
                       <div
-                        className={`absolute inset-0 rounded transition-all ${
+                        className={`absolute inset-0 transition-all ${
                           deviationPercent !== null && deviationPercent > 0
                             ? 'bg-red-200'
                             : deviationPercent !== null && deviationPercent < 0
@@ -230,10 +230,10 @@ export function PriceTable({
                     <td className="py-2.5 px-3 text-right">
                       {deviationPercent !== null ? (
                         <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getDeviationColorClass(deviationPercent)}`}
+                          className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${getDeviationColorClass(deviationPercent)}`}
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full mr-1 ${getDeviationBgClass(deviationPercent)}`}
+                            className={`w-1.5 h-1.5 mr-1 ${getDeviationBgClass(deviationPercent)}`}
                           />
                           {deviationPercent >= 0 ? '+' : ''}
                           {deviationPercent.toFixed(3)}%
@@ -246,12 +246,10 @@ export function PriceTable({
                   <td className="py-2.5 px-3 text-right hidden sm:table-cell">
                     {data.confidence ? (
                       <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-gray-700">
-                          {(data.confidence * 100).toFixed(1)}%
-                        </span>
-                        <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <span className="text-gray-700">{(data.confidence * 100).toFixed(1)}%</span>
+                        <div className="w-12 h-1 bg-gray-200 overflow-hidden">
                           <div
-                            className="h-full bg-blue-500 rounded-full"
+                            className="h-full bg-blue-500"
                             style={{ width: `${data.confidence * 100}%` }}
                           />
                         </div>
@@ -265,16 +263,14 @@ export function PriceTable({
                   </td>
                   <td className="py-2.5 px-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full ${getFreshnessDotColor(freshness.seconds)}`}
-                      />
+                      <span className={`w-2 h-2 ${getFreshnessDotColor(freshness.seconds)}`} />
                       <span className={`${freshness.colorClass}`}>{freshness.text}</span>
                     </div>
                   </td>
 
                   {isHovered && !isSelected && (
                     <td className="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-20">
-                      <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 min-w-[200px]">
+                      <div className="bg-white border border-gray-200 p-3 min-w-[200px]">
                         <div className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b border-gray-100">
                           {oracleNames[data.provider]}
                         </div>
@@ -316,7 +312,7 @@ export function PriceTable({
                           <div className="flex justify-between">
                             <span className="text-gray-500">状态</span>
                             <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                              className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
                             >
                               {outlier ? '异常值' : '正常'}
                             </span>
@@ -383,7 +379,7 @@ export function PriceTable({
                         <div>
                           <span className="text-gray-500 block text-xs">状态</span>
                           <span
-                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
+                            className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
                           >
                             {outlier ? '异常值' : '正常'}
                           </span>

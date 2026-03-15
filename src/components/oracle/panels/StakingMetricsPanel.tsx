@@ -39,7 +39,7 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
         <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-green-50 -mx-5 px-5">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">{t('stakingMetrics.stakingApr')}</span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+            <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-green-100 text-green-700">
               {t('stakingMetrics.hot')}
             </span>
           </div>
@@ -54,7 +54,7 @@ export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
         </div>
 
         <div className="pt-2">
-          <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md">
+          <button className="w-full py-3 px-4 bg-gray-100 border border-gray-200 text-white font-medium  hover:from-blue-700 hover:to-indigo-700 transition-all duration-200  hover:">
             {t('stakingMetrics.stakeNow')}
           </button>
           <p className="text-xs text-gray-400 text-center mt-2">

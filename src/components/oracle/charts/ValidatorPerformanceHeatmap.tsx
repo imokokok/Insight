@@ -118,7 +118,7 @@ export function ValidatorPerformanceHeatmap() {
     return (
       <DashboardCard title={t('uma.validatorAnalytics.performanceHeatmap')}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600" />
         </div>
       </DashboardCard>
     );
@@ -134,7 +134,7 @@ export function ValidatorPerformanceHeatmap() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTimeRange('24H')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-sm  transition-colors ${
                 timeRange === '24H'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -144,7 +144,7 @@ export function ValidatorPerformanceHeatmap() {
             </button>
             <button
               onClick={() => setTimeRange('7D')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-sm  transition-colors ${
                 timeRange === '7D'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -155,7 +155,7 @@ export function ValidatorPerformanceHeatmap() {
             <div className="w-px h-6 bg-gray-300 mx-2" />
             <button
               onClick={() => setViewMode('responseTime')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-sm  transition-colors ${
                 viewMode === 'responseTime'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -165,7 +165,7 @@ export function ValidatorPerformanceHeatmap() {
             </button>
             <button
               onClick={() => setViewMode('successRate')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-sm  transition-colors ${
                 viewMode === 'successRate'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -301,7 +301,7 @@ export function ValidatorPerformanceHeatmap() {
 
         {tooltip && (
           <div
-            className="fixed z-50 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none"
+            className="fixed z-50 px-3 py-2 bg-gray-900 text-white text-xs   pointer-events-none"
             style={{
               left: tooltip.x,
               top: tooltip.y - 10,

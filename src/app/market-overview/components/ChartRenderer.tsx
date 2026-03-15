@@ -18,7 +18,18 @@ import {
   Area,
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
-import { OracleMarketData, TVSTrendData, ChartType, ViewType, ChainBreakdown, ProtocolDetail, AssetCategory, ComparisonData, BenchmarkData, CorrelationData } from '../types';
+import {
+  OracleMarketData,
+  TVSTrendData,
+  ChartType,
+  ViewType,
+  ChainBreakdown,
+  ProtocolDetail,
+  AssetCategory,
+  ComparisonData,
+  BenchmarkData,
+  CorrelationData,
+} from '../types';
 import { chartColors } from '@/lib/config/colors';
 import ChainBreakdownChart from './ChainBreakdownChart';
 import ProtocolList from './ProtocolList';
@@ -59,13 +70,15 @@ interface ChartRendererProps {
     prevValue: number;
     changeRate: number;
   } | null;
-  setSelectedAnomaly: (anomaly: {
-    dataKey: string;
-    date: string;
-    value: number;
-    prevValue: number;
-    changeRate: number;
-  } | null) => void;
+  setSelectedAnomaly: (
+    anomaly: {
+      dataKey: string;
+      date: string;
+      value: number;
+      prevValue: number;
+      changeRate: number;
+    } | null
+  ) => void;
   comparisonMode: 'none' | 'yoy' | 'mom';
   trendComparisonData: TVSTrendData[];
   showConfidenceInterval: boolean;
@@ -104,11 +117,11 @@ export default function ChartRenderer({
   const CustomTooltip = ({ active, payload, label }: TooltipProps<OracleMarketData>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <div className="bg-white border border-gray-200 p-3">
           <p className="font-medium text-gray-900 mb-2">{label}</p>
           {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+              <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
                 {activeChart === 'pie'
@@ -209,7 +222,15 @@ export default function ChartRenderer({
                   : chartColors.pie.stroke.none
               }
               strokeWidth={selectedItem === entry.name ? 3 : 0}
-              opacity={!linkedOracle ? (hoveredItem && hoveredItem !== entry.name ? 0.6 : 1) : (isHighlighted ? 1 : 0.2)}
+              opacity={
+                !linkedOracle
+                  ? hoveredItem && hoveredItem !== entry.name
+                    ? 0.6
+                    : 1
+                  : isHighlighted
+                    ? 1
+                    : 0.2
+              }
               style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
             />
           );
@@ -245,7 +266,7 @@ export default function ChartRenderer({
       if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 max-w-xs">
+          <div className="bg-white border border-gray-200 p-3 max-w-xs">
             <p className="font-medium text-gray-900 mb-2">{label}</p>
             {comparisonMode !== 'none' ? (
               <div className="space-y-2">
@@ -256,10 +277,7 @@ export default function ChartRenderer({
                   return (
                     <div key={key} className="text-sm">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: oracleColors[key] }}
-                        />
+                        <div className="w-3 h-3" style={{ backgroundColor: oracleColors[key] }} />
                         <span className="text-gray-600">{oracleNames[key]}:</span>
                       </div>
                       <div className="ml-5 mt-1 space-y-1">
@@ -303,10 +321,7 @@ export default function ChartRenderer({
             ) : (
               payload.map((entry, index: number) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: entry.color }}
-                  />
+                  <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
                   <span className="text-gray-600">{entry.name}:</span>
                   <span className="font-medium text-gray-900">${entry.value}B</span>
                 </div>
@@ -322,11 +337,7 @@ export default function ChartRenderer({
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} />
         <XAxis dataKey="date" stroke={chartColors.lineChart.axis} fontSize={12} />
-        <YAxis
-          stroke={chartColors.lineChart.axis}
-          fontSize={12}
-          tickFormatter={(v) => `$${v}B`}
-        />
+        <YAxis stroke={chartColors.lineChart.axis} fontSize={12} tickFormatter={(v) => `$${v}B`} />
         <Tooltip content={<ComparisonTooltip />} />
         <Legend />
         {oracleKeys.map((key) => {
@@ -338,10 +349,10 @@ export default function ChartRenderer({
               dataKey={key}
               name={oracleNames[key]}
               stroke={oracleColors[key]}
-              strokeWidth={comparisonMode !== 'none' ? 3 : (isHighlighted ? 3 : 1)}
+              strokeWidth={comparisonMode !== 'none' ? 3 : isHighlighted ? 3 : 1}
               dot={false}
               activeDot={{ r: comparisonMode !== 'none' ? 6 : 4 }}
-              opacity={!linkedOracle ? 1 : (isHighlighted ? 1 : 0.2)}
+              opacity={!linkedOracle ? 1 : isHighlighted ? 1 : 0.2}
               strokeDasharray={!isHighlighted && linkedOracle ? '3 3' : undefined}
             />
           );
@@ -423,11 +434,7 @@ export default function ChartRenderer({
 
   const renderBarChart = () => (
     <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical">
-      <CartesianGrid
-        strokeDasharray="3 3"
-        stroke={chartColors.lineChart.grid}
-        horizontal={false}
-      />
+      <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} horizontal={false} />
       <XAxis type="number" stroke={chartColors.lineChart.axis} fontSize={12} />
       <YAxis
         dataKey="name"
@@ -437,14 +444,14 @@ export default function ChartRenderer({
         width={100}
       />
       <Tooltip content={<CustomTooltip />} />
-      <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]}>
+      <Bar dataKey="chains" name="Supported Chains">
         {CHAIN_SUPPORT_DATA.map((entry, index) => {
           const isHighlighted = isCellHighlighted(entry.name);
           return (
-            <Cell 
-              key={`cell-${index}`} 
-              fill={entry.color} 
-              opacity={!linkedOracle ? 1 : (isHighlighted ? 1 : 0.3)}
+            <Cell
+              key={`cell-${index}`}
+              fill={entry.color}
+              opacity={!linkedOracle ? 1 : isHighlighted ? 1 : 0.3}
             />
           );
         })}
@@ -511,7 +518,7 @@ export default function ChartRenderer({
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
                 </td>
@@ -563,28 +570,27 @@ export default function ChartRenderer({
       return renderBarChart();
     case 'chain':
       return (
-        <ChainBreakdownChart
-          data={chainBreakdown}
-          loading={loadingEnhanced}
-          viewType={viewType}
-        />
+        <ChainBreakdownChart data={chainBreakdown} loading={loadingEnhanced} viewType={viewType} />
       );
     case 'protocol':
       return <ProtocolList data={protocolDetails} loading={loadingEnhanced} />;
     case 'asset':
       return (
-        <AssetCategoryChart
-          data={assetCategories}
-          loading={loadingEnhanced}
-          viewType={viewType}
-        />
+        <AssetCategoryChart data={assetCategories} loading={loadingEnhanced} viewType={viewType} />
       );
     case 'comparison':
       return <OracleComparison data={comparisonData} loading={loadingComparison} />;
     case 'benchmark':
       return <BenchmarkComparison data={benchmarkData} loading={loadingComparison} />;
     case 'correlation':
-      return <CorrelationMatrix data={correlationData} loading={loadingComparison} onCellClick={(primary, secondary) => setLinkedOracle({ primary, secondary })} linkedOracle={linkedOracle} />;
+      return (
+        <CorrelationMatrix
+          data={correlationData}
+          loading={loadingComparison}
+          onCellClick={(primary, secondary) => setLinkedOracle({ primary, secondary })}
+          linkedOracle={linkedOracle}
+        />
+      );
     default:
       return null;
   }

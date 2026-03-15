@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import {
   BarChart,
   Bar,
@@ -33,11 +34,13 @@ interface ExtendedChainData extends ChainDataRequest {
   reliability: number;
 }
 
-const TIME_RANGE_CONFIG: Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> = {
-  '24h': { label: '24小时', field: 'requestCount24h' },
-  '7d': { label: '7天', field: 'requestCount7d' },
-  '30d': { label: '30天', field: 'requestCount30d' },
-};
+const getTimeRangeConfig = (
+  t: (key: string) => string
+): Record<TimeRangeKey, { label: string; field: keyof ChainDataRequest }> => ({
+  '24h': { label: t('chainComparison.timeRange.24h'), field: 'requestCount24h' },
+  '7d': { label: t('chainComparison.timeRange.7d'), field: 'requestCount7d' },
+  '30d': { label: t('chainComparison.timeRange.30d'), field: 'requestCount30d' },
+});
 
 const CHAIN_COLORS: Record<string, string> = {
   'Cosmos Hub': '#2E3359',
@@ -92,10 +95,10 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+    <div className="bg-white border border-gray-200  p-3 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">{data.value.toLocaleString()}</span>
       </div>
     </div>
@@ -116,10 +119,10 @@ function GasTooltip({ active, payload }: GasTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+    <div className="bg-white border border-gray-200  p-3 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">
           {data.gasCost.toFixed(6)} BAND
         </span>
@@ -142,10 +145,10 @@ function ResponseTimeTooltip({ active, payload }: ResponseTimeTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+    <div className="bg-white border border-gray-200  p-3 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">{data.responseTime}ms</span>
       </div>
     </div>
@@ -157,6 +160,8 @@ export function ChainComparison({
   selectedChains: externalSelectedChains,
   onSelectionChange,
 }: ChainComparisonProps) {
+  const { t } = useI18n();
+  const TIME_RANGE_CONFIG = useMemo(() => getTimeRangeConfig(t), [t]);
   const [internalSelectedChains, setInternalSelectedChains] = useState<ChainDataRequest[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('24h');
 
@@ -206,7 +211,7 @@ export function ChainComparison({
         color: getChainColor(chain.chainName, index),
         chainName: chain.chainName,
       })),
-    [extendedSelectedChains, timeRange]
+    [extendedSelectedChains, timeRange, TIME_RANGE_CONFIG]
   );
 
   const gasChartData = useMemo(
@@ -251,7 +256,7 @@ export function ChainComparison({
 
     return [
       {
-        metric: '请求量',
+        metric: t('chainComparison.metrics.requestVolume'),
         ...extendedSelectedChains.reduce(
           (acc, c) => {
             acc[c.chainName] = (c.requestCount24h / maxRequests) * 100;
@@ -261,7 +266,7 @@ export function ChainComparison({
         ),
       },
       {
-        metric: 'Gas效率',
+        metric: t('chainComparison.metrics.gasEfficiency'),
         ...extendedSelectedChains.reduce(
           (acc, c) => {
             const gasScore =
@@ -273,7 +278,7 @@ export function ChainComparison({
         ),
       },
       {
-        metric: '代币支持',
+        metric: t('chainComparison.metrics.tokenSupport'),
         ...extendedSelectedChains.reduce(
           (acc, c) => {
             acc[c.chainName] = (c.supportedSymbols.length / maxTokens) * 100;
@@ -283,7 +288,7 @@ export function ChainComparison({
         ),
       },
       {
-        metric: '响应速度',
+        metric: t('chainComparison.metrics.responseSpeed'),
         ...extendedSelectedChains.reduce(
           (acc, c) => {
             const responseScore =
@@ -297,7 +302,7 @@ export function ChainComparison({
         ),
       },
       {
-        metric: '可靠性',
+        metric: t('chainComparison.metrics.reliability'),
         ...extendedSelectedChains.reduce(
           (acc, c) => {
             acc[c.chainName] = c.reliability;
@@ -307,22 +312,22 @@ export function ChainComparison({
         ),
       },
     ];
-  }, [extendedSelectedChains]);
+  }, [extendedSelectedChains, t]);
 
   const exportToCSV = useCallback(() => {
     if (extendedSelectedChains.length === 0) return;
 
     const headers = [
-      '链名称',
+      t('chainComparison.csv.chainName'),
       'Chain ID',
-      '24h请求量',
-      '7d请求量',
-      '30d请求量',
-      '平均Gas成本',
-      '支持代币数量',
-      '支持代币',
-      '平均响应时间(ms)',
-      '可靠性(%)',
+      t('chainComparison.csv.24hRequests'),
+      t('chainComparison.csv.7dRequests'),
+      t('chainComparison.csv.30dRequests'),
+      t('chainComparison.csv.avgGasCost'),
+      t('chainComparison.csv.tokenCount'),
+      t('chainComparison.csv.supportedTokens'),
+      t('chainComparison.csv.avgResponseTime'),
+      t('chainComparison.csv.reliability'),
     ];
 
     const rows = extendedSelectedChains.map((chain) => [
@@ -349,7 +354,7 @@ export function ChainComparison({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [extendedSelectedChains]);
+  }, [extendedSelectedChains, t]);
 
   const comparisonStats = useMemo(() => {
     if (extendedSelectedChains.length === 0) return null;
@@ -372,49 +377,50 @@ export function ChainComparison({
       totalTokens,
       avgResponseTime: Math.round(avgResponseTime),
     };
-  }, [extendedSelectedChains, timeRange]);
+  }, [extendedSelectedChains, timeRange, TIME_RANGE_CONFIG]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">跨链数据对比</h2>
-          <p className="text-gray-500 text-sm mt-0.5">选择最多 {MAX_SELECTION} 条链进行对比分析</p>
+          <h2 className="text-lg font-bold text-gray-900">{t('chainComparison.title')}</h2>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {t('chainComparison.selectUpTo', { max: MAX_SELECTION })}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={selectAll}
             disabled={selectedChains.length >= MAX_SELECTION}
-            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100  hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            全选
+            {t('chainComparison.selectAll')}
           </button>
           <button
             onClick={clearSelection}
             disabled={selectedChains.length === 0}
-            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100  hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            清空
+            {t('chainComparison.clear')}
           </button>
           <button
             onClick={exportToCSV}
             disabled={selectedChains.length === 0}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-500  hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            导出CSV
+            {t('chainComparison.exportCSV')}
           </button>
         </div>
       </div>
 
-      <DashboardCard title="选择对比链">
+      <DashboardCard title={t('chainComparison.selectChains')}>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {chains.map((chain, index) => {
             const isSelected = selectedChains.some((c) => c.chainId === chain.chainId);
@@ -423,7 +429,7 @@ export function ChainComparison({
             return (
               <label
                 key={chain.chainId}
-                className={`relative flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                className={`relative flex items-center gap-3 p-3  border-2 cursor-pointer transition-all duration-200 ${
                   isSelected
                     ? 'border-blue-500 bg-blue-50'
                     : isDisabled
@@ -439,7 +445,7 @@ export function ChainComparison({
                   className="sr-only"
                 />
                 <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  className="w-3 h-3  flex-shrink-0"
                   style={{ backgroundColor: getChainColor(chain.chainName, index) }}
                 />
                 <span
@@ -468,16 +474,19 @@ export function ChainComparison({
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
           <span>
-            已选择 {selectedChains.length}/{MAX_SELECTION} 条链
+            {t('chainComparison.selectedCount', {
+              selected: selectedChains.length,
+              max: MAX_SELECTION,
+            })}
           </span>
           {selectedChains.length >= MAX_SELECTION && (
-            <span className="text-amber-600">已达到最大选择数量</span>
+            <span className="text-amber-600">{t('chainComparison.maxReached')}</span>
           )}
         </div>
       </DashboardCard>
 
       {selectedChains.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+        <div className="bg-white border border-gray-200  p-12 text-center">
           <svg
             className="w-16 h-16 text-gray-300 mx-auto mb-4"
             fill="none"
@@ -485,38 +494,37 @@ export function ChainComparison({
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          <p className="text-gray-500 text-sm">请选择链进行对比分析</p>
+          <p className="text-gray-500 text-sm">{t('chainComparison.pleaseSelect')}</p>
         </div>
       ) : (
         <>
           {comparisonStats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">
-                  总请求量 ({TIME_RANGE_CONFIG[timeRange].label})
+                  {t('chainComparison.totalRequests')} ({TIME_RANGE_CONFIG[timeRange].label})
                 </p>
                 <p className="text-xl font-bold text-blue-700">
                   {formatNumber(comparisonStats.totalRequests)}
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                <p className="text-xs text-gray-600 mb-1">平均Gas成本</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('chainComparison.avgGasCost')}</p>
                 <p className="text-xl font-bold text-purple-700">
                   {comparisonStats.avgGas.toFixed(6)}
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-                <p className="text-xs text-gray-600 mb-1">支持代币总数</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('chainComparison.totalTokens')}</p>
                 <p className="text-xl font-bold text-green-700">{comparisonStats.totalTokens}</p>
               </div>
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
-                <p className="text-xs text-gray-600 mb-1">平均响应时间</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('chainComparison.avgResponseTime')}</p>
                 <p className="text-xl font-bold text-orange-700">
                   {comparisonStats.avgResponseTime}ms
                 </p>
@@ -525,16 +533,16 @@ export function ChainComparison({
           )}
 
           <DashboardCard
-            title="请求量对比"
+            title={t('chainComparison.requestComparison')}
             headerAction={
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center gap-1 bg-gray-100  p-1">
                 {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
                   <button
                     key={key}
                     onClick={() => setTimeRange(key)}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                       timeRange === key
-                        ? 'bg-white text-gray-900 shadow-sm'
+                        ? 'bg-white text-gray-900 '
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -575,7 +583,7 @@ export function ChainComparison({
                     width={50}
                   />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="value">
                     {requestChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -586,7 +594,7 @@ export function ChainComparison({
           </DashboardCard>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DashboardCard title="Gas 成本对比">
+            <DashboardCard title={t('chainComparison.gasCostComparison')}>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -618,7 +626,7 @@ export function ChainComparison({
                       width={60}
                     />
                     <Tooltip content={<GasTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                    <Bar dataKey="gasCost" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="gasCost">
                       {gasChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -628,7 +636,7 @@ export function ChainComparison({
               </div>
             </DashboardCard>
 
-            <DashboardCard title="响应时间对比">
+            <DashboardCard title={t('chainComparison.responseTimeComparison')}>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -663,7 +671,7 @@ export function ChainComparison({
                       content={<ResponseTimeTooltip />}
                       cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                     />
-                    <Bar dataKey="responseTime" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="responseTime">
                       {responseTimeChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -675,7 +683,7 @@ export function ChainComparison({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DashboardCard title="支持代币数量对比">
+            <DashboardCard title={t('chainComparison.tokenSupportComparison')}>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -707,10 +715,13 @@ export function ChainComparison({
                       width={35}
                     />
                     <Tooltip
-                      formatter={(value) => [`${value} 个代币`, '支持代币']}
+                      formatter={(value) => [
+                        `${value} ${t('chainComparison.tokens')}`,
+                        t('chainComparison.supportedTokens'),
+                      ]}
                       cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                     />
-                    <Bar dataKey="tokenCount" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="tokenCount">
                       {tokenCountChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -720,7 +731,7 @@ export function ChainComparison({
               </div>
             </DashboardCard>
 
-            <DashboardCard title="综合性能雷达图">
+            <DashboardCard title={t('chainComparison.performanceRadar')}>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
@@ -745,37 +756,37 @@ export function ChainComparison({
             </DashboardCard>
           </div>
 
-          <DashboardCard title="对比详情表格">
+          <DashboardCard title={t('chainComparison.comparisonTable')}>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      链名称
+                      {t('chainComparison.chainName')}
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Chain ID
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      24h请求
+                      {t('chainComparison.24hRequests')}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      7d请求
+                      {t('chainComparison.7dRequests')}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      30d请求
+                      {t('chainComparison.30dRequests')}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gas成本
+                      {t('chainComparison.gasCost')}
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      代币数
+                      {t('chainComparison.tokenCount')}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      响应时间
+                      {t('chainComparison.responseTime')}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      可靠性
+                      {t('chainComparison.reliability')}
                     </th>
                   </tr>
                 </thead>
@@ -785,7 +796,7 @@ export function ChainComparison({
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-2.5 h-2.5 rounded-full"
+                            className="w-2.5 h-2.5 "
                             style={{ backgroundColor: getChainColor(chain.chainName, index) }}
                           />
                           <span className="font-medium text-gray-900">{chain.chainName}</span>
@@ -807,7 +818,7 @@ export function ChainComparison({
                         {chain.avgGasCost.toFixed(6)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-0.5  text-xs font-medium bg-blue-100 text-blue-800">
                           {chain.supportedSymbols.length}
                         </span>
                       </td>
@@ -824,16 +835,16 @@ export function ChainComparison({
             </div>
           </DashboardCard>
 
-          <DashboardCard title="支持代币详情">
+          <DashboardCard title={t('chainComparison.supportedTokensDetail')}>
             <div className="space-y-4">
               {extendedSelectedChains.map((chain, index) => (
                 <div
                   key={chain.chainId}
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-50 "
                 >
                   <div className="flex items-center gap-2 min-w-[140px]">
                     <div
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2.5 h-2.5 "
                       style={{ backgroundColor: getChainColor(chain.chainName, index) }}
                     />
                     <span className="font-medium text-gray-900">{chain.chainName}</span>

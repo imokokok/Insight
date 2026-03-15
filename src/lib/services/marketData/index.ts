@@ -1,9 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import {
-  OracleMarketData,
-  AssetData,
-  TVSTrendData,
-} from '@/app/market-overview/types';
+import { OracleMarketData, AssetData, TVSTrendData } from '@/app/market-overview/types';
 import {
   fetchOraclesData,
   fetchAssetsData,
@@ -23,11 +19,7 @@ import {
   downloadExport,
   ExportDataOptions,
 } from './priceCalculations';
-import {
-  fetchRiskMetrics,
-  fetchHHI,
-  fetchDiversificationScore,
-} from './riskCalculations';
+import { fetchRiskMetrics, fetchHHI, fetchDiversificationScore } from './riskCalculations';
 import { detectAnomalies } from './anomalyCalculations';
 
 const logger = createLogger('marketData');
@@ -90,18 +82,10 @@ export {
   MarketDataError,
 };
 
-export {
-  generateTVSTrendData,
-  exportWithConfig,
-  downloadExport,
-};
+export { generateTVSTrendData, exportWithConfig, downloadExport };
 
 export type { ExportDataOptions };
 
-export {
-  fetchRiskMetrics,
-  fetchHHI,
-  fetchDiversificationScore,
-};
+export { fetchRiskMetrics, fetchHHI, fetchDiversificationScore };
 
 export { detectAnomalies };

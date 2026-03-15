@@ -15,10 +15,7 @@ export const MOCK_PRICES: Record<string, number> = {
   DAI: 1,
 };
 
-export function createMockPriceData(
-  symbol: string,
-  options: Partial<PriceData> = {}
-): PriceData {
+export function createMockPriceData(symbol: string, options: Partial<PriceData> = {}): PriceData {
   const basePrice = MOCK_PRICES[symbol] ?? 100;
   const volatility = 0.02;
   const randomChange = (Math.random() - 0.5) * 2 * volatility;

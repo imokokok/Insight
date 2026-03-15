@@ -1,4 +1,21 @@
-import { ValidatorFn, chain, required, isString, isNumber, isInteger, isPositive, isEmail, isUrl, isUuid, minLength, maxLength, min, max, pattern, oneOf } from './validators';
+import {
+  ValidatorFn,
+  chain,
+  required,
+  isString,
+  isNumber,
+  isInteger,
+  isPositive,
+  isEmail,
+  isUrl,
+  isUuid,
+  minLength,
+  maxLength,
+  min,
+  max,
+  pattern,
+  oneOf,
+} from './validators';
 
 export interface FieldSchema {
   validators: ValidatorFn[];
@@ -16,7 +33,10 @@ export interface ValidationResult {
   errors?: Array<{ field: string; message: string }>;
 }
 
-export function validateObject(data: Record<string, unknown>, schema: ObjectSchema): ValidationResult {
+export function validateObject(
+  data: Record<string, unknown>,
+  schema: ObjectSchema
+): ValidationResult {
   const result: Record<string, unknown> = {};
   const errors: Array<{ field: string; message: string }> = [];
 
@@ -138,7 +158,10 @@ export function createNumberSchema(options?: {
   };
 }
 
-export function createEnumSchema<T extends readonly string[]>(options: T, required = true): FieldSchema {
+export function createEnumSchema<T extends readonly string[]>(
+  options: T,
+  required = true
+): FieldSchema {
   return {
     validators: [isString, oneOf(options)],
     required,
@@ -153,7 +176,12 @@ export function createPaginationSchema(): ObjectSchema {
 }
 
 export const symbolSchema: FieldSchema = {
-  validators: [isString, minLength(1), maxLength(20), pattern(/^[A-Z0-9]+\/[A-Z0-9]+$/i, 'Invalid symbol format')],
+  validators: [
+    isString,
+    minLength(1),
+    maxLength(20),
+    pattern(/^[A-Z0-9]+\/[A-Z0-9]+$/i, 'Invalid symbol format'),
+  ],
   required: true,
 };
 

@@ -30,11 +30,16 @@ export default function PriceAlertConfig({
 }: PriceAlertConfigProps) {
   const { locale } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newAlert, setNewAlert] = useState({
+  const [newAlert, setNewAlert] = useState<{
+    asset: string;
+    type: 'above' | 'below';
+    price: string;
+    channels: PriceAlert['channels'];
+  }>({
     asset: '',
-    type: 'above' as const,
+    type: 'above',
     price: '',
-    channels: ['email'] as PriceAlert['channels'],
+    channels: ['email'],
   });
 
   const handleAddAlert = () => {
@@ -91,7 +96,7 @@ export default function PriceAlertConfig({
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           {locale === 'zh-CN' ? '添加' : 'Add'}
@@ -108,12 +113,14 @@ export default function PriceAlertConfig({
                 placeholder={locale === 'zh-CN' ? '资产 (如: BTC)' : 'Asset (e.g., BTC)'}
                 value={newAlert.asset}
                 onChange={(e) => setNewAlert({ ...newAlert, asset: e.target.value })}
-                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={newAlert.type}
-                onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as 'above' | 'below' })}
-                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setNewAlert({ ...newAlert, type: e.target.value as 'above' | 'below' })
+                }
+                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="above">{locale === 'zh-CN' ? '高于' : 'Above'}</option>
                 <option value="below">{locale === 'zh-CN' ? '低于' : 'Below'}</option>
@@ -123,19 +130,21 @@ export default function PriceAlertConfig({
                 placeholder={locale === 'zh-CN' ? '价格' : 'Price'}
                 value={newAlert.price}
                 onChange={(e) => setNewAlert({ ...newAlert, price: e.target.value })}
-                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* 通知渠道 */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{locale === 'zh-CN' ? '通知方式:' : 'Notify via:'}</span>
+              <span className="text-xs text-gray-500">
+                {locale === 'zh-CN' ? '通知方式:' : 'Notify via:'}
+              </span>
               <div className="flex gap-1.5">
                 {(['email', 'push', 'webhook'] as const).map((channel) => (
                   <button
                     key={channel}
                     onClick={() => toggleChannel(channel)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-1 text-xs transition-colors ${
                       newAlert.channels.includes(channel)
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -154,13 +163,13 @@ export default function PriceAlertConfig({
               <button
                 onClick={handleAddAlert}
                 disabled={!newAlert.asset || !newAlert.price}
-                className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {locale === 'zh-CN' ? '保存' : 'Save'}
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors text-sm"
+                className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors text-sm"
               >
                 {locale === 'zh-CN' ? '取消' : 'Cancel'}
               </button>
@@ -174,14 +183,14 @@ export default function PriceAlertConfig({
         {alerts.map((alert) => (
           <div
             key={alert.id}
-            className={`flex items-center justify-between py-2.5 px-3 rounded ${
-              alert.enabled ? 'bg-gray-50' : 'bg-gray-50/50'
+            className={`flex items-center justify-between py-2.5 px-3 border ${
+              alert.enabled ? 'bg-gray-50 border-gray-200' : 'bg-gray-50/50 border-gray-100'
             }`}
           >
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onToggleAlert?.(alert.id, !alert.enabled)}
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                className={`w-4 h-4 border flex items-center justify-center transition-colors ${
                   alert.enabled
                     ? 'bg-blue-600 border-blue-600 text-white'
                     : 'border-gray-300 hover:border-gray-400'
@@ -203,8 +212,8 @@ export default function PriceAlertConfig({
                         ? '高于'
                         : 'above'
                       : locale === 'zh-CN'
-                      ? '低于'
-                      : 'below'}
+                        ? '低于'
+                        : 'below'}
                   </span>
                   <span className="font-medium text-gray-900 text-sm">
                     ${alert.price.toLocaleString()}
@@ -212,10 +221,7 @@ export default function PriceAlertConfig({
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {alert.channels.map((channel) => (
-                    <span
-                      key={channel}
-                      className="flex items-center gap-0.5 text-xs text-gray-500"
-                    >
+                    <span key={channel} className="flex items-center gap-0.5 text-xs text-gray-500">
                       {getChannelIcon(channel)}
                     </span>
                   ))}
@@ -227,7 +233,7 @@ export default function PriceAlertConfig({
             </div>
             <button
               onClick={() => onRemoveAlert?.(alert.id)}
-              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>

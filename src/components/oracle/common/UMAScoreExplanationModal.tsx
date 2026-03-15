@@ -22,11 +22,11 @@ const logger = createLogger('UMAScoreExplanationModal');
 
 interface ScoreDimension {
   key: string;
-  name: string;
+  nameKey: string;
   weight: number;
-  description: string;
+  descriptionKey: string;
   formula: string;
-  variables: { name: string; description: string }[];
+  variables: { name: string; descriptionKey: string }[];
   color: string;
 }
 
@@ -54,52 +54,53 @@ interface UMAScoreExplanationModalProps {
 const SCORE_DIMENSIONS: ScoreDimension[] = [
   {
     key: 'networkHealth',
-    name: '网络健康度',
+    nameKey: 'uma.dataQuality.networkHealth',
     weight: 0.3,
-    description: '评估 UMA 网络的整体健康状况，包括验证者在线率、活跃验证者数量和争议成功率',
-    formula: 'S_network = (Uptime/100) × 50 + (ActiveValidators/1000) × 25 + (DisputeSuccessRate/100) × 25',
+    descriptionKey: 'uma.scoreExplanation.networkHealthDesc',
+    formula:
+      'S_network = (Uptime/100) × 50 + (ActiveValidators/1000) × 25 + (DisputeSuccessRate/100) × 25',
     variables: [
-      { name: 'Uptime', description: '验证者平均在线率 (%)' },
-      { name: 'ActiveValidators', description: '活跃验证者数量' },
-      { name: 'DisputeSuccessRate', description: '争议成功率 (%)' },
+      { name: 'Uptime', descriptionKey: 'uma.scoreExplanation.variables.uptime' },
+      { name: 'ActiveValidators', descriptionKey: 'uma.scoreExplanation.variables.activeValidators' },
+      { name: 'DisputeSuccessRate', descriptionKey: 'uma.scoreExplanation.variables.disputeSuccessRate' },
     ],
     color: semanticColors.success.DEFAULT,
   },
   {
     key: 'dataIntegrity',
-    name: '数据完整性',
+    nameKey: 'uma.dataQuality.dataIntegrity',
     weight: 0.25,
-    description: '评估数据源的可靠性和一致性，基于数据源的多样性和历史准确性',
+    descriptionKey: 'uma.scoreExplanation.dataIntegrityDesc',
     formula: 'S_integrity = 85 + Random(0, 10) × DataSourceDiversityFactor',
     variables: [
-      { name: 'DataSourceDiversityFactor', description: '数据源多样性系数 (0.9-1.1)' },
-      { name: 'Random(0, 10)', description: '随机波动因子，模拟实时变化' },
+      { name: 'DataSourceDiversityFactor', descriptionKey: 'uma.scoreExplanation.variables.dataSourceDiversity' },
+      { name: 'Random(0, 10)', descriptionKey: 'uma.scoreExplanation.variables.randomFactor' },
     ],
     color: chartColors.recharts.primary,
   },
   {
     key: 'responseTime',
-    name: '响应时间',
+    nameKey: 'uma.dataQuality.responseTime',
     weight: 0.25,
-    description: '评估数据更新的响应速度，基准响应时间为 100ms',
+    descriptionKey: 'uma.scoreExplanation.responseTimeDesc',
     formula: 'S_response = max(0, 100 - (AvgResponseTime - 100) / 2)',
     variables: [
-      { name: 'AvgResponseTime', description: '平均响应时间 (ms)' },
-      { name: '100', description: '基准响应时间 (ms)' },
+      { name: 'AvgResponseTime', descriptionKey: 'uma.scoreExplanation.variables.avgResponseTime' },
+      { name: '100', descriptionKey: 'uma.scoreExplanation.variables.baselineResponseTime' },
     ],
     color: chartColors.recharts.purple,
   },
   {
     key: 'validatorActivity',
-    name: '验证者活跃度',
+    nameKey: 'uma.dataQuality.validatorActivity',
     weight: 0.2,
-    description: '评估验证者参与网络的活跃程度，基于活跃验证者比例和总质押量',
+    descriptionKey: 'uma.scoreExplanation.validatorActivityDesc',
     formula: 'S_activity = min(100, (ActiveValidators/850) × 70 + (TotalStaked/30M) × 30)',
     variables: [
-      { name: 'ActiveValidators', description: '活跃验证者数量' },
-      { name: '850', description: '目标活跃验证者数量' },
-      { name: 'TotalStaked', description: '总质押量' },
-      { name: '30M', description: '目标总质押量 (30,000,000)' },
+      { name: 'ActiveValidators', descriptionKey: 'uma.scoreExplanation.variables.activeValidators' },
+      { name: '850', descriptionKey: 'uma.scoreExplanation.variables.targetActiveValidators' },
+      { name: 'TotalStaked', descriptionKey: 'uma.scoreExplanation.variables.totalStaked' },
+      { name: '30M', descriptionKey: 'uma.scoreExplanation.variables.targetTotalStaked' },
     ],
     color: semanticColors.warning.DEFAULT,
   },
@@ -110,9 +111,9 @@ const OVERALL_FORMULA = `S_overall = S_network × 0.30 + S_integrity × 0.25 + S
 function WeightBar({ weight, color }: { weight: number; color: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="flex-1 h-3 bg-gray-200  overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full  transition-all duration-500"
           style={{ width: `${weight * 100}%`, backgroundColor: color }}
         />
       </div>
@@ -125,19 +126,19 @@ function WeightBar({ weight, color }: { weight: number; color: string }) {
 
 function FormulaBlock({ formula }: { formula: string }) {
   return (
-    <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+    <div className="bg-gray-900  p-4 overflow-x-auto">
       <code className="text-sm font-mono text-green-400 whitespace-pre-wrap">{formula}</code>
     </div>
   );
 }
 
-function VariableList({ variables }: { variables: { name: string; description: string }[] }) {
+function VariableList({ variables, t }: { variables: { name: string; descriptionKey: string }[]; t: (key: string) => string }) {
   return (
     <div className="space-y-2">
       {variables.map((v) => (
         <div key={v.name} className="flex items-start gap-2 text-sm">
           <span className="font-mono text-blue-600 font-medium min-w-[120px]">{v.name}</span>
-          <span className="text-gray-600">{v.description}</span>
+          <span className="text-gray-600">{t(v.descriptionKey)}</span>
         </div>
       ))}
     </div>
@@ -205,16 +206,13 @@ export function UMAScoreExplanationModal({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[200px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[200px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           {payload.map((entry: any) => (
             <div key={entry.dataKey} className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
+                <span className="w-2 h-2 " style={{ backgroundColor: entry.color }} />
                 <span className="text-gray-600">{entry.name}</span>
               </span>
               <span className="font-mono font-medium" style={{ color: entry.color }}>
@@ -240,7 +238,7 @@ export function UMAScoreExplanationModal({
           &#8203;
         </span>
 
-        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="inline-block align-bottom bg-white  text-left overflow-hidden  transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
           <div className="bg-white">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
@@ -249,15 +247,10 @@ export function UMAScoreExplanationModal({
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2  hover:bg-gray-100"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -288,7 +281,7 @@ export function UMAScoreExplanationModal({
             <div className="px-6 py-6 max-h-[70vh] overflow-y-auto">
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 rounded-xl p-6">
+                  <div className="bg-blue-50  p-6">
                     <h4 className="text-sm font-semibold text-blue-900 mb-2">综合评分计算公式</h4>
                     <FormulaBlock formula={OVERALL_FORMULA} />
                   </div>
@@ -297,30 +290,27 @@ export function UMAScoreExplanationModal({
                     {SCORE_DIMENSIONS.map((dim) => (
                       <div
                         key={dim.key}
-                        className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors"
+                        className="border border-gray-200  p-4 hover:border-gray-300 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: dim.color }}
-                            />
-                            <span className="font-medium text-gray-900">{dim.name}</span>
+                            <div className="w-3 h-3 " style={{ backgroundColor: dim.color }} />
+                            <span className="font-medium text-gray-900">{t(dim.nameKey)}</span>
                           </div>
                           <span className="text-sm font-mono font-medium text-gray-600">
                             {(dim.weight * 100).toFixed(0)}%
                           </span>
                         </div>
                         <WeightBar weight={dim.weight} color={dim.color} />
-                        <p className="text-sm text-gray-600 mt-3">{dim.description}</p>
+                        <p className="text-sm text-gray-600 mt-3">{t(dim.descriptionKey)}</p>
                       </div>
                     ))}
                   </div>
 
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="bg-gray-50  p-6">
                     <h4 className="text-sm font-semibold text-gray-900 mb-4">当前评分状态</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
+                      <div className="text-center p-4 bg-white  border border-gray-200">
                         <p className="text-xs text-gray-500 mb-1">综合评分</p>
                         <p className="text-2xl font-bold text-blue-600">
                           {currentScores.overallScore.toFixed(1)}
@@ -332,9 +322,9 @@ export function UMAScoreExplanationModal({
                         return (
                           <div
                             key={dim.key}
-                            className="text-center p-4 bg-white rounded-lg border border-gray-200"
+                            className="text-center p-4 bg-white  border border-gray-200"
                           >
-                            <p className="text-xs text-gray-500 mb-1">{dim.name}</p>
+                            <p className="text-xs text-gray-500 mb-1">{t(dim.nameKey)}</p>
                             <p className="text-2xl font-bold" style={{ color: dim.color }}>
                               {score.score.toFixed(1)}
                             </p>
@@ -351,20 +341,17 @@ export function UMAScoreExplanationModal({
                   {SCORE_DIMENSIONS.map((dim) => (
                     <div
                       key={dim.key}
-                      className="border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors"
+                      className="border border-gray-200  p-6 hover:border-gray-300 transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: dim.color }}
-                        />
-                        <h4 className="text-lg font-semibold text-gray-900">{dim.name}</h4>
+                        <div className="w-4 h-4 " style={{ backgroundColor: dim.color }} />
+                        <h4 className="text-lg font-semibold text-gray-900">{t(dim.nameKey)}</h4>
                         <span className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
                           权重 {(dim.weight * 100).toFixed(0)}%
                         </span>
                       </div>
 
-                      <p className="text-gray-600 mb-4">{dim.description}</p>
+                      <p className="text-gray-600 mb-4">{t(dim.descriptionKey)}</p>
 
                       <div className="space-y-4">
                         <div>
@@ -374,13 +361,13 @@ export function UMAScoreExplanationModal({
 
                         <div>
                           <h5 className="text-sm font-medium text-gray-700 mb-2">变量说明</h5>
-                          <VariableList variables={dim.variables} />
+                          <VariableList variables={dim.variables} t={t} />
                         </div>
                       </div>
                     </div>
                   ))}
 
-                  <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
+                  <div className="bg-amber-50  p-6 border border-amber-200">
                     <h4 className="text-sm font-semibold text-amber-900 mb-2">评分等级说明</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                       <div className="flex items-center gap-2">
@@ -420,11 +407,11 @@ export function UMAScoreExplanationModal({
                 <div className="space-y-6">
                   {loading ? (
                     <div className="flex items-center justify-center h-64">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                      <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600" />
                     </div>
                   ) : (
                     <>
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-gray-50  p-4">
                         <h4 className="text-sm font-semibold text-gray-900 mb-4">
                           最近 30 天评分趋势
                         </h4>
@@ -434,7 +421,10 @@ export function UMAScoreExplanationModal({
                               data={historyData}
                               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                             >
-                              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke={chartColors.recharts.grid}
+                              />
                               <XAxis
                                 dataKey="date"
                                 stroke={chartColors.recharts.axis}
@@ -449,8 +439,18 @@ export function UMAScoreExplanationModal({
                               />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <ReferenceLine y={90} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="优秀" />
-                              <ReferenceLine y={70} stroke={semanticColors.warning.DEFAULT} strokeDasharray="3 3" label="良好" />
+                              <ReferenceLine
+                                y={90}
+                                stroke={semanticColors.success.DEFAULT}
+                                strokeDasharray="3 3"
+                                label="优秀"
+                              />
+                              <ReferenceLine
+                                y={70}
+                                stroke={semanticColors.warning.DEFAULT}
+                                strokeDasharray="3 3"
+                                label="良好"
+                              />
 
                               <Line
                                 type="monotone"
@@ -466,7 +466,7 @@ export function UMAScoreExplanationModal({
                                   key={dim.key}
                                   type="monotone"
                                   dataKey={dim.key}
-                                  name={dim.name}
+                                  name={t(dim.nameKey)}
                                   stroke={dim.color}
                                   strokeWidth={1.5}
                                   dot={false}
@@ -480,7 +480,9 @@ export function UMAScoreExplanationModal({
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {SCORE_DIMENSIONS.map((dim) => {
-                          const values = historyData.map((d) => d[dim.key as keyof HistoryDataPoint] as number);
+                          const values = historyData.map(
+                            (d) => d[dim.key as keyof HistoryDataPoint] as number
+                          );
                           const avg = values.reduce((a, b) => a + b, 0) / values.length;
                           const min = Math.min(...values);
                           const max = Math.max(...values);
@@ -489,16 +491,10 @@ export function UMAScoreExplanationModal({
                           const trend = last - first;
 
                           return (
-                            <div
-                              key={dim.key}
-                              className="bg-white border border-gray-200 rounded-lg p-4"
-                            >
+                            <div key={dim.key} className="bg-white border border-gray-200  p-4">
                               <div className="flex items-center gap-2 mb-2">
-                                <div
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ backgroundColor: dim.color }}
-                                />
-                                <span className="text-xs text-gray-500">{dim.name}</span>
+                                <div className="w-2 h-2 " style={{ backgroundColor: dim.color }} />
+                                <span className="text-xs text-gray-500">{t(dim.nameKey)}</span>
                               </div>
                               <p className="text-lg font-bold text-gray-900">{avg.toFixed(1)}</p>
                               <div className="flex items-center gap-2 mt-1 text-xs">
@@ -526,7 +522,7 @@ export function UMAScoreExplanationModal({
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 bg-white border border-gray-300  text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 关闭
               </button>

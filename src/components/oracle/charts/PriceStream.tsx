@@ -253,7 +253,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     return (
       <DashboardCard title="实时价格流">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-600">正在连接 Pyth Network...</span>
         </div>
       </DashboardCard>
@@ -266,7 +266,6 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
         <div className="flex flex-col items-center justify-center h-64 text-red-600">
           <svg className="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -275,7 +274,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           <p>{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700"
           >
             重试
           </button>
@@ -291,7 +290,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilterPanel(!showFilterPanel)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5  text-sm font-medium transition-all flex items-center gap-1.5 ${
               showFilterPanel || preferences.showAnomaliesOnly
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -299,7 +298,6 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
@@ -307,14 +305,12 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
             </svg>
             筛选
             {anomalyCount > 0 && (
-              <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {anomalyCount}
-              </span>
+              <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 ">{anomalyCount}</span>
             )}
           </button>
           <button
             onClick={isPaused ? handleResume : handlePause}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-4 py-1.5  text-sm font-medium transition-all ${
               isPaused
                 ? 'bg-green-500 text-white hover:bg-green-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -349,7 +345,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
     >
       <div className="space-y-4">
         {showFilterPanel && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+          <div className="bg-gray-50 border border-gray-200  p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-gray-700">筛选设置</h4>
               <button
@@ -358,7 +354,6 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
@@ -379,7 +374,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                     step="0.01"
                     value={preferences.confidenceThreshold}
                     onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
-                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="flex-1 h-2 bg-gray-200  appearance-none cursor-pointer accent-blue-500"
                   />
                   <input
                     type="number"
@@ -432,7 +427,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                         step="0.01"
                         value={preferences.alertThreshold}
                         onChange={(e) => handleAlertThresholdChange(parseFloat(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        className="flex-1 h-2 bg-gray-200  appearance-none cursor-pointer accent-orange-500"
                       />
                       <input
                         type="number"
@@ -483,7 +478,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
         )}
 
         {isPaused && pausedPrice && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200  p-3 mb-4">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -499,35 +494,33 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           </div>
         )}
 
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+        <div className="flex items-center justify-between bg-gray-50  p-4">
           <div>
             <p className="text-sm text-gray-500 mb-1">{symbol}/USD</p>
             <p className="text-3xl font-bold text-gray-900">${formatPriceValue(currentPrice)}</p>
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`w-3 h-3 rounded-full ${
-                isPaused ? 'bg-yellow-500' : 'bg-green-500 animate-pulse'
-              }`}
+              className={`w-3 h-3  ${isPaused ? 'bg-yellow-500' : 'bg-green-500 animate-pulse'}`}
             />
             <span className="text-sm text-gray-600">{isPaused ? '已暂停' : '实时更新中'}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="bg-blue-50  p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">每秒更新</p>
             <p className="text-xl font-bold text-blue-700">{stats.updatesPerSecond}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3 text-center">
+          <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">平均延迟</p>
             <p className="text-xl font-bold text-purple-700">{stats.avgLatency}ms</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3 text-center">
+          <div className="bg-green-50  p-3 text-center">
             <p className="text-xs text-green-600 mb-1">总更新数</p>
             <p className="text-xl font-bold text-green-700">{stats.totalUpdates}</p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-3 text-center">
+          <div className="bg-orange-50  p-3 text-center">
             <p className="text-xs text-orange-600 mb-1">平均置信区间</p>
             <p className="text-xl font-bold text-orange-700">
               {(stats.avgConfidenceWidth * 100).toFixed(2)}%
@@ -535,7 +528,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
           </div>
         </div>
 
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-gray-200  overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
             <h4 className="text-sm font-semibold text-gray-700">
               最近 20 条更新记录
@@ -605,7 +598,7 @@ export function PriceStream({ symbol, initialPrice, updateInterval = 100 }: Pric
                               >
                                 <span className="text-lg">⚠️</span>
                                 <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-10">
-                                  <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
+                                  <div className="bg-gray-900 text-white text-xs  px-3 py-2  whitespace-nowrap">
                                     <div className="font-semibold mb-1">异常预警</div>
                                     <div>
                                       置信区间: {(update.confidenceWidth * 100).toFixed(2)}%

@@ -192,7 +192,7 @@ export function MovingAverageChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
         <div className="space-y-1.5">
           {payload.map((entry: any, index: number) => (
@@ -226,7 +226,7 @@ export function MovingAverageChart({
               <select
                 value={selectedOracle}
                 onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {data.map((oracleData) => (
                   <option key={oracleData.oracle} value={oracleData.oracle}>
@@ -282,19 +282,19 @@ export function MovingAverageChart({
 
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">当前价格</p>
                 <p className="text-xl font-bold text-blue-600">${stats.currentPrice.toFixed(2)}</p>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">MA5</p>
                 <p className="text-xl font-bold text-amber-600">${stats.sma5.toFixed(2)}</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">MA10</p>
                 <p className="text-xl font-bold text-green-600">${stats.sma10.toFixed(2)}</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">MA20</p>
                 <p className="text-xl font-bold text-purple-600">${stats.sma20.toFixed(2)}</p>
               </div>
@@ -304,7 +304,7 @@ export function MovingAverageChart({
           {stats && (
             <div className="flex items-center gap-4">
               <div
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                className={`px-4 py-2  text-sm font-medium ${
                   stats.trend === 'bullish'
                     ? 'bg-green-100 text-green-700'
                     : stats.trend === 'bearish'
@@ -453,7 +453,7 @@ export function MovingAverageChart({
             </div>
           )}
 
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50  p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>

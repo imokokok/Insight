@@ -37,14 +37,14 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
             <button
               key={filter}
               onClick={() => setTableFilter(filter)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+              className={`px-3 py-1 text-xs font-medium transition-colors ${
                 tableFilter === filter
                   ? filter === 'abnormal'
-                    ? 'bg-red-100 text-red-700'
+                    ? 'bg-red-100 text-red-700 border border-red-200'
                     : filter === 'normal'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-green-100 text-green-700 border border-green-200'
+                      : 'bg-blue-100 text-blue-700 border border-blue-200'
+                  : 'bg-gray-100 text-gray-600 hover:border-gray-300 border border-transparent'
               }`}
             >
               {t(`crossChain.filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`)}

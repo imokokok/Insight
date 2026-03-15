@@ -101,8 +101,8 @@ export function CrossOracleComparison() {
       const validResults = results.filter((r) => r !== null) as PriceComparisonData[];
 
       setPriceData((prevData) => {
-        const prevDataMap = new Map(prevData.map(d => [d.provider, d.price]));
-        const resultsWithPrevious = validResults.map(result => ({
+        const prevDataMap = new Map(prevData.map((d) => [d.provider, d.price]));
+        const resultsWithPrevious = validResults.map((result) => ({
           ...result,
           previousPrice: prevDataMap.get(result.provider),
         }));
@@ -235,23 +235,26 @@ export function CrossOracleComparison() {
   const deviationDetails = useMemo((): PriceDeviationDetail[] => {
     if (!priceStats || priceData.length === 0) return [];
 
-    const benchmarkPrice = priceData.find((d) => d.provider === benchmarkOracle)?.price || priceStats.avg;
+    const benchmarkPrice =
+      priceData.find((d) => d.provider === benchmarkOracle)?.price || priceStats.avg;
 
-    return priceData.map((d, index) => {
-      const deviationFromAvg = ((d.price - priceStats.avg) / priceStats.avg) * 100;
-      const deviationFromMedian = ((d.price - priceStats.median) / priceStats.median) * 100;
-      const deviationFromBenchmark = ((d.price - benchmarkPrice) / benchmarkPrice) * 100;
+    return priceData
+      .map((d, index) => {
+        const deviationFromAvg = ((d.price - priceStats.avg) / priceStats.avg) * 100;
+        const deviationFromMedian = ((d.price - priceStats.median) / priceStats.median) * 100;
+        const deviationFromBenchmark = ((d.price - benchmarkPrice) / benchmarkPrice) * 100;
 
-      return {
-        provider: d.provider,
-        name: oracleNames[d.provider],
-        price: d.price,
-        deviationFromAvg,
-        deviationFromMedian,
-        deviationFromBenchmark,
-        rank: index + 1,
-      };
-    }).sort((a, b) => Math.abs(b.deviationFromAvg) - Math.abs(a.deviationFromAvg));
+        return {
+          provider: d.provider,
+          name: oracleNames[d.provider],
+          price: d.price,
+          deviationFromAvg,
+          deviationFromMedian,
+          deviationFromBenchmark,
+          rank: index + 1,
+        };
+      })
+      .sort((a, b) => Math.abs(b.deviationFromAvg) - Math.abs(a.deviationFromAvg));
   }, [priceData, priceStats, benchmarkOracle]);
 
   const deviationChartData = useMemo(() => {
@@ -457,7 +460,7 @@ export function CrossOracleComparison() {
           <button
             onClick={fetchPrices}
             disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
           </button>
@@ -483,7 +486,6 @@ export function CrossOracleComparison() {
               icon={
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -498,7 +500,6 @@ export function CrossOracleComparison() {
               icon={
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
@@ -513,7 +514,6 @@ export function CrossOracleComparison() {
               icon={
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -538,12 +538,7 @@ export function CrossOracleComparison() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             }
           />
@@ -558,12 +553,7 @@ export function CrossOracleComparison() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
               </svg>
             }
           />
@@ -579,7 +569,6 @@ export function CrossOracleComparison() {
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -598,7 +587,6 @@ export function CrossOracleComparison() {
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -612,7 +600,9 @@ export function CrossOracleComparison() {
       <div className="py-4 border-b border-gray-100">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.selectTradingPair')}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              {t('crossOracle.selectTradingPair')}
+            </h3>
             <div className="flex flex-wrap gap-2">
               {symbols.map((symbol) => (
                 <button
@@ -631,7 +621,9 @@ export function CrossOracleComparison() {
           </div>
 
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/3)</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              {t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/3)
+            </h3>
             <div className="flex flex-wrap gap-2 mb-3">
               {getOracleProvidersSortedByMarketCap().map((provider) => (
                 <button
@@ -659,12 +651,7 @@ export function CrossOracleComparison() {
             >
               <span className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 {t('crossOracleComparison.quickCompare')}
               </span>
@@ -675,7 +662,9 @@ export function CrossOracleComparison() {
 
       <div className="py-4 border-b border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">{t('crossOracle.priceDeviationThreshold')}</label>
+          <label className="text-sm font-medium text-gray-700">
+            {t('crossOracle.priceDeviationThreshold')}
+          </label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -710,14 +699,15 @@ export function CrossOracleComparison() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-amber-800 mb-2">{t('crossOracle.priceDeviationAlert')}</h3>
+              <h3 className="text-sm font-semibold text-amber-800 mb-2">
+                {t('crossOracle.priceDeviationAlert')}
+              </h3>
               <div className="space-y-1.5">
                 {deviationAlerts.map((alert) => (
                   <div
@@ -725,11 +715,13 @@ export function CrossOracleComparison() {
                     className="flex items-center gap-2 text-sm text-amber-700"
                   >
                     <div
-                      className="w-2 h-2 rounded-full"
+                      className="w-2 h-2 "
                       style={{ backgroundColor: oracleColors[alert.provider] }}
                     />
                     <span className="font-medium">{alert.name}</span>
-                    <span>{t('crossOracleComparison.deviation')} {alert.deviation.toFixed(3)}%</span>
+                    <span>
+                      {t('crossOracleComparison.deviation')} {alert.deviation.toFixed(3)}%
+                    </span>
                     <span className="text-amber-600">(${alert.price.toFixed(2)})</span>
                   </div>
                 ))}
@@ -741,7 +733,9 @@ export function CrossOracleComparison() {
 
       {deviationData.length > 0 && (
         <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.differenceAnalysisPanel')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            {t('crossOracle.differenceAnalysisPanel')}
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -773,7 +767,7 @@ export function CrossOracleComparison() {
                     <tr key={data.provider} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium ${
+                          className={`inline-flex items-center justify-center w-5 h-5  text-xs font-medium ${
                             data.rank === 1
                               ? 'bg-red-100 text-red-800'
                               : data.rank === 2
@@ -789,7 +783,7 @@ export function CrossOracleComparison() {
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="flex items-center">
                           <div
-                            className="w-2.5 h-2.5 rounded-full mr-2"
+                            className="w-2.5 h-2.5  mr-2"
                             style={{ backgroundColor: data.color }}
                           />
                           <span className="font-medium text-gray-900">{data.name}</span>
@@ -822,7 +816,9 @@ export function CrossOracleComparison() {
 
       {deviationChartData.length > 0 && (
         <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceDifferenceVisualization')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            {t('crossOracle.priceDifferenceVisualization')}
+          </h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -830,7 +826,12 @@ export function CrossOracleComparison() {
                 layout="vertical"
                 margin={{ top: 10, right: 20, left: 80, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={true}
+                  vertical={false}
+                  stroke="#f3f4f6"
+                />
                 <XAxis
                   type="number"
                   domain={['dataMin - 0.5', 'dataMax + 0.5']}
@@ -839,17 +840,24 @@ export function CrossOracleComparison() {
                 />
                 <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
                 <Tooltip
-                  formatter={(value: any) => [`${Number(value) > 0 ? '+' : ''}${Number(value).toFixed(3)}%`, t('crossOracle.stats.deviationFromAverage')]}
+                  formatter={(value: any) => [
+                    `${Number(value) > 0 ? '+' : ''}${Number(value).toFixed(3)}%`,
+                    t('crossOracle.stats.deviationFromAverage'),
+                  ]}
                   labelFormatter={(label) =>
                     `${label} - $${deviationChartData.find((d) => d.name === label)?.price.toFixed(2)}`
                   }
                 />
                 <ReferenceLine x={0} stroke="#9ca3af" strokeWidth={1} />
-                <Bar dataKey="deviation" radius={[2, 2, 2, 2]}>
+                <Bar dataKey="deviation">
                   {deviationChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.deviation >= 0 ? chartColors.recharts.success : chartColors.recharts.danger}
+                      fill={
+                        entry.deviation >= 0
+                          ? chartColors.recharts.success
+                          : chartColors.recharts.danger
+                      }
                     />
                   ))}
                 </Bar>
@@ -874,13 +882,22 @@ export function CrossOracleComparison() {
       )}
 
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.multiOraclePriceComparison')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('crossOracle.multiOraclePriceComparison')}
+        </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={lineChartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+            <ComposedChart
+              data={lineChartData}
+              margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="time" tickFormatter={() => ''} />
-              <YAxis domain={['auto', 'auto']} tickFormatter={(value) => `$${value?.toFixed(2) || 0}`} tick={{ fontSize: 11 }} />
+              <YAxis
+                domain={['auto', 'auto']}
+                tickFormatter={(value) => `$${value?.toFixed(2) || 0}`}
+                tick={{ fontSize: 11 }}
+              />
               <Tooltip
                 formatter={(value: any, name: any) => [`$${Number(value)?.toFixed(2) || 0}`, name]}
                 labelFormatter={() => t('crossOracle.priceHistory')}
@@ -919,7 +936,9 @@ export function CrossOracleComparison() {
       />
 
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceComparisonDetails')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('crossOracle.priceComparisonDetails')}
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -1001,7 +1020,7 @@ export function CrossOracleComparison() {
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-2.5 h-2.5 rounded-full mr-2"
+                          className="w-2.5 h-2.5  mr-2"
                           style={{ backgroundColor: oracleColors[data.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -1040,15 +1059,22 @@ export function CrossOracleComparison() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4 border-b border-gray-100">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.currentPriceComparison')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            {t('crossOracle.currentPriceComparison')}
+          </h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]} />
-                <Bar dataKey="price" radius={[2, 2, 0, 0]}>
+                <YAxis
+                  tickFormatter={(value) => `$${Number(value).toFixed(0)}`}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip
+                  formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]}
+                />
+                <Bar dataKey="price">
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -1059,7 +1085,9 @@ export function CrossOracleComparison() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceTrendComparison')}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            {t('crossOracle.priceTrendComparison')}
+          </h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
@@ -1086,7 +1114,9 @@ export function CrossOracleComparison() {
       </div>
 
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.performanceComparison')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('crossOracle.performanceComparison')}
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -1122,7 +1152,7 @@ export function CrossOracleComparison() {
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-2.5 h-2.5 rounded-full mr-2"
+                          className="w-2.5 h-2.5  mr-2"
                           style={{ backgroundColor: oracleColors[perf.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -1158,7 +1188,9 @@ export function CrossOracleComparison() {
       </div>
 
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.comprehensivePerformanceRadar')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('crossOracle.comprehensivePerformanceRadar')}
+        </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} margin={{ top: 10, right: 60, left: 60, bottom: 10 }}>

@@ -52,7 +52,6 @@ function DocumentationIcon({ className }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
@@ -74,7 +73,6 @@ function ApiIcon({ className }: { className?: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
@@ -123,7 +121,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gray-100 border border-gray-200  flex items-center justify-center">
                 <span className="text-white font-bold text-sm">I</span>
               </div>
               <span className="text-white font-bold text-xl">Insight</span>

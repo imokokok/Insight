@@ -92,7 +92,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
   const config = statusConfig[status];
 
   return (
-    <div className={`bg-white border ${config.borderColor} rounded-xl p-5`}>
+    <div className={`bg-white border ${config.borderColor} p-5`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
@@ -102,21 +102,18 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
             <div className="relative">
               <span className={`relative flex h-4 w-4`}>
                 <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseColor} opacity-75`}
+                  className={`animate-ping absolute inline-flex h-full w-full ${config.pulseColor} opacity-75`}
                 ></span>
-                <span
-                  className={`relative inline-flex rounded-full h-4 w-4 ${config.bgColor}`}
-                ></span>
+                <span className={`relative inline-flex h-4 w-4 ${config.bgColor}`}></span>
               </span>
             </div>
             <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
           </div>
           <p className="text-gray-400 text-xs mt-2">
-            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}:{' '}
-            {t('networkHealth.justNow')}
+            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('common.justNow')}
           </p>
         </div>
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${config.bgGradient}`}>
+        <div className={`p-4 ${config.bgColor} bg-opacity-20`}>
           <svg
             className={`w-8 h-8 ${config.textColor}`}
             fill="none"
@@ -149,7 +146,7 @@ function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
     metric.trendDirection === 'up' ? '↑' : metric.trendDirection === 'down' ? '↓' : '→';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{metric.title}</p>
@@ -166,7 +163,7 @@ function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
             <span className="text-gray-400 ml-1">{t('networkHealth.vsLastWeek')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{metric.icon}</div>
+        <div className="p-2.5 bg-blue-50 border border-blue-100 text-blue-600">{metric.icon}</div>
       </div>
     </div>
   );
@@ -203,7 +200,7 @@ function ActivityHeatmap({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -214,15 +211,15 @@ function ActivityHeatmap({
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>{t('networkHealth.activityHeatmap.low')}</span>
+          <span>{t('common.low')}</span>
           <div className="flex gap-1">
-            <div className="w-3 h-3 bg-blue-200 rounded"></div>
-            <div className="w-3 h-3 bg-blue-700 rounded"></div>
-            <div className="w-3 h-3 bg-blue-600 rounded"></div>
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <div className="w-3 h-3 bg-blue-400 rounded"></div>
+            <div className="w-3 h-3 bg-blue-200"></div>
+            <div className="w-3 h-3 bg-blue-700"></div>
+            <div className="w-3 h-3 bg-blue-600"></div>
+            <div className="w-3 h-3 bg-blue-500"></div>
+            <div className="w-3 h-3 bg-blue-400"></div>
           </div>
-          <span>{t('networkHealth.activityHeatmap.high')}</span>
+          <span>{t('common.high')}</span>
         </div>
       </div>
 
@@ -230,13 +227,13 @@ function ActivityHeatmap({
         {hourlyData.map((value, index) => (
           <div key={index} className="group relative">
             <div
-              className={`h-10 rounded-md ${getIntensity(value)} transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-blue-300 cursor-pointer ${
+              className={`h-10 ${getIntensity(value)} transition-all duration-300 hover:ring-2 hover:ring-blue-300 cursor-pointer ${
                 selectedHour === index ? 'ring-2 ring-blue-500' : ''
               }`}
               title={`${getHourLabel(index)}: ${value.toLocaleString()} ${t('networkHealth.activityHeatmap.requests')}`}
               onClick={() => handleHourClick(index)}
             />
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
               {getHourLabel(index)}: {value.toLocaleString()}
             </div>
           </div>
@@ -286,7 +283,7 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
   const tokenSymbol = metrics.tokenSymbol || 'BAND';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -294,7 +291,7 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
           </p>
           <p className="text-gray-500 text-xs mt-0.5">{t('networkHealth.bandProtocol.subtitle')}</p>
         </div>
-        <div className="p-2 bg-purple-50 rounded-lg">
+        <div className="p-2 bg-purple-50 border border-purple-100">
           <svg
             className="w-5 h-5 text-purple-600"
             fill="none"
@@ -482,13 +479,13 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
   const status = statusConfig[metrics.pythProgramStatus];
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-5">
+    <div className="bg-purple-50 border border-purple-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">{t('pythNetwork.solana.title')}</p>
           <p className="text-gray-500 text-xs mt-0.5">{t('pythNetwork.solana.subtitle')}</p>
         </div>
-        <div className="p-2 bg-purple-100 rounded-lg">
+        <div className="p-2 bg-purple-100 border border-purple-200">
           <svg
             className="w-5 h-5 text-purple-600"
             fill="none"
@@ -527,7 +524,7 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`px-2 py-1 rounded-lg text-xs font-medium ${status.bgColor} ${status.color}`}
+              className={`px-2 py-1 text-xs font-medium border ${status.bgColor} ${status.color}`}
             >
               {status.label}
             </span>
@@ -654,7 +651,7 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
             </span>
           </div>
           <div className="text-right">
-            <p className="text-xs font-mono text-purple-700 bg-purple-100 px-2 py-1 rounded">
+            <p className="text-xs font-mono text-purple-700 bg-purple-100 px-2 py-1 border border-purple-200">
               {metrics.pythProgramAccount.slice(0, 8)}...{metrics.pythProgramAccount.slice(-8)}
             </p>
           </div>
@@ -699,7 +696,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="min-w-0 flex-1">
           <p className="text-gray-900 text-sm font-semibold truncate">
@@ -709,7 +706,7 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
             {t('networkHealth.dataFreshness.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0 ml-3">
+        <div className="p-2 bg-gray-100 border border-gray-200 flex-shrink-0 ml-3">
           <svg
             className="w-5 h-5 text-gray-500"
             fill="none"
@@ -780,14 +777,16 @@ function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; l
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className={`relative flex h-2.5 w-2.5 flex-shrink-0`}>
               <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${latencyStatus.bgColor} opacity-75`}
+                className={`animate-ping absolute inline-flex h-full w-full ${latencyStatus.bgColor} opacity-75`}
               ></span>
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${latencyStatus.bgColor}`}
-              ></span>
+              <span className={`relative inline-flex h-2.5 w-2.5 ${latencyStatus.bgColor}`}></span>
             </span>
-            <span className={`text-sm font-semibold ${latencyStatus.color} whitespace-nowrap`}>{latency}ms</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full bg-gray-100 ${latencyStatus.color} whitespace-nowrap hidden sm:inline`}>
+            <span className={`text-sm font-semibold ${latencyStatus.color} whitespace-nowrap`}>
+              {latency}ms
+            </span>
+            <span
+              className={`text-xs px-2 py-0.5 border border-gray-200 bg-gray-100 ${latencyStatus.color} whitespace-nowrap hidden sm:inline`}
+            >
               {latencyStatus.label}
             </span>
           </div>
@@ -1044,7 +1043,7 @@ export function NetworkHealthPanel({
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white border border-gray-200 p-6">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             {t('networkHealth.performanceDashboard.title')}
@@ -1061,7 +1060,7 @@ export function NetworkHealthPanel({
       {networkData.bandProtocolMetrics && (
         <>
           <BandProtocolMetricsCard metrics={networkData.bandProtocolMetrics} />
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6">
+          <div className="bg-purple-50 border border-purple-200 p-6">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 {t('networkHealth.bandProtocolDashboard.title')}

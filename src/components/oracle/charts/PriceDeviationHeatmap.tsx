@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '../common/DashboardCard';
 import { OracleProvider } from '@/types/oracle';
 
@@ -75,6 +76,8 @@ export function PriceDeviationHeatmap({
   className = '',
   useAccessibleColors = false,
 }: PriceDeviationHeatmapProps) {
+  const { t } = useI18n();
+  const colorLegend = useMemo(() => getColorLegend(t), [t]);
   const [hoveredCell, setHoveredCell] = useState<{
     timestamp: number;
     oracleName: string;
@@ -145,45 +148,45 @@ export function PriceDeviationHeatmap({
     return heatmapData.get(`${oracle}-${timestamp}`);
   };
 
-  const colorLegend = [
-    { color: '#10B981', label: '< 0.1%', range: '极低' },
-    { color: '#34D399', label: '0.1-0.25%', range: '低' },
-    { color: '#6EE7B7', label: '0.25-0.5%', range: '较低' },
-    { color: '#FCD34D', label: '0.5-0.75%', range: '中等' },
-    { color: '#FBBF24', label: '0.75-1%', range: '较高' },
-    { color: '#F59E0B', label: '1-1.5%', range: '高' },
-    { color: '#EF4444', label: '1.5-2%', range: '很高' },
-    { color: '#DC2626', label: '2-3%', range: '极高' },
-    { color: '#B91C1C', label: '> 3%', range: '异常' },
+  const getColorLegend = (t: (key: string) => string) => [
+    { color: '#10B981', label: '< 0.1%', range: t('priceDeviationHeatmap.range.extremelyLow') },
+    { color: '#34D399', label: '0.1-0.25%', range: t('priceDeviationHeatmap.range.low') },
+    { color: '#6EE7B7', label: '0.25-0.5%', range: t('priceDeviationHeatmap.range.lower') },
+    { color: '#FCD34D', label: '0.5-0.75%', range: t('priceDeviationHeatmap.range.medium') },
+    { color: '#FBBF24', label: '0.75-1%', range: t('priceDeviationHeatmap.range.higher') },
+    { color: '#F59E0B', label: '1-1.5%', range: t('priceDeviationHeatmap.range.high') },
+    { color: '#EF4444', label: '1.5-2%', range: t('priceDeviationHeatmap.range.veryHigh') },
+    { color: '#DC2626', label: '2-3%', range: t('priceDeviationHeatmap.range.extremelyHigh') },
+    { color: '#B91C1C', label: '> 3%', range: t('priceDeviationHeatmap.range.anomaly') },
   ];
 
   return (
     <DashboardCard
-      title="价格偏差热力图"
+      title={t('priceDeviationHeatmap.title')}
       className={className}
       headerAction={
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>时间点: {timestamps.length}</span>
-          <span>预言机: {oracles.length}</span>
+          <span>{t('priceDeviationHeatmap.timePoints')}: {timestamps.length}</span>
+          <span>{t('priceDeviationHeatmap.oracles')}: {oracles.length}</span>
         </div>
       }
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">平均偏差</p>
+          <div className="bg-blue-50  p-3 text-center">
+            <p className="text-xs text-blue-600 mb-1">{t('priceDeviationHeatmap.avgDeviation')}</p>
             <p className="text-xl font-bold text-blue-700">{stats.avgDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">最大偏差</p>
+          <div className="bg-red-50  p-3 text-center">
+            <p className="text-xs text-red-600 mb-1">{t('priceDeviationHeatmap.maxDeviation')}</p>
             <p className="text-xl font-bold text-red-700">{stats.maxDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">最小偏差</p>
+          <div className="bg-green-50  p-3 text-center">
+            <p className="text-xs text-green-600 mb-1">{t('priceDeviationHeatmap.minDeviation')}</p>
             <p className="text-xl font-bold text-green-700">{stats.minDeviation.toFixed(3)}%</p>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">异常数据点</p>
+          <div className="bg-yellow-50  p-3 text-center">
+            <p className="text-xs text-yellow-600 mb-1">{t('priceDeviationHeatmap.anomalyDataPoints')}</p>
             <p className="text-xl font-bold text-yellow-700">{stats.anomalyCount}</p>
           </div>
         </div>
@@ -208,7 +211,7 @@ export function PriceDeviationHeatmap({
                 <div key={oracle} className="flex items-center">
                   <div className="w-28 flex-shrink-0 pr-3 flex items-center">
                     <div
-                      className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
+                      className="w-3 h-3  mr-2 flex-shrink-0"
                       style={{
                         backgroundColor:
                           (useAccessibleColors
@@ -265,19 +268,19 @@ export function PriceDeviationHeatmap({
           </div>
 
           {hoveredCell && (
-            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs rounded-lg px-4 py-3 z-20 shadow-xl min-w-[200px]">
+            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs  px-4 py-3 z-20  min-w-[200px]">
               <div className="font-semibold text-sm mb-2">{hoveredCell.oracleName}</div>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">时间:</span>
+                  <span className="text-gray-400">{t('priceDeviationHeatmap.time')}:</span>
                   <span>{formatFullTimestamp(hoveredCell.timestamp)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">价格:</span>
+                  <span className="text-gray-400">{t('priceDeviationHeatmap.price')}:</span>
                   <span className="font-mono">${hoveredCell.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">偏差:</span>
+                  <span className="text-gray-400">{t('priceDeviationHeatmap.deviation')}:</span>
                   <span
                     className={`font-mono font-semibold ${
                       Math.abs(hoveredCell.deviation) > 1 ? 'text-red-400' : 'text-green-400'
@@ -295,8 +298,8 @@ export function PriceDeviationHeatmap({
           )}
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-xs text-gray-600 mb-2 font-medium">偏差程度图例</div>
+        <div className="bg-gray-50  p-4">
+          <div className="text-xs text-gray-600 mb-2 font-medium">{t('priceDeviationHeatmap.legend')}</div>
           <div className="flex flex-wrap items-center gap-2">
             {colorLegend.map((item) => (
               <div key={item.label} className="flex items-center gap-1">
@@ -308,8 +311,8 @@ export function PriceDeviationHeatmap({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">偏差分布</h4>
+          <div className="bg-gray-50  p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceDeviationHeatmap.deviationDistribution')}</h4>
             <div className="space-y-2">
               {colorLegend.map((item) => {
                 const count = Array.from(heatmapData.values()).filter((d) => {
@@ -328,9 +331,9 @@ export function PriceDeviationHeatmap({
                       style={{ backgroundColor: item.color }}
                     />
                     <div className="flex-1 text-xs text-gray-600">{item.range}</div>
-                    <div className="w-24 bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div className="w-24 bg-gray-200  h-2 overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all"
+                        className="h-full  transition-all"
                         style={{
                           width: `${percentage}%`,
                           backgroundColor: item.color,
@@ -346,8 +349,8 @@ export function PriceDeviationHeatmap({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">预言机偏差排名</h4>
+          <div className="bg-gray-50  p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceDeviationHeatmap.oracleDeviationRanking')}</h4>
             <div className="space-y-2">
               {oracles
                 .map((oracle) => {
@@ -365,7 +368,7 @@ export function PriceDeviationHeatmap({
                   <div key={item.oracle} className="flex items-center gap-2">
                     <span className="w-5 text-xs text-gray-400 font-medium">{idx + 1}</span>
                     <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      className="w-3 h-3  flex-shrink-0"
                       style={{
                         backgroundColor:
                           (useAccessibleColors
@@ -388,7 +391,7 @@ export function PriceDeviationHeatmap({
         </div>
 
         {stats.anomalyCount > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-50 border border-red-200  p-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
@@ -402,9 +405,9 @@ export function PriceDeviationHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">检测到高偏差数据点</h4>
+                <h4 className="text-sm font-semibold text-red-800 mb-1">{t('priceDeviationHeatmap.highDeviationDetected')}</h4>
                 <p className="text-xs text-red-700">
-                  发现 {stats.anomalyCount} 个偏差超过 1% 的数据点，建议关注这些异常数据。
+                  {t('priceDeviationHeatmap.anomalyWarning', { count: stats.anomalyCount })}
                 </p>
               </div>
             </div>

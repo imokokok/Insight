@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 import { TimeRange } from '@/components/oracle/common/TabNavigation';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -149,7 +157,7 @@ export function TimeRangeProvider({
     getStoredSelectedHour()
   );
   const [selectedTimeRange, setSelectedTimeRangeState] = useState<SelectedTimeRange | null>(null);
-  
+
   const callbacksRef = useRef<Set<(range: SelectedTimeRange) => void>>(new Set());
 
   const setGlobalTimeRange = useCallback((range: TimeRange) => {
@@ -244,7 +252,10 @@ export function TimeRangeProvider({
         try {
           callback(range);
         } catch (error) {
-          logger.error('Error in time range callback', error instanceof Error ? error : new Error(String(error)));
+          logger.error(
+            'Error in time range callback',
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       });
     }
@@ -254,16 +265,22 @@ export function TimeRangeProvider({
     callbacksRef.current.add(callback);
   }, []);
 
-  const unregisterTimeRangeCallback = useCallback((callback: (range: SelectedTimeRange) => void) => {
-    callbacksRef.current.delete(callback);
-  }, []);
+  const unregisterTimeRangeCallback = useCallback(
+    (callback: (range: SelectedTimeRange) => void) => {
+      callbacksRef.current.delete(callback);
+    },
+    []
+  );
 
   const onTimeRangeChange = useCallback((range: SelectedTimeRange) => {
     callbacksRef.current.forEach((callback) => {
       try {
         callback(range);
       } catch (error) {
-        logger.error('Error in time range callback', error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Error in time range callback',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     });
   }, []);

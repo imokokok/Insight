@@ -16,7 +16,7 @@ export interface AuthMiddlewareOptions {
   roles?: string[];
 }
 
-export type AuthMiddlewareResult = 
+export type AuthMiddlewareResult =
   | { success: true; context: AuthContext }
   | { success: false; response: NextResponse };
 
@@ -27,7 +27,7 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
   }
 
   const token = authHeader.slice(7);
-  
+
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -45,8 +45,11 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
       },
     });
 
-    const { data: { user }, error } = await client.auth.getUser(token);
-    
+    const {
+      data: { user },
+      error,
+    } = await client.auth.getUser(token);
+
     if (error || !user) {
       logger.debug('Token validation failed', { error: error?.message });
       return null;
@@ -58,7 +61,10 @@ export async function extractAuthContext(request: NextRequest): Promise<AuthCont
       role: user.user_metadata?.role,
     };
   } catch (error) {
-    logger.error('Auth extraction failed', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Auth extraction failed',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return null;
   }
 }
@@ -75,7 +81,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         return {
           success: false,
           response: NextResponse.json(
-            ApiResponseBuilder.error('UNAUTHORIZED', 'Authentication required', { i18nKey: 'errors.authentication' }),
+            ApiResponseBuilder.error('UNAUTHORIZED', 'Authentication required', {
+              i18nKey: 'errors.authentication',
+            }),
             { status: 401 }
           ),
         };
@@ -86,10 +94,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     if (roles.length > 0) {
       const userRole = authContext.role;
       if (!userRole || !roles.includes(userRole)) {
-        logger.warn('Authorization failed', { 
-          userId: authContext.userId, 
-          requiredRoles: roles, 
-          userRole 
+        logger.warn('Authorization failed', {
+          userId: authContext.userId,
+          requiredRoles: roles,
+          userRole,
         });
         return {
           success: false,

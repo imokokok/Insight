@@ -29,19 +29,22 @@ const logger = createLogger('DisputeResolutionPanel');
 
 const umaClient = new UMAClient();
 
-function formatRelativeTime(timestamp: number | null): string {
+function formatRelativeTime(
+  timestamp: number | null,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   if (!timestamp) return '';
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp) / 1000);
 
   if (diffInSeconds < 60) {
-    return `${diffInSeconds}秒前`;
+    return t('dataQuality.secondsAgo', { seconds: diffInSeconds });
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}分钟前`;
+    return t('dataQuality.minutesAgo', { minutes });
   } else {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}小时前`;
+    return t('dataQuality.hoursAgo', { hours });
   }
 }
 
@@ -77,7 +80,7 @@ function DisputeOverviewCard({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
+          <div key={i} className="bg-white border border-gray-200  p-5 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-20 mb-3"></div>
             <div className="h-8 bg-gray-200 rounded w-24"></div>
           </div>
@@ -93,7 +96,6 @@ function DisputeOverviewCard({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
@@ -107,7 +109,6 @@ function DisputeOverviewCard({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -121,7 +122,6 @@ function DisputeOverviewCard({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -134,12 +134,7 @@ function DisputeOverviewCard({
       value: `${overview.avgResolutionTime.toFixed(1)}h`,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
+          <path strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
     },
@@ -150,14 +145,14 @@ function DisputeOverviewCard({
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors duration-200"
+          className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{stat.label}</p>
               <p className="text-gray-900 text-2xl font-bold">{stat.value}</p>
             </div>
-            <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{stat.icon}</div>
+            <div className="p-2.5 bg-blue-50  text-blue-600">{stat.icon}</div>
           </div>
         </div>
       ))}
@@ -224,13 +219,13 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
             {!showByType ? (
               <>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-blue-500 "></div>
                   <span className="text-sm text-gray-600">
                     {t('uma.disputeResolution.filedDisputes')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-emerald-500 "></div>
                   <span className="text-sm text-gray-600">
                     {t('uma.disputeResolution.resolvedDisputes')}
                   </span>
@@ -241,10 +236,10 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                 {(Object.keys(typeColors) as Array<keyof typeof typeColors>).map((type) => (
                   <div
                     key={type}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${typeBgColors[type]} border border-opacity-20`}
+                    className={`flex items-center gap-2 px-3 py-1.5  ${typeBgColors[type]} border border-opacity-20`}
                     style={{ borderColor: DisputeTypeChartColors[type] }}
                   >
-                    <div className={`${typeColors[type]} text-white rounded-full p-0.5`}>
+                    <div className={`${typeColors[type]} text-white  p-0.5`}>
                       {getTypeChartIcon(type, 'w-3 h-3')}
                     </div>
                     <span className="text-sm text-gray-700 font-medium">{typeLabels[type]}</span>
@@ -257,7 +252,9 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
             onClick={() => setShowByType(!showByType)}
             className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
           >
-            {showByType ? '显示总体趋势' : '按类型分组'}
+            {showByType
+              ? t('disputeResolution.showOverallTrend')
+              : t('disputeResolution.groupByType')}
           </button>
         </div>
 
@@ -268,12 +265,12 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                 {!showByType ? (
                   <>
                     <div
-                      className="w-3 bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
+                      className="w-3 bg-blue-500  transition-all duration-300 hover:bg-blue-600"
                       style={{ height: `${getHeight(trend.filed)}%` }}
                       title={`${t('uma.disputeResolution.filedDisputes')}: ${trend.filed}`}
                     ></div>
                     <div
-                      className="w-3 bg-emerald-500 rounded-t transition-all duration-300 hover:bg-emerald-600"
+                      className="w-3 bg-emerald-500  transition-all duration-300 hover:bg-emerald-600"
                       style={{ height: `${getHeight(trend.resolved)}%` }}
                       title={`${t('uma.disputeResolution.resolvedDisputes')}: ${trend.resolved}`}
                     ></div>
@@ -283,7 +280,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
                   (Object.keys(typeColors) as Array<keyof typeof typeColors>).map((type) => (
                     <div
                       key={type}
-                      className={`w-2 ${typeColors[type]} rounded-t transition-all duration-300 hover:opacity-80`}
+                      className={`w-2 ${typeColors[type]}  transition-all duration-300 hover:opacity-80`}
                       style={{ height: `${getHeight(trend.byType![type], maxByTypeValue)}%` }}
                       title={`${typeLabels[type]}: ${trend.byType![type]}`}
                     ></div>
@@ -345,7 +342,7 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
   return (
     <DashboardCard title={t('uma.disputeResolution.disputeDistribution')}>
       <div className="space-y-4">
-        <div className="h-4 rounded-full overflow-hidden flex bg-gray-100">
+        <div className="h-4  overflow-hidden flex bg-gray-100">
           {segments.map((segment, index) => (
             <div
               key={index}
@@ -359,7 +356,7 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
           {segments.map((segment, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 ${segment.color} rounded-full`}></div>
+                <div className={`w-3 h-3 ${segment.color} `}></div>
                 <span className="text-sm text-gray-600">{segment.label}</span>
               </div>
               <div className="flex items-center gap-3">
@@ -468,6 +465,16 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     });
   };
 
+  const formatDateIntl = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const styles = {
       active: 'bg-yellow-100 text-yellow-700 border-yellow-200',
@@ -481,7 +488,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     };
     return (
       <span
-        className={`px-2.5 py-1 text-xs font-medium rounded-full border ${styles[status as keyof typeof styles]}`}
+        className={`px-2.5 py-1 text-xs font-medium  border ${styles[status as keyof typeof styles]}`}
       >
         {labels[status as keyof typeof labels]}
       </span>
@@ -508,7 +515,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     const styles = DisputeTypeStyles[type];
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${styles.bgColor} ${styles.color} ${styles.borderColor} ${styles.hoverBgColor} transition-colors duration-200`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium  border ${styles.bgColor} ${styles.color} ${styles.borderColor} ${styles.hoverBgColor} transition-colors duration-200`}
       >
         {getTypeIcon(type, 'w-3.5 h-3.5')}
         {typeLabels[type]}
@@ -527,7 +534,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">{t('uma.disputeResolution.allStatus')}</option>
               <option value="active">{t('uma.disputeResolution.statusActive')}</option>
@@ -537,25 +544,28 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600">
-              {t('uma.disputeResolution.filterByType') || '类型'}:
-            </label>
+            <label className="text-sm text-gray-600">{t('disputeResolution.filterByType')}:</label>
             <div className="relative">
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as DisputeType | 'all')}
-                className="px-3 py-1.5 pl-9 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[120px]"
+                className="px-3 py-1.5 pl-9 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[120px]"
               >
-                <option value="all">全部</option>
-                <option value="price">价格争议</option>
-                <option value="state">状态争议</option>
-                <option value="liquidation">清算争议</option>
-                <option value="other">其他争议</option>
+                <option value="all">{t('validatorPanel.all')}</option>
+                <option value="price">{t('uma.disputeTypes.price')}</option>
+                <option value="state">{t('uma.disputeTypes.state')}</option>
+                <option value="liquidation">{t('uma.disputeTypes.liquidation')}</option>
+                <option value="other">{t('uma.disputeTypes.other')}</option>
               </select>
               <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                 {typeFilter === 'all' ? (
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 ) : (
                   <span className={DisputeTypeStyles[typeFilter].color}>
@@ -564,8 +574,13 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 )}
               </div>
               <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
@@ -576,34 +591,34 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'timestamp' | 'reward')}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="timestamp">{t('uma.disputeResolution.timestamp')}</option>
               <option value="reward">{t('uma.disputeResolution.reward')}</option>
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
-            <label className="text-sm text-gray-600">搜索ID:</label>
+            <label className="text-sm text-gray-600">{t('disputeResolution.searchId')}:</label>
             <input
               type="text"
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
-              placeholder="输入争议ID"
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+              placeholder={t('disputeResolution.enterDisputeId')}
+              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
             />
             {searchId && (
               <button
                 onClick={() => setSearchId('')}
-                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100  transition-colors"
               >
-                清除
+                {t('disputeResolution.clear')}
               </button>
             )}
           </div>
@@ -623,13 +638,13 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                   {t('uma.disputeResolution.status')}
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {t('uma.disputeResolution.type') || '类型'}
+                  {t('disputeResolution.type')}
                 </th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {t('uma.disputeResolution.reward')} (UMA)
+                  {t('disputeResolution.reward')} (UMA)
                 </th>
                 <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {t('uma.disputeResolution.transaction') || '交易'}
+                  {t('disputeResolution.transaction')}
                 </th>
               </tr>
             </thead>
@@ -653,8 +668,8 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                       href={`https://etherscan.io/tx/${dispute.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="查看链上交易"
+                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50  transition-colors"
+                      title={t('disputeResolution.viewOnChain')}
                     >
                       <svg
                         className="w-4 h-4"
@@ -663,7 +678,6 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                         viewBox="0 0 24 24"
                       >
                         <path
-                          strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
@@ -686,7 +700,11 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
         {sortedDisputes.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <div className="text-sm text-gray-500">
-              显示 {startIndex + 1}-{endIndex} 条，共 {sortedDisputes.length} 条
+              {t('disputeResolution.showing', {
+                start: startIndex + 1,
+                end: endIndex,
+                total: sortedDisputes.length,
+              })}
             </div>
 
             {totalPages > 1 && (
@@ -694,16 +712,16 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 <button
                   onClick={() => goToPage(1)}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  首页
+                  {t('disputeResolution.firstPage')}
                 </button>
                 <button
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  上一页
+                  {t('disputeResolution.previousPage')}
                 </button>
 
                 <div className="flex items-center gap-1 mx-2">
@@ -716,7 +734,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                       <button
                         key={page}
                         onClick={() => goToPage(page as number)}
-                        className={`w-8 h-8 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        className={`w-8 h-8 text-sm  focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           currentPage === page
                             ? 'bg-blue-600 text-white'
                             : 'border border-gray-300 hover:bg-gray-50'
@@ -731,20 +749,20 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  下一页
+                  {t('disputeResolution.nextPage')}
                 </button>
                 <button
                   onClick={() => goToPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  末页
+                  {t('disputeResolution.lastPage')}
                 </button>
 
                 <div className="flex items-center gap-2 ml-3">
-                  <span className="text-sm text-gray-600">跳转至</span>
+                  <span className="text-sm text-gray-600">{t('disputeResolution.jumpTo')}</span>
                   <input
                     type="number"
                     min={1}
@@ -764,9 +782,9 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                         }
                       }
                     }}
-                    className="w-14 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                    className="w-14 px-2 py-1 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                   />
-                  <span className="text-sm text-gray-600">页</span>
+                  <span className="text-sm text-gray-600">{t('disputeResolution.page')}</span>
                 </div>
               </div>
             )}
@@ -940,14 +958,14 @@ export function DisputeResolutionPanel() {
     if (!lastUpdateTime) return;
 
     const updateTime = () => {
-      setRelativeTime(formatRelativeTime(lastUpdateTime));
+      setRelativeTime(formatRelativeTime(lastUpdateTime, t));
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, [lastUpdateTime]);
+  }, [lastUpdateTime, t]);
 
   // 自动清除通知
   useEffect(() => {
@@ -968,7 +986,7 @@ export function DisputeResolutionPanel() {
           {realtimeNotifications.map((notification, index) => (
             <div
               key={`${notification.id}-${index}`}
-              className={`p-4 rounded-lg shadow-lg border-l-4 animate-slide-in-right ${
+              className={`p-4   border-l-4 animate-slide-in-right ${
                 notification.updateType === 'new'
                   ? 'bg-blue-50 border-blue-500'
                   : notification.updateType === 'status_change'
@@ -985,7 +1003,7 @@ export function DisputeResolutionPanel() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2  ${
                         notification.updateType === 'new'
                           ? 'bg-blue-500'
                           : notification.status === 'resolved'
@@ -1023,12 +1041,7 @@ export function DisputeResolutionPanel() {
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
@@ -1044,14 +1057,14 @@ export function DisputeResolutionPanel() {
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
+              <div className="animate-spin  h-4 w-4 border-2 border-blue-600 border-t-transparent" />
               <span className="text-sm text-blue-600">刷新中...</span>
             </div>
           )}
           {/* 实时连接状态指示器 */}
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full">
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 ">
             <span
-              className={`w-2 h-2 rounded-full ${
+              className={`w-2 h-2  ${
                 disputeConnectionStatus === 'connected'
                   ? 'bg-green-500 animate-pulse'
                   : disputeConnectionStatus === 'connecting' ||
@@ -1073,13 +1086,13 @@ export function DisputeResolutionPanel() {
           {/* 实时统计 */}
           {disputeConnectionStatus === 'connected' && (
             <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 ">
                 活跃: {realtimeActiveCount}
               </span>
-              <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 ">
                 已解决: {realtimeResolvedCount}
               </span>
-              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
+              <span className="px-2 py-0.5 bg-red-100 text-red-700 ">
                 已拒绝: {realtimeRejectedCount}
               </span>
             </div>
@@ -1088,7 +1101,7 @@ export function DisputeResolutionPanel() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+            className={`flex items-center gap-2 px-3 py-1.5 text-sm  transition-colors ${
               showNotifications
                 ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -1096,7 +1109,6 @@ export function DisputeResolutionPanel() {
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
@@ -1104,7 +1116,7 @@ export function DisputeResolutionPanel() {
             </svg>
             通知
             {realtimeNotifications.length > 0 && (
-              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs ">
                 {realtimeNotifications.length}
               </span>
             )}
@@ -1112,7 +1124,7 @@ export function DisputeResolutionPanel() {
           <button
             onClick={() => fetchData(true)}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100  transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg
               className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -1121,7 +1133,6 @@ export function DisputeResolutionPanel() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"

@@ -343,7 +343,10 @@ export function calculateBollingerBandsExtended(
   return { upper, middle, lower, stdDev: stdDevValues, bandwidth, bandwidthPercent, position };
 }
 
-export function calculateTrueRange(current: PriceDataPoint, previous: PriceDataPoint | null): number {
+export function calculateTrueRange(
+  current: PriceDataPoint,
+  previous: PriceDataPoint | null
+): number {
   if (!previous) {
     return (current.high || current.price) - (current.low || current.price);
   }

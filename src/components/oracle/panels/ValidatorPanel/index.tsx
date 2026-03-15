@@ -4,16 +4,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
+import { useI18n } from '@/lib/i18n/provider';
 import { StakingDistributionChart } from '../../charts/StakingDistributionChart';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { MultiValidatorComparison } from '../../charts/MultiValidatorComparison';
-import {
-  SortField,
-  SortDirection,
-  FilterStatus,
-  QuickFilter,
-  ValidatorPanelProps,
-} from './config';
+import { SortField, SortDirection, FilterStatus, QuickFilter, ValidatorPanelProps } from './config';
 import { ValidatorDetailModal } from './ValidatorDetailModal';
 import {
   SortButton,
@@ -28,6 +23,7 @@ export function ValidatorPanel({
   autoUpdate = true,
   updateInterval = 60000,
 }: ValidatorPanelProps & { client: BandProtocolClient }) {
+  const { t } = useI18n();
   const [validators, setValidators] = useState<ValidatorInfo[]>([]);
   const [filteredValidators, setFilteredValidators] = useState<ValidatorInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +56,12 @@ export function ValidatorPanel({
       'independent',
       'community',
     ];
-    const regions = ['北美', '欧洲', '亚洲', '其他'];
+    const regions = [
+      t('validatorPanel.region.northAmerica'),
+      t('validatorPanel.region.europe'),
+      t('validatorPanel.region.asia'),
+      t('validatorPanel.region.other'),
+    ];
 
     return {
       id: validator.operatorAddress,
@@ -96,7 +97,7 @@ export function ValidatorPanel({
     } finally {
       setIsLoading(false);
     }
-  }, [client, limit]);
+  }, [client, limit, t]);
 
   useEffect(() => {
     fetchValidators();
@@ -198,7 +199,7 @@ export function ValidatorPanel({
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white border border-gray-200 p-6">
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -216,7 +217,7 @@ export function ValidatorPanel({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span className="text-gray-500 text-sm">加载验证者数据...</span>
+            <span className="text-gray-500 text-sm">{t('validatorPanel.loading')}</span>
           </div>
         </div>
       </div>
@@ -225,7 +226,7 @@ export function ValidatorPanel({
 
   if (error) {
     return (
-      <div className="bg-white border border-red-200 rounded-xl p-6">
+      <div className="bg-white border border-red-200 p-6">
         <div className="flex items-center gap-3 text-red-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -245,15 +246,18 @@ export function ValidatorPanel({
     <div className="space-y-6">
       <StakingDistributionChart validators={validators} onSegmentClick={handleSegmentClick} />
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden @container">
+      <div className="bg-white border border-gray-200 overflow-hidden @container">
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">验证者列表</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('validatorPanel.title')}</h3>
               <p className="text-sm text-gray-500 mt-0.5">
-                共 {filteredValidators.length} 个验证者
-                {quickFilter !== 'all' && <span className="text-blue-600 ml-1">(已筛选)</span>}
-                {' • 总质押 '}
+                {t('validatorPanel.subtitle', { count: filteredValidators.length })}
+                {quickFilter !== 'all' && (
+                  <span className="text-blue-600 ml-1">{t('validatorPanel.filtered')}</span>
+                )}
+                {' • '}
+                {t('validatorPanel.totalStaked')}{' '}
                 {formatNumber(
                   validators.reduce((sum, v) => sum + v.tokens, 0),
                   true
@@ -267,28 +271,28 @@ export function ValidatorPanel({
                 currentField={sortField}
                 currentDirection={sortDirection}
                 onSort={handleSort}
-                label="排名"
+                label={t('validatorPanel.rank')}
               />
               <SortButton
                 field="tokens"
                 currentField={sortField}
                 currentDirection={sortDirection}
                 onSort={handleSort}
-                label="质押量"
+                label={t('validatorPanel.stakeAmount')}
               />
               <SortButton
                 field="commissionRate"
                 currentField={sortField}
                 currentDirection={sortDirection}
                 onSort={handleSort}
-                label="佣金率"
+                label={t('validatorPanel.commissionRate')}
               />
               <SortButton
                 field="uptime"
                 currentField={sortField}
                 currentDirection={sortDirection}
                 onSort={handleSort}
-                label="在线率"
+                label={t('validatorPanel.uptime')}
               />
             </div>
           </div>
@@ -296,26 +300,26 @@ export function ValidatorPanel({
 
         <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500 mr-1">状态:</span>
+            <span className="text-xs text-gray-500 mr-1">{t('validatorPanel.status')}:</span>
             <FilterButton
               status="all"
               currentStatus={filterStatus}
               onFilter={setFilterStatus}
-              label="全部"
+              label={t('validatorPanel.all')}
               count={validators.length}
             />
             <FilterButton
               status="active"
               currentStatus={filterStatus}
               onFilter={setFilterStatus}
-              label="在线"
+              label={t('validatorPanel.active')}
               count={activeCount}
             />
             <FilterButton
               status="jailed"
               currentStatus={filterStatus}
               onFilter={setFilterStatus}
-              label="监禁"
+              label={t('validatorPanel.jailed')}
               count={jailedCount}
             />
           </div>
@@ -323,57 +327,59 @@ export function ValidatorPanel({
 
         <div className="px-5 py-3 bg-purple-50 border-b border-gray-100">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-purple-600 mr-1">快速筛选:</span>
+            <span className="text-xs text-purple-600 mr-1">{t('validatorPanel.quickFilter')}:</span>
             <button
               onClick={() => setQuickFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'all'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'bg-white border-purple-200 text-purple-600 hover:border-purple-400'
               }`}
             >
-              全部
+              {t('validatorPanel.all')}
             </button>
             <button
               onClick={() => setQuickFilter('lowCommission')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'lowCommission'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'bg-white border-purple-200 text-purple-600 hover:border-purple-400'
               }`}
             >
-              低佣金 (&lt;5%)
+              {t('validatorPanel.lowCommission')}
             </button>
             <button
               onClick={() => setQuickFilter('highStake')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'highStake'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'bg-white border-purple-200 text-purple-600 hover:border-purple-400'
               }`}
             >
-              高质押 (Top 20%)
+              {t('validatorPanel.highStake')}
             </button>
             <button
               onClick={() => setQuickFilter('highUptime')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium border transition-all ${
                 quickFilter === 'highUptime'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white border border-purple-200 text-purple-600 hover:bg-purple-100'
+                  ? 'bg-purple-600 text-white border-purple-600'
+                  : 'bg-white border-purple-200 text-purple-600 hover:border-purple-400'
               }`}
             >
-              高在线率 (≥99.9%)
+              {t('validatorPanel.highUptime')}
             </button>
             {selectedValidatorAddresses.size > 0 && (
               <div className="flex items-center gap-2 ml-2">
                 <span className="text-sm text-blue-600 font-medium">
-                  已选择 {selectedValidatorAddresses.size} 个验证者进行对比
+                  {t('validatorPanel.selectedForComparison', {
+                    count: selectedValidatorAddresses.size,
+                  })}
                 </span>
                 <button
                   onClick={handleClearSelection}
                   className="text-xs text-gray-500 hover:text-red-600 underline transition-colors"
                 >
-                  清除选择
+                  {t('validatorPanel.clearSelection')}
                 </button>
               </div>
             )}

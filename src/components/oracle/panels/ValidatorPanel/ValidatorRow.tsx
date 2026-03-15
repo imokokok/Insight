@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { useI18n } from '@/lib/i18n/provider';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { SortField, SortDirection, FilterStatus, statusConfig } from './config';
@@ -24,7 +25,7 @@ export function SortButton({
   return (
     <button
       onClick={() => onSort(field)}
-      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+      className={`flex items-center gap-1 px-3 py-1.5  text-xs font-medium transition-all ${
         isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
@@ -36,7 +37,7 @@ export function SortButton({
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
         </svg>
       )}
     </button>
@@ -61,7 +62,7 @@ export function FilterButton({
   return (
     <button
       onClick={() => onFilter(status)}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+      className={`flex items-center gap-2 px-3 py-1.5  text-xs font-medium transition-all ${
         isActive
           ? 'bg-blue-600 text-white'
           : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -69,9 +70,7 @@ export function FilterButton({
     >
       <span>{label}</span>
       {count !== undefined && (
-        <span
-          className={`px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}
-        >
+        <span className={`px-1.5 py-0.5  text-[10px] ${isActive ? 'bg-blue-500' : 'bg-gray-200'}`}>
           {count}
         </span>
       )}
@@ -90,6 +89,7 @@ export function ValidatorRow({
   isSelected: boolean;
   onToggleSelect: (e: React.MouseEvent) => void;
 }) {
+  const { t } = useI18n();
   const status = validator.jailed ? 'jailed' : 'active';
   const config = statusConfig[status];
 
@@ -99,7 +99,7 @@ export function ValidatorRow({
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSelect}
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+            className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
               isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
             }`}
           >
@@ -114,10 +114,10 @@ export function ValidatorRow({
             )}
           </button>
           <div
-            className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+            className="w-8 h-8 bg-gray-100 border border-gray-200 flex items-center justify-center"
             onClick={onClick}
           >
-            <span className="text-white font-bold text-xs">#{validator.rank}</span>
+            <span className="text-gray-600 font-bold text-xs">#{validator.rank}</span>
           </div>
           <div onClick={onClick}>
             <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -146,9 +146,9 @@ export function ValidatorRow({
       </td>
       <td className="py-4 px-4" onClick={onClick}>
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[80px]">
+          <div className="flex-1 h-2 bg-gray-200 overflow-hidden max-w-[80px]">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${
+              className={`h-full transition-all duration-500 ${
                 validator.uptime >= 99.5
                   ? 'bg-green-500'
                   : validator.uptime >= 99
@@ -175,11 +175,11 @@ export function ValidatorRow({
         <div className="flex items-center gap-2">
           <span className={`relative flex h-2.5 w-2.5`}>
             <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.bgColor} opacity-75`}
+              className={`animate-ping absolute inline-flex h-full w-full ${config.bgColor} opacity-75`}
             />
-            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.bgColor}`} />
+            <span className={`relative inline-flex h-2.5 w-2.5 ${config.bgColor}`} />
           </span>
-          <span className={`text-sm font-medium ${config.textColor}`}>{config.label}</span>
+          <span className={`text-sm font-medium ${config.textColor}`}>{t(config.labelKey)}</span>
         </div>
       </td>
       <td className="py-4 px-4" onClick={onClick}>
@@ -189,7 +189,7 @@ export function ValidatorRow({
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </td>
     </tr>
@@ -207,19 +207,20 @@ export function ValidatorCard({
   isSelected: boolean;
   onToggleSelect: (e: React.MouseEvent) => void;
 }) {
+  const { t } = useI18n();
   const status = validator.jailed ? 'jailed' : 'active';
   const config = statusConfig[status];
 
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all active:scale-[0.98]"
+      className="bg-white border border-gray-200 p-4 cursor-pointer hover:border-blue-300 transition-all"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSelect}
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+            className={`w-5 h-5 border-2 flex items-center justify-center transition-all flex-shrink-0 ${
               isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 hover:border-blue-400'
             }`}
           >
@@ -233,8 +234,8 @@ export function ValidatorCard({
               </svg>
             )}
           </button>
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">#{validator.rank}</span>
+          <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+            <span className="text-gray-600 font-bold text-sm">#{validator.rank}</span>
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-gray-900 truncate">{validator.moniker}</p>
@@ -246,23 +247,23 @@ export function ValidatorCard({
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <span className={`relative flex h-2.5 w-2.5`}>
             <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.bgColor} opacity-75`}
+              className={`animate-ping absolute inline-flex h-full w-full ${config.bgColor} opacity-75`}
             />
-            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.bgColor}`} />
+            <span className={`relative inline-flex h-2.5 w-2.5 ${config.bgColor}`} />
           </span>
-          <span className={`text-xs font-medium ${config.textColor}`}>{config.label}</span>
+          <span className={`text-xs font-medium ${config.textColor}`}>{t(config.labelKey)}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50 p-2.5">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">质押量</p>
           <p className="text-sm font-bold text-gray-900 truncate">
             {formatNumber(validator.tokens, true)}
           </p>
           <p className="text-[10px] text-gray-400">BAND</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50 p-2.5">
           <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">佣金率</p>
           <p className="text-sm font-bold text-gray-900">
             {(validator.commissionRate * 100).toFixed(2)}%
@@ -272,9 +273,9 @@ export function ValidatorCard({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1">
-          <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
+          <div className="flex-1 h-1.5 bg-gray-200 overflow-hidden max-w-[100px]">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${
+              className={`h-full transition-all duration-500 ${
                 validator.uptime >= 99.5
                   ? 'bg-green-500'
                   : validator.uptime >= 99
@@ -302,7 +303,7 @@ export function ValidatorCard({
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </div>
     </div>
@@ -340,7 +341,6 @@ export function MobileValidatorList({
           viewBox="0 0 24 24"
         >
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -467,7 +467,6 @@ export function DesktopValidatorTable({
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"

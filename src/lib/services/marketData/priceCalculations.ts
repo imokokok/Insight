@@ -12,11 +12,7 @@ import {
   RiskMetrics,
   AnomalyData,
 } from '@/app/market-overview/types';
-import {
-  ExportConfig,
-  ExportDataType,
-  generateExportFileName,
-} from '@/lib/export/exportConfig';
+import { ExportConfig, ExportDataType, generateExportFileName } from '@/lib/export/exportConfig';
 
 const logger = createLogger('marketData:priceCalculations');
 

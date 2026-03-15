@@ -1,5 +1,10 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { ChronicleClient, ScuttlebuttData, MakerDAOIntegration, ValidatorNetwork } from '@/lib/oracles';
+import {
+  ChronicleClient,
+  ScuttlebuttData,
+  MakerDAOIntegration,
+  ValidatorNetwork,
+} from '@/lib/oracles';
 import { Blockchain } from '@/types/oracle';
 import { useMemo } from 'react';
 
@@ -101,36 +106,46 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     ],
   });
 
-  const [priceResult, historicalResult, scuttlebuttResult, makerDAOResult, validatorsResult, networkResult] = results;
+  const [
+    priceResult,
+    historicalResult,
+    scuttlebuttResult,
+    makerDAOResult,
+    validatorsResult,
+    networkResult,
+  ] = results;
 
-  const isLoading = results.some(r => r.isLoading);
-  const isError = results.some(r => r.isError);
-  const errors = results.map(r => r.error).filter(Boolean) as Error[];
+  const isLoading = results.some((r) => r.isLoading);
+  const isError = results.some((r) => r.isError);
+  const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
   const refetchAll = () => {
-    results.forEach(r => r.refetch());
+    results.forEach((r) => r.refetch());
   };
 
-  return useMemo(() => ({
-    price: priceResult.data,
-    historicalData: historicalResult.data,
-    scuttlebuttData: scuttlebuttResult.data,
-    makerDAOData: makerDAOResult.data,
-    validatorData: validatorsResult.data,
-    networkStats: networkResult.data,
-    isLoading,
-    isError,
-    errors,
-    refetchAll,
-  }), [
-    priceResult.data,
-    historicalResult.data,
-    scuttlebuttResult.data,
-    makerDAOResult.data,
-    validatorsResult.data,
-    networkResult.data,
-    isLoading,
-    isError,
-    errors,
-  ]);
+  return useMemo(
+    () => ({
+      price: priceResult.data,
+      historicalData: historicalResult.data,
+      scuttlebuttData: scuttlebuttResult.data,
+      makerDAOData: makerDAOResult.data,
+      validatorData: validatorsResult.data,
+      networkStats: networkResult.data,
+      isLoading,
+      isError,
+      errors,
+      refetchAll,
+    }),
+    [
+      priceResult.data,
+      historicalResult.data,
+      scuttlebuttResult.data,
+      makerDAOResult.data,
+      validatorsResult.data,
+      networkResult.data,
+      isLoading,
+      isError,
+      errors,
+    ]
+  );
 }

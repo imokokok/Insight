@@ -48,13 +48,13 @@ export function ComparisonReportExporter({
     if (!data) return;
 
     const rows: string[] = [];
-    
+
     // 添加标题
     rows.push('Cross-Oracle Comparison Report');
     rows.push(`Symbol,${data.symbol}`);
     rows.push(`Timestamp,${data.timestamp}`);
     rows.push('');
-    
+
     // 添加统计数据
     if (data.statistics) {
       rows.push('Statistics');
@@ -69,23 +69,23 @@ export function ComparisonReportExporter({
       }
       rows.push('');
     }
-    
+
     // 添加预言机数据
     rows.push('Oracle Data');
     rows.push('Provider,Price,Confidence,Response Time (ms),Deviation from Avg (%)');
-    
+
     data.oracles.forEach((oracle) => {
       rows.push(
         `${oracle.provider},$${oracle.price.toFixed(2)},${oracle.confidence ? (oracle.confidence * 100).toFixed(1) + '%' : 'N/A'},${oracle.responseTime},${oracle.deviation.toFixed(4)}`
       );
     });
-    
+
     // 创建并下载文件
     const csvContent = rows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', `${fileName}.csv`);
     link.style.visibility = 'hidden';
@@ -104,36 +104,36 @@ export function ComparisonReportExporter({
     }
 
     setIsExporting(true);
-    
+
     try {
       // 使用 html2canvas 或类似库来捕获图表
       // 这里我们使用浏览器原生 API 作为简化实现
       const element = chartRef.current;
-      
+
       // 创建 canvas
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('无法创建 canvas 上下文');
-      
+
       // 设置 canvas 尺寸
       const rect = element.getBoundingClientRect();
       canvas.width = rect.width * 2; // 高分辨率
       canvas.height = rect.height * 2;
       ctx.scale(2, 2);
-      
+
       // 绘制白色背景
       ctx.fillStyle = exportColors.background;
       ctx.fillRect(0, 0, rect.width, rect.height);
-      
+
       // 绘制标题
       ctx.fillStyle = baseColors.gray[900];
       ctx.font = 'bold 20px sans-serif';
       ctx.fillText(`Oracle Comparison Report - ${data.symbol}`, 20, 30);
-      
+
       ctx.fillStyle = baseColors.gray[500];
       ctx.font = '14px sans-serif';
       ctx.fillText(`Generated: ${new Date().toLocaleString()}`, 20, 55);
-      
+
       // 绘制统计信息
       let yOffset = 90;
       if (data.statistics) {
@@ -141,29 +141,38 @@ export function ComparisonReportExporter({
         ctx.font = 'bold 16px sans-serif';
         ctx.fillText('Statistics:', 20, yOffset);
         yOffset += 25;
-        
+
         ctx.font = '14px sans-serif';
         ctx.fillText(`Average Price: $${data.statistics.avg.toFixed(2)}`, 20, yOffset);
         yOffset += 20;
-        ctx.fillText(`Price Range: $${data.statistics.range.toFixed(2)} (${((data.statistics.range / data.statistics.avg) * 100).toFixed(2)}%)`, 20, yOffset);
+        ctx.fillText(
+          `Price Range: $${data.statistics.range.toFixed(2)} (${((data.statistics.range / data.statistics.avg) * 100).toFixed(2)}%)`,
+          20,
+          yOffset
+        );
         yOffset += 20;
         ctx.fillText(`Standard Deviation: $${data.statistics.stdDev.toFixed(2)}`, 20, yOffset);
         yOffset += 30;
       }
-      
+
       // 绘制表格
       ctx.fillStyle = baseColors.gray[900];
       ctx.font = 'bold 16px sans-serif';
       ctx.fillText('Oracle Data:', 20, yOffset);
       yOffset += 25;
-      
+
       // 表头
       const colWidths = [120, 100, 100, 120, 150];
       const headers = ['Provider', 'Price', 'Confidence', 'Response Time', 'Deviation'];
-      
+
       ctx.fillStyle = baseColors.gray[100];
-      ctx.fillRect(20, yOffset - 15, colWidths.reduce((a, b) => a + b, 0), 25);
-      
+      ctx.fillRect(
+        20,
+        yOffset - 15,
+        colWidths.reduce((a, b) => a + b, 0),
+        25
+      );
+
       ctx.fillStyle = baseColors.gray[700];
       ctx.font = 'bold 12px sans-serif';
       let xOffset = 20;
@@ -172,43 +181,58 @@ export function ComparisonReportExporter({
         xOffset += colWidths[index];
       });
       yOffset += 20;
-      
+
       // 数据行
       ctx.font = '12px sans-serif';
       data.oracles.forEach((oracle, rowIndex) => {
         if (rowIndex % 2 === 0) {
           ctx.fillStyle = baseColors.gray[50];
-          ctx.fillRect(20, yOffset - 12, colWidths.reduce((a, b) => a + b, 0), 20);
+          ctx.fillRect(
+            20,
+            yOffset - 12,
+            colWidths.reduce((a, b) => a + b, 0),
+            20
+          );
         }
-        
+
         ctx.fillStyle = baseColors.gray[900];
         xOffset = 20;
-        
+
         ctx.fillText(oracle.provider, xOffset, yOffset);
         xOffset += colWidths[0];
-        
+
         ctx.fillText(`$${oracle.price.toFixed(2)}`, xOffset, yOffset);
         xOffset += colWidths[1];
-        
-        ctx.fillText(oracle.confidence ? `${(oracle.confidence * 100).toFixed(1)}%` : 'N/A', xOffset, yOffset);
+
+        ctx.fillText(
+          oracle.confidence ? `${(oracle.confidence * 100).toFixed(1)}%` : 'N/A',
+          xOffset,
+          yOffset
+        );
         xOffset += colWidths[2];
-        
+
         ctx.fillText(`${oracle.responseTime}ms`, xOffset, yOffset);
         xOffset += colWidths[3];
-        
-        const deviationColor = Math.abs(oracle.deviation) > 1 ? semanticColors.danger.DEFAULT : semanticColors.success.DEFAULT;
+
+        const deviationColor =
+          Math.abs(oracle.deviation) > 1
+            ? semanticColors.danger.DEFAULT
+            : semanticColors.success.DEFAULT;
         ctx.fillStyle = deviationColor;
-        ctx.fillText(`${oracle.deviation > 0 ? '+' : ''}${oracle.deviation.toFixed(3)}%`, xOffset, yOffset);
-        
+        ctx.fillText(
+          `${oracle.deviation > 0 ? '+' : ''}${oracle.deviation.toFixed(3)}%`,
+          xOffset,
+          yOffset
+        );
+
         yOffset += 20;
       });
-      
+
       // 下载图片
       const link = document.createElement('a');
       link.download = `${fileName}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      
     } catch (error) {
       logger.error('Export failed', error instanceof Error ? error : new Error(String(error)));
       alert('导出失败，请重试');
@@ -232,7 +256,7 @@ export function ComparisonReportExporter({
     const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', `${fileName}.json`);
     link.style.visibility = 'hidden';
@@ -246,12 +270,11 @@ export function ComparisonReportExporter({
       {/* 导出按钮 */}
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white  hover:bg-green-700 transition-colors"
         title="导出报告"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
@@ -263,7 +286,7 @@ export function ComparisonReportExporter({
       {/* 导出选项模态框 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+          <div className="bg-white   max-w-md w-full mx-4">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">导出对比报告</h3>
               <button
@@ -271,33 +294,32 @@ export function ComparisonReportExporter({
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-600">
                 选择要导出的格式。CSV 适合数据分析，PNG 适合展示分享，JSON 适合程序处理。
               </p>
-              
+
               <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={() => {
                     exportToCSV();
                     setShowModal(false);
                   }}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                 >
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-2 bg-green-100 ">
+                    <svg
+                      className="w-6 h-6 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
@@ -309,19 +331,23 @@ export function ComparisonReportExporter({
                     <p className="text-sm text-gray-500">适用于 Excel 或数据分析</p>
                   </div>
                 </button>
-                
+
                 <button
                   onClick={() => {
                     exportToPNG();
                     setShowModal(false);
                   }}
                   disabled={isExporting}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
+                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
                 >
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-2 bg-purple-100 ">
+                    <svg
+                      className="w-6 h-6 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
@@ -335,18 +361,22 @@ export function ComparisonReportExporter({
                     <p className="text-sm text-gray-500">保存为图片格式</p>
                   </div>
                 </button>
-                
+
                 <button
                   onClick={() => {
                     exportToJSON();
                     setShowModal(false);
                   }}
-                  className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                 >
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-2 bg-blue-100 ">
+                    <svg
+                      className="w-6 h-6 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
@@ -360,11 +390,11 @@ export function ComparisonReportExporter({
                 </button>
               </div>
             </div>
-            
-            <div className="px-6 py-4 bg-gray-50 rounded-b-xl">
+
+            <div className="px-6 py-4 bg-gray-50 -xl">
               <button
                 onClick={() => setShowModal(false)}
-                className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                className="w-full px-4 py-2 bg-gray-200 text-gray-800  hover:bg-gray-300 transition-colors"
               >
                 取消
               </button>
@@ -390,7 +420,7 @@ export function FullReportExporter({
 
   const generateFullReport = useCallback(async () => {
     setIsGenerating(true);
-    
+
     try {
       // 生成完整的 HTML 报告
       const reportHtml = `
@@ -507,7 +537,9 @@ export function FullReportExporter({
     <div class="section">
       <h2 class="section-title">Price Statistics</h2>
       <div class="stats-grid">
-        ${data.statistics ? `
+        ${
+          data.statistics
+            ? `
         <div class="stat-card">
           <div class="stat-label">Average Price</div>
           <div class="stat-value">$${data.statistics.avg.toFixed(2)}</div>
@@ -524,7 +556,9 @@ export function FullReportExporter({
           <div class="stat-label">Max Price</div>
           <div class="stat-value">$${data.statistics.max.toFixed(2)}</div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
     
@@ -542,18 +576,19 @@ export function FullReportExporter({
           </tr>
         </thead>
         <tbody>
-          ${data.oracles.map(oracle => {
-            const deviationAbs = Math.abs(oracle.deviation);
-            let statusClass = 'badge-green';
-            let statusText = 'Normal';
-            if (deviationAbs > 2) {
-              statusClass = 'badge-red';
-              statusText = 'High Deviation';
-            } else if (deviationAbs > 1) {
-              statusClass = 'badge-yellow';
-              statusText = 'Warning';
-            }
-            return `
+          ${data.oracles
+            .map((oracle) => {
+              const deviationAbs = Math.abs(oracle.deviation);
+              let statusClass = 'badge-green';
+              let statusText = 'Normal';
+              if (deviationAbs > 2) {
+                statusClass = 'badge-red';
+                statusText = 'High Deviation';
+              } else if (deviationAbs > 1) {
+                statusClass = 'badge-yellow';
+                statusText = 'Warning';
+              }
+              return `
           <tr>
             <td><strong>${oracle.provider}</strong></td>
             <td>$${oracle.price.toFixed(2)}</td>
@@ -562,7 +597,8 @@ export function FullReportExporter({
             <td>${oracle.deviation > 0 ? '+' : ''}${oracle.deviation.toFixed(3)}%</td>
             <td><span class="badge ${statusClass}">${statusText}</span></td>
           </tr>`;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
@@ -578,14 +614,13 @@ export function FullReportExporter({
       const blob = new Blob([reportHtml], { type: 'text/html;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `${fileName}.html`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
     } finally {
       setIsGenerating(false);
     }
@@ -595,11 +630,10 @@ export function FullReportExporter({
     <button
       onClick={generateFullReport}
       disabled={isGenerating}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50"
     >
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
-          strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"

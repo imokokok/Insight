@@ -221,12 +221,14 @@ interface UseDIAAllDataReturn {
   crossChainCoverage: CrossChainCoverage | undefined;
   dataSourceVerification: DataSourceVerification[];
   networkStats: DIANetworkStats | undefined;
-  staking: {
-    totalStaked: number;
-    stakingApr: number;
-    stakerCount: number;
-    rewardPool: number;
-  } | undefined;
+  staking:
+    | {
+        totalStaked: number;
+        stakingApr: number;
+        stakerCount: number;
+        rewardPool: number;
+      }
+    | undefined;
   isLoading: boolean;
   isError: boolean;
   errors: Error[];

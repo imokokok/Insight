@@ -250,7 +250,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
   const config = METRIC_CONFIG[metric];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl min-w-[180px]">
+    <div className="bg-white border border-gray-200  p-3  min-w-[180px]">
       <p className="text-xs text-gray-500 mb-2 font-medium">{label}</p>
       <div className="space-y-1.5">
         {payload
@@ -259,10 +259,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
           .map((item, index) => (
             <div key={index} className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
+                <span className="w-2.5 h-2.5 " style={{ backgroundColor: item.color }} />
                 <span className="text-xs text-gray-600">{item.dataKey}</span>
               </div>
               <span className="text-xs font-semibold text-gray-900">
@@ -294,7 +291,7 @@ function MetricButton({ metric, currentMetric, onClick }: MetricButtonProps) {
     <button
       onClick={() => onClick(metric)}
       className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-        isActive ? 'bg-white shadow-sm ring-1 ring-gray-200' : 'hover:bg-gray-100 text-gray-600'
+        isActive ? 'bg-white  ring-1 ring-gray-200' : 'hover:bg-gray-100 text-gray-600'
       }`}
       style={{
         color: isActive ? config.color : undefined,
@@ -320,9 +317,7 @@ function TimeRangeButton({ range, currentRange, onClick }: TimeRangeButtonProps)
     <button
       onClick={() => onClick(range)}
       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-        isActive
-          ? 'bg-blue-500 text-white shadow-sm'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        isActive ? 'bg-blue-500 text-white ' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
       {label}
@@ -351,9 +346,9 @@ function ChainLegendItem({ chain, color, data, metric }: ChainLegendItemProps) {
   const config = METRIC_CONFIG[metric];
 
   return (
-    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between p-2 bg-gray-50 ">
       <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+        <span className="w-3 h-3 " style={{ backgroundColor: color }} />
         <span className="text-xs font-medium text-gray-700">{chain}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -459,7 +454,7 @@ export function CrossChainTrendChart({
   const headerContent = (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-gray-100  p-1">
           {(Object.keys(METRIC_CONFIG) as MetricType[]).map((m) => (
             <MetricButton key={m} metric={m} currentMetric={metric} onClick={setMetric} />
           ))}
@@ -483,7 +478,7 @@ export function CrossChainTrendChart({
       <div className="space-y-4">
         {/* 统计卡片 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">当前总和</p>
             <p className="text-lg font-bold text-blue-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -493,7 +488,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">平均值</p>
             <p className="text-lg font-bold text-purple-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -503,7 +498,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">最高值</p>
             <p className="text-lg font-bold text-green-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -513,7 +508,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">最低值</p>
             <p className="text-lg font-bold text-orange-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -529,7 +524,7 @@ export function CrossChainTrendChart({
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent  animate-spin" />
               <p className="text-sm text-gray-500">加载中...</p>
             </div>
           </div>

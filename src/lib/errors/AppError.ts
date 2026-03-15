@@ -48,7 +48,9 @@ export abstract class AppError extends Error {
     };
   }
 
-  toApiResponse(): { error: { code: string; message: string; retryable: boolean; details?: AppErrorDetails } } {
+  toApiResponse(): {
+    error: { code: string; message: string; retryable: boolean; details?: AppErrorDetails };
+  } {
     return {
       error: {
         code: this.code,

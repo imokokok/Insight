@@ -131,7 +131,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
     <DashboardCard title={t('volatilityAlert.title')} className={className}>
       <div className="space-y-4">
         <div
-          className="rounded-lg p-4 border-2 transition-all duration-300"
+          className=" p-4 border-2 transition-all duration-300"
           style={{
             backgroundColor: alertLevel.bgColor,
             borderColor: alertLevel.borderColor,
@@ -140,7 +140,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                className="w-10 h-10  flex items-center justify-center text-xl"
                 style={{ backgroundColor: `${alertLevel.color}20` }}
               >
                 {alertLevel.icon}
@@ -163,7 +163,7 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
-                className="px-3 py-1 rounded-full text-xs font-semibold"
+                className="px-3 py-1  text-xs font-semibold"
                 style={{
                   backgroundColor: alertLevel.color,
                   color: 'white',
@@ -178,9 +178,9 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
                 </span>
               )}
             </div>
-            <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-gray-200  overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full  transition-all duration-500"
                 style={{
                   width: `${Math.min((currentVolatility / threshold) * 100, 100)}%`,
                   backgroundColor: alertLevel.color,
@@ -198,10 +198,10 @@ export function VolatilityAlert({ threshold, currentVolatility, className }: Vol
             {historicalEvents.map((event, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-2 h-2  bg-blue-500" />
                   <div>
                     <p className="text-xs text-gray-500">{event.date}</p>
                     <p className="text-sm font-medium text-gray-900">{event.impact}</p>

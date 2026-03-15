@@ -99,12 +99,7 @@ describe('Timestamp Utilities', () => {
     });
 
     it('should be an alias for toMilliseconds', () => {
-      const inputs = [
-        testTimestampSeconds,
-        testTimestampMilliseconds,
-        testDate,
-        testISOString,
-      ];
+      const inputs = [testTimestampSeconds, testTimestampMilliseconds, testDate, testISOString];
 
       inputs.forEach((input) => {
         expect(normalizeTimestamp(input)).toBe(toMilliseconds(input));

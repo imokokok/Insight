@@ -1,4 +1,10 @@
-export type SortField = 'name' | 'responseTime' | 'successRate' | 'reputation' | 'staked' | 'earnings';
+export type SortField =
+  | 'name'
+  | 'responseTime'
+  | 'successRate'
+  | 'reputation'
+  | 'staked'
+  | 'earnings';
 export type SortDirection = 'asc' | 'desc';
 export type TimeRange = '7d' | '30d' | '90d';
 
@@ -8,10 +14,10 @@ export interface EarningsTrend {
   cumulative: number;
 }
 
-export const TIME_RANGE_OPTIONS: { value: TimeRange; label: string; days: number }[] = [
-  { value: '7d', label: '7天', days: 7 },
-  { value: '30d', label: '30天', days: 30 },
-  { value: '90d', label: '90天', days: 90 },
+export const TIME_RANGE_OPTIONS: { value: TimeRange; labelKey: string; days: number }[] = [
+  { value: '7d', labelKey: 'validatorAnalytics.timeRange.7d', days: 7 },
+  { value: '30d', labelKey: 'validatorAnalytics.timeRange.30d', days: 30 },
+  { value: '90d', labelKey: 'validatorAnalytics.timeRange.90d', days: 90 },
 ];
 
 export const VALIDATOR_TYPE_STYLES: Record<string, string> = {
@@ -21,7 +27,7 @@ export const VALIDATOR_TYPE_STYLES: Record<string, string> = {
 };
 
 export const VALIDATOR_TYPE_LABELS: Record<string, string> = {
-  institution: '机构',
-  independent: '独立',
-  community: '社区',
+  institution: 'validatorAnalytics.validatorType.institution',
+  independent: 'validatorAnalytics.validatorType.independent',
+  community: 'validatorAnalytics.validatorType.community',
 };

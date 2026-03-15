@@ -224,7 +224,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            <path  strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
           </svg>
         );
       case 'decreasing':
@@ -235,7 +235,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path  strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         );
       default:
@@ -246,7 +246,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+            <path  strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
           </svg>
         );
     }
@@ -286,7 +286,7 @@ export function PriceDeviationHistoryChart({
               <select
                 value={baselineType}
                 onChange={(e) => setBaselineType(e.target.value as BaselineType)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-1 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="average">
                   {t('priceDeviationHistory.baselineAverage') || '平均值'}
@@ -308,7 +308,7 @@ export function PriceDeviationHistoryChart({
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                    className={`px-3 py-1 text-sm  transition-colors ${
                       timeRange === range
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -352,7 +352,6 @@ export function PriceDeviationHistoryChart({
                 contentStyle={{
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                   border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 }}
               />
@@ -423,10 +422,10 @@ export function PriceDeviationHistoryChart({
           {selectedOracles.map((provider) => {
             const stats = deviationStats[provider];
             return (
-              <div key={provider} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div key={provider} className="bg-gray-50  p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 "
                     style={{ backgroundColor: oracleColors[provider] }}
                   />
                   <span className="font-medium text-gray-900">{oracleNames[provider]}</span>
@@ -550,25 +549,25 @@ export function PriceDeviationHistoryChart({
 
       <DashboardCard title={t('priceDeviationHistory.overallStats') || '整体偏离统计'}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 rounded-lg p-4 text-center">
+          <div className="bg-blue-50  p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.baselineType') || '当前基准'}
             </p>
             <p className="text-lg font-semibold text-blue-600">{getBaselineLabel(baselineType)}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-4 text-center">
+          <div className="bg-green-50  p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.dataPoints') || '数据点数'}
             </p>
             <p className="text-lg font-semibold text-green-600">{deviationHistory.length}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-4 text-center">
+          <div className="bg-purple-50  p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.oracleCount') || '预言机数量'}
             </p>
             <p className="text-lg font-semibold text-purple-600">{selectedOracles.length}</p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-4 text-center">
+          <div className="bg-orange-50  p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.warningCount') || '警告次数'}
             </p>

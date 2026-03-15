@@ -31,14 +31,12 @@ interface FeatureCard {
   descriptionKey: string;
   icon: React.ElementType;
   href: string;
-  color: string;
   statsValue: string;
   statsKey: string;
   chartType: 'area' | 'bar' | 'line';
   chartData: { value: number; label: string }[];
 }
 
-// Generate sample chart data for each feature
 const generateChartData = (baseValue: number, variance: number, count: number = 7) => {
   return Array.from({ length: count }, (_, i) => ({
     value: baseValue + Math.random() * variance - variance / 2,
@@ -53,7 +51,6 @@ const features: FeatureCard[] = [
     descriptionKey: 'home.features.priceQuery.description',
     icon: Search,
     href: '/price-query',
-    color: 'blue',
     statsValue: '1,000+',
     statsKey: 'home.features.priceQuery.stats',
     chartType: 'area',
@@ -65,7 +62,6 @@ const features: FeatureCard[] = [
     descriptionKey: 'home.features.crossOracle.description',
     icon: GitCompare,
     href: '/cross-oracle',
-    color: 'indigo',
     statsValue: '5+',
     statsKey: 'home.features.crossOracle.stats',
     chartType: 'bar',
@@ -83,7 +79,6 @@ const features: FeatureCard[] = [
     descriptionKey: 'home.features.crossChain.description',
     icon: Globe,
     href: '/cross-chain',
-    color: 'violet',
     statsValue: '10+',
     statsKey: 'home.features.crossChain.stats',
     chartType: 'line',
@@ -95,7 +90,6 @@ const features: FeatureCard[] = [
     descriptionKey: 'home.features.history.description',
     icon: History,
     href: '/history',
-    color: 'emerald',
     statsValue: '30D',
     statsKey: 'home.features.history.stats',
     chartType: 'area',
@@ -103,85 +97,17 @@ const features: FeatureCard[] = [
   },
 ];
 
-const COLOR_THEMES: Record<
-  string,
-  {
-    bg: string;
-    bgHover: string;
-    border: string;
-    borderHover: string;
-    text: string;
-    gradient: string;
-    chartColor: string;
-    chartGradient: string;
-    iconBg: string;
-    iconRing: string;
-  }
-> = {
-  blue: {
-    bg: 'bg-blue-50/50',
-    bgHover: 'bg-blue-50',
-    border: 'border-blue-100',
-    borderHover: 'border-blue-300',
-    text: 'text-blue-600',
-    gradient: 'from-blue-500 to-blue-600',
-    chartColor: chartColors.chart.blueLight,
-    chartGradient: 'url(#blueGradient)',
-    iconBg: 'bg-blue-100',
-    iconRing: 'ring-blue-200',
-  },
-  indigo: {
-    bg: 'bg-indigo-50/50',
-    bgHover: 'bg-indigo-50',
-    border: 'border-indigo-100',
-    borderHover: 'border-indigo-300',
-    text: 'text-indigo-600',
-    gradient: 'from-indigo-500 to-indigo-600',
-    chartColor: chartColors.chart.indigoLight,
-    chartGradient: 'url(#indigoGradient)',
-    iconBg: 'bg-indigo-100',
-    iconRing: 'ring-indigo-200',
-  },
-  violet: {
-    bg: 'bg-violet-50/50',
-    bgHover: 'bg-violet-50',
-    border: 'border-violet-100',
-    borderHover: 'border-violet-300',
-    text: 'text-violet-600',
-    gradient: 'from-violet-500 to-violet-600',
-    chartColor: chartColors.chart.violetLight,
-    chartGradient: 'url(#violetGradient)',
-    iconBg: 'bg-violet-100',
-    iconRing: 'ring-violet-200',
-  },
-  emerald: {
-    bg: 'bg-emerald-50/50',
-    bgHover: 'bg-emerald-50',
-    border: 'border-emerald-100',
-    borderHover: 'border-emerald-300',
-    text: 'text-emerald-600',
-    gradient: 'from-emerald-500 to-emerald-600',
-    chartColor: chartColors.chart.emeraldLight,
-    chartGradient: 'url(#emeraldGradient)',
-    iconBg: 'bg-emerald-100',
-    iconRing: 'ring-emerald-200',
-  },
-};
-
-// Mini Chart Component
 function MiniChart({
   type,
   data,
-  color,
   isHovered,
 }: {
   type: 'area' | 'bar' | 'line';
   data: { value: number; label: string }[];
-  color: string;
   isHovered: boolean;
 }) {
-  const chartColor = color;
-  const gradientId = `${color.replace('#', '')}Gradient`;
+  const chartColor = chartColors.chart.blue;
+  const gradientId = 'featureChartGradient';
 
   const renderChart = () => {
     switch (type) {
@@ -190,15 +116,15 @@ function MiniChart({
           <AreaChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0.05} />
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <Area
               type="monotone"
               dataKey="value"
               stroke={chartColor}
-              strokeWidth={isHovered ? 2.5 : 2}
+              strokeWidth={isHovered ? 2 : 1.5}
               fill={`url(#${gradientId})`}
               animationDuration={1000}
             />
@@ -210,7 +136,6 @@ function MiniChart({
             <Bar
               dataKey="value"
               fill={chartColor}
-              radius={[2, 2, 0, 0]}
               animationDuration={1000}
               opacity={isHovered ? 1 : 0.8}
             />
@@ -223,7 +148,7 @@ function MiniChart({
               type="monotone"
               dataKey="value"
               stroke={chartColor}
-              strokeWidth={isHovered ? 2.5 : 2}
+              strokeWidth={isHovered ? 2 : 1.5}
               dot={false}
               animationDuration={1000}
             />
@@ -235,7 +160,7 @@ function MiniChart({
   };
 
   return (
-    <div className="h-16 w-full">
+    <div className="h-14 w-full">
       <ResponsiveContainer width="100%" height="100%">
         {renderChart()}
       </ResponsiveContainer>
@@ -248,12 +173,11 @@ export default function FeatureCards() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-12 sm:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-        {/* Section Header */}
-        <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm mb-4">
-            <Activity className="w-4 h-4 text-blue-500" />
+        <div className="text-center mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
+            <Activity className="w-4 h-4 text-gray-600" />
             <span className="text-sm font-medium text-gray-600">
               {t('home.features.sectionBadge')}
             </span>
@@ -266,11 +190,9 @@ export default function FeatureCards() {
           </p>
         </div>
 
-        {/* 2x2 Grid - Single column on mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {features.map((feature) => {
             const Icon = feature.icon;
-            const colors = COLOR_THEMES[feature.color];
             const isHovered = hoveredCard === feature.id;
 
             return (
@@ -278,166 +200,113 @@ export default function FeatureCards() {
                 key={feature.id}
                 href={feature.href}
                 className={`
-                  relative group rounded-2xl border-2 bg-white p-5 sm:p-6
-                  transition-all duration-500 ease-out overflow-hidden
-                  ${colors.border}
-                  ${isHovered ? `${colors.borderHover} shadow-2xl scale-[1.02]` : 'shadow-sm hover:shadow-lg'}
+                  relative group bg-white border border-gray-200 p-5 sm:p-6
+                  transition-colors duration-200
+                  ${isHovered ? 'border-gray-400' : ''}
                 `}
                 onMouseEnter={() => setHoveredCard(feature.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                {/* Background gradient on hover */}
-                <div
-                  className={`
-                    absolute inset-0 bg-gradient-to-br ${colors.gradient} 
-                    ${isHovered ? 'opacity-[0.03]' : 'opacity-0'}
-                    transition-opacity duration-500
-                  `}
-                />
-
-                {/* Animated border glow */}
-                <div
-                  className={`
-                    absolute inset-0 rounded-2xl transition-opacity duration-500
-                    ${isHovered ? 'opacity-100' : 'opacity-0'}
-                  `}
-                  style={{
-                    background: `linear-gradient(135deg, ${colors.chartColor}20, transparent 50%)`,
-                  }}
-                />
-
-                <div className="relative">
-                  {/* Header: Icon + Title + Arrow */}
-                  <div className="flex items-start gap-4 mb-4">
-                    {/* Enhanced Icon Container */}
-                    <div
-                      className={`
-                        flex-shrink-0 p-3 rounded-xl ${colors.iconBg}
-                        ring-2 ${colors.iconRing} ring-offset-2
-                        transition-all duration-500 ease-out
-                        ${isHovered ? 'scale-110 shadow-lg ring-offset-4' : ''}
-                      `}
-                    >
-                      <Icon
-                        className={`
-                          w-6 h-6 ${colors.text}
-                          transition-transform duration-500
-                          ${isHovered ? 'scale-110' : ''}
-                        `}
-                      />
-                    </div>
-
-                    {/* Title and Description */}
-                    <div className="flex-1 min-w-0 pt-1">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 group-hover:text-gray-800 transition-colors">
-                        {t(feature.titleKey)}
-                      </h3>
-                      <p className="text-sm text-gray-500 line-clamp-2">
-                        {t(feature.descriptionKey)}
-                      </p>
-                    </div>
-
-                    {/* Arrow Indicator with enhanced animation */}
-                    <div
-                      className={`
-                        flex-shrink-0 p-2 rounded-full ${colors.bg}
-                        transition-all duration-500 ease-out
-                        ${isHovered ? 'opacity-100 translate-x-0 bg-opacity-100' : 'opacity-0 translate-x-4'}
-                      `}
-                    >
-                      <ArrowRight
-                        className={`
-                          w-5 h-5 ${colors.text}
-                          transition-transform duration-500
-                          ${isHovered ? 'translate-x-0.5' : ''}
-                        `}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Mini Chart Section */}
+                <div className="flex items-start gap-4 mb-4">
                   <div
                     className={`
-                      mb-4 p-3 rounded-xl ${colors.bg} border ${colors.border}
-                      transition-all duration-500
-                      ${isHovered ? 'bg-opacity-100' : 'bg-opacity-50'}
+                      flex-shrink-0 p-3 bg-gray-100
+                      transition-colors duration-200
+                      ${isHovered ? 'bg-gray-200' : ''}
                     `}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {feature.chartType === 'area' && (
-                          <TrendingUp className={`w-3.5 h-3.5 ${colors.text}`} />
-                        )}
-                        {feature.chartType === 'bar' && (
-                          <BarChart3 className={`w-3.5 h-3.5 ${colors.text}`} />
-                        )}
-                        {feature.chartType === 'line' && (
-                          <LineChart className={`w-3.5 h-3.5 ${colors.text}`} />
-                        )}
-                        <span className={`text-xs font-medium ${colors.text}`}>
-                          {t('home.features.liveData')}
-                        </span>
-                      </div>
-                    </div>
-                    <MiniChart
-                      type={feature.chartType}
-                      data={feature.chartData}
-                      color={colors.chartColor}
-                      isHovered={isHovered}
+                    <Icon
+                      className={`
+                        w-6 h-6 text-gray-600
+                        transition-colors duration-200
+                      `}
                     />
                   </div>
 
-                  {/* Stats Section */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`
-                          px-2.5 py-1 rounded-lg ${colors.bg} 
-                          transition-all duration-500
-                          ${isHovered ? `${colors.bgHover} scale-105` : ''}
-                        `}
-                      >
-                        <span className={`text-sm font-bold ${colors.text}`}>
-                          {feature.statsValue}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500">{t(feature.statsKey)}</span>
-                    </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                      {t(feature.titleKey)}
+                    </h3>
+                    <p className="text-sm text-gray-500 line-clamp-2">
+                      {t(feature.descriptionKey)}
+                    </p>
+                  </div>
 
-                    <span
+                  <div
+                    className={`
+                      flex-shrink-0 p-2 bg-gray-100 border border-gray-200
+                      transition-opacity duration-200
+                      ${isHovered ? 'opacity-100' : 'opacity-0'}
+                    `}
+                  >
+                    <ArrowRight className="w-5 h-5 text-gray-600" />
+                  </div>
+                </div>
+
+                <div
+                  className={`
+                    mb-4 p-3 bg-gray-50 border border-gray-200
+                    transition-colors duration-200
+                    ${isHovered ? 'bg-gray-100' : ''}
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {feature.chartType === 'area' && (
+                        <TrendingUp className="w-3.5 h-3.5 text-gray-500" />
+                      )}
+                      {feature.chartType === 'bar' && (
+                        <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
+                      )}
+                      {feature.chartType === 'line' && (
+                        <LineChart className="w-3.5 h-3.5 text-gray-500" />
+                      )}
+                      <span className="text-xs font-medium text-gray-500">
+                        {t('home.features.liveData')}
+                      </span>
+                    </div>
+                  </div>
+                  <MiniChart
+                    type={feature.chartType}
+                    data={feature.chartData}
+                    isHovered={isHovered}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <div
                       className={`
-                        text-xs font-medium ${colors.text}
-                        transition-all duration-500
-                        ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}
+                        px-2.5 py-1 bg-gray-100
+                        transition-colors duration-200
+                        ${isHovered ? 'bg-gray-200' : ''}
                       `}
                     >
-                      {t('home.features.learnMore')}
-                    </span>
+                      <span className="text-sm font-bold text-gray-700">{feature.statsValue}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">{t(feature.statsKey)}</span>
                   </div>
+
+                  <span
+                    className={`
+                      text-xs font-medium text-gray-600
+                      transition-opacity duration-200
+                      ${isHovered ? 'opacity-100' : 'opacity-0'}
+                    `}
+                  >
+                    {t('home.features.learnMore')}
+                  </span>
                 </div>
               </Link>
             );
           })}
         </div>
 
-        {/* SVG Gradients for charts */}
         <svg width="0" height="0" className="absolute">
           <defs>
-            <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={chartColors.chart.blueLight} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={chartColors.chart.blueLight} stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id="indigoGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={chartColors.chart.indigoLight} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={chartColors.chart.indigoLight} stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id="violetGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={chartColors.chart.violetLight} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={chartColors.chart.violetLight} stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={chartColors.chart.emeraldLight} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={chartColors.chart.emeraldLight} stopOpacity={0.05} />
+            <linearGradient id="featureChartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={chartColors.chart.blue} stopOpacity={0.2} />
+              <stop offset="95%" stopColor={chartColors.chart.blue} stopOpacity={0.02} />
             </linearGradient>
           </defs>
         </svg>

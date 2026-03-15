@@ -275,7 +275,10 @@ export async function exportToPDF(
       doc.addImage(imgData, 'PNG', 14, yPos + 5, imgWidth, imgHeight);
       yPos += imgHeight + 15;
     } catch (error) {
-      logger.error('Failed to capture chart', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to capture chart',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 

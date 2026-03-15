@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from '../useCrossChainData';
 import {
   LineChart,
@@ -50,6 +51,7 @@ interface VolatilityCorrelationData {
 }
 
 export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
+  const { t } = useI18n();
   const { filteredChains, chartData, historicalPrices } = data;
   const [volatilityWindowSize, setVolatilityWindowSize] = useState(50);
   const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
@@ -195,18 +197,23 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     const sortedPayload = [...validPayload].sort((a, b) => (b.value || 0) - (a.value || 0));
 
     return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 min-w-[220px]">
+      <div className="bg-white border border-gray-200 p-3 min-w-[220px]">
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
           {typeof label === 'string' ? label : `数据点 #${label}`}
         </p>
         {sortedPayload.map((entry, index: number) => {
           const chain = entry.dataKey as Blockchain;
           const volatility = entry.value || 0;
-          const level = volatility < 30 ? '低' : volatility < 60 ? '中' : '高';
+          const level =
+            volatility < 30
+              ? t('crossChain.lowVolatility')
+              : volatility < 60
+                ? t('crossChain.mediumVolatility')
+                : t('crossChain.highVolatility');
           return (
             <div key={index} className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="w-3 h-3" style={{ backgroundColor: entry.color }} />
                 <span className="text-xs text-gray-700">{chainNames[chain]}</span>
               </div>
               <div className="text-xs pl-5 font-mono flex items-center gap-2">
@@ -216,7 +223,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 >
                   {volatility.toFixed(2)}%
                 </span>
-                <span className="text-gray-400">({level}波动)</span>
+                <span className="text-gray-400">({level})</span>
               </div>
             </div>
           );
@@ -230,7 +237,12 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     payload,
   }: {
     active?: boolean;
-    payload?: ReadonlyArray<{ dataKey: string; value: number; color?: string; payload?: VolatilityConePoint }>;
+    payload?: ReadonlyArray<{
+      dataKey: string;
+      value: number;
+      color?: string;
+      payload?: VolatilityConePoint;
+    }>;
   }) => {
     if (!active || !payload || payload.length === 0) return null;
 
@@ -238,41 +250,41 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     if (!data) return null;
 
     return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 min-w-[180px]">
+      <div className="bg-white border border-gray-200 p-3 min-w-[180px]">
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
-          窗口大小: {data.windowSize}
+          {t('crossChain.windowSize')}: {data.windowSize}
         </p>
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-500">最大值:</span>
+            <span className="text-gray-500">{t('crossChain.maxValue')}:</span>
             <span className="font-mono text-red-600">{data.maxVolatility.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">90%分位:</span>
+            <span className="text-gray-500">{t('crossChain.p90')}:</span>
             <span className="font-mono">{data.p90.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">75%分位:</span>
+            <span className="text-gray-500">{t('crossChain.p75')}:</span>
             <span className="font-mono">{data.p75.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">中位数:</span>
+            <span className="text-gray-500">{t('crossChain.median')}:</span>
             <span className="font-mono font-semibold">{data.medianVolatility.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">均值:</span>
+            <span className="text-gray-500">{t('crossChain.mean')}:</span>
             <span className="font-mono">{data.meanVolatility.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">25%分位:</span>
+            <span className="text-gray-500">{t('crossChain.p25')}:</span>
             <span className="font-mono">{data.p25.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">10%分位:</span>
+            <span className="text-gray-500">{t('crossChain.p10')}:</span>
             <span className="font-mono">{data.p10.toFixed(2)}%</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">最小值:</span>
+            <span className="text-gray-500">{t('crossChain.minValue')}:</span>
             <span className="font-mono text-green-600">{data.minVolatility.toFixed(2)}%</span>
           </div>
         </div>
@@ -291,15 +303,15 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
-              滚动波动率时序图
+              {t('crossChain.rollingVolatility')}
             </h3>
             <p className="text-xs text-gray-500 mt-1">
-              展示各链价格波动的动态变化。窗口大小: {volatilityWindowSize} 个数据点
+              {t('crossChain.windowSize')}: {volatilityWindowSize}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500">窗口大小:</span>
-            <div className="flex items-center gap-1 border border-gray-200 rounded">
+            <span className="text-xs text-gray-500">{t('crossChain.windowSize')}:</span>
+            <div className="flex items-center gap-1 border border-gray-200">
               {VOLATILITY_WINDOW_SIZES.map((option) => (
                 <button
                   key={option.value}
@@ -307,7 +319,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                   className={`px-3 py-1 text-xs transition-colors ${
                     volatilityWindowSize === option.value
                       ? 'bg-gray-900 text-white'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      : 'text-gray-600 hover:border-gray-300 border border-transparent'
                   }`}
                 >
                   {option.label}
@@ -317,7 +329,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-50 p-4 border border-gray-200">
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -337,7 +349,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                   tickFormatter={(value) => `${value.toFixed(0)}%`}
                   width={50}
                   label={{
-                    value: '年化波动率 (%)',
+                    value: t('crossChain.annualizedVolatility'),
                     angle: -90,
                     position: 'insideLeft',
                     fontSize: 12,
@@ -346,8 +358,18 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                 <Tooltip content={<VolatilityTooltip />} />
                 <Legend onClick={handleLegendClick} />
 
-                <ReferenceLine y={30} stroke={semanticColors.success.DEFAULT} strokeDasharray="5 5" strokeOpacity={0.5} />
-                <ReferenceLine y={60} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" strokeOpacity={0.5} />
+                <ReferenceLine
+                  y={30}
+                  stroke={semanticColors.success.DEFAULT}
+                  strokeDasharray="5 5"
+                  strokeOpacity={0.5}
+                />
+                <ReferenceLine
+                  y={60}
+                  stroke={semanticColors.warning.DEFAULT}
+                  strokeDasharray="5 5"
+                  strokeOpacity={0.5}
+                />
 
                 {filteredChains.map((chain) => (
                   <Line
@@ -371,15 +393,15 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           <div className="mt-4 flex items-center justify-center gap-6 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-6 h-0.5 bg-green-500" />
-              <span className="text-gray-600">&lt; 30% (低波动)</span>
+              <span className="text-gray-600">&lt; 30% ({t('crossChain.lowVolatility')})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-0.5 bg-yellow-500" />
-              <span className="text-gray-600">30% - 60% (中等波动)</span>
+              <span className="text-gray-600">30% - 60% ({t('crossChain.mediumVolatility')})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-0.5 bg-red-500" />
-              <span className="text-gray-600">&gt; 60% (高波动)</span>
+              <span className="text-gray-600">&gt; 60% ({t('crossChain.highVolatility')})</span>
             </div>
           </div>
         </div>
@@ -388,11 +410,9 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
       {/* 波动率相关性矩阵 */}
       <div className="mb-8 pb-8 border-b border-gray-200">
         <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
-          链间波动率相关性矩阵
+          {t('crossChain.volatilityCorrelationMatrix')}
         </h3>
-        <p className="text-xs text-gray-500 mb-4">
-          衡量不同链之间波动率变化的同步程度。高相关性表示链间波动趋于一致。
-        </p>
+        <p className="text-xs text-gray-500 mb-4">{t('crossChain.volatilityCorrelationMatrix')}</p>
 
         <div className="overflow-x-auto">
           <div className="min-w-full">
@@ -447,14 +467,16 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
             ))}
             <div className="mt-4 flex items-center justify-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">相关性强度:</span>
+                <span className="text-xs text-gray-500">
+                  {t('crossChain.correlationStrength')}:
+                </span>
                 <div
                   className="w-32 h-3"
                   style={{
                     background: `linear-gradient(to right, ${chartColors.recharts.grid}, ${chartColors.semantic.neutral}, ${chartColors.recharts.primaryLight}, ${chartColors.recharts.primary})`,
                   }}
                 />
-                <span className="text-xs text-gray-500">弱 → 强</span>
+                <span className="text-xs text-gray-500">{t('crossChain.weakToStrong')}</span>
               </div>
             </div>
           </div>
@@ -466,18 +488,16 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
-              波动率锥分析
+              {t('crossChain.volatilityConeAnalysis')}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">
-              展示不同时间窗口下的波动率分布范围，帮助判断当前波动率水平
-            </p>
+            <p className="text-xs text-gray-500 mt-1">{t('crossChain.volatilityConeDesc')}</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">选择链:</span>
+            <span className="text-xs text-gray-500">{t('crossChain.selectChain')}:</span>
             <select
               value={selectedConeChain || ''}
               onChange={(e) => setSelectedConeChain((e.target.value as Blockchain) || null)}
-              className="text-sm border border-gray-200 rounded px-2 py-1"
+              className="text-sm border border-gray-200 px-2 py-1"
             >
               {filteredChains.map((chain) => (
                 <option key={chain} value={chain}>
@@ -488,7 +508,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-50 p-4 border border-gray-200">
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
@@ -501,7 +521,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                   tick={{ fontSize: 11 }}
                   tickFormatter={(value) => `${value}`}
                   label={{
-                    value: '窗口大小',
+                    value: t('crossChain.windowSize'),
                     position: 'insideBottom',
                     offset: -5,
                     fontSize: 12,
@@ -512,7 +532,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
                   tickFormatter={(value) => `${value.toFixed(0)}%`}
                   width={50}
                   label={{
-                    value: '波动率 (%)',
+                    value: t('crossChain.annualizedVolatility'),
                     angle: -90,
                     position: 'insideLeft',
                     fontSize: 12,
@@ -620,27 +640,27 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-green-600" style={{ height: '2px' }} />
-              <span className="text-gray-600">中位数</span>
+              <span className="text-gray-600">{t('crossChain.median')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-indigo-500" style={{ height: '2px' }} />
-              <span className="text-gray-600">均值</span>
+              <span className="text-gray-600">{t('crossChain.mean')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-blue-500" style={{ height: '1px' }} />
-              <span className="text-gray-600">25%/75%分位</span>
+              <span className="text-gray-600">25%/75%</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-yellow-500" style={{ height: '1px' }} />
-              <span className="text-gray-600">10%/90%分位</span>
+              <span className="text-gray-600">10%/90%</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-red-600" style={{ height: '1px' }} />
-              <span className="text-gray-600">最大值</span>
+              <span className="text-gray-600">{t('crossChain.maxValue')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-0.5 bg-green-600" style={{ height: '1px' }} />
-              <span className="text-gray-600">最小值</span>
+              <span className="text-gray-600">{t('crossChain.minValue')}</span>
             </div>
           </div>
         </div>

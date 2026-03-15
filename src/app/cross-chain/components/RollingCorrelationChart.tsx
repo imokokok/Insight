@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from '../useCrossChainData';
 import {
   LineChart,
@@ -33,6 +34,7 @@ interface ChartDataPoint {
 }
 
 export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) {
+  const { t } = useI18n();
   const { filteredChains, chartData } = data;
   const [windowSize, setWindowSize] = useState(30);
   const [hiddenLines, setHiddenLines] = useState<Set<string>>(new Set());
@@ -138,9 +140,9 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     if (validPayload.length === 0) return null;
 
     return (
-      <div className="bg-white border border-gray-200 shadow-lg p-3 min-w-[200px]">
+      <div className="bg-white border border-gray-200 p-3 min-w-[200px]">
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
-          数据点 #{label}
+          {t('crossChain.dataPoint')} #{label}
         </p>
         {validPayload.map((entry, index: number) => {
           const pairKey = entry.dataKey;
@@ -170,7 +172,9 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                 r = {Number(entry.value).toFixed(4)}
                 {isHighlighted && (
                   <span className="ml-1 text-[10px] text-orange-500">
-                    {Math.abs(entry.value) > 0.8 ? '(强相关)' : '(弱相关)'}
+                    {Math.abs(entry.value) > 0.8
+                      ? `(${t('crossChain.strongCorrelation')})`
+                      : `(${t('crossChain.weakCorrelation')})`}
                   </span>
                 )}
               </div>
@@ -190,15 +194,15 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
-            滚动相关性时序图
+            {t('crossChain.rollingCorrelationChart')}
           </h3>
           <p className="text-xs text-gray-500 mt-1">
-            展示不同链对之间价格相关性的动态变化。窗口大小: {windowSize} 个数据点
+            {t('crossChain.windowSize')}: {windowSize}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">窗口大小:</span>
-          <div className="flex items-center gap-1 border border-gray-200 rounded">
+          <span className="text-xs text-gray-500">{t('crossChain.windowSize')}:</span>
+          <div className="flex items-center gap-1 border border-gray-200">
             {WINDOW_SIZES.map((option) => (
               <button
                 key={option.value}
@@ -206,7 +210,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                 className={`px-3 py-1 text-xs transition-colors ${
                   windowSize === option.value
                     ? 'bg-gray-900 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    : 'text-gray-600 hover:border-gray-300 border border-transparent'
                 }`}
               >
                 {option.label}
@@ -216,7 +220,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
+      <div className="bg-gray-50 p-4 border border-gray-200">
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -228,7 +232,12 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                 dataKey="index"
                 tick={{ fontSize: 11 }}
                 tickFormatter={(value) => `#${value}`}
-                label={{ value: '时间序列', position: 'insideBottom', offset: -5, fontSize: 12 }}
+                label={{
+                  value: t('crossChain.timeSeries'),
+                  position: 'insideBottom',
+                  offset: -5,
+                  fontSize: 12,
+                }}
               />
               <YAxis
                 domain={[-1, 1]}
@@ -236,7 +245,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                 tickFormatter={(value) => value.toFixed(1)}
                 width={40}
                 label={{
-                  value: '相关系数',
+                  value: t('crossChain.correlationCoefficient'),
                   angle: -90,
                   position: 'insideLeft',
                   fontSize: 12,
@@ -246,11 +255,35 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
               <Legend onClick={handleLegendClick} />
 
               {/* Reference lines for correlation thresholds */}
-              <ReferenceLine y={0.8} stroke={semanticColors.success.main} strokeDasharray="5 5" strokeOpacity={0.5} />
-              <ReferenceLine y={-0.8} stroke={semanticColors.success.main} strokeDasharray="5 5" strokeOpacity={0.5} />
-              <ReferenceLine y={0.2} stroke={semanticColors.warning.main} strokeDasharray="5 5" strokeOpacity={0.3} />
-              <ReferenceLine y={-0.2} stroke={semanticColors.warning.main} strokeDasharray="5 5" strokeOpacity={0.3} />
-              <ReferenceLine y={0} stroke={chartColors.recharts.secondaryAxis} strokeDasharray="3 3" />
+              <ReferenceLine
+                y={0.8}
+                stroke={semanticColors.success.main}
+                strokeDasharray="5 5"
+                strokeOpacity={0.5}
+              />
+              <ReferenceLine
+                y={-0.8}
+                stroke={semanticColors.success.main}
+                strokeDasharray="5 5"
+                strokeOpacity={0.5}
+              />
+              <ReferenceLine
+                y={0.2}
+                stroke={semanticColors.warning.main}
+                strokeDasharray="5 5"
+                strokeOpacity={0.3}
+              />
+              <ReferenceLine
+                y={-0.2}
+                stroke={semanticColors.warning.main}
+                strokeDasharray="5 5"
+                strokeOpacity={0.3}
+              />
+              <ReferenceLine
+                y={0}
+                stroke={chartColors.recharts.secondaryAxis}
+                strokeDasharray="3 3"
+              />
 
               {chainPairs.map(({ chainX, chainY, key }) => (
                 <Line
@@ -274,15 +307,17 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         <div className="mt-4 flex items-center justify-center gap-6 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-6 h-0.5 bg-green-500" style={{ height: '3px' }} />
-            <span className="text-gray-600">|r| &gt; 0.8 (强相关)</span>
+            <span className="text-gray-600">
+              |r| &gt; 0.8 ({t('crossChain.strongCorrelation')})
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-0.5 bg-gray-400" style={{ height: '1.5px' }} />
-            <span className="text-gray-600">0.2 ≤ |r| ≤ 0.8 (中等相关)</span>
+            <span className="text-gray-600">0.2 ≤ |r| ≤ 0.8</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-0.5 bg-yellow-500" style={{ height: '3px' }} />
-            <span className="text-gray-600">|r| &lt; 0.2 (弱相关)</span>
+            <span className="text-gray-600">|r| &lt; 0.2 ({t('crossChain.weakCorrelation')})</span>
           </div>
         </div>
       </div>

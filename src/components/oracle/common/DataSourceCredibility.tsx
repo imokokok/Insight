@@ -74,7 +74,6 @@ function CircularProgress({
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
           className="transition-all duration-500"
         />
       </svg>
@@ -92,9 +91,9 @@ function ContributionBar({ contribution, color }: { contribution: number; color:
         <span className="text-xs text-gray-500">贡献度</span>
         <span className="text-xs font-medium text-gray-700">{contribution.toFixed(1)}%</span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-gray-200  overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full  transition-all duration-500"
           style={{
             width: `${contribution}%`,
             backgroundColor: color,
@@ -127,11 +126,11 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
   ];
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors">
+    <div className="border border-gray-200  overflow-hidden hover:border-gray-300 transition-colors">
       <div className="p-4 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+            <div className="w-3 h-3 " style={{ backgroundColor: color }} />
             <h4 className="text-base font-semibold text-gray-900">{source.name}</h4>
           </div>
           <div className="flex items-center gap-3">
@@ -142,12 +141,7 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
@@ -183,10 +177,7 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
               <h5 className="text-sm font-medium text-gray-700 mb-3">详细指标</h5>
               <div className="space-y-3">
                 {metrics.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="bg-white rounded-lg p-3 border border-gray-200"
-                  >
+                  <div key={metric.label} className="bg-white  p-3 border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{metric.icon}</span>
@@ -196,9 +187,9 @@ function DataSourceCard({ source }: { source: DataSourceCredibilityProps['source
                         {metric.value}
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-gray-200  overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
+                        className="h-full  transition-all duration-500"
                         style={{
                           width: `${metric.value}%`,
                           backgroundColor: getScoreColor(metric.value),
@@ -232,7 +223,7 @@ export function DataSourceCredibility({ sources, className = '' }: DataSourceCre
   return (
     <DashboardCard title="数据源可信度分析" className={className}>
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-100 border border-gray-200 ">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">数据源数量</p>
             <p className="text-3xl font-bold text-gray-900">{sources.length}</p>
@@ -264,7 +255,6 @@ export function DataSourceCredibility({ sources, className = '' }: DataSourceCre
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"

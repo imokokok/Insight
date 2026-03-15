@@ -101,36 +101,40 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
     ],
   });
 
-  const [priceResult, historicalResult, tronResult, stakingResult, gamingResult, networkResult] = results;
+  const [priceResult, historicalResult, tronResult, stakingResult, gamingResult, networkResult] =
+    results;
 
-  const isLoading = results.some(r => r.isLoading);
-  const isError = results.some(r => r.isError);
-  const errors = results.map(r => r.error).filter(Boolean) as Error[];
+  const isLoading = results.some((r) => r.isLoading);
+  const isError = results.some((r) => r.isError);
+  const errors = results.map((r) => r.error).filter(Boolean) as Error[];
 
   const refetchAll = () => {
-    results.forEach(r => r.refetch());
+    results.forEach((r) => r.refetch());
   };
 
-  return useMemo(() => ({
-    price: priceResult.data,
-    historicalData: historicalResult.data,
-    tronData: tronResult.data,
-    stakingData: stakingResult.data,
-    gamingData: gamingResult.data,
-    networkStats: networkResult.data,
-    isLoading,
-    isError,
-    errors,
-    refetchAll,
-  }), [
-    priceResult.data,
-    historicalResult.data,
-    tronResult.data,
-    stakingResult.data,
-    gamingResult.data,
-    networkResult.data,
-    isLoading,
-    isError,
-    errors,
-  ]);
+  return useMemo(
+    () => ({
+      price: priceResult.data,
+      historicalData: historicalResult.data,
+      tronData: tronResult.data,
+      stakingData: stakingResult.data,
+      gamingData: gamingResult.data,
+      networkStats: networkResult.data,
+      isLoading,
+      isError,
+      errors,
+      refetchAll,
+    }),
+    [
+      priceResult.data,
+      historicalResult.data,
+      tronResult.data,
+      stakingResult.data,
+      gamingResult.data,
+      networkResult.data,
+      isLoading,
+      isError,
+      errors,
+    ]
+  );
 }

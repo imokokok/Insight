@@ -513,10 +513,7 @@ export function useChartZoom(options: UseChartZoomOptions = {}): UseChartZoomRet
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
 
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
 
       touchRef.current = {
         isTouching: true,
@@ -543,10 +540,7 @@ export function useChartZoom(options: UseChartZoomOptions = {}): UseChartZoomRet
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
 
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
 
       // 计算缩放
       const scaleRatio = distance / touchRef.current.startDistance;

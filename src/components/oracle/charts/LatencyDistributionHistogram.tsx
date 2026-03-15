@@ -141,14 +141,14 @@ function generateMockTrendData(
 ): LatencyDataPoint[] {
   const now = new Date();
   const data: LatencyDataPoint[] = [];
-  
+
   const pointsCount = {
     '1h': 60,
     '6h': 72,
     '24h': 96,
     '7d': 84,
   }[timeRange];
-  
+
   const intervalMinutes = {
     '1h': 1,
     '6h': 5,
@@ -156,9 +156,8 @@ function generateMockTrendData(
     '7d': 120,
   }[timeRange];
 
-  const baseLatency = baseData.length > 0 
-    ? baseData.reduce((a, b) => a + b, 0) / baseData.length 
-    : 100;
+  const baseLatency =
+    baseData.length > 0 ? baseData.reduce((a, b) => a + b, 0) / baseData.length : 100;
 
   for (let i = pointsCount - 1; i >= 0; i--) {
     const timestamp = new Date(now);
@@ -227,7 +226,7 @@ export function LatencyDistributionHistogram({
 
   const formatTooltip = (bin: HistogramBin) => {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+      <div className="bg-white border border-gray-200  p-3 ">
         <p className="text-xs text-gray-600 font-medium mb-2">
           {t('latencyDistribution.range')}: {bin.range}ms
         </p>
@@ -266,7 +265,7 @@ export function LatencyDistributionHistogram({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
+      <div className={`bg-white border border-gray-200  p-5 ${className}`}>
         <div className="text-center py-10">
           <p className="text-gray-500">{t('latencyDistribution.noData')}</p>
         </div>
@@ -276,7 +275,7 @@ export function LatencyDistributionHistogram({
 
   const renderHistogramView = () => (
     <>
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-gray-200  p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('latencyDistribution.histogramTitle')}
@@ -350,7 +349,7 @@ export function LatencyDistributionHistogram({
                 fontWeight: 600,
               }}
             />
-            <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="percentage">
               {histogramData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getBarColorByLatency(entry.min)} />
               ))}
@@ -392,16 +391,16 @@ export function LatencyDistributionHistogram({
             <p className="text-sm text-gray-500 mt-1">{t('latencyDistribution.subtitle')}</p>
           </div>
         )}
-        
+
         {/* View Switcher */}
-        <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex bg-gray-100  p-1">
           {viewOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setCurrentView(option.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-all ${
                 currentView === option.value
-                  ? 'bg-white text-gray-900 shadow-sm font-medium'
+                  ? 'bg-white text-gray-900  font-medium'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -417,7 +416,7 @@ export function LatencyDistributionHistogram({
         {percentileItems.map((item) => (
           <div
             key={item.label}
-            className="bg-white border border-gray-200 rounded-xl p-4"
+            className="bg-white border border-gray-200  p-4"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
           >
             <div className="flex items-center justify-between mb-2">
@@ -437,10 +436,7 @@ export function LatencyDistributionHistogram({
       {/* Statistics Grid - Always visible */}
       <div className="grid grid-cols-6 gap-3">
         {statItems.map((item) => (
-          <div
-            key={item.label}
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center"
-          >
+          <div key={item.label} className="bg-white border border-gray-200  p-3 text-center">
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -450,16 +446,11 @@ export function LatencyDistributionHistogram({
 
       {/* View Content */}
       {currentView === 'histogram' && renderHistogramView()}
-      
+
       {currentView === 'cdf' && (
-        <CDFChart
-          data={data}
-          oracleName={oracleName}
-          height={350}
-          showPercentileLabels
-        />
+        <CDFChart data={data} oracleName={oracleName} height={350} showPercentileLabels />
       )}
-      
+
       {currentView === 'trend' && (
         <LatencyTrendMiniChart
           data={trendData}

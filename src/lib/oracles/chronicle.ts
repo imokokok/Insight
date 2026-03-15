@@ -312,8 +312,9 @@ export class ChronicleClient extends BaseOracleClient {
       },
     ];
 
-    const activeValidators = validators.filter(v => v.status === 'active').length;
-    const averageReputation = validators.reduce((sum, v) => sum + v.reputationScore, 0) / validators.length;
+    const activeValidators = validators.filter((v) => v.status === 'active').length;
+    const averageReputation =
+      validators.reduce((sum, v) => sum + v.reputationScore, 0) / validators.length;
     const totalStaked = validators.reduce((sum, v) => sum + v.stakedAmount, 0);
 
     return {
@@ -335,8 +336,8 @@ export class ChronicleClient extends BaseOracleClient {
       totalStaked: 25000000,
       dataFeeds: 85,
       hourlyActivity: [
-        1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800,
-        3600, 3400, 3200, 3300, 3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
+        1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800, 3600, 3400, 3200, 3300,
+        3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
       ],
       status: 'online',
       latency: 140,

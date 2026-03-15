@@ -86,7 +86,7 @@ const CustomTooltip = ({ active, payload, t }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+      <div className="bg-white border border-gray-200   p-3">
         <p className="font-medium text-gray-900">{data.name}</p>
         <p className="text-sm text-gray-600 mt-1">
           {t('stakingDistribution.stakeAmount')}: {formatNumber(data.value, true)} BAND
@@ -276,15 +276,13 @@ export function StakingDistributionChart({
           </div>
 
           <div className="space-y-4">
-            <div
-              className={`border-2 ${riskConfig.borderColor} ${riskConfig.bgColor} rounded-xl p-4`}
-            >
+            <div className={`border-2 ${riskConfig.borderColor} ${riskConfig.bgColor}  p-4`}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-gray-700">
                   {t('stakingDistribution.nakamotoCoefficient')}
                 </span>
                 <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full ${riskConfig.bgColor} ${riskConfig.color}`}
+                  className={`px-3 py-1 text-xs font-semibold  ${riskConfig.bgColor} ${riskConfig.color}`}
                 >
                   {riskConfig.label}
                 </span>
@@ -303,14 +301,14 @@ export function StakingDistributionChart({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top3Ratio')}</p>
                 <p className="text-xl font-bold text-gray-900">
                   {metrics.top3Percentage.toFixed(1)}%
                 </p>
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                <div className="w-full bg-gray-200  h-1.5 mt-2">
                   <div
-                    className={`h-1.5 rounded-full ${
+                    className={`h-1.5  ${
                       metrics.top3Percentage >= 50
                         ? 'bg-red-500'
                         : metrics.top3Percentage >= 33
@@ -321,14 +319,14 @@ export function StakingDistributionChart({
                   />
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500 mb-1">{t('stakingDistribution.top5Ratio')}</p>
                 <p className="text-xl font-bold text-gray-900">
                   {metrics.top5Percentage.toFixed(1)}%
                 </p>
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                <div className="w-full bg-gray-200  h-1.5 mt-2">
                   <div
-                    className={`h-1.5 rounded-full ${
+                    className={`h-1.5  ${
                       metrics.top5Percentage >= 60
                         ? 'bg-red-500'
                         : metrics.top5Percentage >= 45
@@ -341,7 +339,7 @@ export function StakingDistributionChart({
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-gray-50  p-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">
@@ -410,7 +408,7 @@ export function StakingDistributionChart({
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3 h-3 "
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                           />
                           <span className="text-sm text-gray-900">{item.name}</span>
@@ -444,10 +442,7 @@ export function StakingDistributionChart({
                     </td>
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: OTHERS_COLOR }}
-                        />
+                        <div className="w-3 h-3 " style={{ backgroundColor: OTHERS_COLOR }} />
                         <span className="text-sm text-gray-500">{othersData.name}</span>
                       </div>
                     </td>
@@ -473,7 +468,7 @@ export function StakingDistributionChart({
         </div>
 
         {metrics.riskLevel === 'critical' && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-50 border border-red-200  p-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"
@@ -482,7 +477,6 @@ export function StakingDistributionChart({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -503,7 +497,7 @@ export function StakingDistributionChart({
         )}
 
         {metrics.riskLevel === 'high' && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="bg-orange-50 border border-orange-200  p-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
@@ -512,7 +506,6 @@ export function StakingDistributionChart({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -530,7 +523,7 @@ export function StakingDistributionChart({
           </div>
         )}
 
-        <div className="bg-blue-50 rounded-lg p-4">
+        <div className="bg-blue-50  p-4">
           <h4 className="text-sm font-medium text-blue-900 mb-2">
             {t('stakingDistribution.metricsExplanation')}
           </h4>

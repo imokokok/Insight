@@ -1,9 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import {
-  OracleMarketData,
-  AssetData,
-  AnomalyData,
-} from '@/app/market-overview/types';
+import { OracleMarketData, AssetData, AnomalyData } from '@/app/market-overview/types';
 import {
   detectPriceAnomalies,
   detectTrendBreak,

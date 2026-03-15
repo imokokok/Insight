@@ -56,11 +56,15 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
         queryCache: new QueryCache({
           onError: (error, query) => {
             if (isAppError(error)) {
-              logger.error(`Query error [${query.queryHash}]: ${error.code} - ${error.message}`, error, {
-                statusCode: error.statusCode,
-                details: error.details,
-                queryKey: query.queryKey,
-              });
+              logger.error(
+                `Query error [${query.queryHash}]: ${error.code} - ${error.message}`,
+                error,
+                {
+                  statusCode: error.statusCode,
+                  details: error.details,
+                  queryKey: query.queryKey,
+                }
+              );
             } else if (error instanceof Error) {
               logger.error(`Query error [${query.queryHash}]: ${error.message}`, error, {
                 queryKey: query.queryKey,

@@ -22,7 +22,7 @@ export function ValidatorHistoryChart({
 
   if (data.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-gray-200  p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-gray-900 text-sm font-semibold">
@@ -109,7 +109,7 @@ export function ValidatorHistoryChart({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -124,13 +124,13 @@ export function ValidatorHistoryChart({
             <button
               key={option.value}
               onClick={() => onTimeRangeChange(option.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium  transition-colors ${
                 timeRange === option.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -141,16 +141,13 @@ export function ValidatorHistoryChart({
           <button
             key={metric}
             onClick={() => setActiveMetric(metric)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium  transition-colors ${
               activeMetric === metric
                 ? 'bg-gray-100 text-gray-900'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getMetricColor(metric) }}
-            />
+            <div className="w-2 h-2 " style={{ backgroundColor: getMetricColor(metric) }} />
             {getMetricLabel(metric)}
           </button>
         ))}
@@ -191,7 +188,6 @@ export function ValidatorHistoryChart({
             fill="none"
             stroke={getMetricColor(activeMetric)}
             strokeWidth="2"
-            strokeLinecap="round"
             strokeLinejoin="round"
           />
 

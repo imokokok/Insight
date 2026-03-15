@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 interface CardProps {
   children: ReactNode;
   className?: string;
-  variant?: 'default' | 'elevated' | 'outlined' | 'gradient';
+  variant?: 'default' | 'outlined';
   hoverable?: boolean;
   style?: React.CSSProperties;
 }
@@ -12,34 +12,24 @@ export default function Card({
   children,
   className = '',
   variant = 'default',
-  hoverable = true,
+  hoverable = false,
   style,
 }: CardProps) {
-  const baseClasses = 'bg-white rounded-2xl transition-all duration-500 ease-out';
+  const baseClasses = 'bg-white transition-colors duration-200';
 
   const variantClasses = {
-    default: 'border border-gray-100 shadow-sm',
-    elevated: 'border-0 shadow-lg shadow-gray-200/50',
-    outlined: 'border-2 border-gray-200 shadow-none',
-    gradient: 'border-0 shadow-lg shadow-blue-200/30 relative overflow-hidden',
+    default: 'border border-gray-200',
+    outlined: 'border border-gray-300',
   };
 
-  const hoverClasses = hoverable
-    ? 'hover:shadow-2xl hover:shadow-blue-100/60 hover:-translate-y-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
-    : '';
-
-  const gradientOverlay =
-    variant === 'gradient' ? (
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 pointer-events-none" />
-    ) : null;
+  const hoverClasses = hoverable ? 'hover:border-gray-400 cursor-pointer' : '';
 
   return (
     <div
       className={`${baseClasses} ${variantClasses[variant]} ${hoverClasses} ${className}`}
       style={style}
     >
-      {gradientOverlay}
-      <div className="relative z-10">{children}</div>
+      {children}
     </div>
   );
 }
@@ -50,7 +40,7 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`px-6 py-5 border-b border-gray-100 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>{children}</div>;
 }
 
 interface CardTitleProps {
@@ -59,11 +49,7 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return (
-    <h3 className={`text-xl font-semibold text-gray-900 tracking-tight ${className}`}>
-      {children}
-    </h3>
-  );
+  return <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>{children}</h3>;
 }
 
 interface CardContentProps {
@@ -72,5 +58,5 @@ interface CardContentProps {
 }
 
 export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`px-6 py-5 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
 }

@@ -50,7 +50,10 @@ export function calculatePredictionIntervals(
   });
 }
 
-export function generateHistoricalData(basePrice: number, timeRange: TimeRange): IndicatorDataPoint[] {
+export function generateHistoricalData(
+  basePrice: number,
+  timeRange: TimeRange
+): IndicatorDataPoint[] {
   const config = TIME_RANGE_CONFIG[timeRange];
   const now = Date.now();
   const dataPoints: IndicatorDataPoint[] = [];

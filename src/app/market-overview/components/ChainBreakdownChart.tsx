@@ -38,9 +38,9 @@ export default function ChainBreakdownChart({
     if (active && payload && payload.length) {
       const item = payload[0].payload as ChainBreakdown;
       return (
-        <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 min-w-[160px]">
+        <div className="bg-white border border-gray-200 p-2 min-w-[160px]">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
             <span className="font-medium text-gray-900 text-sm">{item.chainName}</span>
           </div>
           <div className="space-y-1 text-sm">
@@ -88,7 +88,7 @@ export default function ChainBreakdownChart({
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -149,7 +149,7 @@ export default function ChainBreakdownChart({
               >
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <div className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900 text-sm">{item.chainName}</span>
                   </div>
                 </td>
@@ -195,20 +195,20 @@ export default function ChainBreakdownChart({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setChartType('pie')}
-            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
+            className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'pie'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             {locale === 'zh-CN' ? '饼图' : 'Pie'}
           </button>
           <button
             onClick={() => setChartType('bar')}
-            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
+            className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'bar'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             {locale === 'zh-CN' ? '柱状图' : 'Bar'}
@@ -296,16 +296,13 @@ export default function ChainBreakdownChart({
           <button
             key={item.chainId}
             onClick={() => setSelectedItem(item.chainId === selectedItem ? null : item.chainId)}
-            className={`flex items-center gap-2 p-2 rounded transition-all text-left ${
+            className={`flex items-center gap-2 p-2 border transition-all text-left ${
               selectedItem === item.chainId
-                ? 'bg-blue-50 border border-blue-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-blue-50 border-blue-200'
+                : 'border-transparent hover:bg-gray-50'
             }`}
           >
-            <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: item.color }}
-            />
+            <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: item.color }} />
             <div className="min-w-0">
               <div className="text-xs font-medium text-gray-900 truncate">{item.chainName}</div>
               <div className="text-xs text-gray-500">{item.share.toFixed(1)}%</div>

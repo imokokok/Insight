@@ -61,7 +61,6 @@ export function SnapshotComparison({
         viewBox="0 0 24 24"
       >
         <path
-          strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d={isPositive ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}
@@ -71,11 +70,11 @@ export function SnapshotComparison({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-4">
+    <div className="bg-white border border-gray-200  overflow-hidden">
+      <div className="bg-gray-100 border border-gray-200 border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
+            <div className="w-10 h-10  bg-white  flex items-center justify-center">
               <svg
                 className="w-5 h-5 text-indigo-600"
                 fill="none"
@@ -83,7 +82,6 @@ export function SnapshotComparison({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -103,12 +101,7 @@ export function SnapshotComparison({
               className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded-md transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           )}
@@ -117,7 +110,7 @@ export function SnapshotComparison({
 
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 平均价格变化
@@ -144,7 +137,7 @@ export function SnapshotComparison({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 最高价格变化
@@ -171,7 +164,7 @@ export function SnapshotComparison({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 最低价格变化
@@ -198,7 +191,7 @@ export function SnapshotComparison({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 价格范围变化
@@ -225,7 +218,7 @@ export function SnapshotComparison({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 标准差变化
@@ -248,7 +241,7 @@ export function SnapshotComparison({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 预言机数量变化

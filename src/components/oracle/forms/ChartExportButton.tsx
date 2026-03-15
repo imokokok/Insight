@@ -344,7 +344,7 @@ export function ChartExportButton({
 
   // 导出设置面板
   const renderSettingsPanel = () => (
-    <div className="absolute top-full mt-2 right-0 w-96 bg-white rounded-lg shadow-lg border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
+    <div className="absolute top-full mt-2 right-0 w-96 bg-white   border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
       <div className="px-4 pb-3 border-b border-gray-100">
         <h3 className="text-sm font-semibold text-gray-900">导出设置</h3>
         <p className="text-xs text-gray-500 mt-0.5">自定义导出选项</p>
@@ -356,7 +356,7 @@ export function ChartExportButton({
         <div className="flex gap-2">
           <button
             onClick={() => setSettings({ ...settings, range: 'current' })}
-            className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-colors ${
+            className={`flex-1 px-3 py-2 text-xs  border transition-colors ${
               settings.range === 'current'
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -366,7 +366,7 @@ export function ChartExportButton({
           </button>
           <button
             onClick={() => setSettings({ ...settings, range: 'all' })}
-            className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-colors ${
+            className={`flex-1 px-3 py-2 text-xs  border transition-colors ${
               settings.range === 'all'
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -393,7 +393,7 @@ export function ChartExportButton({
                 },
               })
             }
-            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="date"
@@ -407,7 +407,7 @@ export function ChartExportButton({
                 },
               })
             }
-            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -420,9 +420,11 @@ export function ChartExportButton({
           value={settings.filenameTemplate}
           onChange={(e) => setSettings({ ...settings, filenameTemplate: e.target.value })}
           placeholder="{title}_{date}_{time}"
-          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <p className="text-xs text-gray-400 mt-1">可用变量: {'{title}'}, {'{date}'}, {'{time}'}, {'{source}'}</p>
+        <p className="text-xs text-gray-400 mt-1">
+          可用变量: {'{title}'}, {'{date}'}, {'{time}'}, {'{source}'}
+        </p>
       </div>
 
       {/* 自定义文件名 */}
@@ -433,7 +435,7 @@ export function ChartExportButton({
           value={settings.customFilename}
           onChange={(e) => setSettings({ ...settings, customFilename: e.target.value })}
           placeholder={generateFilename()}
-          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -463,13 +465,13 @@ export function ChartExportButton({
       <div className="px-4 pt-3 flex gap-2">
         <button
           onClick={() => setShowSettings(false)}
-          className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
           取消
         </button>
         <button
           onClick={() => pendingFormat && executeExport(pendingFormat, selectedResolution)}
-          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors"
         >
           确认导出
         </button>
@@ -479,7 +481,7 @@ export function ChartExportButton({
 
   // 批量导出选择器
   const renderBatchSelector = () => (
-    <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
+    <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
       <div className="px-4 pb-3 border-b border-gray-100">
         <h3 className="text-sm font-semibold text-gray-900">批量导出</h3>
         <p className="text-xs text-gray-500 mt-0.5">选择要导出的图表</p>
@@ -490,7 +492,7 @@ export function ChartExportButton({
         <select
           value={selectedResolution}
           onChange={(e) => setSelectedResolution(e.target.value as Resolution)}
-          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
             <option key={res} value={res}>
@@ -508,7 +510,7 @@ export function ChartExportButton({
           {availableCharts.map((chart) => (
             <label
               key={chart.id}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-2 p-2  hover:bg-gray-50 cursor-pointer"
             >
               <input
                 type="checkbox"
@@ -528,14 +530,14 @@ export function ChartExportButton({
             setShowBatchSelector(false);
             setSelectedCharts(new Set());
           }}
-          className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
           取消
         </button>
         <button
           onClick={executeBatchExport}
           disabled={selectedCharts.size === 0 || isExporting}
-          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {isExporting ? '导出中...' : `导出 (${selectedCharts.size})`}
         </button>
@@ -545,7 +547,7 @@ export function ChartExportButton({
 
   // 导出预览
   const renderPreview = () => (
-    <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-4 z-50">
+    <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-4 z-50">
       <div className="px-4 pb-3 border-b border-gray-100">
         <h3 className="text-sm font-semibold text-gray-900">导出预览</h3>
       </div>
@@ -568,7 +570,8 @@ export function ChartExportButton({
           <div className="text-xs">
             <span className="text-gray-500">日期范围:</span>
             <span className="text-gray-900 ml-2">
-              {settings.dateRange.start.toLocaleDateString()} - {settings.dateRange.end.toLocaleDateString()}
+              {settings.dateRange.start.toLocaleDateString()} -{' '}
+              {settings.dateRange.end.toLocaleDateString()}
             </span>
           </div>
         )}
@@ -576,7 +579,7 @@ export function ChartExportButton({
       <div className="px-4 pt-3 border-t border-gray-100">
         <button
           onClick={() => setShowPreview(false)}
-          className="w-full px-4 py-2 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="w-full px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
           关闭
         </button>
@@ -590,7 +593,7 @@ export function ChartExportButton({
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled || isExporting}
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-2  transition-colors ${
             disabled || isExporting
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -616,7 +619,6 @@ export function ChartExportButton({
           ) : (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
@@ -626,9 +628,9 @@ export function ChartExportButton({
         </button>
 
         {progress.status !== 'idle' && (
-          <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50">
+          <div className="absolute top-full mt-2 right-0 w-48 bg-white   border border-gray-200 p-2 z-50">
             <div className="flex items-center gap-2 mb-1">
-              <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="flex-1 h-1.5 bg-gray-200  overflow-hidden">
                 <div
                   className={`h-full ${getProgressColor()} transition-all duration-300`}
                   style={{ width: `${progress.progress}%` }}
@@ -641,7 +643,7 @@ export function ChartExportButton({
         )}
 
         {showResolutionPicker && (
-          <div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          <div className="absolute top-full mt-2 right-0 w-48 bg-white   border border-gray-200 py-2 z-50">
             <div className="px-3 py-1.5 border-b border-gray-100">
               <span className="text-xs font-medium text-gray-700">选择分辨率</span>
             </div>
@@ -666,7 +668,7 @@ export function ChartExportButton({
         {showPreview && renderPreview()}
 
         {isOpen && (
-          <div className="absolute top-full mt-2 right-0 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div className="absolute top-full mt-2 right-0 w-56 bg-white   border border-gray-200 py-1 z-50">
             {supportedFormats.map((format) => {
               const isDisabled = format.requiresChartRef && !chartRef?.current && !multipleCharts;
 
@@ -717,9 +719,22 @@ export function ChartExportButton({
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium">导出设置</span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">自定义导出选项</p>
@@ -733,9 +748,22 @@ export function ChartExportButton({
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium">导出预览</span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">预览导出内容</p>
@@ -751,7 +779,7 @@ export function ChartExportButton({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isExporting}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+        className={`flex items-center gap-2 px-4 py-2  text-sm font-medium transition-colors ${
           disabled || isExporting
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
             : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -780,7 +808,6 @@ export function ChartExportButton({
           <>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
@@ -788,26 +815,21 @@ export function ChartExportButton({
             </svg>
             <span>导出</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </>
         )}
       </button>
 
       {progress.status !== 'idle' && (
-        <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50">
+        <div className="absolute top-full mt-2 right-0 w-64 bg-white   border border-gray-200 p-3 z-50">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
               {progress.status === 'completed' ? '导出完成' : '正在导出'}
             </span>
             <span className="text-sm text-gray-500">{progress.progress}%</span>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-200  overflow-hidden">
             <div
               className={`h-full ${getProgressColor()} transition-all duration-300`}
               style={{ width: `${progress.progress}%` }}
@@ -818,7 +840,7 @@ export function ChartExportButton({
       )}
 
       {showResolutionPicker && (
-        <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute top-full mt-2 right-0 w-64 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">选择分辨率</h3>
             <p className="text-xs text-gray-500 mt-0.5">选择导出图片的分辨率</p>
@@ -843,12 +865,7 @@ export function ChartExportButton({
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
+                      <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </div>
@@ -863,7 +880,7 @@ export function ChartExportButton({
       {showPreview && renderPreview()}
 
       {isOpen && (
-        <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">选择导出格式</h3>
           </div>
@@ -883,7 +900,7 @@ export function ChartExportButton({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <div className="w-10 h-10  bg-gray-100 flex items-center justify-center">
                       <span className="text-xs font-bold text-gray-600">
                         {format.format.toUpperCase()}
                       </span>
@@ -900,12 +917,7 @@ export function ChartExportButton({
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
+                      <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   )}
                 </div>
@@ -925,9 +937,18 @@ export function ChartExportButton({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    <div className="w-10 h-10  bg-purple-100 flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                        />
                       </svg>
                     </div>
                     <div>
@@ -941,12 +962,7 @@ export function ChartExportButton({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
+                    <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
               </button>
@@ -964,10 +980,23 @@ export function ChartExportButton({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -981,12 +1010,7 @@ export function ChartExportButton({
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </button>
@@ -1000,10 +1024,23 @@ export function ChartExportButton({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -1017,12 +1054,7 @@ export function ChartExportButton({
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </button>

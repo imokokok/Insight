@@ -36,7 +36,7 @@ export function FilterPanel({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 z-50">
       <div className="p-4">
         {activeFilterCount > 0 && (
           <div className="mb-4 pb-3 border-b border-gray-100">
@@ -55,7 +55,7 @@ export function FilterPanel({
               {getFilterSummary().map((item, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded"
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100"
                 >
                   {item}
                 </span>
@@ -73,10 +73,10 @@ export function FilterPanel({
               <button
                 key={range}
                 onClick={() => onTimeRangeChange(range)}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
+                className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
                   timeRange === range
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
                 {t(`crossOracle.timeRange.${range}`) || range}
@@ -99,10 +99,10 @@ export function FilterPanel({
               <button
                 key={filter.value}
                 onClick={() => onDeviationFilterChange(filter.value)}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-all ${
+                className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
                   deviationFilter === filter.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
                 {filter.label}
@@ -118,7 +118,7 @@ export function FilterPanel({
           <select
             value={oracleFilter}
             onChange={(e) => onOracleFilterChange(e.target.value as OracleProvider | 'all')}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
           >
             <option value="all">全部预言机</option>
             {getOracleProvidersSortedByMarketCap().map((oracle) => (
@@ -130,13 +130,13 @@ export function FilterPanel({
         </div>
       </div>
 
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-lg flex items-center justify-between">
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <span className="text-xs text-gray-500">
           {activeFilterCount > 0 ? `已应用 ${activeFilterCount} 个筛选` : '无筛选条件'}
         </span>
         <button
           onClick={onClose}
-          className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
         >
           确定
         </button>

@@ -158,16 +158,13 @@ function ScoreBadge({ score }: { score: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-gray-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-300 ${config.bgColor}`}
+          className={`h-full transition-all duration-300 ${config.bgColor}`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <span
-        className={`text-sm font-semibold w-12 text-right`}
-        style={{ color: config.color }}
-      >
+      <span className={`text-sm font-semibold w-12 text-right`} style={{ color: config.color }}>
         {score}
       </span>
     </div>
@@ -179,9 +176,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
 
   const avgScore = useMemo(() => {
     if (metrics.length === 0) return 0;
-    return Math.round(
-      metrics.reduce((sum, m) => sum + m.completenessScore, 0) / metrics.length
-    );
+    return Math.round(metrics.reduce((sum, m) => sum + m.completenessScore, 0) / metrics.length);
   }, [metrics]);
 
   return (
@@ -212,9 +207,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">
-            {t('dataQuality.avgScore') || '平均评分'}
-          </p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgScore') || '平均评分'}</p>
           <p
             className={`text-xl font-bold ${
               avgScore >= 90
@@ -230,21 +223,15 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           </p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">
-            {t('dataQuality.dataSources') || '数据源'}
-          </p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.dataSources') || '数据源'}</p>
           <p className="text-xl font-bold text-gray-900">{metrics.length}</p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">
-            {t('dataQuality.excellentRate') || '优秀率'}
-          </p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.excellentRate') || '优秀率'}</p>
           <p className="text-xl font-bold text-green-600">
             {metrics.length > 0
               ? Math.round(
-                  (metrics.filter((m) => m.completenessScore >= 90).length /
-                    metrics.length) *
-                    100
+                  (metrics.filter((m) => m.completenessScore >= 90).length / metrics.length) * 100
                 )
               : 0}
             %
@@ -260,13 +247,11 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-900 text-sm">
-                  {metric.oracle}
-                </span>
+                <span className="font-medium text-gray-900 text-sm">{metric.oracle}</span>
                 <span className="text-xs text-gray-400">({metric.chain})</span>
               </div>
               <span
-                className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                className={`px-2 py-0.5 text-xs font-medium ${
                   SCORE_CONFIG[getScoreLevel(metric.completenessScore)].bgColor
                 } text-white`}
               >
@@ -292,11 +277,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
   );
 }
 
-function LatencyDistributionChart({
-  results,
-}: {
-  results: QueryResult[];
-}) {
+function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
   const { t } = useI18n();
   const [selectedOracle, setSelectedOracle] = useState<string>(
     results.length > 0 ? `${results[0].provider}-${results[0].chain}` : ''
@@ -332,7 +313,7 @@ function LatencyDistributionChart({
   }, [distribution]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -342,7 +323,7 @@ function LatencyDistributionChart({
             {t('dataQuality.latencyDistributionDesc') || '各预言机更新延迟分布直方图'}
           </p>
         </div>
-        <div className="p-2 bg-purple-50 rounded-lg">
+        <div className="p-2 bg-purple-50 border border-purple-100">
           <svg
             className="w-5 h-5 text-purple-600"
             fill="none"
@@ -363,7 +344,7 @@ function LatencyDistributionChart({
         <select
           value={selectedOracle}
           onChange={(e) => setSelectedOracle(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+          className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
         >
           {results.map((result) => (
             <option
@@ -377,19 +358,19 @@ function LatencyDistributionChart({
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-4">
-        <div className="bg-green-50 rounded-lg p-2 text-center">
+        <div className="bg-green-50 border border-green-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.excellent')}</p>
           <p className="text-sm font-bold text-green-600">{stats.excellent}%</p>
         </div>
-        <div className="bg-blue-50 rounded-lg p-2 text-center">
+        <div className="bg-blue-50 border border-blue-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.good')}</p>
           <p className="text-sm font-bold text-blue-600">{stats.good}%</p>
         </div>
-        <div className="bg-yellow-50 rounded-lg p-2 text-center">
+        <div className="bg-yellow-50 border border-yellow-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.warning')}</p>
           <p className="text-sm font-bold text-yellow-600">{stats.warning}%</p>
         </div>
-        <div className="bg-red-50 rounded-lg p-2 text-center">
+        <div className="bg-red-50 border border-red-100 p-2 text-center">
           <p className="text-xs text-gray-500">{t('dataQuality.critical')}</p>
           <p className="text-sm font-bold text-red-600">{stats.critical}%</p>
         </div>
@@ -397,7 +378,11 @@ function LatencyDistributionChart({
 
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={distribution} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={chartColors.recharts.grid}
+            vertical={false}
+          />
           <XAxis
             dataKey="range"
             stroke={chartColors.recharts.axis}
@@ -418,7 +403,7 @@ function LatencyDistributionChart({
               if (!active || !payload || payload.length === 0) return null;
               const item = payload[0].payload as LatencyDistributionItem;
               return (
-                <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+                <div className="bg-white border border-gray-200 p-3">
                   <p className="text-xs text-gray-600 font-medium">
                     {t('dataQuality.latencyRange')}: {item.range}ms
                   </p>
@@ -435,7 +420,7 @@ function LatencyDistributionChart({
               );
             }}
           />
-          <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="percentage">
             {distribution.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={LATENCY_COLORS[entry.level]} />
             ))}
@@ -445,31 +430,19 @@ function LatencyDistributionChart({
 
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded"
-            style={{ backgroundColor: LATENCY_COLORS.excellent }}
-          />
+          <span className="w-2 h-2" style={{ backgroundColor: LATENCY_COLORS.excellent }} />
           <span className="text-xs text-gray-500">&lt;300ms</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded"
-            style={{ backgroundColor: LATENCY_COLORS.good }}
-          />
+          <span className="w-2 h-2" style={{ backgroundColor: LATENCY_COLORS.good }} />
           <span className="text-xs text-gray-500">300-500ms</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded"
-            style={{ backgroundColor: LATENCY_COLORS.warning }}
-          />
+          <span className="w-2 h-2" style={{ backgroundColor: LATENCY_COLORS.warning }} />
           <span className="text-xs text-gray-500">500-600ms</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded"
-            style={{ backgroundColor: LATENCY_COLORS.critical }}
-          />
+          <span className="w-2 h-2" style={{ backgroundColor: LATENCY_COLORS.critical }} />
           <span className="text-xs text-gray-500">&gt;600ms</span>
         </div>
       </div>
@@ -512,7 +485,7 @@ function FreshnessTrendChart({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -522,7 +495,7 @@ function FreshnessTrendChart({
             {t('dataQuality.freshnessTrendDesc') || '数据更新频率随时间变化趋势'}
           </p>
         </div>
-        <div className="p-2 bg-green-50 rounded-lg">
+        <div className="p-2 bg-green-50 border border-green-100">
           <svg
             className="w-5 h-5 text-green-600"
             fill="none"
@@ -547,14 +520,18 @@ function FreshnessTrendChart({
             <button
               key={key}
               onClick={() => toggleSeries(key)}
-              className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg transition-all ${
-                isHidden ? 'bg-gray-100 text-gray-400' : 'bg-gray-50 text-gray-700'
+              className={`flex items-center gap-1.5 px-2 py-1 text-xs border transition-colors ${
+                isHidden
+                  ? 'bg-gray-50 border-gray-200 text-gray-400'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
               }`}
             >
               <span
-                className="w-2 h-2 rounded-full"
+                className="w-2 h-2"
                 style={{
-                  backgroundColor: isHidden ? semanticColors.neutral.main : oracleColors[provider] || chartColors.recharts.secondaryAxis,
+                  backgroundColor: isHidden
+                    ? semanticColors.neutral.main
+                    : oracleColors[provider] || chartColors.recharts.secondaryAxis,
                 }}
               />
               <span>
@@ -590,7 +567,11 @@ function FreshnessTrendChart({
               </linearGradient>
             ))}
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={chartColors.recharts.grid}
+            vertical={false}
+          />
           <XAxis
             dataKey="time"
             stroke={chartColors.recharts.axis}
@@ -610,14 +591,11 @@ function FreshnessTrendChart({
             content={({ active, payload, label }) => {
               if (!active || !payload || payload.length === 0) return null;
               return (
-                <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+                <div className="bg-white border border-gray-200 p-3">
                   <p className="text-xs text-gray-600 font-medium mb-2">{label}</p>
                   {payload.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2 text-xs">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      />
+                      <span className="w-2 h-2" style={{ backgroundColor: entry.color }} />
                       <span className="text-gray-600">{entry.name}:</span>
                       <span className="font-medium text-gray-900">{entry.value}%</span>
                     </div>
@@ -648,19 +626,17 @@ function FreshnessTrendChart({
 
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-green-500 rounded" />
+          <span className="w-2 h-2 bg-green-500" />
           <span className="text-xs text-gray-500">
             {t('dataQuality.fresh') || '新鲜'} (&gt;80%)
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-yellow-500 rounded" />
-          <span className="text-xs text-gray-500">
-            {t('dataQuality.stale') || '滞后'} (50-80%)
-          </span>
+          <span className="w-2 h-2 bg-yellow-500" />
+          <span className="text-xs text-gray-500">{t('dataQuality.stale') || '滞后'} (50-80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-red-500 rounded" />
+          <span className="w-2 h-2 bg-red-500" />
           <span className="text-xs text-gray-500">
             {t('dataQuality.delayed') || '延迟'} (&lt;50%)
           </span>
@@ -717,9 +693,7 @@ export function DataQualityPanel({ results, historicalData }: DataQualityPanelPr
           <h2 className="text-lg font-semibold text-gray-900">
             {t('dataQuality.dataQualityAnalysis')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('dataQuality.oracleDataQualityMetrics')}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{t('dataQuality.oracleDataQualityMetrics')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
@@ -727,7 +701,7 @@ export function DataQualityPanel({ results, historicalData }: DataQualityPanelPr
           </span>
           <button
             onClick={handleRefresh}
-            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors"
+            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium border border-blue-200 hover:border-blue-300 transition-colors"
           >
             {t('dataQuality.refreshData')}
           </button>

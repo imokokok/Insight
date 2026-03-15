@@ -102,22 +102,22 @@ export function DIADataTransparencyPanel({ data }: DIADataTransparencyPanelProps
                     </span>
                   </td>
                   <td className="py-2 px-3">
-                    <span className={`font-semibold ${getCredibilityColor(source.credibilityScore)}`}>
+                    <span
+                      className={`font-semibold ${getCredibilityColor(source.credibilityScore)}`}
+                    >
                       {source.credibilityScore}
                     </span>
                   </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${getStatusColor(source.status)}`} />
+                      <span className={`w-2 h-2  ${getStatusColor(source.status)}`} />
                       <span className="text-sm text-gray-700 capitalize">{source.status}</span>
                     </div>
                   </td>
                   <td className="py-2 px-3 text-sm text-gray-700">
                     {source.dataPoints.toLocaleString()}
                   </td>
-                  <td className="py-2 px-3 text-sm text-gray-600">
-                    {source.verificationMethod}
-                  </td>
+                  <td className="py-2 px-3 text-sm text-gray-600">{source.verificationMethod}</td>
                 </tr>
               ))}
             </tbody>

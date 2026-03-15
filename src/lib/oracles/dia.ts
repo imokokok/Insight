@@ -184,7 +184,13 @@ export class DIAClient extends BaseOracleClient {
       {
         symbol: 'ETH',
         name: 'Ethereum',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.AVALANCHE, Blockchain.BASE],
+        chains: [
+          Blockchain.ETHEREUM,
+          Blockchain.ARBITRUM,
+          Blockchain.POLYGON,
+          Blockchain.AVALANCHE,
+          Blockchain.BASE,
+        ],
         coverageStatus: 'full',
         updateFrequency: 30,
         confidence: 0.99,
@@ -192,7 +198,14 @@ export class DIAClient extends BaseOracleClient {
       {
         symbol: 'USDC',
         name: 'USD Coin',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.AVALANCHE, Blockchain.BASE, Blockchain.BNB_CHAIN],
+        chains: [
+          Blockchain.ETHEREUM,
+          Blockchain.ARBITRUM,
+          Blockchain.POLYGON,
+          Blockchain.AVALANCHE,
+          Blockchain.BASE,
+          Blockchain.BNB_CHAIN,
+        ],
         coverageStatus: 'full',
         updateFrequency: 60,
         confidence: 0.97,
@@ -200,7 +213,12 @@ export class DIAClient extends BaseOracleClient {
       {
         symbol: 'USDT',
         name: 'Tether',
-        chains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON, Blockchain.BNB_CHAIN],
+        chains: [
+          Blockchain.ETHEREUM,
+          Blockchain.ARBITRUM,
+          Blockchain.POLYGON,
+          Blockchain.BNB_CHAIN,
+        ],
         coverageStatus: 'partial',
         updateFrequency: 120,
         confidence: 0.96,
@@ -305,8 +323,8 @@ export class DIAClient extends BaseOracleClient {
       totalStaked: 15000000,
       dataFeeds: 280,
       hourlyActivity: [
-        1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700,
-        5400, 5100, 4800, 4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
+        1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 5400, 5100, 4800,
+        4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
       ],
       status: 'online',
       latency: 120,

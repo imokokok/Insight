@@ -42,12 +42,7 @@ function TrendIndicator({
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
         <span className="text-xs">{t('dataQualityScoreCard.improving')}</span>
       </div>
@@ -58,12 +53,7 @@ function TrendIndicator({
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
         <span className="text-xs">{t('dataQualityScoreCard.declining')}</span>
       </div>
@@ -73,7 +63,7 @@ function TrendIndicator({
   return (
     <div className="flex items-center gap-1 text-gray-600">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
       <span className="text-xs">{t('dataQualityScoreCard.stable')}</span>
     </div>
@@ -106,18 +96,18 @@ function ScoreCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{title}</p>
           <p className={`text-3xl font-bold ${getScoreColor(score)}`}>{score.toFixed(1)}</p>
         </div>
-        <div className={`p-3 rounded-lg ${getScoreBgColor(score)}`}>{icon}</div>
+        <div className={`p-3  ${getScoreBgColor(score)}`}>{icon}</div>
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex-1 h-2 bg-gray-200  overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
+            className={`h-full  transition-all duration-500 ${
               score >= 90 ? 'bg-green-500' : score >= 70 ? 'bg-yellow-500' : 'bg-red-500'
             }`}
             style={{ width: `${Math.min(100, score)}%` }}
@@ -166,7 +156,7 @@ export function DataQualityScoreCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -198,7 +188,6 @@ export function DataQualityScoreCard({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
@@ -220,7 +209,6 @@ export function DataQualityScoreCard({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
@@ -241,12 +229,7 @@ export function DataQualityScoreCard({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
+              <path strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           }
         />
@@ -264,7 +247,6 @@ export function DataQualityScoreCard({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"

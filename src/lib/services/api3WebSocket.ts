@@ -62,7 +62,8 @@ export class API3WebSocketService {
   private messageQueue: string[] = [];
   private isManualDisconnect = false;
 
-  private status: 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error' = 'disconnected';
+  private status: 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error' =
+    'disconnected';
   private statusListeners: Set<(status: typeof this.status) => void> = new Set();
 
   constructor(private config = API3_WEBSOCKET_CONFIG) {}

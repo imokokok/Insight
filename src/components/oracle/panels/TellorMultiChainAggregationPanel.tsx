@@ -65,14 +65,9 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.chainPrices.map((chainPrice: MultiChainPrice) => (
-              <div
-                key={chainPrice.chain}
-                className="py-4 border-b border-gray-100"
-              >
+              <div key={chainPrice.chain} className="py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between mb-3">
-                  <h5 className="font-semibold text-gray-900">
-                    {getChainLabel(chainPrice.chain)}
-                  </h5>
+                  <h5 className="font-semibold text-gray-900">{getChainLabel(chainPrice.chain)}</h5>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-md ${getConfidenceColor(
                       chainPrice.confidence

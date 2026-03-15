@@ -32,9 +32,9 @@ function StatusIndicator({ status }: { status: 'normal' | 'warning' | 'critical'
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1  text-xs font-medium ${bg} ${text}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      <span className={`w-1.5 h-1.5  ${dot}`} />
       {label}
     </span>
   );
@@ -45,12 +45,7 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
         <span className="text-xs">扩大</span>
       </div>
@@ -61,12 +56,7 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
         <span className="text-xs">缩小</span>
       </div>
@@ -76,7 +66,7 @@ function TrendIndicator({ trend }: { trend: 'expanding' | 'shrinking' | 'stable'
   return (
     <div className="flex items-center gap-1 text-gray-500">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
       <span className="text-xs">稳定</span>
     </div>
@@ -89,9 +79,9 @@ function DeviationBar({ deviation }: { deviation: number }) {
     deviation > 0.5 ? 'bg-red-500' : deviation >= 0.3 ? 'bg-yellow-500' : 'bg-green-500';
 
   return (
-    <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+    <div className="w-20 h-2 bg-gray-200  overflow-hidden">
       <div
-        className={`h-full rounded-full transition-all duration-500 ${color}`}
+        className={`h-full  transition-all duration-500 ${color}`}
         style={{ width: `${percentage}%` }}
       />
     </div>
@@ -124,7 +114,7 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
   const avgDeviation = data.reduce((sum, item) => sum + item.deviation, 0) / data.length;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900">dAPI 价格偏离监控</h3>
         <p className="text-sm text-gray-500 mt-1">实时监控各dAPI与市场基准价格的偏离程度</p>
@@ -217,15 +207,15 @@ export function DapiPriceDeviationMonitor({ data }: DapiPriceDeviationMonitorPro
 
       <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">总 dAPI 数量</p>
             <p className="text-2xl font-bold text-gray-900">{totalDapis}</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-4">
+          <div className="bg-red-50  p-4">
             <p className="text-xs text-red-600 uppercase tracking-wider mb-1">异常数量</p>
             <p className="text-2xl font-bold text-red-600">{abnormalCount}</p>
           </div>
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50  p-4">
             <p className="text-xs text-blue-600 uppercase tracking-wider mb-1">平均偏离</p>
             <p className="text-2xl font-bold text-blue-600">{avgDeviation.toFixed(2)}%</p>
           </div>

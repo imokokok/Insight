@@ -75,7 +75,7 @@ export function PriceDeviationRisk() {
     <DashboardCard title="价格偏差风险分析">
       <div className="space-y-6">
         {hasWarning && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="bg-orange-50 border border-orange-200  p-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"
@@ -84,7 +84,7 @@ export function PriceDeviationRisk() {
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
+                  
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -102,7 +102,7 @@ export function PriceDeviationRisk() {
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">当前偏差</p>
             <p
               className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}
@@ -110,15 +110,15 @@ export function PriceDeviationRisk() {
               {stats.current.toFixed(3)}%
             </p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">最大偏差</p>
             <p className="text-xl font-bold text-gray-900">{stats.max.toFixed(3)}%</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">最小偏差</p>
             <p className="text-xl font-bold text-gray-900">{stats.min.toFixed(3)}%</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-50  p-3">
             <p className="text-xs text-gray-500 mb-1">平均偏差</p>
             <p className="text-xl font-bold text-gray-900">{stats.avg.toFixed(3)}%</p>
           </div>
@@ -148,7 +148,6 @@ export function PriceDeviationRisk() {
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
                   }}
                 />
                 <ReferenceLine y={DEVIATION_THRESHOLD} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" />
@@ -181,7 +180,7 @@ export function PriceDeviationRisk() {
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-4">
+        <div className="bg-blue-50  p-4">
           <h4 className="text-sm font-medium text-blue-900 mb-2">偏差分析说明</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Pyth 价格通过聚合多个 Publisher 提交的价格计算得出</li>

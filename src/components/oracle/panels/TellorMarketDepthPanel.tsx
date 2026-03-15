@@ -10,9 +10,7 @@ interface TellorMarketDepthPanelProps {
 export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
   const { t } = useI18n();
 
-  const maxVolume = Math.max(
-    ...data.levels.map((l) => Math.max(l.bidVolume, l.askVolume))
-  );
+  const maxVolume = Math.max(...data.levels.map((l) => Math.max(l.bidVolume, l.askVolume)));
 
   const bidLevels = data.levels.filter((l) => l.bidVolume > 0);
   const askLevels = data.levels.filter((l) => l.askVolume > 0);
@@ -28,7 +26,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBid')}</p>
-            <p className="text-lg font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
+            <p className="text-lg font-bold text-green-600">
+              {data.totalBidVolume.toLocaleString()}
+            </p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAsk')}</p>
@@ -55,7 +55,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
                   <div className="relative flex items-center justify-between py-2 px-3">
                     <span className="font-medium text-gray-900">${level.price.toFixed(4)}</span>
                     <div className="text-right">
-                      <span className="text-sm text-gray-700">{level.bidVolume.toLocaleString()}</span>
+                      <span className="text-sm text-gray-700">
+                        {level.bidVolume.toLocaleString()}
+                      </span>
                       <span className="text-xs text-gray-500 ml-2">({level.bidCount})</span>
                     </div>
                   </div>
@@ -78,7 +80,9 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
                   <div className="relative flex items-center justify-between py-2 px-3">
                     <span className="font-medium text-gray-900">${level.price.toFixed(4)}</span>
                     <div className="text-right">
-                      <span className="text-sm text-gray-700">{level.askVolume.toLocaleString()}</span>
+                      <span className="text-sm text-gray-700">
+                        {level.askVolume.toLocaleString()}
+                      </span>
                       <span className="text-xs text-gray-500 ml-2">({level.askCount})</span>
                     </div>
                   </div>

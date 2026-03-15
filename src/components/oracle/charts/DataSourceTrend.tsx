@@ -39,16 +39,16 @@ const mockTrendData: TrendDataPoint[] = [
 const CustomTooltip = ({ active, payload, label }: TooltipProps<TrendDataPoint>) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+      <div className="bg-white border border-gray-200   p-3">
         <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-purple-500" />
+            <div className="w-3 h-3  bg-purple-500" />
             <span className="text-xs text-gray-600">新增数据源:</span>
             <span className="text-xs font-semibold text-gray-900">{payload[0].value}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <div className="w-3 h-3  bg-blue-500" />
             <span className="text-xs text-gray-600">累计数据源:</span>
             <span className="text-xs font-semibold text-gray-900">{payload[1].value}</span>
           </div>
@@ -82,17 +82,17 @@ export function DataSourceTrend() {
     <DashboardCard title="数据源增长趋势">
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">本年新增</p>
             <p className="text-xl font-bold text-purple-700">{stats.totalNew}</p>
             <p className="text-xs text-purple-600 mt-0.5">数据源</p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">月均新增</p>
             <p className="text-xl font-bold text-blue-700">{stats.avgMonthly}</p>
             <p className="text-xs text-blue-600 mt-0.5">数据源</p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">环比增长</p>
             <p className="text-xl font-bold text-green-700">
               {stats.growth >= 0 ? '+' : ''}
@@ -173,11 +173,11 @@ export function DataSourceTrend() {
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-purple-500" />
+              <div className="w-3 h-3  bg-purple-500" />
               <span className="text-xs text-gray-600">新增数据源</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <div className="w-3 h-3  bg-blue-500" />
               <span className="text-xs text-gray-600">累计数据源</span>
             </div>
           </div>

@@ -70,14 +70,14 @@ function CustomTooltip({ active, payload, label, filteredChains }: CustomTooltip
   );
 
   return (
-    <div className="bg-white border border-gray-200 shadow-lg p-4 min-w-[280px]">
+    <div className="bg-white border border-gray-200 p-4 min-w-[280px]">
       <p className="text-gray-600 text-xs mb-3 font-medium border-b border-gray-100 pb-2">
         {label}
       </p>
       {priceData.map((entry, index: number) => (
-        <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
+        <div className="mb-2 pb-2 border-b border-gray-100 last:border-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="w-3 h-3" style={{ backgroundColor: entry.color }} />
             <span className="text-sm font-medium text-gray-900">
               {chainNames[entry.dataKey as Blockchain]}
             </span>
@@ -427,11 +427,11 @@ export function InteractivePriceChart({
         {/* Control Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded p-1">
+          <div className="flex items-center gap-1 bg-gray-100 p-1">
             <button
               onClick={handleZoomIn}
-              className="p-1.5 hover:bg-white rounded transition-colors"
-              title={t('crossChain.zoomIn') || '放大'}
+              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              title={t('crossChain.zoomIn')}
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -449,8 +449,8 @@ export function InteractivePriceChart({
             </button>
             <button
               onClick={handleZoomOut}
-              className="p-1.5 hover:bg-white rounded transition-colors"
-              title={t('crossChain.zoomOut') || '缩小'}
+              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              title={t('crossChain.zoomOut')}
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -468,8 +468,8 @@ export function InteractivePriceChart({
             </button>
             <button
               onClick={handleResetZoom}
-              className="p-1.5 hover:bg-white rounded transition-colors"
-              title={t('crossChain.resetZoom') || '重置'}
+              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              title={t('crossChain.resetZoom')}
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -488,11 +488,11 @@ export function InteractivePriceChart({
           </div>
 
           {/* Pan Controls */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded p-1">
+          <div className="flex items-center gap-1 bg-gray-100 p-1">
             <button
               onClick={handlePanLeft}
-              className="p-1.5 hover:bg-white rounded transition-colors"
-              title={t('crossChain.panLeft') || '左移'}
+              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              title={t('crossChain.panLeft')}
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -510,8 +510,8 @@ export function InteractivePriceChart({
             </button>
             <button
               onClick={handlePanRight}
-              className="p-1.5 hover:bg-white rounded transition-colors"
-              title={t('crossChain.panRight') || '右移'}
+              className="p-1.5 hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+              title={t('crossChain.panRight')}
             >
               <svg
                 className="w-4 h-4 text-gray-600"
@@ -533,34 +533,34 @@ export function InteractivePriceChart({
           <div className="flex items-center gap-1">
             <button
               onClick={() => addReferenceLine('current')}
-              className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded transition-colors"
+              className="px-2 py-1.5 text-xs bg-blue-50 text-blue-700 hover:border-blue-300 border border-transparent transition-colors"
             >
               {t('crossChain.currentPrice')}
             </button>
             <button
               onClick={() => addReferenceLine('avg')}
-              className="px-2 py-1.5 text-xs bg-green-50 text-green-700 hover:bg-green-100 rounded transition-colors"
+              className="px-2 py-1.5 text-xs bg-green-50 text-green-700 hover:border-green-300 border border-transparent transition-colors"
             >
               {t('crossChain.averagePrice')}
             </button>
             <button
               onClick={() => addReferenceLine('median')}
-              className="px-2 py-1.5 text-xs bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded transition-colors"
+              className="px-2 py-1.5 text-xs bg-yellow-50 text-yellow-700 hover:border-yellow-300 border border-transparent transition-colors"
             >
               {t('crossChain.medianPrice')}
             </button>
             <button
               onClick={() => addReferenceLine('custom')}
-              className="px-2 py-1.5 text-xs bg-purple-50 text-purple-700 hover:bg-purple-100 rounded transition-colors"
+              className="px-2 py-1.5 text-xs bg-purple-50 text-purple-700 hover:border-purple-300 border border-transparent transition-colors"
             >
               {t('crossChain.customLine')}
             </button>
             {referenceLines.length > 0 && (
               <button
                 onClick={clearAllReferenceLines}
-                className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:bg-red-100 rounded transition-colors"
+                className="px-2 py-1.5 text-xs bg-red-50 text-red-700 hover:border-red-300 border border-transparent transition-colors"
               >
-                {t('crossChain.clearAll') || '清除'}
+                {t('crossChain.clearAll')}
               </button>
             )}
           </div>
@@ -575,20 +575,18 @@ export function InteractivePriceChart({
       {/* Reference Lines List */}
       {referenceLines.length > 0 && (
         <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="text-xs text-gray-500">
-            {t('crossChain.referenceLines') || '参考线'}:
-          </span>
+          <span className="text-xs text-gray-500">{t('crossChain.referenceLines')}:</span>
           {referenceLines.map((line) => (
             <div
               key={line.id}
-              className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded text-xs"
+              className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-xs"
             >
               <span className="w-2 h-0.5" style={{ backgroundColor: line.color }} />
               <span className="text-gray-600">{line.label}:</span>
               <span className="font-mono text-gray-800">${line.y.toFixed(4)}</span>
               <button
                 onClick={() => removeReferenceLine(line.id)}
-                className="ml-1 text-gray-400 hover:text-red-500"
+                className="ml-1 text-gray-400 hover:text-red-500 border border-transparent hover:border-gray-200"
               >
                 ×
               </button>
@@ -670,14 +668,14 @@ export function InteractivePriceChart({
 
       {/* Keyboard Shortcuts Hint */}
       <div className="mt-2 text-xs text-gray-400 flex items-center gap-4">
-        <span>{t('crossChain.shortcuts') || '快捷键'}:</span>
+        <span>{t('crossChain.shortcuts')}:</span>
         <span>
-          Ctrl + {t('crossChain.scroll') || '滚轮'}: {t('crossChain.zoom') || '缩放'}
+          Ctrl + {t('crossChain.scroll')}: {t('crossChain.zoom')}
         </span>
-        <span>← →: {t('crossChain.pan') || '平移'}</span>
-        <span>Home: {t('crossChain.reset') || '重置'}</span>
+        <span>← →: {t('crossChain.pan')}</span>
+        <span>Home: {t('crossChain.reset')}</span>
         <span>
-          {t('crossChain.dragSelect') || '拖拽框选'}: {t('crossChain.zoomToArea') || '放大区域'}
+          {t('crossChain.dragSelect')}: {t('crossChain.zoomToArea')}
         </span>
       </div>
     </div>

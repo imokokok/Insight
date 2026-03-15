@@ -75,11 +75,12 @@ export interface ZIPExportOptions {
   };
 }
 
-export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; label: string; dpi: number }> = {
-  standard: { scale: 2, label: '标准 (2x)', dpi: 144 },
-  high: { scale: 4, label: '高清 (4x)', dpi: 288 },
-  ultra: { scale: 6, label: '超清 (6x)', dpi: 432 },
-};
+export const RESOLUTION_CONFIG: Record<Resolution, { scale: number; label: string; dpi: number }> =
+  {
+    standard: { scale: 2, label: '标准 (2x)', dpi: 144 },
+    high: { scale: 4, label: '高清 (4x)', dpi: 288 },
+    ultra: { scale: 6, label: '超清 (6x)', dpi: 432 },
+  };
 
 export interface ChartExportData {
   [key: string]: string | number | undefined;
@@ -570,13 +571,7 @@ export async function exportToPDF(
   options: PDFExportOptions,
   onProgress?: ExportProgressCallback
 ): Promise<void> {
-  const {
-    filename,
-    charts,
-    includeWatermark = true,
-    includeMetadata = true,
-    metadata,
-  } = options;
+  const { filename, charts, includeWatermark = true, includeMetadata = true, metadata } = options;
 
   onProgress?.({ status: 'preparing', progress: 10, message: '准备 PDF 导出...' });
 
@@ -671,7 +666,11 @@ export async function exportToPDF(
     // 添加水印
     if (includeWatermark) {
       doc.saveGraphicsState();
-      doc.setGState(new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({ opacity: 0.1 }));
+      doc.setGState(
+        new (doc as unknown as { GState: new (opts: { opacity: number }) => unknown }).GState({
+          opacity: 0.1,
+        })
+      );
       doc.setFontSize(40);
       doc.setTextColor(128, 128, 128);
       doc.text('Insight Analytics', pageWidth / 2, pageHeight / 2, {

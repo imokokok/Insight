@@ -25,7 +25,6 @@ interface ChartDataPoint {
   fullTime?: string;
 }
 
-// Enhanced trend data with timestamps for better tooltips
 const generateTrendData = (baseValue: number, points: number, variance: number) => {
   return Array.from({ length: points }, (_, i) => ({
     time: new Date(Date.now() - (points - i) * 60000).toLocaleTimeString('en-US', {
@@ -60,7 +59,6 @@ interface MetricCard {
   size: 'large' | 'medium' | 'small';
   chart?: 'area' | 'line';
   chartData?: ChartDataPoint[];
-  color: string;
   hasLiveIndicator?: boolean;
   alert?: {
     type: 'info' | 'warning' | 'success';
@@ -81,7 +79,6 @@ const metrics: MetricCard[] = [
     size: 'large',
     chart: 'area',
     chartData: tvsData,
-    color: 'blue',
     hasLiveIndicator: true,
     description: '平台保障的总资产价值，包括DeFi协议、稳定币和其他链上资产',
   },
@@ -94,7 +91,6 @@ const metrics: MetricCard[] = [
     isPositive: true,
     icon: Activity,
     size: 'medium',
-    color: 'indigo',
     hasLiveIndicator: true,
     alert: { type: 'success', message: '所有预言机运行正常' },
     description: '当前活跃的去中心化预言机网络节点数量',
@@ -110,7 +106,6 @@ const metrics: MetricCard[] = [
     size: 'medium',
     chart: 'line',
     chartData: sourcesData,
-    color: 'violet',
     hasLiveIndicator: true,
     description: '聚合的数据提供商和交易所数量',
   },
@@ -121,7 +116,6 @@ const metrics: MetricCard[] = [
     subtitle: '日更新次数',
     icon: Zap,
     size: 'small',
-    color: 'amber',
     hasLiveIndicator: true,
     alert: { type: 'info', message: '更新频率提升 15%' },
     description: '每日价格更新和数据推送总次数',
@@ -135,7 +129,6 @@ const metrics: MetricCard[] = [
     isPositive: true,
     icon: Clock,
     size: 'small',
-    color: 'emerald',
     hasLiveIndicator: true,
     description: '从数据生成到链上确认的平均时间',
   },
@@ -146,83 +139,12 @@ const metrics: MetricCard[] = [
     subtitle: '准确率',
     icon: BarChart3,
     size: 'small',
-    color: 'cyan',
     hasLiveIndicator: true,
     alert: { type: 'success', message: '过去30天零故障' },
     description: '数据准确性和系统可用性百分比',
   },
 ];
 
-// Professional color scheme with better contrast
-const colorMap: Record<
-  string,
-  {
-    bg: string;
-    border: string;
-    text: string;
-    gradient: string;
-    chart: string;
-    chartFill: string;
-    lightBg: string;
-  }
-> = {
-  blue: {
-    bg: 'bg-blue-50/80',
-    border: 'border-blue-200/60',
-    text: 'text-blue-700',
-    gradient: 'from-blue-500/10 to-blue-600/5',
-    chart: chartColors.chart.blue,
-    chartFill: chartColors.chart.blueLight,
-    lightBg: 'bg-blue-500/5',
-  },
-  indigo: {
-    bg: 'bg-indigo-50/80',
-    border: 'border-indigo-200/60',
-    text: 'text-indigo-700',
-    gradient: 'from-indigo-500/10 to-indigo-600/5',
-    chart: chartColors.chart.indigo,
-    chartFill: chartColors.chart.indigoLight,
-    lightBg: 'bg-indigo-500/5',
-  },
-  violet: {
-    bg: 'bg-violet-50/80',
-    border: 'border-violet-200/60',
-    text: 'text-violet-700',
-    gradient: 'from-violet-500/10 to-violet-600/5',
-    chart: chartColors.chart.violet,
-    chartFill: chartColors.chart.violetLight,
-    lightBg: 'bg-violet-500/5',
-  },
-  amber: {
-    bg: 'bg-amber-50/80',
-    border: 'border-amber-200/60',
-    text: 'text-amber-700',
-    gradient: 'from-amber-500/10 to-amber-600/5',
-    chart: chartColors.chart.amber,
-    chartFill: chartColors.chart.amberLight,
-    lightBg: 'bg-amber-500/5',
-  },
-  emerald: {
-    bg: 'bg-emerald-50/80',
-    border: 'border-emerald-200/60',
-    text: 'text-emerald-700',
-    gradient: 'from-emerald-500/10 to-emerald-600/5',
-    chart: chartColors.chart.emerald,
-    chartFill: chartColors.chart.emeraldLight,
-    lightBg: 'bg-emerald-500/5',
-  },
-  cyan: {
-    bg: 'bg-cyan-50/80',
-    border: 'border-cyan-200/60',
-    text: 'text-cyan-700',
-    gradient: 'from-cyan-500/10 to-cyan-600/5',
-    chart: chartColors.chart.cyan,
-    chartFill: chartColors.chart.cyanLight,
-    lightBg: 'bg-cyan-500/5',
-  },
-};
-
-// Enhanced pulse animation component
 function PulseIndicator({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = {
     sm: 'h-2 w-2',
@@ -238,12 +160,11 @@ function PulseIndicator({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
   );
 }
 
-// Enhanced Live Indicator Badge
 function LiveIndicator() {
   const { locale } = useI18n();
 
   return (
-    <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50/90 backdrop-blur-sm border border-emerald-200/60 rounded-full shadow-sm">
+    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-200">
       <PulseIndicator size="sm" />
       <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
         {locale === 'zh-CN' ? '实时' : 'LIVE'}
@@ -252,17 +173,16 @@ function LiveIndicator() {
   );
 }
 
-// Alert Badge Component
 function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; message: string }) {
   const styles = {
-    info: 'bg-blue-50/80 border-blue-200/60 text-blue-700',
-    warning: 'bg-amber-50/80 border-amber-200/60 text-amber-700',
-    success: 'bg-emerald-50/80 border-emerald-200/60 text-emerald-700',
+    info: 'bg-blue-50 border-blue-200 text-blue-700',
+    warning: 'bg-amber-50 border-amber-200 text-amber-700',
+    success: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   };
 
   return (
     <div
-      className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${styles[type]} text-[10px] font-medium mt-2`}
+      className={`flex items-center gap-1 px-2 py-1 border ${styles[type]} text-[10px] font-medium mt-2`}
     >
       <AlertCircle className="w-3 h-3" />
       <span>{message}</span>
@@ -270,11 +190,10 @@ function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; m
   );
 }
 
-// Custom Tooltip for Charts
 function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 backdrop-blur-sm border border-gray-200/60 rounded-lg shadow-lg px-3 py-2">
+      <div className="bg-white border border-gray-200 px-3 py-2">
         <p className="text-xs text-gray-500 mb-1">{payload[0]?.payload?.fullTime || label}</p>
         <p className="text-sm font-semibold text-gray-900">
           {typeof payload[0].value === 'number'
@@ -287,7 +206,6 @@ function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) 
   return null;
 }
 
-// Enhanced Mini Live Ticker Component
 function MiniLiveTicker() {
   const { locale } = useI18n();
   const [isPaused, setIsPaused] = useState(false);
@@ -295,11 +213,11 @@ function MiniLiveTicker() {
 
   return (
     <div
-      className="mt-5 overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm"
+      className="mt-4 overflow-hidden border border-gray-200 bg-white"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100/80 bg-gray-50/50">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-gray-50">
         <PulseIndicator size="sm" />
         <span className="text-xs font-semibold text-gray-700">
           {locale === 'zh-CN' ? '实时价格监控' : 'Live Price Monitor'}
@@ -316,11 +234,11 @@ function MiniLiveTicker() {
             <div
               key={`${item.symbol}-${index}`}
               className={`
-                flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 cursor-pointer
+                flex-shrink-0 flex items-center gap-2 px-3 py-2 border transition-colors duration-200 cursor-pointer
                 ${
                   hoveredTicker === `${item.symbol}-${index}`
-                    ? 'bg-white shadow-md border-gray-200 scale-105'
-                    : 'bg-white/60 border-gray-100/80'
+                    ? 'bg-gray-50 border-gray-300'
+                    : 'bg-white border-gray-200'
                 }
               `}
               onMouseEnter={() => setHoveredTicker(`${item.symbol}-${index}`)}
@@ -354,7 +272,6 @@ function MiniLiveTicker() {
   );
 }
 
-// Info Tooltip Component
 function InfoTooltip({ content }: { content: string }) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -366,7 +283,7 @@ function InfoTooltip({ content }: { content: string }) {
         onMouseLeave={() => setIsVisible(false)}
       />
       {isVisible && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-gray-900 text-white text-[11px] rounded-lg shadow-xl z-50">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-gray-900 text-white text-[11px] z-50">
           {content}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
         </div>
@@ -388,7 +305,6 @@ export default function BentoMetricsGrid() {
     return () => clearInterval(timer);
   }, []);
 
-  // Simulate value updates for visual feedback
   useEffect(() => {
     const interval = setInterval(() => {
       const randomCard = metrics[Math.floor(Math.random() * metrics.length)];
@@ -404,27 +320,26 @@ export default function BentoMetricsGrid() {
 
   const renderChart = (card: MetricCard) => {
     if (!card.chart || !card.chartData) return null;
-    const colors = colorMap[card.color];
 
     if (card.chart === 'area') {
       return (
-        <div className="h-24 mt-4 w-full">
-          <ResponsiveContainer width="100%" height={96}>
+        <div className="h-20 mt-3 w-full">
+          <ResponsiveContainer width="100%" height={80}>
             <AreaChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id={`gradient-${card.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={colors.chartFill} stopOpacity={0.15} />
-                  <stop offset="100%" stopColor={colors.chartFill} stopOpacity={0} />
+                  <stop offset="0%" stopColor={chartColors.chart.blue} stopOpacity={0.1} />
+                  <stop offset="100%" stopColor={chartColors.chart.blue} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <Tooltip
                 content={<ChartTooltip />}
-                cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '3 3' }}
+                cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke={colors.chart}
+                stroke={chartColors.chart.blue}
                 strokeWidth={2}
                 fill={`url(#gradient-${card.id})`}
                 isAnimationActive={false}
@@ -436,17 +351,17 @@ export default function BentoMetricsGrid() {
     }
 
     return (
-      <div className="h-16 mt-4 w-full">
-        <ResponsiveContainer width="100%" height={64}>
+      <div className="h-14 mt-3 w-full">
+        <ResponsiveContainer width="100%" height={56}>
           <LineChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{ stroke: colors.chart, strokeWidth: 1, strokeDasharray: '3 3' }}
+              cursor={{ stroke: chartColors.chart.blue, strokeWidth: 1, strokeDasharray: '3 3' }}
             />
             <Line
               type="monotone"
               dataKey="value"
-              stroke={colors.chart}
+              stroke={chartColors.chart.blue}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
@@ -459,31 +374,28 @@ export default function BentoMetricsGrid() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50/50">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
-        {/* Section Header */}
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50/80 border border-blue-100 rounded-full mb-5 shadow-sm">
-            <BarChart3 className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
+            <BarChart3 className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-semibold text-gray-700">
               {locale === 'zh-CN' ? '平台指标' : 'Platform Metrics'}
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
             {locale === 'zh-CN' ? '核心数据指标' : 'Key Metrics'}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {locale === 'zh-CN'
               ? '实时监控平台核心指标，全面了解预言机生态健康状况'
               : 'Real-time monitoring of core platform metrics for comprehensive oracle ecosystem health'}
           </p>
         </div>
 
-        {/* Bento Grid - Improved responsive layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 auto-rows-fr">
-          {metrics.map((card, index) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+          {metrics.map((card) => {
             const Icon = card.icon;
-            const colors = colorMap[card.color];
             const isHovered = hoveredCard === card.id;
             const isAnimating = animatedValues[card.id];
 
@@ -491,52 +403,32 @@ export default function BentoMetricsGrid() {
               <div
                 key={card.id}
                 className={`
-                  relative group rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
+                  relative bg-white border border-gray-200 transition-colors duration-200 cursor-pointer
                   ${card.size === 'large' ? 'sm:col-span-2 sm:row-span-2' : ''}
                   ${card.size === 'medium' ? 'sm:col-span-1' : ''}
-                  ${colors.bg} ${colors.border}
-                  ${isHovered ? 'shadow-xl shadow-gray-200/50 scale-[1.02] border-opacity-80' : 'shadow-sm shadow-gray-100/50'}
-                  ${isAnimating ? 'ring-2 ring-emerald-400/30' : ''}
+                  ${isHovered ? 'border-gray-400' : ''}
+                  ${isAnimating ? 'border-emerald-400' : ''}
                 `}
-                style={{ animationDelay: `${index * 50}ms` }}
                 onMouseEnter={() => setHoveredCard(card.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                {/* Live Indicator */}
                 {card.hasLiveIndicator && <LiveIndicator />}
 
-                {/* Background gradient on hover */}
-                <div
-                  className={`
-                  absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                `}
-                />
-
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,gray_1px,transparent_0)] bg-[length:20px_20px]" />
-
-                <div className="relative p-4 sm:p-5 lg:p-6 h-full flex flex-col">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3 sm:mb-4">
-                    <div
-                      className={`
-                      p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100/50
-                      group-hover:shadow-md group-hover:scale-105 transition-all duration-300
-                    `}
-                    >
-                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${colors.text}`} />
+                <div className="p-4 sm:p-5 h-full flex flex-col">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-2 bg-gray-100">
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                     </div>
                     {card.change && (
                       <div
                         className={`
-                        flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm
-                        ${
-                          card.isPositive
-                            ? 'bg-emerald-100/80 text-emerald-700 border border-emerald-200/50'
-                            : 'bg-rose-100/80 text-rose-700 border border-rose-200/50'
-                        }
-                        transition-transform duration-300 ${isHovered ? 'scale-105' : ''}
-                      `}
+                          flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border
+                          ${
+                            card.isPositive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          }
+                        `}
                       >
                         {card.isPositive ? (
                           <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -548,37 +440,36 @@ export default function BentoMetricsGrid() {
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="text-xs sm:text-sm font-medium text-gray-600 truncate">{card.title}</div>
+                      <div className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                        {card.title}
+                      </div>
                       {card.description && <InfoTooltip content={card.description} />}
                     </div>
                     <div
                       className={`
-                      text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 tracking-tight
-                      transition-all duration-300 ${isAnimating ? 'text-emerald-600 scale-105' : ''}
-                    `}
+                        text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1
+                        ${isAnimating ? 'text-emerald-600' : ''}
+                      `}
                     >
                       {card.value}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium">{card.subtitle}</div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium">
+                      {card.subtitle}
+                    </div>
 
-                    {/* Alert Badge */}
                     {card.alert && (
                       <AlertBadge type={card.alert.type} message={card.alert.message} />
                     )}
                   </div>
 
-                  {/* Chart */}
                   {card.chart && renderChart(card)}
 
-                  {/* Mini Live Ticker for TVS card */}
                   {card.id === 'tvs' && <MiniLiveTicker />}
 
-                  {/* Last updated time for live cards */}
                   {card.hasLiveIndicator && (
-                    <div className="mt-3 sm:mt-4 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-500 font-medium">
+                    <div className="mt-3 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-500 font-medium">
                       <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>
                         {locale === 'zh-CN' ? '更新于' : 'Updated'}{' '}
@@ -591,15 +482,14 @@ export default function BentoMetricsGrid() {
                     </div>
                   )}
 
-                  {/* Arrow indicator */}
                   <div
                     className={`
-                    absolute bottom-4 right-4 sm:bottom-5 sm:right-5 p-2 sm:p-2.5 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100/50 shadow-sm
-                    opacity-0 group-hover:opacity-100 transition-all duration-300
-                    transform translate-x-3 group-hover:translate-x-0 group-hover:scale-110
-                  `}
+                      absolute bottom-3 right-3 p-2 bg-gray-100 border border-gray-200
+                      opacity-0 transition-opacity duration-200
+                      ${isHovered ? 'opacity-100' : ''}
+                    `}
                   >
-                    <ArrowUpRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${colors.text}`} />
+                    <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
                   </div>
                 </div>
               </div>
@@ -607,18 +497,14 @@ export default function BentoMetricsGrid() {
           })}
         </div>
 
-        {/* Bottom Stats Row */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: locale === 'zh-CN' ? '支持网络' : 'Networks', value: '15+' },
             { label: locale === 'zh-CN' ? '合作伙伴' : 'Partners', value: '200+' },
             { label: locale === 'zh-CN' ? 'API 调用/天' : 'API Calls/Day', value: '50M+' },
             { label: locale === 'zh-CN' ? '正常运行时间' : 'Uptime', value: '99.99%' },
-          ].map((stat, index) => (
-            <div
-              key={stat.label}
-              className="text-center p-4 rounded-xl bg-white/60 border border-gray-200/50 backdrop-blur-sm"
-            >
+          ].map((stat) => (
+            <div key={stat.label} className="text-center p-4 border border-gray-200 bg-white">
               <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
               <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
             </div>

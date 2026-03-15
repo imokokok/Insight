@@ -41,7 +41,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const data = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+    <div className="bg-white border border-gray-200  p-3 ">
       <p className="text-gray-900 font-medium text-sm mb-2">{data.type}</p>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-4">
@@ -74,10 +74,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: entry.color }}
-          />
+          <div className="w-3 h-3  flex-shrink-0" style={{ backgroundColor: entry.color }} />
           <span className="text-xs text-gray-600 truncate">{entry.value}</span>
         </div>
       ))}
@@ -121,7 +118,7 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
   const topType = data.reduce((max, item) => (item.count > max.count ? item : max), data[0]);
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
+    <div className={`bg-white border border-gray-200  p-5 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -162,12 +159,9 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {data.slice(0, 6).map((item) => (
-            <div
-              key={item.type}
-              className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
-            >
+            <div key={item.type} className="bg-gray-50  p-3 hover:bg-gray-100 transition-colors">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <div className="w-2.5 h-2.5 " style={{ backgroundColor: item.color }} />
                 <span className="text-xs font-medium text-gray-700">{item.type}</span>
               </div>
               <div className="flex items-baseline gap-1">
@@ -181,7 +175,7 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
         </div>
       </div>
 
-      <div className="mt-4 bg-purple-50 rounded-lg p-3">
+      <div className="mt-4 bg-purple-50  p-3">
         <div className="flex items-center gap-2">
           <svg
             className="w-4 h-4 text-purple-600"
@@ -189,12 +183,7 @@ export function RequestTypeDistribution({ className = '' }: RequestTypeDistribut
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            />
+            <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
           <span className="text-sm text-purple-700">
             <span className="font-medium">{topType.type}</span>{' '}

@@ -33,7 +33,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="animate-pulse bg-gray-50 h-24" />
+            <div key={i} className="animate-pulse bg-gray-50 h-24 border border-gray-200" />
           ))}
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             {locale === 'zh-CN' ? '综合风险:' : 'Overall Risk:'}
           </span>
           <span
-            className="px-2 py-0.5 rounded text-xs font-medium"
+            className="px-2 py-0.5 text-xs font-medium"
             style={{
               backgroundColor: `${getRiskLevelColor(data.overallRisk.level)}15`,
               color: getRiskLevelColor(data.overallRisk.level),
@@ -133,7 +133,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           </div>
           <div className="space-y-1.5">
             <div
-              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+              className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium"
               style={{ backgroundColor: `${hhiStatus.color}15`, color: hhiStatus.color }}
             >
               {hhiStatus.label}
@@ -144,9 +144,9 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           </div>
           {/* 进度条 */}
           <div className="mt-2">
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-gray-100 overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full transition-all duration-500"
                 style={{
                   width: `${Math.min((data.hhi.value / 5000) * 100, 100)}%`,
                   backgroundColor: hhiStatus.color,
@@ -170,11 +170,13 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             </span>
           </div>
           <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">{data.diversification.score}</span>
+            <span className="text-xl font-semibold text-gray-900">
+              {data.diversification.score}
+            </span>
             <span className="text-xs text-gray-500">/100</span>
           </div>
           <div
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
+            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
             style={{
               backgroundColor: `${getRiskLevelColor(data.diversification.level)}15`,
               color: getRiskLevelColor(data.diversification.level),
@@ -213,7 +215,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             <span className="text-xl font-semibold text-gray-900">{data.volatility.index}</span>
           </div>
           <div
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
+            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
             style={{
               backgroundColor: `${getRiskLevelColor(data.volatility.level)}15`,
               color: getRiskLevelColor(data.volatility.level),
@@ -249,11 +251,13 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             </span>
           </div>
           <div className="mb-1">
-            <span className="text-xl font-semibold text-gray-900">{data.correlationRisk.score}</span>
+            <span className="text-xl font-semibold text-gray-900">
+              {data.correlationRisk.score}
+            </span>
             <span className="text-xs text-gray-500">/100</span>
           </div>
           <div
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
+            className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium mb-2"
             style={{
               backgroundColor: `${getRiskLevelColor(data.correlationRisk.level)}15`,
               color: getRiskLevelColor(data.correlationRisk.level),

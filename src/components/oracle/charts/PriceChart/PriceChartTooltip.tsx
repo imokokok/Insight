@@ -37,8 +37,12 @@ export const MainChartTooltip = memo(function MainChartTooltip({
   const isUp = data.close !== undefined && data.open !== undefined ? data.close >= data.open : true;
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-xl ${isMobile ? 'p-2 max-w-[200px]' : 'p-3 max-w-xs'}`}>
-      <p className={`text-gray-600 mb-2 font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`}>{label}</p>
+    <div
+      className={`bg-white border border-gray-200   ${isMobile ? 'p-2 max-w-[200px]' : 'p-3 max-w-xs'}`}
+    >
+      <p className={`text-gray-600 mb-2 font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+        {label}
+      </p>
 
       {chartType === 'candlestick' && data.open !== undefined ? (
         <div className="space-y-1">
@@ -91,7 +95,9 @@ export const MainChartTooltip = memo(function MainChartTooltip({
 
       {showBollingerBands && !isMobile && data.bbUpper !== undefined && (
         <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">{t('oracle.chart.tooltip.bollingerBands')}</p>
+          <p className="text-xs text-gray-400 font-medium">
+            {t('oracle.chart.tooltip.bollingerBands')}
+          </p>
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">{t('oracle.chart.tooltip.upperBand')}</span>
             <span className="text-purple-500 font-mono">${data.bbUpper.toFixed(4)}</span>
@@ -107,20 +113,31 @@ export const MainChartTooltip = memo(function MainChartTooltip({
         </div>
       )}
 
-      {data.predictionUpper !== undefined && data.predictionLower !== undefined && data.predictionUpper !== null && data.predictionLower !== null && (
-        <div className={`space-y-1 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.predictionUpper')}</span>
-            <span className="text-blue-600 font-mono">${Number(data.predictionUpper).toFixed(4)}</span>
+      {data.predictionUpper !== undefined &&
+        data.predictionLower !== undefined &&
+        data.predictionUpper !== null &&
+        data.predictionLower !== null && (
+          <div
+            className={`space-y-1 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+          >
+            <div className="flex justify-between gap-4">
+              <span className="text-gray-500">{t('oracle.chart.tooltip.predictionUpper')}</span>
+              <span className="text-blue-600 font-mono">
+                ${Number(data.predictionUpper).toFixed(4)}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-gray-500">{t('oracle.chart.tooltip.predictionLower')}</span>
+              <span className="text-blue-600 font-mono">
+                ${Number(data.predictionLower).toFixed(4)}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.predictionLower')}</span>
-            <span className="text-blue-600 font-mono">${Number(data.predictionLower).toFixed(4)}</span>
-          </div>
-        </div>
-      )}
+        )}
 
-      <div className={`flex justify-between gap-4 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+      <div
+        className={`flex justify-between gap-4 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+      >
         <span className="text-gray-500">{t('oracle.chart.tooltip.volume')}</span>
         <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
       </div>
@@ -128,7 +145,9 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       {showRSI && !isMobile && data.rsi !== undefined && (
         <div className="flex justify-between gap-4 text-xs mt-1">
           <span className="text-gray-500">{t('oracle.chart.tooltip.rsi')}</span>
-          <span className={`font-mono ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-700'}`}>
+          <span
+            className={`font-mono ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-700'}`}
+          >
             {data.rsi.toFixed(2)}
           </span>
         </div>
@@ -147,7 +166,9 @@ export const MainChartTooltip = memo(function MainChartTooltip({
           </div>
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">{t('oracle.chart.tooltip.histogram')}</span>
-            <span className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <span
+              className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
               {data.macdHistogram?.toFixed(4)}
             </span>
           </div>
@@ -163,11 +184,7 @@ interface RSITooltipProps {
   label?: string;
 }
 
-export const RSITooltip = memo(function RSITooltip({
-  active,
-  payload,
-  label,
-}: RSITooltipProps) {
+export const RSITooltip = memo(function RSITooltip({ active, payload, label }: RSITooltipProps) {
   const { t } = useI18n();
 
   if (!active || !payload || payload.length === 0) return null;
@@ -176,11 +193,13 @@ export const RSITooltip = memo(function RSITooltip({
   if (!data || data.rsi === undefined) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-xl">
+    <div className="bg-white border border-gray-200  p-2 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
       <div className="flex justify-between gap-4 text-xs">
         <span className="text-gray-500">{t('oracle.chart.tooltip.rsi')}</span>
-        <span className={`font-mono font-medium ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-900'}`}>
+        <span
+          className={`font-mono font-medium ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-900'}`}
+        >
           {data.rsi.toFixed(2)}
         </span>
       </div>
@@ -194,11 +213,7 @@ interface MACDTooltipProps {
   label?: string;
 }
 
-export const MACDTooltip = memo(function MACDTooltip({
-  active,
-  payload,
-  label,
-}: MACDTooltipProps) {
+export const MACDTooltip = memo(function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
   const { t } = useI18n();
 
   if (!active || !payload || payload.length === 0) return null;
@@ -207,7 +222,7 @@ export const MACDTooltip = memo(function MACDTooltip({
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-xl">
+    <div className="bg-white border border-gray-200  p-2 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
       <div className="space-y-1">
         <div className="flex justify-between gap-4 text-xs">
@@ -220,7 +235,9 @@ export const MACDTooltip = memo(function MACDTooltip({
         </div>
         <div className="flex justify-between gap-4 text-xs">
           <span className="text-gray-500">{t('oracle.chart.tooltip.histogram')}</span>
-          <span className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <span
+            className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
+          >
             {data.macdHistogram?.toFixed(4)}
           </span>
         </div>

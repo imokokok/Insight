@@ -3,13 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
-import {
-  BarChart3,
-  Info,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from 'lucide-react';
+import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors } from '@/lib/config/colors';
 
 interface CorrelationMatrixProps {
@@ -139,7 +133,7 @@ export default function CorrelationMatrix({
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -183,7 +177,9 @@ export default function CorrelationMatrix({
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
-            <div className="text-xl font-semibold text-red-700">{stats.minCorrelation.toFixed(2)}</div>
+            <div className="text-xl font-semibold text-red-700">
+              {stats.minCorrelation.toFixed(2)}
+            </div>
             <div className="text-xs text-gray-600">
               {locale === 'zh-CN' ? '最低相关性' : 'Min Correlation'}
             </div>
@@ -352,7 +348,7 @@ export default function CorrelationMatrix({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'correlation' | 'name')}
-              className="text-sm border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-gray-200 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="correlation">
                 {locale === 'zh-CN' ? '按相关性排序' : 'Sort by Correlation'}
@@ -403,7 +399,7 @@ export default function CorrelationMatrix({
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <span
-                        className="font-medium px-2 py-0.5 rounded text-sm"
+                        className="font-medium px-2 py-0.5 text-sm"
                         style={{
                           backgroundColor: `${color}15`,
                           color,
@@ -436,7 +432,7 @@ export default function CorrelationMatrix({
       {/* 详情弹窗 */}
       {showDetails && selectedPair && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-md shadow-lg max-w-sm w-full p-4">
+          <div className="bg-white border border-gray-200 max-w-sm w-full p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-900">
                 {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
@@ -495,7 +491,9 @@ export default function CorrelationMatrix({
                     <div className="text-xs text-gray-500">
                       {locale === 'zh-CN' ? '样本数量' : 'Sample Size'}
                     </div>
-                    <div className="text-sm font-medium text-gray-900">{selectedPair.sampleSize}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {selectedPair.sampleSize}
+                    </div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">
@@ -517,7 +515,7 @@ export default function CorrelationMatrix({
 
             <button
               onClick={() => setShowDetails(false)}
-              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
             >
               {locale === 'zh-CN' ? '关闭' : 'Close'}
             </button>

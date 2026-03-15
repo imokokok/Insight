@@ -8,7 +8,9 @@ interface ChronicleMakerDAOIntegrationPanelProps {
   data: MakerDAOIntegration;
 }
 
-export function ChronicleMakerDAOIntegrationPanel({ data }: ChronicleMakerDAOIntegrationPanelProps) {
+export function ChronicleMakerDAOIntegrationPanel({
+  data,
+}: ChronicleMakerDAOIntegrationPanelProps) {
   const { t } = useI18n();
 
   const getAssetTypeColor = (type: string) => {
@@ -49,7 +51,9 @@ export function ChronicleMakerDAOIntegrationPanel({ data }: ChronicleMakerDAOInt
               <Database className="w-4 h-4 text-amber-600" />
               <p className="text-xs text-gray-500">{t('chronicle.makerdao.tvl')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(data.totalValueLocked)}</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(data.totalValueLocked)}
+            </p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -70,12 +74,15 @@ export function ChronicleMakerDAOIntegrationPanel({ data }: ChronicleMakerDAOInt
               <Shield className="w-4 h-4 text-purple-600" />
               <p className="text-xs text-gray-500">{t('chronicle.makerdao.debtCeiling')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(data.globalDebtCeiling)}</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(data.globalDebtCeiling)}
+            </p>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-500">
-            {t('chronicle.makerdao.integrationVersion')}: <span className="font-medium text-gray-900">{data.integrationVersion}</span>
+            {t('chronicle.makerdao.integrationVersion')}:{' '}
+            <span className="font-medium text-gray-900">{data.integrationVersion}</span>
           </p>
         </div>
       </div>
@@ -87,12 +94,24 @@ export function ChronicleMakerDAOIntegrationPanel({ data }: ChronicleMakerDAOInt
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.asset')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.type')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.price')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.collateralRatio')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.stabilityFee')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.makerdao.debtCeiling')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.asset')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.type')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.price')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.collateralRatio')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.stabilityFee')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.makerdao.debtCeiling')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +124,9 @@ export function ChronicleMakerDAOIntegrationPanel({ data }: ChronicleMakerDAOInt
                     </div>
                   </td>
                   <td className="py-2 px-3">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getAssetTypeColor(asset.type)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getAssetTypeColor(asset.type)}`}
+                    >
                       {asset.type}
                     </span>
                   </td>

@@ -14,9 +14,8 @@ export function CustomLegend({ payload, onToggleSeries, hiddenSeries }: CustomLe
       {payload.map((entry, index) => {
         const isHidden = hiddenSeries?.has(entry.value);
         // Truncate long legend text
-        const displayValue = entry.value.length > 25
-          ? entry.value.substring(0, 22) + '...'
-          : entry.value;
+        const displayValue =
+          entry.value.length > 25 ? entry.value.substring(0, 22) + '...' : entry.value;
 
         return (
           <button
@@ -27,8 +26,13 @@ export function CustomLegend({ payload, onToggleSeries, hiddenSeries }: CustomLe
             }`}
             title={entry.value}
           >
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-[10px] sm:text-xs truncate max-w-[120px] sm:max-w-[180px]">{displayValue}</span>
+            <span
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-[10px] sm:text-xs truncate max-w-[120px] sm:max-w-[180px]">
+              {displayValue}
+            </span>
           </button>
         );
       })}

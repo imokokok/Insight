@@ -173,7 +173,7 @@ export function RequestTrendChart({
     if (active && payload && payload.length) {
       const dataPoint = payload[0].payload;
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[160px]">
+        <div className="bg-white border border-gray-200   p-3 min-w-[160px]">
           <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ export function RequestTrendChart({
               onClick={() => setTimeRange(btn.key)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
                 timeRange === btn.key
-                  ? 'bg-blue-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white '
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -228,7 +228,7 @@ export function RequestTrendChart({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.avgRequests')}</p>
             <p className="text-xl font-bold text-blue-700">
               {formatCompactNumberWithDecimals(stats.avgRequests)}
@@ -238,14 +238,14 @@ export function RequestTrendChart({
               {getTimeUnit(timeRange)}
             </p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.peakRequests')}</p>
             <p className="text-xl font-bold text-purple-700">
               {formatCompactNumberWithDecimals(stats.peakRequests)}
             </p>
             <p className="text-xs text-purple-600 mt-0.5">{t('requestTrend.peakRecord')}</p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.growthRate')}</p>
             <p className="text-xl font-bold text-green-700">
               {stats.growthRate >= 0 ? '+' : ''}
@@ -253,7 +253,7 @@ export function RequestTrendChart({
             </p>
             <p className="text-xs text-green-600 mt-0.5">{t('requestTrend.secondHalfPeriod')}</p>
           </div>
-          <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+          <div className="p-3 bg-gray-100 border border-gray-200 ">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.totalRequests')}</p>
             <p className="text-xl font-bold text-orange-700">
               {formatCompactNumberWithDecimals(stats.totalRequests)}
@@ -265,7 +265,7 @@ export function RequestTrendChart({
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent  animate-spin" />
               <p className="text-sm text-gray-500">{t('requestTrend.loading')}</p>
             </div>
           </div>
@@ -324,14 +324,14 @@ export function RequestTrendChart({
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <div className="w-3 h-3  bg-blue-500" />
               <span className="text-xs text-gray-600">{t('requestTrend.requests')}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {autoUpdate && (
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-2 h-2  bg-green-500 animate-pulse" />
                 <span className="text-xs text-gray-500">{t('requestTrend.realtimeUpdate')}</span>
               </div>
             )}

@@ -208,19 +208,19 @@ export function PriceCorrelationMatrix({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="bg-blue-50  p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">{t('priceCorrelation.avgCorrelation')}</p>
             <p className="text-xl font-bold text-blue-700">{stats.avgCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3 text-center">
+          <div className="bg-green-50  p-3 text-center">
             <p className="text-xs text-green-600 mb-1">{t('priceCorrelation.maxCorrelation')}</p>
             <p className="text-xl font-bold text-green-700">{stats.maxCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
+          <div className="bg-red-50  p-3 text-center">
             <p className="text-xs text-red-600 mb-1">{t('priceCorrelation.minCorrelation')}</p>
             <p className="text-xl font-bold text-red-700">{stats.minCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3 text-center">
+          <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">
               {t('priceCorrelation.highCorrelationCount')}
             </p>
@@ -295,7 +295,7 @@ export function PriceCorrelationMatrix({
           </div>
 
           {hoveredCell && (
-            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs rounded-lg px-4 py-3 z-20 shadow-xl min-w-[220px]">
+            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs  px-4 py-3 z-20  min-w-[220px]">
               <div className="font-semibold text-sm mb-2">
                 {getOracleName(hoveredCell.oracle1)} ↔ {getOracleName(hoveredCell.oracle2)}
               </div>
@@ -334,7 +334,7 @@ export function PriceCorrelationMatrix({
           )}
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50  p-4">
           <div className="text-xs text-gray-600 mb-2 font-medium">
             {t('priceCorrelation.legend.title')}
           </div>
@@ -360,7 +360,7 @@ export function PriceCorrelationMatrix({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">
               {t('priceCorrelation.distribution.title')}
             </h4>
@@ -384,9 +384,9 @@ export function PriceCorrelationMatrix({
                 return (
                   <div key={item.range} className="flex items-center gap-2">
                     <div className="w-20 text-xs text-gray-600">{item.range}</div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div className="flex-1 bg-gray-200  h-2 overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all bg-blue-500"
+                        className="h-full  transition-all bg-blue-500"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -399,7 +399,7 @@ export function PriceCorrelationMatrix({
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">
               {t('priceCorrelation.distribution.topPairs')}
             </h4>
@@ -430,7 +430,7 @@ export function PriceCorrelationMatrix({
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200  p-4">
           <div className="flex items-start gap-3">
             <svg
               className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"

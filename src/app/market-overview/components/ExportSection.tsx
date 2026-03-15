@@ -5,12 +5,12 @@ import html2canvas from 'html2canvas';
 import { Download, ChevronDown, Table, FileJson, Image as ImageIcon } from 'lucide-react';
 import { ChartType } from '../types';
 import { createLogger } from '@/lib/utils/logger';
+import { useI18n } from '@/lib/i18n/provider';
 
 const logger = createLogger('ExportSection');
 
 interface ExportSectionProps {
   loading: boolean;
-  locale: string;
   chartContainerRef: RefObject<HTMLDivElement | null>;
   activeChart: ChartType;
   getChartTitle: () => string;
@@ -20,13 +20,13 @@ interface ExportSectionProps {
 
 export default function ExportSection({
   loading,
-  locale,
   chartContainerRef,
   activeChart,
   getChartTitle,
   exportToCSV,
   exportToJSON,
 }: ExportSectionProps) {
+  const { t, locale } = useI18n();
   const exportChartToImage = async () => {
     if (!chartContainerRef.current) return;
 
@@ -64,7 +64,7 @@ export default function ExportSection({
       ctx.font = '14px system-ui, -apple-system, sans-serif';
       ctx.fillStyle = '#6b7280';
       ctx.fillText(
-        locale === 'zh-CN' ? `导出时间: ${timestamp}` : `Exported: ${timestamp}`,
+        `${t('marketOverview.export.exportTime')}: ${timestamp}`,
         padding,
         padding + titleHeight + 16
       );
@@ -78,29 +78,25 @@ export default function ExportSection({
       link.click();
     } catch (error) {
       logger.error('导出图片失败', error instanceof Error ? error : new Error(String(error)));
-      alert(
-        locale === 'zh-CN' ? '导出图片失败，请重试' : 'Failed to export image, please try again'
-      );
+      alert(t('marketOverview.export.exportFailed'));
     }
   };
 
   return (
     <div className="relative group">
-      <button
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors"
-      >
+      <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors">
         <Download className="w-4 h-4" />
-        {locale === 'zh-CN' ? '导出' : 'Export'}
+        {t('marketOverview.export.title')}
         <ChevronDown className="w-4 h-4" />
       </button>
-      <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg border border-gray-200 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+      <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
         <button
           onClick={exportToCSV}
           disabled={loading}
-          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors border-b border-gray-100"
+          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
         >
           <Table className="w-4 h-4 text-gray-400" />
-          CSV
+          {t('marketOverview.export.csv')}
         </button>
         <button
           onClick={exportToJSON}
@@ -108,15 +104,15 @@ export default function ExportSection({
           className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
         >
           <FileJson className="w-4 h-4 text-gray-400" />
-          JSON
+          {t('marketOverview.export.json')}
         </button>
         <button
           onClick={exportChartToImage}
           disabled={loading}
-          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors"
+          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <ImageIcon className="w-4 h-4 text-gray-400" />
-          {locale === 'zh-CN' ? '图片' : 'Image'}
+          {t('marketOverview.export.image')}
         </button>
       </div>
     </div>

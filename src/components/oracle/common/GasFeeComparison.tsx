@@ -151,13 +151,13 @@ export function GasFeeComparison({
   const getCostLabel = () => {
     switch (timeFrame) {
       case 'hourly':
-        return '每小时成本';
+        return t('gasFee.hourlyCost');
       case 'daily':
-        return '每日成本';
+        return t('gasFee.dailyCost');
       case 'monthly':
-        return '每月成本';
+        return t('gasFee.monthlyCost');
       default:
-        return '每日成本';
+        return t('gasFee.dailyCost');
     }
   };
 
@@ -167,36 +167,38 @@ export function GasFeeComparison({
     const data = payload[0].payload;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{data.oracle}</p>
         <p className="text-xs text-gray-500 mb-2">{data.chain}</p>
         <div className="space-y-1.5">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">单次更新成本</span>
+            <span className="text-xs text-gray-600">{t('gasFee.singleUpdateCost')}</span>
             <span className="text-sm font-medium">${data.updateCost.toFixed(4)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">更新频率</span>
-            <span className="text-sm font-medium">{data.updateFrequency} 次/小时</span>
+            <span className="text-xs text-gray-600">{t('gasFee.updateFrequency')}</span>
+            <span className="text-sm font-medium">
+              {data.updateFrequency} {t('gasFee.timesPerHour')}
+            </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">每小时成本</span>
+            <span className="text-xs text-gray-600">{t('gasFee.hourlyCost')}</span>
             <span className="text-sm font-medium">${data.hourlyCost.toFixed(4)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">每日成本</span>
+            <span className="text-xs text-gray-600">{t('gasFee.dailyCost')}</span>
             <span className="text-sm font-medium">${data.dailyCost.toFixed(4)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">每月成本</span>
+            <span className="text-xs text-gray-600">{t('gasFee.monthlyCost')}</span>
             <span className="text-sm font-medium">${data.monthlyCost.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">平均Gas价格</span>
+            <span className="text-xs text-gray-600">{t('gasFee.avgGasPrice')}</span>
             <span className="text-sm font-medium">{data.avgGasPrice.toFixed(2)} Gwei</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">效率评分</span>
+            <span className="text-xs text-gray-600">{t('gasFee.efficiencyScore')}</span>
             <span className="text-sm font-bold text-blue-600">{data.efficiency.toFixed(1)}</span>
           </div>
         </div>
@@ -206,65 +208,67 @@ export function GasFeeComparison({
 
   if (data.length === 0) {
     return (
-      <DashboardCard title="Gas费用对比分析" className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">暂无Gas费用数据</div>
+      <DashboardCard title={t('gasFee.title')} className={className}>
+        <div className="h-80 flex items-center justify-center text-gray-400">
+          {t('gasFee.noData')}
+        </div>
       </DashboardCard>
     );
   }
 
   return (
     <div className="space-y-6">
-      <DashboardCard title="Gas费用对比分析" className={className}>
+      <DashboardCard title={t('gasFee.title')} className={className}>
         <div className="space-y-6">
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">视图:</span>
+              <span className="text-sm text-gray-600">{t('common.view')}</span>
               <div className="flex gap-1">
                 <button
                   onClick={() => setViewMode('cost')}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm  transition-colors ${
                     viewMode === 'cost'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  成本对比
+                  {t('gasFee.costComparison')}
                 </button>
                 <button
                   onClick={() => setViewMode('efficiency')}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm  transition-colors ${
                     viewMode === 'efficiency'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  效率评分
+                  {t('gasFee.efficiencyScore')}
                 </button>
                 <button
                   onClick={() => setViewMode('frequency')}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-1.5 text-sm  transition-colors ${
                     viewMode === 'frequency'
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  更新频率
+                  {t('gasFee.updateFrequency')}
                 </button>
               </div>
             </div>
 
             {viewMode === 'cost' && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">时间范围:</span>
+                <span className="text-sm text-gray-600">{t('common.timeRange')}</span>
                 <select
                   value={timeFrame}
                   onChange={(e) => setTimeFrame(e.target.value as any)}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="hourly">每小时</option>
-                  <option value="daily">每日</option>
-                  <option value="monthly">每月</option>
+                  <option value="hourly">{t('common.hourly')}</option>
+                  <option value="daily">{t('common.daily')}</option>
+                  <option value="monthly">{t('common.monthly')}</option>
                 </select>
               </div>
             )}
@@ -273,20 +277,20 @@ export function GasFeeComparison({
           {/* Stats Cards */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-                <p className="text-xs text-gray-600 mb-1">平均每日成本</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('gasFee.avgDailyCost')}</p>
                 <p className="text-2xl font-bold text-blue-600">${stats.avgCost.toFixed(4)}</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-                <p className="text-xs text-gray-600 mb-1">最低成本</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('gasFee.minCost')}</p>
                 <p className="text-2xl font-bold text-green-600">${stats.minCost.toFixed(4)}</p>
               </div>
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-                <p className="text-xs text-gray-600 mb-1">最高成本</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('gasFee.maxCost')}</p>
                 <p className="text-2xl font-bold text-orange-600">${stats.maxCost.toFixed(4)}</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-                <p className="text-xs text-gray-600 mb-1">平均更新频率</p>
+              <div className="bg-gray-100 border border-gray-200  p-4">
+                <p className="text-xs text-gray-600 mb-1">{t('gasFee.avgUpdateFrequency')}</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {stats.avgFrequency.toFixed(1)}/h
                 </p>
@@ -300,8 +304,8 @@ export function GasFeeComparison({
               {viewMode === 'cost'
                 ? getCostLabel()
                 : viewMode === 'efficiency'
-                  ? '效率评分'
-                  : '更新频率 (次/小时)'}
+                  ? t('gasFee.efficiencyScore')
+                  : `${t('gasFee.updateFrequency')} (${t('gasFee.timesPerHour')})`}
             </h4>
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -339,7 +343,6 @@ export function GasFeeComparison({
                           ? 'efficiency'
                           : 'updateFrequency'
                     }
-                    radius={[0, 4, 4, 0]}
                     maxBarSize={40}
                   >
                     {chartData.map((entry, index) => (
@@ -352,7 +355,8 @@ export function GasFeeComparison({
                               : entry.efficiency > 50
                                 ? chartColors.semantic.warning
                                 : chartColors.semantic.danger
-                            : ORACLE_COLORS[entry.oracleId as OracleProvider] || chartColors.recharts.tick
+                            : ORACLE_COLORS[entry.oracleId as OracleProvider] ||
+                              chartColors.recharts.tick
                         }
                       />
                     ))}
@@ -368,25 +372,25 @@ export function GasFeeComparison({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    预言机
+                    {t('common.oracle')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    链
+                    {t('common.chain')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    单次成本
+                    {t('gasFee.singleCost')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    更新频率
+                    {t('gasFee.updateFrequency')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    每日成本
+                    {t('gasFee.dailyCost')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    每月成本
+                    {t('gasFee.monthlyCost')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    效率评分
+                    {t('gasFee.efficiencyScore')}
                   </th>
                 </tr>
               </thead>
@@ -396,10 +400,11 @@ export function GasFeeComparison({
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-3 h-3 rounded-full mr-2"
+                          className="w-3 h-3  mr-2"
                           style={{
                             backgroundColor:
-                              ORACLE_COLORS[row.oracleId as OracleProvider] || chartColors.recharts.tick,
+                              ORACLE_COLORS[row.oracleId as OracleProvider] ||
+                              chartColors.recharts.tick,
                           }}
                         />
                         <span className="text-sm font-medium text-gray-900">{row.oracle}</span>
@@ -412,7 +417,7 @@ export function GasFeeComparison({
                       ${row.updateCost.toFixed(4)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                      {row.updateFrequency} 次/小时
+                      {row.updateFrequency} {t('gasFee.timesPerHour')}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
                       ${row.dailyCost.toFixed(4)}
@@ -440,22 +445,29 @@ export function GasFeeComparison({
           </div>
 
           {/* Explanation */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Gas费用分析说明</h4>
+          <div className="bg-blue-50  p-4">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('gasFee.analysisTitle')}</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>
-                • <strong>单次更新成本</strong>: 预言机单次价格更新所需的Gas费用（以USD计）
+                • <strong>{t('gasFee.singleUpdateCost')}</strong>:{' '}
+                {t('gasFee.analysis.singleUpdateCostDesc')}
               </li>
               <li>
-                • <strong>更新频率</strong>: 预言机每小时的价格更新次数
+                • <strong>{t('gasFee.updateFrequency')}</strong>:{' '}
+                {t('gasFee.analysis.updateFrequencyDesc')}
               </li>
               <li>
-                • <strong>每日/每月成本</strong>: 基于更新频率计算的周期性运营成本
+                •{' '}
+                <strong>
+                  {t('gasFee.dailyCost')}/{t('gasFee.monthlyCost')}
+                </strong>
+                : {t('gasFee.analysis.periodicCostDesc')}
               </li>
               <li>
-                • <strong>效率评分</strong>: 综合考虑成本和频率的评分，100分为最优
+                • <strong>{t('gasFee.efficiencyScore')}</strong>:{' '}
+                {t('gasFee.analysis.efficiencyScoreDesc')}
               </li>
-              <li>• 低频率、低成本的预言机通常具有更高的效率评分</li>
+              <li>• {t('gasFee.analysis.lowFreqHighEfficiency')}</li>
             </ul>
           </div>
         </div>

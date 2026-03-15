@@ -138,7 +138,7 @@ export function ProfilePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <User className="w-5 h-5 text-gray-400" />
@@ -149,13 +149,11 @@ export function ProfilePanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
+            <div className="p-3 bg-red-50 border border-red-200  text-red-700 text-sm">{error}</div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200  text-green-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -163,7 +161,7 @@ export function ProfilePanel() {
 
           <div className="flex items-center gap-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-2 border-gray-200">
+              <div className="w-24 h-24  bg-gray-100 overflow-hidden border-2 border-gray-200">
                 {avatarUrl || profile?.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -180,7 +178,7 @@ export function ProfilePanel() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600  flex items-center justify-center text-white  hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {isUploading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -197,19 +195,23 @@ export function ProfilePanel() {
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">{t('settings.profile.avatarLabel')}</p>
+              <p className="text-sm font-medium text-gray-700">
+                {t('settings.profile.avatarLabel')}
+              </p>
               <p className="text-xs text-gray-500 mt-1">{t('settings.profile.avatarHint')}</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.displayNameLabel')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('settings.profile.displayNameLabel')}
+            </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder={t('settings.profile.displayNamePlaceholder')}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
 
@@ -222,7 +224,7 @@ export function ProfilePanel() {
               type="email"
               value={user?.email || ''}
               disabled
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+              className="w-full px-4 py-2.5 border border-gray-200  bg-gray-50 text-gray-500 cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">{t('settings.profile.emailNotEditable')}</p>
           </div>
@@ -231,7 +233,7 @@ export function ProfilePanel() {
             <button
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -244,20 +246,22 @@ export function ProfilePanel() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-gray-400" />
             {t('settings.profile.passwordManagement')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.profile.passwordManagementDesc')}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('settings.profile.passwordManagementDesc')}
+          </p>
         </div>
 
         <div className="p-6">
           {!showPasswordForm ? (
             <button
               onClick={() => setShowPasswordForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700  hover:bg-gray-50 transition-colors font-medium text-sm"
             >
               <Key className="w-4 h-4" />
               {t('settings.profile.changePassword')}
@@ -265,24 +269,28 @@ export function ProfilePanel() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.newPassword')}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('settings.profile.newPassword')}
+                </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder={t('settings.profile.newPasswordPlaceholder')}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.profile.confirmNewPassword')}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('settings.profile.confirmNewPassword')}
+                </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder={t('settings.profile.confirmNewPasswordPlaceholder')}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
 
@@ -290,7 +298,7 @@ export function ProfilePanel() {
                 <button
                   onClick={handleChangePassword}
                   disabled={isChangingPassword}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium text-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium text-sm"
                 >
                   {isChangingPassword ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -305,7 +313,7 @@ export function ProfilePanel() {
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="px-4 py-2.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                  className="px-4 py-2.5 border border-gray-200 text-gray-700  hover:bg-gray-50 transition-colors font-medium text-sm"
                 >
                   {t('settings.profile.cancel')}
                 </button>

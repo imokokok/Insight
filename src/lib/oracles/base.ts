@@ -151,7 +151,7 @@ export abstract class BaseOracleClient {
 
       // 随机游走：基于前一个价格计算新价格
       const randomWalk = (Math.random() - 0.5) * 2 * volatility;
-      const trendComponent = trendStrength * (1 + Math.sin(i / dataPoints * Math.PI) * 0.5);
+      const trendComponent = trendStrength * (1 + Math.sin((i / dataPoints) * Math.PI) * 0.5);
 
       currentPrice = currentPrice * (1 + randomWalk + trendComponent);
 

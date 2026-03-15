@@ -88,7 +88,9 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
               <Coins className="w-4 h-4 text-blue-600" />
               <p className="text-xs text-gray-500">{t('chronicle.validators.totalStaked')}</p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{(data.totalStaked / 1e6).toFixed(2)}M</p>
+            <p className="text-xl font-bold text-gray-900">
+              {(data.totalStaked / 1e6).toFixed(2)}M
+            </p>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100">
@@ -108,12 +110,24 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.name')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.reputation')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.uptime')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.responseTime')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.staked')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.status')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.name')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.reputation')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.uptime')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.responseTime')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.staked')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('chronicle.validators.status')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -127,9 +141,9 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                   </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-16 h-2 bg-gray-200  overflow-hidden">
                         <div
-                          className="h-full bg-amber-500 rounded-full"
+                          className="h-full bg-amber-500 "
                           style={{ width: `${validator.reputationScore}%` }}
                         />
                       </div>
@@ -138,11 +152,15 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                   </td>
                   <td className="py-2 px-3 text-gray-900">{validator.uptime}%</td>
                   <td className="py-2 px-3 text-gray-900">{validator.responseTime}ms</td>
-                  <td className="py-2 px-3 text-gray-900">{(validator.stakedAmount / 1e6).toFixed(2)}M</td>
+                  <td className="py-2 px-3 text-gray-900">
+                    {(validator.stakedAmount / 1e6).toFixed(2)}M
+                  </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-1">
                       {getStatusIcon(validator.status)}
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(validator.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(validator.status)}`}
+                      >
                         {validator.status}
                       </span>
                     </div>

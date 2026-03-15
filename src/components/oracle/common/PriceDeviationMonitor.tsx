@@ -265,7 +265,7 @@ export function PriceDeviationMonitor() {
             <select
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             >
               {symbols.map((s) => (
                 <option key={s} value={s}>
@@ -282,7 +282,7 @@ export function PriceDeviationMonitor() {
             <select
               value={chain}
               onChange={(e) => setChain(e.target.value as Blockchain)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             >
               {chains.map((c) => (
                 <option key={c} value={c}>
@@ -298,12 +298,12 @@ export function PriceDeviationMonitor() {
             <span className="text-sm text-gray-600">{t('priceDeviation.autoRefresh')}</span>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center  transition-colors ${
                 autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform  bg-white transition-transform ${
                   autoRefresh ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
@@ -313,7 +313,7 @@ export function PriceDeviationMonitor() {
           <button
             onClick={fetchPrices}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
           >
             <svg
               className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -340,13 +340,13 @@ export function PriceDeviationMonitor() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white  border border-gray-200 p-4">
           <div className="text-sm text-gray-600 mb-1">{t('priceDeviation.chainlinkPrice')}</div>
           <div className="text-2xl font-bold text-gray-900">${chainlinkPrice.toFixed(4)}</div>
           <div className="text-xs text-gray-500 mt-1">{t('priceDeviation.referencePrice')}</div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white  border border-gray-200 p-4">
           <div className="text-sm text-gray-600 mb-1">{t('priceDeviation.avgDeviation')}</div>
           <div
             className={`text-2xl font-bold ${avgDeviation >= DEVIATION_THRESHOLDS.warning ? 'text-orange-600' : 'text-gray-900'}`}
@@ -356,7 +356,7 @@ export function PriceDeviationMonitor() {
           <div className="text-xs text-gray-500 mt-1">{t('priceDeviation.avgDeviationDesc')}</div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white  border border-gray-200 p-4">
           <div className="text-sm text-gray-600 mb-1">{t('priceDeviation.maxDeviation')}</div>
           <div
             className={`text-2xl font-bold ${maxDeviation >= DEVIATION_THRESHOLDS.critical ? 'text-red-600' : maxDeviation >= DEVIATION_THRESHOLDS.warning ? 'text-orange-600' : 'text-gray-900'}`}
@@ -366,7 +366,7 @@ export function PriceDeviationMonitor() {
           <div className="text-xs text-gray-500 mt-1">{t('priceDeviation.maxDeviationDesc')}</div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="bg-white  border border-gray-200 p-4">
           <div className="text-sm text-gray-600 mb-1">{t('priceDeviation.deviationDuration')}</div>
           <div className="text-2xl font-bold text-gray-900">
             {deviationStartTime ? formatDuration(Date.now() - deviationStartTime) : '--'}
@@ -377,7 +377,7 @@ export function PriceDeviationMonitor() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white  border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {t('priceDeviation.currentComparison')}
         </h3>
@@ -431,7 +431,7 @@ export function PriceDeviationMonitor() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className="w-3 h-3 "
                           style={{ backgroundColor: PROVIDER_COLORS[price.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -455,7 +455,7 @@ export function PriceDeviationMonitor() {
                     </td>
                     <td className="text-center py-3 px-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        className={`inline-flex px-2 py-1 text-xs font-medium  ${
                           price.status === 'normal'
                             ? 'bg-green-100 text-green-700'
                             : price.status === 'warning'
@@ -478,7 +478,7 @@ export function PriceDeviationMonitor() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white  border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {t('priceDeviation.deviationBarChart')}
         </h3>
@@ -524,7 +524,7 @@ export function PriceDeviationMonitor() {
                 stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
-              <Bar dataKey="deviationPercent" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="deviationPercent">
                 {currentPrices.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
@@ -557,7 +557,7 @@ export function PriceDeviationMonitor() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white  border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {t('priceDeviation.priceTrendChart')}
         </h3>
@@ -664,7 +664,7 @@ export function PriceDeviationMonitor() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white  border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {t('priceDeviation.deviationTrendChart')}
         </h3>

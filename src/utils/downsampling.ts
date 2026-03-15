@@ -166,5 +166,3 @@ export function adaptiveDownsample(
     performanceMode: true,
   });
 }
-
-

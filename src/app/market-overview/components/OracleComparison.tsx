@@ -99,13 +99,13 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
   const CustomTooltip = ({ active, payload, label }: TooltipProps<(typeof radarData)[0]>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 min-w-[160px]">
+        <div className="bg-white border border-gray-200 p-2 min-w-[160px]">
           <p className="font-medium text-gray-900 mb-1.5 text-sm">{label}</p>
           <div className="space-y-1">
             {payload.map((entry, index) => (
               <div key={index} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                  <div className="w-2 h-2" style={{ backgroundColor: entry.color }} />
                   <span className="text-gray-600">{entry.name}:</span>
                 </div>
                 <span className="font-medium text-gray-900">{Number(entry.value).toFixed(0)}</span>
@@ -122,7 +122,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -151,7 +151,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
         <div className="relative">
           <button
             onClick={() => setShowSelector(!showSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm text-gray-700">
               {locale === 'zh-CN'
@@ -166,7 +166,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           </button>
 
           {showSelector && (
-            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded-md shadow-sm z-10">
+            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 z-10">
               <div className="p-1.5">
                 <p className="text-xs text-gray-500 mb-1.5 px-2">
                   {locale === 'zh-CN'
@@ -181,7 +181,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                       !selectedOracles.includes(oracle.oracle) &&
                       selectedOracles.length >= MAX_SELECTION
                     }
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-left transition-colors ${
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left transition-colors ${
                       selectedOracles.includes(oracle.oracle)
                         ? 'bg-blue-50 text-blue-700'
                         : 'hover:bg-gray-50 text-gray-700'
@@ -193,10 +193,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: oracle.color }}
-                      />
+                      <div className="w-2.5 h-2.5" style={{ backgroundColor: oracle.color }} />
                       <span className="text-sm">{oracle.oracle}</span>
                     </div>
                     {selectedOracles.includes(oracle.oracle) && (
@@ -217,13 +214,14 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
             return (
               <div
                 key={oracleName}
-                className="flex items-center gap-1.5 px-2 py-1 rounded text-sm"
+                className="flex items-center gap-1.5 px-2 py-1 text-sm border"
                 style={{
                   backgroundColor: `${oracle.color}15`,
                   color: oracle.color,
+                  borderColor: `${oracle.color}40`,
                 }}
               >
-                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: oracle.color }} />
+                <div className="w-1.5 h-1.5" style={{ backgroundColor: oracle.color }} />
                 {oracleName}
                 <button onClick={() => toggleOracle(oracleName)} className="hover:opacity-70">
                   <X className="w-3 h-3" />
@@ -328,9 +326,9 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                                   <span className="text-xs text-gray-500 ml-0.5">{value.unit}</span>
                                 )}
                               </span>
-                              <div className="w-14 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                              <div className="w-14 h-1 bg-gray-100 mt-1 overflow-hidden">
                                 <div
-                                  className="h-full rounded-full transition-all duration-500"
+                                  className="h-full transition-all duration-500"
                                   style={{
                                     width: `${value.normalizedValue}%`,
                                     backgroundColor: oracle.color,
@@ -351,10 +349,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           {/* 综合评分 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
             {filteredData.map((oracle) => (
-              <div
-                key={oracle.oracle}
-                className="py-3 text-center border-t border-gray-100"
-              >
+              <div key={oracle.oracle} className="py-3 text-center border-t border-gray-100">
                 <div className="text-xl font-semibold" style={{ color: oracle.color }}>
                   {oracle.overallScore}
                 </div>

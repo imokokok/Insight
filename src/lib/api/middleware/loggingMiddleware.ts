@@ -89,11 +89,7 @@ export function createLoggingMiddleware(options: LoggingMiddlewareOptions = {}) 
   };
 }
 
-export function logResponse(
-  requestId: string,
-  statusCode: number,
-  startTime: number
-): void {
+export function logResponse(requestId: string, statusCode: number, startTime: number): void {
   const duration = Date.now() - startTime;
   const responseLog: ResponseLog = {
     statusCode,

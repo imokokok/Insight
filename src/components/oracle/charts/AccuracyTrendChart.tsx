@@ -30,7 +30,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload;
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-white p-4   border border-gray-200">
         <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <p className="text-sm">
@@ -86,31 +86,31 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
   }, [data]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white  border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">{t('pyth.trend.title')}</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <div className="w-3 h-3  bg-blue-500" />
             <span className="text-sm text-gray-600">{t('pyth.trend.accuracy')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3  bg-red-500" />
             <span className="text-sm text-gray-600">{t('pyth.trend.deviation')}</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-3 bg-blue-50 rounded-lg text-center">
+        <div className="p-3 bg-blue-50  text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.avgAccuracy')}</p>
           <p className="text-xl font-bold text-blue-600">{avgAccuracy.toFixed(2)}%</p>
         </div>
-        <div className="p-3 bg-green-50 rounded-lg text-center">
+        <div className="p-3 bg-green-50  text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.maxAccuracy')}</p>
           <p className="text-xl font-bold text-green-600">{maxAccuracy.toFixed(2)}%</p>
         </div>
-        <div className="p-3 bg-orange-50 rounded-lg text-center">
+        <div className="p-3 bg-orange-50  text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.minAccuracy')}</p>
           <p className="text-xl font-bold text-orange-600">{minAccuracy.toFixed(2)}%</p>
         </div>
@@ -193,9 +193,9 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
             {eventPoints.map((point, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg"
+                className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 "
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-500  flex items-center justify-center">
                   <svg
                     className="w-4 h-4 text-white"
                     fill="none"
@@ -203,7 +203,6 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"

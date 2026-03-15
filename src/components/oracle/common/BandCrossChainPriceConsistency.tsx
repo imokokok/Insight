@@ -170,7 +170,7 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">价格偏离热力图</p>
@@ -228,7 +228,7 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
                     return (
                       <td key={data.chainId} className="py-3 px-2 text-center">
                         <div
-                          className={`group relative inline-flex items-center justify-center w-14 h-10 rounded-lg ${intensity.bg} cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all`}
+                          className={`group relative inline-flex items-center justify-center w-14 h-10  ${intensity.bg} cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all`}
                         >
                           <span className={`text-xs font-mono font-medium ${intensity.text}`}>
                             {index === 0
@@ -290,10 +290,10 @@ function HistoricalComparisonView({
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-gray-100 border border-gray-200 border border-blue-200  p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-100  flex items-center justify-center">
               <svg
                 className="w-5 h-5 text-blue-600"
                 fill="none"
@@ -301,7 +301,6 @@ function HistoricalComparisonView({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -337,7 +336,7 @@ function HistoricalComparisonView({
           return (
             <div
               key={comparison.chainId}
-              className={`bg-white border rounded-xl p-4 ${isBase ? 'border-purple-300 ring-1 ring-purple-100' : 'border-gray-200'}`}
+              className={`bg-white border  p-4 ${isBase ? 'border-purple-300 ring-1 ring-purple-100' : 'border-gray-200'}`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -368,13 +367,13 @@ function HistoricalComparisonView({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-3">
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50  p-3">
                     <p className="text-xs text-gray-500 mb-1">历史价格</p>
                     <p className="text-sm font-mono font-medium text-gray-700">
                       ${comparison.historicalPrice.toFixed(4)}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50  p-3">
                     <p className="text-xs text-gray-500 mb-1">历史偏离</p>
                     <p className="text-sm font-mono font-medium text-gray-700">
                       {isBase
@@ -382,7 +381,7 @@ function HistoricalComparisonView({
                         : `${comparison.historicalDeviation >= 0 ? '+' : ''}${comparison.historicalDeviation.toFixed(3)}%`}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50  p-3">
                     <p className="text-xs text-gray-500 mb-1">历史延迟</p>
                     <p className="text-sm font-mono font-medium text-gray-700">
                       {comparison.historicalLatency}ms
@@ -391,7 +390,7 @@ function HistoricalComparisonView({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="bg-blue-50  p-3">
                     <p className="text-xs text-blue-600 mb-1">当前价格</p>
                     <p className="text-sm font-mono font-bold text-blue-700">
                       ${comparison.currentPrice.toFixed(4)}
@@ -403,7 +402,7 @@ function HistoricalComparisonView({
                       {comparison.priceChangePercent.toFixed(2)}%
                     </p>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="bg-blue-50  p-3">
                     <p className="text-xs text-blue-600 mb-1">当前偏离</p>
                     <p className="text-sm font-mono font-bold text-blue-700">
                       {isBase
@@ -419,7 +418,7 @@ function HistoricalComparisonView({
                       </p>
                     )}
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="bg-blue-50  p-3">
                     <p className="text-xs text-blue-600 mb-1">当前延迟</p>
                     <p className="text-sm font-mono font-bold text-blue-700">
                       {comparison.currentLatency}ms
@@ -436,9 +435,9 @@ function HistoricalComparisonView({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-500">价格变化</span>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 w-24 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div className="flex-1 w-24 bg-gray-200  h-1.5 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${
+                        className={`h-full  transition-all ${
                           Math.abs(comparison.priceChangePercent) < 1
                             ? 'bg-green-500'
                             : Math.abs(comparison.priceChangePercent) < 3
@@ -464,7 +463,7 @@ function HistoricalComparisonView({
         })}
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+      <div className="bg-gray-50 border border-gray-200  p-4">
         <h4 className="text-sm font-medium text-gray-900 mb-3">变化趋势汇总</h4>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
@@ -530,7 +529,7 @@ export function BandCrossChainPriceConsistency({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-gray-200  p-5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">跨链价格一致性监控</h3>
@@ -538,14 +537,14 @@ export function BandCrossChainPriceConsistency({
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-gray-100  p-1">
               {SYMBOLS.map((symbol) => (
                 <button
                   key={symbol}
                   onClick={() => setSelectedSymbol(symbol)}
                   className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                     selectedSymbol === symbol
-                      ? 'bg-white text-gray-900 shadow-sm'
+                      ? 'bg-white text-gray-900 '
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
@@ -569,7 +568,7 @@ export function BandCrossChainPriceConsistency({
         </div>
 
         {isComparisonMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="bg-blue-50 border border-blue-200  p-4 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-700 whitespace-nowrap">选择日期:</label>
@@ -579,7 +578,7 @@ export function BandCrossChainPriceConsistency({
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={minDate}
                   max={maxDate}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -588,7 +587,7 @@ export function BandCrossChainPriceConsistency({
                   type="time"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <span className="text-xs text-blue-600">可选范围: 最近30天</span>
@@ -597,7 +596,7 @@ export function BandCrossChainPriceConsistency({
         )}
 
         {hasWarnings && !isComparisonMode && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200  p-4 mb-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
@@ -606,7 +605,6 @@ export function BandCrossChainPriceConsistency({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -631,12 +629,12 @@ export function BandCrossChainPriceConsistency({
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
+              <div className="bg-purple-50  p-3 text-center">
                 <p className="text-xs text-purple-600 mb-1">基准价格</p>
                 <p className="text-lg font-bold text-purple-700">${basePrice.toFixed(2)}</p>
                 <p className="text-xs text-purple-500 mt-1">Cosmos Hub</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="bg-gray-50  p-3 text-center">
                 <p className="text-xs text-gray-600 mb-1">最大偏差</p>
                 <p className={`text-lg font-bold ${getDeviationColor(maxDeviation)}`}>
                   {maxDeviation.toFixed(3)}%
@@ -649,7 +647,7 @@ export function BandCrossChainPriceConsistency({
                       : '偏差较大'}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="bg-gray-50  p-3 text-center">
                 <p className="text-xs text-gray-600 mb-1">平均延迟</p>
                 <p className="text-lg font-bold text-gray-700">{avgLatency}ms</p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -710,9 +708,9 @@ export function BandCrossChainPriceConsistency({
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div className="flex-1 bg-gray-200  h-2 overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all ${
+                                className={`h-full  transition-all ${
                                   Math.abs(chain.deviationPercent) < DEVIATION_THRESHOLDS.normal
                                     ? 'bg-green-500'
                                     : Math.abs(chain.deviationPercent) <
@@ -743,7 +741,7 @@ export function BandCrossChainPriceConsistency({
                         </td>
                         <td className="text-center py-3 px-3">
                           <span
-                            className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                            className={`inline-flex px-2 py-0.5 text-xs font-medium  ${
                               chain.status === 'normal'
                                 ? 'bg-green-100 text-green-700'
                                 : chain.status === 'warning'
@@ -772,7 +770,7 @@ export function BandCrossChainPriceConsistency({
         <PriceDeviationHeatmap priceDataMap={priceDataMap} selectedSymbol={selectedSymbol} />
       )}
 
-      <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
+      <div className="bg-purple-50 border border-purple-200  p-5">
         <div className="flex items-start gap-3">
           <svg
             className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0"
@@ -781,7 +779,6 @@ export function BandCrossChainPriceConsistency({
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"

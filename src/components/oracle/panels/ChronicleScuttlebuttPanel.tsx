@@ -62,25 +62,31 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="py-2">
             <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.securityLevel')}</p>
-            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium capitalize border ${getSecurityLevelColor(data.securityLevel)}`}>
+            <span
+              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium capitalize border ${getSecurityLevelColor(data.securityLevel)}`}
+            >
               {data.securityLevel}
             </span>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.auditScore')}</p>
             <p className="text-xl font-bold text-gray-900">{data.auditScore}/100</p>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200  h-2">
               <div
-                className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                className="bg-amber-500 h-2  transition-all duration-500"
                 style={{ width: `${data.auditScore}%` }}
               />
             </div>
           </div>
           <div className="py-2">
-            <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.verificationStatus')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('chronicle.scuttlebutt.verificationStatus')}
+            </p>
             <div className="flex items-center gap-2">
               {getVerificationStatusIcon(data.verificationStatus)}
-              <span className="text-sm font-semibold text-gray-900 capitalize">{data.verificationStatus}</span>
+              <span className="text-sm font-semibold text-gray-900 capitalize">
+                {data.verificationStatus}
+              </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {t('chronicle.scuttlebutt.lastAudit')}: {formatDate(data.lastAuditTimestamp)}
@@ -91,13 +97,12 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
 
       {/* Security Features */}
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.securityFeatures')}</h3>
+        <h3 className="text-sm font-semibold mb-3">
+          {t('chronicle.scuttlebutt.securityFeatures')}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.securityFeatures.map((feature, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 py-2"
-            >
+            <div key={index} className="flex items-center gap-3 py-2">
               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
               <span className="text-sm text-gray-700">{feature}</span>
             </div>
@@ -107,14 +112,18 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
 
       {/* Historical Events */}
       <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.historicalEvents')}</h3>
+        <h3 className="text-sm font-semibold mb-3">
+          {t('chronicle.scuttlebutt.historicalEvents')}
+        </h3>
         <div className="space-y-3">
           {data.historicalEvents.map((event, index) => (
             <div
               key={index}
               className="flex items-start gap-4 py-4 border-b border-gray-100 last:border-0"
             >
-              <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}>
+              <span
+                className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}
+              >
                 {event.severity}
               </span>
               <div className="flex-1 min-w-0">

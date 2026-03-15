@@ -129,7 +129,7 @@ export function ExportModal({
           onClick={onClose}
         />
 
-        <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 transform transition-all max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white   max-w-lg w-full p-6 transform transition-all max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">{t('chainlink.exportModal.title')}</h2>
             <button
@@ -137,12 +137,7 @@ export function ExportModal({
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -157,9 +152,9 @@ export function ExportModal({
                   <button
                     key={fmt}
                     onClick={() => setFormat(fmt)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       format === fmt
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -176,9 +171,9 @@ export function ExportModal({
                   <button
                     key={s}
                     onClick={() => setScope(s)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       scope === s
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -196,9 +191,9 @@ export function ExportModal({
                     <button
                       key={res}
                       onClick={() => setResolution(res)}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      className={`px-4 py-2.5  text-sm font-medium transition-all ${
                         resolution === res
-                          ? 'bg-blue-600 text-white shadow-sm'
+                          ? 'bg-blue-600 text-white '
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -218,9 +213,9 @@ export function ExportModal({
                   <button
                     key={type}
                     onClick={() => setDataType(type)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-4 py-2.5  text-sm font-medium transition-all ${
                       dataType === type
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -242,9 +237,9 @@ export function ExportModal({
                       setTimeRange(range);
                       setShowCustomDateRange(false);
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`px-3 py-1.5  text-xs font-medium transition-all ${
                       timeRange === range && !showCustomDateRange
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white '
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -261,7 +256,6 @@ export function ExportModal({
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
@@ -280,7 +274,7 @@ export function ExportModal({
                       type="date"
                       value={dateRange.start}
                       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -291,7 +285,7 @@ export function ExportModal({
                       type="date"
                       value={dateRange.end}
                       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -347,17 +341,16 @@ export function ExportModal({
           <div className="mt-6 flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200  transition-colors"
             >
               {t('chainlink.exportModal.cancel')}
             </button>
             <button
               onClick={handleExport}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700  transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"

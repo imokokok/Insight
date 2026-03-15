@@ -191,9 +191,9 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             </div>
           ))}
           {/* Enhanced Legend */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-6 p-4 bg-gray-50 border border-gray-200">
             <div className="text-xs font-medium text-gray-700 mb-3">
-              {t('crossChain.heatmapLegend') || 'Price Spread Legend'}
+              {t('crossChain.heatmapLegend')}
             </div>
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-xs text-gray-500">
@@ -213,22 +213,19 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#4CAF50' }} />
-                <span>{t('crossChain.smallSpread') || 'Small Spread'} (&lt;0.5%)</span>
+                <div className="w-3 h-3" style={{ backgroundColor: '#4CAF50' }} />
+                <span>{t('crossChain.smallSpread')} (&lt;0.5%)</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }} />
-                <span>{t('crossChain.mediumSpread') || 'Medium Spread'} (0.5-2%)</span>
+                <div className="w-3 h-3" style={{ backgroundColor: '#F59E0B' }} />
+                <span>{t('crossChain.mediumSpread')} (0.5-2%)</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EF4444' }} />
-                <span>{t('crossChain.largeSpread') || 'Large Spread'} (&gt;2%)</span>
+                <div className="w-3 h-3" style={{ backgroundColor: '#EF4444' }} />
+                <span>{t('crossChain.largeSpread')} (&gt;2%)</span>
               </div>
             </div>
-            <div className="mt-2 text-xs text-gray-500">
-              {t('crossChain.heatmapHint') ||
-                'Click any cell to pin comparison. Hover for detailed spread information.'}
-            </div>
+            <div className="mt-2 text-xs text-gray-500">{t('crossChain.heatmapHint')}</div>
           </div>
         </div>
       </div>
@@ -323,7 +320,7 @@ function HeatmapTooltip({
 
   return (
     <div
-      className={`fixed z-50 bg-white border border-gray-200 shadow-xl rounded-lg p-4 min-w-[300px] ${
+      className={`fixed z-50 bg-white border border-gray-200 p-4 min-w-[300px] ${
         isPinned ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
       style={{
@@ -339,7 +336,10 @@ function HeatmapTooltip({
           <span>{chainNames[cell.yChain]}</span>
         </div>
         {isPinned && (
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors"
+          >
             <svg
               className="w-4 h-4 text-gray-500"
               fill="none"
@@ -388,9 +388,7 @@ function HeatmapTooltip({
       {/* Difference Info */}
       <div className="pt-3 border-t border-gray-100 space-y-2">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">
-            {t('crossChain.absoluteDiff') || 'Absolute Difference'}
-          </span>
+          <span className="text-gray-600">{t('crossChain.absoluteDiff')}</span>
           <span className="font-mono font-medium text-gray-900">
             ${cellData?.value.toFixed(4) || '-'}
           </span>
@@ -409,11 +407,9 @@ function HeatmapTooltip({
         {/* Historical Percentile */}
         {historicalPercentile !== null && (
           <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
-            <span className="text-gray-600">
-              {t('crossChain.historicalPercentile') || 'Historical Percentile'}
-            </span>
+            <span className="text-gray-600">{t('crossChain.historicalPercentile')}</span>
             <span className={`font-mono font-medium ${getPercentileColor(historicalPercentile)}`}>
-              {(t('crossChain.higherThanPercent') || 'Higher than {percent}% of history').replace(
+              {t('crossChain.higherThanPercent').replace(
                 '{percent}',
                 historicalPercentile.toFixed(0)
               )}
@@ -428,7 +424,7 @@ function HeatmapTooltip({
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
           </svg>
-          <span>{t('crossChain.pinnedComparison') || 'Pinned Comparison'}</span>
+          <span>{t('crossChain.pinnedComparison')}</span>
         </div>
       )}
     </div>
@@ -450,7 +446,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
   if (!selectedCell) return null;
 
   return (
-    <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+    <div className="mt-6 border border-gray-200 overflow-hidden bg-white">
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
@@ -460,7 +456,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
         </div>
         <button
           onClick={() => setSelectedCell(null)}
-          className="p-1 hover:bg-gray-200 rounded transition-colors"
+          className="p-1 hover:bg-gray-200 border border-transparent hover:border-gray-300 transition-colors"
         >
           <svg
             className="w-5 h-5 text-gray-500"
@@ -480,7 +476,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
 
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {chainNames[selectedCell.xChain]} {t('crossChain.price')}
             </div>
@@ -488,7 +484,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
               ${currentPrices.find((p) => p.chain === selectedCell.xChain)?.price.toFixed(4) || '-'}
             </div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {chainNames[selectedCell.yChain]} {t('crossChain.price')}
             </div>
@@ -496,7 +492,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
               ${currentPrices.find((p) => p.chain === selectedCell.yChain)?.price.toFixed(4) || '-'}
             </div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 border border-gray-200 p-4">
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
               {t('crossChain.priceDifference')}
             </div>
@@ -523,7 +519,7 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
           <div className="text-sm font-medium text-gray-700 mb-2">
             {t('crossChain.priceTrendComparison')}
           </div>
-          <div className="h-48 bg-gray-50 rounded-lg p-2">
+          <div className="h-48 bg-gray-50 border border-gray-200 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />

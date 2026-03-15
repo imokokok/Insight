@@ -32,7 +32,7 @@ async function checkDatabase(): Promise<HealthCheckResult['checks']['database']>
   try {
     const { getSupabaseClient } = await import('@/lib/supabase/client');
     const supabase = getSupabaseClient();
-    
+
     const start = Date.now();
     const { error } = await supabase.from('user_profiles').select('id').limit(1);
     const latency = Date.now() - start;
@@ -69,14 +69,9 @@ function checkMemory(): HealthCheckResult['checks']['memory'] {
 }
 
 function checkEnvironment(): HealthCheckResult['checks']['environment'] {
-  const requiredEnvVars = [
-    'NEXT_PUBLIC_SUPABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  ];
+  const requiredEnvVars = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
-  const hasRequiredEnvVars = requiredEnvVars.every(
-    (envVar) => process.env[envVar] !== undefined
-  );
+  const hasRequiredEnvVars = requiredEnvVars.every((envVar) => process.env[envVar] !== undefined);
 
   return {
     status: hasRequiredEnvVars ? 'ok' : 'error',
@@ -87,22 +82,15 @@ function checkEnvironment(): HealthCheckResult['checks']['environment'] {
 
 export async function GET() {
   const startTime = Date.now();
-  
-  const [database, environment] = await Promise.all([
-    checkDatabase(),
-    checkEnvironment(),
-  ]);
+
+  const [database, environment] = await Promise.all([checkDatabase(), checkEnvironment()]);
 
   const memory = checkMemory();
 
   const checks = { database, memory, environment };
 
-  const hasErrors = Object.values(checks).some(
-    (check) => check.status === 'error'
-  );
-  const hasWarnings = Object.values(checks).some(
-    (check) => check.status === 'warning'
-  );
+  const hasErrors = Object.values(checks).some((check) => check.status === 'error');
+  const hasWarnings = Object.values(checks).some((check) => check.status === 'warning');
 
   let status: HealthCheckResult['status'] = 'healthy';
   if (hasErrors) {

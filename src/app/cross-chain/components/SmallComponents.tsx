@@ -45,9 +45,9 @@ export function ProgressBar({
   const percentage = Math.min((value / max) * 100, 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden min-w-[60px]">
+      <div className="flex-1 h-2 bg-gray-200 overflow-hidden min-w-[60px]">
         <div
-          className="h-full rounded-full transition-all duration-300"
+          className="h-full transition-all duration-300"
           style={{
             width: `${percentage}%`,
             backgroundColor: color,
@@ -79,7 +79,7 @@ export function JumpIndicator({ count }: JumpIndicatorProps) {
         {[1, 2, 3, 4, 5].map((level) => (
           <div
             key={level}
-            className="w-2 h-4 rounded-sm"
+            className="w-2 h-4"
             style={{
               backgroundColor: count >= level ? color : '#E5E7EB',
             }}

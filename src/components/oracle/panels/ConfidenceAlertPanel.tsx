@@ -79,12 +79,7 @@ const ALERT_TYPE_CONFIG = {
   sudden_expansion: {
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-        />
+        <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
     ),
   },
@@ -92,7 +87,6 @@ const ALERT_TYPE_CONFIG = {
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
-          strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -386,12 +380,12 @@ export function ConfidenceAlertPanel({
             <span className="text-xs text-gray-500">{t('confidenceAlert.autoRefresh')}</span>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-5 w-9 items-center  transition-colors ${
                 autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-3.5 w-3.5 transform  bg-white transition-transform ${
                   autoRefresh ? 'translate-x-5' : 'translate-x-1'
                 }`}
               />
@@ -399,7 +393,7 @@ export function ConfidenceAlertPanel({
           </div>
           <button
             onClick={refreshData}
-            className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium"
+            className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700  hover:bg-blue-200 font-medium"
           >
             {t('confidenceAlert.refresh')}
           </button>
@@ -409,7 +403,7 @@ export function ConfidenceAlertPanel({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
+          <div className="bg-gray-50  p-3 text-center">
             <p className="text-xs text-gray-500 mb-1">{t('confidenceAlert.currentWidth')}</p>
             <p
               className={`text-xl font-bold ${isAboveThreshold ? 'text-red-600' : 'text-gray-900'}`}
@@ -417,15 +411,15 @@ export function ConfidenceAlertPanel({
               {currentWidth.toFixed(6)}
             </p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
+          <div className="bg-red-50  p-3 text-center">
             <p className="text-xs text-red-600 mb-1">{t('confidenceAlert.criticalAlerts')}</p>
             <p className="text-xl font-bold text-red-700">{stats.criticalCount}</p>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-3 text-center">
+          <div className="bg-yellow-50  p-3 text-center">
             <p className="text-xs text-yellow-600 mb-1">{t('confidenceAlert.warningAlerts')}</p>
             <p className="text-xl font-bold text-yellow-700">{stats.warningCount}</p>
           </div>
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="bg-blue-50  p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">{t('confidenceAlert.unacknowledged')}</p>
             <p className="text-xl font-bold text-blue-700">{stats.unacknowledgedCount}</p>
           </div>
@@ -433,16 +427,16 @@ export function ConfidenceAlertPanel({
 
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="w-2 h-2  bg-red-500" />
             <span>{t('confidenceAlert.criticalRule')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-yellow-500" />
+            <span className="w-2 h-2  bg-yellow-500" />
             <span>{t('confidenceAlert.warningRule')}</span>
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-3">
+        <div className="bg-blue-50  p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-blue-600">
               {t('confidenceAlert.threshold')}: {threshold.toFixed(4)}
@@ -452,9 +446,9 @@ export function ConfidenceAlertPanel({
               {isAboveThreshold ? t('confidenceAlert.exceeded') : t('confidenceAlert.normal')}
             </span>
           </div>
-          <div className="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-blue-200  overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full  transition-all duration-300 ${
                 isAboveThreshold ? 'bg-red-500' : 'bg-blue-500'
               }`}
               style={{
@@ -486,7 +480,6 @@ export function ConfidenceAlertPanel({
                 stroke="currentColor"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -504,7 +497,7 @@ export function ConfidenceAlertPanel({
                 return (
                   <div
                     key={alert.id}
-                    className={`border-2 rounded-lg p-3 ${
+                    className={`border-2  p-3 ${
                       severityConfig.borderColor
                     } ${alert.acknowledged ? 'opacity-60' : ''}`}
                   >
@@ -616,7 +609,7 @@ export function ConfidenceAlertPanel({
             {t('confidenceAlert.alertStats')}
           </h4>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-gray-50  p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500">
                   {t('confidenceAlert.suddenExpansion')}
@@ -625,9 +618,9 @@ export function ConfidenceAlertPanel({
                   {stats.suddenExpansionCount}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-gray-200  overflow-hidden">
                 <div
-                  className="h-full bg-orange-500 rounded-full"
+                  className="h-full bg-orange-500 "
                   style={{
                     width: `${
                       stats.totalAlerts > 0
@@ -638,14 +631,14 @@ export function ConfidenceAlertPanel({
                 />
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-gray-50  p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500">{t('confidenceAlert.sustainedHigh')}</span>
                 <span className="text-sm font-bold text-gray-900">{stats.sustainedHighCount}</span>
               </div>
-              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-gray-200  overflow-hidden">
                 <div
-                  className="h-full bg-purple-500 rounded-full"
+                  className="h-full bg-purple-500 "
                   style={{
                     width: `${
                       stats.totalAlerts > 0

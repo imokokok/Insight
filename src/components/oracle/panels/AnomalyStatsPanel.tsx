@@ -160,19 +160,19 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-white border border-gray-200 p-3">
           <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
           <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.totalAnomalies')}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-white border border-gray-200 p-3">
           <div className="text-2xl font-bold text-red-600">{stats.spikeCount}</div>
           <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.priceSpike')}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-white border border-gray-200 p-3">
           <div className="text-2xl font-bold text-blue-600">{stats.dropCount}</div>
           <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.priceDrop')}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-white border border-gray-200 p-3">
           <div className="text-2xl font-bold text-orange-600">{stats.avgDeviation.toFixed(2)}σ</div>
           <div className="text-xs text-gray-500 mt-1">{t('anomalyStats.avgDeviation')}</div>
         </div>
@@ -201,7 +201,6 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   contentStyle={{
                     backgroundColor: 'white',
                     border: `1px solid ${chartColors.recharts.grid}`,
-                    borderRadius: '8px',
                   }}
                 />
               </PieChart>
@@ -209,7 +208,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
             <div className="flex justify-center gap-4 mt-2">
               {typeDistribution.map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
                   <span className="text-xs text-gray-600">{item.name}</span>
                 </div>
               ))}
@@ -239,7 +238,6 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
                   }}
                 />
               </PieChart>
@@ -247,7 +245,7 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
             <div className="flex justify-center gap-4 mt-2">
               {severityDistribution.map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
                   <span className="text-xs text-gray-600">
                     {item.name}
                     {t('anomalyStats.severitySuffix')}
@@ -270,10 +268,9 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                   contentStyle={{
                     backgroundColor: 'white',
                     border: `1px solid ${chartColors.recharts.grid}`,
-                    borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="count" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill={chartColors.recharts.primary} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -283,7 +280,10 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
       <DashboardCard title={t('anomalyStats.recommendations')}>
         <div className="space-y-2">
           {recommendations.map((rec, index) => (
-            <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+            <div
+              key={index}
+              className="flex items-start gap-2 p-2 bg-gray-50 border border-gray-100"
+            >
               <svg
                 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
                 fill="none"
@@ -291,7 +291,6 @@ export function AnomalyStatsPanel({ anomalies, className = '' }: AnomalyStatsPan
                 stroke="currentColor"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"

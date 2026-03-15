@@ -23,11 +23,14 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
   const { user } = useAuth();
   const { configType } = options;
 
-  const queryKey = configType
-    ? ['favorites', user?.id, configType]
-    : ['favorites', user?.id];
+  const queryKey = configType ? ['favorites', user?.id, configType] : ['favorites', user?.id];
 
-  const { data: favorites, error, isLoading, refetch } = useQuery<UserFavorite[], Error>({
+  const {
+    data: favorites,
+    error,
+    isLoading,
+    refetch,
+  } = useQuery<UserFavorite[], Error>({
     queryKey,
     queryFn: async () => {
       if (!user) return [];

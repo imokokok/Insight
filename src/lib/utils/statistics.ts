@@ -202,7 +202,3 @@ export function calculateHistogram(
 
   return bins;
 }
-
-
-
-

@@ -43,16 +43,14 @@ export function EmptyState({
   const defaultDescription = t(`emptyState.${type}.description`);
 
   return (
-    <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
-      <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+    <div
+      className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}
+    >
+      <div className="w-16 h-16 mb-4  bg-gray-100 flex items-center justify-center">
         <Icon className="w-8 h-8 text-gray-400" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        {title || defaultTitle}
-      </h3>
-      <p className="text-sm text-gray-500 max-w-sm mb-6">
-        {description || defaultDescription}
-      </p>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title || defaultTitle}</h3>
+      <p className="text-sm text-gray-500 max-w-sm mb-6">{description || defaultDescription}</p>
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col sm:flex-row gap-3">
           {actionLabel && onAction && (

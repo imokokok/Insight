@@ -18,11 +18,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     (event: KeyboardEvent) => {
       // Don't trigger shortcuts when user is typing in input/textarea
       const target = event.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
       }
 

@@ -8,7 +8,6 @@ interface DashboardCardProps {
   className?: string;
   headerAction?: ReactNode;
   onClick?: () => void;
-  variant?: 'default' | 'flat';
 }
 
 export function DashboardCard({
@@ -17,35 +16,16 @@ export function DashboardCard({
   className = '',
   headerAction,
   onClick,
-  variant = 'default',
 }: DashboardCardProps) {
-  const variantClasses = {
-    default: 'bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm',
-    flat: 'bg-transparent border-0 rounded-none shadow-none',
-  };
-
-  const headerClasses = {
-    default: 'flex items-center justify-between px-5 py-4 border-b border-gray-100',
-    flat: 'flex items-center justify-between py-2 mb-4',
-  };
-
-  const contentClasses = {
-    default: 'p-5',
-    flat: '',
-  };
-
   return (
-    <div
-      className={`${variantClasses[variant]} ${className}`}
-      onClick={onClick}
-    >
+    <div className={`bg-white border border-gray-200 ${className}`} onClick={onClick}>
       {title && (
-        <div className={headerClasses[variant]}>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
           {headerAction && <div>{headerAction}</div>}
         </div>
       )}
-      <div className={contentClasses[variant]}>{children}</div>
+      <div className="p-5">{children}</div>
     </div>
   );
 }
@@ -80,7 +60,7 @@ export function StatCard({ title, value, change, changeType, icon }: StatCardPro
             {change}
           </p>
         </div>
-        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+        <div className="p-2 bg-gray-100 text-gray-600">{icon}</div>
       </div>
     </DashboardCard>
   );
@@ -106,14 +86,14 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{label}</p>
           <p className="text-gray-900 text-lg font-semibold">{value}</p>
           {subValue && <p className="text-gray-400 text-xs mt-1">{subValue}</p>}
         </div>
-        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+        <div className="p-2 bg-gray-100 text-gray-600">{icon}</div>
       </div>
     </div>
   );
@@ -167,7 +147,7 @@ export function FlatStatItem({
             </p>
           )}
         </div>
-        {icon && <div className="p-1.5 bg-gray-50 rounded text-gray-500 flex-shrink-0 ml-2">{icon}</div>}
+        {icon && <div className="p-1.5 bg-gray-100 text-gray-500 flex-shrink-0 ml-2">{icon}</div>}
       </div>
     </div>
   );
@@ -180,12 +160,7 @@ interface FlatSectionProps {
   headerAction?: ReactNode;
 }
 
-export function FlatSection({
-  title,
-  children,
-  className = '',
-  headerAction,
-}: FlatSectionProps) {
+export function FlatSection({ title, children, className = '', headerAction }: FlatSectionProps) {
   return (
     <div className={`py-4 ${className}`}>
       {(title || headerAction) && (

@@ -3,7 +3,11 @@ import { ConfidenceInterval } from './price';
 
 export interface OracleClient {
   getPrice(symbol: string, chain?: Blockchain): Promise<import('./price').PriceData>;
-  getHistoricalPrices(symbol: string, chain?: Blockchain, period?: number): Promise<import('./price').PriceData[]>;
+  getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    period?: number
+  ): Promise<import('./price').PriceData[]>;
   name: OracleProvider;
   supportedChains: Blockchain[];
 }

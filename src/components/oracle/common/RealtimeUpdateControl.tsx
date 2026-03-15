@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from './DashboardCard';
 
 export type UpdateInterval = 5000 | 10000 | 30000 | 60000;
@@ -18,11 +19,11 @@ export interface RealtimeUpdateControlProps {
   className?: string;
 }
 
-const INTERVAL_OPTIONS: { value: UpdateInterval; label: string }[] = [
-  { value: 5000, label: '5秒' },
-  { value: 10000, label: '10秒' },
-  { value: 30000, label: '30秒' },
-  { value: 60000, label: '1分钟' },
+const INTERVAL_OPTIONS: { value: UpdateInterval; labelKey: string }[] = [
+  { value: 5000, labelKey: 'realtimeUpdate.interval.5s' },
+  { value: 10000, labelKey: 'realtimeUpdate.interval.10s' },
+  { value: 30000, labelKey: 'realtimeUpdate.interval.30s' },
+  { value: 60000, labelKey: 'realtimeUpdate.interval.1m' },
 ];
 
 export function RealtimeUpdateControl({
@@ -35,6 +36,7 @@ export function RealtimeUpdateControl({
   connectionStatus = 'connected',
   className = '',
 }: RealtimeUpdateControlProps) {
+  const { t } = useI18n();
   const [isAutoUpdateEnabled, setIsAutoUpdateEnabled] = useState(autoUpdate);
   const [currentInterval, setCurrentInterval] = useState<UpdateInterval>(updateInterval);
   const [countdown, setCountdown] = useState(() => (autoUpdate ? updateInterval / 1000 : 0));
@@ -113,7 +115,7 @@ export function RealtimeUpdateControl({
   }, [onManualRefresh, isAutoUpdateEnabled, currentInterval]);
 
   const formatLastUpdateTime = (time: Date | null) => {
-    if (!time) return '暂无数据';
+    if (!time) return t('realtimeUpdate.noData');
     return time.toLocaleTimeString('zh-CN', {
       hour: '2-digit',
       minute: '2-digit',
@@ -127,7 +129,7 @@ export function RealtimeUpdateControl({
         color: 'bg-green-500',
         textColor: 'text-green-700',
         bgColor: 'bg-green-50',
-        label: '连接正常',
+        labelKey: 'realtimeUpdate.connectionStatus.connected',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -142,7 +144,7 @@ export function RealtimeUpdateControl({
         color: 'bg-yellow-500',
         textColor: 'text-yellow-700',
         bgColor: 'bg-yellow-50',
-        label: '连接不稳定',
+        labelKey: 'realtimeUpdate.connectionStatus.unstable',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -157,7 +159,7 @@ export function RealtimeUpdateControl({
         color: 'bg-red-500',
         textColor: 'text-red-700',
         bgColor: 'bg-red-50',
-        label: '连接断开',
+        labelKey: 'realtimeUpdate.connectionStatus.disconnected',
         icon: (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -175,11 +177,13 @@ export function RealtimeUpdateControl({
   const statusConfig = getConnectionStatusConfig(connectionStatus);
 
   return (
-    <DashboardCard title="实时更新控制" className={className}>
+    <DashboardCard title={t('realtimeUpdate.title')} className={className}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700">自动更新</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t('realtimeUpdate.autoUpdate')}
+            </span>
             <button
               onClick={handleAutoUpdateToggle}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -193,24 +197,26 @@ export function RealtimeUpdateControl({
               />
             </button>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${statusConfig.bgColor}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${statusConfig.bgColor}`}>
             <span className={`w-2 h-2 rounded-full ${statusConfig.color}`} />
             <span className={`text-sm font-medium ${statusConfig.textColor}`}>
-              {statusConfig.label}
+              {t(statusConfig.labelKey)}
             </span>
             {statusConfig.icon}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">更新间隔</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('realtimeUpdate.updateInterval')}
+          </label>
           <div className="grid grid-cols-4 gap-2">
             {INTERVAL_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => handleIntervalChange(option.value)}
                 disabled={!isAutoUpdateEnabled}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-2 rounded text-sm font-medium transition-all ${
                   currentInterval === option.value
                     ? 'bg-blue-600 text-white'
                     : isAutoUpdateEnabled
@@ -218,7 +224,7 @@ export function RealtimeUpdateControl({
                       : 'bg-gray-50 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {option.label}
+                {t(option.labelKey)}
               </button>
             ))}
           </div>
@@ -234,16 +240,17 @@ export function RealtimeUpdateControl({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-xs text-gray-500 uppercase tracking-wider">下次更新倒计时</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('realtimeUpdate.countdown')}
+              </span>
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {isAutoUpdateEnabled ? `${countdown}秒` : '--'}
+              {isAutoUpdateEnabled ? `${countdown}${t('common.unit')}` : '--'}
             </p>
           </div>
 
@@ -256,13 +263,14 @@ export function RealtimeUpdateControl({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-xs text-gray-500 uppercase tracking-wider">最后更新时间</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('realtimeUpdate.lastUpdate')}
+              </span>
             </div>
             <p className="text-lg font-bold text-gray-900">
               {formatLastUpdateTime(lastUpdateTime)}
@@ -272,21 +280,20 @@ export function RealtimeUpdateControl({
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="text-xs text-gray-500">
-            当前时间: {currentTime.toLocaleTimeString('zh-CN')}
+            {t('realtimeUpdate.currentTime')}: {currentTime.toLocaleTimeString('zh-CN')}
           </div>
           <button
             onClick={handleManualRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            手动刷新
+            {t('realtimeUpdate.manualRefresh')}
           </button>
         </div>
       </div>

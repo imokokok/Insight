@@ -309,7 +309,7 @@ export class WINkLinkClient extends BaseOracleClient {
       },
     ];
 
-    const activeNodes = nodes.filter(n => n.status === 'active').length;
+    const activeNodes = nodes.filter((n) => n.status === 'active').length;
     const totalStaked = nodes.reduce((sum, n) => sum + n.stakedAmount, 0);
 
     return {
@@ -428,8 +428,8 @@ export class WINkLinkClient extends BaseOracleClient {
       totalStaked: 45000000,
       dataFeeds: 180,
       hourlyActivity: [
-        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200,
-        8800, 8400, 8000, 8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
+        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200, 8800, 8400, 8000,
+        8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
       ],
       status: 'online',
       latency: 110,

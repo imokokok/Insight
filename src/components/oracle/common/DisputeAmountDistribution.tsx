@@ -46,7 +46,7 @@ function StatCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200">
       <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{label}</p>
       <p className="text-gray-900 text-2xl font-bold">{value}</p>
       {subValue && <p className="text-gray-500 text-sm mt-1">{subValue}</p>}
@@ -79,7 +79,7 @@ function AmountDistributionHistogram({
               <div key={index} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex items-end justify-center h-40">
                   <div
-                    className="w-full bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600 relative group cursor-pointer"
+                    className="w-full bg-blue-500  transition-all duration-300 hover:bg-blue-600 relative group cursor-pointer"
                     style={{ height: `${height}%` }}
                   >
                     <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
@@ -167,10 +167,10 @@ function EfficiencyMetricsCard({
           return (
             <div
               key={index}
-              className={`${colors.light} rounded-xl p-4 border border-transparent hover:border-gray-200 transition-colors`}
+              className={`${colors.light}  p-4 border border-transparent hover:border-gray-200 transition-colors`}
             >
               <div className="flex items-start gap-3">
-                <div className={`w-2 h-2 ${colors.bg} rounded-full mt-2`}></div>
+                <div className={`w-2 h-2 ${colors.bg}  mt-2`}></div>
                 <div className="flex-1">
                   <p className="text-gray-500 text-xs mb-1">{metric.label}</p>
                   <p className={`text-xl font-bold ${colors.text}`}>{metric.value}</p>
@@ -203,9 +203,7 @@ function AmountTrendChart({
   if (maxValue === 0) {
     return (
       <DashboardCard title={t('uma.disputeResolution.amountTrend') || '金额趋势'}>
-        <div className="flex items-center justify-center h-48 text-gray-500">
-          暂无数据
-        </div>
+        <div className="flex items-center justify-center h-48 text-gray-500">暂无数据</div>
       </DashboardCard>
     );
   }
@@ -216,13 +214,13 @@ function AmountTrendChart({
         {/* 图例 */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-blue-500 "></div>
             <span className="text-sm text-gray-600">
               {t('uma.disputeResolution.avgStake') || '平均质押'}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-500 "></div>
             <span className="text-sm text-gray-600">
               {t('uma.disputeResolution.avgReward') || '平均奖励'}
             </span>
@@ -383,7 +381,7 @@ export function DisputeAmountDistribution() {
     return (
       <DashboardCard title={t('uma.disputeResolution.amountDistribution') || '争议金额分布分析'}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin  h-8 w-8 border-b-2 border-blue-600" />
         </div>
       </DashboardCard>
     );

@@ -49,9 +49,9 @@ function DistributionBar({
           <span className="text-xs text-gray-400">({percentage}%)</span>
         </div>
       </div>
-      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-full h-2.5 bg-gray-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          className={`h-full transition-all duration-500 ${color}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -74,7 +74,7 @@ function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) 
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -84,15 +84,14 @@ function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) 
             {t('airnodeDeployment.regionDistribution.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-blue-50 rounded-lg">
+        <div className="p-2 bg-gray-100 border border-gray-200">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -117,7 +116,7 @@ function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) 
         <div className="grid grid-cols-4 gap-2">
           {regions.map((region) => (
             <div key={region.label} className="text-center">
-              <div className={`w-3 h-3 ${region.color} rounded-full mx-auto mb-1`} />
+              <div className={`w-3 h-3 ${region.color} mx-auto mb-1`} />
               <p className="text-xs text-gray-500">{region.label}</p>
             </div>
           ))}
@@ -137,7 +136,7 @@ function ChainDistribution({ data }: { data: AirnodeDeployments['byChain'] }) {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -147,15 +146,14 @@ function ChainDistribution({ data }: { data: AirnodeDeployments['byChain'] }) {
             {t('airnodeDeployment.chainDistribution.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-purple-50 rounded-lg">
+        <div className="p-2 bg-gray-100 border border-gray-200">
           <svg
-            className="w-5 h-5 text-purple-600"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
@@ -180,7 +178,7 @@ function ChainDistribution({ data }: { data: AirnodeDeployments['byChain'] }) {
         <div className="grid grid-cols-3 gap-2">
           {chains.map((chain) => (
             <div key={chain.label} className="text-center">
-              <div className={`w-3 h-3 ${chain.color} rounded-full mx-auto mb-1`} />
+              <div className={`w-3 h-3 ${chain.color} mx-auto mb-1`} />
               <p className="text-xs text-gray-500">{chain.label}</p>
             </div>
           ))}
@@ -212,7 +210,7 @@ function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProvid
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -222,15 +220,14 @@ function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProvid
             {t('airnodeDeployment.providerTypeDistribution.subtitle')}
           </p>
         </div>
-        <div className="p-2 bg-green-50 rounded-lg">
+        <div className="p-2 bg-gray-100 border border-gray-200">
           <svg
-            className="w-5 h-5 text-green-600"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
@@ -255,7 +252,7 @@ function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProvid
         <div className="grid grid-cols-3 gap-2">
           {providers.map((provider) => (
             <div key={provider.label} className="text-center">
-              <div className={`w-3 h-3 ${provider.color} rounded-full mx-auto mb-1`} />
+              <div className={`w-3 h-3 ${provider.color} mx-auto mb-1`} />
               <p className="text-xs text-gray-500">{provider.label}</p>
             </div>
           ))}
@@ -281,15 +278,14 @@ export function AirnodeDeploymentPanel({ data }: AirnodeDeploymentPanelProps) {
               {t('airnodeDeployment.globallyDeployedNodes')}
             </p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+          <div className="p-4 bg-gray-100 border border-gray-200">
             <svg
-              className="w-10 h-10 text-blue-600"
+              className="w-10 h-10 text-gray-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"

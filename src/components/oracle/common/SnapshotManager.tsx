@@ -210,13 +210,13 @@ export function SnapshotManager({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg">
+    <div className="bg-white border border-gray-200">
       <div
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+          <div className="w-8 h-8 bg-indigo-100 flex items-center justify-center">
             <svg
               className="w-4 h-4 text-indigo-600"
               fill="none"
@@ -224,17 +224,11 @@ export function SnapshotManager({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
               />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
           <div>
@@ -255,7 +249,7 @@ export function SnapshotManager({
                 onSaveSnapshot();
                 setTimeout(loadSnapshots, 100);
               }}
-              className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white border border-indigo-600 hover:bg-indigo-700 hover:border-indigo-700 transition-colors"
             >
               {t('snapshot.saveSnapshot')}
             </button>
@@ -266,7 +260,7 @@ export function SnapshotManager({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </div>
@@ -282,13 +276,11 @@ export function SnapshotManager({
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
                   d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
                 />
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
                   d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
@@ -313,7 +305,7 @@ export function SnapshotManager({
                 {snapshots.map((snapshot) => (
                   <div
                     key={snapshot.id}
-                    className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                    className={`p-3 border transition-all cursor-pointer ${
                       selectedSnapshotId === snapshot.id
                         ? 'border-indigo-500 bg-indigo-50'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -330,7 +322,7 @@ export function SnapshotManager({
                             {getTimeAgo(snapshot.timestamp)}
                           </span>
                           {user && shareStates[snapshot.id] && (
-                            <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                            <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 border border-green-200">
                               {t('snapshot.shared')}
                             </span>
                           )}
@@ -344,7 +336,6 @@ export function SnapshotManager({
                               viewBox="0 0 24 24"
                             >
                               <path
-                                strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -360,7 +351,6 @@ export function SnapshotManager({
                               viewBox="0 0 24 24"
                             >
                               <path
-                                strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
@@ -376,13 +366,13 @@ export function SnapshotManager({
                           {snapshot.selectedOracles.slice(0, 3).map((oracle) => (
                             <span
                               key={oracle}
-                              className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
+                              className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 border border-gray-200"
                             >
                               {oracleNames[oracle]}
                             </span>
                           ))}
                           {snapshot.selectedOracles.length > 3 && (
-                            <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                            <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 border border-gray-200">
                               +{snapshot.selectedOracles.length - 3}
                             </span>
                           )}
@@ -432,7 +422,6 @@ export function SnapshotManager({
                                 viewBox="0 0 24 24"
                               >
                                 <path
-                                  strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
                                   d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
@@ -456,7 +445,6 @@ export function SnapshotManager({
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={2}
                                       d="M5 13l4 4L19 7"
@@ -470,7 +458,6 @@ export function SnapshotManager({
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={2}
                                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
@@ -496,7 +483,6 @@ export function SnapshotManager({
                             viewBox="0 0 24 24"
                           >
                             <path
-                              strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
@@ -515,9 +501,9 @@ export function SnapshotManager({
 
       {showMigrationPrompt && user && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+          <div className="bg-white p-6 max-w-md mx-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+              <div className="w-10 h-10 bg-indigo-100 flex items-center justify-center">
                 <svg
                   className="w-5 h-5 text-indigo-600"
                   fill="none"
@@ -545,20 +531,20 @@ export function SnapshotManager({
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleRemindLater}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
               >
                 {t('snapshot.remindLater')}
               </button>
               <button
                 onClick={handleDismissMigration}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
               >
                 {t('snapshot.skip')}
               </button>
               <button
                 onClick={handleMigrate}
                 disabled={isMigrating}
-                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm bg-indigo-600 text-white border border-indigo-600 hover:bg-indigo-700 hover:border-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isMigrating ? t('snapshot.migrating') : t('snapshot.startMigration')}
               </button>
@@ -569,7 +555,7 @@ export function SnapshotManager({
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+          <div className="bg-white p-6 max-w-sm mx-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-2">
               {t('snapshot.confirmDelete')}
             </h4>
@@ -577,13 +563,13 @@ export function SnapshotManager({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
               >
                 {t('snapshot.cancel')}
               </button>
               <button
                 onClick={() => handleDeleteSnapshot(showDeleteConfirm)}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="px-4 py-2 text-sm bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700"
               >
                 {t('snapshot.delete')}
               </button>
@@ -594,7 +580,7 @@ export function SnapshotManager({
 
       {showClearConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+          <div className="bg-white p-6 max-w-sm mx-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-2">
               {t('snapshot.confirmClear')}
             </h4>
@@ -602,13 +588,13 @@ export function SnapshotManager({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
               >
                 {t('snapshot.cancel')}
               </button>
               <button
                 onClick={handleClearAll}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="px-4 py-2 text-sm bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700"
               >
                 {t('snapshot.clear')}
               </button>

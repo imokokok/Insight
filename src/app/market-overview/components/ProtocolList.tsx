@@ -115,7 +115,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -135,7 +135,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             placeholder={locale === 'zh-CN' ? '搜索协议...' : 'Search protocols...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-2 py-1.5 border border-gray-200 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1.5 border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">{locale === 'zh-CN' ? '所有类别' : 'All Categories'}</option>
             {categories
@@ -180,14 +180,14 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center text-white font-bold text-xs">
+                  <div className="w-8 h-8 bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
                     {protocol.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-gray-900 text-sm">{protocol.name}</span>
                       <span
-                        className={`px-1.5 py-0.5 rounded text-xs font-medium ${getCategoryColor(
+                        className={`px-1.5 py-0.5 text-xs font-medium ${getCategoryColor(
                           protocol.category
                         )}`}
                       >
@@ -256,15 +256,12 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {protocol.chains.slice(0, 4).map((chain) => (
-                        <span
-                          key={chain}
-                          className="px-1 py-0.5 bg-gray-100 rounded text-xs text-gray-600"
-                        >
+                        <span key={chain} className="px-1 py-0.5 bg-gray-100 text-xs text-gray-600">
                           {chain}
                         </span>
                       ))}
                       {protocol.chains.length > 4 && (
-                        <span className="px-1 py-0.5 bg-gray-100 rounded text-xs text-gray-400">
+                        <span className="px-1 py-0.5 bg-gray-100 text-xs text-gray-400">
                           +{protocol.chains.length - 4}
                         </span>
                       )}
@@ -274,7 +271,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     <div className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
                     </div>
-                    <div className="font-medium text-gray-900 text-sm">{protocol.primaryOracle}</div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      {protocol.primaryOracle}
+                    </div>
                   </div>
                 </div>
                 {protocol.url && (
