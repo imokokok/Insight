@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
 import { semanticColors, chainColors } from '@/lib/config/colors';
+import { useI18n } from '@/lib/i18n/provider';
 
 export interface BandChainPriceData {
   chain: string;
@@ -157,6 +158,7 @@ interface PriceDeviationHeatmapProps {
 }
 
 function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationHeatmapProps) {
+  const { t } = useI18n();
   const symbols = SYMBOLS;
   const chains = BAND_SUPPORTED_CHAINS;
 
@@ -173,11 +175,11 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
     <div className="bg-white border border-gray-200 rounded p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">价格偏离热力图</p>
-          <p className="text-gray-500 text-xs mt-0.5">各链价格与基准链（Cosmos Hub）的偏离程度</p>
+          <p className="text-gray-900 text-sm font-semibold">{t('bandCrossChainPriceConsistency.priceDeviationHeatmap')}</p>
+          <p className="text-gray-500 text-xs mt-0.5">{t('bandCrossChainPriceConsistency.heatmapSubtitle')}</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>低</span>
+          <span>{t('bandCrossChainPriceConsistency.low')}</span>
           <div className="flex gap-1">
             <div className="w-4 h-4 bg-green-100 rounded"></div>
             <div className="w-4 h-4 bg-green-200 rounded"></div>
@@ -185,7 +187,7 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
             <div className="w-4 h-4 bg-yellow-200 rounded"></div>
             <div className="w-4 h-4 bg-red-200 rounded"></div>
           </div>
-          <span>高</span>
+          <span>{t('bandCrossChainPriceConsistency.high')}</span>
         </div>
       </div>
 
@@ -193,7 +195,7 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
         <table className="w-full">
           <thead>
             <tr>
-              <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-24">代币</th>
+              <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-24">{t('bandCrossChainPriceConsistency.token')}</th>
               {chains.map((chain) => (
                 <th
                   key={chain.chainId}

@@ -131,7 +131,12 @@ export default function API3Page() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
           </svg>
         ),
       },
@@ -142,7 +147,12 @@ export default function API3Page() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -212,10 +222,24 @@ export default function API3Page() {
 
           {activeTab === 'market' && (
             <>
+              <div className="mb-6">
+                <MarketDataPanel
+                  client={client}
+                  chain={config.defaultChain}
+                  config={config.marketData}
+                  iconBgColor={config.iconBgColor}
+                  icon={config.icon}
+                />
+              </div>
+
               {qualityMetrics && (
                 <div className="mb-6">
                   <DataQualityScoreCard
-                    completeness={(qualityMetrics.completeness.successCount / qualityMetrics.completeness.totalCount) * 100}
+                    completeness={
+                      (qualityMetrics.completeness.successCount /
+                        qualityMetrics.completeness.totalCount) *
+                      100
+                    }
                     timeliness={100}
                     accuracy={qualityMetrics.reliability.historicalAccuracy}
                   />
@@ -227,15 +251,6 @@ export default function API3Page() {
                   <DapiPriceDeviationMonitor data={deviations} />
                 </div>
               )}
-
-              <div className="mb-6">
-                <MarketDataPanel
-                  client={client}
-                  chain={config.defaultChain}
-                  config={config.marketData}
-                  iconBgColor={config.iconBgColor}
-                />
-              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <DashboardCard title={t('api3.priceTrend')} className="lg:col-span-2">
@@ -264,7 +279,9 @@ export default function API3Page() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('api3.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('api3.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M API3
                       </span>

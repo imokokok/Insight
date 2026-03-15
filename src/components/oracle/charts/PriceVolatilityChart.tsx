@@ -109,31 +109,27 @@ const TIME_SCALE_COLORS = {
   long: chartColors.recharts.purple,
 };
 
-const TIME_SCALE_CONFIG: {
-  short: { label: string; window: number; color: string };
-  mid: { label: string; window: number; color: string };
-  long: { label: string; window: number; color: string };
-} = {
-  short: { label: '短期 (1小时)', window: 6, color: TIME_SCALE_COLORS.short },
-  mid: { label: '中期 (24小时)', window: 24, color: TIME_SCALE_COLORS.mid },
-  long: { label: '长期 (7天)', window: 168, color: TIME_SCALE_COLORS.long },
-};
+const getTimeScaleConfig = (t: (key: string) => string) => ({
+  short: { label: t('priceVolatility.timeScale.short'), window: 6, color: TIME_SCALE_COLORS.short },
+  mid: { label: t('priceVolatility.timeScale.mid'), window: 24, color: TIME_SCALE_COLORS.mid },
+  long: { label: t('priceVolatility.timeScale.long'), window: 168, color: TIME_SCALE_COLORS.long },
+});
 
 type TimeScale = 'short' | 'mid' | 'long';
 
 type VolatilityLevelKey = 'extremelyLow' | 'low' | 'medium' | 'high' | 'extremelyHigh';
 
-function getVolatilityLevel(cv: number): {
+function getVolatilityLevel(cv: number, t: (key: string) => string): {
   levelKey: VolatilityLevelKey;
   color: string;
   label: string;
 } {
   if (cv < 0.5)
-    return { levelKey: 'extremelyLow', color: semanticColors.success.DEFAULT, label: '极低' };
-  if (cv < 1.0) return { levelKey: 'low', color: chartColors.sequence[0], label: '低' };
-  if (cv < 2.0) return { levelKey: 'medium', color: semanticColors.warning.DEFAULT, label: '中等' };
-  if (cv < 5.0) return { levelKey: 'high', color: semanticColors.danger.DEFAULT, label: '高' };
-  return { levelKey: 'extremelyHigh', color: semanticColors.danger.dark, label: '极高' };
+    return { levelKey: 'extremelyLow', color: semanticColors.success.DEFAULT, label: t('priceVolatility.level.extremelyLow') };
+  if (cv < 1.0) return { levelKey: 'low', color: chartColors.sequence[0], label: t('priceVolatility.level.low') };
+  if (cv < 2.0) return { levelKey: 'medium', color: semanticColors.warning.DEFAULT, label: t('priceVolatility.level.medium') };
+  if (cv < 5.0) return { levelKey: 'high', color: semanticColors.danger.DEFAULT, label: t('priceVolatility.level.high') };
+  return { levelKey: 'extremelyHigh', color: semanticColors.danger.dark, label: t('priceVolatility.level.extremelyHigh') };
 }
 
 function calculateStandardDeviation(prices: number[]): number {
@@ -343,10 +339,12 @@ export function PriceVolatilityChart({
 
   const decompositionData = useMemo(() => calculateVolatilityDecomposition(data), [data]);
 
+  const timeScaleConfig = useMemo(() => getTimeScaleConfig(t), [t]);
+
   const chartData = useMemo(
     () =>
       multiScaleVolatility.map((result) => {
-        const levelInfo = getVolatilityLevel(result.cv);
+        const levelInfo = getVolatilityLevel(result.cv, t);
         return {
           name: result.name,
           cv: Number(result.cv.toFixed(4)),
@@ -357,7 +355,7 @@ export function PriceVolatilityChart({
           levelColor: levelInfo.color,
         };
       }),
-    [multiScaleVolatility]
+    [multiScaleVolatility, t]
   );
 
   const avgCV = useMemo(() => {
@@ -498,11 +496,11 @@ export function PriceVolatilityChart({
         className={className}
       />
 
-      <DashboardCard title="价格波动率对比分析" className={className}>
+      <DashboardCard title={t('priceVolatility.title')} className={className}>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {(Object.keys(TIME_SCALE_CONFIG) as TimeScale[]).map((scale) => (
+              {(Object.keys(timeScaleConfig) as TimeScale[]).map((scale) => (
                 <button
                   key={scale}
                   onClick={() => setSelectedTimeScale(scale)}
@@ -512,41 +510,41 @@ export function PriceVolatilityChart({
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {TIME_SCALE_CONFIG[scale].label}
+                  {timeScaleConfig[scale].label}
                 </button>
               ))}
             </div>
             <div className="text-xs text-gray-500">
-              窗口大小: {TIME_SCALE_CONFIG[selectedTimeScale].window} 个数据点
+              {t('priceVolatility.windowSize', { window: timeScaleConfig[selectedTimeScale].window })}
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
-              <p className="text-xs text-gray-600 mb-1">平均变异系数</p>
+              <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.avgCV')}</p>
               <p className="text-2xl font-bold text-blue-600">{avgCV.toFixed(4)}%</p>
             </div>
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
-              <p className="text-xs text-gray-600 mb-1">最低波动</p>
+              <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.minVolatility')}</p>
               <p className="text-2xl font-bold text-green-600">
                 {Math.min(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
-              <p className="text-xs text-gray-600 mb-1">最高波动</p>
+              <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.maxVolatility')}</p>
               <p className="text-2xl font-bold text-orange-600">
                 {Math.max(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
             <div className="bg-gray-100 border border-gray-200 rounded p-4">
-              <p className="text-xs text-gray-600 mb-1">预言机数量</p>
+              <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.oracleCount')}</p>
               <p className="text-2xl font-bold text-purple-600">{volatilityResults.length}</p>
             </div>
           </div>
 
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">
-              波动率对比（变异系数 CV）- {TIME_SCALE_CONFIG[selectedTimeScale].label}
+              {t('priceVolatility.volatilityComparison', { label: timeScaleConfig[selectedTimeScale].label })}
             </h4>
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -582,7 +580,7 @@ export function PriceVolatilityChart({
 
           {showTrend && trendData.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">滚动波动率趋势</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceVolatility.rollingVolatilityTrend')}</h4>
               <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart
@@ -624,7 +622,7 @@ export function PriceVolatilityChart({
 
           {decompositionData.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">波动率分解视图</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceVolatility.volatilityDecomposition')}</h4>
               <div style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
@@ -650,35 +648,35 @@ export function PriceVolatilityChart({
                       type="monotone"
                       dataKey="longTerm"
                       stackId="1"
-                      stroke={TIME_SCALE_CONFIG.long.color}
-                      fill={TIME_SCALE_CONFIG.long.color}
+                      stroke={timeScaleConfig.long.color}
+                      fill={timeScaleConfig.long.color}
                       fillOpacity={0.6}
-                      name="长期波动"
+                      name={t('priceVolatility.longTermVolatility')}
                     />
                     <Area
                       type="monotone"
                       dataKey="midTerm"
                       stackId="1"
-                      stroke={TIME_SCALE_CONFIG.mid.color}
-                      fill={TIME_SCALE_CONFIG.mid.color}
+                      stroke={timeScaleConfig.mid.color}
+                      fill={timeScaleConfig.mid.color}
                       fillOpacity={0.6}
-                      name="中期波动"
+                      name={t('priceVolatility.midTermVolatility')}
                     />
                     <Area
                       type="monotone"
                       dataKey="shortTerm"
                       stackId="1"
-                      stroke={TIME_SCALE_CONFIG.short.color}
-                      fill={TIME_SCALE_CONFIG.short.color}
+                      stroke={timeScaleConfig.short.color}
+                      fill={timeScaleConfig.short.color}
                       fillOpacity={0.6}
-                      name="短期波动"
+                      name={t('priceVolatility.shortTermVolatility')}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center p-3 rounded bg-blue-50">
-                  <p className="text-xs text-gray-600 mb-1">短期波动占比</p>
+                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.shortTermProportion')}</p>
                   <p className="text-lg font-bold text-blue-600">
                     {decompositionData.length > 0
                       ? (
@@ -690,7 +688,7 @@ export function PriceVolatilityChart({
                   </p>
                 </div>
                 <div className="text-center p-3 rounded bg-green-50">
-                  <p className="text-xs text-gray-600 mb-1">中期波动占比</p>
+                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.midTermProportion')}</p>
                   <p className="text-lg font-bold text-green-600">
                     {decompositionData.length > 0
                       ? (
@@ -702,7 +700,7 @@ export function PriceVolatilityChart({
                   </p>
                 </div>
                 <div className="text-center p-3 rounded bg-purple-50">
-                  <p className="text-xs text-gray-600 mb-1">长期波动占比</p>
+                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.longTermProportion')}</p>
                   <p className="text-lg font-bold text-purple-600">
                     {decompositionData.length > 0
                       ? (
@@ -722,28 +720,28 @@ export function PriceVolatilityChart({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    预言机
+                    {t('priceVolatility.table.oracle')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    变异系数 (CV)
+                    {t('priceVolatility.table.cv')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    标准差 (σ)
+                    {t('priceVolatility.table.stdDev')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    平均价格
+                    {t('priceVolatility.table.avgPrice')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    价格范围
+                    {t('priceVolatility.table.priceRange')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    波动等级
+                    {t('priceVolatility.table.volatilityLevel')}
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {multiScaleVolatility.map((result) => {
-                  const level = getVolatilityLevel(result.cv);
+                  const level = getVolatilityLevel(result.cv, t);
                   return (
                     <tr key={result.oracle} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -788,18 +786,18 @@ export function PriceVolatilityChart({
           </div>
 
           <div className="bg-blue-50 rounded p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">波动率计算说明</h4>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('priceVolatility.explanation.title')}</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>
-                • <strong>标准差 (σ)</strong>: 衡量价格偏离平均值的程度，σ = √[Σ(xi-x̄)² / n]
+                • <strong>{t('priceVolatility.tooltip.stdDev')}</strong>: {t('priceVolatility.explanation.stdDevDesc')}
               </li>
               <li>
-                • <strong>变异系数 (CV)</strong>: 标准差与平均值的比率，CV = (σ / x̄) × 100%
+                • <strong>{t('priceVolatility.tooltip.cv')}</strong>: {t('priceVolatility.explanation.cvDesc')}
               </li>
-              <li>• CV 越低表示价格越稳定，越高表示波动越大</li>
-              <li>• 滚动波动率使用 5 个时间点的窗口计算，反映波动率随时间的变化趋势</li>
-              <li>• 多时间尺度分析帮助识别不同周期的波动特征</li>
-              <li>• 波动率分解展示短期、中期、长期波动对总波动的贡献</li>
+              <li>• {t('priceVolatility.explanation.cvInterpretation')}</li>
+              <li>• {t('priceVolatility.explanation.rollingWindowDesc')}</li>
+              <li>• {t('priceVolatility.explanation.multiScaleDesc')}</li>
+              <li>• {t('priceVolatility.explanation.decompositionDesc')}</li>
             </ul>
           </div>
         </div>
