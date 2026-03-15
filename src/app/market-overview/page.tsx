@@ -273,17 +273,13 @@ export default function MarketOverviewPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 border-b border-gray-200">
+          <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-blue-100 rounded">
-                <DollarSign className="w-4 h-4 text-blue-600" />
-              </div>
+              <DollarSign className="w-4 h-4 text-blue-600" />
               <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${
-                  marketStats.change24h >= 0 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-red-100 text-red-700'
+                className={`text-xs font-medium ${
+                  marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
                 {marketStats.change24h >= 0 ? '+' : ''}
@@ -294,51 +290,41 @@ export default function MarketOverviewPage() {
             <p className="text-lg font-bold text-gray-900">{totalTVS}</p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+          <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-purple-100 rounded">
-                <Globe className="w-4 h-4 text-purple-600" />
-              </div>
+              <Globe className="w-4 h-4 text-purple-600" />
             </div>
             <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '支持链数' : 'Chains'}</p>
             <p className="text-lg font-bold text-gray-900">{totalChains}</p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+          <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-cyan-100 rounded">
-                <Layers className="w-4 h-4 text-cyan-600" />
-              </div>
+              <Layers className="w-4 h-4 text-cyan-600" />
             </div>
             <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}</p>
             <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+          <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-pink-100 rounded">
-                <Activity className="w-4 h-4 text-pink-600" />
-              </div>
+              <Activity className="w-4 h-4 text-pink-600" />
             </div>
             <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '市场主导' : 'Dominance'}</p>
             <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+          <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-amber-100 rounded">
-                <Zap className="w-4 h-4 text-amber-600" />
-              </div>
+              <Zap className="w-4 h-4 text-amber-600" />
             </div>
             <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '平均延迟' : 'Latency'}</p>
             <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+          <div className="py-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="p-1.5 bg-green-100 rounded">
-                <Shield className="w-4 h-4 text-green-600" />
-              </div>
+              <Shield className="w-4 h-4 text-green-600" />
             </div>
             <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '预言机数' : 'Oracles'}</p>
             <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
@@ -346,7 +332,7 @@ export default function MarketOverviewPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="py-4 border-b border-gray-100">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative">
@@ -511,14 +497,14 @@ export default function MarketOverviewPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div
               ref={chartContainerRef}
-              className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-5"
+              className="lg:col-span-2 py-4"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base font-semibold text-gray-900">{getChartTitle()}</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">{getChartTitle()}</h3>
                   {linkedOracle && (
                     <div className="flex items-center gap-2 px-2 py-1 bg-purple-50 rounded border border-purple-200">
                       <Link2 className="w-3.5 h-3.5 text-purple-600" />
@@ -683,41 +669,37 @@ export default function MarketOverviewPage() {
               )}
             </div>
 
-            <div className="space-y-3">
-              <div className="bg-blue-600 rounded-lg p-4 text-white">
+            <div className="space-y-4">
+              <div className="py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-100 mb-0.5">
+                    <p className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '选中时间范围' : 'Time Range'}
                     </p>
-                    <p className="text-2xl font-bold">{selectedTimeRange}</p>
+                    <p className="text-xl font-bold text-gray-900">{selectedTimeRange}</p>
                   </div>
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <Clock className="w-5 h-5 text-white" />
-                  </div>
+                  <Clock className="w-5 h-5 text-gray-400" />
                 </div>
-                <div className="mt-2 text-xs text-blue-200">
-                  {lastUpdated 
+                <div className="mt-2 text-xs text-gray-400">
+                  {lastUpdated
                     ? `${locale === 'zh-CN' ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
                     : (locale === 'zh-CN' ? '数据已更新' : 'Data updated')}
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
-                  <h4 className="text-sm font-medium text-gray-700">
+              <div className="overflow-hidden">
+                <div className="py-2 border-b border-gray-100">
+                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {locale === 'zh-CN' ? '预言机市场份额' : 'Oracle Market Share'}
                   </h4>
                 </div>
-                <div className="p-2 space-y-1 max-h-[280px] overflow-y-auto">
+                <div className="py-2 space-y-1 max-h-[280px] overflow-y-auto">
                   {sortedOracleData.map((item) => (
                     <Link
                       key={item.name}
                       href={`/${item.name.toLowerCase().replace(' ', '-')}`}
-                      className={`block rounded border p-2 transition-all cursor-pointer hover:bg-gray-50 ${
-                        selectedItem === item.name
-                          ? 'border-blue-500 bg-blue-50/50'
-                          : 'border-gray-100 bg-white'
+                      className={`block py-2 border-b border-gray-50 transition-all cursor-pointer hover:bg-gray-50 last:border-b-0 ${
+                        selectedItem === item.name ? 'bg-blue-50/30' : ''
                       } ${hoveredItem && hoveredItem !== item.name ? 'opacity-50' : 'opacity-100'}`}
                       onMouseEnter={() => setHoveredItem(item.name)}
                       onMouseLeave={() => setHoveredItem(null)}
@@ -733,7 +715,7 @@ export default function MarketOverviewPage() {
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-2.5 h-2.5 rounded-full"
+                            className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: item.color }}
                           />
                           <span className="font-medium text-gray-900 text-sm">{item.name}</span>
@@ -763,19 +745,17 @@ export default function MarketOverviewPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
+              <div className="py-3 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-0.5">
+                    <p className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
                     </p>
-                    <p className="text-xl font-bold text-gray-900">100%</p>
+                    <p className="text-lg font-bold text-gray-900">100%</p>
                   </div>
-                  <div className="p-2 bg-white rounded border border-gray-200">
-                    <PieChartIcon className="w-4 h-4 text-gray-600" />
-                  </div>
+                  <PieChartIcon className="w-4 h-4 text-gray-400" />
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-gray-400 mt-1">
                   {locale === 'zh-CN'
                     ? `覆盖 ${marketStats.oracleCount} 个主要预言机`
                     : `Covering ${marketStats.oracleCount} major oracles`}
@@ -784,53 +764,51 @@ export default function MarketOverviewPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <div className="overflow-hidden">
+            <div className="py-3 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-amber-100 rounded">
-                  <TrendingUp className="w-4 h-4 text-amber-600" />
-                </div>
-                <h3 className="text-base font-semibold text-gray-900">
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-900">
                   {locale === 'zh-CN' ? '热门资产' : 'Top Assets'}
                 </h3>
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs text-gray-400">
                 {assets.length} {locale === 'zh-CN' ? '个资产' : 'assets'}
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '资产' : 'Asset'}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '价格' : 'Price'}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '24h变化' : '24h Change'}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '7d变化' : '7d Change'}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '24h成交量' : '24h Volume'}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50">
                   {assets.map((asset, index) => (
-                    <tr 
-                      key={asset.symbol} 
+                    <tr
+                      key={asset.symbol}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs font-medium text-gray-600">
+                          <span className="w-5 h-5 flex items-center justify-center text-xs font-medium text-gray-400">
                             {index + 1}
                           </span>
                           <div>
@@ -841,24 +819,22 @@ export default function MarketOverviewPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2.5 text-right">
                         <span className="font-medium text-gray-900">
                           {formatPrice(asset.price)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                          asset.change24h >= 0 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-red-100 text-red-700'
+                      <td className="px-3 py-2.5 text-right">
+                        <span className={`text-xs font-medium ${
+                          asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {asset.change24h >= 0 ? '+' : ''}
                           {asset.change24h.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2.5 text-right">
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-xs font-medium ${
                             asset.change7d >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
@@ -866,13 +842,13 @@ export default function MarketOverviewPage() {
                           {asset.change7d.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="text-gray-600 text-sm">
+                      <td className="px-3 py-2.5 text-right">
+                        <span className="text-gray-500 text-xs">
                           ${formatCompactNumber(asset.volume24h)}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                      <td className="px-3 py-2.5">
+                        <span className="text-xs font-medium text-blue-600">
                           {asset.primaryOracle}
                         </span>
                       </td>

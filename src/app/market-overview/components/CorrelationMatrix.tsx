@@ -93,25 +93,25 @@ export default function CorrelationMatrix({
 
   // 移动端列表视图组件
   const MobileCorrelationList = () => (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {sortedPairs.map((pair) => {
         const color = getCorrelationColor(pair.correlation);
         return (
           <div
             key={`${pair.oracleA}-${pair.oracleB}`}
-            className="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer active:bg-gray-50"
+            className="py-3 border-b border-gray-100 cursor-pointer active:bg-gray-50"
             onClick={() => {
               setSelectedPair(pair);
               setShowDetails(true);
             }}
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-gray-900 text-sm">{pair.oracleA}</span>
                 <span className="text-gray-400">→</span>
                 <span className="font-medium text-gray-900 text-sm">{pair.oracleB}</span>
               </div>
-              <span className="font-bold text-lg" style={{ color }}>
+              <span className="font-semibold text-base" style={{ color }}>
                 {pair.correlation.toFixed(2)}
               </span>
             </div>
@@ -137,9 +137,9 @@ export default function CorrelationMatrix({
 
   if (loading) {
     return (
-      <div className="h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+      <div className="py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -150,10 +150,10 @@ export default function CorrelationMatrix({
 
   if (!data.oracles || data.oracles.length === 0) {
     return (
-      <div className="h-[400px] flex items-center justify-center">
+      <div className="py-12 flex items-center justify-center">
         <div className="text-center">
-          <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">
+          <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '暂无相关性数据' : 'No correlation data available'}
           </p>
         </div>
@@ -162,37 +162,37 @@ export default function CorrelationMatrix({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 统计信息 */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-            <div className="text-2xl font-bold text-blue-700">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="py-3 border-t border-gray-100">
+            <div className="text-xl font-semibold text-blue-700">
               {stats.avgCorrelation.toFixed(2)}
             </div>
-            <div className="text-xs text-blue-600">
+            <div className="text-xs text-gray-600">
               {locale === 'zh-CN' ? '平均相关性' : 'Avg Correlation'}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-            <div className="text-2xl font-bold text-green-700">
+          <div className="py-3 border-t border-gray-100">
+            <div className="text-xl font-semibold text-green-700">
               {stats.maxCorrelation.toFixed(2)}
             </div>
-            <div className="text-xs text-green-600">
+            <div className="text-xs text-gray-600">
               {locale === 'zh-CN' ? '最高相关性' : 'Max Correlation'}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4">
-            <div className="text-2xl font-bold text-red-700">{stats.minCorrelation.toFixed(2)}</div>
-            <div className="text-xs text-red-600">
+          <div className="py-3 border-t border-gray-100">
+            <div className="text-xl font-semibold text-red-700">{stats.minCorrelation.toFixed(2)}</div>
+            <div className="text-xs text-gray-600">
               {locale === 'zh-CN' ? '最低相关性' : 'Min Correlation'}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-            <div className="text-2xl font-bold text-purple-700">
+          <div className="py-3 border-t border-gray-100">
+            <div className="text-xl font-semibold text-purple-700">
               {stats.strongCorrelations}/{stats.totalPairs}
             </div>
-            <div className="text-xs text-purple-600">
+            <div className="text-xs text-gray-600">
               {locale === 'zh-CN' ? '强相关对数' : 'Strong Pairs'}
             </div>
           </div>
@@ -200,27 +200,27 @@ export default function CorrelationMatrix({
       )}
 
       {/* 热力图 - 桌面端显示，移动端隐藏 */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h4 className="font-semibold text-gray-900">
+      <div className="hidden md:block py-4 border-b border-gray-100">
+        <div className="mb-3">
+          <h4 className="text-sm font-semibold text-gray-900">
             {locale === 'zh-CN' ? '相关性热力图' : 'Correlation Heatmap'}
           </h4>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             {locale === 'zh-CN'
               ? '基于 TVS 历史数据计算的皮尔逊相关系数'
               : 'Pearson correlation coefficient based on TVS historical data'}
           </p>
         </div>
 
-        <div className="p-4 overflow-x-auto">
+        <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
             {/* 表头 */}
             <div className="flex">
-              <div className="w-24 flex-shrink-0" />
+              <div className="w-20 flex-shrink-0" />
               {data.oracles.map((oracle) => (
                 <div
                   key={oracle}
-                  className="w-20 text-center text-xs font-medium text-gray-600 py-2"
+                  className="w-16 text-center text-xs font-medium text-gray-600 py-2"
                 >
                   {oracle.split(' ')[0]}
                 </div>
@@ -230,7 +230,7 @@ export default function CorrelationMatrix({
             {/* 矩阵 */}
             {data.oracles.map((oracleA, i) => (
               <div key={oracleA} className="flex">
-                <div className="w-24 flex-shrink-0 text-xs font-medium text-gray-600 py-3 px-2 text-right">
+                <div className="w-20 flex-shrink-0 text-xs font-medium text-gray-600 py-2.5 px-2 text-right">
                   {oracleA.split(' ')[0]}
                 </div>
                 {data.oracles.map((oracleB, j) => {
@@ -244,7 +244,7 @@ export default function CorrelationMatrix({
                   return (
                     <div
                       key={`${oracleA}-${oracleB}`}
-                      className={`w-20 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:z-10 ${
+                      className={`w-16 h-8 flex items-center justify-center cursor-pointer transition-all hover:scale-110 hover:z-10 ${
                         isLinked ? 'ring-2 ring-blue-500 ring-offset-1' : ''
                       }`}
                       style={{ backgroundColor: color }}
@@ -264,7 +264,7 @@ export default function CorrelationMatrix({
                       }}
                     >
                       <span
-                        className={`text-xs font-semibold ${
+                        className={`text-xs font-medium ${
                           Math.abs(value) > 0.5 ? 'text-white' : 'text-gray-700'
                         }`}
                       >
@@ -279,8 +279,8 @@ export default function CorrelationMatrix({
         </div>
 
         {/* 图例 */}
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <div className="flex flex-wrap items-center gap-4 text-xs">
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
             <span className="text-gray-500">{locale === 'zh-CN' ? '图例:' : 'Legend:'}</span>
             {[
               {
@@ -314,7 +314,7 @@ export default function CorrelationMatrix({
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                <div className="w-2.5 h-2.5 rounded" style={{ backgroundColor: item.color }} />
                 <span className="text-gray-600">{item.label}</span>
               </div>
             ))}
@@ -323,30 +323,28 @@ export default function CorrelationMatrix({
       </div>
 
       {/* 移动端列表视图 */}
-      <div className="md:hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h4 className="font-semibold text-gray-900">
+      <div className="md:hidden py-4 border-b border-gray-100">
+        <div className="mb-3">
+          <h4 className="text-sm font-semibold text-gray-900">
             {locale === 'zh-CN' ? '相关性列表' : 'Correlation List'}
           </h4>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             {locale === 'zh-CN'
               ? '基于 TVS 历史数据计算的皮尔逊相关系数'
               : 'Pearson correlation coefficient based on TVS historical data'}
           </p>
         </div>
-        <div className="p-4 bg-gray-50">
-          <MobileCorrelationList />
-        </div>
+        <MobileCorrelationList />
       </div>
 
       {/* 相关性列表 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h4 className="font-semibold text-gray-900">
+            <h4 className="text-sm font-semibold text-gray-900">
               {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
             </h4>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               {locale === 'zh-CN' ? `数据范围: ${data.timeRange}` : `Time Range: ${data.timeRange}`}
             </p>
           </div>
@@ -354,7 +352,7 @@ export default function CorrelationMatrix({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'correlation' | 'name')}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="correlation">
                 {locale === 'zh-CN' ? '按相关性排序' : 'Sort by Correlation'}
@@ -366,21 +364,21 @@ export default function CorrelationMatrix({
 
         <div className="max-h-[300px] overflow-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 sticky top-0">
+            <thead className="sticky top-0">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {locale === 'zh-CN' ? '预言机 A' : 'Oracle A'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {locale === 'zh-CN' ? '预言机 B' : 'Oracle B'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {locale === 'zh-CN' ? '相关系数' : 'Correlation'}
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {locale === 'zh-CN' ? '关系' : 'Relationship'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {locale === 'zh-CN' ? '置信度' : 'Confidence'}
                 </th>
               </tr>
@@ -397,24 +395,24 @@ export default function CorrelationMatrix({
                       setShowDetails(true);
                     }}
                   >
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-gray-900">{pair.oracleA}</span>
+                    <td className="px-3 py-2.5">
+                      <span className="font-medium text-gray-900 text-sm">{pair.oracleA}</span>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-gray-900">{pair.oracleB}</span>
+                    <td className="px-3 py-2.5">
+                      <span className="font-medium text-gray-900 text-sm">{pair.oracleB}</span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 py-2.5 text-right">
                       <span
-                        className="font-semibold px-2 py-1 rounded"
+                        className="font-medium px-2 py-0.5 rounded text-sm"
                         style={{
-                          backgroundColor: `${color}20`,
+                          backgroundColor: `${color}15`,
                           color,
                         }}
                       >
                         {pair.correlation.toFixed(3)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span style={{ color }}>{getCorrelationIcon(pair.correlation)}</span>
                         <span className="text-xs text-gray-600">
@@ -422,7 +420,7 @@ export default function CorrelationMatrix({
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 py-2.5 text-right">
                       <span className="text-sm text-gray-600">
                         {(pair.confidence * 100).toFixed(0)}%
                       </span>
@@ -438,9 +436,9 @@ export default function CorrelationMatrix({
       {/* 详情弹窗 */}
       {showDetails && selectedPair && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white rounded-md shadow-lg max-w-sm w-full p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">
                 {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
               </h3>
               <button
@@ -448,7 +446,7 @@ export default function CorrelationMatrix({
                 className="text-gray-400 hover:text-gray-600"
               >
                 <span className="sr-only">Close</span>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -459,29 +457,29 @@ export default function CorrelationMatrix({
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-3">
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-900">{selectedPair.oracleA}</div>
+                  <div className="text-sm font-medium text-gray-900">{selectedPair.oracleA}</div>
                 </div>
                 <div
-                  className="text-2xl font-bold"
+                  className="text-xl font-semibold"
                   style={{ color: getCorrelationColor(selectedPair.correlation) }}
                 >
                   {selectedPair.correlation.toFixed(3)}
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-900">{selectedPair.oracleB}</div>
+                  <div className="text-sm font-medium text-gray-900">{selectedPair.oracleB}</div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="py-3 border-t border-b border-gray-100">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs text-gray-500">
                       {locale === 'zh-CN' ? '关系类型' : 'Relationship'}
                     </div>
-                    <div className="font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900">
                       {getCorrelationLabel(selectedPair.correlation, locale)}
                     </div>
                   </div>
@@ -489,7 +487,7 @@ export default function CorrelationMatrix({
                     <div className="text-xs text-gray-500">
                       {locale === 'zh-CN' ? '置信度' : 'Confidence'}
                     </div>
-                    <div className="font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900">
                       {(selectedPair.confidence * 100).toFixed(0)}%
                     </div>
                   </div>
@@ -497,18 +495,18 @@ export default function CorrelationMatrix({
                     <div className="text-xs text-gray-500">
                       {locale === 'zh-CN' ? '样本数量' : 'Sample Size'}
                     </div>
-                    <div className="font-medium text-gray-900">{selectedPair.sampleSize}</div>
+                    <div className="text-sm font-medium text-gray-900">{selectedPair.sampleSize}</div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">
                       {locale === 'zh-CN' ? '数据范围' : 'Time Range'}
                     </div>
-                    <div className="font-medium text-gray-900">{data.timeRange}</div>
+                    <div className="text-sm font-medium text-gray-900">{data.timeRange}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-sm text-gray-600">
+              <div className="text-xs text-gray-600">
                 <p>
                   {locale === 'zh-CN'
                     ? '相关系数衡量两个预言机 TVS 变化的同步程度。正值表示同向变动，负值表示反向变动。'
@@ -519,7 +517,7 @@ export default function CorrelationMatrix({
 
             <button
               onClick={() => setShowDetails(false)}
-              className="w-full mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
             >
               {locale === 'zh-CN' ? '关闭' : 'Close'}
             </button>
@@ -528,10 +526,10 @@ export default function CorrelationMatrix({
       )}
 
       {/* 说明 */}
-      <div className="flex items-start gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-        <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <div className="flex items-start gap-2 text-xs text-gray-500 py-3 border-b border-gray-100">
+        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-medium text-gray-700 mb-1">
+          <p className="font-medium text-gray-700 mb-0.5">
             {locale === 'zh-CN' ? '关于相关性分析' : 'About Correlation Analysis'}
           </p>
           <p>

@@ -2,7 +2,6 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { TRONEcosystem, TRONDApp } from '@/lib/oracles/winklink';
-import { DashboardCard } from '@/components/oracle';
 import { Globe, Zap, Users, Activity, Gamepad2, Coins, Image, MessageSquare } from 'lucide-react';
 
 interface WINkLinkTRONEcosystemPanelProps {
@@ -78,65 +77,67 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
   return (
     <div className="space-y-6">
       {/* Network Stats */}
-      <DashboardCard title={t('winklink.tron.title')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.title')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-pink-600" />
-              <p className="text-sm text-gray-500">{t('winklink.tron.totalTransactions')}</p>
+              <p className="text-xs text-gray-500">{t('winklink.tron.totalTransactions')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{formatNumber(data.networkStats.totalTransactions)}</p>
+            <p className="text-xl font-bold text-gray-900">{formatNumber(data.networkStats.totalTransactions)}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-yellow-600" />
-              <p className="text-sm text-gray-500">{t('winklink.tron.tps')}</p>
+              <p className="text-xs text-gray-500">{t('winklink.tron.tps')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{data.networkStats.tps}</p>
+            <p className="text-xl font-bold text-gray-900">{data.networkStats.tps}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-blue-600" />
-              <p className="text-sm text-gray-500">{t('winklink.tron.totalAccounts')}</p>
+              <p className="text-xs text-gray-500">{t('winklink.tron.totalAccounts')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{formatNumber(data.networkStats.totalAccounts)}</p>
+            <p className="text-xl font-bold text-gray-900">{formatNumber(data.networkStats.totalAccounts)}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-green-600" />
-              <p className="text-sm text-gray-500">{t('winklink.tron.dailyTransactions')}</p>
+              <p className="text-xs text-gray-500">{t('winklink.tron.dailyTransactions')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{formatNumber(data.dailyTransactions)}</p>
+            <p className="text-xl font-bold text-gray-900">{formatNumber(data.dailyTransactions)}</p>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">{t('winklink.tron.tvl')}</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(data.totalValueLocked)}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-500">{t('winklink.tron.tvl')}</p>
+            <p className="text-lg font-bold text-gray-900">{formatCurrency(data.totalValueLocked)}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">{t('winklink.tron.integrationCoverage')}</p>
-            <p className="text-xl font-bold text-gray-900">{data.integrationCoverage}%</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-500">{t('winklink.tron.integrationCoverage')}</p>
+            <p className="text-lg font-bold text-gray-900">{data.integrationCoverage}%</p>
           </div>
         </div>
-      </DashboardCard>
+      </div>
 
       {/* Integrated DApps */}
-      <DashboardCard title={t('winklink.tron.integratedDApps')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.integratedDApps')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.integratedDApps.map((dapp, index) => (
             <div
               key={index}
-              className="p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-pink-200 transition-colors"
+              className="py-4 border-b border-gray-100 last:border-0"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className={`p-2 rounded-lg ${getCategoryColor(dapp.category)}`}>
+                  <span className={`p-2 rounded-md ${getCategoryColor(dapp.category)}`}>
                     {getCategoryIcon(dapp.category)}
                   </span>
                   <h4 className="font-semibold text-gray-900">{dapp.name}</h4>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${getStatusColor(dapp.status)}`}>
+                <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(dapp.status)}`}>
                   {dapp.status}
                 </span>
               </div>
@@ -155,7 +156,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             </div>
           ))}
         </div>
-      </DashboardCard>
+      </div>
     </div>
   );
 }

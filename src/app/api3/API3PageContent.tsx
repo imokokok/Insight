@@ -53,7 +53,7 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
   const { t } = useI18n();
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
+      <div className="py-4 border-b border-gray-100 max-w-md w-full mx-4">
         <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4 mx-auto">
           <svg
             className="w-6 h-6 text-red-600"
@@ -69,13 +69,15 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
             />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{t('api3.error.loadingFailed')}</h3>
+        <h3 className="text-sm font-semibold text-gray-900 text-center mb-2">
+          {t('api3.error.loadingFailed')}
+        </h3>
         <p className="text-sm text-gray-500 text-center mb-6">
           {error.message || t('api3.error.loadingFailed')}
         </p>
         <button
           onClick={onRetry}
-          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          className="w-full px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
         >
           {t('common.retry')}
         </button>
@@ -304,7 +306,7 @@ export function API3PageContent() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                  px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors
+                  px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-colors
                   ${
                     activeTab === tab.id
                       ? 'bg-green-100 text-green-700'
@@ -323,7 +325,31 @@ export function API3PageContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {stats.map((stat, index) => (
-                <StatCard key={index} {...stat} />
+                <div key={index} className="py-4 border-b border-gray-100">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                        {stat.title}
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                      <p
+                        className={`text-xs mt-2 font-medium ${
+                          stat.changeType === 'positive'
+                            ? 'text-green-600'
+                            : stat.changeType === 'negative'
+                              ? 'text-red-600'
+                              : 'text-gray-500'
+                        }`}
+                      >
+                        {stat.changeType === 'positive' && '↑ '}
+                        {stat.changeType === 'negative' && '↓ '}
+                        {stat.changeType === 'neutral' && '→ '}
+                        {stat.change}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{stat.icon}</div>
+                  </div>
+                </div>
               ))}
             </div>
 
@@ -359,7 +385,8 @@ export function API3PageContent() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                  <DashboardCard title={t('api3.priceTrend')} className="lg:col-span-2">
+                  <div className="lg:col-span-2 py-4 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold mb-3">{t('api3.priceTrend')}</h3>
                     <PriceChart
                       client={client}
                       symbol={config.symbol}
@@ -368,9 +395,10 @@ export function API3PageContent() {
                       showToolbar={true}
                       defaultPrice={config.marketData.change24hValue}
                     />
-                  </DashboardCard>
+                  </div>
 
-                  <DashboardCard title={t('api3.quickStats')}>
+                  <div className="py-4 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold mb-3">{t('api3.quickStats')}</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-sm text-gray-600">{t('api3.stats.volume24h')}</span>
@@ -385,7 +413,9 @@ export function API3PageContent() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">{t('api3.stats.circulatingSupply')}</span>
+                        <span className="text-sm text-gray-600">
+                          {t('api3.stats.circulatingSupply')}
+                        </span>
                         <span className="text-sm font-semibold text-gray-900">
                           {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M API3
                         </span>
@@ -397,7 +427,7 @@ export function API3PageContent() {
                         </span>
                       </div>
                     </div>
-                  </DashboardCard>
+                  </div>
                 </div>
               </>
             )}

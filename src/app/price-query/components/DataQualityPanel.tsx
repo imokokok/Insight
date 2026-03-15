@@ -185,8 +185,8 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
   }, [metrics]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="py-4 border-b border-gray-100">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
             {t('dataQuality.completenessScore') || '数据完整性评分'}
@@ -195,30 +195,28 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
             {t('dataQuality.completenessDesc') || '基于数据点数量、时间连续性和缺失值比例'}
           </p>
         </div>
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <svg
-            className="w-5 h-5 text-blue-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
+        <svg
+          className="w-5 h-5 text-blue-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3 text-center">
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="py-2 text-center">
           <p className="text-xs text-gray-500 mb-1">
             {t('dataQuality.avgScore') || '平均评分'}
           </p>
           <p
-            className={`text-lg font-bold ${
+            className={`text-xl font-bold ${
               avgScore >= 90
                 ? 'text-green-600'
                 : avgScore >= 70
@@ -231,17 +229,17 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
             {avgScore}
           </p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3 text-center">
+        <div className="py-2 text-center">
           <p className="text-xs text-gray-500 mb-1">
             {t('dataQuality.dataSources') || '数据源'}
           </p>
-          <p className="text-lg font-bold text-gray-900">{metrics.length}</p>
+          <p className="text-xl font-bold text-gray-900">{metrics.length}</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3 text-center">
+        <div className="py-2 text-center">
           <p className="text-xs text-gray-500 mb-1">
             {t('dataQuality.excellentRate') || '优秀率'}
           </p>
-          <p className="text-lg font-bold text-green-600">
+          <p className="text-xl font-bold text-green-600">
             {metrics.length > 0
               ? Math.round(
                   (metrics.filter((m) => m.completenessScore >= 90).length /
@@ -254,11 +252,11 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {metrics.map((metric) => (
           <div
             key={`${metric.oracle}-${metric.chain}`}
-            className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 transition-colors"
+            className="py-2 border-b border-gray-100 last:border-b-0"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">

@@ -52,10 +52,10 @@ export default function AssetCategoryChart({
     if (active && payload && payload.length) {
       const item = payload[0].payload as AssetCategory;
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[220px]">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="font-semibold text-gray-900">{item.label}</span>
+        <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 min-w-[180px]">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className="font-medium text-gray-900 text-sm">{item.label}</span>
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
@@ -104,9 +104,9 @@ export default function AssetCategoryChart({
 
   if (loading) {
     return (
-      <div className="h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+      <div className="py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -117,10 +117,10 @@ export default function AssetCategoryChart({
 
   if (data.length === 0) {
     return (
-      <div className="h-[400px] flex items-center justify-center">
+      <div className="py-12 flex items-center justify-center">
         <div className="text-center">
-          <PieChartIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">
+          <PieChartIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '暂无资产类别数据' : 'No asset category data available'}
           </p>
         </div>
@@ -130,26 +130,26 @@ export default function AssetCategoryChart({
 
   if (viewType === 'table') {
     return (
-      <div className="h-[360px] overflow-auto">
+      <div className="h-[320px] overflow-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 sticky top-0">
+          <thead className="sticky top-0">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {locale === 'zh-CN' ? '类别' : 'Category'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 TVS
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {locale === 'zh-CN' ? '份额' : 'Share'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {locale === 'zh-CN' ? '资产数' : 'Assets'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {locale === 'zh-CN' ? '波动率' : 'Volatility'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {locale === 'zh-CN' ? '流动性' : 'Liquidity'}
               </th>
             </tr>
@@ -167,28 +167,28 @@ export default function AssetCategoryChart({
                 onMouseEnter={() => setHoveredItem(item.category)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium text-gray-900">{item.label}</span>
+                <td className="px-3 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-medium text-gray-900 text-sm">{item.label}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-medium text-gray-900">
+                <td className="px-3 py-2.5 text-right">
+                  <span className="font-medium text-gray-900 text-sm">
                     ${(item.value / 1e9).toFixed(1)}B
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-gray-600">{item.share.toFixed(1)}%</span>
+                <td className="px-3 py-2.5 text-right">
+                  <span className="text-gray-600 text-sm">{item.share.toFixed(1)}%</span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-gray-600">{item.assets.length}</span>
+                <td className="px-3 py-2.5 text-right">
+                  <span className="text-gray-600 text-sm">{item.assets.length}</span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-gray-600">{item.avgVolatility.toFixed(1)}%</span>
+                <td className="px-3 py-2.5 text-right">
+                  <span className="text-gray-600 text-sm">{item.avgVolatility.toFixed(1)}%</span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-gray-600">{item.avgLiquidity.toFixed(1)}%</span>
+                <td className="px-3 py-2.5 text-right">
+                  <span className="text-gray-600 text-sm">{item.avgLiquidity.toFixed(1)}%</span>
                 </td>
               </tr>
             ))}
@@ -199,48 +199,48 @@ export default function AssetCategoryChart({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* 图表类型切换 */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setChartType('pie')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
               chartType === 'pie'
                 ? 'bg-blue-100 text-blue-700'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            <PieChartIcon className="w-4 h-4 inline mr-1" />
+            <PieChartIcon className="w-3.5 h-3.5 inline mr-1" />
             {locale === 'zh-CN' ? '饼图' : 'Pie'}
           </button>
           <button
             onClick={() => setChartType('bar')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
               chartType === 'bar'
                 ? 'bg-blue-100 text-blue-700'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            <BarChart3 className="w-4 h-4 inline mr-1" />
+            <BarChart3 className="w-3.5 h-3.5 inline mr-1" />
             {locale === 'zh-CN' ? '柱状图' : 'Bar'}
           </button>
           <button
             onClick={() => setChartType('radar')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
               chartType === 'radar'
                 ? 'bg-blue-100 text-blue-700'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            <Activity className="w-4 h-4 inline mr-1" />
+            <Activity className="w-3.5 h-3.5 inline mr-1" />
             {locale === 'zh-CN' ? '雷达图' : 'Radar'}
           </button>
         </div>
       </div>
 
       {/* 图表 */}
-      <div className="h-[320px]">
+      <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           {chartType === 'pie' ? (
             <PieChart>
@@ -249,8 +249,8 @@ export default function AssetCategoryChart({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={120}
-                innerRadius={60}
+                outerRadius={100}
+                innerRadius={50}
                 dataKey="share"
                 paddingAngle={2}
                 onMouseEnter={(_, index) => setHoveredItem(data[index]?.category)}
@@ -265,7 +265,7 @@ export default function AssetCategoryChart({
                   key={`cell-${entry.category}`}
                   fill={entry.color}
                   stroke={selectedItem === entry.category ? chartColors.recharts.primary : 'transparent'}
-                  strokeWidth={selectedItem === entry.category ? 3 : 0}
+                  strokeWidth={selectedItem === entry.category ? 2 : 0}
                   opacity={hoveredItem && hoveredItem !== entry.category ? 0.6 : 1}
                   style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
                 />
@@ -274,15 +274,15 @@ export default function AssetCategoryChart({
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           ) : chartType === 'bar' ? (
-            <BarChart data={data} layout="vertical" margin={{ left: 100 }}>
+            <BarChart data={data} layout="vertical" margin={{ left: 90 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
               <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
-              <YAxis dataKey="label" type="category" stroke={chartColors.recharts.axis} fontSize={11} width={90} />
+              <YAxis dataKey="label" type="category" stroke={chartColors.recharts.axis} fontSize={11} width={85} />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="share"
                 name="Share %"
-                radius={[0, 4, 4, 0]}
+                radius={[0, 3, 3, 0]}
                 onMouseEnter={(_, index) => setHoveredItem(data[index]?.category)}
                 onMouseLeave={() => setHoveredItem(null)}
                 onClick={(_, index) => {
@@ -324,7 +324,7 @@ export default function AssetCategoryChart({
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-2 text-xs">
+                      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 text-xs">
                         <p className="font-medium mb-1">{payload[0].payload.category}</p>
                         {payload.map((entry, idx) => (
                           <div key={idx} className="flex items-center gap-2">
@@ -352,19 +352,19 @@ export default function AssetCategoryChart({
       </div>
 
       {/* 类别列表 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
         {data.map((item) => (
           <button
             key={item.category}
             onClick={() => setSelectedItem(item.category === selectedItem ? null : item.category)}
-            className={`flex items-center gap-2 p-2 rounded-lg transition-all text-left ${
+            className={`flex items-center gap-2 p-2 rounded transition-all text-left ${
               selectedItem === item.category
                 ? 'bg-blue-50 border border-blue-200'
-                : 'bg-gray-50 hover:bg-gray-100'
+                : 'hover:bg-gray-50'
             }`}
           >
             <div
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ backgroundColor: item.color }}
             />
             <div className="min-w-0">
@@ -379,13 +379,13 @@ export default function AssetCategoryChart({
       </div>
 
       {/* 统计摘要 */}
-      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+      <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-100">
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
             <TrendingUp className="w-3 h-3" />
             {locale === 'zh-CN' ? '平均波动率' : 'Avg Volatility'}
           </div>
-          <div className="font-semibold text-gray-900">
+          <div className="font-semibold text-gray-900 text-sm">
             {(data.reduce((sum, d) => sum + d.avgVolatility, 0) / data.length).toFixed(1)}%
           </div>
         </div>
@@ -394,7 +394,7 @@ export default function AssetCategoryChart({
             <Droplets className="w-3 h-3" />
             {locale === 'zh-CN' ? '平均流动性' : 'Avg Liquidity'}
           </div>
-          <div className="font-semibold text-gray-900">
+          <div className="font-semibold text-gray-900 text-sm">
             {(data.reduce((sum, d) => sum + d.avgLiquidity, 0) / data.length).toFixed(1)}%
           </div>
         </div>
@@ -403,7 +403,7 @@ export default function AssetCategoryChart({
             <Zap className="w-3 h-3" />
             {locale === 'zh-CN' ? '总类别' : 'Categories'}
           </div>
-          <div className="font-semibold text-gray-900">{data.length}</div>
+          <div className="font-semibold text-gray-900 text-sm">{data.length}</div>
         </div>
       </div>
     </div>

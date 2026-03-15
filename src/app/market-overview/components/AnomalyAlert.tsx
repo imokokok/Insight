@@ -1,120 +1,132 @@
 'use client';
 
 import { useState } from 'react';
+import { AnomalyData } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
-import { AnomalyData, AnomalyLevel } from '../types';
-import { getAnomalyLevelColor } from '@/lib/analytics/anomalyDetection';
 import {
   AlertTriangle,
   Bell,
-  CheckCircle,
-  ChevronDown,
-  ChevronUp,
-  Clock,
+  X,
   TrendingUp,
   TrendingDown,
   Activity,
-  GitBranch,
-  BarChart3,
-  Unlink,
-  X,
+  Clock,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface AnomalyAlertProps {
-  anomalies: AnomalyData[];
+  data: AnomalyData[];
   loading?: boolean;
   onAcknowledge?: (id: string) => void;
-  maxDisplay?: number;
 }
 
-export default function AnomalyAlert({
-  anomalies,
-  loading,
-  onAcknowledge,
-  maxDisplay = 5,
-}: AnomalyAlertProps) {
+export default function AnomalyAlert({ data, loading = false, onAcknowledge }: AnomalyAlertProps) {
   const { locale } = useI18n();
-  const [expanded, setExpanded] = useState(true);
-  const [selectedLevel, setSelectedLevel] = useState<AnomalyLevel | 'all'>('all');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [dismissedItems, setDismissedItems] = useState<Set<string>>(new Set());
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Bell className="w-5 h-5 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '异常预警' : 'Anomaly Alerts'}
-          </h3>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse bg-gray-100 rounded-lg h-16" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // 过滤已关闭的警报
+  const activeAlerts = data.filter((alert) => !dismissedItems.has(alert.id));
 
-  // 过滤未确认的异常
-  const unacknowledgedAnomalies = anomalies.filter((a) => !a.acknowledged);
+  // 按严重程度排序
+  const sortedAlerts = [...activeAlerts].sort((a, b) => {
+    const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+    return severityOrder[a.severity] - severityOrder[b.severity];
+  });
 
-  // 按等级过滤
-  const filteredAnomalies =
-    selectedLevel === 'all'
-      ? unacknowledgedAnomalies
-      : unacknowledgedAnomalies.filter((a) => a.level === selectedLevel);
-
-  // 按等级统计
-  const countByLevel = unacknowledgedAnomalies.reduce(
-    (acc, anomaly) => {
-      acc[anomaly.level] = (acc[anomaly.level] || 0) + 1;
-      return acc;
-    },
-    {} as Record<AnomalyLevel, number>
-  );
-
-  const getLevelLabel = (level: AnomalyLevel): string => {
-    const labels: Record<AnomalyLevel, string> = {
-      low: locale === 'zh-CN' ? '低' : 'Low',
-      medium: locale === 'zh-CN' ? '中' : 'Medium',
-      high: locale === 'zh-CN' ? '高' : 'High',
-      critical: locale === 'zh-CN' ? '极高' : 'Critical',
-    };
-    return labels[level];
+  // 切换展开状态
+  const toggleExpand = (id: string) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedItems(newExpanded);
   };
 
-  const getAnomalyIconComponent = (type: AnomalyData['type']) => {
-    switch (type) {
-      case 'price_spike':
-        return <TrendingUp className="w-4 h-4" />;
-      case 'price_drop':
-        return <TrendingDown className="w-4 h-4" />;
-      case 'volatility_spike':
-        return <Activity className="w-4 h-4" />;
-      case 'trend_break':
-        return <GitBranch className="w-4 h-4" />;
-      case 'volume_anomaly':
-        return <BarChart3 className="w-4 h-4" />;
-      case 'correlation_break':
-        return <Unlink className="w-4 h-4" />;
+  // 关闭警报
+  const dismissAlert = (id: string) => {
+    setDismissedItems(new Set(dismissedItems).add(id));
+    onAcknowledge?.(id);
+  };
+
+  // 获取严重程度样式
+  const getSeverityStyle = (severity: AnomalyData['severity']) => {
+    switch (severity) {
+      case 'critical':
+        return 'bg-red-50 border-l-2 border-red-500';
+      case 'high':
+        return 'bg-orange-50 border-l-2 border-orange-500';
+      case 'medium':
+        return 'bg-yellow-50 border-l-2 border-yellow-500';
+      case 'low':
+        return 'bg-blue-50 border-l-2 border-blue-500';
       default:
-        return <AlertTriangle className="w-4 h-4" />;
+        return 'bg-gray-50 border-l-2 border-gray-500';
     }
   };
 
-  const getAnomalyTypeText = (type: AnomalyData['type']): string => {
-    const texts: Record<AnomalyData['type'], string> = {
-      price_spike: locale === 'zh-CN' ? '价格暴涨' : 'Price Spike',
-      price_drop: locale === 'zh-CN' ? '价格暴跌' : 'Price Drop',
-      volatility_spike: locale === 'zh-CN' ? '波动率激增' : 'Volatility Spike',
-      trend_break: locale === 'zh-CN' ? '趋势突变' : 'Trend Break',
-      volume_anomaly: locale === 'zh-CN' ? '成交量异常' : 'Volume Anomaly',
-      correlation_break: locale === 'zh-CN' ? '相关性断裂' : 'Correlation Break',
-    };
-    return texts[type];
+  // 获取严重程度图标
+  const getSeverityIcon = (severity: AnomalyData['severity']) => {
+    switch (severity) {
+      case 'critical':
+        return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case 'high':
+        return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+      case 'medium':
+        return <Bell className="w-4 h-4 text-yellow-500" />;
+      case 'low':
+        return <Activity className="w-4 h-4 text-blue-500" />;
+      default:
+        return <Activity className="w-4 h-4 text-gray-500" />;
+    }
   };
 
-  const formatTimestamp = (timestamp: number): string => {
+  // 获取严重程度标签
+  const getSeverityLabel = (severity: AnomalyData['severity']) => {
+    const labels: Record<AnomalyData['severity'], string> = {
+      critical: locale === 'zh-CN' ? '严重' : 'Critical',
+      high: locale === 'zh-CN' ? '高' : 'High',
+      medium: locale === 'zh-CN' ? '中' : 'Medium',
+      low: locale === 'zh-CN' ? '低' : 'Low',
+    };
+    return labels[severity];
+  };
+
+  // 获取类型图标
+  const getTypeIcon = (type: AnomalyData['type']) => {
+    switch (type) {
+      case 'price_spike':
+        return <TrendingUp className="w-3.5 h-3.5" />;
+      case 'price_drop':
+        return <TrendingDown className="w-3.5 h-3.5" />;
+      case 'volatility_spike':
+        return <Activity className="w-3.5 h-3.5" />;
+      case 'liquidity_drop':
+        return <TrendingDown className="w-3.5 h-3.5" />;
+      case 'correlation_breakdown':
+        return <Activity className="w-3.5 h-3.5" />;
+      default:
+        return <Activity className="w-3.5 h-3.5" />;
+    }
+  };
+
+  // 获取类型标签
+  const getTypeLabel = (type: AnomalyData['type']) => {
+    const labels: Record<AnomalyData['type'], string> = {
+      price_spike: locale === 'zh-CN' ? '价格飙升' : 'Price Spike',
+      price_drop: locale === 'zh-CN' ? '价格暴跌' : 'Price Drop',
+      volatility_spike: locale === 'zh-CN' ? '波动率激增' : 'Volatility Spike',
+      liquidity_drop: locale === 'zh-CN' ? '流动性下降' : 'Liquidity Drop',
+      correlation_breakdown: locale === 'zh-CN' ? '相关性崩溃' : 'Correlation Breakdown',
+    };
+    return labels[type];
+  };
+
+  // 格式化时间
+  const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     const now = Date.now();
     const diff = now - timestamp;
@@ -129,7 +141,7 @@ export default function AnomalyAlert({
       const hours = Math.floor(diff / 3600000);
       return locale === 'zh-CN' ? `${hours}小时前` : `${hours}h ago`;
     }
-
+    // 默认显示日期
     return date.toLocaleDateString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
       month: 'short',
       day: 'numeric',
@@ -138,232 +150,179 @@ export default function AnomalyAlert({
     });
   };
 
-  const displayAnomalies = filteredAnomalies.slice(0, maxDisplay);
-  const hasMore = filteredAnomalies.length > maxDisplay;
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* 标题栏 */}
-      <div
-        className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Bell className="w-5 h-5 text-amber-500" />
-            {unacknowledgedAnomalies.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {Math.min(unacknowledgedAnomalies.length, 9)}
-              </span>
-            )}
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '异常预警' : 'Anomaly Alerts'}
-          </h3>
-          <span className="text-sm text-gray-500">
-            ({unacknowledgedAnomalies.length} {locale === 'zh-CN' ? '未确认' : 'unacknowledged'})
+  if (loading) {
+    return (
+      <div className="py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <span className="text-gray-500 text-sm">
+            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          {/* 等级统计 */}
-          {(['critical', 'high', 'medium', 'low'] as AnomalyLevel[]).map((level) =>
-            countByLevel[level] ? (
-              <span
-                key={level}
-                className="px-2 py-0.5 rounded-full text-xs font-medium"
-                style={{
-                  backgroundColor: `${getAnomalyLevelColor(level)}20`,
-                  color: getAnomalyLevelColor(level),
-                }}
-              >
-                {getLevelLabel(level)} {countByLevel[level]}
-              </span>
-            ) : null
-          )}
-          {expanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
+      </div>
+    );
+  }
+
+  if (sortedAlerts.length === 0) {
+    return (
+      <div className="py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Activity className="w-5 h-5 text-green-600" />
+          </div>
+          <p className="text-gray-500 text-sm">
+            {locale === 'zh-CN' ? '暂无异常警报' : 'No anomaly alerts'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {locale === 'zh-CN' ? '所有指标正常' : 'All indicators normal'}
+          </p>
         </div>
       </div>
+    );
+  }
 
-      {expanded && (
-        <>
-          {/* 过滤器 */}
-          {unacknowledgedAnomalies.length > 0 && (
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-500">
-                {locale === 'zh-CN' ? '过滤:' : 'Filter:'}
-              </span>
-              <button
-                onClick={() => setSelectedLevel('all')}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  selectedLevel === 'all'
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {locale === 'zh-CN' ? '全部' : 'All'}
-              </button>
-              {(['critical', 'high', 'medium', 'low'] as AnomalyLevel[]).map((level) =>
-                countByLevel[level] ? (
-                  <button
-                    key={level}
-                    onClick={() => setSelectedLevel(level)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      selectedLevel === level
-                        ? 'text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    style={{
-                      backgroundColor:
-                        selectedLevel === level ? getAnomalyLevelColor(level) : undefined,
-                    }}
-                  >
-                    {getLevelLabel(level)} ({countByLevel[level]})
-                  </button>
-                ) : null
-              )}
-            </div>
-          )}
+  return (
+    <div className="space-y-2">
+      {/* 统计摘要 */}
+      <div className="flex items-center gap-3 text-xs mb-3">
+        <span className="text-gray-500">
+          {locale === 'zh-CN' ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
+        </span>
+        {sortedAlerts.some((a) => a.severity === 'critical') && (
+          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded font-medium">
+            {sortedAlerts.filter((a) => a.severity === 'critical').length}{' '}
+            {locale === 'zh-CN' ? '严重' : 'Critical'}
+          </span>
+        )}
+        {sortedAlerts.some((a) => a.severity === 'high') && (
+          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">
+            {sortedAlerts.filter((a) => a.severity === 'high').length}{' '}
+            {locale === 'zh-CN' ? '高' : 'High'}
+          </span>
+        )}
+      </div>
 
-          {/* 异常列表 */}
-          <div className="max-h-96 overflow-y-auto">
-            {displayAnomalies.length === 0 ? (
-              <div className="p-8 text-center">
-                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <p className="text-gray-600">
-                  {locale === 'zh-CN' ? '暂无异常检测' : 'No anomalies detected'}
-                </p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {locale === 'zh-CN'
-                    ? '系统运行正常，持续监控中...'
-                    : 'System operating normally, monitoring...'}
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {displayAnomalies.map((anomaly) => (
-                  <div key={anomaly.id} className="p-4 hover:bg-gray-50 transition-colors group">
-                    <div className="flex items-start gap-3">
-                      {/* 图标 */}
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{
-                          backgroundColor: `${getAnomalyLevelColor(anomaly.level)}15`,
-                          color: getAnomalyLevelColor(anomaly.level),
-                        }}
-                      >
-                        {getAnomalyIconComponent(anomaly.type)}
-                      </div>
-
-                      {/* 内容 */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-900">
-                            {getAnomalyTypeText(anomaly.type)}
-                          </span>
-                          <span
-                            className="px-2 py-0.5 rounded-full text-xs font-medium"
-                            style={{
-                              backgroundColor: `${getAnomalyLevelColor(anomaly.level)}20`,
-                              color: getAnomalyLevelColor(anomaly.level),
-                            }}
-                          >
-                            {getLevelLabel(anomaly.level)}
-                          </span>
-                          {anomaly.asset && (
-                            <span className="text-xs text-gray-500">{anomaly.asset}</span>
-                          )}
-                        </div>
-
-                        <p className="text-sm text-gray-600 mb-2">{anomaly.description}</p>
-
-                        {/* 详情 */}
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatTimestamp(anomaly.timestamp)}
-                          </span>
-                          <span>
-                            {locale === 'zh-CN' ? '偏离: ' : 'Deviation: '}
-                            {anomaly.deviation.toFixed(2)}σ
-                          </span>
-                          {anomaly.duration > 0 && (
-                            <span>
-                              {locale === 'zh-CN' ? '持续: ' : 'Duration: '}
-                              {anomaly.duration}m
-                            </span>
-                          )}
-                        </div>
-
-                        {/* 数值对比 */}
-                        <div className="mt-2 flex items-center gap-4 text-xs">
-                          <div>
-                            <span className="text-gray-400">
-                              {locale === 'zh-CN' ? '当前: ' : 'Current: '}
-                            </span>
-                            <span className="font-medium text-gray-700">
-                              {anomaly.value.toFixed(4)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">
-                              {locale === 'zh-CN' ? '预期: ' : 'Expected: '}
-                            </span>
-                            <span className="font-medium text-gray-700">
-                              {anomaly.expectedValue.toFixed(4)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">
-                              {locale === 'zh-CN' ? '差异: ' : 'Diff: '}
-                            </span>
-                            <span
-                              className={`font-medium ${
-                                anomaly.value > anomaly.expectedValue
-                                  ? 'text-red-600'
-                                  : 'text-green-600'
-                              }`}
-                            >
-                              {(
-                                ((anomaly.value - anomaly.expectedValue) / anomaly.expectedValue) *
-                                100
-                              ).toFixed(2)}
-                              %
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 确认按钮 */}
-                      {onAcknowledge && (
-                        <button
-                          onClick={() => onAcknowledge(anomaly.id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                          title={locale === 'zh-CN' ? '确认' : 'Acknowledge'}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+      {/* 警报列表 */}
+      <div className="space-y-1.5 max-h-[360px] overflow-auto">
+        {sortedAlerts.map((alert) => (
+          <div
+            key={alert.id}
+            className={`py-2.5 px-3 rounded ${getSeverityStyle(alert.severity)}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <div className="mt-0.5">{getSeverityIcon(alert.severity)}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-gray-900 text-sm">{alert.asset}</span>
+                    <span className="px-1.5 py-0.5 bg-white/60 rounded text-xs font-medium text-gray-600 flex items-center gap-1">
+                      {getTypeIcon(alert.type)}
+                      {getTypeLabel(alert.type)}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        alert.severity === 'critical'
+                          ? 'bg-red-100 text-red-700'
+                          : alert.severity === 'high'
+                          ? 'bg-orange-100 text-orange-700'
+                          : alert.severity === 'medium'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {getSeverityLabel(alert.severity)}
+                    </span>
                   </div>
-                ))}
+                  <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatTime(alert.timestamp)}
+                    </span>
+                    <span>
+                      {locale === 'zh-CN' ? '当前值:' : 'Current:'}{' '}
+                      <span className="font-medium text-gray-700">{alert.currentValue}</span>
+                    </span>
+                    <span>
+                      {locale === 'zh-CN' ? '阈值:' : 'Threshold:'}{' '}
+                      <span className="font-medium text-gray-700">{alert.threshold}</span>
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
+              <div className="flex items-center gap-1 ml-2">
+                <button
+                  onClick={() => toggleExpand(alert.id)}
+                  className="p-1 hover:bg-black/5 rounded transition-colors"
+                >
+                  {expandedItems.has(alert.id) ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+                <button
+                  onClick={() => dismissAlert(alert.id)}
+                  className="p-1 hover:bg-black/5 rounded transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+            </div>
 
-            {/* 更多提示 */}
-            {hasMore && (
-              <div className="p-3 text-center text-sm text-gray-500 border-t border-gray-100">
-                {locale === 'zh-CN'
-                  ? `还有 ${filteredAnomalies.length - maxDisplay} 个异常未显示`
-                  : `${filteredAnomalies.length - maxDisplay} more anomalies not shown`}
+            {/* 展开的详情 */}
+            {expandedItems.has(alert.id) && (
+              <div className="pt-2 mt-2 border-t border-black/5">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">{locale === 'zh-CN' ? '异常ID:' : 'ID:'}</span>
+                    <span className="ml-1 font-mono text-gray-700">{alert.id}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">
+                      {locale === 'zh-CN' ? '持续时间:' : 'Duration:'}
+                    </span>
+                    <span className="ml-1 text-gray-700">
+                      {alert.duration
+                        ? `${Math.floor(alert.duration / 60000)}${
+                            locale === 'zh-CN' ? '分钟' : 'min'
+                          }`
+                        : locale === 'zh-CN'
+                        ? '进行中'
+                        : 'Ongoing'}
+                    </span>
+                  </div>
+                  {alert.affectedOracles && alert.affectedOracles.length > 0 && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '受影响预言机:' : 'Affected Oracles:'}
+                      </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {alert.affectedOracles.map((oracle) => (
+                          <span
+                            key={oracle}
+                            className="px-1.5 py-0.5 bg-white/60 rounded text-xs text-gray-700"
+                          >
+                            {oracle}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {alert.recommendation && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500">
+                        {locale === 'zh-CN' ? '建议:' : 'Recommendation:'}
+                      </span>
+                      <p className="mt-0.5 text-gray-700">{alert.recommendation}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

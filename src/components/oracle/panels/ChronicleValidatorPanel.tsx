@@ -2,7 +2,6 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '@/components/oracle';
 import { Users, Activity, Award, Coins, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface ChronicleValidatorPanelProps {
@@ -60,71 +59,73 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
   return (
     <div className="space-y-6">
       {/* Validator Stats */}
-      <DashboardCard title={t('chronicle.validators.title')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('chronicle.validators.title')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-amber-600" />
-              <p className="text-sm text-gray-500">{t('chronicle.validators.total')}</p>
+              <p className="text-xs text-gray-500">{t('chronicle.validators.total')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{data.totalValidators}</p>
+            <p className="text-xl font-bold text-gray-900">{data.totalValidators}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-green-600" />
-              <p className="text-sm text-gray-500">{t('chronicle.validators.active')}</p>
+              <p className="text-xs text-gray-500">{t('chronicle.validators.active')}</p>
             </div>
-            <p className="text-2xl font-bold text-green-600">{data.activeValidators}</p>
+            <p className="text-xl font-bold text-green-600">{data.activeValidators}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Award className="w-4 h-4 text-purple-600" />
-              <p className="text-sm text-gray-500">{t('chronicle.validators.avgReputation')}</p>
+              <p className="text-xs text-gray-500">{t('chronicle.validators.avgReputation')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{data.averageReputation}</p>
+            <p className="text-xl font-bold text-gray-900">{data.averageReputation}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Coins className="w-4 h-4 text-blue-600" />
-              <p className="text-sm text-gray-500">{t('chronicle.validators.totalStaked')}</p>
+              <p className="text-xs text-gray-500">{t('chronicle.validators.totalStaked')}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{(data.totalStaked / 1e6).toFixed(2)}M</p>
+            <p className="text-xl font-bold text-gray-900">{(data.totalStaked / 1e6).toFixed(2)}M</p>
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-500">
             {t('chronicle.validators.networkHealth')}:{' '}
             <span className={`font-medium capitalize ${getNetworkHealthColor(data.networkHealth)}`}>
               {data.networkHealth}
             </span>
           </p>
         </div>
-      </DashboardCard>
+      </div>
 
       {/* Validators List */}
-      <DashboardCard title={t('chronicle.validators.list')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('chronicle.validators.list')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.name')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.reputation')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.uptime')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.responseTime')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.staked')}</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">{t('chronicle.validators.status')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.name')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.reputation')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.uptime')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.responseTime')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.staked')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('chronicle.validators.status')}</th>
               </tr>
             </thead>
             <tbody>
               {data.validators.map((validator, index) => (
                 <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
+                  <td className="py-2 px-3">
                     <div>
                       <p className="font-semibold text-gray-900">{validator.name}</p>
                       <p className="text-xs text-gray-500">{validator.address}</p>
                     </div>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
@@ -135,13 +136,13 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                       <span className="text-sm text-gray-700">{validator.reputationScore}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-gray-900">{validator.uptime}%</td>
-                  <td className="py-3 px-4 text-gray-900">{validator.responseTime}ms</td>
-                  <td className="py-3 px-4 text-gray-900">{(validator.stakedAmount / 1e6).toFixed(2)}M</td>
-                  <td className="py-3 px-4">
+                  <td className="py-2 px-3 text-gray-900">{validator.uptime}%</td>
+                  <td className="py-2 px-3 text-gray-900">{validator.responseTime}ms</td>
+                  <td className="py-2 px-3 text-gray-900">{(validator.stakedAmount / 1e6).toFixed(2)}M</td>
+                  <td className="py-2 px-3">
                     <div className="flex items-center gap-1">
                       {getStatusIcon(validator.status)}
-                      <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${getStatusColor(validator.status)}`}>
+                      <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(validator.status)}`}>
                         {validator.status}
                       </span>
                     </div>
@@ -151,7 +152,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
             </tbody>
           </table>
         </div>
-      </DashboardCard>
+      </div>
     </div>
   );
 }

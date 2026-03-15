@@ -226,7 +226,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
   if (!data || data.length === 0) {
     return (
       <div
-        className={`h-64 bg-gray-50 p-4 rounded-lg flex items-center justify-center ${className}`}
+        className={`h-64 py-4 flex items-center justify-center ${className}`}
       >
         <span className="text-gray-400">{t('crossChain.noData')}</span>
       </div>

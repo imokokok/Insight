@@ -24,16 +24,16 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 mb-3">
+          <Shield className="w-4 h-4 text-gray-400" />
+          <h3 className="text-sm font-semibold text-gray-900">
             {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="animate-pulse bg-gray-100 rounded-lg h-32" />
+            <div key={i} className="animate-pulse bg-gray-50 h-24" />
           ))}
         </div>
       </div>
@@ -42,14 +42,14 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
   if (!data) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5 text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900">
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 mb-3">
+          <Shield className="w-4 h-4 text-gray-400" />
+          <h3 className="text-sm font-semibold text-gray-900">
             {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-6 text-gray-500 text-sm">
           {locale === 'zh-CN' ? '暂无风险数据' : 'No risk data available'}
         </div>
       </div>
@@ -93,23 +93,23 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
   const hhiStatus = getHHIStatus(data.hhi.value);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="py-4 border-b border-gray-100">
       {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">
+          <Shield className="w-4 h-4 text-blue-600" />
+          <h3 className="text-sm font-semibold text-gray-900">
             {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             {locale === 'zh-CN' ? '综合风险:' : 'Overall Risk:'}
           </span>
           <span
-            className="px-2 py-1 rounded-full text-xs font-medium"
+            className="px-2 py-0.5 rounded text-xs font-medium"
             style={{
-              backgroundColor: `${getRiskLevelColor(data.overallRisk.level)}20`,
+              backgroundColor: `${getRiskLevelColor(data.overallRisk.level)}15`,
               color: getRiskLevelColor(data.overallRisk.level),
             }}
           >
@@ -119,22 +119,22 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
       </div>
 
       {/* 风险指标卡片 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* HHI 指数 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <PieChart className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <PieChart className="w-3.5 h-3.5 text-gray-500" />
+            <span className="text-xs text-gray-700">
               {locale === 'zh-CN' ? 'HHI 指数' : 'HHI Index'}
             </span>
           </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-gray-900">{data.hhi.value}</span>
+          <div className="mb-1">
+            <span className="text-xl font-semibold text-gray-900">{data.hhi.value}</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div
-              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-              style={{ backgroundColor: `${hhiStatus.color}20`, color: hhiStatus.color }}
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+              style={{ backgroundColor: `${hhiStatus.color}15`, color: hhiStatus.color }}
             >
               {hhiStatus.label}
             </div>
@@ -143,8 +143,8 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             </div>
           </div>
           {/* 进度条 */}
-          <div className="mt-3">
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="mt-2">
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -162,28 +162,28 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         </div>
 
         {/* 多元化评分 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
+            <span className="text-xs text-gray-700">
               {locale === 'zh-CN' ? '多元化评分' : 'Diversification'}
             </span>
           </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-gray-900">{data.diversification.score}</span>
-            <span className="text-sm text-gray-500">/100</span>
+          <div className="mb-1">
+            <span className="text-xl font-semibold text-gray-900">{data.diversification.score}</span>
+            <span className="text-xs text-gray-500">/100</span>
           </div>
           <div
-            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mb-3"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
             style={{
-              backgroundColor: `${getRiskLevelColor(data.diversification.level)}20`,
+              backgroundColor: `${getRiskLevelColor(data.diversification.level)}15`,
               color: getRiskLevelColor(data.diversification.level),
             }}
           >
             {getRiskLabel(data.diversification.level)}
           </div>
           {/* 因素分解 */}
-          <div className="space-y-2 text-xs">
+          <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">{locale === 'zh-CN' ? '链多样性' : 'Chains'}</span>
               <span className="font-medium">{data.diversification.factors.chainDiversity}%</span>
@@ -202,27 +202,27 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         </div>
 
         {/* 波动率指数 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-3.5 h-3.5 text-gray-500" />
+            <span className="text-xs text-gray-700">
               {locale === 'zh-CN' ? '波动率指数' : 'Volatility Index'}
             </span>
           </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-gray-900">{data.volatility.index}</span>
+          <div className="mb-1">
+            <span className="text-xl font-semibold text-gray-900">{data.volatility.index}</span>
           </div>
           <div
-            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mb-3"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
             style={{
-              backgroundColor: `${getRiskLevelColor(data.volatility.level)}20`,
+              backgroundColor: `${getRiskLevelColor(data.volatility.level)}15`,
               color: getRiskLevelColor(data.volatility.level),
             }}
           >
             {getRiskLabel(data.volatility.level)}
           </div>
           {/* 波动率详情 */}
-          <div className="space-y-2 text-xs">
+          <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">
                 {locale === 'zh-CN' ? '年化波动率' : 'Annualized'}
@@ -241,28 +241,28 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         </div>
 
         {/* 相关性风险 */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
+        <div className="py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-3.5 h-3.5 text-gray-500" />
+            <span className="text-xs text-gray-700">
               {locale === 'zh-CN' ? '相关性风险' : 'Correlation Risk'}
             </span>
           </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-gray-900">{data.correlationRisk.score}</span>
-            <span className="text-sm text-gray-500">/100</span>
+          <div className="mb-1">
+            <span className="text-xl font-semibold text-gray-900">{data.correlationRisk.score}</span>
+            <span className="text-xs text-gray-500">/100</span>
           </div>
           <div
-            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mb-3"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mb-2"
             style={{
-              backgroundColor: `${getRiskLevelColor(data.correlationRisk.level)}20`,
+              backgroundColor: `${getRiskLevelColor(data.correlationRisk.level)}15`,
               color: getRiskLevelColor(data.correlationRisk.level),
             }}
           >
             {getRiskLabel(data.correlationRisk.level)}
           </div>
           {/* 相关性详情 */}
-          <div className="space-y-2 text-xs">
+          <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">
                 {locale === 'zh-CN' ? '平均相关性' : 'Avg Correlation'}
@@ -285,13 +285,13 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
       {/* 风险提示 */}
       {(data.hhi.level === 'high' || data.hhi.level === 'critical') && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="mt-3 p-2.5 bg-red-50 border-l-2 border-red-400 flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800">
+            <p className="text-xs font-medium text-red-800">
               {locale === 'zh-CN' ? '市场集中度风险警告' : 'Market Concentration Risk Warning'}
             </p>
-            <p className="text-xs text-red-600 mt-1">
+            <p className="text-xs text-red-600 mt-0.5">
               {locale === 'zh-CN'
                 ? `HHI 指数为 ${data.hhi.value}，表明市场高度集中。前4大企业占据 ${data.hhi.concentrationRatio}% 的市场份额，存在系统性风险。`
                 : `HHI index is ${data.hhi.value}, indicating high market concentration. Top 4 players control ${data.hhi.concentrationRatio}% market share, posing systemic risk.`}
@@ -301,13 +301,13 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
       )}
 
       {data.diversification.score < 40 && (
-        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <div className="mt-3 p-2.5 bg-amber-50 border-l-2 border-amber-400 flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-800">
+            <p className="text-xs font-medium text-amber-800">
               {locale === 'zh-CN' ? '多元化不足警告' : 'Diversification Warning'}
             </p>
-            <p className="text-xs text-amber-600 mt-1">
+            <p className="text-xs text-amber-600 mt-0.5">
               {locale === 'zh-CN'
                 ? '多元化评分较低，建议增加链、协议和资产的多样性以降低风险。'
                 : 'Diversification score is low. Consider increasing diversity across chains, protocols, and assets to reduce risk.'}
@@ -317,7 +317,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
       )}
 
       {/* 更新时间 */}
-      <div className="mt-4 text-xs text-gray-400 text-right">
+      <div className="mt-3 text-xs text-gray-400 text-right">
         {locale === 'zh-CN' ? '更新于: ' : 'Updated: '}
         {new Date(data.overallRisk.timestamp).toLocaleString(
           locale === 'zh-CN' ? 'zh-CN' : 'en-US'

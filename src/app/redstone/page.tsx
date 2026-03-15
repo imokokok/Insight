@@ -189,7 +189,11 @@ export default function RedStonePage() {
         isRefreshing={isRefreshing}
       />
 
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} provider={OracleProvider.REDSTONE} />
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        provider={OracleProvider.REDSTONE}
+      />
 
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -199,9 +203,7 @@ export default function RedStonePage() {
               {activeTab === 'network' && '网络健康'}
               {activeTab === 'ecosystem' && '生态系统与核心指标'}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              最后更新: 刚刚 • 周期: {timeRange}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">最后更新: 刚刚 • 周期: {timeRange}</p>
           </div>
 
           {activeTab === 'market' && (
@@ -217,12 +219,37 @@ export default function RedStonePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {stats.map((stat, index) => (
-                  <StatCard key={index} {...stat} />
+                  <div key={index} className="py-4 border-b border-gray-100">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                          {stat.title}
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                        <p
+                          className={`text-xs mt-2 font-medium ${
+                            stat.changeType === 'positive'
+                              ? 'text-green-600'
+                              : stat.changeType === 'negative'
+                                ? 'text-red-600'
+                                : 'text-gray-500'
+                          }`}
+                        >
+                          {stat.changeType === 'positive' && '↑ '}
+                          {stat.changeType === 'negative' && '↓ '}
+                          {stat.changeType === 'neutral' && '→ '}
+                          {stat.change}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{stat.icon}</div>
+                    </div>
+                  </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title={t('redstone.priceChart')} className="lg:col-span-2">
+                <div className="lg:col-span-2 py-4 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold mb-3">{t('redstone.priceChart')}</h3>
                   <PriceChart
                     client={client}
                     symbol={config.symbol}
@@ -231,9 +258,10 @@ export default function RedStonePage() {
                     showToolbar={true}
                     defaultPrice={config.marketData.change24hValue}
                   />
-                </DashboardCard>
+                </div>
 
-                <DashboardCard title={t('redstone.quickStats')}>
+                <div className="py-4 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold mb-3">{t('redstone.quickStats')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">{t('redstone.stats.volume24h')}</span>
@@ -248,30 +276,37 @@ export default function RedStonePage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('redstone.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('redstone.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M {config.symbol}
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('redstone.stats.modularFees')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('redstone.stats.modularFees')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">$0.0001</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('redstone.stats.networkUptime')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('redstone.stats.networkUptime')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">
                         {config.networkData.nodeUptime}%
                       </span>
                     </div>
                   </div>
-                </DashboardCard>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <DashboardCard title={t('redstone.networkStatus')} className="lg:col-span-2">
+                <div className="lg:col-span-2 py-4 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold mb-3">{t('redstone.networkStatus')}</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {networkStatusData.map((item, index) => (
-                      <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="text-center py-3">
                         <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
                         <p className="text-lg font-semibold text-gray-900">{item.value}</p>
                         <div className="flex items-center justify-center gap-1 mt-1">
@@ -281,22 +316,27 @@ export default function RedStonePage() {
                             }`}
                           />
                           <span className="text-xs text-gray-500">
-                            {item.status === 'healthy' ? t('redstone.status.normal') : t('redstone.status.warning')}
+                            {item.status === 'healthy'
+                              ? t('redstone.status.normal')
+                              : t('redstone.status.warning')}
                           </span>
                         </div>
                       </div>
                     ))}
                   </div>
-                </DashboardCard>
+                </div>
 
-                <DashboardCard title={t('redstone.dataSources')}>
+                <div className="py-4 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold mb-3">{t('redstone.dataSources')}</h3>
                   <div className="space-y-3">
                     {dataSources.map((source, index) => (
                       <div key={index} className="flex items-center justify-between py-1.5">
                         <div className="flex items-center gap-2 min-w-0">
                           <span
                             className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                              source.status === 'active' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'
+                              source.status === 'active'
+                                ? 'bg-green-500'
+                                : 'bg-yellow-500 animate-pulse'
                             }`}
                           />
                           <span className="text-sm text-gray-700 truncate">{source.name}</span>
@@ -307,7 +347,7 @@ export default function RedStonePage() {
                       </div>
                     ))}
                   </div>
-                </DashboardCard>
+                </div>
               </div>
             </>
           )}
@@ -318,9 +358,7 @@ export default function RedStonePage() {
             </div>
           )}
 
-          {activeTab === 'ecosystem' && (
-            <RedStoneMetricsPanel client={client} />
-          )}
+          {activeTab === 'ecosystem' && <RedStoneMetricsPanel client={client} />}
 
           {activeTab === 'risk' && <RiskAssessmentPanel provider={OracleProvider.REDSTONE} />}
 

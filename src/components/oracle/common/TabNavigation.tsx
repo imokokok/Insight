@@ -1,8 +1,7 @@
 'use client';
 
-import { ReactNode, useMemo, useRef, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 
@@ -195,7 +194,6 @@ export function TabNavigation({
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   const displayTabs = useMemo(() => {
     if (tabs) return tabs;
@@ -204,42 +202,6 @@ export function TabNavigation({
     if (defaultTabs === 'oracle') return defaultOracleTabs(t);
     return [];
   }, [tabs, customTabs, defaultTabs, provider, t]);
-
-  const scrollToActiveTab = useCallback(() => {
-    const activeIndex = displayTabs.findIndex((tab) => tab.id === activeTab);
-    if (activeIndex === -1 || !tabRefs.current[activeIndex] || !containerRef.current) return;
-
-    const tabElement = tabRefs.current[activeIndex];
-    const container = containerRef.current;
-    const tabLeft = tabElement.offsetLeft;
-    const tabWidth = tabElement.offsetWidth;
-    const containerWidth = container.offsetWidth;
-    const scrollPosition = tabLeft - containerWidth / 2 + tabWidth / 2;
-
-    container.scrollTo({
-      left: Math.max(0, scrollPosition),
-      behavior: 'smooth',
-    });
-
-    // Update indicator position
-    setIndicatorStyle({
-      left: tabLeft,
-      width: tabWidth,
-    });
-  }, [activeTab, displayTabs]);
-
-  useEffect(() => {
-    scrollToActiveTab();
-  }, [activeTab, scrollToActiveTab]);
-
-  // Update indicator on resize
-  useEffect(() => {
-    const handleResize = () => {
-      scrollToActiveTab();
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [scrollToActiveTab]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
@@ -287,59 +249,41 @@ export function TabNavigation({
   };
 
   return (
-    <div className="border-b border-gray-200 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav
-          ref={containerRef}
-          className="relative flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
-          aria-label="Tabs"
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {displayTabs.map((tab, index) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                ref={(el) => {
-                  tabRefs.current[index] = el;
-                }}
-                onClick={() => handleTabClick(tab.id)}
-                className={`
-                  relative flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200
-                  ${
-                    isActive
-                      ? 'text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }
-                `}
-              >
-                <span className={`${isActive ? '' : 'lg:inline'}`}>{tab.icon}</span>
-                <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>{tab.label}</span>
-              </button>
-            );
-          })}
-          {/* Sliding indicator */}
-          <motion.div
-            className="absolute bottom-0 h-0.5 bg-blue-600"
-            initial={false}
-            animate={{
-              left: indicatorStyle.left,
-              width: indicatorStyle.width,
+    <nav
+      ref={containerRef}
+      className="relative flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing py-2"
+      aria-label="Tabs"
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {displayTabs.map((tab, index) => {
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            ref={(el) => {
+              tabRefs.current[index] = el;
             }}
-            transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 30,
-            }}
-          />
-        </nav>
-      </div>
-    </div>
+            onClick={() => handleTabClick(tab.id)}
+            className={`
+              relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 rounded-md
+              ${
+                isActive
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }
+            `}
+          >
+            <span className={`${isActive ? '' : 'lg:inline'}`}>{tab.icon}</span>
+            <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>{tab.label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }

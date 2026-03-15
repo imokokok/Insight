@@ -113,9 +113,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
   if (loading) {
     return (
-      <div className="h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+      <div className="py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -125,9 +125,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* 搜索和过滤 */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -135,7 +135,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             placeholder={locale === 'zh-CN' ? '搜索协议...' : 'Search protocols...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1.5 border border-gray-200 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">{locale === 'zh-CN' ? '所有类别' : 'All Categories'}</option>
             {categories
@@ -158,7 +158,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       </div>
 
       {/* 统计信息 */}
-      <div className="flex items-center gap-4 text-sm text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-gray-500">
         <span>
           {locale === 'zh-CN' ? '共' : 'Total'} {filteredData.length}{' '}
           {locale === 'zh-CN' ? '个协议' : 'protocols'}
@@ -171,30 +171,30 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       </div>
 
       {/* 协议列表 */}
-      <div className="space-y-2 max-h-[400px] overflow-auto">
+      <div className="space-y-1.5 max-h-[360px] overflow-auto">
         {filteredData.map((protocol) => (
           <div
             key={protocol.id}
-            className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors"
+            className="py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
           >
-            <div className="p-4 cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
+            <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center text-white font-bold text-xs">
                     {protocol.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{protocol.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-gray-900 text-sm">{protocol.name}</span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                        className={`px-1.5 py-0.5 rounded text-xs font-medium ${getCategoryColor(
                           protocol.category
                         )}`}
                       >
                         {protocol.category}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                       <span className="flex items-center gap-1">
                         <Layers className="w-3 h-3" />
                         {protocol.chains.length} {locale === 'zh-CN' ? '条链' : 'chains'}
@@ -206,9 +206,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{protocol.tvlFormatted}</div>
+                    <div className="font-medium text-gray-900 text-sm">{protocol.tvlFormatted}</div>
                     <div
                       className={`text-xs font-medium ${
                         protocol.change24h >= 0 ? 'text-green-600' : 'text-red-600'
@@ -219,9 +219,9 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     </div>
                   </div>
                   {expandedItems.has(protocol.id) ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
                   )}
                 </div>
               </div>
@@ -229,14 +229,14 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
             {/* 展开的详情 */}
             {expandedItems.has(protocol.id) && (
-              <div className="px-4 pb-4 pt-0 border-t border-gray-100 bg-gray-50">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-3">
+              <div className="pt-3 mt-2 border-t border-gray-100">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-2">
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '7天变化' : '7d Change'}
                     </div>
                     <div
-                      className={`font-medium ${
+                      className={`font-medium text-sm ${
                         protocol.change7d >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
@@ -245,36 +245,36 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '预言机数量' : 'Oracles'}
                     </div>
-                    <div className="font-medium text-gray-900">{protocol.oracleCount}</div>
+                    <div className="font-medium text-gray-900 text-sm">{protocol.oracleCount}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '支持链' : 'Chains'}
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {protocol.chains.slice(0, 4).map((chain) => (
                         <span
                           key={chain}
-                          className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs text-gray-600"
+                          className="px-1 py-0.5 bg-gray-100 rounded text-xs text-gray-600"
                         >
                           {chain}
                         </span>
                       ))}
                       {protocol.chains.length > 4 && (
-                        <span className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs text-gray-400">
+                        <span className="px-1 py-0.5 bg-gray-100 rounded text-xs text-gray-400">
                           +{protocol.chains.length - 4}
                         </span>
                       )}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">
+                    <div className="text-xs text-gray-500 mb-0.5">
                       {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
                     </div>
-                    <div className="font-medium text-gray-900">{protocol.primaryOracle}</div>
+                    <div className="font-medium text-gray-900 text-sm">{protocol.primaryOracle}</div>
                   </div>
                 </div>
                 {protocol.url && (
@@ -282,7 +282,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     href={protocol.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
                   >
                     {locale === 'zh-CN' ? '访问网站' : 'Visit Website'}
                     <ExternalLink className="w-3 h-3" />
@@ -296,8 +296,8 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
       {filteredData.length === 0 && (
         <div className="text-center py-8">
-          <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">
+          <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '未找到匹配的协议' : 'No protocols found'}
           </p>
         </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { DataSourceVerification } from '@/lib/oracles/dia';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -56,21 +55,22 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
   const failedCount = data.filter((v) => v.status === 'failed').length;
 
   return (
-    <DashboardCard title={t('dia.dataSourceVerification.title')}>
+    <div className="py-4 border-b border-gray-100">
+      <h3 className="text-sm font-semibold mb-3">{t('dia.dataSourceVerification.title')}</h3>
       <div className="space-y-6">
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-green-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">{t('dia.dataSourceVerification.verified')}</p>
-            <p className="text-2xl font-bold text-green-600">{verifiedCount}</p>
+          <div className="py-2 text-center">
+            <p className="text-xs text-gray-600 mb-1">{t('dia.dataSourceVerification.verified')}</p>
+            <p className="text-xl font-bold text-green-600">{verifiedCount}</p>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">{t('dia.dataSourceVerification.pending')}</p>
-            <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
+          <div className="py-2 text-center">
+            <p className="text-xs text-gray-600 mb-1">{t('dia.dataSourceVerification.pending')}</p>
+            <p className="text-xl font-bold text-yellow-600">{pendingCount}</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-1">{t('dia.dataSourceVerification.failed')}</p>
-            <p className="text-2xl font-bold text-red-600">{failedCount}</p>
+          <div className="py-2 text-center">
+            <p className="text-xs text-gray-600 mb-1">{t('dia.dataSourceVerification.failed')}</p>
+            <p className="text-xl font-bold text-red-600">{failedCount}</p>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
           {data.map((verification) => (
             <div
               key={verification.verificationId}
-              className={`border rounded-lg p-4 ${getStatusColor(verification.status)}`}
+              className={`border rounded-md p-4 ${getStatusColor(verification.status)}`}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 mt-0.5">
@@ -116,6 +116,6 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
           ))}
         </div>
       </div>
-    </DashboardCard>
+    </div>
   );
 }

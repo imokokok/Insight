@@ -1,525 +1,251 @@
 'use client';
 
 import { useState } from 'react';
+import { PriceAlert } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
-import {
-  PriceAlert,
-  AlertHistory,
-  AlertType,
-  AlertCondition,
-  formatAlertType,
-  formatAlertCondition,
-  getAlertConditionOptions,
-  DEFAULT_ALERT_SYMBOLS,
-  ALERT_TEMPLATES,
-} from '@/lib/realtime/priceAlerts';
 import {
   Bell,
   Plus,
   Trash2,
-  History,
-  Check,
-  X,
-  BellRing,
-  Volume2,
   TrendingUp,
   TrendingDown,
+  Mail,
+  MessageSquare,
+  Smartphone,
+  Check,
 } from 'lucide-react';
 
 interface PriceAlertConfigProps {
   alerts: PriceAlert[];
-  history: AlertHistory[];
-  onAddAlert: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'triggeredCount'>) => void;
-  onRemoveAlert: (id: string) => void;
-  onToggleAlert: (id: string) => void;
-  onAcknowledgeHistory: (historyId: string) => void;
-  onClearHistory: () => void;
-  onRequestNotificationPermission: () => Promise<boolean>;
-  hasNotificationPermission: boolean;
+  onAddAlert?: (alert: Omit<PriceAlert, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onRemoveAlert?: (id: string) => void;
+  onToggleAlert?: (id: string, enabled: boolean) => void;
 }
 
 export default function PriceAlertConfig({
   alerts,
-  history,
   onAddAlert,
   onRemoveAlert,
   onToggleAlert,
-  onAcknowledgeHistory,
-  onClearHistory,
-  onRequestNotificationPermission,
-  hasNotificationPermission,
 }: PriceAlertConfigProps) {
   const { locale } = useI18n();
-  const isZh = locale === 'zh-CN';
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [newAlert, setNewAlert] = useState<{
-    symbol: string;
-    type: AlertType;
-    condition: AlertCondition;
-    threshold: string;
-    notifyBrowser: boolean;
-    notifySound: boolean;
-  }>({
-    symbol: DEFAULT_ALERT_SYMBOLS[0],
-    type: 'price',
-    condition: 'above',
-    threshold: '',
-    notifyBrowser: true,
-    notifySound: false,
+  const [newAlert, setNewAlert] = useState({
+    asset: '',
+    type: 'above' as const,
+    price: '',
+    channels: ['email'] as PriceAlert['channels'],
   });
 
   const handleAddAlert = () => {
-    const threshold = parseFloat(newAlert.threshold);
-    if (isNaN(threshold) || threshold <= 0) return;
+    if (!newAlert.asset || !newAlert.price) return;
 
-    onAddAlert({
-      symbol: newAlert.symbol,
+    onAddAlert?.({
+      asset: newAlert.asset.toUpperCase(),
       type: newAlert.type,
-      condition: newAlert.condition,
-      threshold,
-      isActive: true,
-      notifyBrowser: newAlert.notifyBrowser,
-      notifySound: newAlert.notifySound,
+      price: parseFloat(newAlert.price),
+      enabled: true,
+      channels: newAlert.channels,
     });
 
     setNewAlert({
-      symbol: DEFAULT_ALERT_SYMBOLS[0],
-      type: 'price',
-      condition: 'above',
-      threshold: '',
-      notifyBrowser: true,
-      notifySound: false,
+      asset: '',
+      type: 'above',
+      price: '',
+      channels: ['email'],
     });
     setShowAddForm(false);
   };
 
-  const handleRequestPermission = async () => {
-    await onRequestNotificationPermission();
+  const toggleChannel = (channel: PriceAlert['channels'][0]) => {
+    setNewAlert((prev) => ({
+      ...prev,
+      channels: prev.channels.includes(channel)
+        ? prev.channels.filter((c) => c !== channel)
+        : [...prev.channels, channel],
+    }));
   };
 
-  const activeAlerts = alerts.filter((a) => a.isActive);
-  const inactiveAlerts = alerts.filter((a) => !a.isActive);
-  const unacknowledgedHistory = history.filter((h) => !h.acknowledged);
-
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString(isZh ? 'zh-CN' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const getChannelIcon = (channel: PriceAlert['channels'][0]) => {
+    switch (channel) {
+      case 'email':
+        return <Mail className="w-3 h-3" />;
+      case 'push':
+        return <Smartphone className="w-3 h-3" />;
+      case 'webhook':
+        return <MessageSquare className="w-3 h-3" />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-50 rounded-lg">
-            <Bell className="w-5 h-5 text-amber-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {isZh ? '价格预警' : 'Price Alerts'}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {isZh ? `${activeAlerts.length} 个活跃预警` : `${activeAlerts.length} active alerts`}
-            </p>
-          </div>
-        </div>
+    <div className="space-y-3">
+      {/* 头部 */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {!hasNotificationPermission && (
-            <button
-              onClick={handleRequestPermission}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
-            >
-              <BellRing className="w-4 h-4" />
-              {isZh ? '启用通知' : 'Enable Notifications'}
-            </button>
-          )}
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              showHistory
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <History className="w-4 h-4" />
-            {isZh ? '历史' : 'History'}
-            {unacknowledgedHistory.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded-full">
-                {unacknowledgedHistory.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {isZh ? '添加' : 'Add'}
-          </button>
+          <Bell className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-gray-700">
+            {locale === 'zh-CN' ? '价格警报' : 'Price Alerts'} ({alerts.length})
+          </span>
         </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          {locale === 'zh-CN' ? '添加' : 'Add'}
+        </button>
       </div>
 
-      {/* Add Alert Form */}
+      {/* 添加表单 */}
       {showAddForm && (
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Symbol Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isZh ? '资产' : 'Asset'}
-                </label>
-                <select
-                  value={newAlert.symbol}
-                  onChange={(e) => setNewAlert({ ...newAlert, symbol: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {DEFAULT_ALERT_SYMBOLS.map((symbol) => (
-                    <option key={symbol} value={symbol}>
-                      {symbol}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Alert Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isZh ? '预警类型' : 'Alert Type'}
-                </label>
-                <select
-                  value={newAlert.type}
-                  onChange={(e) =>
-                    setNewAlert({
-                      ...newAlert,
-                      type: e.target.value as AlertType,
-                      condition: getAlertConditionOptions(e.target.value as AlertType)[0].value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="price">{isZh ? '价格预警' : 'Price Alert'}</option>
-                  <option value="change">{isZh ? '涨跌幅预警' : 'Change Alert'}</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Condition */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isZh ? '条件' : 'Condition'}
-                </label>
-                <select
-                  value={newAlert.condition}
-                  onChange={(e) =>
-                    setNewAlert({ ...newAlert, condition: e.target.value as AlertCondition })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {getAlertConditionOptions(newAlert.type).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Threshold */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {newAlert.type === 'price'
-                    ? isZh
-                      ? '价格阈值'
-                      : 'Price Threshold'
-                    : isZh
-                      ? '百分比阈值 (%)'
-                      : 'Percentage Threshold (%)'}
-                </label>
-                <input
-                  type="number"
-                  value={newAlert.threshold}
-                  onChange={(e) => setNewAlert({ ...newAlert, threshold: e.target.value })}
-                  placeholder={newAlert.type === 'price' ? '50000' : '5'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Notification Options */}
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newAlert.notifyBrowser}
-                  onChange={(e) => setNewAlert({ ...newAlert, notifyBrowser: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700 flex items-center gap-1">
-                  <BellRing className="w-4 h-4" />
-                  {isZh ? '浏览器通知' : 'Browser Notification'}
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newAlert.notifySound}
-                  onChange={(e) => setNewAlert({ ...newAlert, notifySound: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700 flex items-center gap-1">
-                  <Volume2 className="w-4 h-4" />
-                  {isZh ? '提示音' : 'Sound Alert'}
-                </span>
-              </label>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+        <div className="py-3 border-t border-gray-100">
+          <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              <input
+                type="text"
+                placeholder={locale === 'zh-CN' ? '资产 (如: BTC)' : 'Asset (e.g., BTC)'}
+                value={newAlert.asset}
+                onChange={(e) => setNewAlert({ ...newAlert, asset: e.target.value })}
+                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newAlert.type}
+                onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as 'above' | 'below' })}
+                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {isZh ? '取消' : 'Cancel'}
-              </button>
+                <option value="above">{locale === 'zh-CN' ? '高于' : 'Above'}</option>
+                <option value="below">{locale === 'zh-CN' ? '低于' : 'Below'}</option>
+              </select>
+              <input
+                type="number"
+                placeholder={locale === 'zh-CN' ? '价格' : 'Price'}
+                value={newAlert.price}
+                onChange={(e) => setNewAlert({ ...newAlert, price: e.target.value })}
+                className="px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* 通知渠道 */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">{locale === 'zh-CN' ? '通知方式:' : 'Notify via:'}</span>
+              <div className="flex gap-1.5">
+                {(['email', 'push', 'webhook'] as const).map((channel) => (
+                  <button
+                    key={channel}
+                    onClick={() => toggleChannel(channel)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                      newAlert.channels.includes(channel)
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {getChannelIcon(channel)}
+                    {channel === 'email' && (locale === 'zh-CN' ? '邮件' : 'Email')}
+                    {channel === 'push' && (locale === 'zh-CN' ? '推送' : 'Push')}
+                    {channel === 'webhook' && 'Webhook'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
               <button
                 onClick={handleAddAlert}
-                disabled={!newAlert.threshold || parseFloat(newAlert.threshold) <= 0}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={!newAlert.asset || !newAlert.price}
+                className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {isZh ? '添加预警' : 'Add Alert'}
+                {locale === 'zh-CN' ? '保存' : 'Save'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* History Panel */}
-      {showHistory && (
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 max-h-64 overflow-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">
-              {isZh ? '预警历史' : 'Alert History'}
-            </h4>
-            {history.length > 0 && (
-              <button onClick={onClearHistory} className="text-xs text-red-600 hover:text-red-700">
-                {isZh ? '清空历史' : 'Clear History'}
-              </button>
-            )}
-          </div>
-          {history.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
-              {isZh ? '暂无预警历史' : 'No alert history'}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {[...history].reverse().map((item) => (
-                <div
-                  key={item.id}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    item.acknowledged ? 'bg-gray-100' : 'bg-white border border-amber-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-1.5 rounded ${
-                        item.type === 'price'
-                          ? item.condition === 'above'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-red-100 text-red-600'
-                          : item.condition === 'increase_by'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-red-100 text-red-600'
-                      }`}
-                    >
-                      {item.type === 'price' ? (
-                        item.condition === 'above' ? (
-                          <TrendingUp className="w-4 h-4" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4" />
-                        )
-                      ) : item.condition === 'increase_by' ? (
-                        <TrendingUp className="w-4 h-4" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {item.symbol} - {formatAlertType(item.type)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatAlertCondition(item.condition, item.type)} {item.threshold}
-                        {item.type === 'change' && '%'} → {item.triggeredValue.toFixed(2)}
-                        {item.type === 'change' && '%'}
-                      </p>
-                      <p className="text-xs text-gray-400">{formatTime(item.triggeredAt)}</p>
-                    </div>
-                  </div>
-                  {!item.acknowledged && (
-                    <button
-                      onClick={() => onAcknowledgeHistory(item.id)}
-                      className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Alert List */}
-      <div className="px-6 py-4">
-        {alerts.length === 0 ? (
-          <div className="text-center py-8">
-            <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">{isZh ? '暂无预警规则' : 'No alert rules configured'}</p>
-            <p className="text-sm text-gray-400 mt-1">
-              {isZh ? '点击上方添加按钮创建预警' : 'Click the Add button to create an alert'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Active Alerts */}
-            {activeAlerts.length > 0 && (
-              <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  {isZh ? '活跃预警' : 'Active Alerts'}
-                </h4>
-                <div className="space-y-2">
-                  {activeAlerts.map((alert) => (
-                    <AlertItem
-                      key={alert.id}
-                      alert={alert}
-                      onToggle={() => onToggleAlert(alert.id)}
-                      onRemove={() => onRemoveAlert(alert.id)}
-                      isZh={isZh}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Inactive Alerts */}
-            {inactiveAlerts.length > 0 && (
-              <div className={activeAlerts.length > 0 ? 'mt-4' : ''}>
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  {isZh ? '已暂停' : 'Paused'}
-                </h4>
-                <div className="space-y-2 opacity-60">
-                  {inactiveAlerts.map((alert) => (
-                    <AlertItem
-                      key={alert.id}
-                      alert={alert}
-                      onToggle={() => onToggleAlert(alert.id)}
-                      onRemove={() => onRemoveAlert(alert.id)}
-                      isZh={isZh}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Quick Templates */}
-      {alerts.length === 0 && !showAddForm && (
-        <div className="px-6 pb-6">
-          <p className="text-sm text-gray-500 mb-3">{isZh ? '快速模板' : 'Quick Templates'}</p>
-          <div className="grid grid-cols-2 gap-2">
-            {ALERT_TEMPLATES.map((template) => (
               <button
-                key={template.name}
-                onClick={() => {
-                  setNewAlert({
-                    symbol: DEFAULT_ALERT_SYMBOLS[0],
-                    type: template.type,
-                    condition: template.condition,
-                    threshold: '',
-                    notifyBrowser: true,
-                    notifySound: false,
-                  });
-                  setShowAddForm(true);
-                }}
-                className="p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                onClick={() => setShowAddForm(false)}
+                className="px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors text-sm"
               >
-                <p className="text-sm font-medium text-gray-900">{template.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{template.description}</p>
+                {locale === 'zh-CN' ? '取消' : 'Cancel'}
               </button>
-            ))}
+            </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-// Alert Item Component
-interface AlertItemProps {
-  alert: PriceAlert;
-  onToggle: () => void;
-  onRemove: () => void;
-  isZh: boolean;
-}
-
-function AlertItem({ alert, onToggle, onRemove, isZh }: AlertItemProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-      <div className="flex items-center gap-3 flex-1">
-        <button
-          onClick={onToggle}
-          className={`p-1.5 rounded transition-colors ${
-            alert.isActive ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
-          }`}
-        >
-          {alert.isActive ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-        </button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900">{alert.symbol}</span>
-            <span className="text-xs text-gray-500">{formatAlertType(alert.type)}</span>
+      {/* 警报列表 */}
+      <div className="space-y-1.5">
+        {alerts.map((alert) => (
+          <div
+            key={alert.id}
+            className={`flex items-center justify-between py-2.5 px-3 rounded ${
+              alert.enabled ? 'bg-gray-50' : 'bg-gray-50/50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onToggleAlert?.(alert.id, !alert.enabled)}
+                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                  alert.enabled
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {alert.enabled && <Check className="w-3 h-3" />}
+              </button>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-gray-900 text-sm">{alert.asset}</span>
+                  {alert.type === 'above' ? (
+                    <TrendingUp className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3 text-red-500" />
+                  )}
+                  <span className="text-sm text-gray-600">
+                    {alert.type === 'above'
+                      ? locale === 'zh-CN'
+                        ? '高于'
+                        : 'above'
+                      : locale === 'zh-CN'
+                      ? '低于'
+                      : 'below'}
+                  </span>
+                  <span className="font-medium text-gray-900 text-sm">
+                    ${alert.price.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {alert.channels.map((channel) => (
+                    <span
+                      key={channel}
+                      className="flex items-center gap-0.5 text-xs text-gray-500"
+                    >
+                      {getChannelIcon(channel)}
+                    </span>
+                  ))}
+                  <span className="text-xs text-gray-400">
+                    {new Date(alert.updatedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => onRemoveAlert?.(alert.id)}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
-          <p className="text-sm text-gray-600">
-            {formatAlertCondition(alert.condition, alert.type)} {alert.threshold}
-            {alert.type === 'change' && '%'}
+        ))}
+      </div>
+
+      {alerts.length === 0 && !showAddForm && (
+        <div className="text-center py-6">
+          <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">
+            {locale === 'zh-CN' ? '暂无价格警报' : 'No price alerts'}
           </p>
-          {alert.triggeredCount > 0 && (
-            <p className="text-xs text-gray-400">
-              {isZh ? '已触发' : 'Triggered'} {alert.triggeredCount} {isZh ? '次' : 'times'}
-              {alert.triggeredAt && ` · ${new Date(alert.triggeredAt).toLocaleDateString()}`}
-            </p>
-          )}
+          <p className="text-xs text-gray-400 mt-1">
+            {locale === 'zh-CN' ? '点击添加按钮创建新警报' : 'Click add button to create one'}
+          </p>
         </div>
-      </div>
-      <div className="flex items-center gap-1">
-        {alert.notifyBrowser && (
-          <span title="Browser notification">
-            <BellRing className="w-4 h-4 text-gray-400" />
-          </span>
-        )}
-        {alert.notifySound && (
-          <span title="Sound alert">
-            <Volume2 className="w-4 h-4 text-gray-400" />
-          </span>
-        )}
-        <button
-          onClick={onRemove}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
+      )}
     </div>
   );
 }
