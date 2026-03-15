@@ -4,7 +4,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
   LineChart,
   Line,
   XAxis,

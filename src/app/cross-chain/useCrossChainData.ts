@@ -34,7 +34,6 @@ import {
   calculateSMA,
   calculateDynamicThreshold,
   type CorrelationResult,
-  type ThresholdConfig,
 } from './utils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 import { createLogger } from '@/lib/utils/logger';
@@ -1015,7 +1014,6 @@ export function useCrossChainData(): UseCrossChainDataReturn {
 
   const exportToCSV = useCallback(() => {
     const csvLines: string[] = [];
-    const t = (key: string) => key;
 
     csvLines.push('=== Current Prices ===');
     csvLines.push(['Blockchain', 'Price', 'Difference', 'PercentDifference'].join(','));

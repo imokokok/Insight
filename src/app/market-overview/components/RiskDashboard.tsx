@@ -20,7 +20,7 @@ interface RiskDashboardProps {
 }
 
 export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
 
   if (loading) {
     return (

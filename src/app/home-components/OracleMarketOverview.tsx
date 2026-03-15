@@ -31,7 +31,6 @@ import {
   Info,
 } from 'lucide-react';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { chartColors } from '@/lib/config/colors';
 
 const COLORS = {

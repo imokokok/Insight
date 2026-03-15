@@ -7,7 +7,6 @@ import { chainNames, chainColors } from '../utils';
 import {
   analyzeCointegrationPairs,
   CointegrationPair,
-  calculateSpreadZScore,
 } from '../cointegration';
 import { ResidualDiagnostics } from './ResidualDiagnostics';
 import {

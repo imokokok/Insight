@@ -36,7 +36,6 @@ interface PriceTableProps {
 }
 
 export function PriceTable({
-  priceData,
   filteredPriceData,
   isLoading,
   sortColumn,
@@ -51,7 +50,6 @@ export function PriceTable({
   onSort,
   onExpandRow,
   onSetHoveredRow,
-  onSetSelectedRow,
   onHoverOracle,
   t,
 }: PriceTableProps) {

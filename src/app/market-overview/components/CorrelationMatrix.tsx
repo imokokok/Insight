@@ -4,15 +4,13 @@ import { useState, useMemo, useEffect } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
 import {
-  Activity,
   BarChart3,
   Info,
   TrendingUp,
   TrendingDown,
   Minus,
-  ChevronDown,
 } from 'lucide-react';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { semanticColors } from '@/lib/config/colors';
 
 interface CorrelationMatrixProps {
   data: CorrelationData;
@@ -63,20 +61,10 @@ export default function CorrelationMatrix({
   onCellClick,
   linkedOracle,
 }: CorrelationMatrixProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [selectedPair, setSelectedPair] = useState<CorrelationPair | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [sortBy, setSortBy] = useState<'correlation' | 'name'>('correlation');
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const sortedPairs = useMemo(() => {
     if (!data.pairs) return [];

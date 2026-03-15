@@ -5,8 +5,6 @@ import { ProtocolDetail } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   Layers,
-  TrendingUp,
-  TrendingDown,
   ExternalLink,
   Search,
   Filter,
@@ -24,7 +22,7 @@ type SortField = 'tvl' | 'change24h' | 'change7d' | 'oracleCount';
 type SortDirection = 'asc' | 'desc';
 
 export default function ProtocolList({ data, loading = false }: ProtocolListProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('tvl');

@@ -30,8 +30,8 @@
     "redstoneDesc": "Modular oracle solution",
     "dia": "DIA",
     "diaDesc": "Decentralized Information Asset cross-chain data oracle",
-    "tellar": "Tellar",
-    "tellarDesc": "Real-time price stream and multi-chain aggregation oracle",
+    "tellor": "Tellor",
+    "tellorDesc": "Decentralized crypto-native oracle for transparency and decentralization",
     "chronicle": "Chronicle",
     "chronicleDesc": "MakerDAO native oracle with Scuttlebutt security",
     "winklink": "WINkLink",
@@ -528,9 +528,9 @@
     "price": "Price",
     "confidence": "Confidence",
     "timestamp": "Timestamp",
-    "averagePrice": "Average Price",
-    "highestPrice": "Highest Price",
-    "lowestPrice": "Lowest Price",
+    "averagePrice": "Oracle Avg Price",
+    "highestPrice": "Oracle Max Price",
+    "lowestPrice": "Oracle Min Price",
     "priceRange": "Price Range",
     "deviation": "Deviation (%)",
     "standardDeviation": "Standard Deviation",
@@ -543,6 +543,11 @@
       "fair": "Fair",
       "poor": "Poor"
     },
+    "basedOnStdDev": "Based on Std Dev",
+    "historyRange": "History Range",
+    "ofAverage": "% of Avg",
+    "weighted": "Wtd",
+    "low": "Low",
     "outlier": "Outlier",
     "trend": "Trend",
     "weightedAverage": "Weighted Average",
@@ -1485,9 +1490,9 @@
       "validators": "Validators"
     }
   },
-  "tellar": {
-    "title": "Tellar",
-    "subtitle": "Real-time price stream and multi-chain aggregation oracle",
+  "tellor": {
+    "title": "Tellor",
+    "subtitle": "Decentralized crypto-native oracle for transparency and decentralization",
     "loading": "Loading...",
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",

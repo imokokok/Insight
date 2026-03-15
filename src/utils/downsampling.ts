@@ -78,19 +78,15 @@ export function downsampleData(data: DataPoint[], config: DownsamplingConfig = {
     const bucket = data.slice(start, end);
 
     if (finalConfig.preservePeaks) {
-      let maxPoint = bucket[0];
-      let minPoint = bucket[0];
       let maxPrice = bucket[0].price;
       let minPrice = bucket[0].price;
 
       for (const point of bucket) {
         if (point.price > maxPrice) {
           maxPrice = point.price;
-          maxPoint = point;
         }
         if (point.price < minPrice) {
           minPrice = point.price;
-          minPoint = point;
         }
       }
 

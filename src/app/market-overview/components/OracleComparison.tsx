@@ -57,7 +57,7 @@ const METRIC_LABELS: Record<string, { en: string; zh: string }> = {
 };
 
 export default function OracleComparison({ data, loading = false }: OracleComparisonProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [selectedOracles, setSelectedOracles] = useState<string[]>(['Chainlink', 'Pyth Network']);
   const [showSelector, setShowSelector] = useState(false);
 

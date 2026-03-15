@@ -23,7 +23,6 @@ export function PriceComparisonTable({ data }: PriceComparisonTableProps) {
     sortDirection,
     tableFilter,
     setTableFilter,
-    filteredChains,
   } = data;
 
   return (

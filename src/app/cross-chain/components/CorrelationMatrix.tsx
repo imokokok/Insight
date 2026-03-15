@@ -15,7 +15,6 @@ interface CorrelationMatrixProps {
 }
 
 export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
-  const { t } = useI18n();
   const colorblindMode = useColorblindMode();
   const { filteredChains, correlationMatrixWithSignificance } = data;
 

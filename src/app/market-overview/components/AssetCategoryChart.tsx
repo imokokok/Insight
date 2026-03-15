@@ -43,7 +43,7 @@ export default function AssetCategoryChart({
   loading = false,
   viewType = 'chart',
 }: AssetCategoryChartProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [chartType, setChartType] = useState<'pie' | 'bar' | 'radar'>('pie');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);

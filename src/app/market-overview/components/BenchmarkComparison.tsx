@@ -32,7 +32,7 @@ interface BenchmarkComparisonProps {
 }
 
 export default function BenchmarkComparison({ data, loading = false }: BenchmarkComparisonProps) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [selectedMetric, setSelectedMetric] = useState<string>(data[0]?.metric.name || '');
   const [showMetricSelector, setShowMetricSelector] = useState(false);
 
