@@ -1,182 +1,136 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { getOracleConfig } from '@/lib/config/oracles';
-import { OracleProvider } from '@/types/oracle';
-import { RedStoneClient } from '@/lib/oracles';
+import { RedStoneClient } from '@/lib/oracles/redstone';
 import {
-  OraclePageTemplate,
-  RedStoneMetricsPanel,
-  TabNavigation,
   PageHeader,
+  PriceChart,
   MarketDataPanel,
   NetworkHealthPanel,
   DashboardCard,
   StatCard,
-  PriceChart,
+  TabNavigation,
+  LoadingState,
+  ErrorFallback,
 } from '@/components/oracle';
-import { RiskAssessmentPanel } from '@/components/oracle/panels/RiskAssessmentPanel';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
+import { getOracleConfig } from '@/lib/config/oracles';
+import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useGlobalTimeRange } from '@/contexts/TimeRangeContext';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('RedStonePage');
+import { useRedStoneAllData } from '@/hooks/useRedStoneData';
 
 export default function RedStonePage() {
   const { t } = useI18n();
-  const config = getOracleConfig(OracleProvider.REDSTONE);
-  const client = useMemo(() => new RedStoneClient(), []);
-  const { timeRange } = useGlobalTimeRange();
   const [activeTab, setActiveTab] = useState('market');
 
-  const fetchData = useCallback(async () => {
-    try {
-      await Promise.all([
-        client.getPrice(config.symbol, config.defaultChain),
-        client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
-      ]);
-    } catch (err) {
-      logger.error('Error fetching RedStone data', err as Error);
-    }
-  }, [client, config]);
+  const config = getOracleConfig(OracleProvider.REDSTONE);
+  const client = useMemo(() => new RedStoneClient(), []);
 
-  const { isRefreshing, refresh } = useRefresh({
-    onRefresh: fetchData,
-    minLoadingTime: 500,
+  const {
+    price,
+    historicalData,
+    networkStats,
+    ecosystem,
+    riskMetrics,
+    isLoading,
+    isError,
+    errors,
+    refetchAll,
+  } = useRedStoneAllData({
+    symbol: config.symbol,
+    chain: config.defaultChain,
+    enabled: true,
   });
 
   const { exportData } = useExport({
     data: {
       timestamp: new Date().toISOString(),
-      timeRange,
+      price,
+      historical: historicalData,
+      network: networkStats,
+      ecosystem,
     },
-    filename: 'redstone-data',
+    filename: `redstone-data`,
   });
 
-  const stats = useMemo(
-    () => [
-      {
-        title: t('redstone.stats.dataProviders'),
-        value: '25+',
-        change: '+8%',
-        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('redstone.stats.supportedAssets'),
-        value: '1000+',
-        change: '+15%',
-        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('redstone.stats.supportedChains'),
-        value: `${config.supportedChains.length}+`,
-        change: '0%',
-        changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('redstone.stats.dataFreshness'),
-        value: '98.5',
-        suffix: '/100',
-        change: '+2%',
-        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
-        ),
-      },
-    ],
-    [config.supportedChains.length, t]
-  );
+  const { isRefreshing, refresh } = useRefresh({
+    onRefresh: async () => {
+      await refetchAll();
+    },
+    minLoadingTime: 500,
+  });
 
-  const networkStatusData = useMemo(
-    () => [
-      {
-        label: t('redstone.stats.activeNodes'),
-        value: config.networkData.activeNodes.toLocaleString(),
-        status: 'healthy' as const,
-      },
-      {
-        label: t('redstone.stats.dataStreams'),
-        value: config.networkData.dataFeeds.toLocaleString(),
-        status: 'healthy' as const,
-      },
-      {
-        label: t('redstone.stats.responseTime'),
-        value: `${config.networkData.avgResponseTime}ms`,
-        status: config.networkData.avgResponseTime < 200 ? 'healthy' : 'warning',
-      },
-      {
-        label: t('redstone.stats.uptime'),
-        value: `${config.networkData.nodeUptime}%`,
-        status: 'healthy' as const,
-      },
-    ],
-    [config.networkData, t]
-  );
+  const stats = useMemo(() => {
+    const activeNodes = networkStats?.activeNodes ?? 25;
+    const dataFeeds = networkStats?.dataFeeds ?? 1000;
+    const nodeUptime = networkStats?.nodeUptime ?? 99.9;
+    const avgResponseTime = networkStats?.avgResponseTime ?? 200;
 
-  const dataSources = useMemo(
-    () => [
+    return [
       {
-        name: 'RedStone Core',
-        status: 'active' as const,
-        latency: `${config.networkData.latency}ms`,
+        title: t('redstone.stats.activeNodes'),
+        value: activeNodes > 0 ? `${activeNodes}` : '-',
+        change: '+2',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        ),
       },
       {
-        name: config.defaultChain,
-        status: 'active' as const,
-        latency: `${config.networkData.avgResponseTime}ms`,
+        title: t('redstone.stats.dataFeeds'),
+        value: dataFeeds > 0 ? `${dataFeeds}+` : '-',
+        change: '+50',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+            />
+          </svg>
+        ),
       },
       {
-        name: '数据提供者 A',
-        status: 'active' as const,
-        latency: `${Math.round(config.networkData.avgResponseTime * 1.1)}ms`,
+        title: t('redstone.stats.avgResponse'),
+        value: `${avgResponseTime}ms`,
+        change: '-15ms',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        ),
       },
       {
-        name: '数据提供者 B',
-        status: 'active' as const,
-        latency: `${Math.round(config.networkData.avgResponseTime * 1.2)}ms`,
+        title: t('redstone.stats.networkUptime'),
+        value: `${nodeUptime}%`,
+        change: '+0.05%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
       },
-    ],
-    [config]
-  );
+    ];
+  }, [networkStats, t]);
+
+  if (isLoading) {
+    return <LoadingState themeColor={config.themeColor} />;
+  }
+
+  if (isError && !isLoading) {
+    return <ErrorFallback error={errors[0]} onRetry={refetchAll} themeColor={config.themeColor} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -189,21 +143,23 @@ export default function RedStonePage() {
         isRefreshing={isRefreshing}
       />
 
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        provider={OracleProvider.REDSTONE}
-      />
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            oracleTabs={config.tabs}
+            themeColor={config.themeColor}
+          />
+        </div>
+      </div>
 
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {activeTab === 'market' && '市场数据'}
-              {activeTab === 'network' && '网络健康'}
-              {activeTab === 'ecosystem' && '生态系统与核心指标'}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">最后更新: 刚刚 • 周期: {timeRange}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {stats.map((stat, index) => (
+              <StatCard key={index} {...stat} />
+            ))}
           </div>
 
           {activeTab === 'market' && (
@@ -217,39 +173,8 @@ export default function RedStonePage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {stats.map((stat, index) => (
-                  <div key={index} className="py-4 border-b border-gray-100">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                          {stat.title}
-                        </p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p
-                          className={`text-xs mt-2 font-medium ${
-                            stat.changeType === 'positive'
-                              ? 'text-green-600'
-                              : stat.changeType === 'negative'
-                                ? 'text-red-600'
-                                : 'text-gray-500'
-                          }`}
-                        >
-                          {stat.changeType === 'positive' && '↑ '}
-                          {stat.changeType === 'negative' && '↓ '}
-                          {stat.changeType === 'neutral' && '→ '}
-                          {stat.change}
-                        </p>
-                      </div>
-                      <div className="p-2 bg-blue-50 rounded-lg text-blue-600">{stat.icon}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div className="lg:col-span-2 py-4 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold mb-3">{t('redstone.priceChart')}</h3>
+                <DashboardCard title={t('redstone.priceTrend')} className="lg:col-span-2">
                   <PriceChart
                     client={client}
                     symbol={config.symbol}
@@ -258,10 +183,9 @@ export default function RedStonePage() {
                     showToolbar={true}
                     defaultPrice={config.marketData.change24hValue}
                   />
-                </div>
+                </DashboardCard>
 
-                <div className="py-4 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold mb-3">{t('redstone.quickStats')}</h3>
+                <DashboardCard title={t('redstone.quickStats')}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">{t('redstone.stats.volume24h')}</span>
@@ -272,97 +196,104 @@ export default function RedStonePage() {
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">{t('redstone.stats.marketCap')}</span>
                       <span className="text-sm font-semibold text-gray-900">
-                        ${(config.marketData.marketCap / 1e9).toFixed(1)}B
+                        ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('redstone.stats.circulatingSupply')}
-                      </span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.dataFeeds')}</span>
                       <span className="text-sm font-semibold text-gray-900">
-                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M {config.symbol}
+                        {networkStats?.dataFeeds ?? 1000}+
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {t('redstone.stats.modularFees')}
-                      </span>
-                      <span className="text-sm font-semibold text-green-600">$0.0001</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">
-                        {t('redstone.stats.networkUptime')}
-                      </span>
+                      <span className="text-sm text-gray-600">{t('redstone.stats.avgResponse')}</span>
                       <span className="text-sm font-semibold text-green-600">
-                        {config.networkData.nodeUptime}%
+                        {networkStats?.avgResponseTime ?? 200}ms
                       </span>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 py-4 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold mb-3">{t('redstone.networkStatus')}</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {networkStatusData.map((item, index) => (
-                      <div key={index} className="text-center py-3">
-                        <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
-                        <p className="text-lg font-semibold text-gray-900">{item.value}</p>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              item.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
-                            }`}
-                          />
-                          <span className="text-xs text-gray-500">
-                            {item.status === 'healthy'
-                              ? t('redstone.status.normal')
-                              : t('redstone.status.warning')}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="py-4 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold mb-3">{t('redstone.dataSources')}</h3>
-                  <div className="space-y-3">
-                    {dataSources.map((source, index) => (
-                      <div key={index} className="flex items-center justify-between py-1.5">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                              source.status === 'active'
-                                ? 'bg-green-500'
-                                : 'bg-yellow-500 animate-pulse'
-                            }`}
-                          />
-                          <span className="text-sm text-gray-700 truncate">{source.name}</span>
-                        </div>
-                        <span className="text-xs text-gray-500 font-mono flex-shrink-0">
-                          {source.latency}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                </DashboardCard>
               </div>
             </>
           )}
 
           {activeTab === 'network' && (
-            <div className="mb-6">
+            <div className="space-y-6">
               <NetworkHealthPanel config={config.networkData} />
             </div>
           )}
 
-          {activeTab === 'ecosystem' && <RedStoneMetricsPanel client={client} />}
+          {activeTab === 'ecosystem' && ecosystem && (
+            <div className="space-y-6">
+              <DashboardCard title={t('redstone.ecosystem.title')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ecosystem.integrations?.map((integration, index) => (
+                    <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-semibold text-gray-900">{integration.name}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{integration.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+            </div>
+          )}
 
-          {activeTab === 'risk' && <RiskAssessmentPanel provider={OracleProvider.REDSTONE} />}
+          {activeTab === 'risk' && riskMetrics && (
+            <div className="space-y-6">
+              <DashboardCard title={t('redstone.risk.title')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.centralization')}</h4>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-red-500 h-2 rounded-full"
+                        style={{ width: `${riskMetrics.centralizationRisk}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.centralizationRisk}%</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.liquidity')}</h4>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-yellow-500 h-2 rounded-full"
+                        style={{ width: `${riskMetrics.liquidityRisk}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.liquidityRisk}%</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.technical')}</h4>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: `${riskMetrics.technicalRisk}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.technicalRisk}%</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.overall')}</h4>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{ width: `${riskMetrics.overallRisk}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.overallRisk}%</p>
+                  </div>
+                </div>
+              </DashboardCard>
+            </div>
+          )}
 
-          {activeTab === 'cross-oracle' && <CrossOracleComparison />}
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('redstone.crossOracle.title')}>
+                <p className="text-gray-600">{t('redstone.crossOracle.description')}</p>
+              </DashboardCard>
+            </div>
+          )}
         </div>
       </main>
     </div>
