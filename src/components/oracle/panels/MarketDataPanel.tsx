@@ -229,6 +229,7 @@ interface MarketDataPanelProps {
   chain?: Blockchain;
   config: MarketDataConfig;
   iconBgColor?: string;
+  icon?: React.ReactNode;
 }
 
 export function MarketDataPanel({
@@ -236,6 +237,7 @@ export function MarketDataPanel({
   chain,
   config,
   iconBgColor = 'bg-blue-600',
+  icon,
 }: MarketDataPanelProps) {
   const { t } = useI18n();
   const [price, setPrice] = useState<number>(config.change24hValue);
@@ -438,9 +440,13 @@ export function MarketDataPanel({
     <div className="bg-white border border-gray-200 p-6">
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 ${iconBgColor} flex items-center justify-center`}>
-            <span className="text-white font-bold text-xl">{config.tokenSymbol}</span>
-          </div>
+          {icon ? (
+            <div className="w-12 h-12 flex items-center justify-center [&>*]:w-full [&>*]:h-full">{icon}</div>
+          ) : (
+            <div className={`w-12 h-12 ${iconBgColor} flex items-center justify-center`}>
+              <span className="text-white font-bold text-xl">{config.tokenSymbol}</span>
+            </div>
+          )}
           <div>
             <h2 className="text-gray-900 font-semibold text-lg">{config.tokenName}</h2>
             <p className="text-gray-500 text-sm">{config.tokenSymbol} / USD</p>

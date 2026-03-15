@@ -1,6 +1,5 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
   <circle cx="128" cy="128" r="128" fill="#14B8A6"/>
-  <path d="M128 48L48 88v80l80 40 80-40V88l-80-40zm0 144l-56-28V100l56-28 56 28v64l-56 28z" fill="white"/>
-  <path d="M128 80L88 100v56l40 20 40-20v-56l-40-20z" fill="#5EEAD4"/>
-  <circle cx="128" cy="128" r="20" fill="white"/>
+  <path d="M64 80h128v16h-56v80h-16V96H64V80z" fill="white"/>
+  <circle cx="128" cy="72" r="10" fill="white"/>
 </svg>
