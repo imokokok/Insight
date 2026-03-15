@@ -126,12 +126,12 @@ export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {
     website: 'https://diadata.org',
     active: true,
   },
-  [OracleProvider.TELLAR]: {
-    provider: OracleProvider.TELLAR,
-    name: 'Tellar',
+  [OracleProvider.TELLOR]: {
+    provider: OracleProvider.TELLOR,
+    name: 'Tellor',
     supportedChains: [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM],
-    description: 'Decentralized streaming oracle network',
-    website: 'https://tellar.network',
+    description: 'Decentralized oracle for crypto data',
+    website: 'https://tellor.io',
     active: true,
   },
   [OracleProvider.CHRONICLE]: {

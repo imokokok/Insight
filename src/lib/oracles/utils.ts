@@ -7,7 +7,7 @@ import {
   API3Client,
   RedStoneClient,
   DIAClient,
-  TellarClient,
+  TellorClient,
   ChronicleClient,
   WINkLinkClient,
 } from './index';
@@ -20,7 +20,7 @@ const clients: Record<OracleProvider, OracleClient> = {
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.TELLOR]: new TellorClient(),
   [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };

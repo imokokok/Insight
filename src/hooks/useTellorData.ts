@@ -2,18 +2,18 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
-import { TellarClient } from '@/lib/oracles/tellar';
+import { TellorClient } from '@/lib/oracles/tellor';
 import type {
   PriceStreamPoint,
   MarketDepth,
   MultiChainAggregation,
-  TellarNetworkStats,
-} from '@/lib/oracles/tellar';
+  TellorNetworkStats,
+} from '@/lib/oracles/tellor';
 import { PriceData, Blockchain } from '@/types/oracle';
 
-const tellarClient = new TellarClient();
+const tellorClient = new TellorClient();
 
-type TellarDataType =
+type TellorDataType =
   | 'price'
   | 'historical'
   | 'priceStream'
@@ -23,8 +23,8 @@ type TellarDataType =
   | 'liquidity'
   | 'staking';
 
-const getTellarKey = (type: TellarDataType, params?: Record<string, unknown>): string[] => {
-  const baseKey = ['tellar', type];
+const getTellorKey = (type: TellorDataType, params?: Record<string, unknown>): string[] => {
+  const baseKey = ['tellor', type];
   if (!params) return baseKey;
   const paramStr = Object.entries(params)
     .map(([k, v]) => `${k}=${v}`)
@@ -32,19 +32,19 @@ const getTellarKey = (type: TellarDataType, params?: Record<string, unknown>): s
   return [...baseKey, paramStr];
 };
 
-interface UseTellarPriceOptions {
+interface UseTellorPriceOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
 }
 
-export function useTellarPrice(options: UseTellarPriceOptions) {
+export function useTellorPrice(options: UseTellorPriceOptions) {
   const { symbol, chain, enabled = true } = options;
-  const queryKey = getTellarKey('price', { symbol, chain });
+  const queryKey = getTellorKey('price', { symbol, chain });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData, Error>({
     queryKey,
-    queryFn: () => tellarClient.getPrice(symbol, chain),
+    queryFn: () => tellorClient.getPrice(symbol, chain),
     enabled,
     staleTime: 30000,
     gcTime: 60000,
@@ -61,20 +61,20 @@ export function useTellarPrice(options: UseTellarPriceOptions) {
   };
 }
 
-interface UseTellarHistoricalOptions {
+interface UseTellorHistoricalOptions {
   symbol: string;
   chain?: Blockchain;
   period?: number;
   enabled?: boolean;
 }
 
-export function useTellarHistorical(options: UseTellarHistoricalOptions) {
+export function useTellorHistorical(options: UseTellorHistoricalOptions) {
   const { symbol, chain, period = 7, enabled = true } = options;
-  const queryKey = getTellarKey('historical', { symbol, chain, period });
+  const queryKey = getTellorKey('historical', { symbol, chain, period });
 
   const { data, error, isLoading, refetch } = useQuery<PriceData[], Error>({
     queryKey,
-    queryFn: () => tellarClient.getHistoricalPrices(symbol, chain, period),
+    queryFn: () => tellorClient.getHistoricalPrices(symbol, chain, period),
     enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -91,19 +91,19 @@ export function useTellarHistorical(options: UseTellarHistoricalOptions) {
   };
 }
 
-interface UseTellarPriceStreamOptions {
+interface UseTellorPriceStreamOptions {
   symbol: string;
   limit?: number;
   enabled?: boolean;
 }
 
-export function useTellarPriceStream(options: UseTellarPriceStreamOptions) {
+export function useTellorPriceStream(options: UseTellorPriceStreamOptions) {
   const { symbol, limit = 50, enabled = true } = options;
-  const queryKey = getTellarKey('priceStream', { symbol, limit });
+  const queryKey = getTellorKey('priceStream', { symbol, limit });
 
   const { data, error, isLoading, refetch } = useQuery<PriceStreamPoint[], Error>({
     queryKey,
-    queryFn: () => tellarClient.getPriceStream(symbol, limit),
+    queryFn: () => tellorClient.getPriceStream(symbol, limit),
     enabled,
     staleTime: 5000,
     gcTime: 30000,
@@ -120,18 +120,18 @@ export function useTellarPriceStream(options: UseTellarPriceStreamOptions) {
   };
 }
 
-interface UseTellarMarketDepthOptions {
+interface UseTellorMarketDepthOptions {
   symbol: string;
   enabled?: boolean;
 }
 
-export function useTellarMarketDepth(options: UseTellarMarketDepthOptions) {
+export function useTellorMarketDepth(options: UseTellorMarketDepthOptions) {
   const { symbol, enabled = true } = options;
-  const queryKey = getTellarKey('marketDepth', { symbol });
+  const queryKey = getTellorKey('marketDepth', { symbol });
 
   const { data, error, isLoading, refetch } = useQuery<MarketDepth, Error>({
     queryKey,
-    queryFn: () => tellarClient.getMarketDepth(symbol),
+    queryFn: () => tellorClient.getMarketDepth(symbol),
     enabled,
     staleTime: 10000,
     gcTime: 60000,
@@ -148,18 +148,18 @@ export function useTellarMarketDepth(options: UseTellarMarketDepthOptions) {
   };
 }
 
-interface UseTellarMultiChainAggregationOptions {
+interface UseTellorMultiChainAggregationOptions {
   symbol: string;
   enabled?: boolean;
 }
 
-export function useTellarMultiChainAggregation(options: UseTellarMultiChainAggregationOptions) {
+export function useTellorMultiChainAggregation(options: UseTellorMultiChainAggregationOptions) {
   const { symbol, enabled = true } = options;
-  const queryKey = getTellarKey('multiChainAggregation', { symbol });
+  const queryKey = getTellorKey('multiChainAggregation', { symbol });
 
   const { data, error, isLoading, refetch } = useQuery<MultiChainAggregation, Error>({
     queryKey,
-    queryFn: () => tellarClient.getMultiChainAggregation(symbol),
+    queryFn: () => tellorClient.getMultiChainAggregation(symbol),
     enabled,
     staleTime: 30000,
     gcTime: 60000,
@@ -176,12 +176,12 @@ export function useTellarMultiChainAggregation(options: UseTellarMultiChainAggre
   };
 }
 
-export function useTellarNetworkStats(enabled = true) {
-  const queryKey = getTellarKey('networkStats');
+export function useTellorNetworkStats(enabled = true) {
+  const queryKey = getTellorKey('networkStats');
 
-  const { data, error, isLoading, refetch } = useQuery<TellarNetworkStats, Error>({
+  const { data, error, isLoading, refetch } = useQuery<TellorNetworkStats, Error>({
     queryKey,
-    queryFn: () => tellarClient.getNetworkStats(),
+    queryFn: () => tellorClient.getNetworkStats(),
     enabled,
     staleTime: 60000,
     gcTime: 120000,
@@ -198,8 +198,8 @@ export function useTellarNetworkStats(enabled = true) {
   };
 }
 
-export function useTellarLiquidity(enabled = true) {
-  const queryKey = getTellarKey('liquidity');
+export function useTellorLiquidity(enabled = true) {
+  const queryKey = getTellorKey('liquidity');
 
   const { data, error, isLoading, refetch } = useQuery<
     {
@@ -210,7 +210,7 @@ export function useTellarLiquidity(enabled = true) {
     Error
   >({
     queryKey,
-    queryFn: () => tellarClient.getLiquidityMetrics(),
+    queryFn: () => tellorClient.getLiquidityMetrics(),
     enabled,
     staleTime: 60000,
     gcTime: 120000,
@@ -227,8 +227,8 @@ export function useTellarLiquidity(enabled = true) {
   };
 }
 
-export function useTellarStaking(enabled = true) {
-  const queryKey = getTellarKey('staking');
+export function useTellorStaking(enabled = true) {
+  const queryKey = getTellorKey('staking');
 
   const { data, error, isLoading, refetch } = useQuery<
     {
@@ -240,7 +240,7 @@ export function useTellarStaking(enabled = true) {
     Error
   >({
     queryKey,
-    queryFn: () => tellarClient.getStakingData(),
+    queryFn: () => tellorClient.getStakingData(),
     enabled,
     staleTime: 60000,
     gcTime: 120000,
@@ -257,19 +257,19 @@ export function useTellarStaking(enabled = true) {
   };
 }
 
-interface UseTellarAllDataOptions {
+interface UseTellorAllDataOptions {
   symbol: string;
   chain?: Blockchain;
   enabled?: boolean;
 }
 
-interface UseTellarAllDataReturn {
+interface UseTellorAllDataReturn {
   price: PriceData | undefined;
   historicalData: PriceData[];
   priceStream: PriceStreamPoint[];
   marketDepth: MarketDepth | undefined;
   multiChainAggregation: MultiChainAggregation | undefined;
-  networkStats: TellarNetworkStats | undefined;
+  networkStats: TellorNetworkStats | undefined;
   liquidity: {
     totalLiquidity: number;
     avgSlippage: number;
@@ -287,17 +287,17 @@ interface UseTellarAllDataReturn {
   refetchAll: () => Promise<void>;
 }
 
-export function useTellarAllData(options: UseTellarAllDataOptions): UseTellarAllDataReturn {
+export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAllDataReturn {
   const { symbol, chain, enabled = true } = options;
 
-  const priceQuery = useTellarPrice({ symbol, chain, enabled });
-  const historicalQuery = useTellarHistorical({ symbol, chain, period: 7, enabled });
-  const priceStreamQuery = useTellarPriceStream({ symbol, limit: 50, enabled });
-  const marketDepthQuery = useTellarMarketDepth({ symbol, enabled });
-  const multiChainAggregationQuery = useTellarMultiChainAggregation({ symbol, enabled });
-  const networkStatsQuery = useTellarNetworkStats(enabled);
-  const liquidityQuery = useTellarLiquidity(enabled);
-  const stakingQuery = useTellarStaking(enabled);
+  const priceQuery = useTellorPrice({ symbol, chain, enabled });
+  const historicalQuery = useTellorHistorical({ symbol, chain, period: 7, enabled });
+  const priceStreamQuery = useTellorPriceStream({ symbol, limit: 50, enabled });
+  const marketDepthQuery = useTellorMarketDepth({ symbol, enabled });
+  const multiChainAggregationQuery = useTellorMultiChainAggregation({ symbol, enabled });
+  const networkStatsQuery = useTellorNetworkStats(enabled);
+  const liquidityQuery = useTellorLiquidity(enabled);
+  const stakingQuery = useTellorStaking(enabled);
 
   const isLoading = useMemo(() => {
     if (!enabled) return false;

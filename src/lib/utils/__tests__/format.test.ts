@@ -2,7 +2,7 @@ import {
   formatCurrency,
   formatNumber,
   formatCompactNumber,
-  formatCompactNumberV2,
+  formatCompactNumberWithDecimals,
 } from '../format';
 
 describe('Format Utilities', () => {
@@ -92,29 +92,29 @@ describe('Format Utilities', () => {
     });
   });
 
-  describe('formatCompactNumberV2', () => {
+  describe('formatCompactNumberWithDecimals', () => {
     it('should format billions with default decimals', () => {
-      const result = formatCompactNumberV2(1500000000);
+      const result = formatCompactNumberWithDecimals(1500000000);
       expect(result).toBe('1.5B');
     });
 
     it('should format millions with custom decimals', () => {
-      const result = formatCompactNumberV2(1500000, 2);
+      const result = formatCompactNumberWithDecimals(1500000, 2);
       expect(result).toBe('1.50M');
     });
 
     it('should format thousands with custom decimals', () => {
-      const result = formatCompactNumberV2(1500, 2);
+      const result = formatCompactNumberWithDecimals(1500, 2);
       expect(result).toBe('1.50K');
     });
 
     it('should format small numbers', () => {
-      const result = formatCompactNumberV2(999);
+      const result = formatCompactNumberWithDecimals(999);
       expect(result).toBe('999');
     });
 
     it('should handle zero', () => {
-      const result = formatCompactNumberV2(0);
+      const result = formatCompactNumberWithDecimals(0);
       expect(result).toBe('0');
     });
   });

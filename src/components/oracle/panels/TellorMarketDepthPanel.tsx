@@ -1,14 +1,14 @@
 'use client';
 
-import { MarketDepth } from '@/lib/oracles/tellar';
+import { MarketDepth } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 
-interface TellarMarketDepthPanelProps {
+interface TellorMarketDepthPanelProps {
   data: MarketDepth;
 }
 
-export function TellarMarketDepthPanel({ data }: TellarMarketDepthPanelProps) {
+export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
   const { t } = useI18n();
 
   const maxVolume = Math.max(
@@ -19,34 +19,31 @@ export function TellarMarketDepthPanel({ data }: TellarMarketDepthPanelProps) {
   const askLevels = data.levels.filter((l) => l.askVolume > 0);
 
   return (
-    <DashboardCard title={t('tellar.marketDepth.title')}>
+    <DashboardCard title={t('tellor.marketDepth.title')}>
       <div className="space-y-6">
-        {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.marketDepth.symbol')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.symbol')}</p>
             <p className="text-xl font-bold text-cyan-600">{data.symbol}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.marketDepth.totalBid')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.totalBid')}</p>
             <p className="text-xl font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
           </div>
           <div className="bg-red-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.marketDepth.totalAsk')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.totalAsk')}</p>
             <p className="text-xl font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.marketDepth.spread')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>
             <p className="text-xl font-bold text-cyan-600">{data.spreadPercent.toFixed(4)}%</p>
           </div>
         </div>
 
-        {/* Market Depth Visualization */}
         <div className="grid grid-cols-2 gap-6">
-          {/* Bids */}
           <div>
             <h4 className="text-sm font-medium text-green-700 mb-3">
-              {t('tellar.marketDepth.bids')}
+              {t('tellor.marketDepth.bids')}
             </h4>
             <div className="space-y-2">
               {bidLevels.map((level, index) => (
@@ -67,10 +64,9 @@ export function TellarMarketDepthPanel({ data }: TellarMarketDepthPanelProps) {
             </div>
           </div>
 
-          {/* Asks */}
           <div>
             <h4 className="text-sm font-medium text-red-700 mb-3">
-              {t('tellar.marketDepth.asks')}
+              {t('tellor.marketDepth.asks')}
             </h4>
             <div className="space-y-2">
               {askLevels.map((level, index) => (
@@ -95,3 +91,5 @@ export function TellarMarketDepthPanel({ data }: TellarMarketDepthPanelProps) {
     </DashboardCard>
   );
 }
+
+export { TellorMarketDepthPanel as TellarMarketDepthPanel };

@@ -6,8 +6,22 @@ export {
   useAlertService,
   useFavoriteService,
   useSnapshotService,
-  useDI,
-} from './useDI';
+  useDependencyInjection,
+  useDependencyInjection as useDI,
+} from './useDependencyInjection';
+
+// Tellor Hooks
+export {
+  useTellorPrice,
+  useTellorHistorical,
+  useTellorPriceStream,
+  useTellorMarketDepth,
+  useTellorMultiChainAggregation,
+  useTellorNetworkStats,
+  useTellorLiquidity,
+  useTellorStaking,
+  useTellorAllData,
+} from './useTellorData';
 
 export { usePriceData, useHistoricalPrices, useMultiplePrices } from './useOracleData';
 export { useOracleDataQuery, useOraclePrefetch, useOracleDataSWR } from './useOracleDataQuery';

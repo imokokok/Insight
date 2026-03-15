@@ -40,7 +40,7 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.TELLOR]: 'Tellor',
   [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
@@ -53,7 +53,7 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
   [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLAR]: '#06B6D4',
+  [OracleProvider.TELLOR]: '#AA96DA',
   [OracleProvider.CHRONICLE]: '#E11D48',
   [OracleProvider.WINKLINK]: '#FF4D4D',
 };

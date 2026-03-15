@@ -59,7 +59,7 @@ export function createMockFactory(
         [OracleProvider.API3]: clients[OracleProvider.API3] ?? createMockClient(OracleProvider.API3),
         [OracleProvider.REDSTONE]: clients[OracleProvider.REDSTONE] ?? createMockClient(OracleProvider.REDSTONE),
         [OracleProvider.DIA]: clients[OracleProvider.DIA] ?? createMockClient(OracleProvider.DIA),
-        [OracleProvider.TELLAR]: clients[OracleProvider.TELLAR] ?? createMockClient(OracleProvider.TELLAR),
+        [OracleProvider.TELLOR]: clients[OracleProvider.TELLOR] ?? createMockClient(OracleProvider.TELLOR),
         [OracleProvider.CHRONICLE]: clients[OracleProvider.CHRONICLE] ?? createMockClient(OracleProvider.CHRONICLE),
         [OracleProvider.WINKLINK]: clients[OracleProvider.WINKLINK] ?? createMockClient(OracleProvider.WINKLINK),
       };

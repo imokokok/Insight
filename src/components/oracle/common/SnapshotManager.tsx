@@ -32,7 +32,7 @@ const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.TELLOR]: 'Tellor',
   [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };

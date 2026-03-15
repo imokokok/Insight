@@ -18,7 +18,7 @@ export function getOracleColor(provider: OracleProvider): string {
     [OracleProvider.API3]: chartColors.oracle.api3,
     [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
     [OracleProvider.DIA]: chartColors.oracle.dia,
-    [OracleProvider.TELLAR]: chartColors.oracle.tellar,
+    [OracleProvider.TELLOR]: chartColors.oracle.tellor,
     [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
     [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
   };

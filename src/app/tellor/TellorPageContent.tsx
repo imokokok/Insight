@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { TellarClient } from '@/lib/oracles/tellar';
+import { TellorClient } from '@/lib/oracles/tellor';
 import {
   PageHeader,
   PriceChart,
@@ -11,25 +11,25 @@ import {
   DashboardCard,
   StatCard,
 } from '@/components/oracle';
-import { TellarPriceStreamPanel } from '@/components/oracle/panels/TellarPriceStreamPanel';
-import { TellarMarketDepthPanel } from '@/components/oracle/panels/TellarMarketDepthPanel';
-import { TellarMultiChainAggregationPanel } from '@/components/oracle/panels/TellarMultiChainAggregationPanel';
+import { TellorPriceStreamPanel } from '@/components/oracle/panels/TellorPriceStreamPanel';
+import { TellorMarketDepthPanel } from '@/components/oracle/panels/TellorMarketDepthPanel';
+import { TellorMultiChainAggregationPanel } from '@/components/oracle/panels/TellorMultiChainAggregationPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
-import { useTellarAllData } from '@/hooks/useTellarData';
+import { useTellorAllData } from '@/hooks/useTellorData';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger('TellarPageContent');
+const logger = createLogger('TellorPageContent');
 
-type TellarTab = 'market' | 'network' | 'price-stream' | 'market-depth' | 'multi-chain';
+type TellorTab = 'market' | 'network' | 'price-stream' | 'market-depth' | 'multi-chain';
 
-const TABS: { id: TellarTab; labelKey: string }[] = [
-  { id: 'market', labelKey: 'tellar.tabs.market' },
-  { id: 'network', labelKey: 'tellar.tabs.network' },
-  { id: 'price-stream', labelKey: 'tellar.tabs.priceStream' },
-  { id: 'market-depth', labelKey: 'tellar.tabs.marketDepth' },
-  { id: 'multi-chain', labelKey: 'tellar.tabs.multiChain' },
+const TABS: { id: TellorTab; labelKey: string }[] = [
+  { id: 'market', labelKey: 'tellor.tabs.market' },
+  { id: 'network', labelKey: 'tellor.tabs.network' },
+  { id: 'price-stream', labelKey: 'tellor.tabs.priceStream' },
+  { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
+  { id: 'multi-chain', labelKey: 'tellor.tabs.multiChain' },
 ];
 
 function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }) {
@@ -42,8 +42,8 @@ function ErrorFallback({ error, onRetry }: { error: Error; onRetry: () => void }
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{t('tellar.error.loadingFailed')}</h3>
-        <p className="text-sm text-gray-500 text-center mb-6">{error.message || t('tellar.error.loadingFailed')}</p>
+        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{t('tellor.error.loadingFailed')}</h3>
+        <p className="text-sm text-gray-500 text-center mb-6">{error.message || t('tellor.error.loadingFailed')}</p>
         <button
           onClick={onRetry}
           className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
@@ -61,18 +61,18 @@ function LoadingState() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-12 h-12 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin" />
-        <p className="text-gray-500">{t('tellar.loading')}</p>
+        <p className="text-gray-500">{t('tellor.loading')}</p>
       </div>
     </div>
   );
 }
 
-export function TellarPageContent() {
+export function TellorPageContent() {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<TellarTab>('market');
+  const [activeTab, setActiveTab] = useState<TellorTab>('market');
 
-  const config = getOracleConfig(OracleProvider.TELLAR);
-  const client = useMemo(() => new TellarClient(), []);
+  const config = getOracleConfig(OracleProvider.TELLOR);
+  const client = useMemo(() => new TellorClient(), []);
 
   const {
     price,
@@ -87,7 +87,7 @@ export function TellarPageContent() {
     isError,
     errors,
     refetchAll,
-  } = useTellarAllData({
+  } = useTellorAllData({
     symbol: config.symbol,
     chain: config.defaultChain,
     enabled: true,
@@ -103,7 +103,7 @@ export function TellarPageContent() {
       multiChainAggregation,
       timeRange: '24H',
     },
-    filename: `tellar-data`,
+    filename: `tellor-data`,
   });
 
   const { isRefreshing, refresh } = useRefresh({
@@ -121,7 +121,7 @@ export function TellarPageContent() {
 
     return [
       {
-        title: t('tellar.stats.activeNodes'),
+        title: t('tellor.stats.activeNodes'),
         value: activeNodes > 0 ? `${activeNodes}+` : '-',
         change: '+3%',
         changeType: 'positive' as const,
@@ -132,7 +132,7 @@ export function TellarPageContent() {
         ),
       },
       {
-        title: t('tellar.stats.totalLiquidity'),
+        title: t('tellor.stats.totalLiquidity'),
         value: totalLiquidity > 0 ? `$${(totalLiquidity / 1e9).toFixed(2)}B` : '-',
         change: '+8%',
         changeType: 'positive' as const,
@@ -143,7 +143,7 @@ export function TellarPageContent() {
         ),
       },
       {
-        title: t('tellar.stats.stakingApr'),
+        title: t('tellor.stats.stakingApr'),
         value: `${stakingApr}%`,
         change: '+0.5%',
         changeType: 'positive' as const,
@@ -154,7 +154,7 @@ export function TellarPageContent() {
         ),
       },
       {
-        title: t('tellar.stats.networkUptime'),
+        title: t('tellor.stats.networkUptime'),
         value: `${nodeUptime}%`,
         change: '+0.05%',
         changeType: 'positive' as const,
@@ -173,15 +173,15 @@ export function TellarPageContent() {
 
   if (isError && !isLoading) {
     const firstError = errors[0];
-    logger.error('Tellar data fetch error', firstError);
+    logger.error('Tellor data fetch error', firstError);
     return <ErrorFallback error={firstError} onRetry={refetchAll} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader
-        title={t('tellar.title')}
-        subtitle={t('tellar.subtitle')}
+        title={t('tellor.title')}
+        subtitle={t('tellor.subtitle')}
         icon={config.icon}
         onRefresh={refresh}
         onExport={exportData}
@@ -231,7 +231,7 @@ export function TellarPageContent() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <DashboardCard title={t('tellar.priceTrend')} className="lg:col-span-2">
+                <DashboardCard title={t('tellor.priceTrend')} className="lg:col-span-2">
                   <PriceChart
                     client={client}
                     symbol={config.symbol}
@@ -242,28 +242,28 @@ export function TellarPageContent() {
                   />
                 </DashboardCard>
 
-                <DashboardCard title={t('tellar.quickStats')}>
+                <DashboardCard title={t('tellor.quickStats')}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellar.stats.volume24h')}</span>
+                      <span className="text-sm text-gray-600">{t('tellor.stats.volume24h')}</span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellar.stats.marketCap')}</span>
+                      <span className="text-sm text-gray-600">{t('tellor.stats.marketCap')}</span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellar.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">{t('tellor.stats.circulatingSupply')}</span>
                       <span className="text-sm font-semibold text-gray-900">
-                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M TELLAR
+                        {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M TRB
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('tellar.stats.stakingApr')}</span>
+                      <span className="text-sm text-gray-600">{t('tellor.stats.stakingApr')}</span>
                       <span className="text-sm font-semibold text-green-600">
                         {staking?.stakingApr ?? 10.2}%
                       </span>
@@ -281,32 +281,32 @@ export function TellarPageContent() {
           )}
 
           {activeTab === 'price-stream' && priceStream.length > 0 && (
-            <TellarPriceStreamPanel data={priceStream} />
+            <TellorPriceStreamPanel data={priceStream} />
           )}
 
           {activeTab === 'price-stream' && priceStream.length === 0 && (
             <DashboardCard>
-              <p className="text-gray-500 text-center py-8">{t('tellar.noPriceStreamData')}</p>
+              <p className="text-gray-500 text-center py-8">{t('tellor.noPriceStreamData')}</p>
             </DashboardCard>
           )}
 
           {activeTab === 'market-depth' && marketDepth && (
-            <TellarMarketDepthPanel data={marketDepth} />
+            <TellorMarketDepthPanel data={marketDepth} />
           )}
 
           {activeTab === 'market-depth' && !marketDepth && (
             <DashboardCard>
-              <p className="text-gray-500 text-center py-8">{t('tellar.noMarketDepthData')}</p>
+              <p className="text-gray-500 text-center py-8">{t('tellor.noMarketDepthData')}</p>
             </DashboardCard>
           )}
 
           {activeTab === 'multi-chain' && multiChainAggregation && (
-            <TellarMultiChainAggregationPanel data={multiChainAggregation} />
+            <TellorMultiChainAggregationPanel data={multiChainAggregation} />
           )}
 
           {activeTab === 'multi-chain' && !multiChainAggregation && (
             <DashboardCard>
-              <p className="text-gray-500 text-center py-8">{t('tellar.noMultiChainData')}</p>
+              <p className="text-gray-500 text-center py-8">{t('tellor.noMultiChainData')}</p>
             </DashboardCard>
           )}
         </div>
@@ -314,3 +314,5 @@ export function TellarPageContent() {
     </div>
   );
 }
+
+export { TellorPageContent as TellarPageContent };
