@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Publisher, PublisherStatus } from '@/types/oracle';
 import { useI18n } from '@/lib/i18n/provider';
@@ -201,7 +201,7 @@ export function PublisherList({
     return { anomalyDetails, anomalyCount };
   }, [publishers, t]);
 
-  useMemo(() => {
+  useEffect(() => {
     onAnomalyDetected?.(anomalyDetection.anomalyCount, anomalyDetection.anomalyDetails);
   }, [anomalyDetection, onAnomalyDetected]);
 

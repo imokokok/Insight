@@ -16,6 +16,11 @@ import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel
 import { ReactNode } from 'react';
 import { chartColors } from '@/lib/config/colors';
 
+export interface OracleTab {
+  id: string;
+  labelKey: string;
+}
+
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
@@ -25,6 +30,7 @@ export interface OracleConfig {
   client: InstanceType<typeof ChainlinkClient>;
   icon: ReactNode;
   iconBgColor: string;
+  themeColor: string;
   marketData: MarketDataConfig & { change24hPercent?: number };
   networkData: NetworkDataConfig;
   features: {
@@ -37,6 +43,7 @@ export interface OracleConfig {
     hasFirstPartyOracle: boolean;
     hasCoreFeatures: boolean;
   };
+  tabs: OracleTab[];
 }
 
 export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
@@ -57,6 +64,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new ChainlinkClient(),
     iconBgColor: 'bg-blue-600',
+    themeColor: 'blue',
     icon: (
       <img
         src="/logos/oracles/chainlink.svg"
@@ -106,6 +114,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: false,
     },
+    tabs: [
+      { id: 'market', labelKey: 'chainlink.menu.marketData' },
+      { id: 'network', labelKey: 'chainlink.menu.networkHealth' },
+      { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem' },
+      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
+      { id: 'cross-oracle', labelKey: 'chainlink.menu.crossOracleComparison' },
+    ],
   },
   [OracleProvider.BAND_PROTOCOL]: {
     provider: OracleProvider.BAND_PROTOCOL,
@@ -124,6 +139,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new BandProtocolClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.band}]`,
+    themeColor: 'purple',
     icon: (
       <img
         src="/logos/oracles/band.svg"
@@ -184,6 +200,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: false,
     },
+    tabs: [
+      { id: 'market', labelKey: 'band.menu.marketData' },
+      { id: 'network', labelKey: 'band.menu.networkHealth' },
+      { id: 'validators', labelKey: 'band.menu.validators' },
+      { id: 'ecosystem', labelKey: 'band.menu.ecosystem' },
+      { id: 'risk', labelKey: 'band.menu.riskAssessment' },
+    ],
   },
   [OracleProvider.UMA]: {
     provider: OracleProvider.UMA,
@@ -199,6 +222,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new UMAClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
+    themeColor: 'red',
     icon: <img src="/logos/oracles/uma.svg" alt="UMA" width={32} height={32} className="w-8 h-8" />,
     marketData: {
       symbol: 'UMA',
@@ -240,6 +264,14 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: false,
     },
+    tabs: [
+      { id: 'market', labelKey: 'uma.menu.marketData' },
+      { id: 'network', labelKey: 'uma.menu.networkHealth' },
+      { id: 'validators', labelKey: 'uma.menu.validatorAnalytics' },
+      { id: 'disputes', labelKey: 'uma.menu.disputeResolution' },
+      { id: 'ecosystem', labelKey: 'uma.menu.ecosystem' },
+      { id: 'risk', labelKey: 'uma.menu.riskAssessment' },
+    ],
   },
   [OracleProvider.PYTH]: {
     provider: OracleProvider.PYTH,
@@ -257,6 +289,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new PythClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.pyth}]`,
+    themeColor: 'violet',
     icon: (
       <img src="/logos/oracles/pyth.svg" alt="Pyth" width={32} height={32} className="w-8 h-8" />
     ),
@@ -300,6 +333,14 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'pyth.menu.marketData' },
+      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
+      { id: 'publishers', labelKey: 'pyth.menu.publishers' },
+      { id: 'ecosystem', labelKey: 'pyth.menu.ecosystem' },
+      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
+      { id: 'cross-oracle', labelKey: 'pyth.menu.crossOracleComparison' },
+    ],
   },
   [OracleProvider.API3]: {
     provider: OracleProvider.API3,
@@ -317,6 +358,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new API3Client(),
     iconBgColor: `bg-[${chartColors.marketOverview.api3}]`,
+    themeColor: 'green',
     icon: (
       <img src="/logos/oracles/api3.svg" alt="API3" width={32} height={32} className="w-8 h-8" />
     ),
@@ -360,6 +402,14 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: true,
       hasCoreFeatures: false,
     },
+    tabs: [
+      { id: 'market', labelKey: 'api3.tabs.overview' },
+      { id: 'network', labelKey: 'api3.tabs.networkHealth' },
+      { id: 'airnode', labelKey: 'api3.tabs.airnodes' },
+      { id: 'coverage', labelKey: 'api3.tabs.coveragePool' },
+      { id: 'advantages', labelKey: 'api3.tabs.firstPartyOracles' },
+      { id: 'advanced', labelKey: 'api3.tabs.advanced' },
+    ],
   },
   [OracleProvider.REDSTONE]: {
     provider: OracleProvider.REDSTONE,
@@ -382,6 +432,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new RedStoneClient(),
     iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
+    themeColor: 'red',
     icon: (
       <img
         src="/logos/oracles/redstone.svg"
@@ -431,6 +482,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'redstone.tabs.market' },
+      { id: 'network', labelKey: 'redstone.tabs.network' },
+      { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
+      { id: 'risk', labelKey: 'redstone.tabs.risk' },
+      { id: 'cross-oracle', labelKey: 'redstone.tabs.crossOracle' },
+    ],
   },
   [OracleProvider.DIA]: {
     provider: OracleProvider.DIA,
@@ -447,6 +505,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new DIAClient(),
     iconBgColor: `bg-[${chartColors.oracle.dia}]`,
+    themeColor: 'indigo',
     icon: <img src="/logos/oracles/dia.svg" alt="DIA" width={32} height={32} className="w-8 h-8" />,
     marketData: {
       symbol: 'DIA',
@@ -488,6 +547,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'dia.tabs.market' },
+      { id: 'network', labelKey: 'dia.tabs.network' },
+      { id: 'transparency', labelKey: 'dia.tabs.transparency' },
+      { id: 'coverage', labelKey: 'dia.tabs.coverage' },
+      { id: 'verification', labelKey: 'dia.tabs.verification' },
+    ],
   },
   [OracleProvider.TELLOR]: {
     provider: OracleProvider.TELLOR,
@@ -504,6 +570,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new TellorClient(),
     iconBgColor: `bg-[${chartColors.oracle.tellor}]`,
+    themeColor: 'cyan',
     icon: (
       <img
         src="/logos/oracles/tellor.svg"
@@ -553,6 +620,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'tellor.tabs.market' },
+      { id: 'network', labelKey: 'tellor.tabs.network' },
+      { id: 'price-stream', labelKey: 'tellor.tabs.priceStream' },
+      { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
+      { id: 'multi-chain', labelKey: 'tellor.tabs.multiChain' },
+    ],
   },
   [OracleProvider.CHRONICLE]: {
     provider: OracleProvider.CHRONICLE,
@@ -568,6 +642,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     ],
     client: new ChronicleClient(),
     iconBgColor: `bg-[${chartColors.oracle.chronicle}]`,
+    themeColor: 'amber',
     icon: (
       <img
         src="/logos/oracles/chronicle.svg"
@@ -617,6 +692,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'chronicle.tabs.market' },
+      { id: 'network', labelKey: 'chronicle.tabs.network' },
+      { id: 'scuttlebutt', labelKey: 'chronicle.tabs.scuttlebutt' },
+      { id: 'makerdao', labelKey: 'chronicle.tabs.makerdao' },
+      { id: 'validators', labelKey: 'chronicle.tabs.validators' },
+    ],
   },
   [OracleProvider.WINKLINK]: {
     provider: OracleProvider.WINKLINK,
@@ -626,6 +708,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     supportedChains: [Blockchain.BNB_CHAIN],
     client: new WINkLinkClient(),
     iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
+    themeColor: 'pink',
     icon: (
       <img
         src="/logos/oracles/winklink.svg"
@@ -675,6 +758,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasFirstPartyOracle: false,
       hasCoreFeatures: true,
     },
+    tabs: [
+      { id: 'market', labelKey: 'winklink.tabs.market' },
+      { id: 'network', labelKey: 'winklink.tabs.network' },
+      { id: 'tron', labelKey: 'winklink.tabs.tron' },
+      { id: 'staking', labelKey: 'winklink.tabs.staking' },
+      { id: 'gaming', labelKey: 'winklink.tabs.gaming' },
+    ],
   },
 };
 
