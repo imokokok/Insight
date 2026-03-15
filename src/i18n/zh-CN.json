@@ -1230,7 +1230,7 @@
   },
   "chainlink": {
     "title": "Chainlink",
-    "subtitle": "去中心化预言机网络",
+    "subtitle": "行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接",
     "description": "行业领先的去中心化预言机网络，为跨多个区块链的智能合约提供安全可靠的数据源。",
     "analytics": "Chainlink 数据分析",
     "platform": "专业预言机数据平台",
@@ -1553,7 +1553,8 @@
   },
   "dia": {
     "title": "DIA",
-    "subtitle": "去中心化信息资产跨链数据预言机",
+    "subtitle": "开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送",
+    "analytics": "DIA 数据分析",
     "loading": "加载中...",
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
@@ -1621,7 +1622,8 @@
   },
   "tellor": {
     "title": "Tellor",
-    "subtitle": "去中心化加密原生预言机，专注透明度和去中心化",
+    "subtitle": "去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性",
+    "analytics": "Tellor 数据分析",
     "loading": "加载中...",
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
@@ -1678,7 +1680,7 @@
   },
   "bandProtocol": {
     "title": "Band Protocol",
-    "subtitle": "基于 Cosmos SDK 构建的跨链数据预言机平台",
+    "subtitle": "基于 Cosmos SDK 构建的跨链数据预言机平台，实现快速最终性和原生互操作性",
     "analytics": "Band Protocol 数据分析",
     "platform": "跨链预言机数据平台",
     "features": {
@@ -1803,7 +1805,7 @@
   },
   "uma": {
     "title": "UMA",
-    "subtitle": "乐观预言机协议 - 构建无价的合成资产和金融合约",
+    "subtitle": "乐观预言机协议，通过争议解决机制构建无价的合成资产和金融合约",
     "analytics": "UMA 数据分析",
     "platform": "乐观预言机数据平台",
     "menu": {
@@ -2125,8 +2127,9 @@
     }
   },
   "redstone": {
-    "title": "Redstone 数据分析",
-    "subtitle": "模块化预言机解决方案",
+    "title": "Redstone",
+    "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
+    "analytics": "Redstone 数据分析",
     "stats": {
       "dataProviders": "数据提供者",
       "supportedAssets": "支持资产",
@@ -2145,7 +2148,12 @@
     "tabs": {
       "overview": "概览",
       "providers": "数据提供者",
-      "feeds": "数据源"
+      "feeds": "数据源",
+      "market": "市场数据",
+      "network": "网络健康",
+      "ecosystem": "生态系统",
+      "risk": "风险评估",
+      "crossOracle": "跨预言机对比"
     },
     "priceChart": "价格图表",
     "quickStats": "快速统计",
@@ -2159,6 +2167,7 @@
   "pythNetwork": {
     "title": "Pyth",
     "subtitle": "具有第一方交易所数据和亚秒级延迟的高频金融数据预言机。",
+    "analytics": "Pyth 数据分析",
     "dataQuality": {
       "title": "数据质量综合评分",
       "subtitle": "多维度数据质量评估与监控",
@@ -2331,6 +2340,14 @@
       "firstPartyOracles": "第一方预言机",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估"
+    },
+    "tabs": {
+      "overview": "市场数据",
+      "networkHealth": "网络健康度",
+      "airnodes": "Airnodes",
+      "coveragePool": "保险池",
+      "firstPartyOracles": "第一方预言机",
+      "advanced": "高级"
     },
     "firstPartyOracle": {
       "title": "第一方预言机优势对比",
@@ -3724,6 +3741,58 @@
     "tokens": "代币:",
     "requestsLabel": "请求:"
   },
+  "bandCrossChainPriceConsistency": {
+    "title": "跨链价格一致性监控",
+    "subtitle": "Band Protocol 各链价格同步状态",
+    "priceDeviationHeatmap": "价格偏离热力图",
+    "heatmapSubtitle": "各链价格与基准链（Cosmos Hub）的偏离程度",
+    "low": "低",
+    "high": "高",
+    "token": "代币",
+    "historicalComparison": "历史对比视图",
+    "comparisonTime": "对比时间",
+    "tradingPair": "交易对",
+    "baseline": "基准",
+    "historicalPrice": "历史价格",
+    "historicalDeviation": "历史偏离",
+    "historicalLatency": "历史延迟",
+    "currentPrice": "当前价格",
+    "currentDeviation": "当前偏离",
+    "currentLatency": "当前延迟",
+    "priceChange": "价格变化",
+    "trendSummary": "变化趋势汇总",
+    "priceUp": "价格上涨",
+    "priceStable": "价格稳定",
+    "priceDown": "价格下跌",
+    "compareHistory": "对比历史",
+    "selectDate": "选择日期",
+    "selectTime": "选择时间",
+    "dateRange": "可选范围: 最近30天",
+    "deviationDetected": "检测到跨链价格偏差",
+    "deviationWarning": "部分链的价格与基准价格（Cosmos Hub）存在偏差，请关注价格一致性。",
+    "baselinePrice": "基准价格",
+    "maxDeviation": "最大偏差",
+    "consistencyGood": "一致性良好",
+    "consistencyWarning": "存在轻微偏差",
+    "consistencyCritical": "偏差较大",
+    "avgLatency": "平均延迟",
+    "updateTimely": "更新及时",
+    "updateNormal": "更新正常",
+    "chain": "链",
+    "price": "价格",
+    "deviation": "偏差",
+    "deviationVisualization": "偏差可视化",
+    "latency": "延迟",
+    "status": "状态",
+    "statusNormal": "正常",
+    "statusWarning": "警告",
+    "statusCritical": "异常",
+    "mechanismTitle": "Band Protocol 跨链价格机制",
+    "mechanism1": "Band Protocol 基于 Cosmos IBC 实现跨链数据传输",
+    "mechanism2": "Cosmos Hub 作为主要数据源，通过 IBC 向其他链传输价格数据",
+    "mechanism3": "支持 EVM 链（Ethereum、Polygon 等）通过 Band Bridge 获取数据",
+    "mechanism4": "价格偏离阈值：<0.1% 为正常，0.1%-0.5% 为警告，>0.5% 需关注"
+  },
   "publisherAnalysis": {
     "anomalyDetected": "检测到 {count} 个异常 Publisher",
     "anomalyTypeDistribution": "异常类型分布：",
@@ -4653,7 +4722,9 @@
     }
   },
   "chronicle": {
-    "subtitle": "MakerDAO 原生预言机 - 采用 Scuttlebutt 安全协议的高安全性去中心化价格喂价",
+    "title": "Chronicle",
+    "subtitle": "MakerDAO 原生预言机，采用 Scuttlebutt 安全协议提供高安全性的去中心化价格喂价",
+    "analytics": "Chronicle 数据分析",
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",
@@ -4699,7 +4770,9 @@
     }
   },
   "winklink": {
-    "subtitle": "TRON 生态预言机 - 为游戏、DeFi 和娱乐应用提供可靠的链下数据",
+    "title": "WINkLink",
+    "subtitle": "TRON 生态原生预言机，为游戏、DeFi 和娱乐应用提供可靠的链下数据服务",
+    "analytics": "WINkLink 数据分析",
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",

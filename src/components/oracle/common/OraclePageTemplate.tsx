@@ -498,11 +498,41 @@ export function OraclePageTemplate({
     ];
   }, [config]);
 
+  // 根据 provider 获取对应的 i18n 键名
+  const getProviderKey = useCallback(() => {
+    switch (config.provider) {
+      case OracleProvider.CHAINLINK:
+        return 'chainlink';
+      case OracleProvider.UMA:
+        return 'uma';
+      case OracleProvider.BAND_PROTOCOL:
+        return 'bandProtocol';
+      case OracleProvider.PYTH_NETWORK:
+        return 'pythNetwork';
+      case OracleProvider.API3:
+        return 'api3';
+      case OracleProvider.REDSTONE:
+        return 'redstone';
+      case OracleProvider.DIA:
+        return 'dia';
+      case OracleProvider.TELLOR:
+        return 'tellor';
+      case OracleProvider.CHRONICLE:
+        return 'chronicle';
+      case OracleProvider.WINKLINK:
+        return 'winklink';
+      default:
+        return 'chainlink';
+    }
+  }, [config.provider]);
+
+  const providerKey = getProviderKey();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader
-        title={`${config.name} ${t('chainlink.analytics')}`}
-        subtitle={t('chainlink.platform')}
+        title={`${config.name} ${t(`${providerKey}.analytics` as any)}`}
+        subtitle={t(`${providerKey}.subtitle` as any)}
         icon={config.icon}
         onRefresh={refresh}
         onExport={handleExport}
@@ -534,13 +564,40 @@ export function OraclePageTemplate({
 
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-gray-900">{getPageTitle()}</h2>
-            <p className="text-xs text-gray-500 mt-1">
-              {t('chainlink.lastUpdated')}: {t('chainlink.justNow')} • {t('chainlink.period')}:{' '}
-              {timeRange}
-            </p>
-          </div>
+          {/* 统计数据行 - 去中心化节点、支持的链等 */}
+          {activeTab === 'market' && !config.features.hasPublisherAnalytics && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {stats.map((stat, index) => (
+                <div key={index} className="bg-white border border-gray-200 p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+                        {stat.title}
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                      <p
+                        className={`text-xs mt-2 font-medium ${
+                          stat.changeType === 'positive'
+                            ? 'text-green-600'
+                            : stat.changeType === 'negative'
+                              ? 'text-red-600'
+                              : 'text-gray-500'
+                        }`}
+                      >
+                        {stat.changeType === 'positive' && '↑ '}
+                        {stat.changeType === 'negative' && '↓ '}
+                        {stat.changeType === 'neutral' && '→ '}
+                        {stat.change}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-blue-50 border border-blue-100 text-blue-600">
+                      {stat.icon}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {activeTab === 'market' && (
             <div className="mb-6">
@@ -778,38 +835,6 @@ export function OraclePageTemplate({
                     />
                   </div>
                 )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  {stats.map((stat, index) => (
-                    <div key={index} className="py-4 border-b border-gray-100">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                            {stat.title}
-                          </p>
-                          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                          <p
-                            className={`text-xs mt-2 font-medium ${
-                              stat.changeType === 'positive'
-                                ? 'text-green-600'
-                                : stat.changeType === 'negative'
-                                  ? 'text-red-600'
-                                  : 'text-gray-500'
-                            }`}
-                          >
-                            {stat.changeType === 'positive' && '↑ '}
-                            {stat.changeType === 'negative' && '↓ '}
-                            {stat.changeType === 'neutral' && '→ '}
-                            {stat.change}
-                          </p>
-                        </div>
-                        <div className="p-2 bg-blue-50 border border-blue-100 text-blue-600">
-                          {stat.icon}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                   <div className="lg:col-span-2 py-4 border-b border-gray-100">

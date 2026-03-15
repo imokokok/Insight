@@ -346,7 +346,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
 }
 
 function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   const radarData = dimensions.map((dim) => ({
     name: dim.name,
@@ -358,12 +358,10 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
     <div className="bg-white border border-gray-200  p-6">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
-          {locale === 'zh-CN' ? '维度评分雷达图' : 'Dimension Score Radar'}
+          {t('confidenceScore.radarChart.title')}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {locale === 'zh-CN'
-            ? '各维度评分可视化展示'
-            : 'Visual representation of dimension scores'}
+          {t('confidenceScore.radarChart.subtitle')}
         </p>
       </div>
 
@@ -377,7 +375,7 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
             tick={{ fontSize: 10, fill: chartColors.recharts.tickDark }}
           />
           <Radar
-            name={locale === 'zh-CN' ? '评分' : 'Score'}
+            name={t('confidenceScore.totalScore')}
             dataKey="score"
             stroke={chartColors.recharts.primary}
             fill={chartColors.recharts.primary}
@@ -391,7 +389,7 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
 }
 
 function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return semanticColors.success.DEFAULT;
@@ -404,12 +402,10 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
     <div className="bg-white border border-gray-200  p-6">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
-          {locale === 'zh-CN' ? '各维度评分详情' : 'Dimension Score Details'}
+          {t('confidenceScore.details.title')}
         </h3>
         <p className="text-xs text-gray-500 mt-0.5">
-          {locale === 'zh-CN'
-            ? '详细评分数据与基准对比'
-            : 'Detailed scores with benchmark comparison'}
+          {t('confidenceScore.details.subtitle')}
         </p>
       </div>
 
@@ -420,7 +416,7 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
               <div className="flex items-center gap-2">
                 <span className="font-medium text-gray-900 text-sm">{dim.name}</span>
                 <span className="text-xs text-gray-400">
-                  权重: {(dim.weight * 100).toFixed(0)}%
+                  {t('confidenceScore.details.weight')}: {(dim.weight * 100).toFixed(0)}%
                 </span>
               </div>
               <span className="text-lg font-bold" style={{ color: getScoreColor(dim.score) }}>
@@ -450,11 +446,11 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>
-                {locale === 'zh-CN' ? '当前值' : 'Current'}: {dim.details.value.toFixed(1)}{' '}
+                {t('confidenceScore.details.current')}: {dim.details.value.toFixed(1)}{' '}
                 {dim.details.unit}
               </span>
               <span>
-                {locale === 'zh-CN' ? '基准' : 'Benchmark'}: {dim.details.benchmark}{' '}
+                {t('confidenceScore.details.benchmark')}: {dim.details.benchmark}{' '}
                 {dim.details.unit}
               </span>
             </div>
@@ -466,10 +462,10 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
 }
 
 function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -477,10 +473,10 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '置信度历史趋势' : 'Confidence Score Trend'}
+            {t('confidenceScore.trend.title')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {locale === 'zh-CN' ? '过去24小时评分变化' : 'Score changes over the last 24 hours'}
+            {t('confidenceScore.trend.subtitle')}
           </p>
         </div>
       </div>
@@ -515,37 +511,37 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '综合评分' : 'Overall'}:
+                        {t('confidenceScore.trend.overall')}:
                       </span>
                       <span className="text-gray-900 font-semibold">{data.score.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '节点数量' : 'Nodes'}:
+                        {t('confidenceScore.trend.nodes')}:
                       </span>
                       <span className="text-gray-900">{data.nodeScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '共识度' : 'Consensus'}:
+                        {t('confidenceScore.trend.consensus')}:
                       </span>
                       <span className="text-gray-900">{data.consensusScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '多样性' : 'Diversity'}:
+                        {t('confidenceScore.trend.diversity')}:
                       </span>
                       <span className="text-gray-900">{data.diversityScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '新鲜度' : 'Freshness'}:
+                        {t('confidenceScore.trend.freshness')}:
                       </span>
                       <span className="text-gray-900">{data.freshnessScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '准确率' : 'Accuracy'}:
+                        {t('confidenceScore.trend.accuracy')}:
                       </span>
                       <span className="text-gray-900">{data.accuracyScore.toFixed(1)}</span>
                     </div>
@@ -560,7 +556,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
             stroke={chartColors.recharts.primary}
             strokeWidth={2}
             dot={false}
-            name={locale === 'zh-CN' ? '综合评分' : 'Overall Score'}
+            name={t('confidenceScore.trend.overall')}
           />
           <Line
             type="monotone"
@@ -569,7 +565,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
             strokeWidth={1.5}
             dot={false}
             strokeDasharray="5 5"
-            name={locale === 'zh-CN' ? '共识度' : 'Consensus'}
+            name={t('confidenceScore.trend.consensus')}
           />
           <Line
             type="monotone"
@@ -578,7 +574,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
             strokeWidth={1.5}
             dot={false}
             strokeDasharray="5 5"
-            name={locale === 'zh-CN' ? '准确率' : 'Accuracy'}
+            name={t('confidenceScore.trend.accuracy')}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -587,19 +583,19 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-blue-500" />
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '综合评分' : 'Overall'}
+            {t('confidenceScore.trend.overall')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-purple-500" style={{ borderStyle: 'dashed' }} />
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '共识度' : 'Consensus'}
+            {t('confidenceScore.trend.consensus')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-green-500" style={{ borderStyle: 'dashed' }} />
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '准确率' : 'Accuracy'}
+            {t('confidenceScore.trend.accuracy')}
           </span>
         </div>
       </div>
@@ -608,19 +604,17 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
 }
 
 function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
 
   return (
     <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '改进建议' : 'Improvement Suggestions'}
+            {t('confidenceScore.suggestions.title')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {locale === 'zh-CN'
-              ? '基于当前评分的优化建议'
-              : 'Optimization suggestions based on current scores'}
+            {t('confidenceScore.suggestions.subtitle')}
           </p>
         </div>
         <div className="p-2 bg-blue-50 ">
@@ -694,7 +688,7 @@ export function ConfidenceScore({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">
-          {locale === 'zh-CN' ? '加载数据中...' : 'Loading data...'}
+          {t('confidenceScore.loading')}
         </div>
       </div>
     );
@@ -705,24 +699,22 @@ export function ConfidenceScore({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '数据置信度评分' : 'Data Confidence Score'}
+            {t('confidenceScore.title')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {locale === 'zh-CN'
-              ? '综合评估数据质量和可靠性'
-              : 'Comprehensive assessment of data quality and reliability'}
+            {t('confidenceScore.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '最后更新' : 'Last updated'}:{' '}
-            {lastUpdated.toLocaleTimeString('zh-CN')}
+            {t('confidenceScore.lastUpdated')}:{' '}
+            {lastUpdated.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US')}
           </span>
           <button
             onClick={updateData}
             className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium  hover:bg-blue-100 transition-colors"
           >
-            {locale === 'zh-CN' ? '刷新数据' : 'Refresh'}
+            {t('confidenceScore.refresh')}
           </button>
         </div>
       </div>

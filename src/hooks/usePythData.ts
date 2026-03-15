@@ -75,7 +75,7 @@ export function usePythHistorical(options: UsePythHistoricalOptions) {
 
   const { data, error, isLoading, refetch } = useQuery<PriceData[], Error>({
     queryKey,
-    queryFn: () => pythClient.getHistoricalData(symbol, period, chain),
+    queryFn: () => pythClient.getHistoricalPrices(symbol, chain, period),
     enabled,
     staleTime: 300000,
     gcTime: 600000,
