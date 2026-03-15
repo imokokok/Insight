@@ -4608,6 +4608,8 @@
   },
   "chronicle": {
     "subtitle": "MakerDAO Native Oracle - High-security decentralized price feeds with Scuttlebutt security protocol",
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
     "tabs": {
       "market": "Market Data",
       "network": "Network Health",
@@ -4618,6 +4620,15 @@
     "loading": "Loading Chronicle data...",
     "error": {
       "loadingFailed": "Failed to load Chronicle data"
+    },
+    "stats": {
+      "activeValidators": "Active Validators",
+      "makerDAOSupport": "MakerDAO Support",
+      "stakingApr": "Staking APR",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
     },
     "scuttlebutt": {
       "title": "Scuttlebutt Security Protocol",
@@ -4654,6 +4665,8 @@
   },
   "winklink": {
     "subtitle": "TRON Ecosystem Oracle - Reliable off-chain data for gaming, DeFi, and entertainment",
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
     "tabs": {
       "market": "Market Data",
       "network": "Network Health",
@@ -4664,6 +4677,15 @@
     "loading": "Loading WINkLink data...",
     "error": {
       "loadingFailed": "Failed to load WINkLink data"
+    },
+    "stats": {
+      "activeNodes": "Active Nodes",
+      "tronIntegrations": "TRON Integrations",
+      "stakingApr": "Staking APR",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
     },
     "tron": {
       "title": "TRON Ecosystem Integration",
@@ -4707,7 +4729,11 @@
     }
   },
   "common": {
-    "retry": "Retry"
+    "retry": "Retry",
+    "favorite": "Favorite",
+    "favorited": "Favorited",
+    "export": "Export",
+    "refresh": "Refresh"
   },
   "validator": {
     "earningsAttribution": "Earnings Attribution Analysis",
@@ -4915,6 +4941,24 @@
     "24hHigh": "24h High",
     "24hLow": "24h Low"
   },
+  "oracle": {
+    "chart": {
+      "granularity": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day"
+      },
+      "timeRange": {
+        "1h": "1h",
+        "24h": "24h",
+        "7d": "7d",
+        "30d": "30d",
+        "90d": "90d",
+        "1y": "1y",
+        "all": "All"
+      }
+    }
+  },
   "priceChart": {
     "status": {
       "realtime": "Realtime",
@@ -4943,7 +4987,58 @@
     "price": "Price",
     "comparisonPrice": "Comparison Price",
     "signal": "Signal",
-    "anomalyPoints": "Anomaly Points"
+    "anomalyPoints": "Anomaly Points",
+    "moreOptions": "More Options",
+    "more": "More",
+    "advancedFeatures": "Advanced Features",
+    "timeComparisonDescription": "Compare price trends between two time periods",
+    "anomalyDetection": "Anomaly Detection",
+    "anomalyDetectionDescription": "Detect abnormal price fluctuations",
+    "viewStats": "View Statistics",
+    "viewAnomalyStats": "View Anomaly Statistics",
+    "predictionInterval": "Prediction Interval",
+    "predictionIntervalDescription": "Display price prediction confidence intervals",
+    "confidence": "Confidence",
+    "confidenceSelection": "Confidence Selection",
+    "export": {
+      "title": "Export",
+      "exportChart": "Export Chart",
+      "exporting": "Exporting...",
+      "exportComplete": "Export Complete",
+      "exportFailed": "Export Failed",
+      "settings": "Export Settings",
+      "settingsDescription": "Customize export options",
+      "range": "Export Range",
+      "currentView": "Current View",
+      "allData": "All Data",
+      "dateRange": "Date Range",
+      "filenameTemplate": "Filename Template",
+      "filenameTemplateHint": "Available variables: {title}, {date}, {time}, {source}",
+      "customFilename": "Custom Filename",
+      "includeMetadata": "Include Metadata",
+      "includeWatermark": "Add Watermark",
+      "cancel": "Cancel",
+      "confirmExport": "Confirm Export",
+      "batchExport": "Batch Export",
+      "batchExportDescription": "Select charts to export",
+      "resolution": "Resolution",
+      "selectResolution": "Select Resolution",
+      "selectCharts": "Select Charts",
+      "selected": "Selected",
+      "preview": "Export Preview",
+      "previewDescription": "Preview export content",
+      "filename": "Filename",
+      "dataRange": "Data Range",
+      "recordCount": "Record Count",
+      "close": "Close",
+      "formats": {
+        "png": "PNG Image",
+        "svg": "SVG Vector",
+        "csv": "CSV Data",
+        "json": "JSON Data",
+        "pdf": "PDF Document"
+      }
+    }
   },
   "kpiDashboard": {
     "goToPage": "Go to page {page}",
@@ -5409,40 +5504,6 @@
     "status": {
       "active": "Active",
       "jailed": "Jailed"
-    }
-  },
-  "uma": {
-    "dataQuality": {
-      "title": "Data Quality Score",
-      "subtitle": "Comprehensive evaluation of UMA network data quality",
-      "overallScore": "Overall Score",
-      "networkHealth": "Network Health",
-      "dataIntegrity": "Data Integrity",
-      "responseTime": "Response Time",
-      "validatorActivity": "Validator Activity",
-      "improving": "Improving",
-      "declining": "Declining",
-      "stable": "Stable",
-      "excellent": "Excellent (90-100)",
-      "good": "Good (70-89)",
-      "needsImprovement": "Needs Improvement (<70)",
-      "viewDetails": "View Details"
-    },
-    "scoreExplanation": {
-      "title": "UMA Data Quality Score Algorithm",
-      "subtitle": "Understand how scores are calculated and dimension weights",
-      "overview": "Overview",
-      "dimensions": "Dimensions",
-      "history": "History",
-      "overallFormula": "Overall Score Formula",
-      "dimensionDetails": "Dimension Details",
-      "scoreGrades": {
-        "excellent": "Excellent",
-        "good": "Good",
-        "pass": "Pass",
-        "needsImprovement": "Needs Improvement"
-      },
-      "last30Days": "Last 30 Days Trend"
     }
   },
   "realtimeUpdate": {

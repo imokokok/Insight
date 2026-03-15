@@ -1,11 +1,5 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="winkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#EC4899"/>
-      <stop offset="100%" style="stop-color:#F472B6"/>
-    </linearGradient>
-  </defs>
-  <circle cx="128" cy="128" r="128" fill="url(#winkGrad)"/>
+  <circle cx="128" cy="128" r="128" fill="#EC4899"/>
   <path d="M80 96c0-13.3 10.7-24 24-24h48c13.3 0 24 10.7 24 24v64c0 13.3-10.7 24-24 24h-48c-13.3 0-24-10.7-24-24V96zm24 0v64h48V96h-48z" fill="white"/>
   <circle cx="104" cy="128" r="12" fill="white"/>
   <circle cx="152" cy="128" r="12" fill="white"/>

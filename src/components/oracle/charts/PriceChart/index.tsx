@@ -204,7 +204,7 @@ export function PriceChart({
 
       const lastPoint = prevData[prevData.length - 1];
       const newTimestamp = now;
-      const newTime = new Date(newTimestamp).toLocaleTimeString('en-US', {
+      const newTime = new Date(newTimestamp).toLocaleTimeString(undefined, {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -713,47 +713,47 @@ export function PriceChart({
                   title={t('priceChart.ma7')}
                 >
                   <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.warning }} />
-                  MA7
-                </button>
+                {t('priceChart.ma7')}
+              </button>
                 {!isMobile && (
                   <button
-                    onClick={toggleMA14}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                    style={{
-                      backgroundColor: showMA14 ? baseColors.gray[50] : 'transparent',
-                      color: showMA14 ? baseColors.primary[600] : baseColors.gray[600],
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[900];
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[600];
-                    }}
-                    title={t('priceChart.ma14')}
-                  >
-                    <span className="w-2 h-2" style={{ backgroundColor: baseColors.primary[500] }} />
-                    MA14
-                  </button>
+                onClick={toggleMA14}
+                className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                style={{
+                  backgroundColor: showMA14 ? baseColors.gray[50] : 'transparent',
+                  color: showMA14 ? baseColors.primary[600] : baseColors.gray[600],
+                }}
+                onMouseEnter={(e) => {
+                  if (!showMA14) e.currentTarget.style.color = baseColors.gray[900];
+                }}
+                onMouseLeave={(e) => {
+                  if (!showMA14) e.currentTarget.style.color = baseColors.gray[600];
+                }}
+                title={t('priceChart.ma14')}
+              >
+                <span className="w-2 h-2" style={{ backgroundColor: baseColors.primary[500] }} />
+                {t('priceChart.ma14')}
+              </button>
                 )}
                 {!isMobile && (
                   <button
-                    onClick={toggleMA30}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                    style={{
-                      backgroundColor: showMA30 ? baseColors.gray[50] : 'transparent',
-                      color: showMA30 ? chartColors.recharts.purple : baseColors.gray[600],
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[900];
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[600];
-                    }}
-                    title={t('priceChart.ma30')}
-                  >
-                    <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.purple }} />
-                    MA30
-                  </button>
+                onClick={toggleMA30}
+                className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                style={{
+                  backgroundColor: showMA30 ? baseColors.gray[50] : 'transparent',
+                  color: showMA30 ? chartColors.recharts.purple : baseColors.gray[600],
+                }}
+                onMouseEnter={(e) => {
+                  if (!showMA30) e.currentTarget.style.color = baseColors.gray[900];
+                }}
+                onMouseLeave={(e) => {
+                  if (!showMA30) e.currentTarget.style.color = baseColors.gray[600];
+                }}
+                title={t('priceChart.ma30')}
+              >
+                <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.purple }} />
+                {t('priceChart.ma30')}
+              </button>
                 )}
 
                 {!isMobile && (
@@ -1252,7 +1252,7 @@ export function PriceChart({
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
               <span className={`font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[600] }}>
-                RSI
+                {t('priceChart.rsi')}
               </span>
               <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[400] }}>
                 {t('priceChart.rsiPeriod')}
@@ -1334,7 +1334,7 @@ export function PriceChart({
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
               <span className={`font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[600] }}>
-                MACD
+                {t('priceChart.macd')}
               </span>
               <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[400] }}>
                 {t('priceChart.macdPeriod')}
@@ -1449,7 +1449,7 @@ export function PriceChart({
                 className={`${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
                 style={{ borderTop: `2px dashed ${chartColors.recharts.warning}` }}
               />
-              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>MA7</span>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>{t('priceChart.ma7')}</span>
             </div>
           )}
           {!isMobile && showBollingerBands && (
@@ -1463,14 +1463,14 @@ export function PriceChart({
           {!isMobile && showRSI && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-0.5" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
-              <span className="text-xs" style={{ color: baseColors.gray[500] }}>RSI</span>
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.rsi')}</span>
             </div>
           )}
           {!isMobile && showMACD && (
             <>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-0.5" style={{ backgroundColor: chartColors.macd.line }} />
-                <span className="text-xs" style={{ color: baseColors.gray[500] }}>MACD</span>
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.macd')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-0.5" style={{ backgroundColor: chartColors.macd.signal }} />

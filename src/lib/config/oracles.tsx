@@ -69,9 +69,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/chainlink.svg"
         alt="Chainlink"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {
@@ -144,9 +142,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/band.svg"
         alt="Band Protocol"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {
@@ -223,7 +219,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new UMAClient(),
     iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
     themeColor: 'red',
-    icon: <img src="/logos/oracles/uma.svg" alt="UMA" width={32} height={32} className="w-8 h-8" />,
+    icon: <img src="/logos/oracles/uma.svg" alt="UMA" className="w-12 h-12" />,
     marketData: {
       symbol: 'UMA',
       tokenName: 'UMA',
@@ -291,7 +287,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     iconBgColor: `bg-[${chartColors.marketOverview.pyth}]`,
     themeColor: 'violet',
     icon: (
-      <img src="/logos/oracles/pyth.svg" alt="Pyth" width={32} height={32} className="w-8 h-8" />
+      <img src="/logos/oracles/pyth.svg" alt="Pyth" className="w-12 h-12" />
     ),
     marketData: {
       symbol: 'PYTH',
@@ -360,7 +356,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     iconBgColor: `bg-[${chartColors.marketOverview.api3}]`,
     themeColor: 'green',
     icon: (
-      <img src="/logos/oracles/api3.svg" alt="API3" width={32} height={32} className="w-8 h-8" />
+      <img src="/logos/oracles/api3.svg" alt="API3" className="w-12 h-12" />
     ),
     marketData: {
       symbol: 'API3',
@@ -437,9 +433,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/redstone.svg"
         alt="RedStone"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {
@@ -506,7 +500,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new DIAClient(),
     iconBgColor: `bg-[${chartColors.oracle.dia}]`,
     themeColor: 'indigo',
-    icon: <img src="/logos/oracles/dia.svg" alt="DIA" width={32} height={32} className="w-8 h-8" />,
+    icon: <img src="/logos/oracles/dia.svg" alt="DIA" className="w-12 h-12" />,
     marketData: {
       symbol: 'DIA',
       tokenName: 'DIA',
@@ -575,9 +569,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/tellor.svg"
         alt="Tellor"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {
@@ -647,9 +639,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/chronicle.svg"
         alt="Chronicle"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {
@@ -713,9 +703,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       <img
         src="/logos/oracles/winklink.svg"
         alt="WINkLink"
-        width={32}
-        height={32}
-        className="w-8 h-8"
+        className="w-12 h-12"
       />
     ),
     marketData: {

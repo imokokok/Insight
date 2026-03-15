@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, RefObject } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import {
   exportChart,
   exportMultipleCharts,
@@ -61,6 +62,7 @@ export function ChartExportButton({
   dateRange,
   onDateRangeChange,
 }: ChartExportButtonProps) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showResolutionPicker, setShowResolutionPicker] = useState(false);
@@ -74,7 +76,6 @@ export function ChartExportButton({
     message: '',
   });
 
-  // 导出设置
   const [settings, setSettings] = useState<ExportSettings>({
     range: 'current',
     includeMetadata: true,
@@ -87,7 +88,6 @@ export function ChartExportButton({
     },
   });
 
-  // 批量导出选择
   const [selectedCharts, setSelectedCharts] = useState<Set<string>>(new Set());
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -128,7 +128,6 @@ export function ChartExportButton({
     if (settings.range === 'current') {
       return data;
     }
-    // 全部数据或根据日期范围过滤
     if (settings.dateRange) {
       return data.filter((item) => {
         const itemDate = item.date ? new Date(item.date as string) : null;
@@ -143,7 +142,7 @@ export function ChartExportButton({
     async (format: ExportOptions['format'], resolution: Resolution) => {
       if (progress.status === 'exporting') return;
 
-      setProgress({ status: 'preparing', progress: 0, message: '准备导出...' });
+      setProgress({ status: 'preparing', progress: 0, message: t('priceChart.export.exporting') });
       setShowResolutionPicker(false);
       setShowSettings(false);
       setPendingFormat(null);
@@ -169,7 +168,7 @@ export function ChartExportButton({
               {
                 chartRef: chartRef?.current || null,
                 data: filteredData,
-                title: chartTitle || '图表',
+                title: chartTitle || t('priceChart.export.title'),
               },
             ],
             includeWatermark: settings.includeWatermark,
@@ -203,7 +202,7 @@ export function ChartExportButton({
         setProgress({
           status: 'error',
           progress: 0,
-          message: error instanceof Error ? error.message : '导出失败',
+          message: error instanceof Error ? error.message : t('priceChart.export.exportFailed'),
         });
         onExportError?.(error instanceof Error ? error : new Error('Export failed'));
 
@@ -225,13 +224,14 @@ export function ChartExportButton({
       dataSource,
       generateFilename,
       getFilteredData,
+      t,
     ]
   );
 
   const executeBatchExport = useCallback(async () => {
     if (selectedCharts.size === 0 || progress.status === 'exporting') return;
 
-    setProgress({ status: 'preparing', progress: 0, message: '准备批量导出...' });
+    setProgress({ status: 'preparing', progress: 0, message: t('priceChart.export.exporting') });
     setShowBatchSelector(false);
 
     try {
@@ -272,7 +272,7 @@ export function ChartExportButton({
       setProgress({
         status: 'error',
         progress: 0,
-        message: error instanceof Error ? error.message : '批量导出失败',
+        message: error instanceof Error ? error.message : t('priceChart.export.exportFailed'),
       });
       onExportError?.(error instanceof Error ? error : new Error('Batch export failed'));
 
@@ -290,6 +290,7 @@ export function ChartExportButton({
     onExportComplete,
     onExportError,
     generateFilename,
+    t,
   ]);
 
   const handleFormatSelect = useCallback(
@@ -342,17 +343,15 @@ export function ChartExportButton({
 
   const isExporting = progress.status === 'preparing' || progress.status === 'exporting';
 
-  // 导出设置面板
   const renderSettingsPanel = () => (
     <div className="absolute top-full mt-2 right-0 w-96 bg-white   border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
       <div className="px-4 pb-3 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">导出设置</h3>
-        <p className="text-xs text-gray-500 mt-0.5">自定义导出选项</p>
+        <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.export.settings')}</h3>
+        <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.settingsDescription')}</p>
       </div>
 
-      {/* 导出范围 */}
       <div className="px-4 py-3 border-b border-gray-100">
-        <label className="text-xs font-medium text-gray-700 mb-2 block">导出范围</label>
+        <label className="text-xs font-medium text-gray-700 mb-2 block">{t('priceChart.export.range')}</label>
         <div className="flex gap-2">
           <button
             onClick={() => setSettings({ ...settings, range: 'current' })}
@@ -362,7 +361,7 @@ export function ChartExportButton({
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
-            当前视图
+            {t('priceChart.export.currentView')}
           </button>
           <button
             onClick={() => setSettings({ ...settings, range: 'all' })}
@@ -372,14 +371,13 @@ export function ChartExportButton({
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
-            全部数据
+            {t('priceChart.export.allData')}
           </button>
         </div>
       </div>
 
-      {/* 日期范围 */}
       <div className="px-4 py-3 border-b border-gray-100">
-        <label className="text-xs font-medium text-gray-700 mb-2 block">日期范围</label>
+        <label className="text-xs font-medium text-gray-700 mb-2 block">{t('priceChart.export.dateRange')}</label>
         <div className="space-y-2">
           <input
             type="date"
@@ -412,9 +410,8 @@ export function ChartExportButton({
         </div>
       </div>
 
-      {/* 文件名模板 */}
       <div className="px-4 py-3 border-b border-gray-100">
-        <label className="text-xs font-medium text-gray-700 mb-2 block">文件名模板</label>
+        <label className="text-xs font-medium text-gray-700 mb-2 block">{t('priceChart.export.filenameTemplate')}</label>
         <input
           type="text"
           value={settings.filenameTemplate}
@@ -423,13 +420,12 @@ export function ChartExportButton({
           className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-400 mt-1">
-          可用变量: {'{title}'}, {'{date}'}, {'{time}'}, {'{source}'}
+          {t('priceChart.export.filenameTemplateHint')}
         </p>
       </div>
 
-      {/* 自定义文件名 */}
       <div className="px-4 py-3 border-b border-gray-100">
-        <label className="text-xs font-medium text-gray-700 mb-2 block">自定义文件名</label>
+        <label className="text-xs font-medium text-gray-700 mb-2 block">{t('priceChart.export.customFilename')}</label>
         <input
           type="text"
           value={settings.customFilename}
@@ -439,7 +435,6 @@ export function ChartExportButton({
         />
       </div>
 
-      {/* 其他选项 */}
       <div className="px-4 py-3 border-b border-gray-100">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -448,7 +443,7 @@ export function ChartExportButton({
             onChange={(e) => setSettings({ ...settings, includeMetadata: e.target.checked })}
             className="w-4 h-4 text-blue-600 rounded border-gray-300"
           />
-          <span className="text-xs text-gray-700">包含元数据</span>
+          <span className="text-xs text-gray-700">{t('priceChart.export.includeMetadata')}</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer mt-2">
           <input
@@ -457,38 +452,36 @@ export function ChartExportButton({
             onChange={(e) => setSettings({ ...settings, includeWatermark: e.target.checked })}
             className="w-4 h-4 text-blue-600 rounded border-gray-300"
           />
-          <span className="text-xs text-gray-700">添加水印</span>
+          <span className="text-xs text-gray-700">{t('priceChart.export.includeWatermark')}</span>
         </label>
       </div>
 
-      {/* 操作按钮 */}
       <div className="px-4 pt-3 flex gap-2">
         <button
           onClick={() => setShowSettings(false)}
           className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
-          取消
+          {t('priceChart.export.cancel')}
         </button>
         <button
           onClick={() => pendingFormat && executeExport(pendingFormat, selectedResolution)}
           className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors"
         >
-          确认导出
+          {t('priceChart.export.confirmExport')}
         </button>
       </div>
     </div>
   );
 
-  // 批量导出选择器
   const renderBatchSelector = () => (
     <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-4 z-50 max-h-[80vh] overflow-y-auto">
       <div className="px-4 pb-3 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">批量导出</h3>
-        <p className="text-xs text-gray-500 mt-0.5">选择要导出的图表</p>
+        <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.export.batchExport')}</h3>
+        <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.batchExportDescription')}</p>
       </div>
 
       <div className="px-4 py-3 border-b border-gray-100">
-        <label className="text-xs font-medium text-gray-700 mb-2 block">分辨率</label>
+        <label className="text-xs font-medium text-gray-700 mb-2 block">{t('priceChart.export.resolution')}</label>
         <select
           value={selectedResolution}
           onChange={(e) => setSelectedResolution(e.target.value as Resolution)}
@@ -504,7 +497,7 @@ export function ChartExportButton({
 
       <div className="px-4 py-3">
         <label className="text-xs font-medium text-gray-700 mb-2 block">
-          选择图表 ({selectedCharts.size} 已选)
+          {t('priceChart.export.selectCharts')} ({selectedCharts.size} {t('priceChart.export.selected')})
         </label>
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {availableCharts.map((chart) => (
@@ -532,43 +525,42 @@ export function ChartExportButton({
           }}
           className="flex-1 px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
-          取消
+          {t('priceChart.export.cancel')}
         </button>
         <button
           onClick={executeBatchExport}
           disabled={selectedCharts.size === 0 || isExporting}
           className="flex-1 px-4 py-2 text-xs text-white bg-blue-600  hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          {isExporting ? '导出中...' : `导出 (${selectedCharts.size})`}
+          {isExporting ? t('priceChart.export.exporting') : `${t('priceChart.export.title')} (${selectedCharts.size})`}
         </button>
       </div>
     </div>
   );
 
-  // 导出预览
   const renderPreview = () => (
     <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-4 z-50">
       <div className="px-4 pb-3 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">导出预览</h3>
+        <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.export.preview')}</h3>
       </div>
       <div className="px-4 py-3 space-y-3">
         <div className="text-xs">
-          <span className="text-gray-500">文件名:</span>
+          <span className="text-gray-500">{t('priceChart.export.filename')}:</span>
           <span className="text-gray-900 ml-2">{generateFilename()}</span>
         </div>
         <div className="text-xs">
-          <span className="text-gray-500">数据范围:</span>
+          <span className="text-gray-500">{t('priceChart.export.dataRange')}:</span>
           <span className="text-gray-900 ml-2">
-            {settings.range === 'current' ? '当前视图' : '全部数据'}
+            {settings.range === 'current' ? t('priceChart.export.currentView') : t('priceChart.export.allData')}
           </span>
         </div>
         <div className="text-xs">
-          <span className="text-gray-500">记录数:</span>
+          <span className="text-gray-500">{t('priceChart.export.recordCount')}:</span>
           <span className="text-gray-900 ml-2">{getFilteredData().length}</span>
         </div>
         {settings.dateRange && (
           <div className="text-xs">
-            <span className="text-gray-500">日期范围:</span>
+            <span className="text-gray-500">{t('priceChart.export.dateRange')}:</span>
             <span className="text-gray-900 ml-2">
               {settings.dateRange.start.toLocaleDateString()} -{' '}
               {settings.dateRange.end.toLocaleDateString()}
@@ -581,7 +573,7 @@ export function ChartExportButton({
           onClick={() => setShowPreview(false)}
           className="w-full px-4 py-2 text-xs text-gray-600 bg-gray-100  hover:bg-gray-200 transition-colors"
         >
-          关闭
+          {t('priceChart.export.close')}
         </button>
       </div>
     </div>
@@ -598,7 +590,7 @@ export function ChartExportButton({
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          title="导出图表"
+          title={t('priceChart.export.exportChart')}
         >
           {isExporting ? (
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -645,7 +637,7 @@ export function ChartExportButton({
         {showResolutionPicker && (
           <div className="absolute top-full mt-2 right-0 w-48 bg-white   border border-gray-200 py-2 z-50">
             <div className="px-3 py-1.5 border-b border-gray-100">
-              <span className="text-xs font-medium text-gray-700">选择分辨率</span>
+              <span className="text-xs font-medium text-gray-700">{t('priceChart.export.selectResolution')}</span>
             </div>
             {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
               <button
@@ -702,10 +694,10 @@ export function ChartExportButton({
                   className="w-full px-4 py-2.5 text-left transition-colors text-gray-700 hover:bg-gray-50"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">批量导出</span>
+                    <span className="font-medium">{t('priceChart.export.batchExport')}</span>
                     <span className="text-xs text-gray-400">ZIP</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">导出多个图表为压缩包</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.batchExportDescription')}</p>
                 </button>
               </>
             )}
@@ -718,7 +710,7 @@ export function ChartExportButton({
               className="w-full px-4 py-2.5 text-left transition-colors text-gray-700 hover:bg-gray-50"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">导出设置</span>
+                <span className="font-medium">{t('priceChart.export.settings')}</span>
                 <svg
                   className="w-4 h-4 text-gray-400"
                   fill="none"
@@ -737,7 +729,7 @@ export function ChartExportButton({
                   />
                 </svg>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">自定义导出选项</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.settingsDescription')}</p>
             </button>
             <button
               onClick={() => {
@@ -747,7 +739,7 @@ export function ChartExportButton({
               className="w-full px-4 py-2.5 text-left transition-colors text-gray-700 hover:bg-gray-50"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">导出预览</span>
+                <span className="font-medium">{t('priceChart.export.preview')}</span>
                 <svg
                   className="w-4 h-4 text-gray-400"
                   fill="none"
@@ -766,7 +758,7 @@ export function ChartExportButton({
                   />
                 </svg>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">预览导出内容</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.previewDescription')}</p>
             </button>
           </div>
         )}
@@ -802,7 +794,7 @@ export function ChartExportButton({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span>导出中...</span>
+            <span>{t('priceChart.export.exporting')}</span>
           </>
         ) : (
           <>
@@ -813,7 +805,7 @@ export function ChartExportButton({
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            <span>导出</span>
+            <span>{t('priceChart.export.title')}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
@@ -825,7 +817,7 @@ export function ChartExportButton({
         <div className="absolute top-full mt-2 right-0 w-64 bg-white   border border-gray-200 p-3 z-50">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              {progress.status === 'completed' ? '导出完成' : '正在导出'}
+              {progress.status === 'completed' ? t('priceChart.export.exportComplete') : t('priceChart.export.exporting')}
             </span>
             <span className="text-sm text-gray-500">{progress.progress}%</span>
           </div>
@@ -842,8 +834,8 @@ export function ChartExportButton({
       {showResolutionPicker && (
         <div className="absolute top-full mt-2 right-0 w-64 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">选择分辨率</h3>
-            <p className="text-xs text-gray-500 mt-0.5">选择导出图片的分辨率</p>
+            <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.export.selectResolution')}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.settingsDescription')}</p>
           </div>
           <div className="py-1">
             {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
@@ -882,7 +874,7 @@ export function ChartExportButton({
       {isOpen && (
         <div className="absolute top-full mt-2 right-0 w-80 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">选择导出格式</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.export.title')}</h3>
           </div>
           {supportedFormats.map((format) => {
             const isDisabled = format.requiresChartRef && !chartRef?.current && !multipleCharts;
@@ -952,8 +944,8 @@ export function ChartExportButton({
                       </svg>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-900">批量导出</span>
-                      <p className="text-xs text-gray-500 mt-0.5">导出多个图表为 ZIP 压缩包</p>
+                      <span className="font-medium text-gray-900">{t('priceChart.export.batchExport')}</span>
+                      <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.batchExportDescription')}</p>
                     </div>
                   </div>
                   <svg
@@ -1000,8 +992,8 @@ export function ChartExportButton({
                   </svg>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-900">导出设置</span>
-                  <p className="text-xs text-gray-500 mt-0.5">自定义导出选项</p>
+                  <span className="font-medium text-gray-900">{t('priceChart.export.settings')}</span>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.settingsDescription')}</p>
                 </div>
               </div>
               <svg
@@ -1044,8 +1036,8 @@ export function ChartExportButton({
                   </svg>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-900">导出预览</span>
-                  <p className="text-xs text-gray-500 mt-0.5">预览导出内容</p>
+                  <span className="font-medium text-gray-900">{t('priceChart.export.preview')}</span>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('priceChart.export.previewDescription')}</p>
                 </div>
               </div>
               <svg

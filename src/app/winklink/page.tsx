@@ -175,6 +175,7 @@ export default function WINkLinkPage() {
                   chain={config.defaultChain}
                   config={config.marketData}
                   iconBgColor={config.iconBgColor}
+                  icon={config.icon}
                 />
               </div>
 

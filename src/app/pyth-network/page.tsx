@@ -168,6 +168,7 @@ export default function PythNetworkPage() {
                   chain={config.defaultChain}
                   config={config.marketData}
                   iconBgColor={config.iconBgColor}
+                  icon={config.icon}
                 />
               </div>
 

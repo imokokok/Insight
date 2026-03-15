@@ -177,6 +177,7 @@ export default function TellorPage() {
                   chain={config.defaultChain}
                   config={config.marketData}
                   iconBgColor={config.iconBgColor}
+                  icon={config.icon}
                 />
               </div>
 
