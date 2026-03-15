@@ -117,18 +117,20 @@ export function CDFChart({
     );
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl min-w-[180px]">
-        <p className="text-xs text-gray-500 font-medium mb-2">
-          {t('cdfChart.latency') || '延迟'}
-        </p>
+      <div className="bg-white border border-gray-200  p-3  min-w-[180px]">
+        <p className="text-xs text-gray-500 font-medium mb-2">{t('cdfChart.latency') || '延迟'}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">{t('cdfChart.value') || '数值'}:</span>
             <span className="text-sm font-semibold text-gray-900">{point.value.toFixed(1)}ms</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">{t('cdfChart.probability') || '累积概率'}:</span>
-            <span className="text-sm font-semibold text-blue-600">{point.probability.toFixed(1)}%</span>
+            <span className="text-xs text-gray-500">
+              {t('cdfChart.probability') || '累积概率'}:
+            </span>
+            <span className="text-sm font-semibold text-blue-600">
+              {point.probability.toFixed(1)}%
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">{t('cdfChart.count') || '数据点'}:</span>
@@ -151,7 +153,7 @@ export function CDFChart({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
+      <div className={`bg-white border border-gray-200  p-5 ${className}`}>
         <div className="text-center py-10">
           <p className="text-gray-500">{t('cdfChart.noData') || '暂无数据'}</p>
         </div>
@@ -179,7 +181,7 @@ export function CDFChart({
         {percentileConfig.map((item) => (
           <div
             key={item.key}
-            className="bg-white border border-gray-200 rounded-xl p-4"
+            className="bg-white border border-gray-200  p-4"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
           >
             <div className="flex items-center justify-between mb-2">
@@ -202,10 +204,7 @@ export function CDFChart({
       {/* Statistics Grid */}
       <div className="grid grid-cols-5 gap-3">
         {stats.map((item) => (
-          <div
-            key={item.label}
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center"
-          >
+          <div key={item.label} className="bg-white border border-gray-200  p-3 text-center">
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -214,7 +213,7 @@ export function CDFChart({
       </div>
 
       {/* CDF Chart */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-gray-200  p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('cdfChart.chartTitle') || 'CDF 曲线'}
@@ -225,10 +224,7 @@ export function CDFChart({
         </div>
 
         <ResponsiveContainer width="100%" height={height}>
-          <LineChart
-            data={cdfResult.points}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-          >
+          <LineChart data={cdfResult.points} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
             <XAxis
               dataKey="value"
@@ -355,18 +351,8 @@ export function CDFChart({
             )}
 
             {/* 50% reference line */}
-            <ReferenceLine
-              y={50}
-              stroke="#6b7280"
-              strokeDasharray="3 3"
-              strokeOpacity={0.5}
-            />
-            <ReferenceLine
-              y={95}
-              stroke="#6b7280"
-              strokeDasharray="3 3"
-              strokeOpacity={0.5}
-            />
+            <ReferenceLine y={50} stroke="#6b7280" strokeDasharray="3 3" strokeOpacity={0.5} />
+            <ReferenceLine y={95} stroke="#6b7280" strokeDasharray="3 3" strokeOpacity={0.5} />
           </LineChart>
         </ResponsiveContainer>
 
@@ -377,22 +363,22 @@ export function CDFChart({
             <span className="text-xs text-gray-500">{t('cdfChart.cdfCurve') || 'CDF 曲线'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-green-500 rounded-full" />
+            <span className="w-3 h-3 bg-green-500 " />
             <span className="text-xs text-gray-500">P50 (中位数)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-yellow-500 rounded-full" />
+            <span className="w-3 h-3 bg-yellow-500 " />
             <span className="text-xs text-gray-500">P95</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 rounded-full" />
+            <span className="w-3 h-3 bg-red-500 " />
             <span className="text-xs text-gray-500">P99</span>
           </div>
         </div>
       </div>
 
       {/* CDF Explanation */}
-      <div className="bg-blue-50 rounded-lg p-4">
+      <div className="bg-blue-50  p-4">
         <h4 className="text-sm font-medium text-blue-900 mb-2">
           {t('cdfChart.aboutTitle') || '关于累积分布函数 (CDF)'}
         </h4>

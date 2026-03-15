@@ -180,7 +180,7 @@ export function API3PageContent() {
         title: t('api3.stats.activeAirnodes'),
         value: activeAirnodes > 0 ? `${activeAirnodes}+` : '-',
         change: '+3%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -196,7 +196,7 @@ export function API3PageContent() {
         title: t('api3.stats.dapiFeeds'),
         value: totalDapis > 0 ? `${totalDapis}+` : '-',
         change: '+8%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -212,7 +212,7 @@ export function API3PageContent() {
         title: t('api3.stats.stakingApr'),
         value: `${stakingApr}%`,
         change: '+2.1%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -228,7 +228,7 @@ export function API3PageContent() {
         title: t('api3.stats.networkUptime'),
         value: `${nodeUptime}%`,
         change: '+0.1%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

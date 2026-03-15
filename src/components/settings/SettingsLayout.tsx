@@ -51,7 +51,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+            <div className="w-10 h-10  bg-gray-100 border border-gray-200 flex items-center justify-center">
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -63,7 +63,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
 
         <div className="flex flex-col lg:flex-row gap-6">
           <nav className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white  border border-gray-200 overflow-hidden">
               {tabs.map((tab, index) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;

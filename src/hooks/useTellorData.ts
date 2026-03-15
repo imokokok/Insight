@@ -270,17 +270,21 @@ interface UseTellorAllDataReturn {
   marketDepth: MarketDepth | undefined;
   multiChainAggregation: MultiChainAggregation | undefined;
   networkStats: TellorNetworkStats | undefined;
-  liquidity: {
-    totalLiquidity: number;
-    avgSlippage: number;
-    topPairs: { pair: string; liquidity: number; volume24h: number }[];
-  } | undefined;
-  staking: {
-    totalStaked: number;
-    stakingApr: number;
-    stakerCount: number;
-    rewardPool: number;
-  } | undefined;
+  liquidity:
+    | {
+        totalLiquidity: number;
+        avgSlippage: number;
+        topPairs: { pair: string; liquidity: number; volume24h: number }[];
+      }
+    | undefined;
+  staking:
+    | {
+        totalStaked: number;
+        stakingApr: number;
+        stakerCount: number;
+        rewardPool: number;
+      }
+    | undefined;
   isLoading: boolean;
   isError: boolean;
   errors: Error[];

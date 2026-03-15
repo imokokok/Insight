@@ -125,9 +125,9 @@ function getCorrelationColor(correlation: number): string {
 function getCorrelationLabel(interpretation: CorrelationResult['interpretation']): string {
   const labels: Record<CorrelationResult['interpretation'], string> = {
     'very-strong': '非常强',
-    'strong': '强',
-    'moderate': '中等',
-    'weak': '弱',
+    strong: '强',
+    moderate: '中等',
+    weak: '弱',
     'very-weak': '非常弱',
   };
   return labels[interpretation];
@@ -276,9 +276,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
           matrix.push({ x: p1, y: p2, value: 1 });
         } else {
           const correlation = correlations.find(
-            (c) =>
-              (c.pair[0] === p1 && c.pair[1] === p2) ||
-              (c.pair[0] === p2 && c.pair[1] === p1)
+            (c) => (c.pair[0] === p1 && c.pair[1] === p2) || (c.pair[0] === p2 && c.pair[1] === p1)
           );
           matrix.push({
             x: p1,
@@ -313,7 +311,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                 <button
                   key={window}
                   onClick={() => setTimeWindow(window)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5  text-sm font-medium transition-colors ${
                     timeWindow === window
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -371,9 +369,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                               : 'cursor-pointer hover:ring-2 hover:ring-blue-500'
                           }`}
                           style={{
-                            backgroundColor: isDiagonal
-                              ? '#E5E7EB'
-                              : getCorrelationColor(value),
+                            backgroundColor: isDiagonal ? '#E5E7EB' : getCorrelationColor(value),
                             opacity: isDiagonal ? 0.5 : Math.abs(value) * 0.8 + 0.2,
                           }}
                         >
@@ -456,22 +452,18 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                         <div className="flex items-center gap-2">
                           <div className="flex items-center">
                             <div
-                              className="w-3 h-3 rounded-full mr-1"
+                              className="w-3 h-3  mr-1"
                               style={{ backgroundColor: oracleColors[corr.pair[0]] }}
                             />
-                            <span className="text-sm font-medium">
-                              {oracleNames[corr.pair[0]]}
-                            </span>
+                            <span className="text-sm font-medium">{oracleNames[corr.pair[0]]}</span>
                           </div>
                           <span className="text-gray-400">vs</span>
                           <div className="flex items-center">
                             <div
-                              className="w-3 h-3 rounded-full mr-1"
+                              className="w-3 h-3  mr-1"
                               style={{ backgroundColor: oracleColors[corr.pair[1]] }}
                             />
-                            <span className="text-sm font-medium">
-                              {oracleNames[corr.pair[1]]}
-                            </span>
+                            <span className="text-sm font-medium">{oracleNames[corr.pair[1]]}</span>
                           </div>
                         </div>
                       </td>
@@ -485,7 +477,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          className="inline-flex items-center px-2.5 py-0.5  text-xs font-medium"
                           style={{
                             backgroundColor: `${getCorrelationColor(corr.correlation)}20`,
                             color: getCorrelationColor(corr.correlation),
@@ -499,9 +491,9 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="w-16 h-2 bg-gray-200  overflow-hidden">
                             <div
-                              className="h-full bg-blue-500 rounded-full"
+                              className="h-full bg-blue-500 "
                               style={{ width: `${corr.confidence}%` }}
                             />
                           </div>
@@ -540,12 +532,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
               className="text-gray-400 hover:text-gray-600"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           }
@@ -579,18 +566,21 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                   />
                   <Tooltip
                     cursor={{ strokeDasharray: '3 3' }}
-                    formatter={(value: any, name: any) => [
-                      `$${Number(value).toFixed(4)}`,
-                      name,
-                    ]}
+                    formatter={(value: any, name: any) => [`$${Number(value).toFixed(4)}`, name]}
                     labelFormatter={() => ''}
                   />
                   {/* 回归线 */}
                   {regressionLine && (
                     <ReferenceLine
                       segment={[
-                        { x: regressionLine.minX, y: regressionLine.slope * regressionLine.minX + regressionLine.intercept },
-                        { x: regressionLine.maxX, y: regressionLine.slope * regressionLine.maxX + regressionLine.intercept },
+                        {
+                          x: regressionLine.minX,
+                          y: regressionLine.slope * regressionLine.minX + regressionLine.intercept,
+                        },
+                        {
+                          x: regressionLine.maxX,
+                          y: regressionLine.slope * regressionLine.maxX + regressionLine.intercept,
+                        },
                       ]}
                       stroke="#EF4444"
                       strokeDasharray="5 5"
@@ -599,8 +589,14 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                   {/* 完美相关参考线 */}
                   <ReferenceLine
                     segment={[
-                      { x: Math.min(...scatterData.map((d) => d.x)), y: Math.min(...scatterData.map((d) => d.x)) },
-                      { x: Math.max(...scatterData.map((d) => d.x)), y: Math.max(...scatterData.map((d) => d.x)) },
+                      {
+                        x: Math.min(...scatterData.map((d) => d.x)),
+                        y: Math.min(...scatterData.map((d) => d.x)),
+                      },
+                      {
+                        x: Math.max(...scatterData.map((d) => d.x)),
+                        y: Math.max(...scatterData.map((d) => d.x)),
+                      },
                     ]}
                     stroke="#10B981"
                     strokeDasharray="3 3"
@@ -618,21 +614,26 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
 
             {/* 统计信息 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500">样本数量</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {scatterData.length.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500">相关系数</p>
-                <p className="text-lg font-semibold" style={{ color: getCorrelationColor(
-                  correlations.find(
-                    (c) =>
-                      (c.pair[0] === selectedPair[0] && c.pair[1] === selectedPair[1]) ||
-                      (c.pair[0] === selectedPair[1] && c.pair[1] === selectedPair[0])
-                  )?.correlation || 0
-                ) }}>
+                <p
+                  className="text-lg font-semibold"
+                  style={{
+                    color: getCorrelationColor(
+                      correlations.find(
+                        (c) =>
+                          (c.pair[0] === selectedPair[0] && c.pair[1] === selectedPair[1]) ||
+                          (c.pair[0] === selectedPair[1] && c.pair[1] === selectedPair[0])
+                      )?.correlation || 0
+                    ),
+                  }}
+                >
                   {correlations
                     .find(
                       (c) =>
@@ -644,13 +645,13 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
               </div>
               {regressionLine && (
                 <>
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50  p-3">
                     <p className="text-xs text-gray-500">回归斜率</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {regressionLine.slope.toFixed(4)}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50  p-3">
                     <p className="text-xs text-gray-500">回归截距</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {regressionLine.intercept.toFixed(4)}
@@ -661,7 +662,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             </div>
 
             {/* 说明 */}
-            <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+            <div className="bg-blue-50  p-4 text-sm text-blue-800">
               <p className="font-medium mb-2">图表说明:</p>
               <ul className="space-y-1 ml-4">
                 <li>• 每个点代表同一时间点两个预言机的价格数据</li>
@@ -678,35 +679,37 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
       <DashboardCard title="皮尔逊相关系数说明">
         <div className="text-sm text-gray-700 space-y-4">
           <p>
-            皮尔逊相关系数（Pearson Correlation Coefficient）用于衡量两个变量之间的线性相关程度，取值范围为 -1 到 1。
+            皮尔逊相关系数（Pearson Correlation
+            Coefficient）用于衡量两个变量之间的线性相关程度，取值范围为 -1 到 1。
           </p>
-          <div className="bg-gray-50 rounded-lg p-4 font-mono text-center">
+          <div className="bg-gray-50  p-4 font-mono text-center">
             r = Σ((x - x̄)(y - ȳ)) / √(Σ(x - x̄)² × Σ(y - ȳ)²)
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-3 bg-green-50 rounded-lg">
+            <div className="text-center p-3 bg-green-50 ">
               <p className="font-bold text-green-700">0.9 - 1.0</p>
               <p className="text-xs text-green-600">非常强正相关</p>
             </div>
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <div className="text-center p-3 bg-blue-50 ">
               <p className="font-bold text-blue-700">0.7 - 0.9</p>
               <p className="text-xs text-blue-600">强正相关</p>
             </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+            <div className="text-center p-3 bg-yellow-50 ">
               <p className="font-bold text-yellow-700">0.5 - 0.7</p>
               <p className="text-xs text-yellow-600">中等正相关</p>
             </div>
-            <div className="text-center p-3 bg-orange-50 rounded-lg">
+            <div className="text-center p-3 bg-orange-50 ">
               <p className="font-bold text-orange-700">0.3 - 0.5</p>
               <p className="text-xs text-orange-600">弱正相关</p>
             </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
+            <div className="text-center p-3 bg-red-50 ">
               <p className="font-bold text-red-700">0.0 - 0.3</p>
               <p className="text-xs text-red-600">极弱/无相关</p>
             </div>
           </div>
           <p className="text-gray-500 text-xs">
-            注: 负值表示负相关，绝对值越大表示相关性越强。在预言机价格分析中，高相关性通常表示预言机之间的价格发现机制较为一致。
+            注:
+            负值表示负相关，绝对值越大表示相关性越强。在预言机价格分析中，高相关性通常表示预言机之间的价格发现机制较为一致。
           </p>
         </div>
       </DashboardCard>

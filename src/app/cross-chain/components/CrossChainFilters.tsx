@@ -128,14 +128,14 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           <label className="text-xs text-gray-500 uppercase tracking-wide">
             {t('crossChain.timeRange')}
           </label>
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center bg-gray-100 p-1">
             {TIME_RANGES.map((range) => (
               <button
                 key={range.value}
                 onClick={() => setSelectedTimeRange(range.value)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                   selectedTimeRange === range.value
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-blue-600 border border-gray-300'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -181,11 +181,11 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 ${
                   isVisible
                     ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
                 }`}
               >
                 <span
-                  className="w-2 h-2 rounded-full"
+                  className="w-2 h-2"
                   style={{ backgroundColor: isVisible ? 'white' : chainColors[chain] }}
                 />
                 {chainNames[chain]}
@@ -206,7 +206,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 type="checkbox"
                 checked={showMA}
                 onChange={(e) => setShowMA(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded-none focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">{t('crossChain.showMA')}</span>
             </label>
@@ -232,7 +232,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               setMaPeriod(7);
               setChartKey(chartKey + 1);
             }}
-            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:border-gray-400 transition-colors"
           >
             {t('crossChain.resetChart')}
           </button>
@@ -240,10 +240,14 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
       </div>
 
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">异常检测阈值配置</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-3">
+          {t('crossChain.anomalyDetectionConfig')}
+        </h3>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 uppercase tracking-wide">阈值类型</label>
+            <label className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('crossChain.thresholdType')}
+            </label>
             <select
               value={thresholdConfig.type}
               onChange={(e) =>
@@ -254,14 +258,16 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               }
               className="px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:border-gray-400 min-w-[140px]"
             >
-              <option value="fixed">固定阈值</option>
-              <option value="dynamic">动态波动率</option>
-              <option value="atr">ATR指标</option>
+              <option value="fixed">{t('crossChain.fixedThreshold')}</option>
+              <option value="dynamic">{t('crossChain.dynamicVolatility')}</option>
+              <option value="atr">{t('crossChain.atrIndicator')}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 uppercase tracking-wide">固定阈值 (%)</label>
+            <label className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('crossChain.fixedThresholdPercent')}
+            </label>
             <input
               type="number"
               value={thresholdConfig.fixedThreshold}
@@ -279,7 +285,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 uppercase tracking-wide">波动率倍数</label>
+            <label className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('crossChain.volatilityMultiplier')}
+            </label>
             <input
               type="number"
               value={thresholdConfig.atrMultiplier}
@@ -297,7 +305,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 uppercase tracking-wide">计算周期</label>
+            <label className="text-xs text-gray-500 uppercase tracking-wide">
+              {t('crossChain.calculationPeriod')}
+            </label>
             <select
               value={thresholdConfig.volatilityWindow}
               onChange={(e) =>
@@ -316,9 +326,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="text-xs text-gray-500 max-w-xs">
-            {thresholdConfig.type === 'fixed' && '使用固定百分比作为异常检测阈值'}
-            {thresholdConfig.type === 'dynamic' && '基于历史波动率(CV)动态调整阈值'}
-            {thresholdConfig.type === 'atr' && '使用ATR(平均真实波幅)指标计算动态阈值'}
+            {thresholdConfig.type === 'fixed' && t('crossChain.fixedThresholdDesc')}
+            {thresholdConfig.type === 'dynamic' && t('crossChain.dynamicThresholdDesc')}
+            {thresholdConfig.type === 'atr' && t('crossChain.atrThresholdDesc')}
           </div>
         </div>
       </div>

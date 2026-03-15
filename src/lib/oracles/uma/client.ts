@@ -613,12 +613,16 @@ export class UMAClient extends BaseOracleClient {
     ];
 
     const earningsPerStaked = totalEarnings / validator.staked;
-    const roi = (totalEarnings / validator.staked) * 100 * (period === 'yearly' ? 1 : period === 'monthly' ? 12 : period === 'weekly' ? 52 : 365);
+    const roi =
+      (totalEarnings / validator.staked) *
+      100 *
+      (period === 'yearly' ? 1 : period === 'monthly' ? 12 : period === 'weekly' ? 52 : 365);
     const yieldEfficiency = Math.min(100, (earningsPerStaked / 0.02) * 100);
 
     const networkAvgEarningsPerStaked =
       validators.reduce((sum, v) => sum + v.earnings / v.staked, 0) / validators.length;
-    const comparisonToNetwork = ((earningsPerStaked - networkAvgEarningsPerStaked) / networkAvgEarningsPerStaked) * 100;
+    const comparisonToNetwork =
+      ((earningsPerStaked - networkAvgEarningsPerStaked) / networkAvgEarningsPerStaked) * 100;
 
     const history: ValidatorEarningsAttribution['history'] = [];
     const days = period === 'daily' ? 1 : period === 'weekly' ? 7 : period === 'monthly' ? 30 : 365;
@@ -746,13 +750,17 @@ export class UMAClient extends BaseOracleClient {
     const totalValues = disputes.map((d) => d.totalValue);
 
     const avgStakeAmount = stakeAmounts.reduce((a, b) => a + b, 0) / stakeAmounts.length;
-    const avgRewardAmount = rewardAmounts.length > 0 ? rewardAmounts.reduce((a, b) => a + b, 0) / rewardAmounts.length : 0;
+    const avgRewardAmount =
+      rewardAmounts.length > 0
+        ? rewardAmounts.reduce((a, b) => a + b, 0) / rewardAmounts.length
+        : 0;
     const avgTotalValue = totalValues.reduce((a, b) => a + b, 0) / totalValues.length;
 
     const sortedStakes = [...stakeAmounts].sort((a, b) => a - b);
     const sortedRewards = [...rewardAmounts].sort((a, b) => a - b);
     const medianStakeAmount = sortedStakes[Math.floor(sortedStakes.length / 2)];
-    const medianRewardAmount = sortedRewards.length > 0 ? sortedRewards[Math.floor(sortedRewards.length / 2)] : 0;
+    const medianRewardAmount =
+      sortedRewards.length > 0 ? sortedRewards[Math.floor(sortedRewards.length / 2)] : 0;
 
     const totalStakeAmount = stakeAmounts.reduce((a, b) => a + b, 0);
     const totalRewardAmount = rewardAmounts.reduce((a, b) => a + b, 0);
@@ -819,8 +827,7 @@ export class UMAClient extends BaseOracleClient {
       const dayDisputes = disputes.filter((d) => {
         const disputeDate = new Date(d.timestamp);
         return (
-          disputeDate.getDate() === date.getDate() &&
-          disputeDate.getMonth() === date.getMonth()
+          disputeDate.getDate() === date.getDate() && disputeDate.getMonth() === date.getMonth()
         );
       });
 

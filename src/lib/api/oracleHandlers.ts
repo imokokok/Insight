@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server';
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  UMAClient,
-  API3Client,
-} from '@/lib/oracles';
+import { ChainlinkClient, BandProtocolClient, UMAClient, API3Client } from '@/lib/oracles';
 import { OracleProvider, Blockchain, PriceData } from '@/types/oracle';
-import {
-  createCachedJsonResponse,
-  CacheConfig,
-} from '@/lib/api/utils';
+import { createCachedJsonResponse, CacheConfig } from '@/lib/api/utils';
 import { getServerQueries } from '@/lib/supabase/server';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import { PriceRecord } from '@/lib/supabase/queries';
@@ -59,21 +51,22 @@ export function isValidProvider(provider: string): provider is OracleProvider {
 export function validateProvider(provider: string): NextResponse | null {
   if (!isValidProvider(provider)) {
     return errorToResponse(
-      new ValidationError(`Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`, {
-        field: 'provider',
-        value: provider,
-        constraints: {
-          allowedValues: Object.values(OracleProvider).join(', '),
-        },
-      })
+      new ValidationError(
+        `Invalid provider: ${provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+        {
+          field: 'provider',
+          value: provider,
+          constraints: {
+            allowedValues: Object.values(OracleProvider).join(', '),
+          },
+        }
+      )
     );
   }
   return null;
 }
 
-export function validateRequiredParams(
-  params: Partial<OracleQueryParams>
-): NextResponse | null {
+export function validateRequiredParams(params: Partial<OracleQueryParams>): NextResponse | null {
   if (!params.provider || !params.symbol) {
     return errorToResponse(
       new ValidationError('Missing required parameters: provider, symbol', {
@@ -85,23 +78,30 @@ export function validateRequiredParams(
   }
   if (!isValidProvider(params.provider)) {
     return errorToResponse(
-      new ValidationError(`Invalid provider: ${params.provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`, {
-        field: 'provider',
-        value: params.provider,
-        constraints: {
-          allowedValues: Object.values(OracleProvider).join(', '),
-        },
-      })
+      new ValidationError(
+        `Invalid provider: ${params.provider}. Valid providers: ${Object.values(OracleProvider).join(', ')}`,
+        {
+          field: 'provider',
+          value: params.provider,
+          constraints: {
+            allowedValues: Object.values(OracleProvider).join(', '),
+          },
+        }
+      )
     );
   }
   return null;
 }
 
-export function validatePeriod(period: string | null): { valid: boolean; value?: number; error?: NextResponse } {
+export function validatePeriod(period: string | null): {
+  valid: boolean;
+  value?: number;
+  error?: NextResponse;
+} {
   if (!period) {
     return { valid: true };
   }
-  
+
   const periodNum = parseInt(period, 10);
   if (isNaN(periodNum) || periodNum < 1) {
     return {
@@ -133,9 +133,7 @@ function mapRecordToPriceData(record: PriceRecord): PriceData {
   };
 }
 
-export async function handleGetPrice(
-  params: OracleQueryParams
-): Promise<NextResponse> {
+export async function handleGetPrice(params: OracleQueryParams): Promise<NextResponse> {
   const { provider, symbol, chain } = params;
   const client = getOracleClient(provider);
   const queries = getServerQueries();
@@ -321,9 +319,7 @@ export async function handleGetHistoricalPrices(
   }
 }
 
-export async function handleBatchPrices(
-  requests: BatchPriceRequest[]
-): Promise<NextResponse> {
+export async function handleBatchPrices(requests: BatchPriceRequest[]): Promise<NextResponse> {
   const queries = getServerQueries();
 
   const results = await Promise.allSettled(
@@ -391,7 +387,5 @@ export async function handleBatchPrices(
 }
 
 export function createUnexpectedErrorResponse(): NextResponse {
-  return errorToResponse(
-    new InternalError('An unexpected error occurred')
-  );
+  return errorToResponse(new InternalError('An unexpected error occurred'));
 }

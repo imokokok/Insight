@@ -40,9 +40,9 @@ function AnomalyTooltip({ active, payload }: CustomTooltipProps) {
     : ['市场恐慌抛售', '重大利空消息', '流动性枯竭', '预言机延迟'];
 
   return (
-    <div className="bg-white border-2 border-red-400 rounded-lg p-4 shadow-xl min-w-[220px]">
+    <div className="bg-white border-2 border-red-400  p-4  min-w-[220px]">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-red-200">
-        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+        <div className="w-3 h-3 bg-red-500  animate-pulse" />
         <span className="text-sm font-bold text-red-600">
           {isSpike ? '价格尖峰异常' : '价格骤降异常'}
         </span>
@@ -85,7 +85,7 @@ function AnomalyTooltip({ active, payload }: CustomTooltipProps) {
         <ul className="text-xs text-gray-600 space-y-0.5">
           {possibleReasons.slice(0, 2).map((reason, index) => (
             <li key={index} className="flex items-center gap-1">
-              <span className="w-1 h-1 bg-gray-400 rounded-full" />
+              <span className="w-1 h-1 bg-gray-400 " />
               {reason}
             </li>
           ))}
@@ -125,7 +125,14 @@ export function AnomalyMarker({ anomalies, yAxisId = 'price', onDataClick }: Ano
                   fillOpacity={0.2}
                   className="animate-ping"
                 />
-                <circle cx={cx} cy={cy} r={8} fill={semanticColors.danger.DEFAULT} stroke="#fff" strokeWidth={2} />
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={8}
+                  fill={semanticColors.danger.DEFAULT}
+                  stroke="#fff"
+                  strokeWidth={2}
+                />
                 <circle cx={cx} cy={cy} r={4} fill="#fff" />
               </g>
             );

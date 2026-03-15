@@ -75,7 +75,9 @@ export default class WebSocketManager {
   // 连接 WebSocket
   connect(): void {
     if (!this.config.url) {
-      throw new Error('WebSocket URL is not configured. Please set NEXT_PUBLIC_WS_URL environment variable.');
+      throw new Error(
+        'WebSocket URL is not configured. Please set NEXT_PUBLIC_WS_URL environment variable.'
+      );
     }
 
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -573,9 +575,7 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 
 if (!WS_URL) {
-  logger.warn(
-    'NEXT_PUBLIC_WS_URL is not configured. Real-time features will be disabled.'
-  );
+  logger.warn('NEXT_PUBLIC_WS_URL is not configured. Real-time features will be disabled.');
 }
 
 export const useWebSocket = createWebSocketHook({

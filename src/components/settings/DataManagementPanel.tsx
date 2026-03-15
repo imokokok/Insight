@@ -200,7 +200,7 @@ export function DataManagementPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Database className="w-5 h-5 text-gray-400" />
@@ -211,27 +211,27 @@ export function DataManagementPanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
+            <div className="p-3 bg-red-50 border border-red-200  text-red-700 text-sm">{error}</div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200  text-green-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
           )}
 
           <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 ">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
                     <FileJson className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{t('settings.data.exportUserData')}</div>
+                    <div className="font-medium text-gray-900">
+                      {t('settings.data.exportUserData')}
+                    </div>
                     <div className="text-sm text-gray-500">
                       {t('settings.data.exportUserDataDesc')}
                     </div>
@@ -240,7 +240,7 @@ export function DataManagementPanel() {
                 <button
                   onClick={exportUserData}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm font-medium"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -252,21 +252,25 @@ export function DataManagementPanel() {
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 ">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                  <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
                     <Download className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{t('settings.data.exportPriceHistory')}</div>
-                    <div className="text-sm text-gray-500">{t('settings.data.exportPriceHistoryDesc')}</div>
+                    <div className="font-medium text-gray-900">
+                      {t('settings.data.exportPriceHistory')}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {t('settings.data.exportPriceHistoryDesc')}
+                    </div>
                   </div>
                 </div>
                 <button
                   onClick={exportPriceHistory}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white  hover:bg-green-700 transition-colors disabled:opacity-50 text-sm font-medium"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -278,21 +282,25 @@ export function DataManagementPanel() {
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 ">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <div className="w-10 h-10  bg-purple-100 flex items-center justify-center">
                     <Database className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{t('settings.data.exportSnapshots')}</div>
-                    <div className="text-sm text-gray-500">{t('settings.data.exportSnapshotsDesc')}</div>
+                    <div className="font-medium text-gray-900">
+                      {t('settings.data.exportSnapshots')}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {t('settings.data.exportSnapshotsDesc')}
+                    </div>
                   </div>
                 </div>
                 <button
                   onClick={exportSnapshots}
                   disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white  hover:bg-purple-700 transition-colors disabled:opacity-50 text-sm font-medium"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -307,7 +315,7 @@ export function DataManagementPanel() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-gray-400" />
@@ -317,14 +325,12 @@ export function DataManagementPanel() {
         </div>
 
         <div className="p-6">
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+          <div className="p-4 bg-yellow-50 border border-yellow-200  mb-4">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">{t('settings.data.note')}</p>
-                <p className="mt-1">
-                  {t('settings.data.clearDataWarning')}
-                </p>
+                <p className="mt-1">{t('settings.data.clearDataWarning')}</p>
               </div>
             </div>
           </div>
@@ -332,7 +338,7 @@ export function DataManagementPanel() {
           <button
             onClick={clearLocalData}
             disabled={isClearing}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-300 text-yellow-700 rounded-lg hover:bg-yellow-50 transition-colors disabled:opacity-50 text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-yellow-300 text-yellow-700  hover:bg-yellow-50 transition-colors disabled:opacity-50 text-sm font-medium"
           >
             {isClearing ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -344,7 +350,7 @@ export function DataManagementPanel() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-red-200 overflow-hidden">
+      <div className="bg-white  border border-red-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-red-100 bg-red-50">
           <h2 className="text-lg font-semibold text-red-900 flex items-center gap-2">
             <UserX className="w-5 h-5 text-red-600" />
@@ -361,7 +367,7 @@ export function DataManagementPanel() {
               </p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white  hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 <UserX className="w-4 h-4" />
                 {t('settings.data.deleteAccount')}
@@ -369,7 +375,7 @@ export function DataManagementPanel() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-red-50 border border-red-200 ">
                 <p className="text-sm text-red-800 font-medium mb-2">
                   {t('settings.data.deleteAccountConfirm')}
                 </p>
@@ -383,14 +389,14 @@ export function DataManagementPanel() {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder={t('settings.data.deleteAccountConfirmPlaceholder')}
-                className="w-full px-4 py-2.5 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 border border-red-300  focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
               />
 
               <div className="flex gap-3">
                 <button
                   onClick={deleteAccount}
                   disabled={isDeleting || deleteConfirmText !== 'DELETE'}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white  hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                 >
                   {isDeleting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -404,7 +410,7 @@ export function DataManagementPanel() {
                     setShowDeleteConfirm(false);
                     setDeleteConfirmText('');
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700  hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   <X className="w-4 h-4" />
                   {t('settings.data.cancel')}

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { ChartType, ViewType, TIME_RANGES } from './types';
+import { RefreshInterval } from './constants';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
 import { ResponsiveContainer } from 'recharts';
@@ -213,10 +214,7 @@ export default function MarketOverviewPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link 
-            href="/" 
-            className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-          >
+          <Link href="/" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
             <LayoutDashboard className="w-4 h-4" />
             {locale === 'zh-CN' ? '首页' : 'Home'}
           </Link>
@@ -229,7 +227,7 @@ export default function MarketOverviewPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-blue-100 border border-blue-200">
                 <BarChart3 className="w-6 h-6 text-blue-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900">
@@ -246,7 +244,6 @@ export default function MarketOverviewPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <ExportSection
               loading={loading}
-              locale={locale}
               chartContainerRef={chartContainerRef}
               activeChart={activeChart}
               getChartTitle={getChartTitle}
@@ -255,25 +252,21 @@ export default function MarketOverviewPage() {
             />
 
             <RefreshControl
-              refreshInterval={refreshInterval}
-              setRefreshInterval={setRefreshInterval}
-              refreshStatus={refreshStatus}
-              showRefreshSuccess={showRefreshSuccess}
-              fetchData={fetchData}
-              locale={locale}
+              lastUpdated={lastUpdated ?? undefined}
+              isRefreshing={refreshStatus === 'refreshing'}
+              onRefresh={fetchData}
+              autoRefreshInterval={refreshInterval}
+              onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
             />
 
             <RealtimeIndicator
-              status={wsStatus}
-              lastUpdated={wsLastUpdated}
+              isConnected={wsStatus === 'connected'}
               onReconnect={wsReconnect}
-              connectedChannels={wsConnectedChannels}
-              messageCount={wsMessageCount}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 border-b border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 border border-gray-200 bg-white">
           <div className="py-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
               <DollarSign className="w-4 h-4 text-blue-600" />
@@ -286,7 +279,9 @@ export default function MarketOverviewPage() {
                 {marketStats.change24h.toFixed(2)}%
               </span>
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{totalTVS}</p>
           </div>
 
@@ -294,7 +289,9 @@ export default function MarketOverviewPage() {
             <div className="flex items-center justify-between mb-2">
               <Globe className="w-4 h-4 text-purple-600" />
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '支持链数' : 'Chains'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{totalChains}</p>
           </div>
 
@@ -302,7 +299,9 @@ export default function MarketOverviewPage() {
             <div className="flex items-center justify-between mb-2">
               <Layers className="w-4 h-4 text-cyan-600" />
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
           </div>
 
@@ -310,7 +309,9 @@ export default function MarketOverviewPage() {
             <div className="flex items-center justify-between mb-2">
               <Activity className="w-4 h-4 text-pink-600" />
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '市场主导' : 'Dominance'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
           </div>
 
@@ -318,7 +319,9 @@ export default function MarketOverviewPage() {
             <div className="flex items-center justify-between mb-2">
               <Zap className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '平均延迟' : 'Latency'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '平均延迟' : 'Latency'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
           </div>
 
@@ -326,7 +329,9 @@ export default function MarketOverviewPage() {
             <div className="flex items-center justify-between mb-2">
               <Shield className="w-4 h-4 text-green-600" />
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">{locale === 'zh-CN' ? '预言机数' : 'Oracles'}</p>
+            <p className="text-xs text-gray-500 mb-0.5">
+              {locale === 'zh-CN' ? '预言机数' : 'Oracles'}
+            </p>
             <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
           </div>
         </div>
@@ -339,7 +344,7 @@ export default function MarketOverviewPage() {
                   <select
                     value={activeChart}
                     onChange={(e) => setActiveChart(e.target.value as ChartType)}
-                    className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg px-3 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer font-medium min-w-[140px]"
+                    className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm px-3 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer font-medium min-w-[140px]"
                   >
                     {chartTypes.map((type) => (
                       <option key={type.key} value={type.key}>
@@ -350,7 +355,7 @@ export default function MarketOverviewPage() {
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                 </div>
 
-                <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
                   {['pie', 'trend', 'bar', 'chain'].map((key) => {
                     const type = chartTypes.find((t) => t.key === key);
                     if (!type) return null;
@@ -359,7 +364,7 @@ export default function MarketOverviewPage() {
                       <button
                         key={key}
                         onClick={() => setActiveChart(key as ChartType)}
-                        className={`flex items-center gap-1 px-2 py-1.5 rounded text-sm font-medium transition-all ${
+                        className={`flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-all ${
                           activeChart === key
                             ? 'bg-white text-blue-600 border border-gray-200'
                             : 'text-gray-600 hover:text-gray-900'
@@ -378,12 +383,12 @@ export default function MarketOverviewPage() {
                   <span className="text-xs font-medium text-gray-500 uppercase">
                     {locale === 'zh-CN' ? '时间' : 'Time'}
                   </span>
-                  <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                  <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
                     {TIME_RANGES.map((range) => (
                       <button
                         key={range.key}
                         onClick={() => setSelectedTimeRange(range.key)}
-                        className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                        className={`px-2.5 py-1 text-sm font-medium transition-all ${
                           selectedTimeRange === range.key
                             ? 'bg-white text-blue-600 border border-gray-200'
                             : 'text-gray-600 hover:text-gray-900'
@@ -401,10 +406,10 @@ export default function MarketOverviewPage() {
                       <span className="text-xs font-medium text-gray-500 uppercase">
                         {locale === 'zh-CN' ? '对比' : 'Compare'}
                       </span>
-                      <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                      <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
                         <button
                           onClick={() => toggleComparisonMode('yoy')}
-                          className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                          className={`px-2.5 py-1 text-sm font-medium transition-all ${
                             comparisonMode === 'yoy'
                               ? 'bg-white text-blue-600 border border-gray-200'
                               : 'text-gray-600 hover:text-gray-900'
@@ -415,7 +420,7 @@ export default function MarketOverviewPage() {
                         </button>
                         <button
                           onClick={() => toggleComparisonMode('mom')}
-                          className={`px-2.5 py-1 rounded text-sm font-medium transition-all ${
+                          className={`px-2.5 py-1 text-sm font-medium transition-all ${
                             comparisonMode === 'mom'
                               ? 'bg-white text-blue-600 border border-gray-200'
                               : 'text-gray-600 hover:text-gray-900'
@@ -427,7 +432,7 @@ export default function MarketOverviewPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center gap-2 px-2.5 py-1.5 bg-red-50 border border-red-200">
                       <AlertTriangle className="w-4 h-4 text-red-500" />
                       <input
                         type="range"
@@ -435,7 +440,7 @@ export default function MarketOverviewPage() {
                         max="50"
                         value={anomalyThreshold * 100}
                         onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
-                        className="w-14 h-1 bg-red-200 rounded appearance-none cursor-pointer accent-red-500"
+                        className="w-14 h-1 bg-red-200 appearance-none cursor-pointer accent-red-500"
                       />
                       <span className="text-xs font-medium text-red-600 min-w-[2rem]">
                         {(anomalyThreshold * 100).toFixed(0)}%
@@ -443,18 +448,18 @@ export default function MarketOverviewPage() {
                     </div>
 
                     {comparisonMode === 'none' && (
-                      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-purple-50 border border-purple-200">
                         <span className="text-xs font-medium text-purple-700">
                           {locale === 'zh-CN' ? '置信区间' : 'CI'}
                         </span>
                         <button
                           onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
-                          className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${
+                          className={`relative inline-flex h-4 w-7 items-center transition-colors ${
                             showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
                           }`}
                         >
                           <span
-                            className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-2.5 w-2.5 transform bg-white transition-transform ${
                               showConfidenceInterval ? 'translate-x-4' : 'translate-x-0.5'
                             }`}
                           />
@@ -469,10 +474,10 @@ export default function MarketOverviewPage() {
 
                 <div className="w-px h-6 bg-gray-200 hidden lg:block" />
 
-                <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
                   <button
                     onClick={() => setViewType('chart')}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-sm font-medium transition-all ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium transition-all ${
                       viewType === 'chart'
                         ? 'bg-white text-blue-600 border border-gray-200'
                         : 'text-gray-600 hover:text-gray-900'
@@ -483,7 +488,7 @@ export default function MarketOverviewPage() {
                   </button>
                   <button
                     onClick={() => setViewType('table')}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded text-sm font-medium transition-all ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium transition-all ${
                       viewType === 'table'
                         ? 'bg-white text-blue-600 border border-gray-200'
                         : 'text-gray-600 hover:text-gray-900'
@@ -498,22 +503,19 @@ export default function MarketOverviewPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div
-              ref={chartContainerRef}
-              className="lg:col-span-2 py-4"
-            >
+            <div ref={chartContainerRef} className="lg:col-span-2 py-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm font-semibold text-gray-900">{getChartTitle()}</h3>
                   {linkedOracle && (
-                    <div className="flex items-center gap-2 px-2 py-1 bg-purple-50 rounded border border-purple-200">
+                    <div className="flex items-center gap-2 px-2 py-1 bg-purple-50 border border-purple-200">
                       <Link2 className="w-3.5 h-3.5 text-purple-600" />
                       <span className="text-xs text-purple-700">
                         {linkedOracle.primary} ↔ {linkedOracle.secondary}
                       </span>
                       <button
                         onClick={() => setLinkedOracle(null)}
-                        className="ml-1 p-0.5 hover:bg-purple-200 rounded transition-colors"
+                        className="ml-1 p-0.5 hover:bg-purple-200 transition-colors"
                         title={locale === 'zh-CN' ? '清除联动' : 'Clear Link'}
                       >
                         <X className="w-3 h-3 text-purple-600" />
@@ -523,7 +525,7 @@ export default function MarketOverviewPage() {
                   {activeChart === 'trend' &&
                     comparisonMode !== 'none' &&
                     trendComparisonData.length > 0 && (
-                      <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 rounded border border-blue-200">
+                      <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 border border-blue-200">
                         <span className="text-xs text-blue-700">
                           {comparisonMode === 'yoy'
                             ? locale === 'zh-CN'
@@ -558,7 +560,7 @@ export default function MarketOverviewPage() {
                   {activeChart === 'trend' && zoomRange && (
                     <button
                       onClick={() => setZoomRange(null)}
-                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 transition-colors"
                     >
                       <RefreshCw className="w-3 h-3" />
                       {locale === 'zh-CN' ? '重置' : 'Reset'}
@@ -567,7 +569,7 @@ export default function MarketOverviewPage() {
                   {selectedItem && (
                     <button
                       onClick={() => setSelectedItem(null)}
-                      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 hover:bg-gray-100 transition-colors"
                     >
                       {locale === 'zh-CN' ? '清除' : 'Clear'}
                       <X className="w-3 h-3" />
@@ -579,7 +581,7 @@ export default function MarketOverviewPage() {
               {loading && !['chain', 'protocol', 'asset'].includes(activeChart) ? (
                 <div className="h-[400px] flex items-center justify-center">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 animate-spin rounded-full" />
+                    <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 animate-spin" />
                     <span className="text-gray-500 text-sm">
                       {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
                     </span>
@@ -683,7 +685,9 @@ export default function MarketOverviewPage() {
                 <div className="mt-2 text-xs text-gray-400">
                   {lastUpdated
                     ? `${locale === 'zh-CN' ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
-                    : (locale === 'zh-CN' ? '数据已更新' : 'Data updated')}
+                    : locale === 'zh-CN'
+                      ? '数据已更新'
+                      : 'Data updated'}
                 </div>
               </div>
 
@@ -714,19 +718,16 @@ export default function MarketOverviewPage() {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          />
+                          <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
                           <span className="font-medium text-gray-900 text-sm">{item.name}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-sm font-bold text-gray-900">{item.share}%</span>
                         </div>
                       </div>
-                      <div className="h-1 bg-gray-100 rounded overflow-hidden mb-1">
+                      <div className="h-1 bg-gray-100 overflow-hidden mb-1">
                         <div
-                          className="h-full rounded transition-all duration-500"
+                          className="h-full transition-all duration-500"
                           style={{
                             backgroundColor: item.color,
                             width: `${item.share}%`,
@@ -734,10 +735,16 @@ export default function MarketOverviewPage() {
                         />
                       </div>
                       <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>TVS: <span className="text-gray-700">{item.tvs}</span></span>
-                        <span>{locale === 'zh-CN' ? '链' : 'Chains'}: <span className="text-gray-700">{item.chains}</span></span>
+                        <span>
+                          TVS: <span className="text-gray-700">{item.tvs}</span>
+                        </span>
+                        <span>
+                          {locale === 'zh-CN' ? '链' : 'Chains'}:{' '}
+                          <span className="text-gray-700">{item.chains}</span>
+                        </span>
                         <span className={item.change24h >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {item.change24h >= 0 ? '+' : ''}{item.change24h.toFixed(1)}%
+                          {item.change24h >= 0 ? '+' : ''}
+                          {item.change24h.toFixed(1)}%
                         </span>
                       </div>
                     </Link>
@@ -802,17 +809,16 @@ export default function MarketOverviewPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {assets.map((asset, index) => (
-                    <tr
-                      key={asset.symbol}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
+                    <tr key={asset.symbol} className="hover:bg-gray-50 transition-colors">
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <span className="w-5 h-5 flex items-center justify-center text-xs font-medium text-gray-400">
                             {index + 1}
                           </span>
                           <div>
-                            <span className="font-medium text-gray-900 block text-sm">{asset.symbol}</span>
+                            <span className="font-medium text-gray-900 block text-sm">
+                              {asset.symbol}
+                            </span>
                             <span className="text-xs text-gray-400">
                               ${formatCompactNumber(asset.marketCap)}
                             </span>
@@ -825,9 +831,11 @@ export default function MarketOverviewPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className={`text-xs font-medium ${
-                          asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <span
+                          className={`text-xs font-medium ${
+                            asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
                           {asset.change24h >= 0 ? '+' : ''}
                           {asset.change24h.toFixed(2)}%
                         </span>
@@ -867,12 +875,12 @@ export default function MarketOverviewPage() {
           onClick={() => setSelectedAnomaly(null)}
         >
           <div
-            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
+            className="bg-white border border-gray-200 max-w-md w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <div className="w-3 h-3 bg-red-500" />
                 <h3 className="text-lg font-semibold text-gray-900">
                   {locale === 'zh-CN' ? '数据异常检测' : 'Anomaly Detected'}
                 </h3>
@@ -893,7 +901,7 @@ export default function MarketOverviewPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+              <div className="bg-red-50 p-4 border border-red-200">
                 <p className="text-sm text-red-600 mb-1">
                   {locale === 'zh-CN' ? '检测到异常波动' : 'Abnormal fluctuation detected'}
                 </p>
@@ -903,13 +911,13 @@ export default function MarketOverviewPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-3">
+                <div className="bg-gray-50 p-3 border border-gray-200">
                   <p className="text-xs text-gray-500 mb-1">
                     {locale === 'zh-CN' ? '预言机' : 'Oracle'}
                   </p>
                   <p className="font-medium text-gray-900">{selectedAnomaly.dataKey}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
+                <div className="bg-gray-50 p-3 border border-gray-200">
                   <p className="text-xs text-gray-500 mb-1">
                     {locale === 'zh-CN' ? '日期' : 'Date'}
                   </p>
@@ -951,7 +959,7 @@ export default function MarketOverviewPage() {
                 </div>
               </div>
 
-              <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+              <div className="bg-amber-50 p-3 border border-amber-200">
                 <p className="text-xs text-amber-700">
                   {locale === 'zh-CN'
                     ? '该数据点的变化率超过了设定的阈值，可能存在异常波动。建议进一步调查原因。'
@@ -963,7 +971,7 @@ export default function MarketOverviewPage() {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setSelectedAnomaly(null)}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
               >
                 {locale === 'zh-CN' ? '关闭' : 'Close'}
               </button>

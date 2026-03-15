@@ -7,11 +7,7 @@ export interface ValidationErrorDetails extends AppErrorDetails {
 }
 
 export class ValidationError extends AppError {
-  constructor(
-    message: string,
-    details?: ValidationErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: ValidationErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'VALIDATION_ERROR',
@@ -28,11 +24,7 @@ export interface NotFoundErrorDetails extends AppErrorDetails {
 }
 
 export class NotFoundError extends AppError {
-  constructor(
-    message: string,
-    details?: NotFoundErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: NotFoundErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'NOT_FOUND',
@@ -48,11 +40,7 @@ export interface AuthenticationErrorDetails extends AppErrorDetails {
 }
 
 export class AuthenticationError extends AppError {
-  constructor(
-    message: string,
-    details?: AuthenticationErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: AuthenticationErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'AUTHENTICATION_ERROR',
@@ -70,11 +58,7 @@ export interface AuthorizationErrorDetails extends AppErrorDetails {
 }
 
 export class AuthorizationError extends AppError {
-  constructor(
-    message: string,
-    details?: AuthorizationErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: AuthorizationErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'AUTHORIZATION_ERROR',
@@ -91,11 +75,7 @@ export interface ConflictErrorDetails extends AppErrorDetails {
 }
 
 export class ConflictError extends AppError {
-  constructor(
-    message: string,
-    details?: ConflictErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: ConflictErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'CONFLICT',
@@ -115,11 +95,7 @@ export interface RateLimitErrorDetails extends AppErrorDetails {
 export class RateLimitError extends AppError {
   public readonly retryAfter?: number;
 
-  constructor(
-    message: string,
-    details?: RateLimitErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: RateLimitErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'RATE_LIMIT_EXCEEDED',
@@ -137,12 +113,7 @@ export interface InternalErrorDetails extends AppErrorDetails {
 }
 
 export class InternalError extends AppError {
-  constructor(
-    message: string,
-    details?: InternalErrorDetails,
-    i18nKey?: string,
-    cause?: Error
-  ) {
+  constructor(message: string, details?: InternalErrorDetails, i18nKey?: string, cause?: Error) {
     super({
       message,
       code: 'INTERNAL_ERROR',

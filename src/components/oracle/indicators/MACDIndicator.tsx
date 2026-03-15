@@ -55,7 +55,12 @@ export function MACDIndicator({
   const macdData = useMemo<MACDDataPoint[]>(() => {
     if (data.length === 0) return [];
 
-    const { dif, dea, macd, signals } = calculateMACDExtended(data, fastPeriod, slowPeriod, signalPeriod);
+    const { dif, dea, macd, signals } = calculateMACDExtended(
+      data,
+      fastPeriod,
+      slowPeriod,
+      signalPeriod
+    );
 
     return data.map((point, index) => {
       const signal = signals[index];
@@ -96,15 +101,15 @@ export function MACDIndicator({
         </span>
         <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2  bg-blue-500" />
             DIF
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="w-2 h-2  bg-orange-500" />
             DEA
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-gray-400" />
+            <span className="w-2 h-2  bg-gray-400" />
             MACD
           </span>
         </div>
@@ -157,7 +162,7 @@ export function MACDIndicator({
                 if (!active || !payload || payload.length === 0) return null;
                 const data = payload[0].payload as MACDDataPoint;
                 return (
-                  <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg">
+                  <div className="bg-white border border-gray-200  p-2 ">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <div className="space-y-1">
                       <p
@@ -209,7 +214,11 @@ export function MACDIndicator({
                     y={isPositive ? y : y + height}
                     width={width}
                     height={Math.abs(height)}
-                    fill={isPositive ? chartColors.macd.histogram.positive : chartColors.macd.histogram.negative}
+                    fill={
+                      isPositive
+                        ? chartColors.macd.histogram.positive
+                        : chartColors.macd.histogram.negative
+                    }
                     opacity={0.6}
                   />
                 );
@@ -249,7 +258,13 @@ export function MACDIndicator({
                             stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
-                          <text x={cx} y={cy - 10} textAnchor="middle" fill={chartColors.semantic.danger} fontSize={10}>
+                          <text
+                            x={cx}
+                            y={cy - 10}
+                            textAnchor="middle"
+                            fill={chartColors.semantic.danger}
+                            fontSize={10}
+                          >
                             金叉
                           </text>
                         </g>
@@ -274,7 +289,13 @@ export function MACDIndicator({
                             stroke={chartColors.recharts.white}
                             strokeWidth={2}
                           />
-                          <text x={cx} y={cy - 10} textAnchor="middle" fill={chartColors.semantic.success} fontSize={10}>
+                          <text
+                            x={cx}
+                            y={cy - 10}
+                            textAnchor="middle"
+                            fill={chartColors.semantic.success}
+                            fontSize={10}
+                          >
                             死叉
                           </text>
                         </g>

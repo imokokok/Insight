@@ -111,7 +111,9 @@ export function ATRIndicator({
   const chartData = useMemo(() => {
     if (!selectedOracleData) return [];
 
-    const sortedPrices = [...selectedOracleData.prices].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const sortedPrices = [...selectedOracleData.prices].sort(
+      (a, b) => (a.timestamp || 0) - (b.timestamp || 0)
+    );
 
     const { tr, atr } = calculateATR(sortedPrices, period);
 
@@ -167,7 +169,7 @@ export function ATRIndicator({
     const data = payload[0].payload;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{data.timestamp}</p>
         <div className="space-y-1.5">
           <div className="flex justify-between items-center">
@@ -227,7 +229,7 @@ export function ATRIndicator({
               <select
                 value={selectedOracle}
                 onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {data.map((oracleData) => (
                   <option key={oracleData.oracle} value={oracleData.oracle}>
@@ -242,7 +244,7 @@ export function ATRIndicator({
               <select
                 value={period}
                 onChange={(e) => setPeriod(Number(e.target.value))}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value={7}>7</option>
                 <option value={14}>14</option>
@@ -264,21 +266,21 @@ export function ATRIndicator({
 
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">当前 ATR</p>
                 <p className="text-xl font-bold text-blue-600">${stats.currentATR.toFixed(4)}</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">ATR %</p>
                 <p className="text-xl font-bold text-purple-600">
                   {stats.currentATRPercent.toFixed(4)}%
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">平均 ATR</p>
                 <p className="text-xl font-bold text-amber-600">${stats.avgATR.toFixed(4)}</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">波动等级</p>
                 <p
                   className="text-xl font-bold"
@@ -369,7 +371,14 @@ export function ATRIndicator({
                     tickFormatter={(value) => `$${value.toFixed(2)}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="atr" stroke={chartColors.recharts.primary} fill={chartColors.recharts.primary} fillOpacity={0.2} name="ATR" />
+                  <Area
+                    type="monotone"
+                    dataKey="atr"
+                    stroke={chartColors.recharts.primary}
+                    fill={chartColors.recharts.primary}
+                    fillOpacity={0.2}
+                    name="ATR"
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -399,7 +408,7 @@ export function ATRIndicator({
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50  p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">ATR 指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>

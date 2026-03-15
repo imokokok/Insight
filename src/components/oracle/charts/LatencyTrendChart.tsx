@@ -396,14 +396,17 @@ export function LatencyTrendChart({
         setData(downsampleLatencyData(latencyData, 50));
         setUseMockData(false);
       } catch (err) {
-        logger.error('Failed to fetch latency data:', err instanceof Error ? err : new Error(String(err)));
-        
+        logger.error(
+          'Failed to fetch latency data:',
+          err instanceof Error ? err : new Error(String(err))
+        );
+
         if (err instanceof NotImplementedError) {
           setError('Pyth API 不支持历史价格查询，使用模拟数据');
         } else {
           setError('无法获取延迟数据，使用模拟数据');
         }
-        
+
         const mockData = generateMockLatencyData(anomalyThreshold);
         setData(downsampleLatencyData(mockData, 50));
         setUseMockData(true);
@@ -573,7 +576,7 @@ export function LatencyTrendChart({
     const isDynamicAnomaly = dataPoint.latency > dynamicThreshold.threshold;
 
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200 min-w-[200px]">
+      <div className="bg-white p-3   border border-gray-200 min-w-[200px]">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
@@ -642,13 +645,13 @@ export function LatencyTrendChart({
       headerAction={
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 text-xs">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="w-2 h-2  bg-red-500" />
             <span className="text-gray-500">延迟异常</span>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 hover:bg-gray-100  transition-colors disabled:opacity-50"
             title="刷新数据"
           >
             <svg
@@ -658,7 +661,6 @@ export function LatencyTrendChart({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
@@ -671,28 +673,28 @@ export function LatencyTrendChart({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="bg-blue-50  p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">平均延迟</p>
             <p className="text-xl font-bold text-blue-700">
               {stats.avg}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3 text-center">
+          <div className="bg-green-50  p-3 text-center">
             <p className="text-xs text-green-600 mb-1">最小延迟</p>
             <p className="text-xl font-bold text-green-700">
               {stats.min}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-3 text-center">
+          <div className="bg-orange-50  p-3 text-center">
             <p className="text-xs text-orange-600 mb-1">最大延迟</p>
             <p className="text-xl font-bold text-orange-700">
               {stats.max}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
+          <div className="bg-red-50  p-3 text-center">
             <p className="text-xs text-red-600 mb-1">异常次数</p>
             <p className="text-xl font-bold text-red-700">
               {stats.anomalyCount}
@@ -705,7 +707,7 @@ export function LatencyTrendChart({
 
         {/* Dynamic Threshold Statistics */}
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-amber-50 rounded-lg p-3 text-center">
+          <div className="bg-amber-50  p-3 text-center">
             <p className="text-xs text-amber-600 mb-1">动态阈值</p>
             <p className="text-xl font-bold text-amber-700">
               {dynamicThreshold.threshold}
@@ -713,7 +715,7 @@ export function LatencyTrendChart({
             </p>
             <p className="text-xs text-amber-500 mt-1">MA20 + 2σ</p>
           </div>
-          <div className="bg-emerald-50 rounded-lg p-3 text-center">
+          <div className="bg-emerald-50  p-3 text-center">
             <p className="text-xs text-emerald-600 mb-1">基线 MA20</p>
             <p className="text-xl font-bold text-emerald-700">
               {dynamicThreshold.baseline}
@@ -721,7 +723,7 @@ export function LatencyTrendChart({
             </p>
             <p className="text-xs text-emerald-500 mt-1">20点移动平均</p>
           </div>
-          <div className="bg-cyan-50 rounded-lg p-3 text-center">
+          <div className="bg-cyan-50  p-3 text-center">
             <p className="text-xs text-cyan-600 mb-1">标准差 σ</p>
             <p className="text-xl font-bold text-cyan-700">
               {dynamicThreshold.stdDev}
@@ -729,7 +731,7 @@ export function LatencyTrendChart({
             </p>
             <p className="text-xs text-cyan-500 mt-1">波动程度</p>
           </div>
-          <div className="bg-violet-50 rounded-lg p-3 text-center">
+          <div className="bg-violet-50  p-3 text-center">
             <p className="text-xs text-violet-600 mb-1">阈值调整次数</p>
             <p className="text-xl font-bold text-violet-700">
               {thresholdHistory.length}
@@ -741,7 +743,7 @@ export function LatencyTrendChart({
 
         {/* Percentile Statistics */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-indigo-50 rounded-lg p-3 text-center">
+          <div className="bg-indigo-50  p-3 text-center">
             <p className="text-xs text-indigo-600 mb-1">P50 (中位数)</p>
             <p className="text-xl font-bold text-indigo-700">
               {stats.p50}
@@ -749,7 +751,7 @@ export function LatencyTrendChart({
             </p>
             <p className="text-xs text-indigo-500 mt-1">50% 数据低于此值</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3 text-center">
+          <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">P90</p>
             <p className="text-xl font-bold text-purple-700">
               {stats.p90}
@@ -757,7 +759,7 @@ export function LatencyTrendChart({
             </p>
             <p className="text-xs text-purple-500 mt-1">90% 数据低于此值</p>
           </div>
-          <div className="bg-pink-50 rounded-lg p-3 text-center">
+          <div className="bg-pink-50  p-3 text-center">
             <p className="text-xs text-pink-600 mb-1">P99</p>
             <p className="text-xl font-bold text-pink-700">
               {stats.p99}
@@ -768,7 +770,7 @@ export function LatencyTrendChart({
         </div>
 
         {/* 预测控制面板 */}
-        <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-lg p-4 border border-violet-100">
+        <div className="bg-gray-100 border border-gray-200  p-4 border border-violet-100">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
@@ -797,7 +799,7 @@ export function LatencyTrendChart({
               <select
                 value={smaPeriod}
                 onChange={(e) => setSmaPeriod(Number(e.target.value))}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full text-sm border border-gray-300  px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               >
                 <option value={5}>5 点</option>
                 <option value={10}>10 点</option>
@@ -810,7 +812,7 @@ export function LatencyTrendChart({
               <select
                 value={predictionPeriod}
                 onChange={(e) => setPredictionPeriod(Number(e.target.value))}
-                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full text-sm border border-gray-300  px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               >
                 <option value={5}>5 点</option>
                 <option value={10}>10 点</option>
@@ -984,7 +986,7 @@ export function LatencyTrendChart({
         </div>
 
         {/* Latency Distribution Histogram */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50  p-4">
           <h4 className="text-sm font-medium text-gray-900 mb-3">延迟分布直方图</h4>
           <div style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -1025,7 +1027,7 @@ export function LatencyTrendChart({
                     if (!active || !payload || payload.length === 0) return null;
                     const data = payload[0].payload as HistogramDataPoint;
                     return (
-                      <div className="bg-white p-2 rounded-lg shadow-lg border border-gray-200">
+                      <div className="bg-white p-2   border border-gray-200">
                         <p className="text-xs text-gray-500 mb-1">延迟范围</p>
                         <p className="text-sm font-semibold text-gray-900">{data.range} ms</p>
                         <p className="text-xs text-gray-500 mt-1">频次</p>
@@ -1034,20 +1036,14 @@ export function LatencyTrendChart({
                     );
                   }}
                 />
-                <Bar
-                  dataKey="count"
-                  fill="#3B82F6"
-                  radius={[4, 4, 0, 0]}
-                  stroke="#2563EB"
-                  strokeWidth={1}
-                />
+                <Bar dataKey="count" fill="#3B82F6" stroke="#2563EB" strokeWidth={1} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {stats.anomalyCount > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="bg-red-50 border border-red-200  p-3">
             <div className="flex items-start gap-2">
               <svg
                 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
@@ -1074,7 +1070,7 @@ export function LatencyTrendChart({
         )}
 
         {/* Dynamic Threshold Explanation Card */}
-        <div className="bg-gradient-to-r from-amber-50 to-emerald-50 rounded-lg p-4 border border-amber-100">
+        <div className="bg-gray-100 border border-gray-200  p-4 border border-amber-100">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
@@ -1114,7 +1110,7 @@ export function LatencyTrendChart({
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-3">
+        <div className="bg-blue-50  p-3">
           <h4 className="text-sm font-medium text-blue-900 mb-1">关于价格更新延迟</h4>
           <p className="text-xs text-blue-800">
             价格更新延迟反映了 Pyth Network 预言机从数据源获取价格更新到链上可用的时间。

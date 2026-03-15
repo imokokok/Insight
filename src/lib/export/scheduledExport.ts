@@ -228,7 +228,10 @@ export function loadScheduledTasksFromStorage(): ScheduledExportTask[] {
       return JSON.parse(stored);
     }
   } catch (error) {
-    logger.error('Failed to load scheduled tasks from storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to load scheduled tasks from storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return [];
 }
@@ -242,7 +245,10 @@ export function saveScheduledTasksToStorage(tasks: ScheduledExportTask[]): void 
   try {
     localStorage.setItem('oracle_scheduled_export_tasks', JSON.stringify(tasks));
   } catch (error) {
-    logger.error('Failed to save scheduled tasks to storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to save scheduled tasks to storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -258,7 +264,10 @@ export function loadExportHistoryFromStorage(): ExportHistory[] {
       return JSON.parse(stored);
     }
   } catch (error) {
-    logger.error('Failed to load export history from storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to load export history from storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return [];
 }
@@ -272,7 +281,10 @@ export function saveExportHistoryToStorage(history: ExportHistory[]): void {
   try {
     localStorage.setItem('oracle_export_history', JSON.stringify(history));
   } catch (error) {
-    logger.error('Failed to save export history to storage', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to save export history to storage',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -288,7 +300,10 @@ export function loadScheduledExportSettings(): ScheduledExportSettings {
       return { ...DEFAULT_SCHEDULED_EXPORT_SETTINGS, ...JSON.parse(stored) };
     }
   } catch (error) {
-    logger.error('Failed to load scheduled export settings', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to load scheduled export settings',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
   return DEFAULT_SCHEDULED_EXPORT_SETTINGS;
 }
@@ -302,7 +317,10 @@ export function saveScheduledExportSettings(settings: ScheduledExportSettings): 
   try {
     localStorage.setItem('oracle_scheduled_export_settings', JSON.stringify(settings));
   } catch (error) {
-    logger.error('Failed to save scheduled export settings', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      'Failed to save scheduled export settings',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 

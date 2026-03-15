@@ -72,26 +72,26 @@ export default function RegisterPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 py-12">
+      <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-gray-100 p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white border border-gray-200 p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('auth.register.success.title')}</h2>
-            <p className="text-gray-500 mb-6">
-              {t('auth.register.success.emailSent', { email })}
-            </p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {t('auth.register.success.title')}
+            </h2>
+            <p className="text-gray-500 mb-6">{t('auth.register.success.emailSent', { email })}</p>
             <div className="space-y-3">
               <Link
                 href="/login"
-                className="block w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300"
+                className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
               >
                 {t('auth.register.success.goToLogin')}
               </Link>
               <button
                 onClick={() => setIsSuccess(false)}
-                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                className="w-full px-6 py-3 border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors"
               >
                 {t('auth.register.success.useOtherEmail')}
               </button>
@@ -103,9 +103,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-gray-100 p-8">
+        <div className="bg-white border border-gray-200 p-8">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <h1 className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
@@ -117,7 +117,7 @@ export default function RegisterPage() {
           </div>
 
           {displayError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200">
               <p className="text-sm text-red-600">{displayError}</p>
             </div>
           )}
@@ -125,7 +125,8 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('auth.register.displayNameLabel')} <span className="text-gray-400">{t('auth.register.displayNameOptional')}</span>
+                {t('auth.register.displayNameLabel')}{' '}
+                <span className="text-gray-400">{t('auth.register.displayNameOptional')}</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -137,7 +138,7 @@ export default function RegisterPage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder={t('auth.register.displayNamePlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
                 />
               </div>
             </div>
@@ -157,7 +158,7 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.register.emailPlaceholder')}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
                 />
               </div>
             </div>
@@ -177,7 +178,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder={t('auth.register.passwordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
                 />
                 <button
                   type="button"
@@ -211,7 +212,7 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-colors"
                 />
                 <button
                   type="button"
@@ -232,7 +233,7 @@ export default function RegisterPage() {
                 id="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
                 {t('auth.register.termsAgreement')
@@ -242,14 +243,22 @@ export default function RegisterPage() {
                   .map((part, index) => {
                     if (part === t('auth.register.terms')) {
                       return (
-                        <Link key="terms" href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+                        <Link
+                          key="terms"
+                          href="/terms"
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
                           {part}
                         </Link>
                       );
                     }
                     if (part === t('auth.register.privacy')) {
                       return (
-                        <Link key="privacy" href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+                        <Link
+                          key="privacy"
+                          href="/privacy"
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
                           {part}
                         </Link>
                       );
@@ -262,14 +271,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading || loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading || loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <UserPlus className="w-5 h-5" />
               )}
-              <span>{isLoading || loading ? t('auth.register.submitting') : t('auth.register.submit')}</span>
+              <span>
+                {isLoading || loading ? t('auth.register.submitting') : t('auth.register.submit')}
+              </span>
             </button>
           </form>
 

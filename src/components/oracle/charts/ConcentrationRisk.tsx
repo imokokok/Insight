@@ -161,7 +161,6 @@ export function ConcentrationRisk() {
                     contentStyle={{
                       backgroundColor: 'white',
                       border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
                     }}
                   />
                 </PieChart>
@@ -170,7 +169,7 @@ export function ConcentrationRisk() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50  p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">
                   {t('concentrationRisk.diversityScore')}
@@ -185,9 +184,9 @@ export function ConcentrationRisk() {
                 </span>
                 <span className="text-sm text-gray-500 mb-1">/100</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="w-full bg-gray-200  h-2 mt-2">
                 <div
-                  className={`h-2 rounded-full ${
+                  className={`h-2  ${
                     metrics.diversityScore >= 80
                       ? 'bg-green-500'
                       : metrics.diversityScore >= 60
@@ -202,7 +201,7 @@ export function ConcentrationRisk() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500 mb-1">
                   {t('concentrationRisk.herfindahlIndex')}
                 </p>
@@ -211,7 +210,7 @@ export function ConcentrationRisk() {
                   {t('concentrationRisk.herfindahlIndexDesc')}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-gray-50  p-3">
                 <p className="text-xs text-gray-500 mb-1">
                   {t('concentrationRisk.maxPublisherWeight')}
                 </p>
@@ -222,13 +221,13 @@ export function ConcentrationRisk() {
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50  p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">
                   {t('concentrationRisk.singlePublisherFailureImpact')}
                 </span>
                 <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${impactLevel.bgColor} ${impactLevel.color}`}
+                  className={`px-2 py-1 text-xs font-medium  ${impactLevel.bgColor} ${impactLevel.color}`}
                 >
                   {impactLevel.label}
                 </span>
@@ -271,7 +270,7 @@ export function ConcentrationRisk() {
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className="w-3 h-3 "
                           style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         />
                         <span className="text-sm text-gray-900">{publisher.name}</span>
@@ -288,7 +287,7 @@ export function ConcentrationRisk() {
                     </td>
                     <td className="text-center py-2 px-3">
                       <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium  ${
                           publisher.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : publisher.status === 'degraded'
@@ -306,7 +305,7 @@ export function ConcentrationRisk() {
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-4">
+        <div className="bg-blue-50  p-4">
           <h4 className="text-sm font-medium text-blue-900 mb-2">
             {t('concentrationRisk.riskExplanation.title')}
           </h4>

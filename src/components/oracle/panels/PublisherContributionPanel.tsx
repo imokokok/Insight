@@ -123,7 +123,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
   }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+        <div className="bg-white p-3   border border-gray-200">
           <p className="font-semibold text-gray-900">{payload[0].name}</p>
           <p className="text-sm text-gray-600">
             {t('publisherContribution.contributionWeight')}:{' '}
@@ -137,18 +137,18 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white">
+      <div className="bg-gray-100 border border-gray-200  p-6 text-white">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-white/20 rounded-lg">
+          <div className="p-2 bg-white/20 ">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
+                
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
               />
               <path
-                strokeLinecap="round"
+                
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
@@ -162,15 +162,15 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">{t('publisherContribution.totalPublishers')}</p>
             <p className="text-2xl font-bold">{publishers.length}</p>
           </div>
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">{t('publisherContribution.avgReliability')}</p>
             <p className="text-2xl font-bold">{avgReliability.toFixed(1)}%</p>
           </div>
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">{t('publisherContribution.avgLatency')}</p>
             <p className="text-2xl font-bold">{avgLatency.toFixed(0)}ms</p>
           </div>
@@ -220,9 +220,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                     `${Number(value).toFixed(2)}%`,
                     t('publisherContribution.contributionWeight'),
                   ]}
-                  contentStyle={{ borderRadius: '8px', border: `1px solid ${chartColors.recharts.grid}` }}
+                  contentStyle={{ border: `1px solid ${chartColors.recharts.grid}` }}
                 />
-                <Bar dataKey="weight" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="weight" >
                   {barData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -270,7 +270,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                 >
                   <td className="py-3 px-4">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                      className={`w-8 h-8  flex items-center justify-center font-bold text-sm ${
                         index === 0
                           ? 'bg-yellow-400 text-yellow-900'
                           : index === 1
@@ -286,7 +286,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-semibold text-xs"
+                        className="w-8 h-8  flex items-center justify-center text-white font-semibold text-xs"
                         style={{ backgroundColor: publisher.color }}
                       >
                         {publisher.name.slice(0, 2).toUpperCase()}
@@ -294,7 +294,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                       <div>
                         <span className="font-medium text-gray-900">{publisher.name}</span>
                         {publisher.id === topContributor?.id && (
-                          <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                          <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs  font-medium">
                             {t('publisherContribution.topContributor')}
                           </span>
                         )}
@@ -303,9 +303,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-gray-200  overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-300"
+                          className="h-full  transition-all duration-300"
                           style={{
                             width: `${publisher.weightPercentage}%`,
                             backgroundColor: publisher.color,
@@ -345,7 +345,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   </td>
                   <td className="py-3 px-4 text-center">
                     <span
-                      className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                      className={`inline-flex px-2 py-1  text-xs font-medium ${
                         publisher.status === 'active'
                           ? 'bg-green-100 text-green-700'
                           : publisher.status === 'degraded'
@@ -365,9 +365,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
 
       <DashboardCard title={t('publisherContribution.weightCalculation')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
+          <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -375,7 +375,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
+                    
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -392,9 +392,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4">
+          <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-green-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -402,7 +402,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
+                    
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M13 10V3L4 14h7v7l9-11h-7z"
@@ -419,9 +419,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-4">
+          <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-purple-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -429,7 +429,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
+                    
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M5 13l4 4L19 7"
@@ -446,9 +446,9 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4">
+          <div className="bg-gray-100 border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-orange-500  flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
                   fill="none"
@@ -456,7 +456,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
+                    
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"

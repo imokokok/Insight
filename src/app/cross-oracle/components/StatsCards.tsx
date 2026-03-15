@@ -76,7 +76,9 @@ export function StatsCards({
         </p>
         {historyMinMax.avgPrice.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
-            {t('crossOracle.historyRange')}: ${historyMinMax.avgPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} - ${historyMinMax.avgPrice.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {t('crossOracle.historyRange')}: $
+            {historyMinMax.avgPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} - $
+            {historyMinMax.avgPrice.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         )}
       </div>
@@ -101,7 +103,9 @@ export function StatsCards({
         </p>
         {historyMinMax.maxPrice.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
-            {t('crossOracle.historyRange')}: ${historyMinMax.maxPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} - ${historyMinMax.maxPrice.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {t('crossOracle.historyRange')}: $
+            {historyMinMax.maxPrice.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} - $
+            {historyMinMax.maxPrice.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         )}
       </div>
@@ -118,11 +122,14 @@ export function StatsCards({
             : '-'}
         </p>
         <p className="text-xs text-gray-400 mt-0.5">
-          {t('crossOracle.ofAverage')}: {avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%
+          {t('crossOracle.ofAverage')}:{' '}
+          {avgPrice > 0 ? ((priceRange / avgPrice) * 100).toFixed(2) : '-'}%
         </p>
         {historyMinMax.priceRange.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
-            {t('crossOracle.historyRange')}: ${historyMinMax.priceRange.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} - ${historyMinMax.priceRange.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {t('crossOracle.historyRange')}: $
+            {historyMinMax.priceRange.min.toLocaleString(undefined, { maximumFractionDigits: 0 })} -
+            ${historyMinMax.priceRange.max.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         )}
       </div>
@@ -141,7 +148,8 @@ export function StatsCards({
         </p>
         {historyMinMax.standardDeviationPercent.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
-            {t('crossOracle.historyRange')}: {historyMinMax.standardDeviationPercent.min.toFixed(3)}% - {historyMinMax.standardDeviationPercent.max.toFixed(3)}%
+            {t('crossOracle.historyRange')}: {historyMinMax.standardDeviationPercent.min.toFixed(3)}
+            % - {historyMinMax.standardDeviationPercent.max.toFixed(3)}%
           </p>
         )}
       </div>
@@ -152,15 +160,12 @@ export function StatsCards({
             {t('crossOracle.variance')}
           </span>
         </div>
-        <p className="text-xl font-bold">
-          {variance > 0 ? `$${variance.toFixed(2)}` : '-'}
-        </p>
-        <p className="text-xs text-gray-400 mt-0.5">
-          V[x]
-        </p>
+        <p className="text-xl font-bold">{variance > 0 ? `$${variance.toFixed(2)}` : '-'}</p>
+        <p className="text-xs text-gray-400 mt-0.5">V[x]</p>
         {historyMinMax.variance.max > -Infinity && (
           <p className="text-xs text-gray-400 mt-1">
-            {t('crossOracle.historyRange')}: ${historyMinMax.variance.min.toFixed(2)} - ${historyMinMax.variance.max.toFixed(2)}
+            {t('crossOracle.historyRange')}: ${historyMinMax.variance.min.toFixed(2)} - $
+            {historyMinMax.variance.max.toFixed(2)}
           </p>
         )}
       </div>
@@ -236,17 +241,20 @@ export function MobileStatsCards({
       isPercent: true,
       subValue: `σ: ${variance > 0 ? `$${Math.sqrt(variance).toFixed(2)}` : '-'}`,
     },
-    { label: t('crossOracle.variance'), value: variance, change: null, isCurrency: true, subValue: 'V[x]' },
+    {
+      label: t('crossOracle.variance'),
+      value: variance,
+      change: null,
+      isCurrency: true,
+      subValue: 'V[x]',
+    },
     { label: t('crossOracle.consistencyRating'), value: consistencyRating, isBadge: true },
   ];
 
   return (
     <div className="md:hidden flex overflow-x-auto gap-4 pb-2 -mx-4 px-4">
       {stats.map((stat, index) => (
-        <div
-          key={index}
-          className="flex-shrink-0 w-36 py-2"
-        >
+        <div key={index} className="flex-shrink-0 w-36 py-2">
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
             {stat.label}
           </div>

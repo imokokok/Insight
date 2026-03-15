@@ -67,5 +67,3 @@ export function toSeconds(timestamp: number | string | Date): number {
 export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
 }
-
-

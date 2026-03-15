@@ -76,26 +76,29 @@ export function UpdateFrequencyHeatmap({
     return 'text-purple-900';
   };
 
-  const handleCellClick = useCallback((hour: number) => {
-    if (!syncEnabled) return;
+  const handleCellClick = useCallback(
+    (hour: number) => {
+      if (!syncEnabled) return;
 
-    const selectedDate = new Date(date);
-    selectedDate.setHours(hour, 0, 0, 0);
-    const startTime = selectedDate.getTime();
-    const endTime = startTime + 60 * 60 * 1000; // 1 hour later
+      const selectedDate = new Date(date);
+      selectedDate.setHours(hour, 0, 0, 0);
+      const startTime = selectedDate.getTime();
+      const endTime = startTime + 60 * 60 * 1000; // 1 hour later
 
-    const timeRange: SelectedTimeRange = {
-      startTime,
-      endTime,
-      startHour: hour,
-      endHour: hour + 1,
-      label: `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`,
-    };
+      const timeRange: SelectedTimeRange = {
+        startTime,
+        endTime,
+        startHour: hour,
+        endHour: hour + 1,
+        label: `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`,
+      };
 
-    setSelectedHour(hour);
-    setSelectedTimeRange(timeRange);
-    logger.info(`Selected hour ${hour}, time range: ${timeRange.label}`);
-  }, [date, setSelectedHour, setSelectedTimeRange, syncEnabled]);
+      setSelectedHour(hour);
+      setSelectedTimeRange(timeRange);
+      logger.info(`Selected hour ${hour}, time range: ${timeRange.label}`);
+    },
+    [date, setSelectedHour, setSelectedTimeRange, syncEnabled]
+  );
 
   const isCellSelected = (hour: number) => {
     return selectedHour === hour;
@@ -110,7 +113,7 @@ export function UpdateFrequencyHeatmap({
             {t('updateFrequency.updateFrequencyLabel', { frequency: updateFrequency })}
           </span>
           <div className="flex items-center gap-1 text-xs">
-            <span className="w-2 h-2 rounded-full bg-yellow-400" />
+            <span className="w-2 h-2  bg-yellow-400" />
             <span className="text-gray-500">{t('updateFrequency.anomaly')}</span>
           </div>
         </div>
@@ -118,15 +121,15 @@ export function UpdateFrequencyHeatmap({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="bg-blue-50  p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">{t('updateFrequency.avgHourlyUpdates')}</p>
             <p className="text-xl font-bold text-blue-700">{avgHourlyUpdates.toLocaleString()}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3 text-center">
+          <div className="bg-green-50  p-3 text-center">
             <p className="text-xs text-green-600 mb-1">{t('updateFrequency.maxUpdateFrequency')}</p>
             <p className="text-xl font-bold text-green-700">{maxCount.toLocaleString()}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3 text-center">
+          <div className="bg-purple-50  p-3 text-center">
             <p className="text-xs text-purple-600 mb-1">
               {t('updateFrequency.minUpdateFrequency')}
             </p>
@@ -134,7 +137,7 @@ export function UpdateFrequencyHeatmap({
               {Math.min(...hourlyData.map((d) => d.updateCount)).toLocaleString()}
             </p>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-3 text-center">
+          <div className="bg-yellow-50  p-3 text-center">
             <p className="text-xs text-yellow-600 mb-1">
               {t('updateFrequency.anomalyPeriodCount')}
             </p>
@@ -153,7 +156,7 @@ export function UpdateFrequencyHeatmap({
                     data.updateCount,
                     data.isAnomaly
                   )} ${getIntensityText(data.updateCount)} flex items-center justify-center text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10 ${
-                    isSelected ? 'ring-3 ring-blue-500 ring-offset-2 scale-110 z-20 shadow-lg' : ''
+                    isSelected ? 'ring-3 ring-blue-500 ring-offset-2 scale-110 z-20 ' : ''
                   } ${syncEnabled ? '' : 'cursor-not-allowed opacity-80'}`}
                   onMouseEnter={() => setHoveredCell({ hour: data.hour, count: data.updateCount })}
                   onMouseLeave={() => setHoveredCell(null)}
@@ -170,12 +173,16 @@ export function UpdateFrequencyHeatmap({
                 >
                   {data.hour}
                   {data.isAnomaly && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-pulse" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300  animate-pulse" />
                   )}
                   {isSelected && (
-                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500  border-2 border-white flex items-center justify-center">
                       <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </span>
                   )}
@@ -193,7 +200,7 @@ export function UpdateFrequencyHeatmap({
           </div>
 
           {hoveredCell && (
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 z-20 shadow-lg">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs  px-3 py-2 z-20 ">
               <div className="font-semibold">
                 {hoveredCell.hour.toString().padStart(2, '0')}:00 -{' '}
                 {(hoveredCell.hour + 1).toString().padStart(2, '0')}:00
@@ -202,7 +209,11 @@ export function UpdateFrequencyHeatmap({
                 {t('updateFrequency.updateCount')}: {hoveredCell.count.toLocaleString()}
               </div>
               <div className="text-gray-400 text-xs mt-1">
-                {syncEnabled ? (selectedHour === hoveredCell.hour ? '已选中' : '点击查看详情') : '同步已禁用'}
+                {syncEnabled
+                  ? selectedHour === hoveredCell.hour
+                    ? '已选中'
+                    : '点击查看详情'
+                  : '同步已禁用'}
               </div>
             </div>
           )}
@@ -221,7 +232,7 @@ export function UpdateFrequencyHeatmap({
         </div>
 
         {anomalyHours.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="bg-yellow-50 border border-yellow-200  p-3">
             <div className="flex items-start gap-2">
               <svg
                 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
@@ -247,7 +258,7 @@ export function UpdateFrequencyHeatmap({
           </div>
         )}
 
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-gray-200  overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
             <h4 className="text-sm font-semibold text-gray-700">
               {t('updateFrequency.hourlyStats')}
@@ -283,7 +294,7 @@ export function UpdateFrequencyHeatmap({
                     </td>
                     <td className="px-4 py-2 text-right">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center px-2 py-0.5  text-xs font-medium ${
                           data.isAnomaly
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-green-100 text-green-800'

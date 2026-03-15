@@ -31,8 +31,8 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
 
   // 按严重程度排序
   const sortedAlerts = [...activeAlerts].sort((a, b) => {
-    const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-    return severityOrder[a.severity] - severityOrder[b.severity];
+    const levelOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+    return levelOrder[a.level] - levelOrder[b.level];
   });
 
   // 切换展开状态
@@ -53,8 +53,8 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   };
 
   // 获取严重程度样式
-  const getSeverityStyle = (severity: AnomalyData['severity']) => {
-    switch (severity) {
+  const getLevelStyle = (level: AnomalyData['level']) => {
+    switch (level) {
       case 'critical':
         return 'bg-red-50 border-l-2 border-red-500';
       case 'high':
@@ -69,8 +69,8 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   };
 
   // 获取严重程度图标
-  const getSeverityIcon = (severity: AnomalyData['severity']) => {
-    switch (severity) {
+  const getLevelIcon = (level: AnomalyData['level']) => {
+    switch (level) {
       case 'critical':
         return <AlertTriangle className="w-4 h-4 text-red-500" />;
       case 'high':
@@ -85,14 +85,14 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   };
 
   // 获取严重程度标签
-  const getSeverityLabel = (severity: AnomalyData['severity']) => {
-    const labels: Record<AnomalyData['severity'], string> = {
+  const getLevelLabel = (level: AnomalyData['level']) => {
+    const labels: Record<AnomalyData['level'], string> = {
       critical: locale === 'zh-CN' ? '严重' : 'Critical',
       high: locale === 'zh-CN' ? '高' : 'High',
       medium: locale === 'zh-CN' ? '中' : 'Medium',
       low: locale === 'zh-CN' ? '低' : 'Low',
     };
-    return labels[severity];
+    return labels[level];
   };
 
   // 获取类型图标
@@ -104,9 +104,11 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
         return <TrendingDown className="w-3.5 h-3.5" />;
       case 'volatility_spike':
         return <Activity className="w-3.5 h-3.5" />;
-      case 'liquidity_drop':
+      case 'trend_break':
         return <TrendingDown className="w-3.5 h-3.5" />;
-      case 'correlation_breakdown':
+      case 'volume_anomaly':
+        return <Activity className="w-3.5 h-3.5" />;
+      case 'correlation_break':
         return <Activity className="w-3.5 h-3.5" />;
       default:
         return <Activity className="w-3.5 h-3.5" />;
@@ -119,8 +121,9 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
       price_spike: locale === 'zh-CN' ? '价格飙升' : 'Price Spike',
       price_drop: locale === 'zh-CN' ? '价格暴跌' : 'Price Drop',
       volatility_spike: locale === 'zh-CN' ? '波动率激增' : 'Volatility Spike',
-      liquidity_drop: locale === 'zh-CN' ? '流动性下降' : 'Liquidity Drop',
-      correlation_breakdown: locale === 'zh-CN' ? '相关性崩溃' : 'Correlation Breakdown',
+      trend_break: locale === 'zh-CN' ? '趋势突破' : 'Trend Break',
+      volume_anomaly: locale === 'zh-CN' ? '交易量异常' : 'Volume Anomaly',
+      correlation_break: locale === 'zh-CN' ? '相关性崩溃' : 'Correlation Break',
     };
     return labels[type];
   };
@@ -154,7 +157,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -167,7 +170,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
     return (
       <div className="py-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+          <div className="w-10 h-10 bg-green-100 border border-green-200 flex items-center justify-center mx-auto mb-2">
             <Activity className="w-5 h-5 text-green-600" />
           </div>
           <p className="text-gray-500 text-sm">
@@ -188,15 +191,15 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
         <span className="text-gray-500">
           {locale === 'zh-CN' ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
         </span>
-        {sortedAlerts.some((a) => a.severity === 'critical') && (
-          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded font-medium">
-            {sortedAlerts.filter((a) => a.severity === 'critical').length}{' '}
+        {sortedAlerts.some((a) => a.level === 'critical') && (
+          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 font-medium">
+            {sortedAlerts.filter((a) => a.level === 'critical').length}{' '}
             {locale === 'zh-CN' ? '严重' : 'Critical'}
           </span>
         )}
-        {sortedAlerts.some((a) => a.severity === 'high') && (
-          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">
-            {sortedAlerts.filter((a) => a.severity === 'high').length}{' '}
+        {sortedAlerts.some((a) => a.level === 'high') && (
+          <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 font-medium">
+            {sortedAlerts.filter((a) => a.level === 'high').length}{' '}
             {locale === 'zh-CN' ? '高' : 'High'}
           </span>
         )}
@@ -205,32 +208,29 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
       {/* 警报列表 */}
       <div className="space-y-1.5 max-h-[360px] overflow-auto">
         {sortedAlerts.map((alert) => (
-          <div
-            key={alert.id}
-            className={`py-2.5 px-3 rounded ${getSeverityStyle(alert.severity)}`}
-          >
+          <div key={alert.id} className={`py-2.5 px-3 border ${getLevelStyle(alert.level)}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-2 flex-1 min-w-0">
-                <div className="mt-0.5">{getSeverityIcon(alert.severity)}</div>
+                <div className="mt-0.5">{getLevelIcon(alert.level)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-gray-900 text-sm">{alert.asset}</span>
-                    <span className="px-1.5 py-0.5 bg-white/60 rounded text-xs font-medium text-gray-600 flex items-center gap-1">
+                    <span className="px-1.5 py-0.5 bg-white/60 text-xs font-medium text-gray-600 flex items-center gap-1">
                       {getTypeIcon(alert.type)}
                       {getTypeLabel(alert.type)}
                     </span>
                     <span
-                      className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                        alert.severity === 'critical'
+                      className={`px-1.5 py-0.5 text-xs font-medium ${
+                        alert.level === 'critical'
                           ? 'bg-red-100 text-red-700'
-                          : alert.severity === 'high'
-                          ? 'bg-orange-100 text-orange-700'
-                          : alert.severity === 'medium'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-blue-100 text-blue-700'
+                          : alert.level === 'high'
+                            ? 'bg-orange-100 text-orange-700'
+                            : alert.level === 'medium'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-blue-100 text-blue-700'
                       }`}
                     >
-                      {getSeverityLabel(alert.severity)}
+                      {getLevelLabel(alert.level)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
@@ -241,11 +241,11 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                     </span>
                     <span>
                       {locale === 'zh-CN' ? '当前值:' : 'Current:'}{' '}
-                      <span className="font-medium text-gray-700">{alert.currentValue}</span>
+                      <span className="font-medium text-gray-700">{alert.value}</span>
                     </span>
                     <span>
-                      {locale === 'zh-CN' ? '阈值:' : 'Threshold:'}{' '}
-                      <span className="font-medium text-gray-700">{alert.threshold}</span>
+                      {locale === 'zh-CN' ? '预期值:' : 'Expected:'}{' '}
+                      <span className="font-medium text-gray-700">{alert.expectedValue}</span>
                     </span>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
               <div className="flex items-center gap-1 ml-2">
                 <button
                   onClick={() => toggleExpand(alert.id)}
-                  className="p-1 hover:bg-black/5 rounded transition-colors"
+                  className="p-1 hover:bg-black/5 transition-colors"
                 >
                   {expandedItems.has(alert.id) ? (
                     <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -263,7 +263,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                 </button>
                 <button
                   onClick={() => dismissAlert(alert.id)}
-                  className="p-1 hover:bg-black/5 rounded transition-colors"
+                  className="p-1 hover:bg-black/5 transition-colors"
                 >
                   <X className="w-4 h-4 text-gray-400" />
                 </button>
@@ -288,33 +288,20 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                             locale === 'zh-CN' ? '分钟' : 'min'
                           }`
                         : locale === 'zh-CN'
-                        ? '进行中'
-                        : 'Ongoing'}
+                          ? '进行中'
+                          : 'Ongoing'}
                     </span>
                   </div>
-                  {alert.affectedOracles && alert.affectedOracles.length > 0 && (
+                  {alert.oracle && (
                     <div className="col-span-2">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '受影响预言机:' : 'Affected Oracles:'}
+                        {locale === 'zh-CN' ? '受影响预言机:' : 'Affected Oracle:'}
                       </span>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {alert.affectedOracles.map((oracle) => (
-                          <span
-                            key={oracle}
-                            className="px-1.5 py-0.5 bg-white/60 rounded text-xs text-gray-700"
-                          >
-                            {oracle}
-                          </span>
-                        ))}
+                        <span className="px-1.5 py-0.5 bg-white/60 text-xs text-gray-700">
+                          {alert.oracle}
+                        </span>
                       </div>
-                    </div>
-                  )}
-                  {alert.recommendation && (
-                    <div className="col-span-2">
-                      <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '建议:' : 'Recommendation:'}
-                      </span>
-                      <p className="mt-0.5 text-gray-700">{alert.recommendation}</p>
                     </div>
                   )}
                 </div>

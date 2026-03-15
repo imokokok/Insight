@@ -58,17 +58,12 @@ const sourceTextColors: Record<EarningsSourceType, string> = {
 };
 
 // 趋势图标
-function TrendIcon({ trend, value }: { trend: 'up' | 'down' | 'stable'; value: number }) {
+function TrendIcon({ trend, value, t }: { trend: 'up' | 'down' | 'stable'; value: number; t: (key: string) => string }) {
   if (trend === 'up') {
     return (
       <span className="flex items-center gap-1 text-green-600 text-xs">
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
         +{value}%
       </span>
@@ -78,12 +73,7 @@ function TrendIcon({ trend, value }: { trend: 'up' | 'down' | 'stable'; value: n
     return (
       <span className="flex items-center gap-1 text-red-600 text-xs">
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
         {value}%
       </span>
@@ -92,9 +82,9 @@ function TrendIcon({ trend, value }: { trend: 'up' | 'down' | 'stable'; value: n
   return (
     <span className="flex items-center gap-1 text-gray-500 text-xs">
       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
-      持平
+      {t('common.stable')}
     </span>
   );
 }
@@ -189,13 +179,17 @@ function EarningsPieChart({
 function EarningsHistoryChart({
   data,
   height = 180,
+  t,
 }: {
   data: ValidatorEarningsAttribution['history'];
   height?: number;
+  t: (key: string) => string;
 }) {
   if (data.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-gray-400 text-sm">暂无数据</div>
+      <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+        {t('common.noData')}
+      </div>
     );
   }
 
@@ -227,18 +221,24 @@ function EarningsHistoryChart({
                 {/* Tooltip */}
                 <div className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
                   <div>{item.date}</div>
-                  <div>基础: {item.base.toFixed(2)}</div>
-                  <div>争议: {item.dispute.toFixed(2)}</div>
-                  <div>其他: {item.other.toFixed(2)}</div>
+                  <div>
+                    {t('validator.base')}: {item.base.toFixed(2)}
+                  </div>
+                  <div>
+                    {t('validator.dispute')}: {item.dispute.toFixed(2)}
+                  </div>
+                  <div>
+                    {t('validator.other')}: {item.other.toFixed(2)}
+                  </div>
                   <div className="border-t border-gray-600 mt-1 pt-1">
-                    总计: {item.total.toFixed(2)}
+                    {t('validator.total')}: {item.total.toFixed(2)}
                   </div>
                 </div>
 
                 {/* 堆叠柱 */}
                 <div className="w-full flex flex-col justify-end" style={{ height: '100%' }}>
                   <div
-                    className="w-full bg-emerald-500 rounded-t-sm transition-all duration-200"
+                    className="w-full bg-emerald-500 -sm transition-all duration-200"
                     style={{ height: `${otherHeight}%` }}
                   />
                   <div
@@ -274,6 +274,7 @@ function EfficiencyMetricCard({
   subtitle,
   trend,
   trendValue,
+  t,
 }: {
   title: string;
   value: string;
@@ -281,9 +282,10 @@ function EfficiencyMetricCard({
   subtitle?: string;
   trend?: 'up' | 'down' | 'stable';
   trendValue?: number;
+  t: (key: string) => string;
 }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
+    <div className="bg-gray-50  p-4">
       <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
       <div className="flex items-baseline gap-1">
         <p className="text-xl font-bold text-gray-900">{value}</p>
@@ -292,7 +294,7 @@ function EfficiencyMetricCard({
       {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
       {trend && trendValue !== undefined && (
         <div className="mt-2">
-          <TrendIcon trend={trend} value={trendValue} />
+          <TrendIcon trend={trend} value={trendValue} t={t} />
         </div>
       )}
     </div>
@@ -360,19 +362,19 @@ export function ValidatorEarningsBreakdown({
   };
 
   const periodLabels: Record<typeof period, string> = {
-    daily: '日',
-    weekly: '周',
-    monthly: '月',
-    yearly: '年',
+    daily: t('common.daily'),
+    weekly: t('common.weekly'),
+    monthly: t('common.monthly'),
+    yearly: t('common.yearly'),
   };
 
   if (loading) {
     return (
-      <DashboardCard title="收益归因分析">
+      <DashboardCard title={t('validator.earningsAttribution')}>
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
-            <p className="text-gray-500 text-sm">加载中...</p>
+            <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
+            <p className="text-gray-500 text-sm">{t('common.loading')}</p>
           </div>
         </div>
       </DashboardCard>
@@ -381,8 +383,10 @@ export function ValidatorEarningsBreakdown({
 
   if (!attribution || !networkStats) {
     return (
-      <DashboardCard title="收益归因分析">
-        <div className="flex items-center justify-center h-64 text-gray-400">暂无数据</div>
+      <DashboardCard title={t('validator.earningsAttribution')}>
+        <div className="flex items-center justify-center h-64 text-gray-400">
+          {t('common.noData')}
+        </div>
       </DashboardCard>
     );
   }
@@ -394,33 +398,36 @@ export function ValidatorEarningsBreakdown({
   }));
 
   return (
-    <DashboardCard title="验证者收益归因分析">
+    <DashboardCard title={t('validator.validatorEarningsAttribution')}>
       <div className="space-y-6">
         {/* 控制栏 */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">选择验证者</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('validator.selectValidator')}
+            </label>
             <select
               value={selectedValidator}
               onChange={(e) => handleValidatorChange(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
             >
               {validators.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.name} (
-                  {v.type === 'institution' ? '机构' : v.type === 'independent' ? '独立' : '社区'})
+                  {v.name} ({t(`validator.type.${v.type}`)})
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">时间周期</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('validator.timePeriod')}
+            </label>
             <div className="flex gap-2">
               {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  className={`px-4 py-2.5 text-sm font-medium  transition-colors ${
                     period === p
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -434,11 +441,14 @@ export function ValidatorEarningsBreakdown({
         </div>
 
         {/* 总收益概览 */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
+        <div className="bg-gray-100 border border-gray-200  p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{attribution.validatorName}</h3>
-              <p className="text-sm text-gray-500">{periodLabels[period]}度总收益</p>
+              <p className="text-sm text-gray-500">
+                {periodLabels[period]}
+                {t('validator.totalEarnings')}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-blue-600">
@@ -451,12 +461,12 @@ export function ValidatorEarningsBreakdown({
           {/* 收益来源分布 */}
           <div className="grid grid-cols-3 gap-4">
             {attribution.sources.map((source) => (
-              <div key={source.type} className={`${sourceBgColors[source.type]} rounded-lg p-3`}>
+              <div key={source.type} className={`${sourceBgColors[source.type]}  p-3`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs font-medium ${sourceTextColors[source.type]}`}>
                     {EarningsSourceLabels[source.type]}
                   </span>
-                  <TrendIcon trend={source.trend} value={source.trendValue} />
+                  <TrendIcon trend={source.trend} value={source.trendValue} t={t} />
                 </div>
                 <p className={`text-lg font-bold ${sourceTextColors[source.type]}`}>
                   {formatNumber(source.amount)}
@@ -469,36 +479,42 @@ export function ValidatorEarningsBreakdown({
 
         {/* 效率指标 */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">单位质押收益效率指标</h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('validator.efficiencyMetrics')}
+          </h4>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <EfficiencyMetricCard
-              title="每单位质押收益"
+              title={t('validator.earningsPerStaked')}
               value={formatNumber(attribution.efficiency.earningsPerStaked, 6)}
               unit="UMA"
-              subtitle="收益/质押量"
+              subtitle={t('validator.earningsPerStakedSubtitle')}
+              t={t}
             />
             <EfficiencyMetricCard
-              title="投资回报率 (ROI)"
+              title={t('validator.roi')}
               value={formatNumber(attribution.efficiency.roi)}
               unit="%"
-              subtitle="年化收益率"
+              subtitle={t('validator.annualYield')}
               trend={
                 attribution.efficiency.roi > networkStats.networkEfficiency.avgRoi ? 'up' : 'down'
               }
               trendValue={Math.abs(attribution.efficiency.comparisonToNetwork)}
+              t={t}
             />
             <EfficiencyMetricCard
-              title="收益效率指数"
+              title={t('validator.yieldEfficiency')}
               value={formatNumber(attribution.efficiency.yieldEfficiency)}
               unit="/100"
-              subtitle="相对于基准"
+              subtitle={t('validator.relativeToBenchmark')}
+              t={t}
             />
             <EfficiencyMetricCard
-              title="网络对比"
+              title={t('validator.networkComparison')}
               value={attribution.efficiency.comparisonToNetwork > 0 ? '+' : ''}
-              subtitle={`${formatNumber(attribution.efficiency.comparisonToNetwork)}% 相对平均水平`}
+              subtitle={`${formatNumber(attribution.efficiency.comparisonToNetwork)}% ${t('validator.relativeToAverage')}`}
               trend={attribution.efficiency.comparisonToNetwork > 0 ? 'up' : 'down'}
               trendValue={Math.abs(attribution.efficiency.comparisonToNetwork)}
+              t={t}
             />
           </div>
         </div>
@@ -506,44 +522,54 @@ export function ValidatorEarningsBreakdown({
         {/* 可视化图表 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 收益来源分布饼图 */}
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white border border-gray-200  p-5">
             <div className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-900">收益来源分布</h4>
-              <p className="text-xs text-gray-500 mt-0.5">各类型收益占比分析</p>
+              <h4 className="text-sm font-semibold text-gray-900">
+                {t('validator.earningsDistribution')}
+              </h4>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {t('validator.earningsDistributionDesc')}
+              </p>
             </div>
             <EarningsPieChart data={pieChartData} />
           </div>
 
           {/* 收益历史趋势 */}
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white border border-gray-200  p-5">
             <div className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-900">收益历史趋势</h4>
-              <p className="text-xs text-gray-500 mt-0.5">最近14天收益变化</p>
+              <h4 className="text-sm font-semibold text-gray-900">
+                {t('validator.earningsHistory')}
+              </h4>
+              <p className="text-xs text-gray-500 mt-0.5">{t('validator.earningsHistoryDesc')}</p>
             </div>
-            <EarningsHistoryChart data={attribution.history} />
+            <EarningsHistoryChart data={attribution.history} t={t} />
           </div>
         </div>
 
         {/* 网络对比 */}
-        <div className="bg-gray-50 rounded-xl p-5">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">网络平均水平对比</h4>
+        <div className="bg-gray-50  p-5">
+          <h4 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('validator.networkAvgComparison')}
+          </h4>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">网络平均单位质押收益</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('validator.networkAvgEarningsPerStaked')}
+              </p>
               <p className="text-lg font-semibold text-gray-900">
                 {formatNumber(networkStats.networkEfficiency.avgEarningsPerStaked, 6)}
               </p>
               <p className="text-xs text-gray-400">UMA</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">网络平均 ROI</p>
+              <p className="text-xs text-gray-500 mb-1">{t('validator.networkAvgRoi')}</p>
               <p className="text-lg font-semibold text-gray-900">
                 {formatNumber(networkStats.networkEfficiency.avgRoi)}
               </p>
               <p className="text-xs text-gray-400">%</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500 mb-1">网络平均效率指数</p>
+              <p className="text-xs text-gray-500 mb-1">{t('validator.networkAvgEfficiency')}</p>
               <p className="text-lg font-semibold text-gray-900">
                 {formatNumber(networkStats.networkEfficiency.avgYieldEfficiency)}
               </p>
@@ -553,13 +579,15 @@ export function ValidatorEarningsBreakdown({
         </div>
 
         {/* 效率排名 */}
-        <div className="border border-gray-200 rounded-xl p-5">
-          <h4 className="text-sm font-semibold text-gray-900 mb-4">单位质押收益效率排名 TOP5</h4>
+        <div className="border border-gray-200  p-5">
+          <h4 className="text-sm font-semibold text-gray-900 mb-4">
+            {t('validator.top5EfficiencyRanking')}
+          </h4>
           <div className="space-y-3">
             {networkStats.topPerformers.map((performer, index) => (
               <div
                 key={performer.validatorId}
-                className={`flex items-center justify-between p-3 rounded-lg ${
+                className={`flex items-center justify-between p-3  ${
                   performer.validatorId === selectedValidator
                     ? 'bg-blue-50 border border-blue-200'
                     : 'bg-gray-50'
@@ -567,7 +595,7 @@ export function ValidatorEarningsBreakdown({
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                    className={`inline-flex items-center justify-center w-6 h-6  text-xs font-semibold ${
                       index < 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'
                     }`}
                   >
@@ -577,11 +605,11 @@ export function ValidatorEarningsBreakdown({
                     {performer.validatorName}
                   </span>
                   {performer.validatorId === selectedValidator && (
-                    <span className="text-xs text-blue-600 font-medium">当前</span>
+                    <span className="text-xs text-blue-600 font-medium">{t('common.current')}</span>
                   )}
                 </div>
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatNumber(performer.earningsPerStaked, 6)} UMA/单位
+                  {formatNumber(performer.earningsPerStaked, 6)} UMA/{t('common.unit')}
                 </span>
               </div>
             ))}

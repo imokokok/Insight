@@ -15,6 +15,7 @@ interface CorrelationMatrixProps {
 }
 
 export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
+  const { t } = useI18n();
   const colorblindMode = useColorblindMode();
   const { filteredChains, correlationMatrixWithSignificance } = data;
 
@@ -42,15 +43,16 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
     <div className="mb-8 pb-8 border-b border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
-          链间相关性分析
+          {t('crossChain.chainCorrelationAnalysis')}
         </h3>
         {avgSampleSize > 0 && (
-          <span className="text-xs text-gray-500">样本量 n = {avgSampleSize}</span>
+          <span className="text-xs text-gray-500">
+            {t('crossChain.sampleSize')} n = {avgSampleSize}
+          </span>
         )}
       </div>
       <p className="text-xs text-gray-500 mb-4">
-        Pearson 相关系数衡量两条链价格走势的线性相关程度。r = 1 表示完全正相关，r = -1
-        表示完全负相关，r = 0 表示无线性相关。显著性标记: *** p&lt;0.001, ** p&lt;0.01, * p&lt;0.05
+        {t('crossChain.pearsonCorrelationDesc')} {t('crossChain.significanceMarkers')}
       </p>
       <div className="overflow-x-auto">
         <div className="min-w-full">
@@ -107,7 +109,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     {/* 色盲模式下添加形状指示器 */}
                     {colorblindMode && (
                       <div
-                        className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-gray-800/20"
+                        className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-gray-800/20"
                         style={{
                           width: `${4 + Math.abs(correlation) * 8}px`,
                           height: `${4 + Math.abs(correlation) * 8}px`,
@@ -122,7 +124,9 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">
-                {colorblindMode ? colorblindLegendConfig.correlation.negativeLabel : '负相关'}
+                {colorblindMode
+                  ? colorblindLegendConfig.correlation.negativeLabel
+                  : t('crossChain.negativeCorrelation')}
               </span>
               <div
                 className="w-32 h-3"
@@ -133,12 +137,14 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                 }}
               />
               <span className="text-xs text-gray-500">
-                {colorblindMode ? colorblindLegendConfig.correlation.positiveLabel : '正相关'}
+                {colorblindMode
+                  ? colorblindLegendConfig.correlation.positiveLabel
+                  : t('crossChain.positiveCorrelation')}
               </span>
             </div>
             {/* 色盲模式下图例说明 */}
             {colorblindMode && (
-              <div className="flex items-center gap-2 ml-2 px-2 py-1 bg-blue-50 rounded text-xs text-blue-700">
+              <div className="flex items-center gap-2 ml-2 px-2 py-1 bg-blue-50 border border-blue-200 text-xs text-blue-700">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path
@@ -147,7 +153,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                圆点大小表示相关性强弱
+                {t('crossChain.dotSizeIndicatesStrength')}
               </div>
             )}
             <div className="flex items-center gap-2 ml-4">

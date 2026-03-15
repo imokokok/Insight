@@ -88,11 +88,13 @@ export {
   ChartAnnotations,
   ChartAnnotationOverlay,
   chainlinkMilestones,
+  chainlinkMilestonesData,
   getAnnotationColor,
   getAnnotationIcon,
   getImportanceLabel,
   getTypeLabel,
   formatDate,
+  getChainlinkMilestonesWithTranslation,
 } from './ChartAnnotations';
 export type {
   ChartAnnotation,
@@ -100,4 +102,5 @@ export type {
   ImportanceLevel,
   ChartAnnotationsProps,
   ChartAnnotationOverlayProps,
+  ChainlinkMilestoneData,
 } from './ChartAnnotations';

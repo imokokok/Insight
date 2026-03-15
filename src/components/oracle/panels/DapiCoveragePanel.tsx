@@ -32,7 +32,7 @@ function TotalDapisCard({ total }: { total: number }) {
   const { t } = useI18n();
 
   return (
-    <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+    <div className="bg-gray-100 border border-gray-200  p-6 text-white ">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-blue-100 text-sm uppercase tracking-wider mb-2">
@@ -41,10 +41,9 @@ function TotalDapisCard({ total }: { total: number }) {
           <p className="text-5xl font-bold mb-1">{total}</p>
           <p className="text-blue-200 text-sm">{t('dapiCoverage.activeDataSources')}</p>
         </div>
-        <div className="p-3 bg-blue-500 bg-opacity-30 rounded-xl">
+        <div className="p-3 bg-blue-500 bg-opacity-30 ">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
@@ -78,9 +77,9 @@ function DistributionBar({
           <span className="text-xs text-gray-500">({percentage.toFixed(1)}%)</span>
         </div>
       </div>
-      <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-full h-3 bg-gray-100  overflow-hidden">
         <div
-          className={`h-full ${color} rounded-full transition-all duration-500 ease-out`}
+          className={`h-full ${color}  transition-all duration-500 ease-out`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -158,9 +157,9 @@ function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequ
                 </span>
               </div>
             </div>
-            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-gray-100  overflow-hidden">
               <div
-                className={`h-full ${freq.color} rounded-full transition-all duration-500 ease-out`}
+                className={`h-full ${freq.color}  transition-all duration-500 ease-out`}
                 style={{ width: `${(freq.value / total) * 100}%` }}
               />
             </div>
@@ -196,7 +195,14 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
   return (
     <div className="relative w-48 h-48 mx-auto">
       <svg viewBox="0 0 100 100" className="transform -rotate-90">
-        <circle cx="50" cy="50" r="40" fill="none" stroke={chartColors.recharts.grid} strokeWidth="12" />
+        <circle
+          cx="50"
+          cy="50"
+          r="40"
+          fill="none"
+          stroke={chartColors.recharts.grid}
+          strokeWidth="12"
+        />
         {gradientStops.map((stop, index) => {
           const circumference = 2 * Math.PI * 40;
           const strokeDasharray = `${((stop.end - stop.start) * circumference) / 100} ${circumference}`;
@@ -244,7 +250,7 @@ function AssetTypeDonut({ data }: { data: DapiCoverage['byAssetType'] }) {
           {legend.map((item) => (
             <div key={item.label} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                <div className={`w-3 h-3  ${item.color}`} />
                 <span className="text-sm text-gray-700">{item.label}</span>
               </div>
               <div className="flex items-center gap-2">

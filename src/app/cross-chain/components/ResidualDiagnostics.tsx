@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import {
   BarChart,
   Bar,
@@ -22,6 +23,8 @@ interface ResidualDiagnosticsProps {
 }
 
 export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnosticsProps) {
+  const { t } = useI18n();
+
   const acfData = useMemo(() => {
     return calculateACF(residuals, maxLag);
   }, [residuals, maxLag]);
@@ -55,22 +58,33 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
 
   return (
     <div className="mt-6 pt-6 border-t border-gray-200">
-      <h4 className="text-sm font-medium text-gray-900 mb-4">残差诊断 (Residual Diagnostics)</h4>
+      <h4 className="text-sm font-medium text-gray-900 mb-4">
+        {t('crossChain.residualDiagnostics')}
+      </h4>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ACF Chart */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500">自相关函数 (ACF)</span>
+            <span className="text-xs text-gray-500">{t('crossChain.autocorrelationFunction')}</span>
             <div className="text-xs text-gray-400">
               Ljung-Box: Q = {ljungBox.statistic.toFixed(2)}, p = {ljungBox.pValue.toFixed(3)}
             </div>
           </div>
-          <div className="h-40 bg-gray-50 rounded p-2">
+          <div className="h-40 bg-gray-50 border border-gray-200 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={acfData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
-                <XAxis dataKey="lag" stroke={chartColors.recharts.axis} tick={{ fontSize: 9 }} tickCount={6} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={chartColors.recharts.grid}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="lag"
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 9 }}
+                  tickCount={6}
+                />
                 <YAxis
                   stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 9 }}
@@ -100,20 +114,22 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                   fill={semanticColors.info.main}
                   stroke={semanticColors.info.dark}
                   strokeWidth={1}
-                  radius={[1, 1, 0, 0]}
+                  radius={[0, 0, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="flex items-center justify-center gap-4 mt-1">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-indigo-500 rounded-sm" />
-              <span className="text-xs text-gray-500">自相关系数</span>
+              <div className="w-3 h-2 bg-indigo-500" />
+              <span className="text-xs text-gray-500">
+                {t('crossChain.autocorrelationCoefficient')}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0 border-t border-dashed border-red-500" />
               <span className="text-xs text-gray-500">
-                95%置信区间 (±{confidenceInterval.toFixed(3)})
+                {t('crossChain.confidenceInterval95')} (±{confidenceInterval.toFixed(3)})
               </span>
             </div>
           </div>
@@ -122,18 +138,22 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
         {/* Residual Distribution Histogram */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500">残差分布 (Residual Distribution)</span>
+            <span className="text-xs text-gray-500">{t('crossChain.residualDistribution')}</span>
             <div className="text-xs text-gray-400">
               μ = {residualStats.mean.toFixed(3)}, σ = {residualStats.std.toFixed(3)}
             </div>
           </div>
-          <div className="h-40 bg-gray-50 rounded p-2">
+          <div className="h-40 bg-gray-50 border border-gray-200 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={histogramData}
                 margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={chartColors.recharts.grid}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="bin"
                   stroke={chartColors.recharts.axis}
@@ -150,7 +170,10 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
                 />
                 <Tooltip
                   formatter={(value, name) => {
-                    const label = name === 'density' ? '经验密度' : '正态密度';
+                    const label =
+                      name === 'density'
+                        ? t('crossChain.empiricalDensity')
+                        : t('crossChain.normalDensity');
                     return [Number(value).toExponential(3), label];
                   }}
                   labelFormatter={(label) => `Bin: ${label}`}
@@ -177,35 +200,34 @@ export function ResidualDiagnostics({ residuals, maxLag = 20 }: ResidualDiagnost
           </div>
           <div className="flex items-center justify-center gap-4 mt-1">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-2 bg-green-500/60 rounded-sm" />
-              <span className="text-xs text-gray-500">经验分布</span>
+              <div className="w-3 h-2 bg-green-500/60" />
+              <span className="text-xs text-gray-500">{t('crossChain.empiricalDistribution')}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-0.5 bg-red-500" />
-              <span className="text-xs text-gray-500">正态分布</span>
+              <span className="text-xs text-gray-500">{t('crossChain.normalDistribution')}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Interpretation */}
-      <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
-        <p className="font-medium mb-1">诊断说明:</p>
+      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 text-xs text-gray-600">
+        <p className="font-medium mb-1">{t('crossChain.diagnosticExplanation')}:</p>
         <ul className="space-y-1 list-disc list-inside">
           <li>
-            <strong>ACF图:</strong> 若自相关系数超出置信区间（红色虚线），表明残差存在自相关。
-            Ljung-Box检验p值 &lt; 0.05 表示拒绝原假设，残差存在显著自相关。
+            <strong>ACF:</strong> {t('crossChain.acfExplanation')}
           </li>
           <li>
-            <strong>分布图:</strong> 比较残差的经验分布与正态分布。若两者差异较大，
-            可能违反协整检验的正态性假设。
+            <strong>{t('crossChain.residualDistribution')}:</strong>{' '}
+            {t('crossChain.distributionExplanation')}
           </li>
           <li>
-            <strong>当前状态:</strong>{' '}
+            <strong>{t('crossChain.currentStatus')}:</strong>{' '}
             {ljungBox.pValue < 0.05 ? (
-              <span className="text-amber-600">残差存在自相关，模型可能需要改进。</span>
+              <span className="text-amber-600">{t('crossChain.residualsHaveAutocorrelation')}</span>
             ) : (
-              <span className="text-green-600">残差无明显自相关，模型拟合良好。</span>
+              <span className="text-green-600">{t('crossChain.residualsNoAutocorrelation')}</span>
             )}
           </li>
         </ul>

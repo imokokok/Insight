@@ -112,7 +112,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
               <button
                 key={btn.id}
                 onClick={() => setFilter(btn.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`px-4 py-2 text-sm font-medium  transition-all duration-200 ${
                   filter === btn.id
                     ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -137,23 +137,23 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                   return (
                     <div key={event.id} className="relative pl-10">
                       <div
-                        className={`absolute left-2.5 w-3 h-3 rounded-full ${config.color} ring-4 ring-white`}
+                        className={`absolute left-2.5 w-3 h-3  ${config.color} ring-4 ring-white`}
                         style={{ top: '1.25rem' }}
                       />
 
                       <div
-                        className={`bg-white border ${config.borderColor} rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer`}
+                        className={`bg-white border ${config.borderColor}  p-4 hover: transition-shadow duration-200 cursor-pointer`}
                         onClick={() => setSelectedEvent(event)}
                       >
                         <div className="flex items-start justify-between gap-4 mb-3">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`px-2.5 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.textColor}`}
+                              className={`px-2.5 py-1 text-xs font-medium  ${config.bgColor} ${config.textColor}`}
                             >
                               {config.label}
                             </span>
                             <span
-                              className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusConfig.color}`}
+                              className={`px-2 py-0.5 text-xs font-medium  ${statusConfig.color}`}
                             >
                               {statusConfig.label}
                             </span>
@@ -176,7 +176,6 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                                   viewBox="0 0 24 24"
                                 >
                                   <path
-                                    strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
                                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -195,7 +194,6 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                                 viewBox="0 0 24 24"
                               >
                                 <path
-                                  strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
                                   d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
@@ -230,14 +228,14 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
           onClick={() => setSelectedEvent(null)}
         >
           <div
-            className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl"
+            className="bg-white  max-w-lg w-full max-h-[90vh] overflow-y-auto "
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">事件详情</h3>
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100  transition-colors"
               >
                 <svg
                   className="w-5 h-5 text-gray-500"
@@ -245,12 +243,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -258,18 +251,18 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-3">
                 <span
-                  className={`px-3 py-1.5 text-sm font-medium rounded-full ${EVENT_CONFIG[selectedEvent.type].bgColor} ${EVENT_CONFIG[selectedEvent.type].textColor}`}
+                  className={`px-3 py-1.5 text-sm font-medium  ${EVENT_CONFIG[selectedEvent.type].bgColor} ${EVENT_CONFIG[selectedEvent.type].textColor}`}
                 >
                   {EVENT_CONFIG[selectedEvent.type].label}
                 </span>
                 <span
-                  className={`px-3 py-1.5 text-sm font-medium rounded-full ${STATUS_CONFIG[selectedEvent.status].color}`}
+                  className={`px-3 py-1.5 text-sm font-medium  ${STATUS_CONFIG[selectedEvent.status].color}`}
                 >
                   {STATUS_CONFIG[selectedEvent.status].label}
                 </span>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50  p-4">
                 <p className="text-sm text-gray-600">{selectedEvent.description}</p>
               </div>
 
@@ -322,7 +315,6 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                         viewBox="0 0 24 24"
                       >
                         <path
-                          strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
@@ -331,7 +323,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                       复制
                     </button>
                   </div>
-                  <div className="bg-gray-100 rounded-lg p-3">
+                  <div className="bg-gray-100  p-3">
                     <p className="text-xs font-mono text-gray-600 break-all">
                       {selectedEvent.txHash}
                     </p>
@@ -342,7 +334,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="flex-1 py-2.5 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 py-2.5 px-4 bg-gray-100 text-gray-700 font-medium  hover:bg-gray-200 transition-colors"
                 >
                   关闭
                 </button>
@@ -350,7 +342,7 @@ export function CoveragePoolTimeline({ data }: CoveragePoolTimelineProps) {
                   onClick={() => {
                     window.open(`https://etherscan.io/tx/${selectedEvent.txHash}`, '_blank');
                   }}
-                  className="flex-1 py-2.5 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 py-2.5 px-4 bg-blue-600 text-white font-medium  hover:bg-blue-700 transition-colors"
                 >
                   在区块浏览器中查看
                 </button>

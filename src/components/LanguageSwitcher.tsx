@@ -29,12 +29,12 @@ export default function LanguageSwitcher() {
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-40 bg-white   border border-gray-200 z-50">
           <button
             onClick={() => switchLanguage('en')}
             className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${

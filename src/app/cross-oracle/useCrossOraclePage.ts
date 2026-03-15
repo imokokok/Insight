@@ -26,7 +26,11 @@ import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import { createLogger } from '@/lib/utils/logger';
 import { lttbDownsample } from '@/lib/utils/lttb';
-import { getMaxPointsForTimeRange, getOracleChartColors, getLineStrokeDasharray } from './chartConfig';
+import {
+  getMaxPointsForTimeRange,
+  getOracleChartColors,
+  getLineStrokeDasharray,
+} from './chartConfig';
 import { useTabNavigation, TabId } from './components/TabNavigation';
 
 const logger = createLogger('cross-oracle-page');
@@ -62,7 +66,9 @@ export interface UseCrossOraclePageReturn {
   setIsChartFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
   historyMinMax: HistoryMinMax;
   selectedSnapshot: import('@/types/oracle').OracleSnapshot | null;
-  setSelectedSnapshot: React.Dispatch<React.SetStateAction<import('@/types/oracle').OracleSnapshot | null>>;
+  setSelectedSnapshot: React.Dispatch<
+    React.SetStateAction<import('@/types/oracle').OracleSnapshot | null>
+  >;
   showComparison: boolean;
   setShowComparison: React.Dispatch<React.SetStateAction<boolean>>;
   selectedRowIndex: number | null;
@@ -111,9 +117,22 @@ export interface UseCrossOraclePageReturn {
   latencyData: number[];
   performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
-  gasFeeData: { oracle: OracleProvider; chain: string; updateCost: number; updateFrequency: number; avgGasPrice: number; lastUpdate: number }[];
-  atrData: { oracle: OracleProvider; prices: { timestamp: number; price: number; high: number; low: number; close: number }[] }[];
-  bollingerData: { oracle: OracleProvider; prices: { timestamp: number; price: number; high: number; low: number; close: number }[] }[];
+  gasFeeData: {
+    oracle: OracleProvider;
+    chain: string;
+    updateCost: number;
+    updateFrequency: number;
+    avgGasPrice: number;
+    lastUpdate: number;
+  }[];
+  atrData: {
+    oracle: OracleProvider;
+    prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
+  }[];
+  bollingerData: {
+    oracle: OracleProvider;
+    prices: { timestamp: number; price: number; high: number; low: number; close: number }[];
+  }[];
   qualityTrendData: { oracle: OracleProvider; data: any[] }[];
   qualityScoreData: {
     freshness: { lastUpdated: Date };
@@ -154,7 +173,9 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
   ]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC/USD');
   const [priceData, setPriceData] = useState<PriceData[]>([]);
-  const [historicalData, setHistoricalData] = useState<Partial<Record<OracleProvider, PriceData[]>>>({});
+  const [historicalData, setHistoricalData] = useState<
+    Partial<Record<OracleProvider, PriceData[]>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
@@ -171,7 +192,9 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const [historyMinMax, setHistoryMinMax] = useState<HistoryMinMax>(initialHistoryMinMax);
-  const [selectedSnapshot, setSelectedSnapshot] = useState<import('@/types/oracle').OracleSnapshot | null>(null);
+  const [selectedSnapshot, setSelectedSnapshot] = useState<
+    import('@/types/oracle').OracleSnapshot | null
+  >(null);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
@@ -181,7 +204,9 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
   const favoritesDropdownRef = useRef<HTMLDivElement>(null);
   const [useAccessibleColors, setUseAccessibleColors] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
-  const [selectedOracleFromChart, setSelectedOracleFromChart] = useState<OracleProvider | null>(null);
+  const [selectedOracleFromChart, setSelectedOracleFromChart] = useState<OracleProvider | null>(
+    null
+  );
 
   const currentFavoriteConfig: FavoriteConfig = useMemo(
     () => ({
@@ -257,7 +282,16 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
       standardDeviation,
       standardDeviationPercent,
     }),
-    [avgPrice, weightedAvgPrice, maxPrice, minPrice, priceRange, variance, standardDeviation, standardDeviationPercent]
+    [
+      avgPrice,
+      weightedAvgPrice,
+      maxPrice,
+      minPrice,
+      priceRange,
+      variance,
+      standardDeviation,
+      standardDeviationPercent,
+    ]
   );
 
   const handleSaveSnapshot = useCallback(() => {
@@ -521,54 +555,59 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     });
   }, [historicalData, selectedOracles, timeRange]);
 
-  const heatmapData = useMemo((): import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] => {
-    const result: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] = [];
-    const chartDataPoints = getChartData();
-    chartDataPoints.forEach((point) => {
-      const avgPriceVal = point.avgPrice as number | undefined;
-      if (!avgPriceVal) return;
-      selectedOracles.forEach((oracle) => {
-        const price = point[oracleNames[oracle]] as number | undefined;
-        if (price !== undefined) {
-          const deviationPercent = ((price - avgPriceVal) / avgPriceVal) * 100;
-          result.push({
-            timestamp: point.rawTimestamp as number,
-            oracleName: oracleNames[oracle],
-            deviationPercent,
-            price,
-          });
-        }
+  const heatmapData =
+    useMemo((): import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] => {
+      const result: import('@/components/oracle/charts/PriceDeviationHeatmap').PriceDeviationDataPoint[] =
+        [];
+      const chartDataPoints = getChartData();
+      chartDataPoints.forEach((point) => {
+        const avgPriceVal = point.avgPrice as number | undefined;
+        if (!avgPriceVal) return;
+        selectedOracles.forEach((oracle) => {
+          const price = point[oracleNames[oracle]] as number | undefined;
+          if (price !== undefined) {
+            const deviationPercent = ((price - avgPriceVal) / avgPriceVal) * 100;
+            result.push({
+              timestamp: point.rawTimestamp as number,
+              oracleName: oracleNames[oracle],
+              deviationPercent,
+              price,
+            });
+          }
+        });
       });
-    });
-    return result;
-  }, [historicalData, selectedOracles, avgPrice, getChartData]);
+      return result;
+    }, [historicalData, selectedOracles, avgPrice, getChartData]);
 
-  const boxPlotData = useMemo((): import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[] => {
-    return selectedOracles.map((oracle) => ({
-      oracleId: oracle,
-      prices: (historicalData[oracle] || []).map((d) => d.price),
-    }));
-  }, [historicalData, selectedOracles]);
+  const boxPlotData =
+    useMemo((): import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[] => {
+      return selectedOracles.map((oracle) => ({
+        oracleId: oracle,
+        prices: (historicalData[oracle] || []).map((d) => d.price),
+      }));
+    }, [historicalData, selectedOracles]);
 
-  const volatilityData = useMemo((): import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[] => {
-    return selectedOracles.map((oracle) => ({
-      oracle,
-      prices: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
+  const volatilityData =
+    useMemo((): import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[] => {
+      return selectedOracles.map((oracle) => ({
+        oracle,
+        prices: (historicalData[oracle] || []).map((d) => ({
+          timestamp: d.timestamp,
+          price: d.price,
+        })),
+      }));
+    }, [historicalData, selectedOracles]);
 
-  const correlationData = useMemo((): import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[] => {
-    return selectedOracles.map((oracle) => ({
-      oracleId: oracle,
-      data: (historicalData[oracle] || []).map((d) => ({
-        timestamp: d.timestamp,
-        price: d.price,
-      })),
-    }));
-  }, [historicalData, selectedOracles]);
+  const correlationData =
+    useMemo((): import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[] => {
+      return selectedOracles.map((oracle) => ({
+        oracleId: oracle,
+        data: (historicalData[oracle] || []).map((d) => ({
+          timestamp: d.timestamp,
+          price: d.price,
+        })),
+      }));
+    }, [historicalData, selectedOracles]);
 
   const latencyData = useMemo((): number[] => {
     const latencies: number[] = [];
@@ -586,46 +625,48 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
       : [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
   }, [historicalData, selectedOracles]);
 
-  const performanceData = useMemo((): import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[] => {
-    return selectedOracles.map((oracle) => {
-      const history = historicalData[oracle] || [];
-      const prices = history.map((d) => d.price);
-      const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-      const variance =
-        prices.length > 1
-          ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
-          : 0;
-      const stdDev = Math.sqrt(variance);
-      const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
+  const performanceData =
+    useMemo((): import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[] => {
+      return selectedOracles.map((oracle) => {
+        const history = historicalData[oracle] || [];
+        const prices = history.map((d) => d.price);
+        const mean = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+        const variance =
+          prices.length > 1
+            ? prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length
+            : 0;
+        const stdDev = Math.sqrt(variance);
+        const stability = mean > 0 ? Math.max(0, 100 - (stdDev / mean) * 1000) : 50;
 
-      const latencies: number[] = [];
-      for (let i = 1; i < history.length; i++) {
-        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
-        if (timeDiff > 0 && timeDiff < 3600000) {
-          latencies.push(timeDiff);
+        const latencies: number[] = [];
+        for (let i = 1; i < history.length; i++) {
+          const timeDiff = history[i].timestamp - history[i - 1].timestamp;
+          if (timeDiff > 0 && timeDiff < 3600000) {
+            latencies.push(timeDiff);
+          }
         }
-      }
-      const avgLatency =
-        latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
+        const avgLatency =
+          latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 200;
 
-      const avgPriceVal =
-        validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
-      const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
-      const priceDeviation = avgPriceVal > 0 ? Math.abs((currentPrice - avgPriceVal) / avgPriceVal) : 0;
-      const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
+        const avgPriceVal =
+          validPrices.length > 0 ? validPrices.reduce((a, b) => a + b, 0) / validPrices.length : 0;
+        const currentPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
+        const priceDeviation =
+          avgPriceVal > 0 ? Math.abs((currentPrice - avgPriceVal) / avgPriceVal) : 0;
+        const accuracy = Math.max(90, Math.min(99.9, 100 - priceDeviation * 100));
 
-      return {
-        provider: oracle,
-        name: oracleNames[oracle],
-        responseTime: Math.round(avgLatency),
-        accuracy: accuracy,
-        stability: Math.min(100, Math.max(0, stability)),
-        dataSources: 0,
-        supportedChains: 0,
-        color: oracleChartColors[oracle],
-      };
-    });
-  }, [historicalData, selectedOracles, validPrices, oracleChartColors]);
+        return {
+          provider: oracle,
+          name: oracleNames[oracle],
+          responseTime: Math.round(avgLatency),
+          accuracy: accuracy,
+          stability: Math.min(100, Math.max(0, stability)),
+          dataSources: 0,
+          supportedChains: 0,
+          color: oracleChartColors[oracle],
+        };
+      });
+    }, [historicalData, selectedOracles, validPrices, oracleChartColors]);
 
   const maData = useMemo(() => {
     return selectedOracles.map((oracle) => ({
@@ -922,7 +963,8 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     scrollToOutlier,
     calculateChangePercent,
     fetchPriceData,
-    getLineStrokeDasharray: (oracle: OracleProvider) => getLineStrokeDasharray(oracle, useAccessibleColors),
+    getLineStrokeDasharray: (oracle: OracleProvider) =>
+      getLineStrokeDasharray(oracle, useAccessibleColors),
     getConsistencyRating,
     activeTab,
     handleTabChange,

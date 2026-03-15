@@ -98,7 +98,9 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
               className={`py-4 border-b border-gray-100 text-center ${getTierColor(tier.tier.toLowerCase())}`}
             >
               <h4 className="font-bold text-sm capitalize mb-2">{tier.tier}</h4>
-              <div className={`w-10 h-10 mx-auto mb-3 rounded-full bg-gradient-to-br ${getTierGradient(tier.tier.toLowerCase())} flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 mx-auto mb-3  bg-gradient-to-br ${getTierGradient(tier.tier.toLowerCase())} flex items-center justify-center`}
+              >
                 <Award className="w-5 h-5 text-white" />
               </div>
               <p className="text-2xl font-bold mb-1">{tier.apr}%</p>
@@ -121,12 +123,24 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.node')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.region')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.tier')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.staked')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.uptime')}</th>
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.staking.rewards')}</th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.node')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.region')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.tier')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.staked')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.uptime')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                  {t('winklink.staking.rewards')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -145,7 +159,9 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
                     </div>
                   </td>
                   <td className="py-2 px-3">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getTierColor(node.tier)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getTierColor(node.tier)}`}
+                    >
                       {node.tier}
                     </span>
                   </td>

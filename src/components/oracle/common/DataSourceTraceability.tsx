@@ -85,12 +85,7 @@ const dataSourceTypeConfig = {
     label: '交易所',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-        />
+        <path strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
     ),
     bgColor: 'bg-blue-50',
@@ -101,7 +96,6 @@ const dataSourceTypeConfig = {
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
-          strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={1.5}
           d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
@@ -116,7 +110,6 @@ const dataSourceTypeConfig = {
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
-          strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={1.5}
           d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
@@ -134,9 +127,9 @@ function HealthIndicator({ status }: { status: HealthStatus }) {
     <div className="flex items-center gap-2">
       <span className={`relative flex h-2.5 w-2.5`}>
         <span
-          className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseColor} opacity-75`}
+          className={`animate-ping absolute inline-flex h-full w-full  ${config.pulseColor} opacity-75`}
         ></span>
-        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.bgColor}`}></span>
+        <span className={`relative inline-flex  h-2.5 w-2.5 ${config.bgColor}`}></span>
       </span>
       <span className={`text-xs font-medium ${config.textColor}`}>{config.label}</span>
     </div>
@@ -149,11 +142,11 @@ function DataSourceCard({ source }: { source: DataSource }) {
 
   return (
     <div
-      className={`bg-white border ${healthConf.borderColor} rounded-xl p-4 hover:shadow-md transition-all duration-200`}
+      className={`bg-white border ${healthConf.borderColor}  p-4 hover: transition-all duration-200`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-lg ${typeConfig.bgColor} ${typeConfig.textColor}`}>
+          <div className={`p-2.5  ${typeConfig.bgColor} ${typeConfig.textColor}`}>
             {typeConfig.icon}
           </div>
           <div>
@@ -165,19 +158,19 @@ function DataSourceCard({ source }: { source: DataSource }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50  p-2.5">
           <p className="text-xs text-gray-500 mb-0.5">延迟</p>
           <p className="text-sm font-semibold text-gray-900">{source.latency}ms</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50  p-2.5">
           <p className="text-xs text-gray-500 mb-0.5">在线率</p>
           <p className="text-sm font-semibold text-gray-900">{source.uptime.toFixed(1)}%</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50  p-2.5">
           <p className="text-xs text-gray-500 mb-0.5">可靠性</p>
           <p className="text-sm font-semibold text-gray-900">{source.reliability.toFixed(1)}%</p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-2.5">
+        <div className="bg-gray-50  p-2.5">
           <p className="text-xs text-gray-500 mb-0.5">贡献度</p>
           <p className="text-sm font-semibold text-gray-900">{source.contribution.toFixed(1)}%</p>
         </div>
@@ -187,24 +180,17 @@ function DataSourceCard({ source }: { source: DataSource }) {
         <div className="flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
             />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
+            <path strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span>{source.location}</span>
         </div>
         <div className="flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -230,7 +216,7 @@ function AggregationFlowChart() {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">数据聚合流程</h3>
@@ -238,15 +224,15 @@ function AggregationFlowChart() {
         </div>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+            <div className="w-2.5 h-2.5  bg-green-500"></div>
             <span className="text-gray-600">已完成</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></div>
+            <div className="w-2.5 h-2.5  bg-blue-500 animate-pulse"></div>
             <span className="text-gray-600">处理中</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+            <div className="w-2.5 h-2.5  bg-gray-300"></div>
             <span className="text-gray-600">待处理</span>
           </div>
         </div>
@@ -258,7 +244,7 @@ function AggregationFlowChart() {
             <div key={step.id} className="flex-1 relative">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                  className={`w-10 h-10  flex items-center justify-center text-sm font-semibold ${
                     step.status === 'completed'
                       ? 'bg-green-500 text-white'
                       : step.status === 'processing'
@@ -268,12 +254,7 @@ function AggregationFlowChart() {
                 >
                   {step.status === 'completed' ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
+                      <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
                     step.id
@@ -369,19 +350,17 @@ function ValidationMechanism() {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">数据验证机制</h3>
           <p className="text-xs text-gray-500 mt-0.5">共识验证与节点状态</p>
         </div>
-        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-          共识已达成
-        </div>
+        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium ">共识已达成</div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+        <div className="bg-gray-100 border border-gray-200  p-4">
           <div className="flex items-center gap-2 mb-2">
             <svg
               className="w-5 h-5 text-blue-600"
@@ -390,7 +369,6 @@ function ValidationMechanism() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
@@ -401,7 +379,7 @@ function ValidationMechanism() {
           <p className="text-2xl font-bold text-blue-600">67%</p>
           <p className="text-xs text-gray-500 mt-1">需要 2/3 节点同意</p>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+        <div className="bg-gray-100 border border-gray-200  p-4">
           <div className="flex items-center gap-2 mb-2">
             <svg
               className="w-5 h-5 text-purple-600"
@@ -410,7 +388,6 @@ function ValidationMechanism() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
@@ -426,10 +403,7 @@ function ValidationMechanism() {
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-700 mb-2">验证节点状态</p>
         {validationNodes.map((node) => (
-          <div
-            key={node.id}
-            className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg"
-          >
+          <div key={node.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 ">
             <div className="flex items-center gap-3">
               <HealthIndicator status={node.status} />
               <span className="text-sm font-medium text-gray-900">{node.name}</span>
@@ -464,7 +438,7 @@ function GeographicDistribution() {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">地理分布</h3>
@@ -473,7 +447,6 @@ function GeographicDistribution() {
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -494,9 +467,9 @@ function GeographicDistribution() {
                 <span className="font-semibold text-gray-900">{dist.percentage}%</span>
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-gray-100  h-2">
               <div
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
+                className="bg-gray-100 border border-gray-200 h-2  transition-all duration-500"
                 style={{ width: `${dist.percentage}%` }}
               ></div>
             </div>
@@ -545,13 +518,13 @@ function DependencyAnalysis() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">依赖度分析</h3>
           <p className="text-xs text-gray-500 mt-0.5">数据源依赖分布与风险评估</p>
         </div>
-        <div className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+        <div className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium ">
           中等集中度
         </div>
       </div>
@@ -562,16 +535,16 @@ function DependencyAnalysis() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-900">{dep.source}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${getRiskColor(dep.risk)}`}>
+                <span className={`text-xs px-2 py-0.5  ${getRiskColor(dep.risk)}`}>
                   {dep.risk === 'low' ? '低风险' : dep.risk === 'medium' ? '中风险' : '高风险'}
                 </span>
               </div>
               <span className="text-sm font-semibold text-gray-900">{dep.dependency}%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+              <div className="flex-1 bg-gray-100  h-1.5">
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                  className={`h-1.5  transition-all duration-500 ${
                     dep.risk === 'high'
                       ? 'bg-red-500'
                       : dep.risk === 'medium'
@@ -588,7 +561,7 @@ function DependencyAnalysis() {
       </div>
 
       <div className="mt-5 pt-4 border-t border-gray-100">
-        <div className="bg-blue-50 rounded-lg p-3">
+        <div className="bg-blue-50  p-3">
           <div className="flex items-start gap-2">
             <svg
               className="w-4 h-4 text-blue-600 mt-0.5"
@@ -597,7 +570,6 @@ function DependencyAnalysis() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -625,7 +597,7 @@ function HealthOverview() {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">健康度监控</h3>
@@ -633,8 +605,8 @@ function HealthOverview() {
         </div>
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full  bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex  h-2.5 w-2.5 bg-green-500"></span>
           </span>
           <span className="text-xs text-gray-600">实时监控中</span>
         </div>
@@ -654,12 +626,7 @@ function HealthOverview() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
+                    <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
                   <svg
@@ -669,7 +636,6 @@ function HealthOverview() {
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -678,9 +644,9 @@ function HealthOverview() {
                 )}
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-gray-100  h-2">
               <div
-                className={`h-2 rounded-full transition-all duration-500 ${
+                className={`h-2  transition-all duration-500 ${
                   metric.status === 'healthy' ? 'bg-green-500' : 'bg-yellow-500'
                 }`}
                 style={{ width: `${metric.value}%` }}
@@ -691,11 +657,11 @@ function HealthOverview() {
       </div>
 
       <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
-        <div className="bg-green-50 rounded-lg p-3 text-center">
+        <div className="bg-green-50  p-3 text-center">
           <p className="text-xs text-gray-500">健康数据源</p>
           <p className="text-xl font-bold text-green-600">18</p>
         </div>
-        <div className="bg-yellow-50 rounded-lg p-3 text-center">
+        <div className="bg-yellow-50  p-3 text-center">
           <p className="text-xs text-gray-500">需关注</p>
           <p className="text-xl font-bold text-yellow-600">3</p>
         </div>
@@ -860,15 +826,15 @@ export function DataSourceTraceability() {
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <div className="w-2 h-2  bg-green-500"></div>
             <span className="text-gray-600">健康 {healthyCount}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <div className="w-2 h-2  bg-yellow-500"></div>
             <span className="text-gray-600">警告 {warningCount}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <div className="w-2 h-2  bg-red-500"></div>
             <span className="text-gray-600">异常 {criticalCount}</span>
           </div>
           <div className="text-gray-400">|</div>
@@ -899,7 +865,7 @@ export function DataSourceTraceability() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-900">数据源列表</h3>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200  hover:bg-gray-50 transition-colors">
               全部
             </button>
             <button className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors">

@@ -90,7 +90,6 @@ function DonutChart({
               strokeWidth={strokeWidth}
               strokeDasharray={`${drawLength} ${circumference - drawLength}`}
               strokeDashoffset={-offset}
-              strokeLinecap="round"
               className="transition-all duration-500 ease-out"
             />
           );
@@ -159,10 +158,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             {segments.map((segment, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: segment.color }}
-                  />
+                  <div className="w-3 h-3 " style={{ backgroundColor: segment.color }} />
                   <span className="text-sm text-gray-600">{segment.label}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -201,9 +197,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                 {formatNumber(totalVotes, true)} / {formatNumber(votingData.quorum, true)}
               </span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100  overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full  transition-all duration-500 ${
                   isQuorumReached ? 'bg-green-500' : 'bg-blue-500'
                 }`}
                 style={{ width: `${Math.min(quorumProgress, 100)}%` }}
@@ -228,9 +224,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                 {supportRate.toFixed(1)}% / {votingData.threshold}%
               </span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100  overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full  transition-all duration-500 ${
                   isThresholdReached ? 'bg-green-500' : 'bg-yellow-500'
                 }`}
                 style={{ width: `${Math.min((supportRate / votingData.threshold) * 100, 100)}%` }}
@@ -241,7 +237,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
         {/* Status Badge */}
         <div
-          className={`p-3 rounded-lg ${
+          className={`p-3  ${
             isQuorumReached && isThresholdReached
               ? 'bg-green-50 border border-green-200'
               : isQuorumReached
@@ -264,14 +260,12 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             >
               {isQuorumReached && isThresholdReached ? (
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               ) : (
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -319,7 +313,7 @@ function ValidatorVoteList({
       borderColor: 'border-green-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       ),
     },
@@ -330,12 +324,7 @@ function ValidatorVoteList({
       borderColor: 'border-red-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       ),
     },
@@ -346,7 +335,7 @@ function ValidatorVoteList({
       borderColor: 'border-gray-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+          <path strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
         </svg>
       ),
     },
@@ -401,7 +390,7 @@ function ValidatorVoteList({
                 <button
                   key={pos}
                   onClick={() => setFilterPosition(pos)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  className={`px-3 py-1.5 text-xs font-medium  transition-all ${
                     filterPosition === pos
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -418,7 +407,7 @@ function ValidatorVoteList({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-xs border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="power">投票权</option>
               <option value="time">时间</option>
@@ -433,10 +422,7 @@ function ValidatorVoteList({
             const count = validatorVotes.filter((v) => v.position === pos).length;
             const config = positionConfig[pos];
             return (
-              <div
-                key={pos}
-                className={`p-3 rounded-lg border ${config.borderColor} ${config.bgColor}`}
-              >
+              <div key={pos} className={`p-3  border ${config.borderColor} ${config.bgColor}`}>
                 <div className="flex items-center gap-2">
                   <span className={config.color}>{config.icon}</span>
                   <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
@@ -494,7 +480,7 @@ function ValidatorVoteList({
                     </td>
                     <td className="py-3 px-3 text-center">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${config.bgColor} ${config.color}`}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium  ${config.bgColor} ${config.color}`}
                       >
                         {config.icon}
                         {config.label}
@@ -510,9 +496,9 @@ function ValidatorVoteList({
                     </td>
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-16 h-1.5 bg-gray-200  overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
+                            className={`h-full  ${
                               vote.reputation >= 90
                                 ? 'bg-green-500'
                                 : vote.reputation >= 80
@@ -544,7 +530,6 @@ function ValidatorVoteList({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -562,11 +547,11 @@ export function DisputeVotingPanel({ votingData, loading = false }: DisputeVotin
   if (loading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+        <div className="bg-white border border-gray-200  p-6 animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
-          <div className="h-40 bg-gray-200 rounded-full mx-auto w-40"></div>
+          <div className="h-40 bg-gray-200  mx-auto w-40"></div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
+        <div className="bg-white border border-gray-200  p-6 animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (

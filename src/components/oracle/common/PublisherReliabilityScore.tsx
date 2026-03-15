@@ -85,7 +85,7 @@ function TrendIndicator({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${color}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5  text-xs font-medium ${bg} ${color}`}
     >
       <span>{icon}</span>
       <span>{label}</span>
@@ -104,7 +104,12 @@ function MiniChart({ data, color = 'blue' }: { data: number[]; color?: string })
     return `${x},${y}`;
   });
 
-  const colorClass = color === 'green' ? chartColors.semantic.success : color === 'red' ? chartColors.semantic.danger : chartColors.recharts.primary;
+  const colorClass =
+    color === 'green'
+      ? chartColors.semantic.success
+      : color === 'red'
+        ? chartColors.semantic.danger
+        : chartColors.recharts.primary;
 
   return (
     <svg className="w-full h-12" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -115,9 +120,9 @@ function MiniChart({ data, color = 'blue' }: { data: number[]; color?: string })
 
 function AccuracyBar({ accuracy }: { accuracy: number }) {
   return (
-    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+    <div className="w-full bg-gray-100  h-2 overflow-hidden">
       <div
-        className={`h-full rounded-full transition-all duration-500 ${
+        className={`h-full  transition-all duration-500 ${
           accuracy >= 98 ? 'bg-green-500' : accuracy >= 95 ? 'bg-blue-500' : 'bg-yellow-500'
         }`}
         style={{ width: `${accuracy}%` }}
@@ -153,7 +158,7 @@ export function PublisherReliabilityScore({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50  p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
               {t('publisherReliability.historicalAccuracy')}
@@ -167,7 +172,7 @@ export function PublisherReliabilityScore({
           <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.last7Periods')}</p>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50  p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
               {t('publisherReliability.priceDeviation')}
@@ -185,16 +190,16 @@ export function PublisherReliabilityScore({
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50  p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-gray-700">
             {t('publisherReliability.submissionFrequency')}
           </span>
           <span className="text-lg font-bold text-gray-900">{stats.submissionFrequency}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-gray-200  h-3 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
+            className={`h-full  transition-all duration-500 ${
               stats.submissionFrequency >= 98
                 ? 'bg-green-500'
                 : stats.submissionFrequency >= 95
@@ -212,17 +217,17 @@ export function PublisherReliabilityScore({
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="text-center p-3 bg-white border border-gray-200 rounded-lg">
+        <div className="text-center p-3 bg-white border border-gray-200 ">
           <p className="text-2xl font-bold text-gray-900">
             {publisher.accuracy?.toFixed(1) ?? '-'}%
           </p>
           <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.currentAccuracy')}</p>
         </div>
-        <div className="text-center p-3 bg-white border border-gray-200 rounded-lg">
+        <div className="text-center p-3 bg-white border border-gray-200 ">
           <p className="text-2xl font-bold text-gray-900">{publisher.latency}ms</p>
           <p className="text-xs text-gray-500 mt-1">{t('publisherReliability.avgLatency')}</p>
         </div>
-        <div className="text-center p-3 bg-white border border-gray-200 rounded-lg">
+        <div className="text-center p-3 bg-white border border-gray-200 ">
           <p className="text-2xl font-bold text-gray-900">
             {publisher.priceDeviation ? `${publisher.priceDeviation.toFixed(2)}%` : '-'}
           </p>

@@ -25,12 +25,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           ),
           text: t('pyth.accuracy.trendImproving'),
@@ -45,12 +40,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
             </svg>
           ),
           text: t('pyth.accuracy.trendDeclining'),
@@ -65,7 +55,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+              <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
             </svg>
           ),
           text: t('pyth.accuracy.trendStable'),
@@ -89,7 +79,6 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -109,12 +98,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
+            <path strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         ),
       },
@@ -131,7 +115,6 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -144,7 +127,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
   );
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white  border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">{t('pyth.accuracy.title')}</h3>
         <div className="flex items-center gap-2">
@@ -154,7 +137,7 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg">
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 ">
           <GaugeChart
             value={stats.overallAccuracy}
             maxValue={100}
@@ -170,11 +153,11 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 ">
               <p className="text-sm text-gray-600 mb-1">{t('pyth.accuracy.avgDeviation')}</p>
               <p className="text-xl font-bold text-gray-900">{stats.avgDeviation}%</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 ">
               <p className="text-sm text-gray-600 mb-1">{t('pyth.accuracy.maxDeviation')}</p>
               <p className="text-xl font-bold text-orange-600">{stats.maxDeviation}%</p>
             </div>
@@ -182,19 +165,16 @@ export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsPro
 
           <div className="space-y-3">
             {conditionCards.map((card, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border ${card.color} transition-all hover:shadow-md`}
-              >
+              <div key={index} className={`p-4  border ${card.color} transition-all hover:`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {card.icon}
                     <span className="text-sm font-medium text-gray-700">{card.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-24 h-2 bg-gray-200  overflow-hidden">
                       <div
-                        className="h-full bg-current rounded-full transition-all duration-500"
+                        className="h-full bg-current  transition-all duration-500"
                         style={{ width: `${card.accuracy}%` }}
                       />
                     </div>

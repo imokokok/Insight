@@ -16,7 +16,7 @@ export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
   const maxDaily = Math.max(...data.map((d) => d.daily));
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="mb-4">
         <p className="text-gray-900 text-sm font-semibold">验证者收益趋势</p>
         <p className="text-gray-500 text-xs mt-0.5">30天收益趋势分析</p>
@@ -38,7 +38,7 @@ export function EarningsTrendChart({ data }: { data: EarningsTrend[] }) {
                 className="flex-1 flex flex-col justify-end items-center group relative"
               >
                 <div
-                  className="w-full bg-blue-500 rounded-t transition-all duration-200 group-hover:bg-blue-600"
+                  className="w-full bg-blue-500  transition-all duration-200 group-hover:bg-blue-600"
                   style={{ height: `${dailyHeight}%` }}
                 />
                 <div className="absolute bottom-full mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">

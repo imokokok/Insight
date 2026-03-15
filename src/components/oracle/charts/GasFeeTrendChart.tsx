@@ -222,7 +222,7 @@ export function GasFeeTrendChart({ height = 250 }: GasFeeTrendChartProps) {
                 if (!active || !payload || payload.length === 0) return null;
                 const gasFee = payload[0].value as number;
                 return (
-                  <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg">
+                  <div className="bg-white border border-gray-200  p-2 ">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <p className="text-sm font-bold text-blue-600">Gas费用: {gasFee} Gwei</p>
                   </div>

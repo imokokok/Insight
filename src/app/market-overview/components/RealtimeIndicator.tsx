@@ -45,25 +45,21 @@ export default function RealtimeIndicator({
       {/* 状态指示器 */}
       <div className="flex items-center gap-1.5">
         <div
-          className={`w-2 h-2 rounded-full ${getStatusColor()} ${
-            pulse && isConnected ? 'animate-pulse' : ''
-          }`}
+          className={`w-2 h-2 ${getStatusColor()} ${pulse && isConnected ? 'animate-pulse' : ''}`}
         />
         <span className="text-xs text-gray-500">{getStatusText()}</span>
       </div>
 
       {/* 延迟显示 */}
       {latency !== undefined && isConnected && (
-        <span className="text-xs text-gray-400">
-          {latency}ms
-        </span>
+        <span className="text-xs text-gray-400">{latency}ms</span>
       )}
 
       {/* 断开连接时的重连按钮 */}
       {!isConnected && onReconnect && (
         <button
           onClick={onReconnect}
-          className="flex items-center gap-1 px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
         >
           <Wifi className="w-3 h-3" />
           {locale === 'zh-CN' ? '重连' : 'Reconnect'}

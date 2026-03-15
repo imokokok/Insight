@@ -52,9 +52,9 @@ export default function AssetCategoryChart({
     if (active && payload && payload.length) {
       const item = payload[0].payload as AssetCategory;
       return (
-        <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 min-w-[180px]">
+        <div className="bg-white border border-gray-200 p-2 min-w-[180px]">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
             <span className="font-medium text-gray-900 text-sm">{item.label}</span>
           </div>
           <div className="space-y-1 text-sm">
@@ -106,7 +106,7 @@ export default function AssetCategoryChart({
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -169,7 +169,7 @@ export default function AssetCategoryChart({
               >
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <div className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900 text-sm">{item.label}</span>
                   </div>
                 </td>
@@ -205,10 +205,10 @@ export default function AssetCategoryChart({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setChartType('pie')}
-            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
+            className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'pie'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             <PieChartIcon className="w-3.5 h-3.5 inline mr-1" />
@@ -216,10 +216,10 @@ export default function AssetCategoryChart({
           </button>
           <button
             onClick={() => setChartType('bar')}
-            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
+            className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'bar'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 inline mr-1" />
@@ -227,10 +227,10 @@ export default function AssetCategoryChart({
           </button>
           <button
             onClick={() => setChartType('radar')}
-            className={`px-2.5 py-1 rounded-md text-sm transition-all ${
+            className={`px-2.5 py-1 text-sm border transition-colors ${
               chartType === 'radar'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-50 border-blue-200 text-blue-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             <Activity className="w-3.5 h-3.5 inline mr-1" />
@@ -262,22 +262,34 @@ export default function AssetCategoryChart({
               >
                 {data.map((entry) => (
                   <Cell
-                  key={`cell-${entry.category}`}
-                  fill={entry.color}
-                  stroke={selectedItem === entry.category ? chartColors.recharts.primary : 'transparent'}
-                  strokeWidth={selectedItem === entry.category ? 2 : 0}
-                  opacity={hoveredItem && hoveredItem !== entry.category ? 0.6 : 1}
-                  style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
-                />
+                    key={`cell-${entry.category}`}
+                    fill={entry.color}
+                    stroke={
+                      selectedItem === entry.category ? chartColors.recharts.primary : 'transparent'
+                    }
+                    strokeWidth={selectedItem === entry.category ? 2 : 0}
+                    opacity={hoveredItem && hoveredItem !== entry.category ? 0.6 : 1}
+                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                  />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           ) : chartType === 'bar' ? (
             <BarChart data={data} layout="vertical" margin={{ left: 90 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                horizontal={false}
+              />
               <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
-              <YAxis dataKey="label" type="category" stroke={chartColors.recharts.axis} fontSize={11} width={85} />
+              <YAxis
+                dataKey="label"
+                type="category"
+                stroke={chartColors.recharts.axis}
+                fontSize={11}
+                width={85}
+              />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="share"
@@ -324,14 +336,11 @@ export default function AssetCategoryChart({
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 text-xs">
+                      <div className="bg-white border border-gray-200 p-2 text-xs">
                         <p className="font-medium mb-1">{payload[0].payload.category}</p>
                         {payload.map((entry, idx) => (
                           <div key={idx} className="flex items-center gap-2">
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: entry.color }}
-                            />
+                            <div className="w-2 h-2" style={{ backgroundColor: entry.color }} />
                             <span>
                               {entry.name}:{' '}
                               {typeof entry.value === 'number'
@@ -357,16 +366,13 @@ export default function AssetCategoryChart({
           <button
             key={item.category}
             onClick={() => setSelectedItem(item.category === selectedItem ? null : item.category)}
-            className={`flex items-center gap-2 p-2 rounded transition-all text-left ${
+            className={`flex items-center gap-2 p-2 border transition-all text-left ${
               selectedItem === item.category
-                ? 'bg-blue-50 border border-blue-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-blue-50 border-blue-200'
+                : 'border-transparent hover:bg-gray-50'
             }`}
           >
-            <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: item.color }}
-            />
+            <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: item.color }} />
             <div className="min-w-0">
               <div className="text-xs font-medium text-gray-900 truncate">{item.label}</div>
               <div className="text-xs text-gray-500">

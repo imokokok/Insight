@@ -30,7 +30,7 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
 
     if (isAppError(error)) {
       const response = errorToResponse(error);
-      
+
       if (requestId) {
         const body = await response.json();
         return NextResponse.json(
@@ -38,7 +38,7 @@ export function createErrorMiddleware(options: ErrorMiddlewareOptions = {}) {
           { status: response.status, headers: response.headers }
         );
       }
-      
+
       return response;
     }
 
@@ -89,6 +89,6 @@ export function withErrorHandling<T>(
   options?: ErrorMiddlewareOptions
 ): Promise<T | NextResponse> {
   const errorMiddleware = createErrorMiddleware(options);
-  
+
   return fn().catch((error) => errorMiddleware(error));
 }

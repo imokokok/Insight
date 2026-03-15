@@ -12,7 +12,6 @@ interface ChainData {
 
 const tradingPairs = ['BTC/USD', 'ETH/USD', 'LINK/USD', 'SOL/USD', 'AVAX/USD'];
 
-// Simplified chain data - only major chains
 const chainDataMap: Record<string, ChainData[]> = {
   'BTC/USD': [
     { name: 'Ethereum', price: 67245.32, deviation: 0 },
@@ -46,7 +45,7 @@ const chainDataMap: Record<string, ChainData[]> = {
   ],
 };
 
-const getDeviationColor = (deviation: number): string => {
+const getDeviationStyle = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
   if (absDeviation < 0.1) return 'bg-emerald-50 border-emerald-200 text-emerald-700';
   if (absDeviation < 0.3) return 'bg-amber-50 border-amber-200 text-amber-700';
@@ -80,13 +79,12 @@ export default function CrossChainPriceMonitor() {
   const consistencyRate = (highConsistencyCount / currentData.length) * 100;
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-4">
-            <Globe className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
+            <Globe className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-600">
               {isZh ? '跨链监控' : 'Cross-Chain Monitor'}
             </span>
           </div>
@@ -100,16 +98,15 @@ export default function CrossChainPriceMonitor() {
           </p>
         </div>
 
-        {/* Trading Pair Selector */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
           {tradingPairs.map((pair) => (
             <button
               key={pair}
               onClick={() => setSelectedPair(pair)}
-              className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
+              className={`px-4 py-2 font-medium transition-colors duration-200 border ${
                 selectedPair === pair
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
             >
               {pair}
@@ -117,20 +114,19 @@ export default function CrossChainPriceMonitor() {
           ))}
         </div>
 
-        {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-            <div className="text-sm text-blue-600 mb-1">
+          <div className="bg-white border border-gray-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">
               {isZh ? '参考价格' : 'Reference Price'}
             </div>
             <div className="text-2xl font-bold text-gray-900">${avgPrice.toFixed(2)}</div>
           </div>
-          <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
-            <div className="text-sm text-amber-600 mb-1">{isZh ? '最大偏差' : 'Max Deviation'}</div>
+          <div className="bg-white border border-gray-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">{isZh ? '最大偏差' : 'Max Deviation'}</div>
             <div className="text-2xl font-bold text-gray-900">{maxDeviation.toFixed(3)}%</div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-            <div className="text-sm text-emerald-600 mb-1">
+          <div className="bg-white border border-gray-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">
               {isZh ? '一致性率' : 'Consistency Rate'}
             </div>
             <div className="flex items-center gap-2">
@@ -140,8 +136,7 @@ export default function CrossChainPriceMonitor() {
           </div>
         </div>
 
-        {/* Price Consistency Grid */}
-        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+        <div className="bg-white border border-gray-200 p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {currentData.map((chain) => {
               const isHovered = hoveredChain === chain.name;
@@ -151,16 +146,15 @@ export default function CrossChainPriceMonitor() {
                 <div
                   key={chain.name}
                   className={`
-                    relative rounded-xl border-2 p-4 cursor-pointer transition-all duration-300
-                    ${getDeviationColor(chain.deviation)}
-                    ${isHovered ? 'scale-105 shadow-xl' : 'shadow-sm'}
+                    relative border p-4 cursor-pointer transition-colors duration-200
+                    ${getDeviationStyle(chain.deviation)}
+                    ${isHovered ? 'border-gray-900' : ''}
                   `}
                   onMouseEnter={() => setHoveredChain(chain.name)}
                   onMouseLeave={() => setHoveredChain(null)}
                 >
-                  {/* Consistency indicator */}
                   {consistencyStatus === 'high' && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full" />
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500" />
                   )}
 
                   <div className="flex items-center justify-between mb-3">
@@ -173,19 +167,16 @@ export default function CrossChainPriceMonitor() {
                   <div className="text-2xl font-bold font-mono mb-2">${chain.price.toFixed(2)}</div>
 
                   <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${getDeviationIntensity(chain.deviation)}`}
-                    />
+                    <div className={`w-2 h-2 ${getDeviationIntensity(chain.deviation)}`} />
                     <span className="text-sm font-medium">
                       {chain.deviation > 0 ? '+' : ''}
                       {chain.deviation.toFixed(3)}%
                     </span>
                   </div>
 
-                  {/* Deviation bar */}
-                  <div className="mt-3 h-1.5 bg-white/50 rounded-full overflow-hidden">
+                  <div className="mt-3 h-1.5 bg-white border border-gray-200 overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${getDeviationIntensity(chain.deviation)}`}
+                      className={`h-full ${getDeviationIntensity(chain.deviation)}`}
                       style={{
                         width: `${Math.min(Math.abs(chain.deviation) * 10, 100)}%`,
                         marginLeft: chain.deviation < 0 ? 'auto' : '0',
@@ -198,22 +189,21 @@ export default function CrossChainPriceMonitor() {
             })}
           </div>
 
-          {/* Legend */}
           <div className="flex flex-wrap items-center justify-center gap-6 mt-6 pt-6 border-t border-gray-200">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <div className="w-3 h-3 bg-emerald-500" />
               <span className="text-sm text-gray-600">
                 {isZh ? '高一致性 (<0.1%)' : 'High Consistency (<0.1%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
+              <div className="w-3 h-3 bg-amber-500" />
               <span className="text-sm text-gray-600">
                 {isZh ? '中等一致性 (0.1-0.3%)' : 'Medium Consistency (0.1-0.3%)'}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <div className="w-3 h-3 bg-red-500" />
               <span className="text-sm text-gray-600">
                 {isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}
               </span>
@@ -221,9 +211,8 @@ export default function CrossChainPriceMonitor() {
           </div>
         </div>
 
-        {/* Info Banner */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
+        <div className="mt-6 bg-blue-50 border border-blue-200 p-4 flex items-center gap-4">
+          <div className="p-2 bg-blue-100">
             <TrendingUp className="w-5 h-5 text-blue-600" />
           </div>
           <div>

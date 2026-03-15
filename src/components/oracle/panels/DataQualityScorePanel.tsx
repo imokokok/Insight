@@ -138,7 +138,6 @@ function CircularProgress({
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
           stroke={color}
           fill="transparent"
           r={radius}
@@ -159,12 +158,7 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
     return (
       <div className="flex items-center gap-1 text-green-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
       </div>
     );
@@ -173,12 +167,7 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
     return (
       <div className="flex items-center gap-1 text-red-600">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
+          <path strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
       </div>
     );
@@ -186,7 +175,7 @@ function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
   return (
     <div className="flex items-center gap-1 text-gray-400">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
     </div>
   );
@@ -203,7 +192,7 @@ function DimensionCard({ dimension, index }: { dimension: QualityDimension; inde
           : 'bg-red-500';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200  p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -217,9 +206,9 @@ function DimensionCard({ dimension, index }: { dimension: QualityDimension; inde
         <TrendIndicator trend={dimension.trend} />
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="flex-1 h-2 bg-gray-200  overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+            className={`h-full  transition-all duration-500 ${progressColor}`}
             style={{ width: `${Math.min(100, dimension.score)}%` }}
           />
         </div>
@@ -253,7 +242,7 @@ function AlertBanner({ alert }: { alert: QualityAlert }) {
         : 'text-blue-600';
 
   return (
-    <div className={`${bgColor} border rounded-lg p-4`}>
+    <div className={`${bgColor} border  p-4`}>
       <div className="flex items-start gap-3">
         <svg
           className={`w-5 h-5 ${iconColor} flex-shrink-0 mt-0.5`}
@@ -528,7 +517,7 @@ export function DataQualityScorePanel({
   }, [overallScore, historicalScores]);
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl p-6 ${className}`}>
+    <div className={`bg-white border border-gray-200  p-6 ${className}`}>
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -539,9 +528,7 @@ export function DataQualityScorePanel({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">{symbol}</span>
-            <span className="px-2 py-0.5 bg-pink-100 text-pink-700 text-xs font-medium rounded-full">
-              Pyth
-            </span>
+            <span className="px-2 py-0.5 bg-pink-100 text-pink-700 text-xs font-medium ">Pyth</span>
           </div>
         </div>
       </div>
@@ -555,7 +542,7 @@ export function DataQualityScorePanel({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+        <div className="flex flex-col items-center justify-center p-6 bg-gray-100 border border-gray-200 ">
           <CircularProgress score={overallScore} />
           <div className="mt-4 text-center">
             <div className="flex items-center justify-center gap-2">
@@ -583,7 +570,7 @@ export function DataQualityScorePanel({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className={`rounded-lg p-4 ${getScoreBgColor(dimensions[0].score)}`}>
+        <div className={` p-4 ${getScoreBgColor(dimensions[0].score)}`}>
           <div className="flex items-center gap-2 mb-2">
             <svg
               className="w-5 h-5 text-pink-600"
@@ -592,7 +579,6 @@ export function DataQualityScorePanel({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -610,7 +596,7 @@ export function DataQualityScorePanel({
           </p>
         </div>
 
-        <div className={`rounded-lg p-4 ${getScoreBgColor(dimensions[1].score)}`}>
+        <div className={` p-4 ${getScoreBgColor(dimensions[1].score)}`}>
           <div className="flex items-center gap-2 mb-2">
             <svg
               className="w-5 h-5 text-purple-600"
@@ -619,7 +605,6 @@ export function DataQualityScorePanel({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
@@ -637,7 +622,7 @@ export function DataQualityScorePanel({
           </p>
         </div>
 
-        <div className={`rounded-lg p-4 ${getScoreBgColor(dimensions[2].score)}`}>
+        <div className={` p-4 ${getScoreBgColor(dimensions[2].score)}`}>
           <div className="flex items-center gap-2 mb-2">
             <svg
               className="w-5 h-5 text-blue-600"
@@ -645,12 +630,7 @@ export function DataQualityScorePanel({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
+              <path strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span className="text-sm font-medium text-gray-700">
               {t('pythNetwork.dataQuality.avgLatency')}
@@ -666,7 +646,7 @@ export function DataQualityScorePanel({
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50  p-4">
         <h4 className="text-sm font-medium text-gray-700 mb-3">
           {t('pythNetwork.dataQuality.scoreHistory')}
         </h4>
@@ -684,7 +664,7 @@ export function DataQualityScorePanel({
             return (
               <div
                 key={index}
-                className={`flex-1 ${color} rounded-t transition-all duration-300`}
+                className={`flex-1 ${color}  transition-all duration-300`}
                 style={{ height: `${height}%` }}
                 title={`${score.score.toFixed(1)} - ${new Date(score.timestamp).toLocaleTimeString()}`}
               />
@@ -699,21 +679,21 @@ export function DataQualityScorePanel({
 
       <div className="mt-6 grid grid-cols-4 gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500" />
+          <div className="w-3 h-3  bg-green-500" />
           <span className="text-xs text-gray-600">
             {t('pythNetwork.dataQuality.excellent')} (≥80)
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-500" />
+          <div className="w-3 h-3  bg-blue-500" />
           <span className="text-xs text-gray-600">{t('pythNetwork.dataQuality.good')} (60-79)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-yellow-500" />
+          <div className="w-3 h-3  bg-yellow-500" />
           <span className="text-xs text-gray-600">{t('pythNetwork.dataQuality.fair')} (40-59)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
+          <div className="w-3 h-3  bg-red-500" />
           <span className="text-xs text-gray-600">
             {t('pythNetwork.dataQuality.poor')} (&lt;40)
           </span>

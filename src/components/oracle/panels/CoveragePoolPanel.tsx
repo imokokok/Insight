@@ -62,7 +62,6 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
@@ -83,7 +82,6 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -94,15 +92,15 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-emerald-600">{data.coverageRatio}%</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium ${coverageStatus.bgColor} ${coverageStatus.color}`}
+                className={`text-xs px-2 py-0.5  font-medium ${coverageStatus.bgColor} ${coverageStatus.color}`}
               >
                 {coverageStatus.label}
               </span>
             </div>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-gray-100  h-3 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+              className="h-full  bg-gray-100 border border-gray-200 transition-all duration-500"
               style={{ width: `${data.coverageRatio}%` }}
             />
           </div>
@@ -120,7 +118,6 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
@@ -133,9 +130,9 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
           </span>
         </div>
 
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
+        <div className="bg-gray-100 border border-gray-200  p-4 border border-green-100">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
+            <div className="p-2 bg-green-100 ">
               <svg
                 className="w-5 h-5 text-green-600"
                 fill="none"
@@ -143,7 +140,6 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -161,7 +157,7 @@ export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
           </div>
         </div>
 
-        <button className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md">
+        <button className="w-full py-3 px-4 bg-gray-100 border border-gray-200 text-white font-medium  hover:from-green-700 hover:to-emerald-700 transition-all duration-200  hover:">
           {t('coveragePool.participateButton')}
         </button>
         <p className="text-xs text-gray-400 text-center">{t('coveragePool.participateDesc')}</p>

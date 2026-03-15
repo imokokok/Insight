@@ -58,7 +58,7 @@ function PriceFlashIndicator({
 
   return (
     <div
-      className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold animate-pulse ${
+      className={`absolute top-2 right-2 px-2 py-1 text-xs font-bold animate-pulse ${
         direction === 'up' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
       }`}
     >
@@ -87,7 +87,7 @@ function ConnectionStatusIndicator({
 
   return (
     <div className="flex items-center gap-2 text-xs text-gray-500">
-      <span className={`w-2 h-2 rounded-full ${config.color} ${config.animate}`} />
+      <span className={`w-2 h-2 ${config.color} ${config.animate}`} />
       <span>{config.text}</span>
       {lastUpdate && (
         <span className="text-gray-400">· 最后更新: {lastUpdate.toLocaleTimeString()}</span>
@@ -223,7 +223,10 @@ export function PriceChartRealtime({
       };
       img.src = url;
     } catch (error) {
-      logger.error('Failed to export chart', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Failed to export chart',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }, [generateFilename]);
 
@@ -295,7 +298,7 @@ export function PriceChartRealtime({
             <Icons.chart />
             {t('priceQuery.chart.title')}
             {enableRealtime && (
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium border border-emerald-200">
                 实时
               </span>
             )}
@@ -316,7 +319,7 @@ export function PriceChartRealtime({
 
       {/* 实时价格显示 */}
       {enableRealtime && priceData && (
-        <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-emerald-600 font-medium">{symbol} 实时价格</p>
@@ -374,7 +377,11 @@ export function PriceChartRealtime({
                   );
                 })}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                vertical={false}
+              />
               <XAxis
                 dataKey="time"
                 stroke={chartColors.recharts.axis}
@@ -435,7 +442,11 @@ export function PriceChartRealtime({
                     strokeWidth={strokeWidth}
                     strokeOpacity={opacity}
                     dot={false}
-                    activeDot={isHidden ? false : { r: selectedRow === `${provider}-${chain}` ? 6 : 5, strokeWidth: 0 }}
+                    activeDot={
+                      isHidden
+                        ? false
+                        : { r: selectedRow === `${provider}-${chain}` ? 6 : 5, strokeWidth: 0 }
+                    }
                     yAxisId="left"
                   />
                 );
@@ -458,7 +469,12 @@ export function PriceChartRealtime({
                           r: 6,
                           strokeWidth: 2,
                           stroke: chartColors.recharts.white,
-                          fill: flashDirection === 'up' ? semanticColors.success.main : flashDirection === 'down' ? semanticColors.danger.main : semanticColors.success.main,
+                          fill:
+                            flashDirection === 'up'
+                              ? semanticColors.success.main
+                              : flashDirection === 'down'
+                                ? semanticColors.danger.main
+                                : semanticColors.success.main,
                         }
                   }
                   yAxisId="left"

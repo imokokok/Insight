@@ -412,8 +412,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 0,
       dataFeeds: 1000,
       hourlyActivity: [
-        1200, 1100, 1000, 900, 800, 900, 1100, 1500, 2000, 2600, 3000, 3200, 3100, 3000, 2900,
-        2950, 3050, 3150, 3100, 2650, 2300, 1850, 1500, 1300,
+        1200, 1100, 1000, 900, 800, 900, 1100, 1500, 2000, 2600, 3000, 3200, 3100, 3000, 2900, 2950,
+        3050, 3150, 3100, 2650, 2300, 1850, 1500, 1300,
       ],
       status: 'online',
       latency: 80,
@@ -473,8 +473,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 15000000,
       dataFeeds: 280,
       hourlyActivity: [
-        1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700,
-        5400, 5100, 4800, 4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
+        1800, 1650, 1500, 1350, 1200, 1350, 1650, 2400, 3300, 4200, 5100, 5700, 5400, 5100, 4800,
+        4950, 5250, 5550, 5100, 4200, 3300, 2550, 2100, 1950,
       ],
       status: 'online',
       latency: 120,
@@ -534,8 +534,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 20000000,
       dataFeeds: 350,
       hourlyActivity: [
-        2400, 2200, 2000, 1800, 1600, 1800, 2200, 3200, 4400, 5600, 6800, 7600,
-        7200, 6800, 6400, 6600, 7000, 7400, 6800, 5600, 4400, 3400, 2800, 2600,
+        2400, 2200, 2000, 1800, 1600, 1800, 2200, 3200, 4400, 5600, 6800, 7600, 7200, 6800, 6400,
+        6600, 7000, 7400, 6800, 5600, 4400, 3400, 2800, 2600,
       ],
       status: 'online',
       latency: 95,
@@ -594,8 +594,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 25000000,
       dataFeeds: 85,
       hourlyActivity: [
-        1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800,
-        3600, 3400, 3200, 3300, 3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
+        1200, 1100, 1000, 950, 900, 950, 1100, 1500, 2100, 2800, 3400, 3800, 3600, 3400, 3200, 3300,
+        3500, 3700, 3400, 2800, 2200, 1700, 1400, 1300,
       ],
       status: 'online',
       latency: 140,
@@ -617,9 +617,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     name: 'WINkLink',
     symbol: 'WINKLINK',
     defaultChain: Blockchain.BNB_CHAIN,
-    supportedChains: [
-      Blockchain.BNB_CHAIN,
-    ],
+    supportedChains: [Blockchain.BNB_CHAIN],
     client: new WINkLinkClient(),
     iconBgColor: 'bg-pink-600',
     icon: (
@@ -650,8 +648,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       totalStaked: 45000000,
       dataFeeds: 180,
       hourlyActivity: [
-        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200,
-        8800, 8400, 8000, 8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
+        2800, 2600, 2400, 2200, 2000, 2200, 2600, 3800, 5200, 6800, 8200, 9200, 8800, 8400, 8000,
+        8200, 8600, 9000, 8400, 6800, 5400, 4200, 3400, 3000,
       ],
       status: 'online',
       latency: 110,
@@ -683,7 +681,9 @@ export function getAllOracleConfigs(): OracleConfig[] {
 }
 
 export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
-  return Object.values(oracleConfigs).sort((a, b) => b.marketData.marketCap - a.marketData.marketCap);
+  return Object.values(oracleConfigs).sort(
+    (a, b) => b.marketData.marketCap - a.marketData.marketCap
+  );
 }
 
 export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {

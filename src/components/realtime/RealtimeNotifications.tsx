@@ -121,7 +121,7 @@ export function RealtimeNotifications({
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`pointer-events-auto border-l-4 rounded-lg shadow-lg p-4 transition-all duration-300 transform ${
+          className={`pointer-events-auto border-l-4   p-4 transition-all duration-300 transform ${
             typeColors[notification.type]
           } ${notification.read ? 'opacity-60' : 'opacity-100'}`}
           onClick={() => markAsRead(notification.id)}
@@ -157,7 +157,7 @@ export function NotificationBadge({ count }: { count: number }) {
   if (count === 0) return null;
 
   return (
-    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs  h-5 w-5 flex items-center justify-center font-bold">
       {count > 9 ? '9+' : count}
     </span>
   );

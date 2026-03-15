@@ -47,10 +47,11 @@ export default function SnapshotPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 w-64 mb-2" />
+          <div className="h-4 bg-gray-200 w-48 mb-8" />
+          <div className="h-96 bg-gray-200" />
         </div>
       </div>
     );
@@ -58,28 +59,12 @@ export default function SnapshotPage() {
 
   if (error || !snapshot) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">{error || '快照不存在'}</h1>
-          <p className="text-gray-600 mb-6">该快照可能已被删除或未设置为公开分享</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-red-50 border border-red-200 p-6 text-center">
+          <p className="text-red-600 mb-4">{error || '快照不存在或已被删除'}</p>
           <Link
             href="/"
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
           >
             返回首页
           </Link>
@@ -94,9 +79,9 @@ export default function SnapshotPage() {
         <div className="mb-6">
           <Link
             href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -108,32 +93,51 @@ export default function SnapshotPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{snapshot.symbol} 价格快照</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  创建于 {formatTimestamp(snapshot.timestamp)}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                  公开分享
-                </span>
+        <div className="bg-white border border-gray-200 p-6 mb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                {snapshot.symbol} 价格快照
+              </h1>
+              <p className="text-gray-500 text-sm">创建于 {formatTimestamp(snapshot.timestamp)}</p>
+              <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                <span>交易对: {snapshot.symbol}</span>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                公开分享
+              </span>
+            </div>
           </div>
+        </div>
 
+        <div className="bg-white border border-gray-200 p-6">
           <div className="p-6">
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">配置信息</h3>
+              <div className="bg-gray-50 border border-gray-100 p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">交易对:</span>
+                    <span className="ml-2 font-medium">{snapshot.symbol}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">选中的预言机:</span>
+                    <span className="ml-2 font-medium">{snapshot.selectedOracles.join(', ')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">平均价格</p>
                 <p className="mt-1 text-xl font-semibold text-gray-900">
                   ${snapshot.stats.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">加权均价</p>
                 <p className="mt-1 text-xl font-semibold text-gray-900">
                   $
@@ -142,13 +146,13 @@ export default function SnapshotPage() {
                   })}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">最高价</p>
                 <p className="mt-1 text-xl font-semibold text-green-600">
                   ${snapshot.stats.maxPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">最低价</p>
                 <p className="mt-1 text-xl font-semibold text-red-600">
                   ${snapshot.stats.minPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
@@ -157,7 +161,7 @@ export default function SnapshotPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">价格区间</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
                   $
@@ -166,7 +170,7 @@ export default function SnapshotPage() {
                   })}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">标准偏差</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
                   $
@@ -175,7 +179,7 @@ export default function SnapshotPage() {
                   })}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-100 p-4">
                 <p className="text-sm text-gray-500">偏差百分比</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
                   {snapshot.stats.standardDeviationPercent.toFixed(4)}%
@@ -183,65 +187,49 @@ export default function SnapshotPage() {
               </div>
             </div>
 
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                选中的预言机 ({snapshot.selectedOracles.length})
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {snapshot.selectedOracles.map((oracle) => (
-                  <span
-                    key={oracle}
-                    className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full"
-                  >
-                    {oracleNames[oracle as OracleProvider]}
-                  </span>
-                ))}
-              </div>
-            </div>
-
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">价格数据详情</h2>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">价格数据</h3>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">
                         预言机
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">
                         交易对
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        链
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">链</th>
+                      <th className="text-right py-2 px-3 text-sm font-medium text-gray-700">
                         价格
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="text-right py-2 px-3 text-sm font-medium text-gray-700">
                         置信度
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
                     {snapshot.priceData.map((price, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-2 px-3">
+                          <span
+                            className="inline-flex items-center gap-2 px-2 py-1 text-sm border"
+                            style={{
+                              backgroundColor: '#e0e7ff',
+                              color: '#4338ca',
+                              borderColor: '#c7d2fe',
+                            }}
+                          >
+                            <span className="w-2 h-2" style={{ backgroundColor: '#4338ca' }} />
                             {oracleNames[price.provider as OracleProvider]}
                           </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                          {price.symbol}
+                        <td className="py-2 px-3 text-sm text-gray-600">{price.symbol}</td>
+                        <td className="py-2 px-3 text-sm text-gray-600">{price.chain || '-'}</td>
+                        <td className="py-2 px-3 text-right font-mono text-sm">
+                          ${price.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                          {price.chain || '-'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right">
-                          <span className="text-sm font-mono text-gray-900">
-                            ${price.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-600">
+                        <td className="py-2 px-3 text-right text-sm text-gray-600">
                           {price.confidence ? `${(price.confidence * 100).toFixed(1)}%` : '-'}
                         </td>
                       </tr>
@@ -249,13 +237,6 @@ export default function SnapshotPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>快照ID: {snapshot.id}</span>
-              <span>快照时间: {formatTimestamp(snapshot.timestamp)}</span>
             </div>
           </div>
         </div>

@@ -78,7 +78,7 @@ export default function RefreshControl({
       <button
         onClick={handleRefresh}
         disabled={isRefreshing}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
       >
         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         <span className="hidden sm:inline">
@@ -87,8 +87,8 @@ export default function RefreshControl({
               ? '刷新中...'
               : 'Refreshing...'
             : locale === 'zh-CN'
-            ? '刷新'
-            : 'Refresh'}
+              ? '刷新'
+              : 'Refresh'}
         </span>
       </button>
 
@@ -98,7 +98,7 @@ export default function RefreshControl({
         <select
           value={autoRefreshInterval}
           onChange={(e) => onAutoRefreshChange?.(parseInt(e.target.value))}
-          className="px-2 py-1 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-2 py-1 text-sm border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value={0}>{locale === 'zh-CN' ? '手动' : 'Manual'}</option>
           <option value={30}>{locale === 'zh-CN' ? '30秒' : '30s'}</option>
@@ -110,9 +110,7 @@ export default function RefreshControl({
 
       {/* 倒计时 */}
       {autoRefreshInterval > 0 && countdown > 0 && (
-        <div className="text-xs text-gray-500">
-          {formatCountdown(countdown)}
-        </div>
+        <div className="text-xs text-gray-500">{formatCountdown(countdown)}</div>
       )}
 
       {/* 最后更新时间 */}
@@ -120,9 +118,7 @@ export default function RefreshControl({
         {showSuccess ? (
           <>
             <Check className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-green-600">
-              {locale === 'zh-CN' ? '已更新' : 'Updated'}
-            </span>
+            <span className="text-green-600">{locale === 'zh-CN' ? '已更新' : 'Updated'}</span>
           </>
         ) : (
           <>

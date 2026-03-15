@@ -61,7 +61,7 @@ export default function RedStonePage() {
         title: t('redstone.stats.dataProviders'),
         value: '25+',
         change: '+8%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -77,7 +77,7 @@ export default function RedStonePage() {
         title: t('redstone.stats.supportedAssets'),
         value: '1000+',
         change: '+15%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -93,7 +93,7 @@ export default function RedStonePage() {
         title: t('redstone.stats.supportedChains'),
         value: `${config.supportedChains.length}+`,
         change: '0%',
-        changeType: 'neutral' as const,
+        changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -110,7 +110,7 @@ export default function RedStonePage() {
         value: '98.5',
         suffix: '/100',
         change: '+2%',
-        changeType: 'positive' as const,
+        changeType: 'positive' as 'positive' | 'negative' | 'neutral',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

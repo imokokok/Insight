@@ -81,9 +81,7 @@ export class PythClient extends BaseOracleClient {
       );
     } catch (error) {
       throw this.createError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch historical prices from Pyth',
+        error instanceof Error ? error.message : 'Failed to fetch historical prices from Pyth',
         'PYTH_HISTORICAL_ERROR'
       );
     }

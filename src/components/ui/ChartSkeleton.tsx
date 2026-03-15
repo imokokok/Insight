@@ -31,7 +31,7 @@ export function ChartSkeleton({
         </div>
       )}
 
-      <div className="flex-1 bg-gray-50 rounded-lg p-4 h-full">
+      <div className="flex-1 bg-gray-50  p-4 h-full">
         <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
           {variant === 'price' && (
             <>
@@ -193,12 +193,10 @@ interface MetricCardSkeletonProps {
 
 export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
   return (
-    <div
-      className={`animate-pulse rounded-2xl border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}
-    >
+    <div className={`animate-pulse  border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}>
       <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-xl bg-gray-200 h-11 w-11" />
-        <div className="h-6 w-16 bg-gray-200 rounded-full" />
+        <div className="p-3  bg-gray-200 h-11 w-11" />
+        <div className="h-6 w-16 bg-gray-200 " />
       </div>
       <div className="flex-1">
         <div className="h-4 w-24 bg-gray-200 rounded mb-2" />

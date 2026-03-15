@@ -21,20 +21,23 @@ interface PageHeaderProps {
 
 const TIME_RANGES: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
-function formatLastUpdate(timestamp: number | undefined): string {
+function formatLastUpdate(
+  timestamp: number | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   if (!timestamp) return '';
 
   const now = Date.now();
   const diff = now - timestamp;
 
   if (diff < 5000) {
-    return '刚刚更新';
+    return t('common.time.justUpdated');
   } else if (diff < 60000) {
-    return `${Math.floor(diff / 1000)}秒前`;
+    return t('common.time.secondsAgo', { seconds: Math.floor(diff / 1000) });
   } else if (diff < 3600000) {
-    return `${Math.floor(diff / 60000)}分钟前`;
+    return t('common.time.minutesAgo', { minutes: Math.floor(diff / 60000) });
   } else {
-    return `${Math.floor(diff / 3600000)}小时前`;
+    return t('common.time.hoursAgo', { hours: Math.floor(diff / 3600000) });
   }
 }
 
@@ -51,7 +54,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   const { t } = useI18n();
   const [showExportModal, setShowExportModal] = useState(false);
-  const [displayTime, setDisplayTime] = useState(formatLastUpdate(lastUpdateTime));
+  const [displayTime, setDisplayTime] = useState(formatLastUpdate(lastUpdateTime, t));
   const [showJustUpdated, setShowJustUpdated] = useState(false);
   const { globalTimeRange, setGlobalTimeRange } = useTimeRange();
 
@@ -65,10 +68,10 @@ export function PageHeader({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setDisplayTime(formatLastUpdate(lastUpdateTime));
+      setDisplayTime(formatLastUpdate(lastUpdateTime, t));
     }, 1000);
     return () => clearInterval(interval);
-  }, [lastUpdateTime]);
+  }, [lastUpdateTime, t]);
 
   const handleExportClick = () => {
     if (onExport) {
@@ -98,15 +101,15 @@ export function PageHeader({
 
             <div className="flex items-center gap-2 flex-wrap">
               {showTimeRange && (
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center bg-gray-100 p-1 border border-gray-200">
                   {TIME_RANGES.map((range) => (
                     <button
                       key={range}
                       onClick={() => setGlobalTimeRange(range)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                      className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                         globalTimeRange === range
-                          ? 'bg-white text-blue-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'bg-white text-blue-600 border border-gray-300'
+                          : 'text-gray-600 hover:text-gray-900 hover:border-gray-300 border border-transparent'
                       }`}
                     >
                       {t(`chainlink.timeRange.${range}`)}
@@ -119,7 +122,7 @@ export function PageHeader({
                 <button
                   onClick={onRefresh}
                   disabled={isRefreshing}
-                  className="relative flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all duration-200 disabled:opacity-50 overflow-hidden"
+                  className="relative flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 overflow-hidden"
                 >
                   {isRefreshing && <span className="absolute inset-0 bg-blue-50 animate-pulse" />}
                   <svg
@@ -129,7 +132,6 @@ export function PageHeader({
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
@@ -139,12 +141,12 @@ export function PageHeader({
                 </button>
 
                 {showJustUpdated && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full animate-pulse">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 border border-green-200 animate-pulse">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 bg-green-500"></span>
                     </span>
-                    刚刚更新
+                    {t('common.time.justUpdated')}
                   </span>
                 )}
 
@@ -156,11 +158,10 @@ export function PageHeader({
               {showExport && onExport && (
                 <button
                   onClick={handleExportClick}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"

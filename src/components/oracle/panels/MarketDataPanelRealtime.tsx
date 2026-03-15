@@ -94,10 +94,8 @@ function RealtimePriceDisplay({
       </div>
       {change24h !== undefined && (
         <div
-          className={`mt-2 px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
-            change24h >= 0
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+          className={`mt-2 px-3 py-1  text-sm font-medium transition-all duration-300 ${
+            change24h >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
           }`}
         >
           {change24h >= 0 ? '↑' : '↓'} {change24h >= 0 ? '+' : ''}
@@ -152,15 +150,13 @@ function WebSocketStatusIndicator({
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.disconnected;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50  border border-gray-200">
       <span className={`text-sm ${config.color.replace('bg-', 'text-')} ${config.animate}`}>
         {config.icon}
       </span>
       <span className="text-xs text-gray-600">{config.text}</span>
       {lastUpdate && (
-        <span className="text-xs text-gray-400">
-          · {lastUpdate.toLocaleTimeString()}
-        </span>
+        <span className="text-xs text-gray-400">· {lastUpdate.toLocaleTimeString()}</span>
       )}
     </div>
   );
@@ -190,7 +186,7 @@ function PriceChangeIndicator({
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
         <div
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-lg ${
+          className={`flex items-center gap-2 px-4 py-2  font-semibold text-lg ${
             isPositive
               ? 'bg-green-50 text-green-600 border border-green-200'
               : 'bg-red-50 text-red-600 border border-red-200'
@@ -257,7 +253,7 @@ function EMADisplay({
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 mt-4">
+    <div className="bg-gray-100 border border-gray-200 border border-purple-200  p-4 mt-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <svg
@@ -267,7 +263,6 @@ function EMADisplay({
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
               d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
@@ -282,9 +277,9 @@ function EMADisplay({
             <button
               key={period}
               onClick={() => onPeriodChange(period as EMAPeriod)}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+              className={`px-3 py-1 text-xs font-medium  transition-all ${
                 selectedPeriod === period
-                  ? 'bg-purple-600 text-white shadow-md'
+                  ? 'bg-purple-600 text-white '
                   : 'bg-white text-purple-600 hover:bg-purple-100'
               }`}
             >
@@ -422,7 +417,10 @@ export function MarketDataPanelRealtime({
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
-      logger.error('Error fetching price', error instanceof Error ? error : new Error(String(error)));
+      logger.error(
+        'Error fetching price',
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       if (!abortController.signal.aborted) {
         setIsLoading(false);
@@ -468,7 +466,6 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -483,7 +480,6 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -498,7 +494,6 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
@@ -513,7 +508,6 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -528,7 +522,6 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
@@ -543,13 +536,11 @@ export function MarketDataPanelRealtime({
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
           />
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={1.5}
             d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
@@ -561,7 +552,7 @@ export function MarketDataPanelRealtime({
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-200  p-6">
         <div className="flex items-center justify-center h-48">
           <div className="flex items-center gap-2 text-gray-400">
             <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -573,13 +564,7 @@ export function MarketDataPanelRealtime({
                 stroke="currentColor"
                 strokeWidth="4"
               />
-              <circle
-                className="opacity-75"
-                fill="currentColor"
-                cx="12"
-                cy="12"
-                r="10"
-              />
+              <circle className="opacity-75" fill="currentColor" cx="12" cy="12" r="10" />
             </svg>
             <span>Loading market data...</span>
           </div>
@@ -589,12 +574,10 @@ export function MarketDataPanelRealtime({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div
-            className={`w-12 h-12 ${iconBgColor} rounded-xl flex items-center justify-center shadow-lg`}
-          >
+          <div className={`w-12 h-12 ${iconBgColor}  flex items-center justify-center `}>
             <span className="text-white font-bold text-xl">{config.tokenSymbol}</span>
           </div>
           <div>
@@ -659,15 +642,13 @@ export function MarketDataPanelRealtime({
         <div className="mt-6 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="w-2 h-2 bg-emerald-500  animate-pulse" />
               <span className="text-gray-600">实时数据推送已启用</span>
             </div>
             <div className="text-gray-400 text-xs">
               数据来源: API3 WebSocket
               {realtimePriceData && (
-                <span className="ml-2">
-                  · 延迟: {Date.now() - realtimePriceData.timestamp}ms
-                </span>
+                <span className="ml-2">· 延迟: {Date.now() - realtimePriceData.timestamp}ms</span>
               )}
             </div>
           </div>

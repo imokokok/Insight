@@ -139,7 +139,9 @@ export function StatsGrid({
             prefix="$"
           />
           {compareMode && avgPrice > 0 && compareAvgPrice > 0 && (
-            <div className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}>
+            <div
+              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
+            >
               对比: {avgPriceDiffStyle.text}
             </div>
           )}
@@ -154,14 +156,23 @@ export function StatsGrid({
             }
             suffix="%"
             trend={
-              avgChange24hPercent === undefined ? 'neutral' : avgChange24hPercent >= 0 ? 'up' : 'down'
+              avgChange24hPercent === undefined
+                ? 'neutral'
+                : avgChange24hPercent >= 0
+                  ? 'up'
+                  : 'down'
             }
           />
-          {compareMode && avgChange24hPercent !== undefined && compareAvgChange24hPercent !== undefined && (
-            <div className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block bg-gray-50 text-gray-600`}>
-              对比: {compareAvgChange24hPercent >= 0 ? '+' : ''}{compareAvgChange24hPercent.toFixed(2)}%
-            </div>
-          )}
+          {compareMode &&
+            avgChange24hPercent !== undefined &&
+            compareAvgChange24hPercent !== undefined && (
+              <div
+                className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block bg-gray-50 text-gray-600`}
+              >
+                对比: {compareAvgChange24hPercent >= 0 ? '+' : ''}
+                {compareAvgChange24hPercent.toFixed(2)}%
+              </div>
+            )}
         </div>
         <div className="px-4 py-4 border-r border-gray-200">
           <StatItem
@@ -195,7 +206,9 @@ export function StatsGrid({
             prefix="$"
           />
           {compareMode && maxPrice > 0 && compareMaxPrice > 0 && (
-            <div className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}>
+            <div
+              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
+            >
               对比: {maxPriceDiffStyle.text}
             </div>
           )}
@@ -214,7 +227,9 @@ export function StatsGrid({
             prefix="$"
           />
           {compareMode && minPrice > 0 && compareMinPrice > 0 && (
-            <div className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}>
+            <div
+              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
+            >
               对比: {minPriceDiffStyle.text}
             </div>
           )}
@@ -233,7 +248,9 @@ export function StatsGrid({
             prefix="$"
           />
           {compareMode && priceRange > 0 && comparePriceRange > 0 && (
-            <div className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}>
+            <div
+              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
+            >
               对比: {priceRangeDiffStyle.text}
             </div>
           )}

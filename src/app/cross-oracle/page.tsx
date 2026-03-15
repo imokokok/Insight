@@ -161,7 +161,7 @@ export default function CrossOraclePage() {
     const stdDevValue = payload.find((p) => p.dataKey === 'stdDev')?.value;
 
     return (
-      <div className="bg-white border border-gray-200 shadow-lg p-4 min-w-[280px]">
+      <div className="bg-white border border-gray-200 p-4 min-w-[280px]">
         <div className="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-100">
           {label}
         </div>
@@ -313,10 +313,10 @@ export default function CrossOraclePage() {
                 />
               </svg>
             </button>
-            <div className="flex items-center bg-gray-100 rounded-md p-0.5">
+            <div className="flex items-center bg-gray-100 p-0.5">
               <button
                 onClick={handleZoomOut}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
                 title="缩小"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,7 +328,7 @@ export default function CrossOraclePage() {
               </span>
               <button
                 onClick={handleZoomIn}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
                 title="放大"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,7 +343,7 @@ export default function CrossOraclePage() {
             </div>
             <button
               onClick={handleResetZoom}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               title="重置缩放"
             >
               重置
@@ -358,7 +358,7 @@ export default function CrossOraclePage() {
             <NoDataEmptyState onRefresh={fetchPriceData} />
           </div>
         ) : (
-          <div className="border border-gray-200 rounded-lg p-4">
+          <div className="border border-gray-200 p-4">
             <ResponsiveContainer width="100%" height={400 * zoomLevel}>
               <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <defs>
@@ -467,10 +467,10 @@ export default function CrossOraclePage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">价格趋势详细分析</h2>
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-gray-100 rounded-md p-0.5">
+            <div className="flex items-center bg-gray-100 p-0.5">
               <button
                 onClick={handleZoomOut}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
                 title="缩小"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,7 +482,7 @@ export default function CrossOraclePage() {
               </span>
               <button
                 onClick={handleZoomIn}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
+                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
                 title="放大"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,13 +497,13 @@ export default function CrossOraclePage() {
             </div>
             <button
               onClick={handleResetZoom}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             >
               重置
             </button>
           </div>
         </div>
-        <div className="border border-gray-200 rounded-lg p-4">
+        <div className="border border-gray-200 p-4">
           <ResponsiveContainer width="100%" height={400 * zoomLevel}>
             <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <defs>
@@ -640,7 +640,7 @@ export default function CrossOraclePage() {
             }}
           />
         ) : (
-          <div className="bg-gray-50 border border-gray-200 border-dashed rounded-lg h-full min-h-[200px] flex items-center justify-center">
+          <div className="bg-gray-50 border border-gray-200 border-dashed h-full min-h-[200px] flex items-center justify-center">
             <div className="text-center">
               <svg
                 className="w-12 h-12 mx-auto text-gray-300 mb-3"
@@ -708,19 +708,19 @@ export default function CrossOraclePage() {
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">性能对比分析</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white border border-gray-200 p-5">
             <LatencyDistributionHistogram data={latencyData} oracleName="所有预言机" />
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white border border-gray-200 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">预言机性能摘要</h3>
             <div className="space-y-3">
               {performanceData.map((data) => (
                 <div
                   key={data.provider}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
+                    <div className="w-3 h-3" style={{ backgroundColor: data.color }} />
                     <span className="font-medium text-gray-900">{data.name}</span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600">
@@ -779,7 +779,7 @@ export default function CrossOraclePage() {
       `}</style>
 
       {outlierStats.count > 0 && (
-        <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm overflow-hidden">
+        <div className="mb-6 bg-amber-50 border-l-4 border-amber-500 border border-amber-200 overflow-hidden">
           <div className="p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
@@ -800,7 +800,7 @@ export default function CrossOraclePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-semibold text-amber-800">检测到价格异常值</h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
                     {outlierStats.count} 个异常
                   </span>
                 </div>
@@ -821,7 +821,7 @@ export default function CrossOraclePage() {
               </div>
               <button
                 onClick={scrollToOutlier}
-                className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors border border-amber-200"
+                className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 transition-colors border border-amber-200"
               >
                 查看详情
               </button>
@@ -986,7 +986,7 @@ export default function CrossOraclePage() {
               </button>
 
               {showFavoritesDropdown && (
-                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto">
                   <div className="p-2 border-b border-gray-100">
                     <h3 className="text-sm font-semibold text-gray-900">快速访问收藏</h3>
                   </div>
@@ -997,7 +997,7 @@ export default function CrossOraclePage() {
                         <button
                           key={favorite.id}
                           onClick={() => handleApplyFavorite(config)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-900 truncate">
@@ -1009,13 +1009,13 @@ export default function CrossOraclePage() {
                             {config.selectedOracles?.slice(0, 2).map((oracle) => (
                               <span
                                 key={oracle}
-                                className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-700 rounded"
+                                className="px-1.5 py-0.5 text-xs bg-blue-50 text-blue-700 border border-blue-100"
                               >
                                 {oracle}
                               </span>
                             ))}
                             {(config.selectedOracles?.length || 0) > 2 && (
-                              <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                              <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 border border-gray-200">
                                 +{(config.selectedOracles?.length || 0) - 2}
                               </span>
                             )}
@@ -1063,47 +1063,47 @@ export default function CrossOraclePage() {
               {t('crossOracle.priceTrend')} - {selectedSymbol}
             </h2>
             <div className="flex items-center gap-2">
-              <div className="flex items-center bg-gray-100 rounded-md p-0.5">
-                <button
-                  onClick={handleZoomOut}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 12H4"
-                    />
-                  </svg>
-                </button>
-                <span className="px-3 text-sm text-gray-600 min-w-[4rem] text-center font-medium">
-                  {Math.round(zoomLevel * 100)}%
-                </span>
-                <button
-                  onClick={handleZoomIn}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                </button>
-              </div>
+              <div className="flex items-center bg-gray-100 p-0.5">
               <button
-                onClick={handleResetZoom}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                onClick={handleZoomOut}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
               >
-                重置
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 12H4"
+                  />
+                </svg>
               </button>
+              <span className="px-3 text-sm text-gray-600 min-w-[4rem] text-center font-medium">
+                {Math.round(zoomLevel * 100)}%
+              </span>
               <button
-                onClick={() => setIsChartFullscreen(false)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                onClick={handleZoomIn}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+            <button
+              onClick={handleResetZoom}
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              重置
+            </button>
+            <button
+              onClick={() => setIsChartFullscreen(false)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -1209,19 +1209,19 @@ export default function CrossOraclePage() {
               <span>平均价格线</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-indigo-500 border border-white shadow-sm" />
+              <span className="w-3 h-3 bg-indigo-500 border border-white" />
               <span>数据更新点</span>
             </div>
             <div className="flex items-center gap-2">
               <span
-                className="w-5 h-3 rounded"
+                className="w-5 h-3"
                 style={{ backgroundColor: 'rgba(59, 130, 246, 0.15)' }}
               />
               <span>±1 标准差范围</span>
             </div>
             <div className="flex items-center gap-2">
               <span
-                className="w-5 h-3 rounded"
+                className="w-5 h-3"
                 style={{ backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
               />
               <span>±2 标准差范围</span>

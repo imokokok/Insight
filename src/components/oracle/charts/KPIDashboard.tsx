@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface KPIDashboardProps {
   price: number;
@@ -21,16 +22,17 @@ function ScrollIndicator({
   currentIndex: number;
   onIndicatorClick: (index: number) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex justify-center gap-2 mt-4 md:hidden">
       {Array.from({ length: totalItems }).map((_, index) => (
         <button
           key={index}
           onClick={() => onIndicatorClick(index)}
-          className={`p-2 rounded-full transition-all duration-300 ${
+          className={`p-2  transition-all duration-300 ${
             index === currentIndex ? 'w-8 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
           }`}
-          aria-label={`跳转到第 ${index + 1} 页`}
+          aria-label={t('kpiDashboard.goToPage', { page: index + 1 })}
         />
       ))}
     </div>
@@ -42,13 +44,13 @@ interface UpdateInterval {
   interval: number;
 }
 
-const healthConfig = {
+const getHealthConfig = (t: (key: string) => string) => ({
   healthy: {
     bgColor: 'bg-green-500',
     textColor: 'text-green-600',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '健康',
+    label: t('kpiDashboard.health.healthy'),
     pulseColor: 'bg-green-400',
   },
   warning: {
@@ -56,7 +58,7 @@ const healthConfig = {
     textColor: 'text-yellow-600',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '警告',
+    label: t('kpiDashboard.health.warning'),
     pulseColor: 'bg-yellow-400',
   },
   critical: {
@@ -64,10 +66,10 @@ const healthConfig = {
     textColor: 'text-red-600',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '异常',
+    label: t('kpiDashboard.health.critical'),
     pulseColor: 'bg-red-400',
   },
-};
+});
 
 function getQualityColor(score: number): string {
   if (score >= 90) return '#10b981';
@@ -76,11 +78,11 @@ function getQualityColor(score: number): string {
   return '#ef4444';
 }
 
-function getQualityLevel(score: number): string {
-  if (score >= 90) return '优秀';
-  if (score >= 70) return '良好';
-  if (score >= 50) return '一般';
-  return '较差';
+function getQualityLevel(score: number, t: (key: string) => string): string {
+  if (score >= 90) return t('kpiDashboard.quality.excellent');
+  if (score >= 70) return t('kpiDashboard.quality.good');
+  if (score >= 50) return t('kpiDashboard.quality.average');
+  return t('kpiDashboard.quality.poor');
 }
 
 function formatPrice(price: number): string {
@@ -97,6 +99,7 @@ function formatPrice(price: number): string {
 }
 
 function PriceCard({ price, previousPrice }: { price: number; previousPrice: number | null }) {
+  const { t } = useI18n();
   const [isFlashing, setIsFlashing] = useState(false);
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPriceRef = useRef(previousPrice);
@@ -117,11 +120,13 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">实时价格</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
+            {t('kpiDashboard.realtimePrice')}
+          </p>
           <div className="flex items-baseline gap-1">
             <span className="text-gray-400 text-lg">$</span>
             <span
@@ -134,16 +139,15 @@ function PriceCard({ price, previousPrice }: { price: number; previousPrice: num
           </div>
           <div className="flex items-center gap-2 mt-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full  bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex  h-2 w-2 bg-blue-500"></span>
             </span>
-            <span className="text-xs text-gray-400">实时更新中</span>
+            <span className="text-xs text-gray-400">{t('kpiDashboard.updating')}</span>
           </div>
         </div>
-        <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">
+        <div className="p-2.5 bg-blue-50  text-blue-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -164,6 +168,7 @@ function PriceChangeCard({
   priceChangePercent: number;
   colorBlindMode?: boolean;
 }) {
+  const { t } = useI18n();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPercentRef = useRef(priceChangePercent);
 
@@ -183,11 +188,13 @@ function PriceChangeCard({
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">24h 价格变化</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
+            {t('kpiDashboard.priceChange24h')}
+          </p>
           <div className="flex items-baseline gap-2">
             <span className={`text-xl md:text-2xl font-bold ${colorClass}`}>
               <span className="font-bold">{arrow}</span> {Math.abs(priceChangePercent).toFixed(2)}%
@@ -202,13 +209,12 @@ function PriceChangeCard({
             </span>
           </div>
         </div>
-        <div className={`p-2.5 rounded-lg ${bgClass} ${colorClass}`}>
+        <div className={`p-2.5  ${bgClass} ${colorClass}`}>
           {colorBlindMode ? (
             <span className="text-lg font-bold">{isPositive ? '▲' : '▼'}</span>
           ) : (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d={
@@ -230,6 +236,7 @@ function UpdateFrequencyCard({
   frequency: number;
   intervals: UpdateInterval[];
 }) {
+  const { t } = useI18n();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevFreqRef = useRef(frequency);
 
@@ -249,16 +256,18 @@ function UpdateFrequencyCard({
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">更新频率</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
+            {t('kpiDashboard.updateFrequency')}
+          </p>
           <div className="flex items-baseline gap-1">
             <span className="text-xl md:text-2xl font-bold text-gray-900">
               {frequency.toFixed(1)}
             </span>
-            <span className="text-gray-500 text-sm">次/秒</span>
+            <span className="text-gray-500 text-sm">{t('kpiDashboard.timesPerSecond')}</span>
           </div>
           <div className="flex items-end gap-0.5 h-8 mt-3">
             {intervals.length > 0 ? (
@@ -273,7 +282,7 @@ function UpdateFrequencyCard({
                 return (
                   <div
                     key={index}
-                    className={`w-2 ${color} rounded-t transition-all duration-200`}
+                    className={`w-2 ${color}  transition-all duration-200`}
                     style={{ height: `${height}%` }}
                     title={`${item.interval}ms`}
                   />
@@ -281,19 +290,14 @@ function UpdateFrequencyCard({
               })
             ) : (
               <div className="flex items-center justify-center w-full h-full text-xs text-gray-400">
-                等待数据...
+                {t('kpiDashboard.waitingForData')}
               </div>
             )}
           </div>
         </div>
-        <div className="p-2.5 bg-purple-50 rounded-lg text-purple-600">
+        <div className="p-2.5 bg-purple-50  text-purple-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
+            <path strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
       </div>
@@ -308,6 +312,7 @@ function NetworkHealthCard({
   health: 'healthy' | 'warning' | 'critical';
   colorBlindMode?: boolean;
 }) {
+  const { t } = useI18n();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevHealthRef = useRef(health);
 
@@ -320,39 +325,38 @@ function NetworkHealthCard({
     prevHealthRef.current = health;
   }, [health]);
 
-  const config = healthConfig[health];
+  const config = getHealthConfig(t)[health];
   const healthShape = health === 'healthy' ? '✓' : health === 'warning' ? '!' : '✕';
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">网络健康</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
+            {t('kpiDashboard.networkHealth')}
+          </p>
           <div className="flex items-center gap-3">
             <span className="relative flex h-3 w-3">
               <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseColor} opacity-75`}
+                className={`animate-ping absolute inline-flex h-full w-full  ${config.pulseColor} opacity-75`}
               ></span>
-              <span
-                className={`relative inline-flex rounded-full h-3 w-3 ${config.bgColor}`}
-              ></span>
+              <span className={`relative inline-flex  h-3 w-3 ${config.bgColor}`}></span>
             </span>
             <span className={`text-xl md:text-2xl font-bold ${config.textColor}`}>
               {colorBlindMode && <span className="mr-1">{healthShape}</span>}
               {config.label}
             </span>
           </div>
-          <p className="text-xs text-gray-400 mt-2">实时监控中</p>
+          <p className="text-xs text-gray-400 mt-2">{t('kpiDashboard.monitoring')}</p>
         </div>
-        <div className={`p-2.5 rounded-lg ${config.lightBg} ${config.textColor}`}>
+        <div className={`p-2.5  ${config.lightBg} ${config.textColor}`}>
           {colorBlindMode ? (
             <span className="text-lg font-bold">{healthShape}</span>
           ) : (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -372,6 +376,7 @@ function DataQualityGauge({
   score: number;
   colorBlindMode?: boolean;
 }) {
+  const { t } = useI18n();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevScoreRef = useRef(score);
 
@@ -388,16 +393,18 @@ function DataQualityGauge({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
   const color = getQualityColor(score);
-  const level = getQualityLevel(score);
+  const level = getQualityLevel(score, t);
   const qualityShape = score >= 90 ? '★' : score >= 70 ? '◆' : score >= 50 ? '▲' : '●';
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
+      className={`bg-white border  p-4 hover:border-gray-300 transition-all duration-200 ${borderFlash ? 'border-blue-400 ring-2 ring-blue-200 animate-pulse' : 'border-gray-200'}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">数据质量</p>
+          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">
+            {t('kpiDashboard.dataQuality')}
+          </p>
           <div className="flex items-center gap-3">
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-16 h-16 transform -rotate-90">
@@ -411,7 +418,6 @@ function DataQualityGauge({
                   fill="none"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
                   className="transition-all duration-500"
                 />
               </svg>
@@ -424,17 +430,16 @@ function DataQualityGauge({
                 {colorBlindMode && <span className="mr-1">{qualityShape}</span>}
                 {level}
               </p>
-              <p className="text-xs text-gray-400">综合评分</p>
+              <p className="text-xs text-gray-400">{t('kpiDashboard.overallScore')}</p>
             </div>
           </div>
         </div>
-        <div className="p-2.5 bg-cyan-50 rounded-lg text-cyan-600">
+        <div className="p-2.5 bg-cyan-50  text-cyan-600">
           {colorBlindMode ? (
             <span className="text-lg font-bold">{qualityShape}</span>
           ) : (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -456,6 +461,7 @@ export function KPIDashboard({
   dataQualityScore,
   className = '',
 }: KPIDashboardProps) {
+  const { t } = useI18n();
   const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [intervals, setIntervals] = useState<UpdateInterval[]>([]);
   const lastUpdateRef = useRef<number>(Date.now());
@@ -573,28 +579,30 @@ export function KPIDashboard({
       <div className="flex justify-end mb-3">
         <button
           onClick={() => setColorBlindMode(!colorBlindMode)}
-          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium  transition-colors ${
             colorBlindMode
               ? 'bg-blue-100 text-blue-700 border border-blue-200'
               : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
           }`}
-          title={colorBlindMode ? '关闭色盲模式' : '开启色盲模式'}
+          title={
+            colorBlindMode
+              ? t('kpiDashboard.colorBlindModeOff')
+              : t('kpiDashboard.colorBlindModeOn')
+          }
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-            <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
             />
           </svg>
-          <span>{colorBlindMode ? '色盲模式: 开' : '色盲模式'}</span>
+          <span>
+            {colorBlindMode
+              ? t('kpiDashboard.colorBlindModeEnabled')
+              : t('kpiDashboard.colorBlindMode')}
+          </span>
         </button>
       </div>
       <div

@@ -10,7 +10,12 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('useAPI3WebSocket');
 
-export type API3ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'error';
+export type API3ConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'reconnecting'
+  | 'error';
 
 export interface UseAPI3PriceOptions {
   symbol: string;
@@ -55,9 +60,12 @@ export function useAPI3Price(options: UseAPI3PriceOptions): UseAPI3PriceReturn {
           if (throttleTimerRef.current) {
             clearTimeout(throttleTimerRef.current);
           }
-          throttleTimerRef.current = setTimeout(() => {
-            handlePriceUpdate(data);
-          }, updateInterval - (now - lastUpdateTimeRef.current));
+          throttleTimerRef.current = setTimeout(
+            () => {
+              handlePriceUpdate(data);
+            },
+            updateInterval - (now - lastUpdateTimeRef.current)
+          );
           return;
         }
       }
@@ -176,10 +184,13 @@ export function useAPI3Prices(options: UseAPI3PricesOptions): UseAPI3PricesRetur
           if (throttleTimerRef.current) {
             clearTimeout(throttleTimerRef.current);
           }
-          throttleTimerRef.current = setTimeout(() => {
-            lastUpdateTimeRef.current = Date.now();
-            flushUpdates();
-          }, updateInterval - (now - lastUpdateTimeRef.current));
+          throttleTimerRef.current = setTimeout(
+            () => {
+              lastUpdateTimeRef.current = Date.now();
+              flushUpdates();
+            },
+            updateInterval - (now - lastUpdateTimeRef.current)
+          );
           return;
         }
       }
@@ -309,10 +320,13 @@ export function useAPI3Realtime(options: UseAPI3RealtimeOptions = {}): UseAPI3Re
           if (throttleTimerRef.current) {
             clearTimeout(throttleTimerRef.current);
           }
-          throttleTimerRef.current = setTimeout(() => {
-            lastUpdateTimeRef.current = Date.now();
-            flushUpdates();
-          }, updateInterval - (now - lastUpdateTimeRef.current));
+          throttleTimerRef.current = setTimeout(
+            () => {
+              lastUpdateTimeRef.current = Date.now();
+              flushUpdates();
+            },
+            updateInterval - (now - lastUpdateTimeRef.current)
+          );
           return;
         }
       }

@@ -81,8 +81,7 @@ function calculateTrendStats(data: LatencyDataPoint[]): TrendStats {
   const halfIndex = Math.floor(data.length / 2);
   const firstHalf = data.slice(0, halfIndex);
   const secondHalf = data.slice(halfIndex);
-  const firstHalfAvg =
-    firstHalf.reduce((sum, d) => sum + d.latency, 0) / (firstHalf.length || 1);
+  const firstHalfAvg = firstHalf.reduce((sum, d) => sum + d.latency, 0) / (firstHalf.length || 1);
   const secondHalfAvg =
     secondHalf.reduce((sum, d) => sum + d.latency, 0) / (secondHalf.length || 1);
   const trendPercent = firstHalfAvg > 0 ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100 : 0;
@@ -157,13 +156,21 @@ export function LatencyTrendMiniChart({
     onTimeRangeChange?.(range);
   };
 
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: LatencyDataPoint }>; label?: string }) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload: LatencyDataPoint }>;
+    label?: string;
+  }) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const point = payload[0].payload;
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl min-w-[160px]">
+      <div className="bg-white border border-gray-200  p-3  min-w-[160px]">
         <p className="text-xs text-gray-500 font-medium mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
@@ -180,9 +187,7 @@ export function LatencyTrendMiniChart({
             <span className="text-xs text-gray-500">{t('trendChart.status') || '状态'}:</span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded ${
-                point.isAnomaly
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-green-100 text-green-700'
+                point.isAnomaly ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
               }`}
             >
               {point.isAnomaly
@@ -211,7 +216,7 @@ export function LatencyTrendMiniChart({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
+      <div className={`bg-white border border-gray-200  p-5 ${className}`}>
         <div className="text-center py-10">
           <p className="text-gray-500">{t('trendChart.noData') || '暂无数据'}</p>
         </div>
@@ -237,14 +242,14 @@ export function LatencyTrendMiniChart({
       {/* Time Range Selector */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-500">{t('trendChart.timeRange') || '时间范围'}:</span>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex bg-gray-100  p-1">
           {timeRangeOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => handleRangeChange(option.value)}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 selectedRange === option.value
-                  ? 'bg-white text-gray-900 shadow-sm'
+                  ? 'bg-white text-gray-900 '
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -256,14 +261,14 @@ export function LatencyTrendMiniChart({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-blue-50 rounded-xl p-4">
+        <div className="bg-blue-50  p-4">
           <p className="text-xs text-blue-600 mb-1">{t('trendChart.avg') || '平均延迟'}</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-blue-700">{stats.avg}</span>
             <span className="text-sm text-blue-500">ms</span>
           </div>
         </div>
-        <div className="bg-green-50 rounded-xl p-4">
+        <div className="bg-green-50  p-4">
           <p className="text-xs text-green-600 mb-1">{t('trendChart.p95') || 'P95'}</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-green-700">{stats.p95}</span>
@@ -271,12 +276,12 @@ export function LatencyTrendMiniChart({
           </div>
         </div>
         <div
-          className={`rounded-xl p-4 ${
+          className={` p-4 ${
             stats.trend === 'up'
               ? 'bg-red-50'
               : stats.trend === 'down'
-              ? 'bg-green-50'
-              : 'bg-gray-50'
+                ? 'bg-green-50'
+                : 'bg-gray-50'
           }`}
         >
           <p
@@ -284,8 +289,8 @@ export function LatencyTrendMiniChart({
               stats.trend === 'up'
                 ? 'text-red-600'
                 : stats.trend === 'down'
-                ? 'text-green-600'
-                : 'text-gray-600'
+                  ? 'text-green-600'
+                  : 'text-gray-600'
             }`}
           >
             {t('trendChart.trend') || '趋势'}
@@ -296,8 +301,8 @@ export function LatencyTrendMiniChart({
                 stats.trend === 'up'
                   ? 'text-red-700'
                   : stats.trend === 'down'
-                  ? 'text-green-700'
-                  : 'text-gray-700'
+                    ? 'text-green-700'
+                    : 'text-gray-700'
               }`}
             >
               {stats.trendPercent > 0 ? '+' : ''}
@@ -305,7 +310,7 @@ export function LatencyTrendMiniChart({
             </span>
           </div>
         </div>
-        <div className="bg-red-50 rounded-xl p-4">
+        <div className="bg-red-50  p-4">
           <p className="text-xs text-red-600 mb-1">{t('trendChart.anomalies') || '异常次数'}</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-red-700">{stats.anomalyCount}</span>
@@ -315,7 +320,7 @@ export function LatencyTrendMiniChart({
       </div>
 
       {/* Trend Chart */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
+      <div className="bg-white border border-gray-200  p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('trendChart.chartTitle') || '延迟时间序列'}
@@ -407,15 +412,22 @@ export function LatencyTrendMiniChart({
             <span className="text-xs text-gray-500">{t('trendChart.latencyLine') || '延迟'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 rounded-full" />
-            <span className="text-xs text-gray-500">{t('trendChart.anomalyPoint') || '异常点'}</span>
+            <span className="w-3 h-3 bg-red-500 " />
+            <span className="text-xs text-gray-500">
+              {t('trendChart.anomalyPoint') || '异常点'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-4 h-3 bg-red-100 rounded" />
-            <span className="text-xs text-gray-500">{t('trendChart.anomalyArea') || '异常时段'}</span>
+            <span className="text-xs text-gray-500">
+              {t('trendChart.anomalyArea') || '异常时段'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-0.5 bg-red-500 rounded" style={{ borderTop: '2px dashed #EF4444' }} />
+            <span
+              className="w-4 h-0.5 bg-red-500 rounded"
+              style={{ borderTop: '2px dashed #EF4444' }}
+            />
             <span className="text-xs text-gray-500">{t('trendChart.threshold') || '阈值'}</span>
           </div>
         </div>
@@ -423,9 +435,13 @@ export function LatencyTrendMiniChart({
 
       {/* Anomaly Summary */}
       {stats.anomalyCount > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200  p-4">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
                 fillRule="evenodd"
                 d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"

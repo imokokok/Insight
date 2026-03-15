@@ -59,7 +59,7 @@ export function MoreOptionsDropdown({
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-2  transition-colors ${
             isOpen || anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled
               ? 'bg-blue-100 text-blue-600'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -68,7 +68,6 @@ export function MoreOptionsDropdown({
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
@@ -77,7 +76,7 @@ export function MoreOptionsDropdown({
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div className="absolute right-0 top-full mt-1 w-56 bg-white   border border-gray-200 py-1 z-50">
             <button
               onClick={() => handleToggle(onToggleComparison)}
               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between ${
@@ -89,7 +88,6 @@ export function MoreOptionsDropdown({
               <span className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -119,7 +117,6 @@ export function MoreOptionsDropdown({
               <span className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -127,7 +124,7 @@ export function MoreOptionsDropdown({
                 </svg>
                 异常检测
                 {anomalyDetectionEnabled && anomaliesCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-xs">
+                  <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white  text-xs">
                     {anomaliesCount}
                   </span>
                 )}
@@ -153,7 +150,6 @@ export function MoreOptionsDropdown({
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -173,12 +169,7 @@ export function MoreOptionsDropdown({
             >
               <span className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
                 预测区间
               </span>
@@ -234,7 +225,7 @@ export function MoreOptionsDropdown({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1 ${
+        className={`px-3 py-1.5 text-xs font-medium  border transition-colors flex items-center gap-1 ${
           isOpen || anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled
             ? 'bg-blue-50 text-blue-600 border-blue-200'
             : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -242,7 +233,6 @@ export function MoreOptionsDropdown({
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
             d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
@@ -250,12 +240,12 @@ export function MoreOptionsDropdown({
         </svg>
         更多
         {(anomalyDetectionEnabled || showPredictionInterval || comparisonEnabled) && (
-          <span className="ml-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          <span className="ml-1 w-1.5 h-1.5 bg-blue-500 " />
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 top-full mt-1 w-64 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">高级功能</h3>
           </div>
@@ -272,7 +262,7 @@ export function MoreOptionsDropdown({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    className={`w-8 h-8  flex items-center justify-center ${
                       comparisonEnabled || showComparisonPanel ? 'bg-purple-100' : 'bg-gray-100'
                     }`}
                   >
@@ -287,7 +277,6 @@ export function MoreOptionsDropdown({
                       viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -322,7 +311,7 @@ export function MoreOptionsDropdown({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    className={`w-8 h-8  flex items-center justify-center ${
                       anomalyDetectionEnabled ? 'bg-red-100' : 'bg-gray-100'
                     }`}
                   >
@@ -333,7 +322,6 @@ export function MoreOptionsDropdown({
                       viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -347,7 +335,7 @@ export function MoreOptionsDropdown({
                 </div>
                 <div className="flex items-center gap-2">
                   {anomalyDetectionEnabled && anomaliesCount > 0 && (
-                    <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-xs">
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white  text-xs">
                       {anomaliesCount}
                     </span>
                   )}
@@ -375,7 +363,6 @@ export function MoreOptionsDropdown({
                 <span className="w-8" />
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -396,7 +383,7 @@ export function MoreOptionsDropdown({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    className={`w-8 h-8  flex items-center justify-center ${
                       showPredictionInterval ? 'bg-blue-100' : 'bg-gray-100'
                     }`}
                   >
@@ -407,7 +394,6 @@ export function MoreOptionsDropdown({
                       viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"

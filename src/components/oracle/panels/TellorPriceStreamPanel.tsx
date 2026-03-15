@@ -71,9 +71,7 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
                       second: '2-digit',
                     })}
                   </span>
-                  <span className="text-cyan-400 font-semibold">
-                    ${point.price.toFixed(4)}
-                  </span>
+                  <span className="text-cyan-400 font-semibold">${point.price.toFixed(4)}</span>
                   <span className={`${getChangeColor(point.change)}`}>
                     {getChangeIcon(point.change)}
                     {Math.abs(point.changePercent).toFixed(4)}%

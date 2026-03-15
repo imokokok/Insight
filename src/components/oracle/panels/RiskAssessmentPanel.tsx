@@ -64,12 +64,10 @@ function RiskScoreCard({
   const riskLevel = getRiskLevel(score, t);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white border border-gray-200  p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-gray-700">{title}</h4>
-        <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${riskLevel.bgColor} ${riskLevel.color}`}
-        >
+        <span className={`px-2 py-1 text-xs font-medium  ${riskLevel.bgColor} ${riskLevel.color}`}>
           {riskLevel.label}
         </span>
       </div>
@@ -77,9 +75,9 @@ function RiskScoreCard({
         <span className={`text-3xl font-bold ${riskLevel.color}`}>{score}</span>
         <span className="text-sm text-gray-500 mb-1">/100</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+      <div className="w-full bg-gray-200  h-2 mb-2">
         <div
-          className={`h-2 rounded-full transition-all duration-500 ${
+          className={`h-2  transition-all duration-500 ${
             score >= 80
               ? 'bg-green-500'
               : score >= 60
@@ -114,7 +112,7 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white border border-gray-200  p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -126,7 +124,7 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">{t('riskAssessment.overallRiskScore')}</span>
               <span
-                className={`px-3 py-1 text-sm font-medium rounded-full ${overallRisk.bgColor} ${overallRisk.color}`}
+                className={`px-3 py-1 text-sm font-medium  ${overallRisk.bgColor} ${overallRisk.color}`}
               >
                 {overallRisk.label}
               </span>
@@ -140,9 +138,9 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
           </div>
         </div>
 
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+        <div className="w-full bg-gray-200  h-3 mb-6">
           <div
-            className={`h-3 rounded-full transition-all duration-500 ${
+            className={`h-3  transition-all duration-500 ${
               riskScores.overall >= 80
                 ? 'bg-green-500'
                 : riskScores.overall >= 60
@@ -193,7 +191,6 @@ export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"

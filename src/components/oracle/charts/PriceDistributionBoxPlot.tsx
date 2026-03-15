@@ -205,9 +205,9 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   const { name, stats, color } = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-xl max-w-xs">
+    <div className="bg-white border border-gray-200  p-4  max-w-xs">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+        <div className="w-3 h-3 " style={{ backgroundColor: color }} />
         <span className="font-semibold text-gray-900">{name}</span>
       </div>
       <div className="space-y-2 text-sm">
@@ -432,7 +432,7 @@ export function PriceDistributionBoxPlot({
               <span className="text-gray-600">{t('priceDistribution.legend.whisker')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-500" />
+              <div className="w-2 h-2  bg-orange-500" />
               <span className="text-gray-600">{t('priceDistribution.legend.outlier')}</span>
             </div>
           </div>
@@ -471,10 +471,7 @@ export function PriceDistributionBoxPlot({
                   <tr key={item.oracleId} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
+                        <div className="w-2 h-2 " style={{ backgroundColor: item.color }} />
                         <span className="font-medium text-gray-900">{item.name}</span>
                       </div>
                     </td>

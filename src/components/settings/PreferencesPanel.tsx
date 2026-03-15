@@ -111,7 +111,7 @@ export function PreferencesPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Palette className="w-5 h-5 text-gray-400" />
@@ -122,7 +122,7 @@ export function PreferencesPanel() {
 
         <div className="p-6 space-y-6">
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200  text-green-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -137,7 +137,7 @@ export function PreferencesPanel() {
               <select
                 value={preferences.defaultOracle}
                 onChange={(e) => updatePreference('defaultOracle', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
               >
                 {oracleOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -145,15 +145,19 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultOracleHint')}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('settings.preferences.defaultOracleHint')}
+              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.preferences.defaultSymbol')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('settings.preferences.defaultSymbol')}
+              </label>
               <select
                 value={preferences.defaultSymbol}
                 onChange={(e) => updatePreference('defaultSymbol', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
               >
                 {symbolOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -161,7 +165,9 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultSymbolHint')}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('settings.preferences.defaultSymbolHint')}
+              </p>
             </div>
 
             <div>
@@ -172,7 +178,7 @@ export function PreferencesPanel() {
               <select
                 value={preferences.defaultTimeRange}
                 onChange={(e) => updatePreference('defaultTimeRange', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
               >
                 {timeRangeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -180,7 +186,9 @@ export function PreferencesPanel() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">{t('settings.preferences.defaultTimeRangeHint')}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {t('settings.preferences.defaultTimeRangeHint')}
+              </p>
             </div>
 
             <div>
@@ -191,7 +199,7 @@ export function PreferencesPanel() {
               <select
                 value={preferences.language}
                 onChange={(e) => updatePreference('language', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                className="w-full px-4 py-2.5 border border-gray-200  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
               >
                 {languageOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -205,7 +213,7 @@ export function PreferencesPanel() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white  border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             {preferences.theme === 'dark' ? (
@@ -215,15 +223,32 @@ export function PreferencesPanel() {
             )}
             {t('settings.preferences.themeSettings')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('settings.preferences.themeSettingsDesc')}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {t('settings.preferences.themeSettingsDesc')}
+          </p>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4">
             {[
-              { value: 'light', label: t('settings.preferences.themeLight'), icon: Sun, desc: t('settings.preferences.themeLightDesc') },
-              { value: 'dark', label: t('settings.preferences.themeDark'), icon: Moon, desc: t('settings.preferences.themeDarkDesc') },
-              { value: 'system', label: t('settings.preferences.themeSystem'), icon: Palette, desc: t('settings.preferences.themeSystemDesc') },
+              {
+                value: 'light',
+                label: t('settings.preferences.themeLight'),
+                icon: Sun,
+                desc: t('settings.preferences.themeLightDesc'),
+              },
+              {
+                value: 'dark',
+                label: t('settings.preferences.themeDark'),
+                icon: Moon,
+                desc: t('settings.preferences.themeDarkDesc'),
+              },
+              {
+                value: 'system',
+                label: t('settings.preferences.themeSystem'),
+                icon: Palette,
+                desc: t('settings.preferences.themeSystemDesc'),
+              },
             ].map((option) => {
               const Icon = option.icon;
               const isSelected = preferences.theme === option.value;
@@ -234,7 +259,7 @@ export function PreferencesPanel() {
                   onClick={() =>
                     updatePreference('theme', option.value as UserPreferences['theme'])
                   }
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  className={`p-4  border-2 transition-all text-left ${
                     isSelected
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
@@ -260,7 +285,7 @@ export function PreferencesPanel() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {t('settings.preferences.saveSettings')}

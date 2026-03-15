@@ -95,9 +95,7 @@ function StatusBadge({ status }: { status: PublisherStatus }) {
 
   const { bg, text, label } = config[status];
 
-  return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}>{label}</span>
-  );
+  return <span className={`px-2 py-0.5  text-xs font-medium ${bg} ${text}`}>{label}</span>;
 }
 
 function ReliabilityStars({ score }: { score: number }) {
@@ -233,7 +231,7 @@ export function PublisherList({
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="px-3 py-1.5 text-sm border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="all">{t('publisher.allPublishers')}</option>
             <option value="active">{t('publisher.activeOnly')}</option>
@@ -275,17 +273,17 @@ export function PublisherList({
                 >
                   <div
                     onClick={() => onPublisherSelect?.(publisher.id)}
-                    className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                    className={`p-4  border transition-all cursor-pointer ${
                       hasAnomaly
                         ? 'border-red-400 bg-red-50 hover:border-red-500 hover:bg-red-100'
                         : selectedPublisherId === publisher.id
                           ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="w-10 h-10 bg-gray-100 border border-gray-200  flex items-center justify-center text-white font-semibold text-sm">
                           {publisher.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
@@ -293,7 +291,7 @@ export function PublisherList({
                             <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
                             <StatusBadge status={publisher.status} />
                             {hasAnomaly && (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-300">
+                              <span className="px-2 py-0.5  text-xs font-medium bg-red-100 text-red-700 border border-red-300">
                                 {t('publisher.anomaly')}
                               </span>
                             )}

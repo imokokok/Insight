@@ -6,15 +6,15 @@ import {
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-    [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-    [OracleProvider.UMA]: 'UMA',
-    [OracleProvider.PYTH]: 'Pyth',
-    [OracleProvider.API3]: 'API3',
-    [OracleProvider.REDSTONE]: 'RedStone',
-    [OracleProvider.DIA]: 'DIA',
-    [OracleProvider.TELLOR]: 'Tellor',
-    [OracleProvider.CHRONICLE]: 'Chronicle',
-    [OracleProvider.WINKLINK]: 'WINkLink',
+  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+  [OracleProvider.UMA]: 'UMA',
+  [OracleProvider.PYTH]: 'Pyth',
+  [OracleProvider.API3]: 'API3',
+  [OracleProvider.REDSTONE]: 'RedStone',
+  [OracleProvider.DIA]: 'DIA',
+  [OracleProvider.TELLOR]: 'Tellor',
+  [OracleProvider.CHRONICLE]: 'Chronicle',
+  [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
 // i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键

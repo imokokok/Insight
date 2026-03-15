@@ -142,7 +142,7 @@ export function DataExportButton({
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled || isExporting || !hasData}
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-2  transition-colors ${
             disabled || isExporting || !hasData
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -168,7 +168,6 @@ export function DataExportButton({
           ) : (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
@@ -178,14 +177,13 @@ export function DataExportButton({
         </button>
 
         {isOpen && hasData && (
-          <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div className="absolute right-0 top-full mt-2 w-40 bg-white   border border-gray-200 py-1 z-50">
             <button
               onClick={() => handleExport('csv')}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
@@ -195,11 +193,10 @@ export function DataExportButton({
             </button>
             <button
               onClick={() => handleExport('json')}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 last:-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
@@ -218,7 +215,7 @@ export function DataExportButton({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isExporting || !hasData}
-        className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+        className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium  transition-colors ${
           disabled || isExporting || !hasData
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
             : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
@@ -247,7 +244,6 @@ export function DataExportButton({
           <>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
@@ -260,19 +256,14 @@ export function DataExportButton({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </>
         )}
       </button>
 
       {isOpen && hasData && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 top-full mt-2 w-48 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">选择导出格式</h3>
           </div>
@@ -280,7 +271,7 @@ export function DataExportButton({
             onClick={() => handleExport('csv')}
             className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+            <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
               <span className="text-xs font-bold text-green-600">CSV</span>
             </div>
             <div>
@@ -292,7 +283,7 @@ export function DataExportButton({
             onClick={() => handleExport('json')}
             className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
               <span className="text-xs font-bold text-blue-600">JSON</span>
             </div>
             <div>

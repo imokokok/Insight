@@ -69,7 +69,7 @@ function CustomTooltip({
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl">
+    <div className="bg-white border border-gray-200  p-3 ">
       <p className="text-gray-600 text-xs mb-2 font-medium">{label}</p>
 
       <div className="space-y-2">
@@ -193,11 +193,10 @@ export function ValidatorHistoryChart({
 
   if (error) {
     return (
-      <div className="bg-white border border-red-200 rounded-xl p-6" style={{ height }}>
+      <div className="bg-white border border-red-200  p-6" style={{ height }}>
         <div className="flex items-center gap-3 text-red-600">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -244,14 +243,14 @@ export function ValidatorHistoryChart({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-100  p-1">
             {(Object.keys(TIME_RANGE_CONFIG) as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   timeRange === range
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-blue-600 '
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -262,7 +261,7 @@ export function ValidatorHistoryChart({
         </div>
       )}
 
-      <div className="flex-1 min-h-0 bg-gray-50 rounded-lg p-2 sm:p-4">
+      <div className="flex-1 min-h-0 bg-gray-50  p-2 sm:p-4">
         <ResponsiveContainer width="100%" height={height - (showToolbar ? 80 : 0)}>
           <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid
@@ -343,11 +342,11 @@ export function ValidatorHistoryChart({
 
       <div className="flex items-center justify-center gap-6 mt-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-green-500" />
+          <span className="w-3 h-3  bg-green-500" />
           <span className="text-xs text-gray-500">在线率 (%)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-0.5 bg-blue-500 rounded-full" />
+          <span className="w-3 h-0.5 bg-blue-500 " />
           <span className="text-xs text-gray-500">质押量 (BAND)</span>
         </div>
       </div>

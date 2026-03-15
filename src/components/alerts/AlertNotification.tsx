@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
+import { useI18n } from '@/lib/i18n/provider';
 
 interface AlertNotificationProps {
   event: AlertEvent;
@@ -14,6 +15,7 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();
+  const { t } = useI18n();
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -40,14 +42,14 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
 
   return (
     <div
-      className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 transition-all duration-300 ${
+      className={`pointer-events-auto w-full max-w-sm overflow-hidden   ring-1 ring-black ring-opacity-5 transition-all duration-300 ${
         isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
       <div className="bg-white p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+            <div className="flex h-10 w-10 items-center justify-center  bg-yellow-100">
               <svg
                 className="h-6 w-6 text-yellow-600"
                 fill="none"
@@ -55,7 +57,6 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
                 stroke="currentColor"
               >
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
@@ -64,11 +65,13 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
             </div>
           </div>
           <div className="ml-3 w-0 flex-1 pt-0.5">
-            <p className="text-sm font-medium text-gray-900">价格告警触发</p>
+            <p className="text-sm font-medium text-gray-900">{t('alerts.notification.title')}</p>
             <p className="mt-1 text-sm text-gray-500">{event.condition_met}</p>
-            <p className="mt-1 text-xs text-gray-400">触发价格: {event.price.toFixed(4)}</p>
+            <p className="mt-1 text-xs text-gray-400">
+              {t('alerts.notification.triggerPrice')} {event.price.toFixed(4)}
+            </p>
             <p className="text-xs text-gray-400">
-              时间: {new Date(event.triggered_at).toLocaleString('zh-CN')}
+              {t('alerts.notification.time')} {new Date(event.triggered_at).toLocaleString('zh-CN')}
             </p>
           </div>
           <div className="ml-4 flex flex-shrink-0">
@@ -76,7 +79,7 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
               onClick={handleDismiss}
               className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
             >
-              <span className="sr-only">关闭</span>
+              <span className="sr-only">{t('common.close')}</span>
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
               </svg>
@@ -87,16 +90,18 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
           <button
             onClick={handleAcknowledge}
             disabled={isAcknowledging}
-            className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-gray-400"
+            className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white  hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-gray-400"
           >
-            {isAcknowledging ? '确认中...' : '确认'}
+            {isAcknowledging
+              ? t('alerts.notification.acknowledging')
+              : t('alerts.notification.acknowledge')}
           </button>
           {onViewDetails && (
             <button
               onClick={handleViewDetails}
-              className="flex-1 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              className="flex-1 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900  ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             >
-              查看详情
+              {t('alerts.notification.viewDetails')}
             </button>
           )}
         </div>

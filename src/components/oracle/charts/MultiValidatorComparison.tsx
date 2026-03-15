@@ -69,7 +69,7 @@ function CustomTooltip({
   const config = METRIC_CONFIG[metricType];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xl min-w-[180px]">
+    <div className="bg-white border border-gray-200  p-3  min-w-[180px]">
       <p className="text-gray-600 text-xs mb-2 font-medium">{label}</p>
       <div className="space-y-1.5">
         {payload.map((entry, index) => {
@@ -86,7 +86,7 @@ function CustomTooltip({
           return (
             <div key={entry.dataKey} className="flex items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="w-2 h-2 " style={{ backgroundColor: entry.color }} />
                 <span className="text-gray-600 truncate max-w-[100px]">{validator.moniker}</span>
               </div>
               <span className="font-mono font-medium" style={{ color: entry.color }}>
@@ -159,7 +159,7 @@ function ComparisonTable({
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-3 h-3 rounded-full"
+                      className="w-3 h-3 "
                       style={{ backgroundColor: VALIDATOR_COLORS[index % VALIDATOR_COLORS.length] }}
                     />
                     <span className="font-medium text-gray-900">{validator.moniker}</span>
@@ -327,14 +327,14 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
       title="多验证者历史对比"
       headerAction={
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-100  p-1">
             {(Object.keys(TIME_RANGE_CONFIG) as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
                   timeRange === range
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-blue-600 '
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -352,7 +352,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
             <button
               key={type}
               onClick={() => setMetricType(type)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5  text-xs font-medium transition-all ${
                 metricType === type
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -366,11 +366,10 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
         {loading ? (
           <ChartSkeleton height={300} showToolbar={false} variant="line" />
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6" style={{ height: 300 }}>
+          <div className="bg-red-50 border border-red-200  p-6" style={{ height: 300 }}>
             <div className="flex items-center gap-3 text-red-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
-                  strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -381,7 +380,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
           </div>
         ) : (
           <>
-            <div className="bg-gray-50 rounded-lg p-4" style={{ height: 300 }}>
+            <div className="bg-gray-50  p-4" style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid
@@ -441,7 +440,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
               {validators.map((validator, index) => (
                 <div key={validator.operatorAddress} className="flex items-center gap-2">
                   <span
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 "
                     style={{ backgroundColor: VALIDATOR_COLORS[index % VALIDATOR_COLORS.length] }}
                   />
                   <span className="text-xs text-gray-600">{validator.moniker}</span>

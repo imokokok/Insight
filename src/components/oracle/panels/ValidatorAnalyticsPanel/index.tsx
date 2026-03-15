@@ -60,14 +60,14 @@ function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{title}</p>
           <p className="text-gray-900 text-2xl font-bold">{value}</p>
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
         </div>
-        <div className="p-3 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
+        <div className="p-3 bg-blue-50  text-blue-600">{icon}</div>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ function PieChart({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
+    <div className="bg-white border border-gray-200  p-5">
       <div className="mb-4">
         <p className="text-gray-900 text-sm font-semibold">{title}</p>
         {subtitle && <p className="text-gray-500 text-xs mt-0.5">{subtitle}</p>}
@@ -187,7 +187,6 @@ function ValidatorTable({
           viewBox="0 0 24 24"
         >
           <path
-            strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
             d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
@@ -197,11 +196,11 @@ function ValidatorTable({
     }
     return sortDirection === 'asc' ? (
       <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       </svg>
     ) : (
       <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
     );
   };
@@ -209,7 +208,7 @@ function ValidatorTable({
   const getTypeBadge = (type: string) => {
     return (
       <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${VALIDATOR_TYPE_STYLES[type] || 'bg-gray-100 text-gray-700'}`}
+        className={`px-2 py-1  text-xs font-medium ${VALIDATOR_TYPE_STYLES[type] || 'bg-gray-100 text-gray-700'}`}
       >
         {VALIDATOR_TYPE_LABELS[type] || type}
       </span>
@@ -294,7 +293,7 @@ function ValidatorTable({
             >
               <td className="py-3 px-4">
                 <span
-                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                  className={`inline-flex items-center justify-center w-6 h-6  text-xs font-semibold ${
                     index < 3 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -313,7 +312,6 @@ function ValidatorTable({
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
@@ -328,9 +326,9 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-16 h-2 bg-gray-200  overflow-hidden">
                     <div
-                      className="h-full bg-green-500 rounded-full"
+                      className="h-full bg-green-500 "
                       style={{ width: `${validator.successRate}%` }}
                     />
                   </div>
@@ -339,9 +337,9 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-16 h-2 bg-gray-200  overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-blue-500 "
                       style={{ width: `${validator.reputation}%` }}
                     />
                   </div>
@@ -359,7 +357,7 @@ function ValidatorTable({
               <td className="py-3 px-4">
                 <button
                   onClick={() => onViewHistory(validator)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100  transition-colors"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -368,7 +366,6 @@ function ValidatorTable({
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
@@ -611,7 +608,7 @@ export function ValidatorAnalyticsPanel() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
           <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
         </div>
       </div>
@@ -627,7 +624,7 @@ export function ValidatorAnalyticsPanel() {
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
+              <div className="animate-spin  h-4 w-4 border-2 border-blue-600 border-t-transparent" />
               <span className="text-sm text-blue-600">刷新中...</span>
             </div>
           )}
@@ -635,7 +632,7 @@ export function ValidatorAnalyticsPanel() {
         <button
           onClick={() => fetchData(true)}
           disabled={isRefreshing}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100  transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
             className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -644,7 +641,6 @@ export function ValidatorAnalyticsPanel() {
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
@@ -662,7 +658,6 @@ export function ValidatorAnalyticsPanel() {
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
@@ -676,12 +671,7 @@ export function ValidatorAnalyticsPanel() {
           subtitle={t('uma.validatorAnalytics.performanceRanking')}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
+              <path strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           }
         />
@@ -692,7 +682,6 @@ export function ValidatorAnalyticsPanel() {
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -707,7 +696,6 @@ export function ValidatorAnalyticsPanel() {
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -727,7 +715,6 @@ export function ValidatorAnalyticsPanel() {
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
@@ -738,7 +725,7 @@ export function ValidatorAnalyticsPanel() {
               placeholder="搜索验证者名称..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
             {searchQuery && (
               <button
@@ -746,12 +733,7 @@ export function ValidatorAnalyticsPanel() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
@@ -772,7 +754,7 @@ export function ValidatorAnalyticsPanel() {
             <select
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-3 py-1.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -786,7 +768,7 @@ export function ValidatorAnalyticsPanel() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200  text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               上一页
             </button>
@@ -807,7 +789,7 @@ export function ValidatorAnalyticsPanel() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`w-8 h-8  text-sm font-medium transition-all duration-200 ${
                       currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
@@ -822,7 +804,7 @@ export function ValidatorAnalyticsPanel() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200  text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               下一页
             </button>
@@ -853,7 +835,7 @@ export function ValidatorAnalyticsPanel() {
 
       {showValidatorModal && selectedValidator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="bg-white   w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{selectedValidator.name}</h3>
@@ -863,27 +845,22 @@ export function ValidatorAnalyticsPanel() {
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100  transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50  p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.type')}
                   </p>
                   <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                    className={`inline-block px-2 py-1  text-xs font-medium ${
                       selectedValidator.type === 'institution'
                         ? 'bg-purple-100 text-purple-700'
                         : selectedValidator.type === 'independent'
@@ -898,13 +875,13 @@ export function ValidatorAnalyticsPanel() {
                         : '社区'}
                   </span>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50  p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.region')}
                   </p>
                   <p className="text-sm font-semibold text-gray-900">{selectedValidator.region}</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50  p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.staked')}
                   </p>
@@ -912,7 +889,7 @@ export function ValidatorAnalyticsPanel() {
                     {formatNumber(selectedValidator.staked)} UMA
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-gray-50  p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.earnings')}
                   </p>
@@ -936,7 +913,6 @@ export function ValidatorAnalyticsPanel() {
                     <span>{t('uma.validatorAnalytics.viewOnEtherscan')}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
-                        strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
@@ -944,7 +920,7 @@ export function ValidatorAnalyticsPanel() {
                     </svg>
                   </a>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4 font-mono text-sm text-gray-700 break-all">
+                <div className="bg-gray-50  p-4 font-mono text-sm text-gray-700 break-all">
                   {selectedValidator.address}
                 </div>
               </div>
@@ -952,7 +928,7 @@ export function ValidatorAnalyticsPanel() {
               {isHistoryLoading ? (
                 <div className="flex items-center justify-center h-48">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+                    <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
                     <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
                   </div>
                 </div>
@@ -968,7 +944,7 @@ export function ValidatorAnalyticsPanel() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('uma.validatorAnalytics.estimatedRewards')}
                 </h4>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
+                <div className="bg-gray-100 border border-gray-200  p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">

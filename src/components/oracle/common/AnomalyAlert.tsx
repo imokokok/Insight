@@ -95,18 +95,12 @@ const SEVERITY_COLORS = {
 const ANOMALY_TYPE_ICONS = {
   price_spike: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-      />
+      <path strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
     </svg>
   ),
   price_deviation: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
-        strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
@@ -116,7 +110,6 @@ const ANOMALY_TYPE_ICONS = {
   data_delay: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
-        strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -125,37 +118,32 @@ const ANOMALY_TYPE_ICONS = {
   ),
   price_drop: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"
-      />
+      <path strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
     </svg>
   ),
 };
 
-function formatTime(timestamp: number): string {
+function formatTime(timestamp: number, locale: string): string {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString('zh-CN', {
+  return date.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
   });
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number, t: (key: string) => string): string {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
 
   if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
+    return `${hours}${t('common.time.hours')} ${minutes % 60}${t('common.time.minutes')}`;
   }
   if (minutes > 0) {
-    return `${minutes}m ${seconds % 60}s`;
+    return `${minutes}${t('common.time.minutes')} ${seconds % 60}${t('common.time.seconds')}`;
   }
-  return `${seconds}s`;
+  return `${seconds}${t('common.time.seconds')}`;
 }
 
 function generateAnomalyId(): string {
@@ -163,7 +151,7 @@ function generateAnomalyId(): string {
 }
 
 export function AnomalyAlert() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [anomalies, setAnomalies] = useState<AnomalyEvent[]>([]);
   const [stats, setStats] = useState<AnomalyStats>({
     totalAnomalies: 0,
@@ -341,7 +329,7 @@ export function AnomalyAlert() {
               message: t('anomalyAlert.dataDelayMessage', {
                 provider: PROVIDER_NAMES[price.provider],
                 symbol: price.symbol,
-                delay: formatDuration(timeDiff),
+                delay: formatDuration(timeDiff, t),
               }),
               acknowledged: false,
               resolved: false,
@@ -521,7 +509,7 @@ export function AnomalyAlert() {
         <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={requestNotificationPermission}
-            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
+            className={`px-4 py-2  text-sm font-medium flex items-center gap-2 ${
               notificationsEnabled
                 ? 'bg-green-100 text-green-700 border border-green-300'
                 : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
@@ -529,7 +517,6 @@ export function AnomalyAlert() {
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
@@ -542,32 +529,25 @@ export function AnomalyAlert() {
 
           <button
             onClick={() => setShowConfig(!showConfig)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-gray-100 text-gray-700  hover:bg-gray-200 text-sm font-medium flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
               />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             {t('anomalyAlert.config')}
           </button>
 
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-gray-100 text-gray-700  hover:bg-gray-200 text-sm font-medium flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -582,12 +562,12 @@ export function AnomalyAlert() {
             <span className="text-sm text-gray-600">{t('anomalyAlert.autoRefresh')}</span>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center  transition-colors ${
                 autoRefresh ? 'bg-blue-600' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform  bg-white transition-transform ${
                   autoRefresh ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
@@ -597,7 +577,7 @@ export function AnomalyAlert() {
           <button
             onClick={fetchPricesAndDetect}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
           >
             <svg
               className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -636,7 +616,7 @@ export function AnomalyAlert() {
                 onChange={(e) =>
                   setConfig({ ...config, priceSpikeThreshold: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 min="0"
                 step="0.5"
               />
@@ -652,7 +632,7 @@ export function AnomalyAlert() {
                 onChange={(e) =>
                   setConfig({ ...config, priceDropThreshold: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 min="0"
                 step="0.5"
               />
@@ -668,7 +648,7 @@ export function AnomalyAlert() {
                 onChange={(e) =>
                   setConfig({ ...config, priceDeviationThreshold: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 min="0"
                 step="0.5"
               />
@@ -684,7 +664,7 @@ export function AnomalyAlert() {
                 onChange={(e) =>
                   setConfig({ ...config, dataDelayThreshold: Number(e.target.value) * 1000 })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 min="1"
               />
             </div>
@@ -699,7 +679,7 @@ export function AnomalyAlert() {
                 onChange={(e) =>
                   setConfig({ ...config, checkInterval: Number(e.target.value) * 1000 })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 min="5"
               />
             </div>
@@ -764,7 +744,7 @@ export function AnomalyAlert() {
           <select
             value={filter.type}
             onChange={(e) => setFilter({ ...filter, type: e.target.value as AnomalyType | 'all' })}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">{t('anomalyAlert.allTypes')}</option>
             <option value="price_spike">{t('anomalyAlert.type_price_spike')}</option>
@@ -778,7 +758,7 @@ export function AnomalyAlert() {
             onChange={(e) =>
               setFilter({ ...filter, severity: e.target.value as AnomalySeverity | 'all' })
             }
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">{t('anomalyAlert.allSeverities')}</option>
             <option value="high">{t('anomalyAlert.severity_high')}</option>
@@ -794,7 +774,7 @@ export function AnomalyAlert() {
                 acknowledged: e.target.value === 'all' ? 'all' : e.target.value === 'true',
               })
             }
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">{t('anomalyAlert.allStatus')}</option>
             <option value="false">{t('anomalyAlert.unacknowledged')}</option>
@@ -811,7 +791,6 @@ export function AnomalyAlert() {
               stroke="currentColor"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1}
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -824,7 +803,7 @@ export function AnomalyAlert() {
             {filteredAnomalies.map((anomaly) => (
               <div
                 key={anomaly.id}
-                className={`border rounded-lg p-4 ${
+                className={`border  p-4 ${
                   SEVERITY_COLORS[anomaly.severity].border
                 } ${anomaly.acknowledged ? 'opacity-60' : ''}`}
               >
@@ -853,7 +832,7 @@ export function AnomalyAlert() {
                         <span>
                           {PROVIDER_NAMES[anomaly.provider]} • {anomaly.symbol}
                         </span>
-                        <span>{formatTime(anomaly.timestamp)}</span>
+                        <span>{formatTime(anomaly.timestamp, locale)}</span>
                       </div>
                     </div>
                   </div>
@@ -912,7 +891,7 @@ export function AnomalyAlert() {
                       <div>
                         <span className="text-gray-500">{t('anomalyAlert.delay')}:</span>
                         <span className="ml-1 font-medium">
-                          {formatDuration(anomaly.details.delay)}
+                          {formatDuration(anomaly.details.delay, t)}
                         </span>
                       </div>
                     )}
@@ -924,7 +903,7 @@ export function AnomalyAlert() {
         )}
 
         <div className="mt-4 text-xs text-gray-500">
-          {t('anomalyAlert.lastCheck')}: {formatTime(lastCheck)}
+          {t('anomalyAlert.lastCheck')}: {formatTime(lastCheck, locale)}
         </div>
       </DashboardCard>
 
@@ -932,14 +911,14 @@ export function AnomalyAlert() {
         <DashboardCard title={t('anomalyAlert.historyTitle')}>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50  p-4">
                 <div className="text-sm text-gray-600 mb-2">{t('anomalyAlert.last24Hours')}</div>
                 <div className="text-3xl font-bold text-gray-900">
                   {anomalies.filter((a) => Date.now() - a.timestamp < 24 * 60 * 60 * 1000).length}
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50  p-4">
                 <div className="text-sm text-gray-600 mb-2">{t('anomalyAlert.last7Days')}</div>
                 <div className="text-3xl font-bold text-gray-900">
                   {
@@ -949,12 +928,12 @@ export function AnomalyAlert() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50  p-4">
                 <div className="text-sm text-gray-600 mb-2">
                   {t('anomalyAlert.avgResolutionTime')}
                 </div>
                 <div className="text-3xl font-bold text-gray-900">
-                  {stats.avgResolutionTime > 0 ? formatDuration(stats.avgResolutionTime) : '--'}
+                  {stats.avgResolutionTime > 0 ? formatDuration(stats.avgResolutionTime, t) : '--'}
                 </div>
               </div>
             </div>
@@ -969,9 +948,9 @@ export function AnomalyAlert() {
                     {t('anomalyAlert.type_price_spike')}
                   </span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
+                        className="bg-blue-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.priceSpikeCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -988,9 +967,9 @@ export function AnomalyAlert() {
                     {t('anomalyAlert.type_price_deviation')}
                   </span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-purple-600 h-2 rounded-full"
+                        className="bg-purple-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.priceDeviationCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -1005,9 +984,9 @@ export function AnomalyAlert() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('anomalyAlert.type_data_delay')}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-indigo-600 h-2 rounded-full"
+                        className="bg-indigo-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.dataDelayCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -1022,9 +1001,9 @@ export function AnomalyAlert() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('anomalyAlert.type_price_drop')}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-pink-600 h-2 rounded-full"
+                        className="bg-pink-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.priceDropCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -1046,9 +1025,9 @@ export function AnomalyAlert() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('anomalyAlert.severity_high')}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-red-600 h-2 rounded-full"
+                        className="bg-red-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.highSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -1063,9 +1042,9 @@ export function AnomalyAlert() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('anomalyAlert.severity_medium')}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-orange-600 h-2 rounded-full"
+                        className="bg-orange-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.mediumSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}
@@ -1080,9 +1059,9 @@ export function AnomalyAlert() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t('anomalyAlert.severity_low')}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-gray-200  h-2">
                       <div
-                        className="bg-yellow-600 h-2 rounded-full"
+                        className="bg-yellow-600 h-2 "
                         style={{
                           width: `${stats.totalAnomalies > 0 ? (stats.lowSeverityCount / stats.totalAnomalies) * 100 : 0}%`,
                         }}

@@ -133,7 +133,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
   const strokeDasharray = `${(score / 100) * circumference} ${circumference}`;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -157,7 +157,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
               strokeWidth="10"
               fill="none"
               strokeDasharray={strokeDasharray}
-              strokeLinecap="round"
+              
               className="transition-all duration-1000"
             />
           </svg>
@@ -170,7 +170,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
 
       <div className="mt-4 flex items-center justify-center gap-2">
         <span
-          className="px-3 py-1 rounded-full text-xs font-medium"
+          className="px-3 py-1  text-xs font-medium"
           style={{ backgroundColor: `${color}20`, color }}
         >
           {label}
@@ -180,7 +180,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
       <div className="mt-4 grid grid-cols-4 gap-2 text-center">
         <div>
           <div
-            className="w-3 h-3 rounded-full mx-auto mb-1"
+            className="w-3 h-3  mx-auto mb-1"
             style={{ backgroundColor: SCORE_COLORS.excellent }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.excellent')}</p>
@@ -188,7 +188,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         </div>
         <div>
           <div
-            className="w-3 h-3 rounded-full mx-auto mb-1"
+            className="w-3 h-3  mx-auto mb-1"
             style={{ backgroundColor: SCORE_COLORS.good }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.good')}</p>
@@ -196,7 +196,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         </div>
         <div>
           <div
-            className="w-3 h-3 rounded-full mx-auto mb-1"
+            className="w-3 h-3  mx-auto mb-1"
             style={{ backgroundColor: SCORE_COLORS.fair }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.fair')}</p>
@@ -204,7 +204,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         </div>
         <div>
           <div
-            className="w-3 h-3 rounded-full mx-auto mb-1"
+            className="w-3 h-3  mx-auto mb-1"
             style={{ backgroundColor: SCORE_COLORS.poor }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.poor')}</p>
@@ -233,7 +233,7 @@ function AccuracyStats({
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -257,11 +257,10 @@ function AccuracyStats({
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: `1px solid ${chartColors.recharts.grid}`,
-                borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
-            <Bar dataKey="accuracy" fill={chartColors.recharts.primary} radius={[0, 4, 4, 0]}>
+            <Bar dataKey="accuracy" fill={chartColors.recharts.primary} >
               {data.map((entry, index) => {
                 const color =
                   entry.accuracy >= 99
@@ -279,15 +278,15 @@ function AccuracyStats({
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-4">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
+        <div className="text-center p-3 bg-gray-50 ">
           <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.daily')}</p>
           <p className="text-lg font-bold text-gray-900">{daily.toFixed(2)}%</p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
+        <div className="text-center p-3 bg-gray-50 ">
           <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.weekly')}</p>
           <p className="text-lg font-bold text-gray-900">{weekly.toFixed(2)}%</p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
+        <div className="text-center p-3 bg-gray-50 ">
           <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.accuracy.monthly')}</p>
           <p className="text-lg font-bold text-gray-900">{monthly.toFixed(2)}%</p>
         </div>
@@ -306,7 +305,7 @@ function ResponseTimeDistribution({
   const { t } = useI18n();
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -338,11 +337,10 @@ function ResponseTimeDistribution({
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: `1px solid ${chartColors.recharts.grid}`,
-                borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
-            <Bar dataKey="count" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]}>
+            <Bar dataKey="count" fill={chartColors.recharts.primary} >
               {data.map((entry, index) => {
                 if (entry.range === '0-50ms')
                   return <Cell key={`cell-${index}`} fill={SCORE_COLORS.excellent} />;
@@ -361,23 +359,23 @@ function ResponseTimeDistribution({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <div
-              className="w-2 h-2 rounded-full"
+              className="w-2 h-2 "
               style={{ backgroundColor: SCORE_COLORS.excellent }}
             ></div>
             <span>{t('nodeReputation.responseTime.excellent')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.good }}></div>
+            <div className="w-2 h-2 " style={{ backgroundColor: SCORE_COLORS.good }}></div>
             <span>{t('nodeReputation.responseTime.good')}</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.fair }}></div>
+            <div className="w-2 h-2 " style={{ backgroundColor: SCORE_COLORS.fair }}></div>
             <span>{t('nodeReputation.responseTime.fair')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.poor }}></div>
+            <div className="w-2 h-2 " style={{ backgroundColor: SCORE_COLORS.poor }}></div>
             <span>{t('nodeReputation.responseTime.slow')}</span>
           </div>
         </div>
@@ -399,7 +397,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.staking.title')}</p>
@@ -408,7 +406,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
       </div>
 
       <div className="space-y-4">
-        <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+        <div className="p-4 bg-gray-100 border border-gray-200 ">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-1">
@@ -416,7 +414,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
               </p>
               <p className="text-xl font-bold text-gray-900">{formatCurrency(staked)}</p>
             </div>
-            <div className="p-3 bg-blue-500 rounded-lg">
+            <div className="p-3 bg-blue-500 ">
               <svg
                 className="w-6 h-6 text-white"
                 fill="none"
@@ -424,7 +422,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
+                  
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -435,7 +433,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-gray-50 ">
             <p className="text-xs text-gray-500 mb-1">
               {t('nodeReputation.staking.totalEarnings')}
             </p>
@@ -444,14 +442,14 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
               ↑ 12.5% {t('nodeReputation.staking.vsLastMonth')}
             </p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-gray-50 ">
             <p className="text-xs text-gray-500 mb-1">{t('nodeReputation.staking.apr')}</p>
             <p className="text-lg font-bold text-gray-900">{apr.toFixed(2)}%</p>
             <p className="text-xs text-gray-400 mt-1">APR</p>
           </div>
         </div>
 
-        <div className="p-4 border border-gray-200 rounded-lg">
+        <div className="p-4 border border-gray-200 ">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-gray-500">{t('nodeReputation.staking.earningsTrend')}</p>
             <p className="text-xs text-green-600 font-medium">+{(earnings * 0.125).toFixed(0)}</p>
@@ -506,7 +504,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
   const NODE_TYPE_COLORS_MAP = [chartColors.recharts.primary, chartColors.semantic.success, chartColors.recharts.purple];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">
@@ -540,7 +538,6 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: `1px solid ${chartColors.recharts.grid}`,
-                borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
@@ -555,9 +552,9 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         {data.map((item, index) => (
-          <div key={item.type} className="text-center p-2 bg-gray-50 rounded-lg">
+          <div key={item.type} className="text-center p-2 bg-gray-50 ">
             <div
-              className="w-3 h-3 rounded-full mx-auto mb-1"
+              className="w-3 h-3  mx-auto mb-1"
               style={{ backgroundColor: NODE_TYPE_COLORS_MAP[index] }}
             ></div>
             <p className="text-xs text-gray-500">{item.name}</p>
@@ -581,7 +578,7 @@ function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
   const topNodes = nodes.slice(0, 10);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <div className="bg-white border border-gray-200  p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">{t('nodeReputation.ranking.title')}</p>
@@ -593,11 +590,11 @@ function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
         {topNodes.map((node, index) => (
           <div
             key={node.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
           >
             <div className="flex items-center gap-3">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                className={`w-8 h-8  flex items-center justify-center font-bold text-sm ${
                   index === 0
                     ? 'bg-yellow-400 text-white'
                     : index === 1
@@ -675,7 +672,7 @@ export function NodeReputationPanel({
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin  h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-500">{t('nodeReputation.loading')}</p>
         </div>
       </div>
@@ -693,7 +690,7 @@ export function NodeReputationPanel({
         </div>
         <button
           onClick={loadData}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors text-sm font-medium"
         >
           {t('nodeReputation.refresh')}
         </button>
@@ -701,7 +698,7 @@ export function NodeReputationPanel({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="bg-white border border-gray-200  p-4">
             <p className="text-sm font-semibold text-gray-900 mb-3">
               {t('nodeReputation.selectNode')}
             </p>
@@ -710,7 +707,7 @@ export function NodeReputationPanel({
                 <button
                   key={node.id}
                   onClick={() => setSelectedNode(node)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
+                  className={`p-3  border-2 transition-all ${
                     selectedNode.id === node.id
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'

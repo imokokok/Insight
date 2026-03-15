@@ -42,7 +42,9 @@ export const TIME_RANGE_OPTIONS: TimeRangeOption[] = [
   { value: '1Y', label: '1Y', hours: 24 * 365 },
 ];
 
-export function getTimeRangeConfig(t: TranslateFunction): Record<TimeRange, { hours: number; interval: number; label: string }> {
+export function getTimeRangeConfig(
+  t: TranslateFunction
+): Record<TimeRange, { hours: number; interval: number; label: string }> {
   return {
     '1H': { hours: 1, interval: 2, label: t('oracle.chart.timeRange.1h') || '1h' },
     '24H': { hours: 24, interval: 30, label: t('oracle.chart.timeRange.24h') || '24h' },
@@ -54,7 +56,9 @@ export function getTimeRangeConfig(t: TranslateFunction): Record<TimeRange, { ho
   };
 }
 
-export function getGranularityConfig(t: TranslateFunction): Record<DataGranularity, { intervalMinutes: number; label: string }> {
+export function getGranularityConfig(
+  t: TranslateFunction
+): Record<DataGranularity, { intervalMinutes: number; label: string }> {
   return {
     minute: { intervalMinutes: 1, label: t('oracle.chart.granularity.minute') || 'Minute' },
     hour: { intervalMinutes: 60, label: t('oracle.chart.granularity.hour') || 'Hour' },
@@ -68,18 +72,24 @@ export const CONFIDENCE_Z_SCORES: Record<ConfidenceLevel, number> = {
   99: 2.576,
 };
 
-export const TIME_RANGE_CONFIG: Record<TimeRange, { hours: number; interval: number; label: string }> = {
-  '1H': { hours: 1, interval: 2, label: '1小时' },
-  '24H': { hours: 24, interval: 30, label: '24小时' },
-  '7D': { hours: 24 * 7, interval: 4, label: '7天' },
-  '30D': { hours: 24 * 30, interval: 24, label: '30天' },
-  '90D': { hours: 24 * 90, interval: 72, label: '90天' },
-  '1Y': { hours: 24 * 365, interval: 168, label: '1年' },
-  ALL: { hours: 24 * 365 * 2, interval: 336, label: '全部' },
+export const TIME_RANGE_CONFIG: Record<
+  TimeRange,
+  { hours: number; interval: number; label: string }
+> = {
+  '1H': { hours: 1, interval: 2, label: '1h' },
+  '24H': { hours: 24, interval: 30, label: '24h' },
+  '7D': { hours: 24 * 7, interval: 4, label: '7d' },
+  '30D': { hours: 24 * 30, interval: 24, label: '30d' },
+  '90D': { hours: 24 * 90, interval: 72, label: '90d' },
+  '1Y': { hours: 24 * 365, interval: 168, label: '1y' },
+  ALL: { hours: 24 * 365 * 2, interval: 336, label: 'All' },
 };
 
-export const GRANULARITY_CONFIG: Record<DataGranularity, { intervalMinutes: number; label: string }> = {
-  minute: { intervalMinutes: 1, label: '分钟' },
-  hour: { intervalMinutes: 60, label: '小时' },
-  day: { intervalMinutes: 1440, label: '天' },
+export const GRANULARITY_CONFIG: Record<
+  DataGranularity,
+  { intervalMinutes: number; label: string }
+> = {
+  minute: { intervalMinutes: 1, label: '1m' },
+  hour: { intervalMinutes: 60, label: '1h' },
+  day: { intervalMinutes: 1440, label: '1d' },
 };

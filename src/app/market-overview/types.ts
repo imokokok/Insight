@@ -329,3 +329,55 @@ export interface AnomalyData {
   duration: number;
   acknowledged: boolean;
 }
+
+/**
+ * 导出配置
+ */
+export interface ExportConfig {
+  format: 'csv' | 'json' | 'xlsx';
+  dateRange: '7d' | '30d' | '90d' | 'custom';
+  timeRange: '7d' | '30d' | '90d' | '1y' | 'all';
+  startDate?: string;
+  endDate?: string;
+  includeCharts: boolean;
+  includeRawData: boolean;
+  includeMetadata: boolean;
+  metrics: string[];
+  filters: {
+    oracles: string[];
+    assets: string[];
+    chains: string[];
+  };
+}
+
+/**
+ * 定时导出配置
+ */
+export interface ScheduledExport {
+  id: string;
+  name: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  time: string;
+  email: string;
+  format: 'csv' | 'json' | 'excel';
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastRun?: string;
+  nextRun?: string;
+  lastRunStatus?: 'success' | 'failed' | 'pending';
+}
+
+/**
+ * 价格预警
+ */
+export interface PriceAlert {
+  id: string;
+  asset: string;
+  type: 'above' | 'below';
+  price: number;
+  enabled: boolean;
+  channels: ('email' | 'webhook' | 'push')[];
+  createdAt: string;
+  updatedAt: string;
+}

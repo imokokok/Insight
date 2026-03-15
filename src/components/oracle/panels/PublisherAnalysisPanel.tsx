@@ -366,7 +366,7 @@ export function PublisherAnalysisPanel({
   return (
     <div className="space-y-6">
       {anomalyCount > 0 && (
-        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+        <div className="bg-yellow-50 border border-yellow-300  p-4">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
@@ -436,12 +436,11 @@ export function PublisherAnalysisPanel({
         </div>
       )}
 
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
+      <div className="bg-gray-100 border border-gray-200  p-6 text-white">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-white/20 rounded-lg">
+          <div className="p-2 bg-white/20 ">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
@@ -455,17 +454,17 @@ export function PublisherAnalysisPanel({
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">Active Publishers</p>
             <p className="text-2xl font-bold">
               {activeCount}/{publishers.length}
             </p>
           </div>
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">Avg Reliability</p>
             <p className="text-2xl font-bold">{avgReliability.toFixed(1)}%</p>
           </div>
-          <div className="bg-white/10 rounded-lg p-3">
+          <div className="bg-white/10  p-3">
             <p className="text-white/70 text-sm">Avg Latency</p>
             <p className="text-2xl font-bold">{avgLatency.toFixed(0)}ms</p>
           </div>
@@ -537,7 +536,7 @@ export function PublisherAnalysisPanel({
                   >
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs">
+                        <div className="w-8 h-8 bg-gray-100 border border-gray-200  flex items-center justify-center text-white font-semibold text-xs">
                           {publisher.name.slice(0, 2).toUpperCase()}
                         </div>
                         <span className="font-medium text-gray-900">{publisher.name}</span>
@@ -581,7 +580,7 @@ export function PublisherAnalysisPanel({
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-flex px-2 py-1  text-xs font-medium ${
                           publisher.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : publisher.status === 'degraded'

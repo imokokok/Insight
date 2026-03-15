@@ -300,15 +300,42 @@ export function useTechnicalIndicators(
     [settings]
   );
 
-  const toggleMA7 = useCallback(() => updateSettings({ showMA7: !settings.showMA7 }), [settings.showMA7, updateSettings]);
-  const toggleMA14 = useCallback(() => updateSettings({ showMA14: !settings.showMA14 }), [settings.showMA14, updateSettings]);
-  const toggleMA30 = useCallback(() => updateSettings({ showMA30: !settings.showMA30 }), [settings.showMA30, updateSettings]);
-  const toggleMA60 = useCallback(() => updateSettings({ showMA60: !settings.showMA60 }), [settings.showMA60, updateSettings]);
-  const toggleMA20 = useCallback(() => updateSettings({ showMA20: !settings.showMA20 }), [settings.showMA20, updateSettings]);
-  const toggleBollingerBands = useCallback(() => updateSettings({ showBollingerBands: !settings.showBollingerBands }), [settings.showBollingerBands, updateSettings]);
-  const toggleRSI = useCallback(() => updateSettings({ showRSI: !settings.showRSI }), [settings.showRSI, updateSettings]);
-  const toggleMACD = useCallback(() => updateSettings({ showMACD: !settings.showMACD }), [settings.showMACD, updateSettings]);
-  const toggleVolume = useCallback(() => updateSettings({ showVolume: !settings.showVolume }), [settings.showVolume, updateSettings]);
+  const toggleMA7 = useCallback(
+    () => updateSettings({ showMA7: !settings.showMA7 }),
+    [settings.showMA7, updateSettings]
+  );
+  const toggleMA14 = useCallback(
+    () => updateSettings({ showMA14: !settings.showMA14 }),
+    [settings.showMA14, updateSettings]
+  );
+  const toggleMA30 = useCallback(
+    () => updateSettings({ showMA30: !settings.showMA30 }),
+    [settings.showMA30, updateSettings]
+  );
+  const toggleMA60 = useCallback(
+    () => updateSettings({ showMA60: !settings.showMA60 }),
+    [settings.showMA60, updateSettings]
+  );
+  const toggleMA20 = useCallback(
+    () => updateSettings({ showMA20: !settings.showMA20 }),
+    [settings.showMA20, updateSettings]
+  );
+  const toggleBollingerBands = useCallback(
+    () => updateSettings({ showBollingerBands: !settings.showBollingerBands }),
+    [settings.showBollingerBands, updateSettings]
+  );
+  const toggleRSI = useCallback(
+    () => updateSettings({ showRSI: !settings.showRSI }),
+    [settings.showRSI, updateSettings]
+  );
+  const toggleMACD = useCallback(
+    () => updateSettings({ showMACD: !settings.showMACD }),
+    [settings.showMACD, updateSettings]
+  );
+  const toggleVolume = useCallback(
+    () => updateSettings({ showVolume: !settings.showVolume }),
+    [settings.showVolume, updateSettings]
+  );
 
   return useMemo(
     () => ({

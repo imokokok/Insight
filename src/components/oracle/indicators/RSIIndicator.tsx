@@ -112,7 +112,7 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
                 if (!active || !payload || payload.length === 0) return null;
                 const rsi = payload[0].value as number;
                 return (
-                  <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg">
+                  <div className="bg-white border border-gray-200  p-2 ">
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <p
                       className={`text-sm font-bold ${
@@ -127,7 +127,12 @@ export function RSIIndicator({ data, period = 14, height = 200 }: RSIIndicatorPr
                 );
               }}
             />
-            <ReferenceArea y1={70} y2={100} fill={chartColors.rsi.overbought.line} fillOpacity={0.1} />
+            <ReferenceArea
+              y1={70}
+              y2={100}
+              fill={chartColors.rsi.overbought.line}
+              fillOpacity={0.1}
+            />
             <ReferenceArea y1={0} y2={30} fill={chartColors.rsi.oversold.line} fillOpacity={0.1} />
             <ReferenceLine y={50} stroke={chartColors.rsi.neutral} strokeDasharray="3 3" />
             <ReferenceLine y={70} stroke={chartColors.rsi.overbought.line} strokeDasharray="3 3" />

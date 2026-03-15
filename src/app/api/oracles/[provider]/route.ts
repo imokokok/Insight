@@ -1,9 +1,6 @@
 import { NextRequest } from 'next/server';
 import { Blockchain, OracleProvider } from '@/types/oracle';
-import {
-  createErrorResponse,
-  ErrorCodes,
-} from '@/lib/api/utils';
+import { createErrorResponse, ErrorCodes } from '@/lib/api/utils';
 import {
   validateProvider,
   validatePeriod,

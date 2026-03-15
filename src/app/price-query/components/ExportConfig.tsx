@@ -67,16 +67,11 @@ export function ExportConfig({
 
   const toggleField = (key: string) => {
     setFields((prev) =>
-      prev.map((field) =>
-        field.key === key ? { ...field, enabled: !field.enabled } : field
-      )
+      prev.map((field) => (field.key === key ? { ...field, enabled: !field.enabled } : field))
     );
   };
 
-  const enabledFieldsCount = useMemo(
-    () => fields.filter((f) => f.enabled).length,
-    [fields]
-  );
+  const enabledFieldsCount = useMemo(() => fields.filter((f) => f.enabled).length, [fields]);
 
   const estimatedRecords = useMemo(() => {
     return queryResults.length;
@@ -128,16 +123,12 @@ export function ExportConfig({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 shadow-xl">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 border border-gray-200">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Icons.download />
-            导出配置
+            {t('exportConfig.title') || '数据导出配置'}
           </h2>
           <button
             onClick={onClose}
@@ -145,23 +136,30 @@ export function ExportConfig({
             aria-label="关闭"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">导出格式</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('exportConfig.format') || '导出格式'}
+            </h3>
             <div className="flex gap-3">
               {(['csv', 'json', 'pdf'] as ExportFormat[]).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFormat(f)}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 text-sm font-medium border transition-colors ${
                     format === f
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
                   {f.toUpperCase()}
@@ -172,33 +170,32 @@ export function ExportConfig({
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">导出字段</h3>
+              <h3 className="text-sm font-semibold text-gray-700">
+                {t('exportConfig.fields') || '导出字段'}
+              </h3>
               <div className="flex gap-2">
                 <button
                   onClick={handleSelectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  全选
+                  {t('exportConfig.selectAll') || '全选'}
                 </button>
                 <button
                   onClick={handleDeselectAllFields}
                   className="text-xs text-gray-600 hover:text-gray-900 underline"
                 >
-                  取消全选
+                  {t('exportConfig.deselectAll') || '取消全选'}
                 </button>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {fields.map((field) => (
-                <label
-                  key={field.key}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
+                <label key={field.key} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={field.enabled}
                     onChange={() => toggleField(field.key)}
-                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">{field.label}</span>
                 </label>
@@ -207,24 +204,30 @@ export function ExportConfig({
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">时间范围（可选）</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('exportConfig.timeRange') || '时间范围（可选）'}
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">开始时间</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  {t('exportConfig.startTime') || '开始时间'}
+                </label>
                 <input
                   type="datetime-local"
                   value={timeRangeStart}
                   onChange={(e) => setTimeRangeStart(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">结束时间</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  {t('exportConfig.endTime') || '结束时间'}
+                </label>
                 <input
                   type="datetime-local"
                   value={timeRangeEnd}
                   onChange={(e) => setTimeRangeEnd(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
             </div>
@@ -232,59 +235,71 @@ export function ExportConfig({
 
           {format === 'pdf' && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">PDF 选项</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                {t('exportConfig.pdfOptions') || 'PDF 选项'}
+              </h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={includeChart}
                     onChange={(e) => setIncludeChart(e.target.checked)}
-                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">包含价格图表</span>
+                  <span className="text-sm text-gray-700">
+                    {t('exportConfig.includeChart') || '包含价格图表'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={includeStats}
                     onChange={(e) => setIncludeStats(e.target.checked)}
-                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">包含统计摘要</span>
+                  <span className="text-sm text-gray-700">
+                    {t('exportConfig.includeStats') || '包含统计摘要'}
+                  </span>
                 </label>
               </div>
             </div>
           )}
 
           <div className="bg-gray-50 p-4 border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">导出预览</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">
+              {t('exportConfig.preview') || '导出预览'}
+            </h3>
             <div className="space-y-1 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>查询币种:</span>
+                <span>{t('exportConfig.symbol') || '查询币种:'}</span>
                 <span className="font-medium">{selectedSymbol}</span>
               </div>
               <div className="flex justify-between">
-                <span>预言机数量:</span>
+                <span>{t('exportConfig.oracleCount') || '预言机数量:'}</span>
                 <span className="font-medium">{selectedOracles.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>区块链数量:</span>
+                <span>{t('exportConfig.chainCount') || '区块链数量:'}</span>
                 <span className="font-medium">{selectedChains.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>时间范围:</span>
+                <span>{t('exportConfig.timeRangeLabel') || '时间范围:'}</span>
                 <span className="font-medium">{selectedTimeRange}h</span>
               </div>
               <div className="flex justify-between">
-                <span>预计记录数:</span>
-                <span className="font-medium">{estimatedRecords} 条</span>
+                <span>{t('exportConfig.estimatedRecords') || '预计记录数:'}</span>
+                <span className="font-medium">
+                  {estimatedRecords} {t('exportConfig.records') || '条'}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span>导出字段数:</span>
-                <span className="font-medium">{enabledFieldsCount} 个</span>
+                <span>{t('exportConfig.fieldCount') || '导出字段数:'}</span>
+                <span className="font-medium">
+                  {enabledFieldsCount} {t('exportConfig.fields') || '个'}
+                </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
-                <span>预计文件大小:</span>
+                <span>{t('exportConfig.estimatedSize') || '预计文件大小:'}</span>
                 <span className="font-medium text-gray-900">
                   {formatFileSize(estimatedFileSize)}
                 </span>
@@ -298,14 +313,14 @@ export function ExportConfig({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
           >
-            取消
+            {t('common.cancel') || '取消'}
           </button>
           <button
             onClick={handleExport}
             disabled={enabledFieldsCount === 0}
-            className="px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            导出 {format.toUpperCase()}
+            {t('exportConfig.export') || '导出'} {format.toUpperCase()}
           </button>
         </div>
       </div>

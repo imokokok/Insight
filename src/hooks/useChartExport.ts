@@ -10,7 +10,14 @@ const logger = createLogger('useChartExport');
 export type ExportFormat = 'png' | 'jpeg' | 'svg' | 'pdf' | 'csv' | 'json' | 'xlsx';
 
 // 导出状态
-export type ExportStatus = 'idle' | 'preparing' | 'rendering' | 'generating' | 'downloading' | 'completed' | 'error';
+export type ExportStatus =
+  | 'idle'
+  | 'preparing'
+  | 'rendering'
+  | 'generating'
+  | 'downloading'
+  | 'completed'
+  | 'error';
 
 // 导出配置
 export interface ExportConfig {
@@ -62,14 +69,21 @@ export interface UseChartExportReturn {
   progress: ExportProgress;
 
   // 导出方法
-  exportChart: (chartRef: React.RefObject<HTMLElement>, config?: Partial<ExportConfig>) => Promise<string | null>;
+  exportChart: (
+    chartRef: React.RefObject<HTMLElement>,
+    config?: Partial<ExportConfig>
+  ) => Promise<string | null>;
   exportData: (config: DataExportConfig) => Promise<string | null>;
   exportToImage: (
     chartRef: React.RefObject<HTMLElement>,
     format: 'png' | 'jpeg' | 'svg',
     options?: Partial<ExportConfig>
   ) => Promise<string | null>;
-  exportToCSV: (data: unknown[], filename?: string, columns?: DataExportConfig['columns']) => Promise<string | null>;
+  exportToCSV: (
+    data: unknown[],
+    filename?: string,
+    columns?: DataExportConfig['columns']
+  ) => Promise<string | null>;
   exportToJSON: (data: unknown[], filename?: string) => Promise<string | null>;
 
   // 进度控制
@@ -103,22 +117,20 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCancelledRef = useRef(false);
 
-  const isExporting = progress.status !== 'idle' && progress.status !== 'completed' && progress.status !== 'error';
+  const isExporting =
+    progress.status !== 'idle' && progress.status !== 'completed' && progress.status !== 'error';
 
   // 更新进度
-  const updateProgress = useCallback(
-    (updates: Partial<ExportProgress>) => {
-      setProgress((prev) => {
-        const newProgress = { ...prev, ...updates };
-        if (updates.status === 'completed' || updates.status === 'error') {
-          newProgress.endTime = Date.now();
-          newProgress.elapsedTime = newProgress.endTime - prev.startTime;
-        }
-        return newProgress;
-      });
-    },
-    []
-  );
+  const updateProgress = useCallback((updates: Partial<ExportProgress>) => {
+    setProgress((prev) => {
+      const newProgress = { ...prev, ...updates };
+      if (updates.status === 'completed' || updates.status === 'error') {
+        newProgress.endTime = Date.now();
+        newProgress.elapsedTime = newProgress.endTime - prev.startTime;
+      }
+      return newProgress;
+    });
+  }, []);
 
   // 检查是否已取消
   const checkCancelled = useCallback(() => {
@@ -136,7 +148,13 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
     ): Promise<string> => {
       checkCancelled();
 
-      const { width, height, scale = defaultScale, quality = defaultQuality, backgroundColor = exportColors.background } = config;
+      const {
+        width,
+        height,
+        scale = defaultScale,
+        quality = defaultQuality,
+        backgroundColor = exportColors.background,
+      } = config;
 
       // 如果是 SVG 格式，直接返回序列化后的字符串
       if (format === 'svg') {
@@ -152,7 +170,8 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
       // 设置尺寸
       const svgWidth = width || svgElement.viewBox.baseVal.width || svgElement.clientWidth || 800;
-      const svgHeight = height || svgElement.viewBox.baseVal.height || svgElement.clientHeight || 600;
+      const svgHeight =
+        height || svgElement.viewBox.baseVal.height || svgElement.clientHeight || 600;
 
       clonedSvg.setAttribute('width', String(svgWidth));
       clonedSvg.setAttribute('height', String(svgHeight));
@@ -294,12 +313,25 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
         return null;
       }
     },
-    [defaultFilename, defaultScale, defaultQuality, onExportStart, onExportComplete, onExportError, svgToImage, checkCancelled, updateProgress]
+    [
+      defaultFilename,
+      defaultScale,
+      defaultQuality,
+      onExportStart,
+      onExportComplete,
+      onExportError,
+      svgToImage,
+      checkCancelled,
+      updateProgress,
+    ]
   );
 
   // 导出图表（通用方法）
   const exportChart = useCallback(
-    async (chartRef: React.RefObject<HTMLElement>, config: Partial<ExportConfig> = {}): Promise<string | null> => {
+    async (
+      chartRef: React.RefObject<HTMLElement>,
+      config: Partial<ExportConfig> = {}
+    ): Promise<string | null> => {
       const format = config.format || 'png';
 
       if (format === 'csv' || format === 'json' || format === 'xlsx') {
@@ -313,46 +345,57 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
   );
 
   // 转换为 CSV
-  const convertToCSV = useCallback((data: unknown[], columns?: DataExportConfig['columns']): string => {
-    if (data.length === 0) return '';
+  const convertToCSV = useCallback(
+    (data: unknown[], columns?: DataExportConfig['columns']): string => {
+      if (data.length === 0) return '';
 
-    const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0] as object);
-    const headers = columns ? columns.map((c) => c.header) : keys;
+      const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0] as object);
+      const headers = columns ? columns.map((c) => c.header) : keys;
 
-    const csvRows: string[] = [];
+      const csvRows: string[] = [];
 
-    // 添加标题行
-    csvRows.push(headers.join(','));
+      // 添加标题行
+      csvRows.push(headers.join(','));
 
-    // 添加数据行
-    for (const row of data) {
-      const values = keys.map((key) => {
-        const column = columns?.find((c) => c.key === key);
-        let value: unknown;
+      // 添加数据行
+      for (const row of data) {
+        const values = keys.map((key) => {
+          const column = columns?.find((c) => c.key === key);
+          let value: unknown;
 
-        if (column?.formatter) {
-          value = column.formatter((row as Record<string, unknown>)[key]);
-        } else {
-          value = (row as Record<string, unknown>)[key];
-        }
+          if (column?.formatter) {
+            value = column.formatter((row as Record<string, unknown>)[key]);
+          } else {
+            value = (row as Record<string, unknown>)[key];
+          }
 
-        // 处理特殊字符
-        const stringValue = String(value ?? '');
-        if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
-      });
+          // 处理特殊字符
+          const stringValue = String(value ?? '');
+          if (
+            stringValue.includes(',') ||
+            stringValue.includes('\n') ||
+            stringValue.includes('"')
+          ) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          return stringValue;
+        });
 
-      csvRows.push(values.join(','));
-    }
+        csvRows.push(values.join(','));
+      }
 
-    return csvRows.join('\n');
-  }, []);
+      return csvRows.join('\n');
+    },
+    []
+  );
 
   // 导出为 CSV
   const exportToCSV = useCallback(
-    async (data: unknown[], filename?: string, columns?: DataExportConfig['columns']): Promise<string | null> => {
+    async (
+      data: unknown[],
+      filename?: string,
+      columns?: DataExportConfig['columns']
+    ): Promise<string | null> => {
       abortControllerRef.current = new AbortController();
       isCancelledRef.current = false;
 
@@ -398,7 +441,15 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
         return null;
       }
     },
-    [defaultFilename, onExportStart, onExportComplete, onExportError, convertToCSV, checkCancelled, updateProgress]
+    [
+      defaultFilename,
+      onExportStart,
+      onExportComplete,
+      onExportError,
+      convertToCSV,
+      checkCancelled,
+      updateProgress,
+    ]
   );
 
   // 导出为 JSON
@@ -449,7 +500,14 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
         return null;
       }
     },
-    [defaultFilename, onExportStart, onExportComplete, onExportError, checkCancelled, updateProgress]
+    [
+      defaultFilename,
+      onExportStart,
+      onExportComplete,
+      onExportError,
+      checkCancelled,
+      updateProgress,
+    ]
   );
 
   // 导出数据（通用方法）
@@ -502,7 +560,17 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
       cancelExport,
       resetExport,
     }),
-    [isExporting, progress, exportChart, exportData, exportToImage, exportToCSV, exportToJSON, cancelExport, resetExport]
+    [
+      isExporting,
+      progress,
+      exportChart,
+      exportData,
+      exportToImage,
+      exportToCSV,
+      exportToJSON,
+      cancelExport,
+      resetExport,
+    ]
   );
 }
 
@@ -534,13 +602,17 @@ export interface UseBatchChartExportReturn {
 /**
  * 批量图表导出 Hook
  */
-export function useBatchChartExport(options: UseBatchChartExportOptions = {}): UseBatchChartExportReturn {
+export function useBatchChartExport(
+  options: UseBatchChartExportOptions = {}
+): UseBatchChartExportReturn {
   const { onBatchStart, onBatchComplete, onBatchError } = options;
 
   const [isBatchExporting, setIsBatchExporting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const [results, setResults] = useState<Array<{ id: string; success: boolean; url?: string; error?: Error }>>([]);
+  const [results, setResults] = useState<
+    Array<{ id: string; success: boolean; url?: string; error?: Error }>
+  >([]);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -579,7 +651,10 @@ export function useBatchChartExport(options: UseBatchChartExportOptions = {}): U
             } else if (item.data) {
               // 导出数据
               const chartExport = useChartExport();
-              url = await chartExport.exportData({ ...item.config, data: item.data } as DataExportConfig);
+              url = await chartExport.exportData({
+                ...item.config,
+                data: item.data,
+              } as DataExportConfig);
             }
 
             batchResults.push({ id: item.id, success: !!url, url: url || undefined });

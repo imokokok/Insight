@@ -16,6 +16,7 @@ import {
   Area,
   ReferenceLine,
 } from 'recharts';
+import { useI18n } from '@/lib/i18n/provider';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -37,7 +38,7 @@ import {
   ChartType,
   DataGranularity,
   ComparisonPeriod,
-  GRANULARITY_CONFIG,
+  getGranularityConfig,
 } from './priceChartConfig';
 import { useChartSettings, useScreenSize } from './usePriceChartSettings';
 import {
@@ -46,12 +47,7 @@ import {
   convertHistoricalPricePoints,
   generateDataWithGranularity,
 } from './priceChartUtils';
-import {
-  MainChartTooltip,
-  RSITooltip,
-  MACDTooltip,
-  CandlestickShape,
-} from './PriceChartTooltip';
+import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
 
 const logger = createLogger('PriceChart');
 
@@ -74,10 +70,22 @@ export function PriceChart({
   defaultPrice,
   enableRealtime = true,
 }: PriceChartProps) {
+  const { t } = useI18n();
   const screenSize = useScreenSize();
-  const { globalTimeRange, selectedTimeRange, registerTimeRangeCallback, unregisterTimeRangeCallback, syncEnabled } = useTimeRange();
-  const { settings: chartSettings, updateSettings: updateChartSettings, isLoaded: chartSettingsLoaded } = useChartSettings();
-  
+  const GRANULARITY_CONFIG = useMemo(() => getGranularityConfig(t), [t]);
+  const {
+    globalTimeRange,
+    selectedTimeRange,
+    registerTimeRangeCallback,
+    unregisterTimeRangeCallback,
+    syncEnabled,
+  } = useTimeRange();
+  const {
+    settings: chartSettings,
+    updateSettings: updateChartSettings,
+    isLoaded: chartSettingsLoaded,
+  } = useChartSettings();
+
   const isMobile = screenSize === 'mobile';
   const isTablet = screenSize === 'tablet';
   const {
@@ -135,11 +143,7 @@ export function PriceChart({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chartOpacity, setChartOpacity] = useState(1);
 
-  const {
-    anomalyDetectionEnabled,
-    showPredictionInterval,
-    confidenceLevel,
-  } = chartSettings;
+  const { anomalyDetectionEnabled, showPredictionInterval, confidenceLevel } = chartSettings;
 
   const timeRange = globalTimeRange;
 
@@ -154,17 +158,28 @@ export function PriceChart({
 
   const chartHeights = useMemo(() => {
     const minHeight = isMobile ? 300 : 400;
-    const availableHeight = Math.max(minHeight, height - (showToolbar ? (isMobile ? 140 : 180) : 0));
+    const availableHeight = Math.max(
+      minHeight,
+      height - (showToolbar ? (isMobile ? 140 : 180) : 0)
+    );
     const gap = isMobile ? 4 : 8;
 
     if (showRSI && showMACD) {
       const mainHeight = Math.floor((availableHeight - gap * 2) * 0.6);
       const subHeight = Math.floor((availableHeight - gap * 2) * 0.2);
-      return { main: Math.max(mainHeight, isMobile ? 180 : 240), rsi: Math.max(subHeight, isMobile ? 60 : 80), macd: Math.max(subHeight, isMobile ? 60 : 80) };
+      return {
+        main: Math.max(mainHeight, isMobile ? 180 : 240),
+        rsi: Math.max(subHeight, isMobile ? 60 : 80),
+        macd: Math.max(subHeight, isMobile ? 60 : 80),
+      };
     } else if (showRSI || showMACD) {
       const mainHeight = Math.floor((availableHeight - gap) * 0.7);
       const subHeight = Math.floor((availableHeight - gap) * 0.3);
-      return { main: Math.max(mainHeight, isMobile ? 200 : 280), rsi: showRSI ? Math.max(subHeight, isMobile ? 80 : 100) : 0, macd: showMACD ? Math.max(subHeight, isMobile ? 80 : 100) : 0 };
+      return {
+        main: Math.max(mainHeight, isMobile ? 200 : 280),
+        rsi: showRSI ? Math.max(subHeight, isMobile ? 80 : 100) : 0,
+        macd: showMACD ? Math.max(subHeight, isMobile ? 80 : 100) : 0,
+      };
     } else {
       return { main: availableHeight, rsi: 0, macd: 0 };
     }
@@ -189,7 +204,7 @@ export function PriceChart({
 
       const lastPoint = prevData[prevData.length - 1];
       const newTimestamp = now;
-      const newTime = new Date(newTimestamp).toLocaleTimeString('zh-CN', {
+      const newTime = new Date(newTimestamp).toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -382,7 +397,12 @@ export function PriceChart({
     ) {
       setComparison((prev) => ({ ...prev, enabled: true }));
     }
-  }, [comparison.period1Start, comparison.period1End, comparison.period2Start, comparison.period2End]);
+  }, [
+    comparison.period1Start,
+    comparison.period1End,
+    comparison.period2Start,
+    comparison.period2End,
+  ]);
 
   const priceRange = useMemo(() => {
     if (data.length === 0) return { min: 0, max: 100 };
@@ -454,20 +474,23 @@ export function PriceChart({
     return calculatePredictionIntervals(data, 20, confidenceLevel);
   }, [data, showPredictionInterval, confidenceLevel]);
 
-  const handleBrushChange = useCallback((range: { startIndex?: number; endIndex?: number }) => {
-    setBrushRange(range);
-    brushZoom.handleBrushChange(range);
-    if (range.startIndex !== undefined && range.endIndex !== undefined) {
-      setBrushStartIndex(range.startIndex);
-      setBrushEndIndex(range.endIndex);
-    }
-  }, [brushZoom]);
+  const handleBrushChange = useCallback(
+    (range: { startIndex?: number; endIndex?: number }) => {
+      setBrushRange(range);
+      brushZoom.handleBrushChange(range);
+      if (range.startIndex !== undefined && range.endIndex !== undefined) {
+        setBrushStartIndex(range.startIndex);
+        setBrushEndIndex(range.endIndex);
+      }
+    },
+    [brushZoom]
+  );
 
   useEffect(() => {
     if (!syncEnabled || !selectedTimeRange || data.length === 0) return;
 
     const { startTime, endTime } = selectedTimeRange;
-    
+
     setIsTransitioning(true);
     setChartOpacity(0.5);
 
@@ -482,7 +505,7 @@ export function PriceChart({
         setBrushStartIndex(targetStartIndex);
         setBrushEndIndex(targetEndIndex);
         setBrushRange({ startIndex: targetStartIndex, endIndex: targetEndIndex });
-        
+
         setTimeout(() => {
           setChartOpacity(1);
           setIsTransitioning(false);
@@ -524,15 +547,15 @@ export function PriceChart({
   const connectionStatusText = useMemo(() => {
     switch (umaConnectionStatus) {
       case 'connected':
-        return '实时';
+        return t('priceChart.status.realtime');
       case 'connecting':
-        return '连接中';
+        return t('priceChart.status.connecting');
       case 'reconnecting':
-        return '重连中';
+        return t('priceChart.status.reconnecting');
       default:
-        return '断开';
+        return t('priceChart.status.disconnected');
     }
-  }, [umaConnectionStatus]);
+  }, [umaConnectionStatus, t]);
 
   const connectionStatusClass = useMemo(() => {
     switch (umaConnectionStatus) {
@@ -570,12 +593,13 @@ export function PriceChart({
                 </span>
               </div>
               {isUMAClient && realtimeEnabled && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full">
-                  <span className={`w-2 h-2 rounded-full ${connectionStatusClass}`} />
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 ">
+                  <span className={`w-2 h-2  ${connectionStatusClass}`} />
                   <span className="text-xs text-gray-600">{connectionStatusText}</span>
                   {umaRealtimePrice && (
                     <span className="text-xs text-gray-500">
-                      置信度: {(umaRealtimePrice.confidence * 100).toFixed(1)}%
+                      {t('priceChart.confidence')}: {(umaRealtimePrice.confidence * 100).toFixed(1)}
+                      %
                     </span>
                   )}
                 </div>
@@ -614,15 +638,15 @@ export function PriceChart({
           <div className={`flex flex-wrap items-center gap-2 ${isMobile ? 'gap-1' : ''}`}>
             {!isMobile && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">粒度:</span>
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <span className="text-xs text-gray-500">{t('priceChart.granularity')}:</span>
+                <div className="flex items-center gap-1 bg-gray-100  p-1">
                   {(Object.keys(GRANULARITY_CONFIG) as DataGranularity[]).map((g) => (
                     <button
                       key={g}
                       onClick={() => setGranularity(g)}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${
                         granularity === g
-                          ? 'bg-white text-blue-600 shadow-sm'
+                          ? 'bg-white text-blue-600 '
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -634,45 +658,45 @@ export function PriceChart({
             )}
 
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>指标:</span>
-              <div className={`flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}>
+              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                {t('priceChart.indicators')}:
+              </span>
+              <div
+                className={`flex items-center gap-1 bg-gray-100  p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}
+              >
                 {!isMobile && (
                   <button
                     onClick={toggleBollingerBands}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
                       showBollingerBands
-                        ? 'bg-white text-purple-600 shadow-sm'
+                        ? 'bg-white text-purple-600 '
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="布林带"
+                    title={t('priceChart.bollingerBands')}
                   >
-                    <span className="w-2 h-2 rounded-full bg-purple-500" />
-                    布林带
+                    <span className="w-2 h-2  bg-purple-500" />
+                    {t('priceChart.bollingerBands')}
                   </button>
                 )}
                 <button
                   onClick={toggleMA7}
                   className={`px-3 py-1.5 font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${isMobile ? 'text-[10px] px-2' : 'text-xs'} ${
-                    showMA7
-                      ? 'bg-white text-amber-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    showMA7 ? 'bg-white text-amber-600 ' : 'text-gray-600 hover:text-gray-900'
                   }`}
-                  title="7日移动平均线"
+                  title={t('priceChart.ma7')}
                 >
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="w-2 h-2  bg-amber-500" />
                   MA7
                 </button>
                 {!isMobile && (
                   <button
                     onClick={toggleMA14}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                      showMA14
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                      showMA14 ? 'bg-white text-blue-600 ' : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="14日移动平均线"
+                    title={t('priceChart.ma14')}
                   >
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                    <span className="w-2 h-2  bg-blue-500" />
                     MA14
                   </button>
                 )}
@@ -680,13 +704,11 @@ export function PriceChart({
                   <button
                     onClick={toggleMA30}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                      showMA30
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                      showMA30 ? 'bg-white text-indigo-600 ' : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    title="30日移动平均线"
+                    title={t('priceChart.ma30')}
                   >
-                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <span className="w-2 h-2  bg-indigo-500" />
                     MA30
                   </button>
                 )}
@@ -697,25 +719,21 @@ export function PriceChart({
                     <button
                       onClick={toggleRSI}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showRSI
-                          ? 'bg-white text-green-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                        showRSI ? 'bg-white text-green-600 ' : 'text-gray-600 hover:text-gray-900'
                       }`}
-                      title="相对强弱指标"
+                      title={t('priceChart.rsi')}
                     >
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="w-2 h-2  bg-green-500" />
                       RSI
                     </button>
                     <button
                       onClick={toggleMACD}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showMACD
-                          ? 'bg-white text-red-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                        showMACD ? 'bg-white text-red-600 ' : 'text-gray-600 hover:text-gray-900'
                       }`}
-                      title="指数平滑异同移动平均线"
+                      title={t('priceChart.macd')}
                     >
-                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="w-2 h-2  bg-red-500" />
                       MACD
                     </button>
 
@@ -723,14 +741,12 @@ export function PriceChart({
                     <button
                       onClick={toggleVolume}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showVolume
-                          ? 'bg-white text-cyan-600 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
+                        showVolume ? 'bg-white text-cyan-600 ' : 'text-gray-600 hover:text-gray-900'
                       }`}
-                      title="成交量"
+                      title={t('priceChart.volume')}
                     >
-                      <span className="w-2 h-2 rounded-full bg-cyan-500" />
-                      成交量
+                      <span className="w-2 h-2  bg-cyan-500" />
+                      {t('priceChart.volume')}
                     </button>
                   </>
                 )}
@@ -739,11 +755,15 @@ export function PriceChart({
           </div>
 
           {showComparisonPanel && (
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">时间段对比</h4>
+            <div className="p-4 bg-purple-50  border border-purple-100">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                {t('priceChart.timeComparison')}
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs text-gray-600 font-medium">时间段 1</label>
+                  <label className="text-xs text-gray-600 font-medium">
+                    {t('priceChart.timePeriod1')}
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -753,7 +773,7 @@ export function PriceChart({
                       }
                       className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
-                    <span className="text-xs text-gray-400">至</span>
+                    <span className="text-xs text-gray-400">{t('priceChart.to')}</span>
                     <input
                       type="date"
                       value={comparison.period1End}
@@ -765,7 +785,9 @@ export function PriceChart({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs text-gray-600 font-medium">时间段 2</label>
+                  <label className="text-xs text-gray-600 font-medium">
+                    {t('priceChart.timePeriod2')}
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -775,7 +797,7 @@ export function PriceChart({
                       }
                       className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
-                    <span className="text-xs text-gray-400">至</span>
+                    <span className="text-xs text-gray-400">{t('priceChart.to')}</span>
                     <input
                       type="date"
                       value={comparison.period2End}
@@ -798,7 +820,7 @@ export function PriceChart({
                   }
                   className="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
                 >
-                  开始对比
+                  {t('priceChart.startComparison')}
                 </button>
                 <button
                   onClick={() => {
@@ -813,7 +835,7 @@ export function PriceChart({
                   }}
                   className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 min-h-[44px] min-w-[44px]"
                 >
-                  取消对比
+                  {t('priceChart.cancelComparison')}
                 </button>
               </div>
             </div>
@@ -823,7 +845,7 @@ export function PriceChart({
 
       <div
         ref={chartContainerRef}
-        className={`flex-1 min-h-0 bg-gray-50 rounded-lg transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}
+        className={`flex-1 min-h-0 bg-gray-50  transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}
         style={{ opacity: chartOpacity }}
       >
         <ResponsiveContainer width="100%" height={chartHeights.main}>
@@ -894,7 +916,7 @@ export function PriceChart({
                 height={36}
                 formatter={(value) => (
                   <span className="text-xs text-gray-600">
-                    {value === 'price' ? '时间段 1' : '时间段 2'}
+                    {value === 'price' ? t('priceChart.timePeriod1') : t('priceChart.timePeriod2')}
                   </span>
                 )}
               />
@@ -1024,7 +1046,11 @@ export function PriceChart({
                   stroke={chartColors.recharts.primaryLight}
                   strokeWidth={isMobile ? 1.5 : 2}
                   dot={false}
-                  activeDot={{ r: isMobile ? 3 : 4, strokeWidth: 0, fill: chartColors.recharts.primaryDark }}
+                  activeDot={{
+                    r: isMobile ? 3 : 4,
+                    strokeWidth: 0,
+                    fill: chartColors.recharts.primaryDark,
+                  }}
                   name="price"
                 />
 
@@ -1038,7 +1064,11 @@ export function PriceChart({
                     strokeWidth={isMobile ? 1.5 : 2}
                     strokeDasharray="5 5"
                     dot={false}
-                    activeDot={{ r: isMobile ? 3 : 4, strokeWidth: 0, fill: chartColors.recharts.purpleDark }}
+                    activeDot={{
+                      r: isMobile ? 3 : 4,
+                      strokeWidth: 0,
+                      fill: chartColors.recharts.purpleDark,
+                    }}
                     name="comparison"
                   />
                 )}
@@ -1137,8 +1167,12 @@ export function PriceChart({
         {showRSI && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
-              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>RSI</span>
-              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>14周期</span>
+              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                RSI
+              </span>
+              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                {t('priceChart.rsiPeriod')}
+              </span>
             </div>
             <ResponsiveContainer width="100%" height={chartHeights.rsi}>
               <ComposedChart
@@ -1172,8 +1206,18 @@ export function PriceChart({
                 />
                 <Tooltip content={<RSITooltip />} />
 
-                <ReferenceLine y={70} stroke={chartColors.rsi.overbought.line} strokeDasharray="3 3" strokeOpacity={0.5} />
-                <ReferenceLine y={30} stroke={chartColors.rsi.oversold.line} strokeDasharray="3 3" strokeOpacity={0.5} />
+                <ReferenceLine
+                  y={70}
+                  stroke={chartColors.rsi.overbought.line}
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                />
+                <ReferenceLine
+                  y={30}
+                  stroke={chartColors.rsi.oversold.line}
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                />
                 <ReferenceLine y={50} stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
 
                 <Line
@@ -1205,8 +1249,12 @@ export function PriceChart({
         {showMACD && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
-              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>MACD</span>
-              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>12,26,9</span>
+              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                MACD
+              </span>
+              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                {t('priceChart.macdPeriod')}
+              </span>
             </div>
             <ResponsiveContainer width="100%" height={chartHeights.macd}>
               <ComposedChart
@@ -1243,7 +1291,11 @@ export function PriceChart({
                   {dataWithPrediction.map((entry, index) => (
                     <Cell
                       key={`macd-cell-${index}`}
-                      fill={(entry.macdHistogram || 0) >= 0 ? chartColors.macd.histogram.positive : chartColors.macd.histogram.negative}
+                      fill={
+                        (entry.macdHistogram || 0) >= 0
+                          ? chartColors.macd.histogram.positive
+                          : chartColors.macd.histogram.negative
+                      }
                     />
                   ))}
                 </Bar>
@@ -1283,29 +1335,34 @@ export function PriceChart({
       </div>
 
       {showAnomalyStats && anomalyDetectionEnabled && anomalies.length > 0 && (
-        <div className="mt-4">
-        </div>
+        <div className="mt-4"></div>
       )}
 
       {chartType === 'line' && (
-        <div className={`flex items-center justify-center gap-4 mt-3 flex-wrap ${isMobile ? 'gap-2' : ''}`}>
+        <div
+          className={`flex items-center justify-center gap-4 mt-3 flex-wrap ${isMobile ? 'gap-2' : ''}`}
+        >
           <div className="flex items-center gap-2">
-            <span className={`bg-blue-500 rounded-full ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`} />
-            <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>价格</span>
+            <span className={`bg-blue-500  ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`} />
+            <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              {t('priceChart.price')}
+            </span>
           </div>
           {comparison.enabled && (
             <div className="flex items-center gap-2">
               <span
-                className={`bg-purple-500 rounded-full ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
+                className={`bg-purple-500  ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
                 style={{ borderTop: '2px dashed #8b5cf6' }}
               />
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>对比价格</span>
+              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                {t('priceChart.comparisonPrice')}
+              </span>
             </div>
           )}
           {showMA7 && (
             <div className="flex items-center gap-2">
               <span
-                className={`bg-amber-500 rounded-full border-dashed ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
+                className={`bg-amber-500  border-dashed ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
                 style={{ borderTop: '2px dashed #f59e0b' }}
               />
               <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>MA7</span>
@@ -1315,38 +1372,40 @@ export function PriceChart({
             <>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 bg-purple-500/10 border border-purple-500 border-dashed rounded" />
-                <span className="text-xs text-gray-500">布林带</span>
+                <span className="text-xs text-gray-500">{t('priceChart.bollingerBands')}</span>
               </div>
             </>
           )}
           {!isMobile && showRSI && (
             <div className="flex items-center gap-2">
-              <span className="w-3 h-0.5 bg-green-500 rounded-full" />
+              <span className="w-3 h-0.5 bg-green-500 " />
               <span className="text-xs text-gray-500">RSI</span>
             </div>
           )}
           {!isMobile && showMACD && (
             <>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-blue-500 rounded-full" />
+                <span className="w-3 h-0.5 bg-blue-500 " />
                 <span className="text-xs text-gray-500">MACD</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-orange-500 rounded-full" />
-                <span className="text-xs text-gray-500">信号</span>
+                <span className="w-3 h-0.5 bg-orange-500 " />
+                <span className="text-xs text-gray-500">{t('priceChart.signal')}</span>
               </div>
             </>
           )}
           {!isMobile && showVolume && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-green-500/30 rounded" />
-              <span className="text-xs text-gray-500">成交量</span>
+              <span className="text-xs text-gray-500">{t('priceChart.volume')}</span>
             </div>
           )}
           {anomalyDetectionEnabled && anomalies.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className={`bg-red-500 rounded-full ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`} />
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>异常点 ({anomalies.length})</span>
+              <span className={`bg-red-500  ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`} />
+              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                {t('priceChart.anomalyPoints')} ({anomalies.length})
+              </span>
             </div>
           )}
         </div>

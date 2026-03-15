@@ -69,10 +69,7 @@ function DataQualityBadge({ score }: { score: number }) {
           style={{ width: `${score}%` }}
         />
       </div>
-      <span
-        className={`text-xs font-semibold w-8 text-right`}
-        style={{ color: config.color }}
-      >
+      <span className={`text-xs font-semibold w-8 text-right`} style={{ color: config.color }}>
         {score}
       </span>
     </div>

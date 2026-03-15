@@ -36,7 +36,7 @@ export function IntegratedProtocols() {
         {mockProtocols.map((protocol) => (
           <div
             key={protocol.name}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
           >
             <div>
               <p className="text-sm font-medium text-gray-900">{protocol.name}</p>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type GaugeType = 'percentage' | 'value';
@@ -27,36 +28,45 @@ interface GaugeConfig {
   label: string;
 }
 
-const LEVEL_CONFIGS: Record<GaugeLevel, GaugeConfig> = {
+const LEVEL_CONFIGS: Record<GaugeLevel, Omit<GaugeConfig, 'label'>> = {
   excellent: {
     color: semanticColors.success.DEFAULT,
     bgColor: 'bg-green-500',
     lightBg: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '优秀',
   },
   good: {
     color: chartColors.recharts.primary,
     bgColor: 'bg-blue-500',
     lightBg: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '良好',
   },
   warning: {
     color: semanticColors.warning.DEFAULT,
     bgColor: 'bg-yellow-500',
     lightBg: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '警告',
   },
   danger: {
     color: semanticColors.danger.DEFAULT,
     bgColor: 'bg-red-500',
     lightBg: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '危险',
   },
 };
+
+function getLevelLabel(level: GaugeLevel, t: (key: string, params?: Record<string, string | number>) => string): string {
+  switch (level) {
+    case 'excellent':
+      return t('oracleCommon.performanceGauge.levels.excellent');
+    case 'good':
+      return t('oracleCommon.performanceGauge.levels.good');
+    case 'warning':
+      return t('oracleCommon.performanceGauge.levels.warning');
+    case 'danger':
+      return t('oracleCommon.performanceGauge.levels.danger');
+  }
+}
 
 function getLevelForPercentage(
   percentage: number,
@@ -105,6 +115,7 @@ interface SingleGaugeProps {
   size: number;
   showAnimation: boolean;
   animationDuration: number;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 function SingleGauge({
@@ -118,6 +129,7 @@ function SingleGauge({
   size,
   showAnimation,
   animationDuration,
+  t,
 }: SingleGaugeProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const [animatedPercentage, setAnimatedPercentage] = useState(0);
@@ -142,6 +154,7 @@ function SingleGauge({
   const currentPercentage = showAnimation ? animatedPercentage : targetPercentage;
   const level = useMemo(() => getLevel(currentPercentage), [getLevel, currentPercentage]);
   const levelConfig = LEVEL_CONFIGS[level];
+  const levelLabel = getLevelLabel(level, t);
 
   useEffect(() => {
     if (!showAnimation) {
@@ -270,7 +283,6 @@ function SingleGauge({
             fill="none"
             stroke={chartColors.grid.line}
             strokeWidth={strokeWidth}
-            strokeLinecap="round"
           />
 
           <path
@@ -278,7 +290,6 @@ function SingleGauge({
             fill="none"
             stroke={`url(#gaugeGradient-${label})`}
             strokeWidth={strokeWidth}
-            strokeLinecap="round"
             filter={`url(#glow-${label})`}
             className="transition-all duration-300"
           />
@@ -316,7 +327,7 @@ function SingleGauge({
             <polygon
               points={`${needleBase.x},${needleBase.y} ${needleLeft.x},${needleLeft.y} ${centerX},${centerY} ${needleRight.x},${needleRight.y}`}
               fill={levelConfig.color}
-              className="drop-shadow-sm"
+              className="drop-"
             />
             <circle cx={centerX} cy={centerY} r={strokeWidth / 2 + 1} fill={levelConfig.color} />
             <circle cx={centerX} cy={centerY} r={strokeWidth / 4} fill="white" />
@@ -327,14 +338,16 @@ function SingleGauge({
           <div className="text-xl font-bold" style={{ color: levelConfig.color }}>
             {formatValue(currentDisplayValue, unit)}
           </div>
-          <div className="text-xs text-gray-500">{levelConfig.label}</div>
+          <div className="text-xs text-gray-500">{levelLabel}</div>
         </div>
       </div>
 
       <div className="mt-2 text-center">
         <p className="text-sm font-medium text-gray-700">{label}</p>
         {type === 'value' && (
-          <p className="text-xs text-gray-400 mt-0.5">范围: 0 - {formatValue(max, unit)}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {t('oracleCommon.performanceGauge.range', { value: formatValue(max, unit) })}
+          </p>
         )}
       </div>
     </div>
@@ -362,13 +375,11 @@ export function PerformanceGaugeGroup({
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeGroupProps) {
+  const { t } = useI18n();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {gauges.map((gauge, index) => (
-        <div
-          key={index}
-          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
-        >
+        <div key={index} className="bg-white border border-gray-200  p-4  hover: transition-shadow">
           <SingleGauge
             value={gauge.value}
             max={gauge.max}
@@ -380,6 +391,7 @@ export function PerformanceGaugeGroup({
             size={size}
             showAnimation={showAnimation}
             animationDuration={animationDuration}
+            t={t}
           />
         </div>
       ))}
@@ -399,8 +411,9 @@ export function PerformanceGauge({
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeProps) {
+  const { t } = useI18n();
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200  p-4  hover: transition-shadow">
       <SingleGauge
         value={value}
         max={max}
@@ -412,6 +425,7 @@ export function PerformanceGauge({
         size={size}
         showAnimation={showAnimation}
         animationDuration={animationDuration}
+        t={t}
       />
     </div>
   );

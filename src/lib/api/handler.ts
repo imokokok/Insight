@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 import { ApiResponseBuilder, ApiResponse, ApiSuccessResponse } from './response';
-import { 
+import {
   createAuthMiddleware,
   createValidationMiddleware,
   createLoggingMiddleware,
@@ -50,7 +50,10 @@ export interface CreateApiHandlerOptions {
 export function createApiHandler<T = unknown>(
   handler: ApiHandler<T>,
   options: CreateApiHandlerOptions = {}
-): (request: NextRequest, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
+): (
+  request: NextRequest,
+  context?: { params: Promise<Record<string, string>> }
+) => Promise<NextResponse> {
   const { middlewares = {}, onError } = options;
 
   const authMiddleware = middlewares.auth
@@ -64,9 +67,7 @@ export function createApiHandler<T = unknown>(
     : null;
 
   const loggingMiddleware = middlewares.logging
-    ? createLoggingMiddleware(
-        typeof middlewares.logging === 'boolean' ? {} : middlewares.logging
-      )
+    ? createLoggingMiddleware(typeof middlewares.logging === 'boolean' ? {} : middlewares.logging)
     : null;
 
   const errorMiddleware = createErrorMiddleware(middlewares.error);
@@ -122,7 +123,7 @@ export function createApiHandler<T = unknown>(
       }
 
       const response = await handler(request, apiContext);
-      
+
       logResponse(apiContext.requestId, response.status, startTime);
       return response;
     } catch (error) {
@@ -132,7 +133,10 @@ export function createApiHandler<T = unknown>(
         try {
           return await onError(error, apiContext);
         } catch (handlerError) {
-          logger.error('Error in custom error handler', handlerError instanceof Error ? handlerError : new Error(String(handlerError)));
+          logger.error(
+            'Error in custom error handler',
+            handlerError instanceof Error ? handlerError : new Error(String(handlerError))
+          );
           return errorMiddleware(error, apiContext.requestId);
         }
       }
@@ -142,38 +146,23 @@ export function createApiHandler<T = unknown>(
   };
 }
 
-export function createGetHandler<T>(
-  handler: ApiHandler<T>,
-  options?: CreateApiHandlerOptions
-) {
+export function createGetHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
   return createApiHandler(handler, options);
 }
 
-export function createPostHandler<T>(
-  handler: ApiHandler<T>,
-  options?: CreateApiHandlerOptions
-) {
+export function createPostHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
   return createApiHandler(handler, options);
 }
 
-export function createPutHandler<T>(
-  handler: ApiHandler<T>,
-  options?: CreateApiHandlerOptions
-) {
+export function createPutHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
   return createApiHandler(handler, options);
 }
 
-export function createPatchHandler<T>(
-  handler: ApiHandler<T>,
-  options?: CreateApiHandlerOptions
-) {
+export function createPatchHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
   return createApiHandler(handler, options);
 }
 
-export function createDeleteHandler<T>(
-  handler: ApiHandler<T>,
-  options?: CreateApiHandlerOptions
-) {
+export function createDeleteHandler<T>(handler: ApiHandler<T>, options?: CreateApiHandlerOptions) {
   return createApiHandler(handler, options);
 }
 
@@ -200,7 +189,9 @@ export function createCrudHandlers<T, CreateDTO = Partial<T>, UpdateDTO = Partia
 
 export function withMiddleware<T>(
   handler: ApiHandler<T>,
-  ...middlewares: Array<(request: NextRequest, context: ApiHandlerContext) => Promise<NextResponse | void>>
+  ...middlewares: Array<
+    (request: NextRequest, context: ApiHandlerContext) => Promise<NextResponse | void>
+  >
 ): ApiHandler<T> {
   return async (request: NextRequest, context: ApiHandlerContext) => {
     for (const middleware of middlewares) {

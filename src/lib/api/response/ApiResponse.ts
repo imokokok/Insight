@@ -119,10 +119,9 @@ export class ApiResponseHandler {
       requestId?: string;
     }
   ): NextResponse<ApiErrorResponse> {
-    return NextResponse.json(
-      ApiResponseBuilder.error(code, message, options),
-      { status: statusCode }
-    );
+    return NextResponse.json(ApiResponseBuilder.error(code, message, options), {
+      status: statusCode,
+    });
   }
 
   static paginated<T>(
@@ -132,9 +131,7 @@ export class ApiResponseHandler {
     total: number,
     meta?: { requestId?: string }
   ): NextResponse<ApiPaginatedResponse<T>> {
-    return NextResponse.json(
-      ApiResponseBuilder.paginated(data, page, limit, total, meta)
-    );
+    return NextResponse.json(ApiResponseBuilder.paginated(data, page, limit, total, meta));
   }
 
   static created<T>(data: T): NextResponse<ApiSuccessResponse<T>> {

@@ -119,7 +119,9 @@ export function BollingerBands({
     }));
 
     const result = calculateBollingerBandsExtended(pricesWithTimestamp, period, multiplier);
-    const sortedPrices = [...pricesWithTimestamp].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const sortedPrices = [...pricesWithTimestamp].sort(
+      (a, b) => (a.timestamp || 0) - (b.timestamp || 0)
+    );
 
     let previousBandwidth = 0;
 
@@ -191,7 +193,7 @@ export function BollingerBands({
     const data = payload[0].payload;
 
     return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px]">
+      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
         <p className="text-sm font-semibold text-gray-900 mb-2">{data.timestamp}</p>
         <div className="space-y-1.5">
           <div className="flex justify-between items-center">
@@ -268,7 +270,7 @@ export function BollingerBands({
               <select
                 value={selectedOracle}
                 onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {data.map((oracleData) => (
                   <option key={oracleData.oracle} value={oracleData.oracle}>
@@ -283,7 +285,7 @@ export function BollingerBands({
               <select
                 value={period}
                 onChange={(e) => setPeriod(Number(e.target.value))}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -297,7 +299,7 @@ export function BollingerBands({
               <select
                 value={multiplier}
                 onChange={(e) => setMultiplier(Number(e.target.value))}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value={1.5}>1.5</option>
                 <option value={2}>2</option>
@@ -319,7 +321,7 @@ export function BollingerBands({
 
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">当前位置</p>
                 <p
                   className="text-xl font-bold"
@@ -331,21 +333,21 @@ export function BollingerBands({
                   系数: {stats.currentPosition.toFixed(2)}
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">带宽 %</p>
                 <p className="text-xl font-bold text-purple-600">
                   {stats.currentBandwidth.toFixed(2)}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">平均: {stats.avgBandwidth.toFixed(2)}%</p>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">挤压时间占比</p>
                 <p className="text-xl font-bold text-amber-600">
                   {stats.squeezePercent.toFixed(1)}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">预示潜在突破</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+              <div className="bg-gray-100 border border-gray-200  p-4">
                 <p className="text-xs text-gray-600 mb-1">突破统计</p>
                 <p className="text-xl font-bold text-green-600">
                   ↑{stats.upperBreakouts} ↓{stats.lowerBreakouts}
@@ -520,14 +522,24 @@ export function BollingerBands({
                     dot={false}
                     name="位置系数"
                   />
-                  <ReferenceLine y={1} stroke={chartColors.semantic.success} strokeDasharray="3 3" label="上轨边界" />
-                  <ReferenceLine y={-1} stroke={chartColors.semantic.danger} strokeDasharray="3 3" label="下轨边界" />
+                  <ReferenceLine
+                    y={1}
+                    stroke={chartColors.semantic.success}
+                    strokeDasharray="3 3"
+                    label="上轨边界"
+                  />
+                  <ReferenceLine
+                    y={-1}
+                    stroke={chartColors.semantic.danger}
+                    strokeDasharray="3 3"
+                    label="下轨边界"
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50  p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">布林带指标说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>

@@ -17,32 +17,8 @@ interface StakingCalculation {
   apr: number;
 }
 
-const validatorTypeLabels: Record<ValidatorType, string> = {
-  institution: '机构验证者',
-  independent: '独立验证者',
-  community: '社区验证者',
-};
-
-const validatorTypeLabelsEn: Record<ValidatorType, string> = {
-  institution: 'Institution',
-  independent: 'Independent',
-  community: 'Community',
-};
-
-const disputeFrequencyLabels: Record<DisputeFrequency, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
-};
-
-const disputeFrequencyLabelsEn: Record<DisputeFrequency, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-};
-
 export function StakingCalculator() {
-  const { locale } = useI18n();
+  const { t, locale } = useI18n();
   const [stakeAmount, setStakeAmount] = useState<number>(10000);
   const [validatorType, setValidatorType] = useState<ValidatorType>('independent');
   const [disputeFrequency, setDisputeFrequency] = useState<DisputeFrequency>('medium');
@@ -68,14 +44,6 @@ export function StakingCalculator() {
 
   const isZh = locale === 'zh-CN';
 
-  const getValidatorLabel = (type: ValidatorType) => {
-    return isZh ? validatorTypeLabels[type] : validatorTypeLabelsEn[type];
-  };
-
-  const getDisputeLabel = (freq: DisputeFrequency) => {
-    return isZh ? disputeFrequencyLabels[freq] : disputeFrequencyLabelsEn[freq];
-  };
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(isZh ? 'zh-CN' : 'en-US', {
       style: 'decimal',
@@ -98,23 +66,20 @@ export function StakingCalculator() {
   const yearlyHeight = maxReward > 0 ? (calculation.yearlyReward / 365 / maxReward) * 100 : 0;
 
   return (
-    <DashboardCard
-      title={isZh ? '质押收益计算器' : 'Staking Rewards Calculator'}
-      className="h-full"
-    >
+    <DashboardCard title={t('oracleCommon.stakingCalculator.title')} className="h-full">
       <div className="space-y-6">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {isZh ? '质押金额 (UMA)' : 'Stake Amount (UMA)'}
+              {t('oracleCommon.stakingCalculator.stakeAmount')}
             </label>
             <div className="relative">
               <input
                 type="number"
                 value={stakeAmount}
                 onChange={(e) => setStakeAmount(Math.max(0, Number(e.target.value)))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder={isZh ? '输入质押金额' : 'Enter stake amount'}
+                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder={t('oracleCommon.stakingCalculator.stakeAmountPlaceholder')}
                 min="0"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
@@ -126,31 +91,43 @@ export function StakingCalculator() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {isZh ? '验证者类型' : 'Validator Type'}
+                {t('oracleCommon.stakingCalculator.validatorType')}
               </label>
               <select
                 value={validatorType}
                 onChange={(e) => setValidatorType(e.target.value as ValidatorType)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               >
-                <option value="institution">{getValidatorLabel('institution')}</option>
-                <option value="independent">{getValidatorLabel('independent')}</option>
-                <option value="community">{getValidatorLabel('community')}</option>
+                <option value="institution">
+                  {t('oracleCommon.stakingCalculator.validatorTypes.institution')}
+                </option>
+                <option value="independent">
+                  {t('oracleCommon.stakingCalculator.validatorTypes.independent')}
+                </option>
+                <option value="community">
+                  {t('oracleCommon.stakingCalculator.validatorTypes.community')}
+                </option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {isZh ? '争议频率' : 'Dispute Frequency'}
+                {t('oracleCommon.stakingCalculator.disputeFrequency')}
               </label>
               <select
                 value={disputeFrequency}
                 onChange={(e) => setDisputeFrequency(e.target.value as DisputeFrequency)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               >
-                <option value="low">{getDisputeLabel('low')}</option>
-                <option value="medium">{getDisputeLabel('medium')}</option>
-                <option value="high">{getDisputeLabel('high')}</option>
+                <option value="low">
+                  {t('oracleCommon.stakingCalculator.disputeFrequencies.low')}
+                </option>
+                <option value="medium">
+                  {t('oracleCommon.stakingCalculator.disputeFrequencies.medium')}
+                </option>
+                <option value="high">
+                  {t('oracleCommon.stakingCalculator.disputeFrequencies.high')}
+                </option>
               </select>
             </div>
           </div>
@@ -158,13 +135,13 @@ export function StakingCalculator() {
 
         <div className="border-t border-gray-200 pt-6">
           <h4 className="text-sm font-semibold text-gray-900 mb-4">
-            {isZh ? '预估收益' : 'Estimated Rewards'}
+            {t('oracleCommon.stakingCalculator.estimatedRewards')}
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="bg-blue-50  p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isZh ? '日收益' : 'Daily'}
+                {t('oracleCommon.stakingCalculator.daily')}
               </p>
               <p className="text-lg font-bold text-blue-600">
                 {formatCurrency(calculation.dailyReward)}
@@ -172,9 +149,9 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-green-50 rounded-lg p-4">
+            <div className="bg-green-50  p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isZh ? '月收益' : 'Monthly'}
+                {t('oracleCommon.stakingCalculator.monthly')}
               </p>
               <p className="text-lg font-bold text-green-600">
                 {formatCurrency(calculation.monthlyReward)}
@@ -182,9 +159,9 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4">
+            <div className="bg-purple-50  p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isZh ? '年收益' : 'Yearly'}
+                {t('oracleCommon.stakingCalculator.yearly')}
               </p>
               <p className="text-lg font-bold text-purple-600">
                 {formatCurrency(calculation.yearlyReward)}
@@ -192,18 +169,20 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-orange-50 rounded-lg p-4">
+            <div className="bg-orange-50  p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                {isZh ? '年化收益率' : 'APR'}
+                {t('oracleCommon.stakingCalculator.apr')}
               </p>
               <p className="text-lg font-bold text-orange-600">{formatPercent(calculation.apr)}</p>
-              <p className="text-xs text-gray-400 mt-1">{isZh ? '年化' : 'Annual'}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {t('oracleCommon.stakingCalculator.annual')}
+              </p>
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50  p-4">
             <h5 className="text-sm font-medium text-gray-700 mb-4">
-              {isZh ? '收益对比' : 'Reward Comparison'}
+              {t('oracleCommon.stakingCalculator.rewardComparison')}
             </h5>
             <div className="flex items-end justify-around h-32 space-x-4">
               <div className="flex flex-col items-center flex-1">
@@ -211,10 +190,12 @@ export function StakingCalculator() {
                   {formatCurrency(calculation.dailyReward)}
                 </div>
                 <div
-                  className="w-full bg-blue-500 rounded-t-md transition-all duration-300"
+                  className="w-full bg-blue-500 -md transition-all duration-300"
                   style={{ height: `${Math.max(dailyHeight, 8)}%` }}
                 />
-                <div className="text-xs text-gray-600 mt-2 font-medium">{isZh ? '日' : 'Day'}</div>
+                <div className="text-xs text-gray-600 mt-2 font-medium">
+                  {t('oracleCommon.stakingCalculator.day')}
+                </div>
               </div>
 
               <div className="flex flex-col items-center flex-1">
@@ -222,11 +203,11 @@ export function StakingCalculator() {
                   {formatCurrency(calculation.monthlyReward / 30)}
                 </div>
                 <div
-                  className="w-full bg-green-500 rounded-t-md transition-all duration-300"
+                  className="w-full bg-green-500 -md transition-all duration-300"
                   style={{ height: `${Math.max(monthlyHeight, 8)}%` }}
                 />
                 <div className="text-xs text-gray-600 mt-2 font-medium">
-                  {isZh ? '月/日' : 'Mo/Day'}
+                  {t('oracleCommon.stakingCalculator.monthPerDay')}
                 </div>
               </div>
 
@@ -235,22 +216,18 @@ export function StakingCalculator() {
                   {formatCurrency(calculation.yearlyReward / 365)}
                 </div>
                 <div
-                  className="w-full bg-purple-500 rounded-t-md transition-all duration-300"
+                  className="w-full bg-purple-500 -md transition-all duration-300"
                   style={{ height: `${Math.max(yearlyHeight, 8)}%` }}
                 />
                 <div className="text-xs text-gray-600 mt-2 font-medium">
-                  {isZh ? '年/日' : 'Yr/Day'}
+                  {t('oracleCommon.stakingCalculator.yearPerDay')}
                 </div>
               </div>
             </div>
           </div>
 
           <div className="mt-4 text-xs text-gray-500">
-            <p>
-              {isZh
-                ? '* 收益估算基于当前网络参数，实际收益可能因网络状况而有所不同。'
-                : '* Reward estimates are based on current network parameters. Actual rewards may vary based on network conditions.'}
-            </p>
+            <p>{t('oracleCommon.stakingCalculator.disclaimer')}</p>
           </div>
         </div>
       </div>

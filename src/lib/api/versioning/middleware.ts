@@ -15,12 +15,16 @@ export interface VersionMiddlewareOptions {
 }
 
 export function createVersionMiddleware(options: VersionMiddlewareOptions = {}) {
-  const { defaultVersion = API_VERSIONS.CURRENT, includeVersionHeader = true, onDeprecated } = options;
+  const {
+    defaultVersion = API_VERSIONS.CURRENT,
+    includeVersionHeader = true,
+    onDeprecated,
+  } = options;
 
   return async (request: NextRequest): Promise<NextResponse | null> => {
     const pathParts = request.nextUrl.pathname.split('/').filter(Boolean);
     const apiIndex = pathParts.findIndex((part) => part === 'api');
-    
+
     let requestedVersion: string | undefined;
     if (apiIndex !== -1 && pathParts[apiIndex + 1]?.startsWith('v')) {
       requestedVersion = pathParts[apiIndex + 1];
@@ -59,18 +63,15 @@ export function addVersionHeaders(
 
   if (isDeprecated) {
     response.headers.set(VERSION_HEADERS.DEPRECATED, 'true');
-    
+
     if (deprecationDate) {
       response.headers.set(VERSION_HEADERS.DEPRECATION_DATE, deprecationDate.toISOString());
     }
-    
+
     if (sunsetDate) {
       response.headers.set(VERSION_HEADERS.SUNSET_DATE, sunsetDate.toISOString());
       const migrationUrl = `/api/${API_VERSIONS.CURRENT}`;
-      response.headers.set(
-        VERSION_HEADERS.LINK,
-        `<${migrationUrl}>; rel="successor-version"`
-      );
+      response.headers.set(VERSION_HEADERS.LINK, `<${migrationUrl}>; rel="successor-version"`);
     }
   }
 

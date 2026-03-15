@@ -79,7 +79,7 @@ export function FloatingActionButton({
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group"
+          className="w-12 h-12 bg-white border border-gray-200   hover: hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group"
           title="返回顶部"
         >
           <svg
@@ -88,12 +88,7 @@ export function FloatingActionButton({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 10l7-7m0 0l7 7m-7-7v18"
-            />
+            <path strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
         </button>
       )}
@@ -103,7 +98,7 @@ export function FloatingActionButton({
           <button
             onClick={() => setShowSnapshotMenu(!showSnapshotMenu)}
             disabled={isLoading}
-            className={`w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
+            className={`w-12 h-12 bg-white border border-gray-200   hover: transition-all duration-200 flex items-center justify-center group ${
               isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
             }`}
             title="保存快照"
@@ -115,7 +110,6 @@ export function FloatingActionButton({
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -124,7 +118,7 @@ export function FloatingActionButton({
           </button>
 
           {showSnapshotMenu && (
-            <div className="absolute bottom-full right-0 mb-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-200">
+            <div className="absolute bottom-full right-0 mb-2 w-48 bg-white border border-gray-200   overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-200">
               <div className="py-1">
                 <button
                   onClick={handleSaveSnapshotClick}
@@ -137,7 +131,6 @@ export function FloatingActionButton({
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
@@ -155,7 +148,7 @@ export function FloatingActionButton({
         <button
           onClick={() => setShowExportMenu(!showExportMenu)}
           disabled={isLoading}
-          className={`w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group ${
+          className={`w-12 h-12 bg-white border border-gray-200   hover: transition-all duration-200 flex items-center justify-center group ${
             isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
           }`}
           title="导出数据"
@@ -167,7 +160,6 @@ export function FloatingActionButton({
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
@@ -176,7 +168,7 @@ export function FloatingActionButton({
         </button>
 
         {showExportMenu && (
-          <div className="absolute bottom-full right-0 mb-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-200">
+          <div className="absolute bottom-full right-0 mb-2 w-40 bg-white border border-gray-200   overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-200">
             <div className="py-1">
               <button
                 onClick={() => handleExportClick('csv')}
@@ -189,7 +181,6 @@ export function FloatingActionButton({
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
@@ -208,17 +199,11 @@ export function FloatingActionButton({
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z"
                   />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h.01M15 12h.01M12 12h.01"
-                  />
+                  <path strokeLinejoin="round" strokeWidth={2} d="M9 12h.01M15 12h.01M12 12h.01" />
                 </svg>
                 JSON 格式
               </button>
@@ -233,7 +218,6 @@ export function FloatingActionButton({
                   viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"

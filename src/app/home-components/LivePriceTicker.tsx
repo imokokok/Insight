@@ -62,7 +62,6 @@ const formatChange = (change: number): string => {
   return `${sign}${change.toFixed(2)}%`;
 };
 
-// 单个交易对卡片组件
 interface TickerItemProps {
   pair: TradingPair;
   priceData: PriceData;
@@ -75,32 +74,35 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
   const color = isPositive ? semanticColors.success.main : semanticColors.danger.main;
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50 hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 min-w-[240px] sm:min-w-[280px]">
-      {/* 币种图标和名称 */}
+    <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white border border-gray-200 hover:border-gray-300 transition-colors duration-200 min-w-[240px] sm:min-w-[280px]">
       <div className="flex items-center gap-2 sm:gap-3 min-w-[80px] sm:min-w-[100px]">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md flex-shrink-0">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0">
           {pair.symbol.slice(0, 2)}
         </div>
         <div className="min-w-0">
           <div className="font-semibold text-gray-900 text-sm truncate">{pair.symbol}</div>
-          <div className="text-[10px] sm:text-xs text-gray-500 truncate">{isZh ? pair.name : pair.name}</div>
+          <div className="text-[10px] sm:text-xs text-gray-500 truncate">
+            {isZh ? pair.name : pair.name}
+          </div>
         </div>
       </div>
 
-      {/* 价格 */}
       <div className="min-w-[70px] sm:min-w-[90px]">
         <div className="font-bold text-gray-900 text-sm sm:text-base">
           ${formatPrice(priceData.currentPrice)}
         </div>
         <div
-          className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}
+          className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}
         >
-          {isPositive ? <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
+          {isPositive ? (
+            <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          ) : (
+            <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          )}
           <span>{formatChange(priceData.change24h)}</span>
         </div>
       </div>
 
-      {/* 迷你走势图 */}
       <div className="w-16 h-10">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={priceData.sparklineData}>
@@ -120,12 +122,11 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
 }
 
 export default function LivePriceTicker() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isZh = locale === 'zh-CN';
   const [isPaused, setIsPaused] = useState(false);
   const [priceDataMap, setPriceDataMap] = useState<Map<string, PriceData>>(new Map());
 
-  // 初始化价格数据
   useEffect(() => {
     const initialData = new Map<string, PriceData>();
     TRADING_PAIRS.forEach((pair) => {
@@ -134,7 +135,6 @@ export default function LivePriceTicker() {
     setPriceDataMap(initialData);
   }, []);
 
-  // 模拟实时更新
   useEffect(() => {
     const interval = setInterval(() => {
       setPriceDataMap((prev) => {
@@ -162,12 +162,10 @@ export default function LivePriceTicker() {
     return () => clearInterval(interval);
   }, []);
 
-  // 复制数据以实现无缝滚动
   const duplicatedPairs = useMemo(() => [...TRADING_PAIRS, ...TRADING_PAIRS], []);
 
   return (
-    <div className="w-full bg-gradient-to-r from-slate-50 via-white to-slate-50 border-y border-gray-200/50 py-4 overflow-hidden">
-      {/* 标题 */}
+    <div className="w-full bg-white border-y border-gray-200 py-4 overflow-hidden">
       <div className="px-6 lg:px-12 xl:px-20 mb-3">
         <div className="flex items-center gap-2">
           <div className="relative flex h-2 w-2">
@@ -180,17 +178,14 @@ export default function LivePriceTicker() {
         </div>
       </div>
 
-      {/* 滚动容器 */}
       <div
         className="relative overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* 渐变遮罩 */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
 
-        {/* 滚动内容 */}
         <div
           className={`flex gap-4 ${isPaused ? '' : 'animate-scroll-ticker'}`}
           style={{
@@ -206,7 +201,6 @@ export default function LivePriceTicker() {
         </div>
       </div>
 
-      {/* CSS 动画 */}
       <style jsx>{`
         @keyframes scroll-ticker {
           0% {

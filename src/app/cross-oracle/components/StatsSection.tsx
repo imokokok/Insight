@@ -67,7 +67,9 @@ export function StatsSection({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
                 </span>
-                <span className="text-[10px] font-medium text-emerald-700 uppercase tracking-wider">{t('crossOracle.live')}</span>
+                <span className="text-[10px] font-medium text-emerald-700 uppercase tracking-wider">
+                  {t('crossOracle.live')}
+                </span>
               </span>
 
               {/* 交易对选择器 */}
@@ -89,10 +91,14 @@ export function StatsSection({
 
             {/* 交易对显示 */}
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">{baseAsset}</span>
+              <span className="text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+                {baseAsset}
+              </span>
               <span className="text-lg text-gray-400 font-medium">/{quoteAsset}</span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">{t('crossOracle.crossOraclePriceComparison')}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {t('crossOracle.crossOraclePriceComparison')}
+            </p>
           </div>
 
           {/* 右侧：关键统计 */}
@@ -108,7 +114,9 @@ export function StatsSection({
               <Shield className="w-4 h-4 text-purple-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.dataQuality')}</p>
-                <p className="text-lg font-semibold text-gray-900">{qualityScoreData.reliability.responseSuccessRate.toFixed(1)}%</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {qualityScoreData.reliability.responseSuccessRate.toFixed(1)}%
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-2">

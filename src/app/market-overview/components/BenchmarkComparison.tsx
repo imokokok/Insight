@@ -69,9 +69,9 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
       const item = payload[0].payload as (typeof chartData)[0];
       const metric = currentMetric?.metric;
       return (
-        <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 min-w-[180px]">
+        <div className="bg-white border border-gray-200 p-2 min-w-[180px]">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
             <span className="font-medium text-gray-900 text-sm">{item.name}</span>
           </div>
           <div className="space-y-1 text-sm">
@@ -108,7 +108,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -137,7 +137,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <div className="relative">
           <button
             onClick={() => setShowMetricSelector(!showMetricSelector)}
-            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <Target className="w-4 h-4 text-gray-500" />
             <span className="text-sm text-gray-700">{currentMetric.metric.name}</span>
@@ -149,7 +149,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           </button>
 
           {showMetricSelector && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-sm z-10">
+            <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 z-10">
               <div className="p-1.5">
                 {data.map((item) => (
                   <button
@@ -158,7 +158,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                       setSelectedMetric(item.metric.name);
                       setShowMetricSelector(false);
                     }}
-                    className={`w-full px-2.5 py-1.5 rounded text-left transition-colors ${
+                    className={`w-full px-2.5 py-1.5 text-left transition-colors ${
                       selectedMetric === item.metric.name
                         ? 'bg-blue-50 text-blue-700'
                         : 'hover:bg-gray-50 text-gray-700'
@@ -185,14 +185,18 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-xs">{locale === 'zh-CN' ? '行业中位数' : 'Median'}:</span>
+            <span className="text-gray-500 text-xs">
+              {locale === 'zh-CN' ? '行业中位数' : 'Median'}:
+            </span>
             <span className="font-medium text-gray-900 text-sm">
               {currentMetric.metric.industryMedian}
               {currentMetric.metric.unit}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-gray-500 text-xs">{locale === 'zh-CN' ? '行业最佳' : 'Best'}:</span>
+            <span className="text-gray-500 text-xs">
+              {locale === 'zh-CN' ? '行业最佳' : 'Best'}:
+            </span>
             <span className="font-medium text-green-600 text-sm">
               {currentMetric.metric.industryBest}
               {currentMetric.metric.unit}
@@ -205,9 +209,19 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} layout="vertical" margin={{ left: 90 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} horizontal={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.recharts.grid}
+              horizontal={false}
+            />
             <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
-            <YAxis dataKey="name" type="category" stroke={chartColors.recharts.secondaryAxis} fontSize={11} width={85} />
+            <YAxis
+              dataKey="name"
+              type="category"
+              stroke={chartColors.recharts.secondaryAxis}
+              fontSize={11}
+              width={85}
+            />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine
               x={currentMetric.metric.industryAverage}
@@ -220,7 +234,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                 fontSize: 10,
               }}
             />
-            <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+            <Bar dataKey="value">
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
@@ -261,7 +275,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                 <tr key={ov.oracle} className="hover:bg-gray-50">
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ov.color }} />
+                      <div className="w-2.5 h-2.5" style={{ backgroundColor: ov.color }} />
                       <span className="font-medium text-gray-900 text-sm">{ov.oracle}</span>
                     </div>
                   </td>
@@ -290,9 +304,9 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <div className="w-14 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-14 h-1.5 bg-gray-100 overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 rounded-full"
+                          className="h-full bg-blue-500"
                           style={{ width: `${ov.percentile}%` }}
                         />
                       </div>

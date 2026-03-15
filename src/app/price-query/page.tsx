@@ -25,7 +25,14 @@ import {
   QueryHistoryItem,
 } from '@/utils/queryHistory';
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
-import { QueryResult, providerNames, chainNames, oracleColors, chainColors, oracleI18nKeys } from './constants';
+import {
+  QueryResult,
+  providerNames,
+  chainNames,
+  oracleColors,
+  chainColors,
+  oracleI18nKeys,
+} from './constants';
 import {
   PageHeader,
   Selectors,
@@ -509,7 +516,9 @@ export default function PriceQueryPage() {
   }, [compareQueryResults]);
 
   const compareAvgPrice = useMemo(() => {
-    return compareValidPrices.length > 0 ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length : 0;
+    return compareValidPrices.length > 0
+      ? compareValidPrices.reduce((a, b) => a + b, 0) / compareValidPrices.length
+      : 0;
   }, [compareValidPrices]);
 
   const compareAvgChange24hPercent = useMemo(() => {
@@ -718,10 +727,7 @@ export default function PriceQueryPage() {
             comparePrices={compareValidPrices}
           />
 
-          <DataQualityPanel
-            results={queryResults}
-            historicalData={historicalData}
-          />
+          <DataQualityPanel results={queryResults} historicalData={historicalData} />
 
           <PriceResultsTable
             results={queryResults}

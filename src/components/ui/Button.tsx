@@ -17,11 +17,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow-md',
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800  hover:',
   secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
-  outline: 'border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100',
+  outline:
+    'border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100',
   ghost: 'text-gray-700 hover:bg-gray-100 active:bg-gray-200',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm hover:shadow-md',
+  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800  hover:',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -61,10 +62,10 @@ export function Button({
 
   const baseStyles = `
     inline-flex items-center justify-center gap-2
-    font-medium rounded-lg
+    font-medium 
     transition-all duration-150 ease-out
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:
     active:scale-[0.98]
   `;
 
@@ -136,7 +137,7 @@ export function IconButton({
   return (
     <button
       className={`
-        inline-flex items-center justify-center rounded-lg
+        inline-flex items-center justify-center 
         transition-all duration-150 ease-out
         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
         disabled:opacity-50 disabled:cursor-not-allowed

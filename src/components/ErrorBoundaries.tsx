@@ -3,7 +3,13 @@
 import React, { Component, ReactNode } from 'react';
 import { createLogger } from '@/lib/utils/logger';
 import { useI18n } from '@/lib/i18n/provider';
-import { isAppError, ValidationError, NotFoundError, PriceFetchError, RateLimitError } from '@/lib/errors';
+import {
+  isAppError,
+  ValidationError,
+  NotFoundError,
+  PriceFetchError,
+  RateLimitError,
+} from '@/lib/errors';
 
 const logger = createLogger('ErrorBoundaries');
 
@@ -52,12 +58,16 @@ export class BaseErrorBoundary extends Component<ErrorBoundaryProps, ErrorBounda
     const { onError, level = 'component' } = this.props;
 
     if (isAppError(error)) {
-      logger.error(`[${level.toUpperCase()}] Error caught an AppError: ${error.code} - ${error.message}`, error, {
-        statusCode: error.statusCode,
-        isOperational: error.isOperational,
-        details: error.details,
-        componentStack: errorInfo.componentStack,
-      });
+      logger.error(
+        `[${level.toUpperCase()}] Error caught an AppError: ${error.code} - ${error.message}`,
+        error,
+        {
+          statusCode: error.statusCode,
+          isOperational: error.isOperational,
+          details: error.details,
+          componentStack: errorInfo.componentStack,
+        }
+      );
     } else {
       logger.error(`[${level.toUpperCase()}] Error caught:`, error, {
         componentStack: errorInfo.componentStack,
@@ -172,10 +182,22 @@ function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackPro
 
   const colorMap: Record<string, { bg: string; text: string; button: string }> = {
     red: { bg: 'bg-red-100', text: 'text-red-600', button: 'bg-blue-600 hover:bg-blue-700' },
-    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600', button: 'bg-blue-600 hover:bg-blue-700' },
+    yellow: {
+      bg: 'bg-yellow-100',
+      text: 'text-yellow-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
     blue: { bg: 'bg-blue-100', text: 'text-blue-600', button: 'bg-blue-600 hover:bg-blue-700' },
-    orange: { bg: 'bg-orange-100', text: 'text-orange-600', button: 'bg-blue-600 hover:bg-blue-700' },
-    purple: { bg: 'bg-purple-100', text: 'text-purple-600', button: 'bg-blue-600 hover:bg-blue-700' },
+    orange: {
+      bg: 'bg-orange-100',
+      text: 'text-orange-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
+    purple: {
+      bg: 'bg-purple-100',
+      text: 'text-purple-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
   };
 
   const colors = colorMap[config.color] || colorMap.red;
@@ -183,22 +205,20 @@ function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackPro
   return (
     <div className="min-h-[400px] flex items-center justify-center p-8">
       <div className="text-center max-w-md">
-        <div className={`mx-auto w-16 h-16 ${colors.bg} rounded-full flex items-center justify-center mb-4`}>
+        <div className={`mx-auto w-16 h-16 ${colors.bg}  flex items-center justify-center mb-4`}>
           <span className="text-3xl">{config.icon}</span>
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">{t(config.title)}</h2>
         <p className="text-gray-600 mb-6">{t(config.message)}</p>
         {process.env.NODE_ENV === 'development' && error && (
-          <div className="mb-4 p-3 bg-gray-100 rounded-lg text-left">
+          <div className="mb-4 p-3 bg-gray-100  text-left">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
-            {isAppError(error) && (
-              <p className="text-xs text-gray-400 mt-1">Code: {error.code}</p>
-            )}
+            {isAppError(error) && <p className="text-xs text-gray-400 mt-1">Code: {error.code}</p>}
           </div>
         )}
         <button
           onClick={onReset}
-          className={`inline-flex items-center px-4 py-2 text-white rounded-lg transition-colors ${colors.button}`}
+          className={`inline-flex items-center px-4 py-2 text-white  transition-colors ${colors.button}`}
         >
           {t('error.tryAgain')}
         </button>
@@ -209,14 +229,16 @@ function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackPro
 
 export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
   const title = translations?.globalTitle || 'Something went wrong';
-  const description = translations?.globalDescription || "We're sorry, but something unexpected happened. Please try refreshing the page.";
+  const description =
+    translations?.globalDescription ||
+    "We're sorry, but something unexpected happened. Please try refreshing the page.";
   const tryAgain = translations?.tryAgain || 'Try again';
   const refreshPage = translations?.refreshPage || 'Refresh page';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
       <div className="text-center max-w-md">
-        <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+        <div className="mx-auto w-20 h-20 bg-red-100  flex items-center justify-center mb-6">
           <svg
             className="w-10 h-10 text-red-600"
             fill="none"
@@ -224,7 +246,6 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -234,20 +255,20 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
         <p className="text-gray-600 mb-6">{description}</p>
         {process.env.NODE_ENV === 'development' && error && (
-          <div className="mb-6 p-4 bg-gray-100 rounded-lg text-left">
+          <div className="mb-6 p-4 bg-gray-100  text-left">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
           </div>
         )}
         <div className="flex gap-3 justify-center">
           <button
             onClick={onReset}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors"
           >
             {tryAgain}
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-6 py-2 bg-gray-200 text-gray-700  hover:bg-gray-300 transition-colors"
           >
             {refreshPage}
           </button>
@@ -259,13 +280,15 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
 
 export function SectionErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
   const title = translations?.sectionTitle || 'Section Error';
-  const description = translations?.sectionDescription || 'This section encountered an error. You can try again or continue with other parts of the page.';
+  const description =
+    translations?.sectionDescription ||
+    'This section encountered an error. You can try again or continue with other parts of the page.';
   const tryAgain = translations?.tryAgain || 'Try again';
 
   return (
-    <div className="min-h-[300px] flex items-center justify-center p-6 bg-white border border-gray-200 rounded-lg">
+    <div className="min-h-[300px] flex items-center justify-center p-6 bg-white border border-gray-200 ">
       <div className="text-center max-w-sm">
-        <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+        <div className="mx-auto w-16 h-16 bg-orange-100  flex items-center justify-center mb-4">
           <svg
             className="w-8 h-8 text-orange-600"
             fill="none"
@@ -273,7 +296,6 @@ export function SectionErrorFallback({ error, onReset, translations }: ErrorFall
             viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -289,7 +311,7 @@ export function SectionErrorFallback({ error, onReset, translations }: ErrorFall
         )}
         <button
           onClick={onReset}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors text-sm"
         >
           {tryAgain}
         </button>
@@ -316,7 +338,9 @@ export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <BaseErrorBoundary
       level="global"
-      fallback={<GlobalErrorFallback error={undefined} onReset={() => {}} translations={translations} />}
+      fallback={
+        <GlobalErrorFallback error={undefined} onReset={() => {}} translations={translations} />
+      }
     >
       {children}
     </BaseErrorBoundary>
@@ -328,7 +352,9 @@ export function SectionErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <BaseErrorBoundary
       level="section"
-      fallback={<SectionErrorFallback error={undefined} onReset={() => {}} translations={translations} />}
+      fallback={
+        <SectionErrorFallback error={undefined} onReset={() => {}} translations={translations} />
+      }
     >
       {children}
     </BaseErrorBoundary>

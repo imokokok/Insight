@@ -7,11 +7,7 @@ export interface OracleErrorDetails extends AppErrorDetails {
 }
 
 export class OracleClientError extends AppError {
-  constructor(
-    message: string,
-    details?: OracleErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: OracleErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'ORACLE_CLIENT_ERROR',
@@ -31,12 +27,7 @@ export interface PriceFetchErrorDetails extends OracleErrorDetails {
 export class PriceFetchError extends AppError {
   public readonly retryable: boolean;
 
-  constructor(
-    message: string,
-    details?: PriceFetchErrorDetails,
-    i18nKey?: string,
-    cause?: Error
-  ) {
+  constructor(message: string, details?: PriceFetchErrorDetails, i18nKey?: string, cause?: Error) {
     super({
       message,
       code: 'PRICE_FETCH_ERROR',
@@ -49,7 +40,9 @@ export class PriceFetchError extends AppError {
     this.retryable = details?.retryable ?? false;
   }
 
-  toApiResponse(): { error: { code: string; message: string; retryable: boolean; details?: AppErrorDetails } } {
+  toApiResponse(): {
+    error: { code: string; message: string; retryable: boolean; details?: AppErrorDetails };
+  } {
     return {
       error: {
         code: this.code,
@@ -66,11 +59,7 @@ export interface UnsupportedChainErrorDetails extends OracleErrorDetails {
 }
 
 export class UnsupportedChainError extends AppError {
-  constructor(
-    message: string,
-    details?: UnsupportedChainErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: UnsupportedChainErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'UNSUPPORTED_CHAIN',
@@ -86,11 +75,7 @@ export interface UnsupportedSymbolErrorDetails extends OracleErrorDetails {
 }
 
 export class UnsupportedSymbolError extends AppError {
-  constructor(
-    message: string,
-    details?: UnsupportedSymbolErrorDetails,
-    i18nKey?: string
-  ) {
+  constructor(message: string, details?: UnsupportedSymbolErrorDetails, i18nKey?: string) {
     super({
       message,
       code: 'UNSUPPORTED_SYMBOL',

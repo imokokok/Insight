@@ -29,20 +29,39 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
     switch (status) {
       case 'verified':
         return (
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <svg
+            className="w-5 h-5 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         );
       case 'pending':
         return (
-          <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-yellow-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         );
       case 'failed':
         return (
-          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-5 h-5 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         );
       default:
@@ -82,9 +101,7 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
               className={`border rounded-md p-4 ${getStatusColor(verification.status)}`}
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-0.5">
-                  {getStatusIcon(verification.status)}
-                </div>
+                <div className="flex-shrink-0 mt-0.5">{getStatusIcon(verification.status)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{verification.verificationId}</h4>
@@ -106,7 +123,9 @@ export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificati
                       <span className="font-medium">{verification.method}</span>
                     </span>
                     <span>
-                      <span className="opacity-75">{t('dia.dataSourceVerification.validators')}:</span>{' '}
+                      <span className="opacity-75">
+                        {t('dia.dataSourceVerification.validators')}:
+                      </span>{' '}
                       <span className="font-medium">{verification.validatorCount}</span>
                     </span>
                   </div>

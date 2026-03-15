@@ -57,9 +57,9 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const data = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-xl min-w-[200px]">
+    <div className="bg-white border border-gray-200 p-4 min-w-[200px]">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
+        <div className="w-3 h-3" style={{ backgroundColor: data.color }} />
         <span className="font-semibold text-gray-900">{data.chainName}</span>
       </div>
       <div className="space-y-2 text-sm">
@@ -71,7 +71,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           <span className="text-gray-500">{t('crossChain.boxPlot.q3')}:</span>
           <span className="font-mono text-gray-900">${data.q3.toFixed(4)}</span>
         </div>
-        <div className="flex justify-between gap-4 bg-blue-50 -mx-2 px-2 py-1 rounded">
+        <div className="flex justify-between gap-4 bg-blue-50 border border-blue-100 -mx-2 px-2 py-1">
           <span className="text-blue-700 font-medium">{t('crossChain.boxPlot.median')}:</span>
           <span className="font-mono text-blue-700 font-semibold">${data.median.toFixed(4)}</span>
         </div>
@@ -147,7 +147,7 @@ function BoxPlotShape({ cx = 0, payload }: BoxPlotShapeProps) {
         fillOpacity={0.3}
         stroke={color}
         strokeWidth={2}
-        rx={2}
+        rx={0}
       />
       {/* Median line */}
       <line
@@ -225,9 +225,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
 
   if (!data || data.length === 0) {
     return (
-      <div
-        className={`h-64 py-4 flex items-center justify-center ${className}`}
-      >
+      <div className={`h-64 py-4 flex items-center justify-center ${className}`}>
         <span className="text-gray-400">{t('crossChain.noData')}</span>
       </div>
     );
@@ -293,7 +291,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-4 border-2 border-gray-400 bg-gray-100 rounded-sm" />
+          <div className="w-6 h-4 border-2 border-gray-400 bg-gray-100" />
           <span className="text-gray-600">{t('crossChain.boxPlot.legend.box')}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -305,7 +303,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
           <span className="text-gray-600">{t('crossChain.boxPlot.legend.whisker')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-orange-500" />
+          <div className="w-2 h-2 bg-orange-500" />
           <span className="text-gray-600">{t('crossChain.boxPlot.legend.outlier')}</span>
         </div>
       </div>

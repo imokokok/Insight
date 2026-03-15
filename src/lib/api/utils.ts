@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createLogger } from '@/lib/utils/logger';
-import { 
-  ApiResponseBuilder, 
+import {
+  ApiResponseBuilder,
   CacheConfig as NewCacheConfig,
   withCacheHeaders as newWithCacheHeaders,
   createCachedJsonResponse as newCreateCachedJsonResponse,
@@ -54,7 +54,9 @@ export const CacheConfig = {
   },
 } as const;
 
-export function createErrorResponse(options: ApiErrorOptions): NextResponse<ApiErrorResponseLegacy> {
+export function createErrorResponse(
+  options: ApiErrorOptions
+): NextResponse<ApiErrorResponseLegacy> {
   const { code, message, retryable, statusCode } = options;
 
   logger.error(`API Error - Code: ${code}, Message: ${message}, Retryable: ${retryable}`);

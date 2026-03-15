@@ -62,7 +62,6 @@ export default function GaugeChart({ value, maxValue, label, size = 160 }: Gauge
             strokeWidth={strokeWidth}
             strokeDasharray={arcLength}
             strokeDashoffset={0}
-            strokeLinecap="round"
           />
           <circle
             cx={size / 2}
@@ -73,7 +72,6 @@ export default function GaugeChart({ value, maxValue, label, size = 160 }: Gauge
             strokeWidth={strokeWidth}
             strokeDasharray={arcLength}
             strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
           />
         </svg>

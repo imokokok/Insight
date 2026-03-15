@@ -49,12 +49,7 @@ export {
   resetPythHermesClient,
   type PythPriceUpdate,
 } from './pythHermesClient';
-export {
-  BaseOracleClient,
-  shouldUseDatabase,
-  configureStorage,
-  getStorageConfig,
-} from './base';
+export { BaseOracleClient, shouldUseDatabase, configureStorage, getStorageConfig } from './base';
 export type { OracleClientConfig, OracleStorageConfig } from './base';
 export type {
   IOracleClient,

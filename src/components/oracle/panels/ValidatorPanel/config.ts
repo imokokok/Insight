@@ -14,11 +14,11 @@ export const statusConfig = {
   active: {
     bgColor: 'bg-green-500',
     textColor: 'text-green-600',
-    label: '活跃',
+    labelKey: 'validatorPanel.status.active',
   },
   jailed: {
     bgColor: 'bg-red-500',
     textColor: 'text-red-600',
-    label: '监禁中',
+    labelKey: 'validatorPanel.status.jailed',
   },
 } as const;
