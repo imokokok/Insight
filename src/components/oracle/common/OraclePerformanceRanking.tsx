@@ -80,10 +80,10 @@ const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 function normalizeResponseTime(responseTime: number, allResponseTimes: number[]): number {
@@ -131,13 +131,13 @@ function normalizeSupportedChains(
 function getRankBadgeStyle(rank: number): string {
   switch (rank) {
     case 1:
-      return 'bg-gray-100 border border-gray-200 text-white  shadow-yellow-200';
+      return 'bg-yellow-100 border border-yellow-200 text-yellow-800 rounded shadow-sm';
     case 2:
-      return 'bg-gray-100 border border-gray-200 text-white  shadow-gray-200';
+      return 'bg-gray-100 border border-gray-200 text-gray-800 rounded shadow-sm';
     case 3:
-      return 'bg-gray-100 border border-gray-200 text-white  shadow-amber-200';
+      return 'bg-amber-100 border border-amber-200 text-amber-800 rounded shadow-sm';
     default:
-      return 'bg-gray-100 text-gray-600';
+      return 'bg-gray-100 text-gray-600 rounded';
   }
 }
 
@@ -160,7 +160,7 @@ function getScoreBgColor(score: number): string {
 function RankChangeIndicator({ change, t }: { change: number; t: (key: string) => string }) {
   if (change === 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5  text-xs font-medium bg-gray-100 text-gray-600">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
         <span>→</span>
         <span>{t('oraclePerformanceRanking.unchanged')}</span>
       </span>
@@ -169,7 +169,7 @@ function RankChangeIndicator({ change, t }: { change: number; t: (key: string) =
 
   if (change > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5  text-xs font-medium bg-green-50 text-green-700">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
         <span>↑</span>
         <span>+{change}</span>
       </span>
@@ -177,7 +177,7 @@ function RankChangeIndicator({ change, t }: { change: number; t: (key: string) =
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5  text-xs font-medium bg-red-50 text-red-700">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
       <span>↓</span>
       <span>{change}</span>
     </span>
@@ -212,9 +212,9 @@ function DimensionScoreBar({
           <span className="text-gray-400">({(weight * 100).toFixed(0)}%)</span>
         </div>
       </div>
-      <div className="w-full bg-gray-100  h-2 overflow-hidden">
+      <div className="w-full bg-gray-100 rounded h-2 overflow-hidden">
         <div
-          className={`h-full  transition-all duration-500 ${colorClasses[color]}`}
+          className={`h-full rounded transition-all duration-500 ${colorClasses[color]}`}
           style={{ width: `${score}%` }}
         />
       </div>
@@ -318,7 +318,7 @@ export function OraclePerformanceRanking({
           {topThree.map((item, index) => (
             <div
               key={item.provider}
-              className={`relative  border-2 p-5 transition-all duration-300 hover: ${
+              className={`relative rounded border-2 p-5 transition-all duration-300 hover:shadow-md ${
                 item.rank === 1
                   ? 'border-yellow-400 bg-gradient-to-b from-yellow-50 to-white'
                   : item.rank === 2
@@ -328,7 +328,7 @@ export function OraclePerformanceRanking({
             >
               <div className="absolute -top-3 left-4">
                 <span
-                  className={`inline-flex items-center justify-center w-8 h-8  text-lg font-bold ${getRankBadgeStyle(item.rank)}`}
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded text-lg font-bold ${getRankBadgeStyle(item.rank)}`}
                 >
                   {item.rank}
                 </span>
@@ -337,7 +337,7 @@ export function OraclePerformanceRanking({
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 " style={{ backgroundColor: item.color }} />
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: item.color }} />
                     <span className="font-semibold text-gray-900">{item.name}</span>
                   </div>
                   <RankChangeIndicator change={item.rankChange} t={t} />
@@ -384,17 +384,17 @@ export function OraclePerformanceRanking({
             {restRankings.map((item) => (
               <div
                 key={item.provider}
-                className="flex items-center justify-between p-4  border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                className="flex items-center justify-between p-4 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all duration-200"
               >
                 <div className="flex items-center gap-4">
                   <span
-                    className={`inline-flex items-center justify-center w-8 h-8  text-sm font-semibold ${getRankBadgeStyle(item.rank)}`}
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded text-sm font-semibold ${getRankBadgeStyle(item.rank)}`}
                   >
                     {item.rank}
                   </span>
 
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 " style={{ backgroundColor: item.color }} />
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
 
@@ -433,7 +433,7 @@ export function OraclePerformanceRanking({
                     )}
                   </div>
 
-                  <div className={`px-4 py-2  border ${getScoreBgColor(item.overallScore)}`}>
+                  <div className={`px-4 py-2 rounded border ${getScoreBgColor(item.overallScore)}`}>
                     <p className={`text-lg font-bold ${getScoreColor(item.overallScore)}`}>
                       {item.overallScore.toFixed(1)}
                     </p>
@@ -447,7 +447,7 @@ export function OraclePerformanceRanking({
 
       <DashboardCard title={t('oraclePerformanceRanking.dimensionDescriptions.title')}>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="p-3 bg-blue-50 ">
+          <div className="p-3 bg-blue-50 rounded">
             <p className="text-sm font-medium text-blue-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.title')}
             </p>
@@ -458,7 +458,7 @@ export function OraclePerformanceRanking({
               {t('oraclePerformanceRanking.dimensionDescriptions.responseTime.description')}
             </p>
           </div>
-          <div className="p-3 bg-green-50 ">
+          <div className="p-3 bg-green-50 rounded">
             <p className="text-sm font-medium text-green-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.title')}
             </p>
@@ -469,7 +469,7 @@ export function OraclePerformanceRanking({
               {t('oraclePerformanceRanking.dimensionDescriptions.accuracy.description')}
             </p>
           </div>
-          <div className="p-3 bg-purple-50 ">
+          <div className="p-3 bg-purple-50 rounded">
             <p className="text-sm font-medium text-purple-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.stability.title')}
             </p>
@@ -480,7 +480,7 @@ export function OraclePerformanceRanking({
               {t('oraclePerformanceRanking.dimensionDescriptions.stability.description')}
             </p>
           </div>
-          <div className="p-3 bg-pink-50 ">
+          <div className="p-3 bg-pink-50 rounded">
             <p className="text-sm font-medium text-pink-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.dataSources.title')}
             </p>
@@ -491,7 +491,7 @@ export function OraclePerformanceRanking({
               {t('oraclePerformanceRanking.dimensionDescriptions.dataSources.description')}
             </p>
           </div>
-          <div className="p-3 bg-amber-50 ">
+          <div className="p-3 bg-amber-50 rounded">
             <p className="text-sm font-medium text-amber-900">
               {t('oraclePerformanceRanking.dimensionDescriptions.supportedChains.title')}
             </p>

@@ -4,7 +4,7 @@ import React from 'react';
 import { TrendingUp, Clock, Shield, Activity, ChevronDown } from 'lucide-react';
 import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
 import { StatsCards, MobileStatsCards } from './StatsCards';
-import { HistoryMinMax, symbols } from '../constants';
+import { HistoryMinMax } from '../constants';
 
 interface StatsSectionProps {
   qualityScoreData: {
@@ -29,7 +29,6 @@ interface StatsSectionProps {
   calculateChangePercent: (current: number, previous: number) => number | null;
   getConsistencyRating: (stdDevPercent: number) => string;
   t: (key: string) => string;
-  onSymbolChange: (symbol: string) => void;
 }
 
 export function StatsSection({
@@ -48,7 +47,6 @@ export function StatsSection({
   calculateChangePercent,
   getConsistencyRating,
   t,
-  onSymbolChange,
 }: StatsSectionProps) {
   // 解析交易对
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
@@ -58,9 +56,9 @@ export function StatsSection({
       {/* 交易对信息卡片 - Dune 风格扁平化 */}
       <div className="mb-6 border-b border-gray-200 pb-4">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-          {/* 左侧：交易对主信息 + 选择器 */}
+          {/* 左侧：交易对主信息 */}
           <div className="flex-1">
-            {/* 顶部：Live 徽章和交易对选择器 */}
+            {/* 顶部：Live 徽章 */}
             <div className="flex items-center gap-3 mb-2">
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded">
                 <span className="relative flex h-1.5 w-1.5">
@@ -71,22 +69,6 @@ export function StatsSection({
                   {t('crossOracle.live')}
                 </span>
               </span>
-
-              {/* 交易对选择器 */}
-              <div className="relative">
-                <select
-                  value={selectedSymbol}
-                  onChange={(e) => onSymbolChange(e.target.value)}
-                  className="appearance-none bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-medium rounded pl-2 pr-6 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
-                >
-                  {symbols.map((symbol) => (
-                    <option key={symbol} value={symbol}>
-                      {symbol}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-              </div>
             </div>
 
             {/* 交易对显示 */}

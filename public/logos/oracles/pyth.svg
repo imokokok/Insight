@@ -1,0 +1,11 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pythGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6"/>
+      <stop offset="100%" style="stop-color:#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="128" fill="url(#pythGrad)"/>
+  <path d="M128 48L64 80v96l64 32 64-32V80l-64-32zm0 144l-48-24V104l48-24 48 24v64l-48 24z" fill="white"/>
+  <circle cx="128" cy="128" r="24" fill="white"/>
+</svg>

@@ -25,7 +25,7 @@ export const DEFAULT_CHART_THEME: ChartThemeColors = {
   neutral: baseColors.gray[400],
   grid: baseColors.gray[200],
   text: baseColors.gray[700],
-  background: '#ffffff',
+  background: baseColors.gray[50],
 };
 
 export const ORACLE_PROVIDERS: Record<OracleProvider, OracleProviderConfig> = {

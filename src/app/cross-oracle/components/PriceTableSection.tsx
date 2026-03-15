@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { OracleProvider, PriceData } from '@/types/oracle';
-import { oracleNames, symbols, SortColumn, SortDirection } from '../constants';
+import { oracleNames, SortColumn, SortDirection } from '../constants';
 import { PriceTable } from './PriceTable';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
@@ -19,7 +19,6 @@ interface PriceTableSectionProps {
   avgPrice: number;
   standardDeviation: number;
   validPrices: number[];
-  selectedSymbol: string;
   selectedOracles: OracleProvider[];
   oracleChartColors: Record<OracleProvider, string>;
   onSort: (column: SortColumn) => void;
@@ -27,7 +26,6 @@ interface PriceTableSectionProps {
   onSetHoveredRow: (index: number | null) => void;
   onSetSelectedRow: (index: number | null) => void;
   onHoverOracle: (oracle: OracleProvider | null) => void;
-  onSymbolChange: (symbol: string) => void;
   onToggleOracle: (oracle: OracleProvider) => void;
   t: (key: string) => string;
 }
@@ -45,7 +43,6 @@ export function PriceTableSection({
   avgPrice,
   standardDeviation,
   validPrices,
-  selectedSymbol,
   selectedOracles,
   oracleChartColors,
   onSort,
@@ -53,7 +50,6 @@ export function PriceTableSection({
   onSetHoveredRow,
   onSetSelectedRow,
   onHoverOracle,
-  onSymbolChange,
   onToggleOracle,
   t,
 }: PriceTableSectionProps) {
@@ -64,20 +60,6 @@ export function PriceTableSection({
           <h3 className="text-sm font-semibold text-gray-900">
             {t('crossOracle.currentPriceComparison')}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">交易对:</span>
-            <select
-              value={selectedSymbol}
-              onChange={(e) => onSymbolChange(e.target.value)}
-              className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {symbols.map((symbol) => (
-                <option key={symbol} value={symbol}>
-                  {symbol}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {getOracleProvidersSortedByMarketCap().map((oracle) => (

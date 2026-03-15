@@ -37,12 +37,12 @@ interface ContributionData {
 const COLORS = [
   chartColors.recharts.indigo,
   chartColors.recharts.purple,
-  '#a855f7',
-  '#d946ef',
-  '#ec4899',
-  '#f43f5e',
+  chartColors.chart.violet,
+  chartColors.chart.violetLight,
+  chartColors.recharts.pink,
+  chartColors.recharts.danger,
   chartColors.recharts.warning,
-  '#eab308',
+  chartColors.chart.amber,
   chartColors.semantic.success,
   chartColors.recharts.cyan,
 ];
@@ -191,7 +191,7 @@ export function PublisherContributionPanel({ publishers }: PublisherContribution
                   paddingAngle={2}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(1)}%`}
-                  labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
+                  labelLine={{ stroke: chartColors.recharts.axis, strokeWidth: 1 }}
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />

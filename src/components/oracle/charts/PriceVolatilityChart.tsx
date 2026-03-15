@@ -91,10 +91,10 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 const TIME_SCALE_WINDOW = {
@@ -389,7 +389,7 @@ export function PriceVolatilityChart({
     if (!result) return null;
 
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[200px]">
+      <div className="bg-white p-4 rounded border border-gray-200 min-w-[200px]">
         <p className="text-sm font-semibold text-gray-900 mb-3">{dataPoint.name}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -437,7 +437,7 @@ export function PriceVolatilityChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-3   border border-gray-200">
+      <div className="bg-white p-3 rounded border border-gray-200">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           {payload.map((entry, index: number) => (
@@ -462,7 +462,7 @@ export function PriceVolatilityChart({
 
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3   border border-gray-200 min-w-[180px]">
+      <div className="bg-white p-3 rounded border border-gray-200 min-w-[180px]">
         <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
@@ -506,9 +506,9 @@ export function PriceVolatilityChart({
                 <button
                   key={scale}
                   onClick={() => setSelectedTimeScale(scale)}
-                  className={`px-4 py-2  text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded text-sm font-medium transition-all ${
                     selectedTimeScale === scale
-                      ? 'bg-blue-600 text-white '
+                      ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -522,23 +522,23 @@ export function PriceVolatilityChart({
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-100 border border-gray-200  p-4">
+            <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">平均变异系数</p>
               <p className="text-2xl font-bold text-blue-600">{avgCV.toFixed(4)}%</p>
             </div>
-            <div className="bg-gray-100 border border-gray-200  p-4">
+            <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">最低波动</p>
               <p className="text-2xl font-bold text-green-600">
                 {Math.min(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
-            <div className="bg-gray-100 border border-gray-200  p-4">
+            <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">最高波动</p>
               <p className="text-2xl font-bold text-orange-600">
                 {Math.max(...volatilityResults.map((r) => r.cv)).toFixed(4)}%
               </p>
             </div>
-            <div className="bg-gray-100 border border-gray-200  p-4">
+            <div className="bg-gray-100 border border-gray-200 rounded p-4">
               <p className="text-xs text-gray-600 mb-1">预言机数量</p>
               <p className="text-2xl font-bold text-purple-600">{volatilityResults.length}</p>
             </div>
@@ -677,7 +677,7 @@ export function PriceVolatilityChart({
                 </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="text-center p-3  bg-blue-50">
+                <div className="text-center p-3 rounded bg-blue-50">
                   <p className="text-xs text-gray-600 mb-1">短期波动占比</p>
                   <p className="text-lg font-bold text-blue-600">
                     {decompositionData.length > 0
@@ -689,7 +689,7 @@ export function PriceVolatilityChart({
                     %
                   </p>
                 </div>
-                <div className="text-center p-3  bg-green-50">
+                <div className="text-center p-3 rounded bg-green-50">
                   <p className="text-xs text-gray-600 mb-1">中期波动占比</p>
                   <p className="text-lg font-bold text-green-600">
                     {decompositionData.length > 0
@@ -701,7 +701,7 @@ export function PriceVolatilityChart({
                     %
                   </p>
                 </div>
-                <div className="text-center p-3  bg-purple-50">
+                <div className="text-center p-3 rounded bg-purple-50">
                   <p className="text-xs text-gray-600 mb-1">长期波动占比</p>
                   <p className="text-lg font-bold text-purple-600">
                     {decompositionData.length > 0
@@ -787,7 +787,7 @@ export function PriceVolatilityChart({
             </table>
           </div>
 
-          <div className="bg-blue-50  p-4">
+          <div className="bg-blue-50 rounded p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">波动率计算说明</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>

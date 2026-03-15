@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, shadowColors } from '@/lib/config/colors';
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
 
@@ -178,7 +178,7 @@ export function DataSourceCoverage() {
                 contentStyle={{
                   backgroundColor: 'white',
                   border: `1px solid ${chartColors.recharts.grid}`,
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  boxShadow: shadowColors.tooltip,
                 }}
               />
               <Legend

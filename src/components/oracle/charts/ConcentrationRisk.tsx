@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface PublisherData {
   name: string;
@@ -150,7 +150,7 @@ export function ConcentrationRisk() {
                     paddingAngle={2}
                     dataKey="value"
                     label={({ name, value }) => `${name}: ${value}%`}
-                    labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
+                    labelLine={{ stroke: chartColors.recharts.axis, strokeWidth: 1 }}
                   >
                     {pieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -160,7 +160,7 @@ export function ConcentrationRisk() {
                     formatter={(value) => [`${value}%`, t('concentrationRisk.weight')]}
                     contentStyle={{
                       backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
+                      border: `1px solid ${baseColors.gray[200]}`,
                     }}
                   />
                 </PieChart>

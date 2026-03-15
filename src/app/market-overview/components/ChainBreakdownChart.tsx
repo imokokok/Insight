@@ -17,6 +17,7 @@ import {
 import { TooltipProps } from '@/types/ui/recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { Globe } from 'lucide-react';
+import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface ChainBreakdownChartProps {
   data: ChainBreakdown[];
@@ -38,9 +39,9 @@ export default function ChainBreakdownChart({
     if (active && payload && payload.length) {
       const item = payload[0].payload as ChainBreakdown;
       return (
-        <div className="bg-white border border-gray-200 p-2 min-w-[160px]">
+        <div className="bg-white border border-gray-200 rounded p-2 min-w-[160px]">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
+            <div className="w-2 h-2 rounded" style={{ backgroundColor: item.color }} />
             <span className="font-medium text-gray-900 text-sm">{item.chainName}</span>
           </div>
           <div className="space-y-1 text-sm">
@@ -88,7 +89,7 @@ export default function ChainBreakdownChart({
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -195,7 +196,7 @@ export default function ChainBreakdownChart({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setChartType('pie')}
-            className={`px-2.5 py-1 text-sm border transition-colors ${
+            className={`px-2.5 py-1 text-sm border rounded transition-colors ${
               chartType === 'pie'
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
@@ -205,7 +206,7 @@ export default function ChainBreakdownChart({
           </button>
           <button
             onClick={() => setChartType('bar')}
-            className={`px-2.5 py-1 text-sm border transition-colors ${
+            className={`px-2.5 py-1 text-sm border rounded transition-colors ${
               chartType === 'bar'
                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
@@ -244,7 +245,9 @@ export default function ChainBreakdownChart({
                   <Cell
                     key={`cell-${entry.chainId}`}
                     fill={entry.color}
-                    stroke={selectedItem === entry.chainId ? '#3B82F6' : 'transparent'}
+                    stroke={
+                      selectedItem === entry.chainId ? chartColors.recharts.primary : 'transparent'
+                    }
                     strokeWidth={selectedItem === entry.chainId ? 2 : 0}
                     opacity={hoveredItem && hoveredItem !== entry.chainId ? 0.6 : 1}
                     style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
@@ -255,12 +258,16 @@ export default function ChainBreakdownChart({
             </PieChart>
           ) : (
             <BarChart data={data} layout="vertical" margin={{ left: 70 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={false} />
-              <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                horizontal={false}
+              />
+              <XAxis type="number" stroke={chartColors.recharts.axis} fontSize={12} />
               <YAxis
                 dataKey="chainName"
                 type="category"
-                stroke="#9CA3AF"
+                stroke={chartColors.recharts.axis}
                 fontSize={11}
                 width={65}
               />
@@ -296,13 +303,16 @@ export default function ChainBreakdownChart({
           <button
             key={item.chainId}
             onClick={() => setSelectedItem(item.chainId === selectedItem ? null : item.chainId)}
-            className={`flex items-center gap-2 p-2 border transition-all text-left ${
+            className={`flex items-center gap-2 p-2 border rounded transition-all text-left ${
               selectedItem === item.chainId
                 ? 'bg-blue-50 border-blue-200'
                 : 'border-transparent hover:bg-gray-50'
             }`}
           >
-            <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: item.color }} />
+            <div
+              className="w-2 h-2 flex-shrink-0 rounded"
+              style={{ backgroundColor: item.color }}
+            />
             <div className="min-w-0">
               <div className="text-xs font-medium text-gray-900 truncate">{item.chainName}</div>
               <div className="text-xs text-gray-500">{item.share.toFixed(1)}%</div>

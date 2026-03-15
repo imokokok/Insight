@@ -209,7 +209,7 @@ export function PriceChart({
         canvas.width = img.width * 2;
         canvas.height = img.height * 2;
         ctx.scale(2, 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = baseColors.gray[50];
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
 
@@ -581,11 +581,11 @@ export function PriceChart({
                   );
                 })}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickLine={false}
                 axisLine={false}
                 dy={10}
@@ -595,8 +595,8 @@ export function PriceChart({
                 yAxisId="left"
                 domain={['auto', 'auto']}
                 tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickLine={false}
                 axisLine={false}
                 width={70}
@@ -612,8 +612,8 @@ export function PriceChart({
                       orientation="right"
                       domain={['auto', 'auto']}
                       tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 10, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
                       tickLine={false}
                       axisLine={false}
                       width={60}
@@ -812,7 +812,7 @@ export function PriceChart({
               {/* 价格突变事件参考线 */}
               {showPriceSpikes &&
                 priceSpikeEvents.map((event, index) => {
-                  const color = event.direction === 'up' ? '#22c55e' : '#ef4444';
+                  const color = event.direction === 'up' ? semanticColors.success.dark : semanticColors.danger.DEFAULT;
                   const label = `${event.direction === 'up' ? '↑' : '↓'} ${event.magnitude.toFixed(1)}%`;
 
                   return (
@@ -836,8 +836,8 @@ export function PriceChart({
               {/* 异常数据点标记 */}
               {showAnomalies &&
                 anomalyPoints.map((anomaly, index) => {
-                  const color = anomaly.deviation > 0 ? '#ef4444' : '#3b82f6';
-                  const strokeColor = anomaly.deviation > 0 ? '#dc2626' : '#2563eb';
+                  const color = anomaly.deviation > 0 ? semanticColors.danger.DEFAULT : baseColors.primary[500];
+                  const strokeColor = anomaly.deviation > 0 ? semanticColors.danger.dark : baseColors.primary[600];
 
                   return (
                     <ReferenceDot
@@ -860,10 +860,10 @@ export function PriceChart({
                   label={{
                     value: `${t('priceQuery.chart.baseline') || '基准线'}: $${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                     position: 'right',
-                    fill: '#6b7280',
+                    fill: baseColors.gray[500],
                     fontSize: 11,
                   }}
-                  stroke="#6b7280"
+                  stroke={baseColors.gray[500]}
                   strokeDasharray="8 4"
                   strokeWidth={1}
                   yAxisId="left"
@@ -941,8 +941,8 @@ export function PriceChart({
               <Brush
                 dataKey="time"
                 height={30}
-                stroke="#6b7280"
-                fill="#f3f4f6"
+                stroke={baseColors.gray[500]}
+                fill={baseColors.gray[100]}
                 startIndex={brushRange.startIndex ?? brushDefaultRange.startIndex}
                 endIndex={brushRange.endIndex ?? brushDefaultRange.endIndex}
                 onChange={(range) => {

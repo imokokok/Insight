@@ -24,7 +24,7 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -67,16 +67,16 @@ const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
 };
 
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.CHAINLINK]: chartColors.marketOverview.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.marketOverview.band,
+  [OracleProvider.UMA]: chartColors.marketOverview.uma,
+  [OracleProvider.PYTH]: chartColors.oracle.pyth,
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 interface QualityMetrics {
@@ -124,13 +124,13 @@ function getQualityLevel(score: number): 'excellent' | 'good' | 'fair' | 'poor' 
 function getQualityColor(level: 'excellent' | 'good' | 'fair' | 'poor'): string {
   switch (level) {
     case 'excellent':
-      return '#10B981';
+      return semanticColors.success.DEFAULT;
     case 'good':
-      return '#3B82F6';
+      return semanticColors.info.DEFAULT;
     case 'fair':
-      return '#F59E0B';
+      return semanticColors.warning.DEFAULT;
     case 'poor':
-      return '#EF4444';
+      return semanticColors.danger.DEFAULT;
   }
 }
 
@@ -329,7 +329,7 @@ export function DataQualityTrend({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[240px]">
+      <div className="bg-white p-4 border border-gray-200 min-w-[240px]" style={{ boxShadow: shadowColors.tooltip }}>
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
         <div className="space-y-2">
           {selectedOracles.map((oracle) => {
@@ -366,12 +366,12 @@ export function DataQualityTrend({
                   {(isOutlier || isStale) && (
                     <div className="flex gap-2 mt-1">
                       {isOutlier && (
-                        <span className="px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">
+                        <span className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: semanticColors.danger.light, color: semanticColors.danger.text }}>
                           异常值
                         </span>
                       )}
                       {isStale && (
-                        <span className="px-1.5 py-0.5 rounded text-xs bg-amber-100 text-amber-700">
+                        <span className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: semanticColors.warning.light, color: semanticColors.warning.text }}>
                           过期
                         </span>
                       )}
@@ -514,9 +514,9 @@ export function DataQualityTrend({
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <ReferenceLine y={90} stroke="#10B981" strokeDasharray="3 3" label="优秀" />
-                  <ReferenceLine y={75} stroke="#3B82F6" strokeDasharray="3 3" label="良好" />
-                  <ReferenceLine y={60} stroke="#F59E0B" strokeDasharray="3 3" label="及格" />
+                  <ReferenceLine y={90} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="优秀" />
+                  <ReferenceLine y={75} stroke={chartColors.recharts.primary} strokeDasharray="3 3" label="良好" />
+                  <ReferenceLine y={60} stroke={semanticColors.warning.DEFAULT} strokeDasharray="3 3" label="及格" />
 
                   {selectedOracles.map((oracle) => (
                     <Line
@@ -556,12 +556,12 @@ export function DataQualityTrend({
               return (
                 <div
                   key={oracle.oracle}
-                  className="bg-gray-100 border border-gray-200  p-4 border-2"
+                  className="bg-gray-100 border border-gray-200 p-4 border-2"
                   style={{ borderColor: `${ORACLE_COLORS[oracle.oracle]}30` }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="w-3 h-3 "
+                      className="w-3 h-3"
                       style={{ backgroundColor: ORACLE_COLORS[oracle.oracle] }}
                     />
                     <span className="text-sm font-medium text-gray-900">
@@ -683,7 +683,7 @@ export function DataQualityTrend({
                   <tr key={item.provider} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center justify-center w-8 h-8  text-sm font-bold ${
+                        className={`inline-flex items-center justify-center w-8 h-8 text-sm font-bold ${
                           item.rank === 1
                             ? 'bg-yellow-100 text-yellow-800'
                             : item.rank === 2
@@ -698,7 +698,7 @@ export function DataQualityTrend({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-3 h-3  mr-2" style={{ backgroundColor: item.color }} />
+                        <div className="w-3 h-3 mr-2" style={{ backgroundColor: item.color }} />
                         <span className="font-medium text-gray-900">{item.name}</span>
                       </div>
                     </td>
@@ -850,7 +850,7 @@ export function DataQualityTrend({
               />
               <Tooltip />
               <Legend />
-              <ReferenceLine y={0} stroke="#6B7280" strokeDasharray="3 3" />
+              <ReferenceLine y={0} stroke={chartColors.recharts.secondaryAxis} strokeDasharray="3 3" />
 
               {selectedOracles.map((oracle) => (
                 <Line
@@ -868,8 +868,8 @@ export function DataQualityTrend({
                           cx={cx}
                           cy={cy}
                           r={4}
-                          fill="#EF4444"
-                          stroke="#fff"
+                          fill={semanticColors.danger.DEFAULT}
+                          stroke={baseColors.gray[50]}
                           strokeWidth={2}
                         />
                       );
@@ -903,7 +903,7 @@ export function DataQualityTrend({
               />
               <Tooltip />
               <Legend />
-              <ReferenceLine y={95} stroke="#10B981" strokeDasharray="3 3" label="目标" />
+              <ReferenceLine y={95} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="目标" />
 
               {selectedOracles.map((oracle) => (
                 <Line
@@ -943,19 +943,19 @@ export function DataQualityTrend({
           </ul>
           <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3  bg-green-500" />
+              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
               <span>优秀 (90-100)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3  bg-blue-500" />
+              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.info.DEFAULT }} />
               <span>良好 (75-89)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3  bg-amber-500" />
+              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
               <span>及格 (60-74)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3  bg-red-500" />
+              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
               <span>不及格 (&lt;60)</span>
             </span>
           </div>

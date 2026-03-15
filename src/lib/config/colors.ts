@@ -121,6 +121,22 @@ export const chainColors = {
   fantom: '#1969FF',
   cronos: '#002D74',
   juno: '#5B6EE1',
+  // 扩展区块链颜色
+  arbitrum: '#06B6D4',
+  optimism: '#EF4444',
+  solana: '#10B981',
+  bnbChain: '#F3BA2F',
+  base: '#0052FF',
+  scroll: '#EEDFF0',
+  zkSync: '#8C8DFC',
+  aptos: '#4CD7D0',
+  sui: '#6FBCF0',
+  gnosis: '#04795B',
+  mantle: '#000000',
+  linea: '#000000',
+  celestia: '#2B2B2B',
+  injective: '#00F2FE',
+  sei: '#B100CD',
 } as const;
 
 // ============================================
@@ -350,6 +366,12 @@ export const shadowColors = {
   soft: '0 4px 20px -2px rgba(30, 64, 175, 0.1)',
   medium: '0 8px 30px -4px rgba(30, 64, 175, 0.15)',
   strong: '0 12px 40px -6px rgba(30, 64, 175, 0.2)',
+  tooltip: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+  card: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  cardHover: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  inputFocus: '0 0 0 2px rgba(59, 130, 246, 0.5)',
+  glow: '0 0 20px rgba(30, 64, 175, 0.4)',
+  pulse: '0 0 0 0 rgba(251, 191, 36, 0.7)',
 } as const;
 
 // ============================================
@@ -362,6 +384,13 @@ export const exportColors = {
     primary: '#1f2937',
     secondary: '#6b7280',
     muted: '#9ca3af',
+  },
+  canvas: {
+    background: '#ffffff',
+    textPrimary: '#111827',
+    textSecondary: '#6b7280',
+    grid: 'rgba(128, 128, 128, 0.15)',
+    watermark: '#808080',
   },
 } as const;
 
@@ -429,6 +458,110 @@ export const accessibleColors = {
     dashDot: '10 3 3 3',
     longDash: '15 5',
   } as const,
+} as const;
+
+// ============================================
+// UI 组件颜色
+// ============================================
+
+export const uiColors = {
+  button: {
+    primary: {
+      bg: '#2563eb',
+      bgHover: '#1d4ed8',
+      bgActive: '#1e40af',
+      text: '#ffffff',
+    },
+    secondary: {
+      bg: '#f3f4f6',
+      bgHover: '#e5e7eb',
+      bgActive: '#d1d5db',
+      text: '#374151',
+    },
+  },
+  card: {
+    bg: '#ffffff',
+    border: '#e5e7eb',
+    borderHover: '#d1d5db',
+    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    shadowHover: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+  input: {
+    bg: '#ffffff',
+    border: '#e5e7eb',
+    text: '#111827',
+    placeholder: '#9ca3af',
+    focusBorder: '#3b82f6',
+    focusShadow: '0 0 0 2px #3b82f6',
+  },
+  table: {
+    headerBg: '#f9fafb',
+    headerText: '#4b5563',
+    border: '#e5e7eb',
+    rowBorder: '#f3f4f6',
+    rowHover: '#f9fafb',
+  },
+  scrollbar: {
+    track: 'rgba(30, 64, 175, 0.1)',
+    thumb: '#1e40af',
+    thumbHover: '#3b82f6',
+  },
+} as const;
+
+// ============================================
+// 热力图颜色
+// ============================================
+
+export const heatmapColors = {
+  deviation: {
+    extremelyLow: '#10B981',    // < 0.1%
+    low: '#34D399',             // 0.1-0.25%
+    lower: '#6EE7B7',           // 0.25-0.5%
+    medium: '#FCD34D',          // 0.5-0.75%
+    higher: '#FBBF24',          // 0.75-1%
+    high: '#F59E0B',            // 1-1.5%
+    veryHigh: '#EF4444',        // 1.5-2%
+    extremelyHigh: '#DC2626',   // 2-3%
+    anomaly: '#B91C1C',         // > 3%
+    noData: '#F3F4F6',
+  },
+  oracle: {
+    chainlink: '#375BD2',
+    bandProtocol: '#9B51E0',
+    uma: '#FF6B6B',
+    pythNetwork: '#EC4899',
+    api3: '#10B981',
+  },
+  accessible: {
+    chainlink: '#003f5c',
+    bandProtocol: '#2f4b7c',
+    uma: '#665191',
+    pythNetwork: '#a05195',
+    api3: '#d45087',
+  },
+} as const;
+
+// ============================================
+// 动画效果颜色
+// ============================================
+
+export const animationColors = {
+  pulse: {
+    primary: 'rgba(30, 64, 175, 0.1)',
+    warning: 'rgba(251, 191, 36, 0.7)',
+    warningTransparent: 'rgba(251, 191, 36, 0)',
+  },
+  glow: {
+    primary: 'rgba(30, 64, 175, 0.4)',
+  },
+  fade: {
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    cursor: 'rgba(0, 0, 0, 0.05)',
+  },
+  highlight: {
+    primary: 'rgba(59, 130, 246, 0.15)',
+    secondary: 'rgba(59, 130, 246, 0.05)',
+  },
 } as const;
 
 // ============================================
@@ -547,6 +680,10 @@ export const colors = {
   shadow: shadowColors,
   accessible: accessibleColors,
   tailwind: tailwindClasses,
+  ui: uiColors,
+  heatmap: heatmapColors,
+  animation: animationColors,
+  export: exportColors,
 } as const;
 
 export default colors;

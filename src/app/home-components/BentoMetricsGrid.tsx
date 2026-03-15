@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface ChartDataPoint {
   time: string;
@@ -154,8 +154,8 @@ function PulseIndicator({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 
   return (
     <span className={`relative flex ${sizeClasses[size]}`}>
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-      <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: semanticColors.success.main }}></span>
+      <span className="relative inline-flex rounded-full h-full w-full" style={{ backgroundColor: semanticColors.success.main }}></span>
     </span>
   );
 }
@@ -164,9 +164,9 @@ function LiveIndicator() {
   const { locale } = useI18n();
 
   return (
-    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-200">
+    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5" style={{ backgroundColor: semanticColors.success.light, border: `1px solid ${semanticColors.success.light}` }}>
       <PulseIndicator size="sm" />
-      <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
+      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: semanticColors.success.text }}>
         {locale === 'zh-CN' ? '实时' : 'LIVE'}
       </span>
     </div>
@@ -175,14 +175,15 @@ function LiveIndicator() {
 
 function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; message: string }) {
   const styles = {
-    info: 'bg-blue-50 border-blue-200 text-blue-700',
-    warning: 'bg-amber-50 border-amber-200 text-amber-700',
-    success: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    info: { bg: semanticColors.info.light, border: semanticColors.info.light, text: semanticColors.info.text },
+    warning: { bg: semanticColors.warning.light, border: semanticColors.warning.light, text: semanticColors.warning.text },
+    success: { bg: semanticColors.success.light, border: semanticColors.success.light, text: semanticColors.success.text },
   };
 
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1 border ${styles[type]} text-[10px] font-medium mt-2`}
+      className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium mt-2"
+      style={{ backgroundColor: styles[type].bg, border: `1px solid ${styles[type].border}`, color: styles[type].text }}
     >
       <AlertCircle className="w-3 h-3" />
       <span>{message}</span>
@@ -193,9 +194,9 @@ function AlertBadge({ type, message }: { type: 'info' | 'warning' | 'success'; m
 function ChartTooltip({ active, payload, label }: TooltipProps<ChartDataPoint>) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-200 px-3 py-2">
-        <p className="text-xs text-gray-500 mb-1">{payload[0]?.payload?.fullTime || label}</p>
-        <p className="text-sm font-semibold text-gray-900">
+      <div className="bg-white border px-3 py-2" style={{ borderColor: baseColors.gray[200] }}>
+        <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>{payload[0]?.payload?.fullTime || label}</p>
+        <p className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>
           {typeof payload[0].value === 'number'
             ? payload[0].value.toLocaleString(undefined, { maximumFractionDigits: 2 })
             : payload[0].value}
@@ -213,13 +214,14 @@ function MiniLiveTicker() {
 
   return (
     <div
-      className="mt-4 overflow-hidden border border-gray-200 bg-white"
+      className="mt-4 overflow-hidden border bg-white"
+      style={{ borderColor: baseColors.gray[200] }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
         <PulseIndicator size="sm" />
-        <span className="text-xs font-semibold text-gray-700">
+        <span className="text-xs font-semibold" style={{ color: baseColors.gray[700] }}>
           {locale === 'zh-CN' ? '实时价格监控' : 'Live Price Monitor'}
         </span>
       </div>
@@ -235,20 +237,20 @@ function MiniLiveTicker() {
               key={`${item.symbol}-${index}`}
               className={`
                 flex-shrink-0 flex items-center gap-2 px-3 py-2 border transition-colors duration-200 cursor-pointer
-                ${
-                  hoveredTicker === `${item.symbol}-${index}`
-                    ? 'bg-gray-50 border-gray-300'
-                    : 'bg-white border-gray-200'
-                }
               `}
+              style={{
+                backgroundColor: hoveredTicker === `${item.symbol}-${index}` ? baseColors.gray[50] : 'white',
+                borderColor: hoveredTicker === `${item.symbol}-${index}` ? baseColors.gray[300] : baseColors.gray[200]
+              }}
               onMouseEnter={() => setHoveredTicker(`${item.symbol}-${index}`)}
               onMouseLeave={() => setHoveredTicker(null)}
             >
-              <span className="text-xs font-bold text-gray-800">{item.symbol}</span>
+              <span className="text-xs font-bold" style={{ color: baseColors.gray[800] }}>{item.symbol}</span>
               <div className="flex flex-col items-end">
-                <span className="text-xs font-semibold text-gray-900">{item.price}</span>
+                <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>{item.price}</span>
                 <span
-                  className={`text-[10px] font-medium ${item.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}
+                  className="text-[10px] font-medium"
+                  style={{ color: item.isPositive ? semanticColors.success.main : semanticColors.danger.main }}
                 >
                   {item.isPositive ? '+' : ''}
                   {item.change}
@@ -278,14 +280,15 @@ function InfoTooltip({ content }: { content: string }) {
   return (
     <div className="relative inline-flex">
       <Info
-        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors"
+        className="w-3.5 h-3.5 cursor-help transition-colors"
+        style={{ color: baseColors.gray[400] }}
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
       />
       {isVisible && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-gray-900 text-white text-[11px] z-50">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 text-white text-[11px] z-50" style={{ backgroundColor: baseColors.gray[900] }}>
           {content}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: baseColors.gray[900] }}></div>
         </div>
       )}
     </div>
@@ -343,6 +346,7 @@ export default function BentoMetricsGrid() {
                 strokeWidth={2}
                 fill={`url(#gradient-${card.id})`}
                 isAnimationActive={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: baseColors.gray[50] }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -364,7 +368,7 @@ export default function BentoMetricsGrid() {
               stroke={chartColors.chart.blue}
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+              activeDot={{ r: 4, strokeWidth: 2, stroke: baseColors.gray[50] }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -377,16 +381,16 @@ export default function BentoMetricsGrid() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
-            <BarChart3 className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-semibold text-gray-700">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
+            <BarChart3 className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
+            <span className="text-sm font-semibold" style={{ color: baseColors.gray[700] }}>
               {locale === 'zh-CN' ? '平台指标' : 'Platform Metrics'}
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: baseColors.gray[900] }}>
             {locale === 'zh-CN' ? '核心数据指标' : 'Key Metrics'}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: baseColors.gray[600] }}>
             {locale === 'zh-CN'
               ? '实时监控平台核心指标，全面了解预言机生态健康状况'
               : 'Real-time monitoring of core platform metrics for comprehensive oracle ecosystem health'}
@@ -403,12 +407,13 @@ export default function BentoMetricsGrid() {
               <div
                 key={card.id}
                 className={`
-                  relative bg-white border border-gray-200 transition-colors duration-200 cursor-pointer
+                  relative bg-white border transition-colors duration-200 cursor-pointer
                   ${card.size === 'large' ? 'sm:col-span-2 sm:row-span-2' : ''}
                   ${card.size === 'medium' ? 'sm:col-span-1' : ''}
-                  ${isHovered ? 'border-gray-400' : ''}
-                  ${isAnimating ? 'border-emerald-400' : ''}
                 `}
+                style={{
+                  borderColor: isAnimating ? semanticColors.success.main : (isHovered ? baseColors.gray[400] : baseColors.gray[200])
+                }}
                 onMouseEnter={() => setHoveredCard(card.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
@@ -416,19 +421,17 @@ export default function BentoMetricsGrid() {
 
                 <div className="p-4 sm:p-5 h-full flex flex-col">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="p-2 bg-gray-100">
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                    <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: baseColors.gray[600] }} />
                     </div>
                     {card.change && (
                       <div
-                        className={`
-                          flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border
-                          ${
-                            card.isPositive
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-rose-50 text-rose-700 border-rose-200'
-                          }
-                        `}
+                        className="flex items-center gap-1 px-2 py-0.5 text-[10px] sm:text-xs font-semibold border"
+                        style={{
+                          backgroundColor: card.isPositive ? semanticColors.success.light : semanticColors.danger.light,
+                          color: card.isPositive ? semanticColors.success.text : semanticColors.danger.text,
+                          borderColor: card.isPositive ? semanticColors.success.light : semanticColors.danger.light
+                        }}
                       >
                         {card.isPositive ? (
                           <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -442,20 +445,18 @@ export default function BentoMetricsGrid() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                      <div className="text-xs sm:text-sm font-medium truncate" style={{ color: baseColors.gray[600] }}>
                         {card.title}
                       </div>
                       {card.description && <InfoTooltip content={card.description} />}
                     </div>
                     <div
-                      className={`
-                        text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1
-                        ${isAnimating ? 'text-emerald-600' : ''}
-                      `}
+                      className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
+                      style={{ color: isAnimating ? semanticColors.success.main : baseColors.gray[900] }}
                     >
                       {card.value}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium">
+                    <div className="text-[10px] sm:text-xs font-medium" style={{ color: baseColors.gray[500] }}>
                       {card.subtitle}
                     </div>
 
@@ -469,7 +470,7 @@ export default function BentoMetricsGrid() {
                   {card.id === 'tvs' && <MiniLiveTicker />}
 
                   {card.hasLiveIndicator && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-500 font-medium">
+                    <div className="mt-3 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-medium" style={{ color: baseColors.gray[500] }}>
                       <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>
                         {locale === 'zh-CN' ? '更新于' : 'Updated'}{' '}
@@ -483,13 +484,14 @@ export default function BentoMetricsGrid() {
                   )}
 
                   <div
-                    className={`
-                      absolute bottom-3 right-3 p-2 bg-gray-100 border border-gray-200
-                      opacity-0 transition-opacity duration-200
-                      ${isHovered ? 'opacity-100' : ''}
-                    `}
+                    className="absolute bottom-3 right-3 p-2 opacity-0 transition-opacity duration-200"
+                    style={{
+                      backgroundColor: baseColors.gray[100],
+                      border: `1px solid ${baseColors.gray[200]}`,
+                      opacity: isHovered ? 1 : 0
+                    }}
                   >
-                    <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600" />
+                    <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: baseColors.gray[600] }} />
                   </div>
                 </div>
               </div>
@@ -504,9 +506,9 @@ export default function BentoMetricsGrid() {
             { label: locale === 'zh-CN' ? 'API 调用/天' : 'API Calls/Day', value: '50M+' },
             { label: locale === 'zh-CN' ? '正常运行时间' : 'Uptime', value: '99.99%' },
           ].map((stat) => (
-            <div key={stat.label} className="text-center p-4 border border-gray-200 bg-white">
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
+            <div key={stat.label} className="text-center p-4 border bg-white" style={{ borderColor: baseColors.gray[200] }}>
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: baseColors.gray[900] }}>{stat.value}</div>
+              <div className="text-xs mt-0.5" style={{ color: baseColors.gray[500] }}>{stat.label}</div>
             </div>
           ))}
         </div>

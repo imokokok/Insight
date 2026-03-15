@@ -1,5 +1,12 @@
 import { chartColors as configChartColors, semanticColors } from '@/lib/config/colors';
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const chartColors = {
   primary: configChartColors.recharts.primary,
   secondary: configChartColors.recharts.tick,
@@ -23,7 +30,7 @@ export const chartColors = {
 
   anomaly: semanticColors.danger.DEFAULT,
   prediction: configChartColors.recharts.primary,
-  predictionFill: 'rgba(59, 130, 246, 0.1)',
+  predictionFill: hexToRgba(configChartColors.recharts.primary, 0.1),
 
   heatmap: {
     low: semanticColors.success.DEFAULT,
@@ -34,12 +41,12 @@ export const chartColors = {
 
 export const chartGradients = {
   primary: {
-    start: 'rgba(59, 130, 246, 0.3)',
-    end: 'rgba(59, 130, 246, 0)',
+    start: hexToRgba(configChartColors.recharts.primary, 0.3),
+    end: hexToRgba(configChartColors.recharts.primary, 0),
   },
   volume: {
-    start: 'rgba(139, 92, 246, 0.3)',
-    end: 'rgba(139, 92, 246, 0)',
+    start: hexToRgba(configChartColors.recharts.purple, 0.3),
+    end: hexToRgba(configChartColors.recharts.purple, 0),
   },
 };
 
@@ -315,7 +322,7 @@ export const exportChartAsImage = async (
   const html2canvas = (await import('html2canvas')).default;
 
   const canvas = await html2canvas(chartRef.current, {
-    backgroundColor: '#ffffff' as any,
+    backgroundColor: configChartColors.recharts.white as any,
   });
 
   const link = document.createElement('a');

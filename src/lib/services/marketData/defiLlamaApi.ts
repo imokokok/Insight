@@ -13,7 +13,7 @@ import {
   RadarDataPoint,
 } from '@/app/market-overview/types';
 import { ORACLE_COLORS } from '@/app/market-overview/constants';
-import { chartColors, chainColors } from '@/lib/config/colors';
+import { chartColors, chainColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('marketData:defiLlamaApi');
 
@@ -596,26 +596,26 @@ export async function checkApiHealth(): Promise<{ healthy: boolean; message: str
 
 const CHAIN_COLORS: Record<string, string> = {
   ethereum: chainColors.ethereum,
-  bsc: '#F3BA2F',
+  bsc: chainColors.bnbChain,
   polygon: chainColors.polygon,
-  arbitrum: '#28A0F0',
-  optimism: '#FF0420',
+  arbitrum: chainColors.arbitrum,
+  optimism: chainColors.optimism,
   avalanche: chainColors.avalanche,
-  solana: '#14F195',
-  base: '#0052FF',
+  solana: chainColors.solana,
+  base: chainColors.base,
   fantom: chainColors.fantom,
-  gnosis: '#133629',
-  linea: '#00D395',
-  scroll: '#FFEEDA',
-  zksync: '#8C8DFC',
-  mantle: '#000000',
-  celo: '#FCFF52',
-  moonbeam: '#53CBC8',
-  moonriver: '#F2B705',
+  gnosis: chainColors.gnosis,
+  linea: chainColors.linea,
+  scroll: chainColors.scroll,
+  zksync: chainColors.zkSync,
+  mantle: chainColors.mantle,
+  celo: chartColors.sequence[4],
+  moonbeam: chartColors.recharts.cyan,
+  moonriver: semanticColors.warning.DEFAULT,
   cronos: chainColors.cronos,
-  kava: '#FF564F',
-  metis: '#00D2FF',
-  aurora: '#70D44B',
+  kava: semanticColors.danger.DEFAULT,
+  metis: chartColors.recharts.cyan,
+  aurora: semanticColors.success.DEFAULT,
 };
 
 export async function fetchChainBreakdown(): Promise<ChainBreakdown[]> {
@@ -734,7 +734,7 @@ export async function fetchChainBreakdown(): Promise<ChainBreakdown[]> {
         tvsFormatted: '$5.4B',
         share: 8.1,
         protocols: 95,
-        color: '#9CA3AF',
+        color: baseColors.gray[400],
         change24h: 0.8,
         change7d: 3.2,
         topOracle: 'Chainlink',
@@ -1311,7 +1311,7 @@ export async function fetchAssetCategories(): Promise<AssetCategory[]> {
         label: 'RWA',
         value: 3500000000,
         share: 5.5,
-        color: '#6366F1',
+        color: chartColors.chart.indigo,
         assets: ['ONDO', 'CFG', 'CPOOL', 'TRU', 'MAPLE'],
         avgVolatility: 2.1,
         avgLiquidity: 75.8,

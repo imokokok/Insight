@@ -1,0 +1,15 @@
+- [x] `/public/logos/oracles/` 目录已创建
+- [x] Chainlink 官方 logo SVG 文件已添加
+- [x] Band Protocol 官方 logo SVG 文件已添加
+- [x] UMA 官方 logo SVG 文件已添加
+- [x] Pyth 官方 logo SVG 文件已添加
+- [x] API3 官方 logo SVG 文件已添加
+- [x] RedStone 官方 logo SVG 文件已添加
+- [x] DIA 官方 logo SVG 文件已添加
+- [x] Tellor 官方 logo SVG 文件已添加
+- [x] Chronicle 官方 logo SVG 文件已添加
+- [x] WINkLink 官方 logo SVG 文件已添加
+- [x] `src/lib/config/oracles.tsx` 中的 icon 配置已更新为使用官方 logo
+- [x] TypeScript 类型检查通过
+- [x] Next.js 构建成功（项目中已有错误与本次修改无关）
+- [x] 所有预言机在 UI 中显示正确的官方 logo

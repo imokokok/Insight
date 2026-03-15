@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { BoxPlotData } from '../constants';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 interface StandardBoxPlotProps {
   data: BoxPlotData[];
@@ -57,51 +57,51 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const data = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200 p-4 min-w-[200px]">
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+    <div className="bg-white border p-4 min-w-[200px]" style={{ borderColor: baseColors.gray[200] }}>
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b" style={{ borderColor: baseColors.gray[100] }}>
         <div className="w-3 h-3" style={{ backgroundColor: data.color }} />
-        <span className="font-semibold text-gray-900">{data.chainName}</span>
+        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>{data.chainName}</span>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('crossChain.boxPlot.max')}:</span>
-          <span className="font-mono text-gray-900">${data.max.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.max')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.max.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('crossChain.boxPlot.q3')}:</span>
-          <span className="font-mono text-gray-900">${data.q3.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.q3')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.q3.toFixed(4)}</span>
         </div>
-        <div className="flex justify-between gap-4 bg-blue-50 border border-blue-100 -mx-2 px-2 py-1">
-          <span className="text-blue-700 font-medium">{t('crossChain.boxPlot.median')}:</span>
-          <span className="font-mono text-blue-700 font-semibold">${data.median.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('crossChain.boxPlot.q1')}:</span>
-          <span className="font-mono text-gray-900">${data.q1.toFixed(4)}</span>
+        <div className="flex justify-between gap-4 border -mx-2 px-2 py-1" style={{ backgroundColor: semanticColors.info.light, borderColor: semanticColors.info.light }}>
+          <span className="font-medium" style={{ color: semanticColors.info.text }}>{t('crossChain.boxPlot.median')}:</span>
+          <span className="font-mono font-semibold" style={{ color: semanticColors.info.text }}>${data.median.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('crossChain.boxPlot.min')}:</span>
-          <span className="font-mono text-gray-900">${data.min.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.q1')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.q1.toFixed(4)}</span>
         </div>
-        <div className="flex justify-between gap-4 pt-2 border-t border-gray-100">
-          <span className="text-gray-500">{t('crossChain.boxPlot.iqr')}:</span>
-          <span className="font-mono text-gray-900">${data.iqr.toFixed(4)}</span>
+        <div className="flex justify-between gap-4">
+          <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.min')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.min.toFixed(4)}</span>
+        </div>
+        <div className="flex justify-between gap-4 pt-2 border-t" style={{ borderColor: baseColors.gray[100] }}>
+          <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.iqr')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.iqr.toFixed(4)}</span>
         </div>
         {data.outliers.length > 0 && (
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2 border-t" style={{ borderColor: baseColors.gray[100] }}>
             <div className="flex justify-between gap-4 mb-1">
-              <span className="text-orange-600 font-medium">
+              <span className="font-medium" style={{ color: semanticColors.warning.dark }}>
                 {t('crossChain.boxPlot.outliers')}:
               </span>
-              <span className="font-mono text-orange-600">{data.outliers.length}</span>
+              <span className="font-mono" style={{ color: semanticColors.warning.dark }}>{data.outliers.length}</span>
             </div>
-            <div className="text-xs text-gray-500 max-h-20 overflow-y-auto">
+            <div className="text-xs max-h-20 overflow-y-auto" style={{ color: baseColors.gray[500] }}>
               {data.outliers.slice(0, 3).map((v, i) => (
                 <span key={i} className="inline-block mr-2">
                   ${v.toFixed(2)}
                 </span>
               ))}
-              {data.outliers.length > 3 && <span className="text-gray-400">...</span>}
+              {data.outliers.length > 3 && <span style={{ color: baseColors.gray[400] }}>...</span>}
             </div>
           </div>
         )}
@@ -226,7 +226,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
   if (!data || data.length === 0) {
     return (
       <div className={`h-64 py-4 flex items-center justify-center ${className}`}>
-        <span className="text-gray-400">{t('crossChain.noData')}</span>
+        <span style={{ color: baseColors.gray[400] }}>{t('crossChain.noData')}</span>
       </div>
     );
   }
@@ -276,7 +276,7 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
                 name={t('crossChain.boxPlot.outliers')}
                 shape="circle"
                 fill={semanticColors.warning.dark}
-                stroke="#fff"
+                stroke={baseColors.gray[50]}
                 strokeWidth={1}
               >
                 {outlierData.map((entry, index) => (
@@ -291,20 +291,20 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-4 border-2 border-gray-400 bg-gray-100" />
-          <span className="text-gray-600">{t('crossChain.boxPlot.legend.box')}</span>
+          <div className="w-6 h-4 border-2" style={{ borderColor: baseColors.gray[400], backgroundColor: baseColors.gray[100] }} />
+          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.box')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-0.5 bg-gray-400" style={{ height: '3px' }} />
-          <span className="text-gray-600">{t('crossChain.boxPlot.legend.median')}</span>
+          <div className="w-6 h-0.5" style={{ backgroundColor: baseColors.gray[400], height: '3px' }} />
+          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.median')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-0.5 h-4 bg-gray-400" />
-          <span className="text-gray-600">{t('crossChain.boxPlot.legend.whisker')}</span>
+          <div className="w-0.5 h-4" style={{ backgroundColor: baseColors.gray[400] }} />
+          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.whisker')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-orange-500" />
-          <span className="text-gray-600">{t('crossChain.boxPlot.legend.outlier')}</span>
+          <div className="w-2 h-2" style={{ backgroundColor: semanticColors.warning.main }} />
+          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.outlier')}</span>
         </div>
       </div>
     </div>

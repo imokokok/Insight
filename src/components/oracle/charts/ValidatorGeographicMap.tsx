@@ -5,7 +5,7 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 're
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { Globe, MapPin, Users, Coins } from 'lucide-react';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 export interface ValidatorGeographicMapProps {
   validators: ValidatorInfo[];
@@ -198,11 +198,11 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
   }, []);
 
   return (
-    <div className="bg-white border border-gray-200  overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-100 border border-gray-200  flex items-center justify-center">
-            <Globe className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-gray-100 border border-gray-200 rounded flex items-center justify-center">
+            <Globe className="w-5 h-5 text-gray-600" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">验证者地理分布</h3>
@@ -228,12 +228,12 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill="#e2e8f0"
-                      stroke="#cbd5e1"
+                      fill={baseColors.slate[200]}
+                      stroke={baseColors.slate[300]}
                       strokeWidth={0.5}
                       style={{
                         default: { outline: 'none' },
-                        hover: { fill: '#cbd5e1', outline: 'none' },
+                        hover: { fill: baseColors.slate[300], outline: 'none' },
                         pressed: { outline: 'none' },
                       }}
                     />
@@ -288,30 +288,30 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
 
           {tooltip.show && (
             <div
-              className="fixed z-50 bg-gray-900 text-white text-xs px-3 py-2   pointer-events-none whitespace-pre-line"
+              className="fixed z-50 bg-gray-900 text-white text-xs px-3 py-2 rounded pointer-events-none whitespace-pre-line"
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               {tooltip.content}
             </div>
           )}
 
-          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm  p-3  border border-gray-200">
+          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded border border-gray-200">
             <p className="text-xs font-medium text-gray-700 mb-2">排名图例</p>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3  bg-red-500" />
+                <span className="w-3 h-3 rounded bg-red-500" />
                 <span className="text-xs text-gray-600">Top 5</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3  bg-orange-500" />
+                <span className="w-3 h-3 rounded bg-orange-500" />
                 <span className="text-xs text-gray-600">Top 6-15</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3  bg-yellow-500" />
+                <span className="w-3 h-3 rounded bg-yellow-500" />
                 <span className="text-xs text-gray-600">Top 16-30</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3  bg-gray-500" />
+                <span className="w-3 h-3 rounded bg-gray-500" />
                 <span className="text-xs text-gray-600">其他</span>
               </div>
             </div>
@@ -330,15 +330,15 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
                 <button
                   key={region.name}
                   onClick={() => handleRegionClick(region.name)}
-                  className={`w-full text-left p-3  border transition-all duration-200 ${
+                  className={`w-full text-left p-3 rounded border transition-all duration-200 ${
                     selectedRegion === region.name
-                      ? 'bg-white border-blue-500 '
-                      : 'bg-white border-gray-200 hover:border-blue-300 hover:'
+                      ? 'bg-white border-blue-500 shadow-sm'
+                      : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 " style={{ backgroundColor: region.color }} />
+                      <span className="w-3 h-3 rounded" style={{ backgroundColor: region.color }} />
                       <span className="font-medium text-gray-900">{region.name}</span>
                     </div>
                     <span className="text-xs font-semibold text-gray-500">{region.count} 节点</span>
@@ -355,9 +355,9 @@ export function ValidatorGeographicMap({ validators, onRegionClick }: ValidatorG
                     </div>
                   </div>
 
-                  <div className="mt-2 h-1.5 bg-gray-100  overflow-hidden">
+                  <div className="mt-2 h-1.5 bg-gray-100 rounded overflow-hidden">
                     <div
-                      className="h-full  transition-all duration-500"
+                      className="h-full rounded transition-all duration-500"
                       style={{
                         width: `${validators.length > 0 ? (region.count / validators.length) * 100 : 0}%`,
                         backgroundColor: region.color,

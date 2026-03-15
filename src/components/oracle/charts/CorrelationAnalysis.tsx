@@ -15,6 +15,7 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
 
@@ -56,16 +57,16 @@ const oracleNames: Record<OracleProvider, string> = {
 };
 
 const oracleColors: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.BAND_PROTOCOL]: '#9B51E0',
-  [OracleProvider.UMA]: '#FF6B6B',
-  [OracleProvider.PYTH]: '#EC4899',
-  [OracleProvider.API3]: '#10B981',
-  [OracleProvider.REDSTONE]: '#EF4444',
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
+  [OracleProvider.UMA]: chartColors.oracle.uma,
+  [OracleProvider.PYTH]: chartColors.oracle.pyth,
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 /**
@@ -112,11 +113,11 @@ function getCorrelationInterpretation(correlation: number): CorrelationResult['i
  */
 function getCorrelationColor(correlation: number): string {
   const abs = Math.abs(correlation);
-  if (abs >= 0.9) return '#10B981'; // 绿色 - 非常强
-  if (abs >= 0.7) return '#3B82F6'; // 蓝色 - 强
-  if (abs >= 0.5) return '#F59E0B'; // 黄色 - 中等
-  if (abs >= 0.3) return '#F97316'; // 橙色 - 弱
-  return '#EF4444'; // 红色 - 非常弱
+  if (abs >= 0.9) return semanticColors.success.DEFAULT; // 绿色 - 非常强
+  if (abs >= 0.7) return semanticColors.info.DEFAULT; // 蓝色 - 强
+  if (abs >= 0.5) return semanticColors.warning.DEFAULT; // 黄色 - 中等
+  if (abs >= 0.3) return chartColors.chart.amber; // 橙色 - 弱
+  return semanticColors.danger.DEFAULT; // 红色 - 非常弱
 }
 
 /**
@@ -311,7 +312,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                 <button
                   key={window}
                   onClick={() => setTimeWindow(window)}
-                  className={`px-3 py-1.5  text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                     timeWindow === window
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -369,7 +370,9 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                               : 'cursor-pointer hover:ring-2 hover:ring-blue-500'
                           }`}
                           style={{
-                            backgroundColor: isDiagonal ? '#E5E7EB' : getCorrelationColor(value),
+                            backgroundColor: isDiagonal
+                              ? baseColors.gray[200]
+                              : getCorrelationColor(value),
                             opacity: isDiagonal ? 0.5 : Math.abs(value) * 0.8 + 0.2,
                           }}
                         >
@@ -392,23 +395,35 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             <div className="flex items-center gap-4 mt-4 text-sm">
               <span className="text-gray-600">相关性强度:</span>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10B981' }}></div>
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: semanticColors.success.DEFAULT }}
+                ></div>
                 <span>非常强 (≥0.9)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3B82F6' }}></div>
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: semanticColors.info.DEFAULT }}
+                ></div>
                 <span>强 (0.7-0.9)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F59E0B' }}></div>
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+                ></div>
                 <span>中等 (0.5-0.7)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.chart.amber }}></div>
                 <span>弱 (0.3-0.5)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#EF4444' }}></div>
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+                ></div>
                 <span>非常弱 (&lt;0.3)</span>
               </div>
             </div>
@@ -452,7 +467,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                         <div className="flex items-center gap-2">
                           <div className="flex items-center">
                             <div
-                              className="w-3 h-3  mr-1"
+                              className="w-3 h-3 rounded mr-1"
                               style={{ backgroundColor: oracleColors[corr.pair[0]] }}
                             />
                             <span className="text-sm font-medium">{oracleNames[corr.pair[0]]}</span>
@@ -460,7 +475,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                           <span className="text-gray-400">vs</span>
                           <div className="flex items-center">
                             <div
-                              className="w-3 h-3  mr-1"
+                              className="w-3 h-3 rounded mr-1"
                               style={{ backgroundColor: oracleColors[corr.pair[1]] }}
                             />
                             <span className="text-sm font-medium">{oracleNames[corr.pair[1]]}</span>
@@ -491,9 +506,9 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-gray-200  overflow-hidden">
+                          <div className="w-16 h-2 bg-gray-200 rounded overflow-hidden">
                             <div
-                              className="h-full bg-blue-500 "
+                              className="h-full bg-blue-500 rounded"
                               style={{ width: `${corr.confidence}%` }}
                             />
                           </div>
@@ -582,7 +597,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                           y: regressionLine.slope * regressionLine.maxX + regressionLine.intercept,
                         },
                       ]}
-                      stroke="#EF4444"
+                      stroke={semanticColors.danger.DEFAULT}
                       strokeDasharray="5 5"
                     />
                   )}
@@ -598,7 +613,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                         y: Math.max(...scatterData.map((d) => d.x)),
                       },
                     ]}
-                    stroke="#10B981"
+                    stroke={semanticColors.success.DEFAULT}
                     strokeDasharray="3 3"
                     strokeOpacity={0.5}
                   />
@@ -614,13 +629,13 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
 
             {/* 统计信息 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50  p-3">
+              <div className="bg-gray-50 rounded p-3">
                 <p className="text-xs text-gray-500">样本数量</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {scatterData.length.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-gray-50  p-3">
+              <div className="bg-gray-50 rounded p-3">
                 <p className="text-xs text-gray-500">相关系数</p>
                 <p
                   className="text-lg font-semibold"
@@ -645,13 +660,13 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
               </div>
               {regressionLine && (
                 <>
-                  <div className="bg-gray-50  p-3">
+                  <div className="bg-gray-50 rounded p-3">
                     <p className="text-xs text-gray-500">回归斜率</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {regressionLine.slope.toFixed(4)}
                     </p>
                   </div>
-                  <div className="bg-gray-50  p-3">
+                  <div className="bg-gray-50 rounded p-3">
                     <p className="text-xs text-gray-500">回归截距</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {regressionLine.intercept.toFixed(4)}
@@ -662,7 +677,7 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             </div>
 
             {/* 说明 */}
-            <div className="bg-blue-50  p-4 text-sm text-blue-800">
+            <div className="bg-blue-50 rounded p-4 text-sm text-blue-800">
               <p className="font-medium mb-2">图表说明:</p>
               <ul className="space-y-1 ml-4">
                 <li>• 每个点代表同一时间点两个预言机的价格数据</li>
@@ -682,27 +697,27 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
             皮尔逊相关系数（Pearson Correlation
             Coefficient）用于衡量两个变量之间的线性相关程度，取值范围为 -1 到 1。
           </p>
-          <div className="bg-gray-50  p-4 font-mono text-center">
+          <div className="bg-gray-50 rounded p-4 font-mono text-center">
             r = Σ((x - x̄)(y - ȳ)) / √(Σ(x - x̄)² × Σ(y - ȳ)²)
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-3 bg-green-50 ">
+            <div className="text-center p-3 bg-green-50 rounded">
               <p className="font-bold text-green-700">0.9 - 1.0</p>
               <p className="text-xs text-green-600">非常强正相关</p>
             </div>
-            <div className="text-center p-3 bg-blue-50 ">
+            <div className="text-center p-3 bg-blue-50 rounded">
               <p className="font-bold text-blue-700">0.7 - 0.9</p>
               <p className="text-xs text-blue-600">强正相关</p>
             </div>
-            <div className="text-center p-3 bg-yellow-50 ">
+            <div className="text-center p-3 bg-yellow-50 rounded">
               <p className="font-bold text-yellow-700">0.5 - 0.7</p>
               <p className="text-xs text-yellow-600">中等正相关</p>
             </div>
-            <div className="text-center p-3 bg-orange-50 ">
+            <div className="text-center p-3 bg-orange-50 rounded">
               <p className="font-bold text-orange-700">0.3 - 0.5</p>
               <p className="text-xs text-orange-600">弱正相关</p>
             </div>
-            <div className="text-center p-3 bg-red-50 ">
+            <div className="text-center p-3 bg-red-50 rounded">
               <p className="font-bold text-red-700">0.0 - 0.3</p>
               <p className="text-xs text-red-600">极弱/无相关</p>
             </div>

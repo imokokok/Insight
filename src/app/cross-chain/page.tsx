@@ -36,6 +36,7 @@ import {
 } from './utils';
 import { ChainStats, RefreshInterval } from './constants';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
+import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 
 type ViewMode = 'price' | 'volatility';
 
@@ -208,10 +209,10 @@ export default function CrossChainPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t('crossChain.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
+          <h1 className="text-2xl font-semibold" style={{ color: baseColors.gray[900] }}>{t('crossChain.title')}</h1>
+          <p className="text-sm mt-1" style={{ color: baseColors.gray[500] }}>{t('crossOracle.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap">
           {/* 色盲友好模式切换 */}
@@ -219,9 +220,14 @@ export default function CrossChainPage() {
             onClick={() => setColorblindMode(!colorblindMode)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded-none transition-colors ${
               colorblindMode
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                ? ''
+                : 'hover:border-gray-400'
             }`}
+            style={{
+              backgroundColor: colorblindMode ? semanticColors.info.light : 'transparent',
+              borderColor: colorblindMode ? semanticColors.info.light : baseColors.gray[300],
+              color: colorblindMode ? semanticColors.info.text : baseColors.gray[600]
+            }}
             title={
               colorblindMode
                 ? t('crossChain.colorblindModeOn')
@@ -244,7 +250,7 @@ export default function CrossChainPage() {
             </svg>
             <span>{t('crossChain.colorblindFriendly')}</span>
             {colorblindMode && (
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: semanticColors.info.main }}>
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -253,23 +259,25 @@ export default function CrossChainPage() {
               </svg>
             )}
           </button>
-          <span className="text-sm text-gray-500">{t('crossChain.export')}:</span>
+          <span className="text-sm" style={{ color: baseColors.gray[500] }}>{t('crossChain.export')}:</span>
           <button
             onClick={exportToCSV}
             disabled={loading || currentPrices.length === 0}
-            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:border-gray-400 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm border disabled:opacity-50"
+            style={{ borderColor: baseColors.gray[300], color: baseColors.gray[700] }}
           >
             CSV
           </button>
           <button
             onClick={exportToJSON}
             disabled={loading || currentPrices.length === 0}
-            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 hover:border-gray-400 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm border disabled:opacity-50"
+            style={{ borderColor: baseColors.gray[300], color: baseColors.gray[700] }}
           >
             JSON
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200">
-            <span className="text-sm text-gray-600">{t('crossChain.autoRefresh')}</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: baseColors.gray[200] }}>
+            <span className="text-sm" style={{ color: baseColors.gray[600] }}>{t('crossChain.autoRefresh')}</span>
             <select
               value={refreshInterval}
               onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
@@ -285,7 +293,10 @@ export default function CrossChainPage() {
           <button
             onClick={fetchData}
             disabled={refreshStatus === 'refreshing'}
-            className={`px-4 py-2 text-sm text-white ${refreshStatus === 'error' ? 'bg-red-600' : refreshStatus === 'success' && showRefreshSuccess ? 'bg-green-600' : 'bg-gray-900'} disabled:opacity-50`}
+            className="px-4 py-2 text-sm text-white disabled:opacity-50"
+            style={{
+              backgroundColor: refreshStatus === 'error' ? semanticColors.danger.main : refreshStatus === 'success' && showRefreshSuccess ? semanticColors.success.main : baseColors.gray[900]
+            }}
           >
             {refreshStatus === 'refreshing'
               ? t('crossChain.loading')
@@ -294,7 +305,7 @@ export default function CrossChainPage() {
                 : t('crossChain.refresh')}
           </button>
           {lastUpdated && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs" style={{ color: baseColors.gray[400] }}>
               {t('crossChain.lastUpdated')} {lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -306,32 +317,33 @@ export default function CrossChainPage() {
 
       {loading ? (
         <div className="py-16 flex flex-col justify-center items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent animate-spin" />
-          <div className="text-gray-500 text-sm">{t('crossChain.loadingData')}</div>
+          <div className="w-8 h-8 border-2 border-t-transparent animate-spin" style={{ borderColor: baseColors.gray[400] }} />
+          <div className="text-sm" style={{ color: baseColors.gray[500] }}>{t('crossChain.loadingData')}</div>
         </div>
       ) : (
         <>
           {/* Stats Grid - Responsive layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
             {statsData.map((stat, index) => (
               <div
                 key={index}
-                className={`px-3 sm:px-4 py-3 sm:bg-transparent ${index > 0 ? 'sm:border-l sm:border-gray-100' : ''}`}
+                className={`px-3 sm:px-4 py-3 sm:bg-transparent ${index > 0 ? 'sm:border-l' : ''}`}
+                style={{ borderColor: index > 0 ? baseColors.gray[100] : 'transparent' }}
                 title={stat.tooltip}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <div className="text-[10px] sm:text-xs text-gray-500 uppercase truncate">
+                  <div className="text-[10px] sm:text-xs uppercase truncate" style={{ color: baseColors.gray[500] }}>
                     {stat.label}
                   </div>
                   {stat.trend !== null && stat.trend !== undefined && (
                     <TrendIndicator changePercent={stat.trend} />
                   )}
                 </div>
-                <div className="text-base sm:text-lg font-semibold text-gray-900 mt-1 truncate">
+                <div className="text-base sm:text-lg font-semibold mt-1 truncate" style={{ color: baseColors.gray[900] }}>
                   {stat.value}
                 </div>
                 {stat.subValue && (
-                  <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">
+                  <div className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: baseColors.gray[400] }}>
                     {stat.subValue}
                   </div>
                 )}
@@ -339,69 +351,70 @@ export default function CrossChainPage() {
             ))}
           </div>
 
-          <div className="mb-8 pb-8 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
               {t('crossChain.priceDistributionAnalysis')}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h4 className="text-xs font-medium text-gray-700 mb-3">
+                <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
                   {t('crossChain.priceDistributionHistogram')}
                 </h4>
                 <div className="h-64 py-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={priceDistributionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
                       <XAxis
                         dataKey="range"
-                        tick={{ fontSize: 9 }}
+                        tick={{ fontSize: 9, fill: chartColors.recharts.tick }}
                         angle={-45}
                         textAnchor="end"
                         height={60}
+                        stroke={chartColors.recharts.axis}
                       />
-                      <YAxis tick={{ fontSize: 11 }} width={40} />
+                      <YAxis tick={{ fontSize: 11, fill: chartColors.recharts.tick }} width={40} stroke={chartColors.recharts.axis} />
                       <Tooltip formatter={(value) => [value, '频率']} />
                       {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
                         <ReferenceLine
                           x={priceDistributionData[meanBinIndex].range}
-                          stroke="#3B82F6"
+                          stroke={chartColors.recharts.primary}
                           strokeDasharray="5 5"
                         />
                       )}
                       {medianBinIndex >= 0 && priceDistributionData[medianBinIndex] && (
                         <ReferenceLine
                           x={priceDistributionData[medianBinIndex].range}
-                          stroke="#10B981"
+                          stroke={chartColors.recharts.success}
                           strokeDasharray="5 5"
                         />
                       )}
-                      <Bar dataKey="count" fill="#6366F1" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="count" fill={chartColors.recharts.indigo} radius={[0, 0, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3">
                   <div className="py-3">
-                    <div className="text-xs text-gray-500">{t('crossChain.medianLine')}</div>
-                    <div className="text-lg font-semibold text-green-600">
+                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.medianLine')}</div>
+                    <div className="text-lg font-semibold" style={{ color: semanticColors.success.main }}>
                       ${medianPrice.toFixed(4)}
                     </div>
                   </div>
                   <div className="py-3">
-                    <div className="text-xs text-gray-500">{t('crossChain.meanLine')}</div>
-                    <div className="text-lg font-semibold text-blue-600">
+                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.meanLine')}</div>
+                    <div className="text-lg font-semibold" style={{ color: baseColors.primary[500] }}>
                       ${avgPrice.toFixed(4)}
                     </div>
                   </div>
                   <div className="py-3">
-                    <div className="text-xs text-gray-500">{t('crossChain.standardDeviation')}</div>
-                    <div className="text-lg font-semibold text-purple-600">
+                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.standardDeviation')}</div>
+                    <div className="text-lg font-semibold" style={{ color: chartColors.recharts.purple }}>
                       ${standardDeviation.toFixed(4)}
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="text-xs font-medium text-gray-700 mb-3">
+                <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
                   {t('crossChain.chainPriceBoxPlot')}
                 </h4>
                 <div className="h-64 py-4">
@@ -418,27 +431,27 @@ export default function CrossChainPage() {
               <RollingCorrelationChart data={data} />
               <CointegrationAnalysis data={data} />
 
-              <div className="mb-8 pb-8 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+                <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
                   {t('crossChain.stabilityAnalysis')}
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">
+                      <tr style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
+                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
                           {t('crossChain.blockchain')}
                         </th>
-                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">
+                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
                           {t('crossChain.dataIntegrity')}
                         </th>
-                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">
+                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
                           {t('crossChain.priceVolatility')}
                         </th>
-                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">
+                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
                           {t('crossChain.priceJumpFrequency')}
                         </th>
-                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500 text-right">
+                        <th className="px-3 py-2.5 text-xs font-medium text-right" style={{ color: baseColors.gray[500] }}>
                           {t('crossChain.stabilityRating')}
                         </th>
                       </tr>
@@ -453,7 +466,8 @@ export default function CrossChainPage() {
                         return (
                           <tr
                             key={chain}
-                            className="border-b border-gray-100 hover:bg-gray-50 hover:border-gray-200"
+                            className="hover:bg-gray-50"
+                            style={{ borderBottom: `1px solid ${baseColors.gray[100]}`, backgroundColor: 'transparent' }}
                           >
                             <td className="px-3 py-2.5">
                               <div className="flex items-center">
@@ -480,7 +494,10 @@ export default function CrossChainPage() {
                             </td>
                             <td className="px-3 py-2.5 text-right">
                               <span
-                                className={`text-sm font-medium ${stabilityRating === 'stable' ? 'text-green-600' : stabilityRating === 'moderate' ? 'text-yellow-600' : 'text-red-600'}`}
+                                className="text-sm font-medium"
+                                style={{
+                                  color: stabilityRating === 'stable' ? semanticColors.success.main : stabilityRating === 'moderate' ? semanticColors.warning.main : semanticColors.danger.main
+                                }}
                               >
                                 {volatility > 0
                                   ? t(`crossChain.stability.${stabilityRating}`)

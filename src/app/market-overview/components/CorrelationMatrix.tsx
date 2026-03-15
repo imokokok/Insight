@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
 import { useI18n } from '@/lib/i18n/provider';
 import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { semanticColors } from '@/lib/config/colors';
+import { semanticColors, baseColors } from '@/lib/config/colors';
 
 interface CorrelationMatrixProps {
   data: CorrelationData;
@@ -16,7 +16,7 @@ interface CorrelationMatrixProps {
 const CORRELATION_COLORS = {
   strongPositive: semanticColors.success.main,
   moderatePositive: semanticColors.success.light,
-  weakPositive: '#a7f3d0', // lighter green
+  weakPositive: baseColors.primary[100], // lighter green
   neutral: semanticColors.neutral.main,
   weakNegative: semanticColors.danger.light,
   moderateNegative: semanticColors.danger.main,
@@ -93,7 +93,7 @@ export default function CorrelationMatrix({
         return (
           <div
             key={`${pair.oracleA}-${pair.oracleB}`}
-            className="py-3 border-b border-gray-100 cursor-pointer active:bg-gray-50"
+            className="py-3 border-b border-gray-100 cursor-pointer active:bg-gray-50 rounded"
             onClick={() => {
               setSelectedPair(pair);
               setShowDetails(true);
@@ -133,7 +133,7 @@ export default function CorrelationMatrix({
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -348,7 +348,7 @@ export default function CorrelationMatrix({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'correlation' | 'name')}
-              className="text-sm border border-gray-200 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="correlation">
                 {locale === 'zh-CN' ? '按相关性排序' : 'Sort by Correlation'}
@@ -432,7 +432,7 @@ export default function CorrelationMatrix({
       {/* 详情弹窗 */}
       {showDetails && selectedPair && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-gray-200 max-w-sm w-full p-4">
+          <div className="bg-white border border-gray-200 rounded max-w-sm w-full p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-900">
                 {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
@@ -515,7 +515,7 @@ export default function CorrelationMatrix({
 
             <button
               onClick={() => setShowDetails(false)}
-              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
+              className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
             >
               {locale === 'zh-CN' ? '关闭' : 'Close'}
             </button>

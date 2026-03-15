@@ -67,8 +67,8 @@ interface LatencyStats {
 
 const CHAIN_COLORS: Record<string, string> = {
   Ethereum: chainColors.ethereum,
-  Arbitrum: '#28a0f0',
-  Optimism: '#ff0420',
+  Arbitrum: chainColors.arbitrum,
+  Optimism: chainColors.optimism,
   Polygon: chainColors.polygon,
 };
 
@@ -283,7 +283,7 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
   const { t } = useI18n();
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded p-5">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
           {t('latencyAnalysis.distribution.title')}
@@ -319,7 +319,7 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
               if (!active || !payload || payload.length === 0) return null;
               const data = payload[0].payload as LatencyDataPoint;
               return (
-                <div className="bg-white border border-gray-200  p-3 ">
+                <div className="bg-white border border-gray-200 rounded p-3 shadow-sm">
                   <p className="text-xs text-gray-600 font-medium">
                     {t('latencyAnalysis.distribution.range')}: {data.range}ms
                   </p>
@@ -397,7 +397,7 @@ function PercentileCards({ stats }: { stats: LatencyStats }) {
   return (
     <div className="grid grid-cols-3 gap-4">
       {percentiles.map((p) => (
-        <div key={p.label} className={`bg-white border border-gray-200  p-4 ${p.bgColor}`}>
+        <div key={p.label} className={`bg-white border border-gray-200 rounded p-4 ${p.bgColor}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500 uppercase tracking-wider">{p.label}</span>
             <span className={`text-xs font-semibold ${p.color}`}>
@@ -419,7 +419,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
   const { t } = useI18n();
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -456,7 +456,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
               if (!active || !payload || payload.length === 0) return null;
               const data = payload[0].payload as TrendDataPoint;
               return (
-                <div className="bg-white border border-gray-200  p-3 ">
+                <div className="bg-white border border-gray-200 rounded p-3 shadow-sm">
                   <p className="text-xs text-gray-600 font-medium mb-2">{label}</p>
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">
@@ -523,7 +523,7 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
   const { t } = useI18n();
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded p-5">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900">
           {t('latencyAnalysis.crossChain.title')}
@@ -537,12 +537,12 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
           return (
             <div
               key={chain.chain}
-              className="border border-gray-200  p-4 hover:border-gray-300 transition-colors"
+              className="border border-gray-200 rounded p-4 hover:border-gray-300 transition-colors"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-3 h-3 "
+                    className="w-3 h-3 rounded"
                     style={{ backgroundColor: CHAIN_COLORS[chain.chain] }}
                   />
                   <span className="font-medium text-gray-900">{chain.chain}</span>
@@ -589,9 +589,9 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
                     {chain.maxLatency}ms
                   </span>
                 </div>
-                <div className="h-2 bg-gray-100  overflow-hidden">
+                <div className="h-2 bg-gray-100 rounded overflow-hidden">
                   <div
-                    className="h-full  transition-all duration-300"
+                    className="h-full rounded transition-all duration-300"
                     style={{
                       width: `${Math.min(100, (chain.avgLatency / 500) * 100)}%`,
                       backgroundColor: CHAIN_COLORS[chain.chain],
@@ -652,7 +652,7 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
@@ -660,45 +660,45 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
           </h3>
           <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.anomalies.description')}</p>
         </div>
-        <span className="px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold ">
-          {anomalies.length} {t('latencyAnalysis.anomalies.count')}
-        </span>
+        <span className="px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded">
+            {anomalies.length} {t('latencyAnalysis.anomalies.count')}
+          </span>
       </div>
 
       <div className="space-y-2 max-h-80 overflow-y-auto">
         {anomalies.map((anomaly) => {
-          const severity = severityConfig[anomaly.severity];
-          const type = typeConfig[anomaly.type];
+            const severity = severityConfig[anomaly.severity];
+            const type = typeConfig[anomaly.type];
 
-          return (
-            <div
-              key={anomaly.id}
-              className={`border ${severity.borderColor} ${severity.bgColor}  p-3`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-2">
-                  <span className="text-lg">{type.icon}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">{type.label}</span>
-                      <span
-                        className={`text-xs px-2 py-0.5  ${severity.bgColor} ${severity.color}`}
-                      >
-                        {severity.label}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">{getLocalizedMessage(anomaly)}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                      <span>{anomaly.chain}</span>
-                      <span>•</span>
-                      <span>{anomaly.timestamp.toLocaleTimeString('zh-CN')}</span>
+            return (
+              <div
+                key={anomaly.id}
+                className={`border ${severity.borderColor} ${severity.bgColor} rounded p-3`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">{type.icon}</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">{type.label}</span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${severity.bgColor} ${severity.color}`}
+                        >
+                          {severity.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">{getLocalizedMessage(anomaly)}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                        <span>{anomaly.chain}</span>
+                        <span>•</span>
+                        <span>{anomaly.timestamp.toLocaleTimeString('zh-CN')}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
@@ -722,7 +722,7 @@ function StatsOverview({ stats }: { stats: LatencyStats }) {
   return (
     <div className="grid grid-cols-5 gap-3">
       {statItems.map((item) => (
-        <div key={item.label} className="bg-white border border-gray-200  p-4 text-center">
+        <div key={item.label} className="bg-white border border-gray-200 rounded p-4 text-center">
           <span className="text-2xl mb-2 block">{item.icon}</span>
           <p className="text-xs text-gray-500 mb-1">{item.label}</p>
           <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -801,7 +801,7 @@ export function LatencyAnalysis({
           </span>
           <button
             onClick={updateData}
-            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium  hover:bg-blue-100 transition-colors"
+            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium rounded hover:bg-blue-100 transition-colors"
           >
             {t('latencyAnalysis.refresh')}
           </button>

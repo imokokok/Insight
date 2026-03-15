@@ -30,7 +30,7 @@ import {
   BenchmarkData,
   CorrelationData,
 } from '../types';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import ChainBreakdownChart from './ChainBreakdownChart';
 import ProtocolList from './ProtocolList';
 import AssetCategoryChart from './AssetCategoryChart';
@@ -117,11 +117,11 @@ export default function ChartRenderer({
   const CustomTooltip = ({ active, payload, label }: TooltipProps<OracleMarketData>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 p-3">
+        <div className="bg-white border border-gray-200 rounded p-3">
           <p className="font-medium text-gray-900 mb-2">{label}</p>
           {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
                 {activeChart === 'pie'
@@ -266,7 +266,7 @@ export default function ChartRenderer({
       if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-          <div className="bg-white border border-gray-200 p-3 max-w-xs">
+          <div className="bg-white border border-gray-200 rounded p-3 max-w-xs">
             <p className="font-medium text-gray-900 mb-2">{label}</p>
             {comparisonMode !== 'none' ? (
               <div className="space-y-2">
@@ -277,7 +277,10 @@ export default function ChartRenderer({
                   return (
                     <div key={key} className="text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3" style={{ backgroundColor: oracleColors[key] }} />
+                        <div
+                          className="w-3 h-3 rounded"
+                          style={{ backgroundColor: oracleColors[key] }}
+                        />
                         <span className="text-gray-600">{oracleNames[key]}:</span>
                       </div>
                       <div className="ml-5 mt-1 space-y-1">
@@ -321,7 +324,7 @@ export default function ChartRenderer({
             ) : (
               payload.map((entry, index: number) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: entry.color }} />
                   <span className="text-gray-600">{entry.name}:</span>
                   <span className="font-medium text-gray-900">${entry.value}B</span>
                 </div>
@@ -378,7 +381,7 @@ export default function ChartRenderer({
               type="monotone"
               dataKey={`${key}Lower`}
               stroke="none"
-              fill="#ffffff"
+              fill={baseColors.gray[50]}
               fillOpacity={1}
               isAnimationActive={false}
             />
@@ -405,8 +408,8 @@ export default function ChartRenderer({
               x={anomaly.date}
               y={anomaly.value}
               r={6}
-              fill="#ef4444"
-              stroke="#fff"
+              fill={semanticColors.danger.DEFAULT}
+              stroke={baseColors.gray[50]}
               strokeWidth={2}
               onClick={() =>
                 setSelectedAnomaly({
@@ -423,7 +426,7 @@ export default function ChartRenderer({
         <Brush
           dataKey="date"
           height={30}
-          stroke="#8884d8"
+          stroke={chartColors.pie.default}
           startIndex={zoomRange?.startIndex}
           endIndex={zoomRange?.endIndex}
           onChange={(range) => setZoomRange(range)}

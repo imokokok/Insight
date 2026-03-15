@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
+import { semanticColors, baseColors, chartColors } from '@/lib/config/colors';
 
 export interface ChainPriceData {
   chain: string;
@@ -73,27 +74,27 @@ function generateMockPriceData(symbol: string): ChainPriceData[] {
 }
 
 function getDeviationColor(deviation: number): string {
-  const color = getDeviationColorUtil(deviation);
-  if (color === '#22c55e') return 'text-green-600';
-  if (color === '#f59e0b') return 'text-yellow-600';
-  return 'text-red-600';
+  const absDeviation = Math.abs(deviation);
+  if (absDeviation < 0.1) return `text-[${semanticColors.success.DEFAULT}]`;
+  if (absDeviation < 0.5) return `text-[${semanticColors.warning.DEFAULT}]`;
+  return `text-[${semanticColors.danger.DEFAULT}]`;
 }
 
 function getDeviationBarColor(deviation: number): string {
-  const color = getDeviationColorUtil(deviation);
-  if (color === '#22c55e') return 'bg-green-500';
-  if (color === '#f59e0b') return 'bg-yellow-500';
-  return 'bg-red-500';
+  const absDeviation = Math.abs(deviation);
+  if (absDeviation < 0.1) return `bg-[${semanticColors.success.DEFAULT}]`;
+  if (absDeviation < 0.5) return `bg-[${semanticColors.warning.DEFAULT}]`;
+  return `bg-[${semanticColors.danger.DEFAULT}]`;
 }
 
 function getStatusBadgeColor(status: 'normal' | 'warning' | 'critical'): string {
   switch (status) {
     case 'normal':
-      return 'bg-green-100 text-green-700';
+      return `bg-[${semanticColors.success.light}] text-[${semanticColors.success.text}]`;
     case 'warning':
-      return 'bg-yellow-100 text-yellow-700';
+      return `bg-[${semanticColors.warning.light}] text-[${semanticColors.warning.text}]`;
     case 'critical':
-      return 'bg-red-100 text-red-700';
+      return `bg-[${semanticColors.danger.light}] text-[${semanticColors.danger.text}]`;
   }
 }
 
@@ -137,13 +138,13 @@ export function CrossChainPriceConsistency({
       headerAction={
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">{symbol}</span>
-          <span className="px-2 py-0.5 bg-pink-100 text-pink-700 text-xs font-medium ">Pyth</span>
+          <span className="px-2 py-0.5 bg-pink-100 text-pink-700 text-xs font-medium rounded">Pyth</span>
         </div>
       }
     >
       <div className="space-y-5">
         {hasWarnings && (
-          <div className="bg-yellow-50 border border-yellow-200  p-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
@@ -168,12 +169,12 @@ export function CrossChainPriceConsistency({
         )}
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
+          <div className="bg-blue-50 rounded p-3 text-center">
             <p className="text-xs text-blue-600 mb-1">基准价格</p>
             <p className="text-lg font-bold text-blue-700">${basePrice.toFixed(2)}</p>
             <p className="text-xs text-blue-500 mt-1">Solana</p>
           </div>
-          <div className="bg-gray-50  p-3 text-center">
+          <div className="bg-gray-50 rounded p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">最大偏差</p>
             <p className={`text-lg font-bold ${getDeviationColor(maxDeviation)}`}>
               {maxDeviation.toFixed(3)}%
@@ -243,7 +244,7 @@ export function CrossChainPriceConsistency({
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200  h-2 overflow-hidden">
+                        <div className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
                           <div
                             className={`h-full  transition-all ${getDeviationBarColor(chain.deviationPercent)}`}
                             style={{
@@ -269,7 +270,7 @@ export function CrossChainPriceConsistency({
                     </td>
                     <td className="text-center py-3 px-3">
                       <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium  ${getStatusBadgeColor(chain.status)}`}
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getStatusBadgeColor(chain.status)}`}
                       >
                         {getStatusLabel(chain.status)}
                       </span>
@@ -325,7 +326,7 @@ export function CrossChainPriceConsistency({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50  p-4">
+          <div className="bg-gray-50 rounded p-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">更新延迟分布</h4>
             <div className="space-y-2">
               {chainData.map((chain) => (
@@ -350,7 +351,7 @@ export function CrossChainPriceConsistency({
             </div>
           </div>
 
-          <div className="bg-gray-50  p-4">
+          <div className="bg-gray-50 rounded p-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">偏差阈值说明</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -376,7 +377,7 @@ export function CrossChainPriceConsistency({
           </div>
         </div>
 
-        <div className="bg-pink-50  p-4">
+        <div className="bg-pink-50 rounded p-4">
           <div className="flex items-start gap-3">
             <svg
               className="w-5 h-5 text-pink-600 mt-0.5 flex-shrink-0"

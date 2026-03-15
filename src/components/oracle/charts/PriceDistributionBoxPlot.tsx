@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface BoxPlotStats {
   min: number;
@@ -40,11 +41,11 @@ interface PriceDistributionBoxPlotProps {
 }
 
 const DEFAULT_ORACLE_COLORS: Record<string, string> = {
-  chainlink: '#375BD2',
-  'band-protocol': '#9B51E0',
-  uma: '#FF6B6B',
-  'pyth-network': '#EC4899',
-  api3: '#10B981',
+  chainlink: chartColors.oracle.chainlink,
+  'band-protocol': chartColors.oracle['band-protocol'],
+  uma: chartColors.oracle.uma,
+  'pyth-network': chartColors.oracle.pyth,
+  api3: chartColors.oracle.api3,
 };
 
 function calculateBoxPlotStats(prices: number[]): BoxPlotStats {
@@ -205,63 +206,63 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   const { name, stats, color } = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200  p-4  max-w-xs">
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-        <div className="w-3 h-3 " style={{ backgroundColor: color }} />
-        <span className="font-semibold text-gray-900">{name}</span>
+    <div className="bg-white border border-gray-200 p-4 max-w-xs" style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}>
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b" style={{ borderColor: baseColors.gray[100] }}>
+        <div className="w-3 h-3" style={{ backgroundColor: color }} />
+        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>{name}</span>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.max')}:</span>
-          <span className="font-mono text-gray-900">${stats.max.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.max')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.max.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.upperWhisker')}:</span>
-          <span className="font-mono text-gray-900">${stats.whiskerMax.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.upperWhisker')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.whiskerMax.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.q3')}:</span>
-          <span className="font-mono text-gray-900">${stats.q3.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.q3')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.q3.toFixed(4)}</span>
         </div>
-        <div className="flex justify-between gap-4 bg-blue-50 -mx-2 px-2 py-1 rounded">
-          <span className="text-blue-700 font-medium">
+        <div className="flex justify-between gap-4 -mx-2 px-2 py-1 rounded" style={{ backgroundColor: baseColors.primary[50] }}>
+          <span className="font-medium" style={{ color: baseColors.primary[700] }}>
             {t('priceDistribution.tooltip.median')}:
           </span>
-          <span className="font-mono text-blue-700 font-semibold">${stats.median.toFixed(4)}</span>
+          <span className="font-mono font-semibold" style={{ color: baseColors.primary[700] }}>${stats.median.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.q1')}:</span>
-          <span className="font-mono text-gray-900">${stats.q1.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.q1')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.q1.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.lowerWhisker')}:</span>
-          <span className="font-mono text-gray-900">${stats.whiskerMin.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.lowerWhisker')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.whiskerMin.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.min')}:</span>
-          <span className="font-mono text-gray-900">${stats.min.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.min')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.min.toFixed(4)}</span>
         </div>
-        <div className="flex justify-between gap-4 pt-2 border-t border-gray-100">
-          <span className="text-gray-500">{t('priceDistribution.tooltip.iqr')}:</span>
-          <span className="font-mono text-gray-900">${stats.iqr.toFixed(4)}</span>
+        <div className="flex justify-between gap-4 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.iqr')}:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.iqr.toFixed(4)}</span>
         </div>
         {stats.outliers.length > 0 && (
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
             <div className="flex justify-between gap-4 mb-1">
-              <span className="text-orange-600 font-medium">
+              <span className="font-medium" style={{ color: semanticColors.warning.dark }}>
                 {t('priceDistribution.tooltip.outliers')}:
               </span>
-              <span className="font-mono text-orange-600">
+              <span className="font-mono" style={{ color: semanticColors.warning.dark }}>
                 {stats.outliers.length} {t('priceDistribution.tooltip.outlierCount')}
               </span>
             </div>
-            <div className="text-xs text-gray-500 max-h-20 overflow-y-auto">
+            <div className="text-xs max-h-20 overflow-y-auto" style={{ color: baseColors.gray[500] }}>
               {stats.outliers.slice(0, 5).map((v, i) => (
                 <span key={i} className="inline-block mr-2">
                   ${v.toFixed(2)}
                 </span>
               ))}
-              {stats.outliers.length > 5 && <span className="text-gray-400">...</span>}
+              {stats.outliers.length > 5 && <span style={{ color: baseColors.gray[400] }}>...</span>}
             </div>
           </div>
         )}
@@ -287,7 +288,7 @@ export function PriceDistributionBoxPlot({
     const processedData = data.map((item) => {
       const stats = calculateBoxPlotStats(item.prices);
       const name = oracleNames[item.oracleId] || item.oracleId;
-      const color = DEFAULT_ORACLE_COLORS[item.oracleId] || '#6B7280';
+      const color = DEFAULT_ORACLE_COLORS[item.oracleId] || baseColors.gray[500];
 
       return {
         oracleId: item.oracleId,
@@ -361,7 +362,7 @@ export function PriceDistributionBoxPlot({
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
               <XAxis
                 dataKey="x"
                 type="number"
@@ -371,10 +372,10 @@ export function PriceDistributionBoxPlot({
                   const item = chartData[value];
                   return item?.name || '';
                 }}
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickLine={false}
-                axisLine={{ stroke: '#e5e7eb' }}
+                axisLine={{ stroke: chartColors.recharts.grid }}
                 angle={-20}
                 textAnchor="end"
                 height={60}
@@ -382,10 +383,10 @@ export function PriceDistributionBoxPlot({
               <YAxis
                 type="number"
                 domain={yDomain}
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickLine={false}
-                axisLine={{ stroke: '#e5e7eb' }}
+                axisLine={{ stroke: chartColors.recharts.grid }}
                 tickFormatter={(value) => `$${value.toFixed(2)}`}
                 width={70}
               />
@@ -404,7 +405,7 @@ export function PriceDistributionBoxPlot({
                     <Cell
                       key={`outlier-${index}`}
                       fill={entry.color}
-                      stroke="#fff"
+                      stroke={chartColors.recharts.white}
                       strokeWidth={1}
                     />
                   ))}
@@ -414,26 +415,26 @@ export function PriceDistributionBoxPlot({
           </ResponsiveContainer>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">
+        <div className="pt-4" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+          <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[700] }}>
             {t('priceDistribution.legend.title')}
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 border-2 border-blue-500 bg-blue-100 rounded-sm" />
-              <span className="text-gray-600">{t('priceDistribution.legend.box')}</span>
+              <div className="w-6 h-4 border-2 rounded-sm" style={{ borderColor: baseColors.primary[500], backgroundColor: baseColors.primary[100] }} />
+              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.box')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5 bg-blue-500" style={{ height: '3px' }} />
-              <span className="text-gray-600">{t('priceDistribution.legend.median')}</span>
+              <div className="w-6 h-0.5" style={{ height: '3px', backgroundColor: baseColors.primary[500] }} />
+              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.median')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-0.5 h-4 bg-blue-500" />
-              <span className="text-gray-600">{t('priceDistribution.legend.whisker')}</span>
+              <div className="w-0.5 h-4" style={{ backgroundColor: baseColors.primary[500] }} />
+              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.whisker')}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2  bg-orange-500" />
-              <span className="text-gray-600">{t('priceDistribution.legend.outlier')}</span>
+              <div className="w-2 h-2" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.outlier')}</span>
             </div>
           </div>
         </div>
@@ -471,7 +472,7 @@ export function PriceDistributionBoxPlot({
                   <tr key={item.oracleId} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 " style={{ backgroundColor: item.color }} />
+                        <div className="w-2 h-2" style={{ backgroundColor: item.color }} />
                         <span className="font-medium text-gray-900">{item.name}</span>
                       </div>
                     </td>

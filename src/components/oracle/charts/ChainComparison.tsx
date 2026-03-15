@@ -20,6 +20,7 @@ import {
 } from 'recharts';
 import { ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
+import { chainColors, chartColors, baseColors, animationColors } from '@/lib/config/colors';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -43,17 +44,17 @@ const getTimeRangeConfig = (
 });
 
 const CHAIN_COLORS: Record<string, string> = {
-  'Cosmos Hub': '#2E3359',
-  Osmosis: '#9945FF',
-  Ethereum: '#627EEA',
-  Polygon: '#8247E5',
-  Avalanche: '#E84142',
-  Fantom: '#1969FF',
-  Cronos: '#002D74',
-  Juno: '#5B6EE1',
+  'Cosmos Hub': chainColors.cosmosHub,
+  Osmosis: chainColors.osmosis,
+  Ethereum: chainColors.ethereum,
+  Polygon: chainColors.polygon,
+  Avalanche: chainColors.avalanche,
+  Fantom: chainColors.fantom,
+  Cronos: chainColors.cronos,
+  Juno: chainColors.juno,
 };
 
-const DEFAULT_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+const DEFAULT_COLORS = chartColors.sequence;
 
 const MAX_SELECTION = 5;
 
@@ -560,29 +561,29 @@ export function ChainComparison({
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="#e5e7eb"
+                    stroke={chartColors.recharts.grid}
                     strokeOpacity={0.5}
                     vertical={false}
                   />
                   <XAxis
                     dataKey="name"
-                    stroke="#9ca3af"
-                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    stroke={chartColors.recharts.axis}
+                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                     tickLine={false}
-                    axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                    axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                     angle={-25}
                     textAnchor="end"
                     height={50}
                   />
                   <YAxis
-                    stroke="#9ca3af"
-                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    stroke={chartColors.recharts.axis}
+                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                     tickLine={false}
-                    axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                    axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                     tickFormatter={(value) => formatNumber(value)}
                     width={50}
                   />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
                   <Bar dataKey="value">
                     {requestChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -603,29 +604,29 @@ export function ChainComparison({
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#e5e7eb"
+                      stroke={chartColors.recharts.grid}
                       strokeOpacity={0.5}
                       vertical={false}
                     />
                     <XAxis
                       dataKey="name"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       angle={-25}
                       textAnchor="end"
                       height={50}
                     />
                     <YAxis
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       tickFormatter={(value) => value.toFixed(4)}
                       width={60}
                     />
-                    <Tooltip content={<GasTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                    <Tooltip content={<GasTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
                     <Bar dataKey="gasCost">
                       {gasChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -645,31 +646,31 @@ export function ChainComparison({
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#e5e7eb"
+                      stroke={chartColors.recharts.grid}
                       strokeOpacity={0.5}
                       vertical={false}
                     />
                     <XAxis
                       dataKey="name"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       angle={-25}
                       textAnchor="end"
                       height={50}
                     />
                     <YAxis
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       tickFormatter={(value) => `${value}ms`}
                       width={55}
                     />
                     <Tooltip
                       content={<ResponseTimeTooltip />}
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                      cursor={{ fill: animationColors.fade.cursor }}
                     />
                     <Bar dataKey="responseTime">
                       {responseTimeChartData.map((entry, index) => (
@@ -692,25 +693,25 @@ export function ChainComparison({
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#e5e7eb"
+                      stroke={chartColors.recharts.grid}
                       strokeOpacity={0.5}
                       vertical={false}
                     />
                     <XAxis
                       dataKey="name"
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       angle={-25}
                       textAnchor="end"
                       height={50}
                     />
                     <YAxis
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      stroke={chartColors.recharts.axis}
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                       tickLine={false}
-                      axisLine={{ stroke: '#e5e7eb', strokeOpacity: 0.5 }}
+                      axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
                       allowDecimals={false}
                       width={35}
                     />
@@ -719,7 +720,7 @@ export function ChainComparison({
                         `${value} ${t('chainComparison.tokens')}`,
                         t('chainComparison.supportedTokens'),
                       ]}
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                      cursor={{ fill: animationColors.fade.cursor }}
                     />
                     <Bar dataKey="tokenCount">
                       {tokenCountChartData.map((entry, index) => (
@@ -735,8 +736,8 @@ export function ChainComparison({
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
-                    <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                    <PolarGrid stroke={chartColors.recharts.grid} />
+                    <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: chartColors.recharts.tick }} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
                     {extendedSelectedChains.map((chain, index) => (
                       <Radar

@@ -1,7 +1,7 @@
 'use client';
 
 import { ReferenceDot } from 'recharts';
-import { semanticColors } from '@/lib/config/colors';
+import { semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
 
 export interface AnomalyPoint {
   timestamp: number;
@@ -40,18 +40,31 @@ function AnomalyTooltip({ active, payload }: CustomTooltipProps) {
     : ['市场恐慌抛售', '重大利空消息', '流动性枯竭', '预言机延迟'];
 
   return (
-    <div className="bg-white border-2 border-red-400  p-4  min-w-[220px]">
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-red-200">
-        <div className="w-3 h-3 bg-red-500  animate-pulse" />
-        <span className="text-sm font-bold text-red-600">
+    <div
+      className="rounded p-4 min-w-[220px]"
+      style={{
+        backgroundColor: baseColors.gray[50],
+        border: `2px solid ${semanticColors.danger.DEFAULT}`,
+        boxShadow: shadowColors.card,
+      }}
+    >
+      <div
+        className="flex items-center gap-2 mb-3 pb-2"
+        style={{ borderBottom: `1px solid ${semanticColors.danger.light}` }}
+      >
+        <div
+          className="w-3 h-3 rounded animate-pulse"
+          style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+        />
+        <span className="text-sm font-bold" style={{ color: semanticColors.danger.dark }}>
           {isSpike ? '价格尖峰异常' : '价格骤降异常'}
         </span>
       </div>
 
       <div className="space-y-2 text-xs">
         <div className="flex justify-between">
-          <span className="text-gray-500">时间:</span>
-          <span className="text-gray-900 font-medium">
+          <span style={{ color: baseColors.gray[500] }}>时间:</span>
+          <span className="font-medium" style={{ color: baseColors.gray[900] }}>
             {date.toLocaleDateString('zh-CN', {
               month: 'short',
               day: 'numeric',
@@ -62,30 +75,42 @@ function AnomalyTooltip({ active, payload }: CustomTooltipProps) {
         </div>
 
         <div className="flex justify-between">
-          <span className="text-gray-500">价格:</span>
-          <span className="text-gray-900 font-mono font-medium">${data.price.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>价格:</span>
+          <span className="font-mono font-medium" style={{ color: baseColors.gray[900] }}>
+            ${data.price.toFixed(4)}
+          </span>
         </div>
 
         <div className="flex justify-between">
-          <span className="text-gray-500">偏差幅度:</span>
-          <span className={`font-mono font-bold ${isSpike ? 'text-red-600' : 'text-green-600'}`}>
+          <span style={{ color: baseColors.gray[500] }}>偏差幅度:</span>
+          <span
+            className="font-mono font-bold"
+            style={{ color: isSpike ? semanticColors.danger.dark : semanticColors.success.dark }}
+          >
             {isSpike ? '+' : '-'}
             {data.deviationPercent.toFixed(2)}%
           </span>
         </div>
 
         <div className="flex justify-between">
-          <span className="text-gray-500">绝对偏差:</span>
-          <span className="text-gray-700 font-mono">${data.absoluteDeviation.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>绝对偏差:</span>
+          <span className="font-mono" style={{ color: baseColors.gray[700] }}>
+            ${data.absoluteDeviation.toFixed(4)}
+          </span>
         </div>
       </div>
 
-      <div className="mt-3 pt-2 border-t border-gray-100">
-        <p className="text-xs text-gray-500 mb-1">可能原因:</p>
-        <ul className="text-xs text-gray-600 space-y-0.5">
+      <div className="mt-3 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+        <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
+          可能原因:
+        </p>
+        <ul className="text-xs space-y-0.5" style={{ color: baseColors.gray[600] }}>
           {possibleReasons.slice(0, 2).map((reason, index) => (
             <li key={index} className="flex items-center gap-1">
-              <span className="w-1 h-1 bg-gray-400 " />
+              <span
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: baseColors.gray[400] }}
+              />
               {reason}
             </li>
           ))}
@@ -107,7 +132,7 @@ export function AnomalyMarker({ anomalies, yAxisId = 'price', onDataClick }: Ano
           y={anomaly.price}
           r={8}
           fill={semanticColors.danger.DEFAULT}
-          stroke="#fff"
+          stroke={baseColors.gray[50]}
           strokeWidth={2}
           yAxisId={yAxisId}
           shape={(props: { cx?: number; cy?: number }) => {
@@ -130,10 +155,10 @@ export function AnomalyMarker({ anomalies, yAxisId = 'price', onDataClick }: Ano
                   cy={cy}
                   r={8}
                   fill={semanticColors.danger.DEFAULT}
-                  stroke="#fff"
+                  stroke={baseColors.gray[50]}
                   strokeWidth={2}
                 />
-                <circle cx={cx} cy={cy} r={4} fill="#fff" />
+                <circle cx={cx} cy={cy} r={4} fill={baseColors.gray[50]} />
               </g>
             );
           }}

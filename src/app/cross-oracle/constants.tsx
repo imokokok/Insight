@@ -2,6 +2,32 @@
 
 import React from 'react';
 import { OracleProvider } from '@/types/oracle';
+
+export interface SymbolConfig {
+  symbol: string;
+  name: string;
+  category: 'layer1' | 'defi';
+  iconColor: string;
+}
+
+export const tradingPairs: SymbolConfig[] = [
+  // Layer 1
+  { symbol: 'BTC/USD', name: 'Bitcoin', category: 'layer1', iconColor: '#F7931A' },
+  { symbol: 'ETH/USD', name: 'Ethereum', category: 'layer1', iconColor: chainColors.ethereum },
+  { symbol: 'SOL/USD', name: 'Solana', category: 'layer1', iconColor: chainColors.solana },
+  { symbol: 'AVAX/USD', name: 'Avalanche', category: 'layer1', iconColor: chainColors.avalanche },
+  // DeFi
+  { symbol: 'LINK/USD', name: 'Chainlink', category: 'defi', iconColor: '#2A5ADA' },
+  { symbol: 'UNI/USD', name: 'Uniswap', category: 'defi', iconColor: '#FF007A' },
+  { symbol: 'AAVE/USD', name: 'Aave', category: 'defi', iconColor: '#B6509E' },
+  { symbol: 'MKR/USD', name: 'Maker', category: 'defi', iconColor: '#1AAB9B' },
+  { symbol: 'SNX/USD', name: 'Synthetix', category: 'defi', iconColor: '#0B0816' },
+  { symbol: 'COMP/USD', name: 'Compound', category: 'defi', iconColor: '#00D395' },
+  { symbol: 'YFI/USD', name: 'Yearn', category: 'defi', iconColor: '#006AE3' },
+  { symbol: 'CRV/USD', name: 'Curve', category: 'defi', iconColor: '#FF5A00' },
+];
+
+export const symbols = tradingPairs.map((pair) => pair.symbol);
 import {
   ChainlinkClient,
   BandProtocolClient,
@@ -19,7 +45,7 @@ import {
   getDeviationColor,
   calculateStandardDeviation as calcStdDev,
 } from '@/lib/utils/chartSharedUtils';
-import { semanticColors } from '@/lib/config/colors';
+import { semanticColors, baseColors, chainColors } from '@/lib/config/colors';
 
 export { type RefreshInterval };
 
@@ -38,29 +64,27 @@ export const oracleClients = {
 
 export const oracleNames = providerNames;
 
-export const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
-
 export type SortColumn = 'price' | 'timestamp' | null;
 export type SortDirection = 'asc' | 'desc';
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
 export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
 
 export const getDeviationColorClass = (deviationPercent: number | null): string => {
-  if (deviationPercent === null) return 'text-gray-400';
+  if (deviationPercent === null) return `text-[${baseColors.gray[400]}]`;
   const color = getDeviationColor(deviationPercent);
-  if (color === semanticColors.success.DEFAULT) return 'text-green-600 bg-green-50';
-  if (color === semanticColors.warning.DEFAULT) return 'text-yellow-600 bg-yellow-50';
-  if (color === semanticColors.danger.DEFAULT) return 'text-red-600 bg-red-50';
-  return 'text-orange-600 bg-orange-50';
+  if (color === semanticColors.success.DEFAULT) return `text-[${semanticColors.success.dark}] bg-[${semanticColors.success.light}]`;
+  if (color === semanticColors.warning.DEFAULT) return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
+  if (color === semanticColors.danger.DEFAULT) return `text-[${semanticColors.danger.dark}] bg-[${semanticColors.danger.light}]`;
+  return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
 };
 
 export const getDeviationBgClass = (deviationPercent: number | null): string => {
   if (deviationPercent === null) return '';
   const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return 'bg-green-500';
-  if (absDeviation < 0.5) return 'bg-yellow-500';
-  if (absDeviation < 1.0) return 'bg-orange-500';
-  return 'bg-red-500';
+  if (absDeviation < 0.1) return `bg-[${semanticColors.success.DEFAULT}]`;
+  if (absDeviation < 0.5) return `bg-[${semanticColors.warning.DEFAULT}]`;
+  if (absDeviation < 1.0) return `bg-[${semanticColors.warning.dark}]`;
+  return `bg-[${semanticColors.danger.DEFAULT}]`;
 };
 
 export const getFreshnessInfo = (
@@ -74,27 +98,27 @@ export const getFreshnessInfo = (
 
   if (seconds < 30) {
     text = seconds <= 1 ? '刚刚' : `${seconds}秒前`;
-    colorClass = 'text-green-600';
+    colorClass = `text-[${semanticColors.success.dark}]`;
   } else if (seconds < 60) {
     text = `${seconds}秒前`;
-    colorClass = 'text-yellow-600';
+    colorClass = `text-[${semanticColors.warning.dark}]`;
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
     text = `${minutes}分钟前`;
-    colorClass = 'text-red-600';
+    colorClass = `text-[${semanticColors.danger.dark}]`;
   } else {
     const hours = Math.floor(seconds / 3600);
     text = `${hours}小时前`;
-    colorClass = 'text-red-600';
+    colorClass = `text-[${semanticColors.danger.dark}]`;
   }
 
   return { text, colorClass, seconds };
 };
 
 export const getFreshnessDotColor = (seconds: number): string => {
-  if (seconds < 30) return 'bg-green-500';
-  if (seconds < 60) return 'bg-yellow-500';
-  return 'bg-red-500';
+  if (seconds < 30) return `bg-[${semanticColors.success.DEFAULT}]`;
+  if (seconds < 60) return `bg-[${semanticColors.warning.DEFAULT}]`;
+  return `bg-[${semanticColors.danger.DEFAULT}]`;
 };
 
 export const calculateWeightedAverage = (
@@ -154,29 +178,29 @@ export const getHealthColor = (
   if (type === 'deviation') {
     if (value < 0.1)
       return {
-        bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        border: 'border-emerald-200',
+        bg: `bg-[${semanticColors.success.light}]`,
+        text: `text-[${semanticColors.success.text}]`,
+        border: `border-[${baseColors.primary[200]}]`,
         indicator: 'success',
       };
     if (value < 0.3)
       return {
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
+        bg: `bg-[${baseColors.primary[50]}]`,
+        text: `text-[${baseColors.primary[700]}]`,
+        border: `border-[${baseColors.primary[200]}]`,
         indicator: 'success',
       };
     if (value < 0.5)
       return {
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        border: 'border-amber-200',
+        bg: `bg-[${semanticColors.warning.light}]`,
+        text: `text-[${semanticColors.warning.text}]`,
+        border: `border-[${semanticColors.warning.light}]`,
         indicator: 'warning',
       };
     return {
-      bg: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      bg: `bg-[${semanticColors.danger.light}]`,
+      text: `text-[${semanticColors.danger.text}]`,
+      border: `border-[${semanticColors.danger.light}]`,
       indicator: 'danger',
     };
   }
@@ -184,36 +208,36 @@ export const getHealthColor = (
     const rangePercent = (value / avgValue) * 100;
     if (rangePercent < 0.5)
       return {
-        bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        border: 'border-emerald-200',
+        bg: `bg-[${semanticColors.success.light}]`,
+        text: `text-[${semanticColors.success.text}]`,
+        border: `border-[${baseColors.primary[200]}]`,
         indicator: 'success',
       };
     if (rangePercent < 1)
       return {
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
+        bg: `bg-[${baseColors.primary[50]}]`,
+        text: `text-[${baseColors.primary[700]}]`,
+        border: `border-[${baseColors.primary[200]}]`,
         indicator: 'success',
       };
     if (rangePercent < 2)
       return {
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        border: 'border-amber-200',
+        bg: `bg-[${semanticColors.warning.light}]`,
+        text: `text-[${semanticColors.warning.text}]`,
+        border: `border-[${semanticColors.warning.light}]`,
         indicator: 'warning',
       };
     return {
-      bg: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
+      bg: `bg-[${semanticColors.danger.light}]`,
+      text: `text-[${semanticColors.danger.text}]`,
+      border: `border-[${semanticColors.danger.light}]`,
       indicator: 'danger',
     };
   }
   return {
-    bg: 'bg-gray-50',
-    text: 'text-gray-700',
-    border: 'border-gray-200',
+    bg: `bg-[${baseColors.gray[50]}]`,
+    text: `text-[${baseColors.gray[700]}]`,
+    border: `border-[${baseColors.gray[200]}]`,
     indicator: 'neutral',
   };
 };
@@ -223,7 +247,11 @@ export const getTrendIcon = (changePercent: number | null) => {
   const isPositive = changePercent >= 0;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
+      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
+      style={{
+        backgroundColor: isPositive ? semanticColors.success.light : semanticColors.danger.light,
+        color: isPositive ? semanticColors.success.text : semanticColors.danger.text,
+      }}
     >
       {isPositive ? (
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

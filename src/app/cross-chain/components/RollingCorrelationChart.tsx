@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { chainNames, chainColors, calculateRollingCorrelation } from '../utils';
 import { Blockchain } from '@/types/oracle';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 interface RollingCorrelationChartProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -102,7 +102,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     // Blend the two chain colors
     const color1 = chainColors[chainX];
     const color2 = chainColors[chainY];
-    return color1 || color2 || '#666';
+    return color1 || color2 || baseColors.gray[500];
   };
 
   // Determine stroke style based on correlation value
@@ -140,8 +140,8 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     if (validPayload.length === 0) return null;
 
     return (
-      <div className="bg-white border border-gray-200 p-3 min-w-[200px]">
-        <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
+      <div className="bg-white border p-3 min-w-[200px]" style={{ borderColor: baseColors.gray[200] }}>
+        <p className="text-xs mb-2 font-medium border-b pb-1" style={{ color: baseColors.gray[600], borderColor: baseColors.gray[100] }}>
           {t('crossChain.dataPoint')} #{label}
         </p>
         {validPayload.map((entry, index: number) => {
@@ -151,7 +151,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
           const { width } = getStrokeStyle(entry.value);
           const isHighlighted = width > 2;
           return (
-            <div key={index} className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0">
+            <div key={index} className="mb-1.5 pb-1.5 border-b last:border-0" style={{ borderColor: baseColors.gray[100] }}>
               <div className="flex items-center gap-2">
                 <span
                   className="w-3 h-0.5"
@@ -160,18 +160,17 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                     height: isHighlighted ? '3px' : '1.5px',
                   }}
                 />
-                <span className="text-xs text-gray-700">
+                <span className="text-xs" style={{ color: baseColors.gray[700] }}>
                   {chainNames[pair.chainX]} - {chainNames[pair.chainY]}
                 </span>
               </div>
               <div
-                className={`text-xs pl-5 font-mono ${
-                  isHighlighted ? 'font-semibold text-gray-900' : 'text-gray-600'
-                }`}
+                className="text-xs pl-5 font-mono"
+                style={{ color: isHighlighted ? baseColors.gray[900] : baseColors.gray[600], fontWeight: isHighlighted ? 600 : 400 }}
               >
                 r = {Number(entry.value).toFixed(4)}
                 {isHighlighted && (
-                  <span className="ml-1 text-[10px] text-orange-500">
+                  <span className="ml-1 text-[10px]" style={{ color: semanticColors.warning.main }}>
                     {Math.abs(entry.value) > 0.8
                       ? `(${t('crossChain.strongCorrelation')})`
                       : `(${t('crossChain.weakCorrelation')})`}
@@ -190,28 +189,33 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
   }
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
+    <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
+          <h3 className="text-sm font-medium uppercase tracking-wide" style={{ color: baseColors.gray[900] }}>
             {t('crossChain.rollingCorrelationChart')}
           </h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
             {t('crossChain.windowSize')}: {windowSize}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">{t('crossChain.windowSize')}:</span>
-          <div className="flex items-center gap-1 border border-gray-200">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.windowSize')}:</span>
+          <div className="flex items-center gap-1 border" style={{ borderColor: baseColors.gray[200] }}>
             {WINDOW_SIZES.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setWindowSize(option.value)}
                 className={`px-3 py-1 text-xs transition-colors ${
                   windowSize === option.value
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-600 hover:border-gray-300 border border-transparent'
+                    ? 'text-white'
+                    : 'border border-transparent'
                 }`}
+                style={{
+                  backgroundColor: windowSize === option.value ? baseColors.gray[900] : 'transparent',
+                  color: windowSize === option.value ? baseColors.gray[50] : baseColors.gray[600],
+                  borderColor: windowSize === option.value ? baseColors.gray[900] : 'transparent'
+                }}
               >
                 {option.label}
               </button>
@@ -220,7 +224,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 border border-gray-200">
+      <div className="p-4 border" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -230,25 +234,29 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
               <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="index"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `#${value}`}
+                stroke={chartColors.recharts.axis}
                 label={{
                   value: t('crossChain.timeSeries'),
                   position: 'insideBottom',
                   offset: -5,
                   fontSize: 12,
+                  fill: chartColors.recharts.tick
                 }}
               />
               <YAxis
                 domain={[-1, 1]}
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => value.toFixed(1)}
                 width={40}
+                stroke={chartColors.recharts.axis}
                 label={{
                   value: t('crossChain.correlationCoefficient'),
                   angle: -90,
                   position: 'insideLeft',
                   fontSize: 12,
+                  fill: chartColors.recharts.tick
                 }}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -306,18 +314,18 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         {/* Legend for thresholds */}
         <div className="mt-4 flex items-center justify-center gap-6 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-green-500" style={{ height: '3px' }} />
-            <span className="text-gray-600">
+            <div className="w-6 h-0.5" style={{ backgroundColor: semanticColors.success.main, height: '3px' }} />
+            <span style={{ color: baseColors.gray[600] }}>
               |r| &gt; 0.8 ({t('crossChain.strongCorrelation')})
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-gray-400" style={{ height: '1.5px' }} />
-            <span className="text-gray-600">0.2 ≤ |r| ≤ 0.8</span>
+            <div className="w-6 h-0.5" style={{ backgroundColor: baseColors.gray[400], height: '1.5px' }} />
+            <span style={{ color: baseColors.gray[600] }}>0.2 ≤ |r| ≤ 0.8</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-yellow-500" style={{ height: '3px' }} />
-            <span className="text-gray-600">|r| &lt; 0.2 ({t('crossChain.weakCorrelation')})</span>
+            <div className="w-6 h-0.5" style={{ backgroundColor: semanticColors.warning.main, height: '3px' }} />
+            <span style={{ color: baseColors.gray[600] }}>|r| &lt; 0.2 ({t('crossChain.weakCorrelation')})</span>
           </div>
         </div>
       </div>

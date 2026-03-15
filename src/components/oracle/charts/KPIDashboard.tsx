@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface KPIDashboardProps {
   price: number;
@@ -72,10 +73,10 @@ const getHealthConfig = (t: (key: string) => string) => ({
 });
 
 function getQualityColor(score: number): string {
-  if (score >= 90) return '#10b981';
-  if (score >= 70) return '#3b82f6';
-  if (score >= 50) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 90) return semanticColors.success.DEFAULT;
+  if (score >= 70) return semanticColors.info.DEFAULT;
+  if (score >= 50) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 }
 
 function getQualityLevel(score: number, t: (key: string) => string): string {
@@ -408,7 +409,7 @@ function DataQualityGauge({
           <div className="flex items-center gap-3">
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-16 h-16 transform -rotate-90">
-                <circle cx="32" cy="32" r={radius} stroke="#e5e7eb" strokeWidth="5" fill="none" />
+                <circle cx="32" cy="32" r={radius} stroke={baseColors.gray[200]} strokeWidth="5" fill="none" />
                 <circle
                   cx="32"
                   cy="32"

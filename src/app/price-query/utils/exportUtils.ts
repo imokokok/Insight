@@ -7,6 +7,7 @@ import { QueryResult, providerNames, chainNames } from '../constants';
 import { ExportConfigData } from '../components/ExportConfig';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
+import { exportColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('ExportUtils');
 
@@ -173,8 +174,8 @@ export async function exportToPDF(
   const enabledFields = config.fields;
   const filteredResults = filterByTimeRange(queryResults, config.timeRange);
 
-  const primaryColor = '#111827';
-  const secondaryColor = '#6b7280';
+  const primaryColor = exportColors.text.primary;
+  const secondaryColor = exportColors.text.secondary;
 
   doc.setFontSize(20);
   doc.setTextColor(primaryColor);
@@ -243,7 +244,7 @@ export async function exportToPDF(
       head: [['指标', '数值']],
       body: statsData,
       theme: 'striped',
-      headStyles: { fillColor: [17, 24, 39], textColor: [255, 255, 255] },
+      headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] },
       styles: { fontSize: 9, cellPadding: 3 },
       margin: { left: 14, right: 14 },
     });
@@ -340,7 +341,7 @@ export async function exportToPDF(
     head: [tableHeaders],
     body: tableBody,
     theme: 'striped',
-    headStyles: { fillColor: [17, 24, 39], textColor: [255, 255, 255] },
+    headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] },
     styles: { fontSize: 8, cellPadding: 2 },
     margin: { left: 14, right: 14 },
     pageBreak: 'auto',

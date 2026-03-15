@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { TooltipProps } from '@/types/ui/recharts';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface TrendDataPoint {
   month: string;
@@ -39,18 +40,18 @@ const mockTrendData: TrendDataPoint[] = [
 const CustomTooltip = ({ active, payload, label }: TooltipProps<TrendDataPoint>) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-200   p-3">
-        <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
+      <div className="p-3" style={{ backgroundColor: 'white', border: `1px solid ${baseColors.gray[200]}` }}>
+        <p className="text-sm font-medium mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3  bg-purple-500" />
-            <span className="text-xs text-gray-600">新增数据源:</span>
-            <span className="text-xs font-semibold text-gray-900">{payload[0].value}</span>
+            <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.purple }} />
+            <span className="text-xs" style={{ color: baseColors.gray[600] }}>新增数据源:</span>
+            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>{payload[0].value}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3  bg-blue-500" />
-            <span className="text-xs text-gray-600">累计数据源:</span>
-            <span className="text-xs font-semibold text-gray-900">{payload[1].value}</span>
+            <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.primary }} />
+            <span className="text-xs" style={{ color: baseColors.gray[600] }}>累计数据源:</span>
+            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>{payload[1].value}</span>
           </div>
         </div>
       </div>
@@ -82,23 +83,23 @@ export function DataSourceTrend() {
     <DashboardCard title="数据源增长趋势">
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
-            <p className="text-xs text-gray-600 mb-1">本年新增</p>
-            <p className="text-xl font-bold text-purple-700">{stats.totalNew}</p>
-            <p className="text-xs text-purple-600 mt-0.5">数据源</p>
+          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>本年新增</p>
+            <p className="text-xl font-bold" style={{ color: chartColors.recharts.purpleDark }}>{stats.totalNew}</p>
+            <p className="text-xs mt-0.5" style={{ color: chartColors.recharts.purple }}>数据源</p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
-            <p className="text-xs text-gray-600 mb-1">月均新增</p>
-            <p className="text-xl font-bold text-blue-700">{stats.avgMonthly}</p>
-            <p className="text-xs text-blue-600 mt-0.5">数据源</p>
+          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>月均新增</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>{stats.avgMonthly}</p>
+            <p className="text-xs mt-0.5" style={{ color: baseColors.primary[600] }}>数据源</p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
-            <p className="text-xs text-gray-600 mb-1">环比增长</p>
-            <p className="text-xl font-bold text-green-700">
+          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>环比增长</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.success.dark }}>
               {stats.growth >= 0 ? '+' : ''}
               {stats.growth}%
             </p>
-            <p className="text-xs text-green-600 mt-0.5">较上月</p>
+            <p className="text-xs mt-0.5" style={{ color: semanticColors.success.DEFAULT }}>较上月</p>
           </div>
         </div>
 
@@ -107,24 +108,24 @@ export function DataSourceTrend() {
             <AreaChart data={mockTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                  <stop offset="5%" stopColor={chartColors.recharts.purple} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColors.recharts.purple} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} vertical={false} />
               <XAxis
                 dataKey="monthShort"
-                tick={{ fontSize: 11, fill: '#6B7280' }}
-                axisLine={{ stroke: '#E5E7EB' }}
+                tick={{ fontSize: 11, fill: baseColors.gray[500] }}
+                axisLine={{ stroke: baseColors.gray[200] }}
                 tickLine={false}
               />
               <YAxis
                 yAxisId="left"
-                tick={{ fontSize: 11, fill: '#6B7280' }}
+                tick={{ fontSize: 11, fill: baseColors.gray[500] }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(value) => `${value}`}
@@ -132,7 +133,7 @@ export function DataSourceTrend() {
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tick={{ fontSize: 11, fill: '#6B7280' }}
+                tick={{ fontSize: 11, fill: baseColors.gray[500] }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(value) => `${value}`}
@@ -143,7 +144,7 @@ export function DataSourceTrend() {
                 height={36}
                 iconType="circle"
                 formatter={(value: string) => (
-                  <span className="text-xs text-gray-600">{value}</span>
+                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>{value}</span>
                 )}
               />
               <Area
@@ -151,7 +152,7 @@ export function DataSourceTrend() {
                 type="monotone"
                 dataKey="newSources"
                 name="新增数据源"
-                stroke="#8B5CF6"
+                stroke={chartColors.recharts.purple}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorNew)"
@@ -161,7 +162,7 @@ export function DataSourceTrend() {
                 type="monotone"
                 dataKey="cumulative"
                 name="累计数据源"
-                stroke="#3B82F6"
+                stroke={chartColors.recharts.primary}
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorCumulative)"
@@ -170,20 +171,20 @@ export function DataSourceTrend() {
           </ResponsiveContainer>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3  bg-purple-500" />
-              <span className="text-xs text-gray-600">新增数据源</span>
+              <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.purple }} />
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>新增数据源</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3  bg-blue-500" />
-              <span className="text-xs text-gray-600">累计数据源</span>
+              <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.primary }} />
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>累计数据源</span>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500">当前总计</p>
-            <p className="text-sm font-bold text-gray-900">{stats.currentTotal} 数据源</p>
+            <p className="text-xs" style={{ color: baseColors.gray[500] }}>当前总计</p>
+            <p className="text-sm font-bold" style={{ color: baseColors.gray[900] }}>{stats.currentTotal} 数据源</p>
           </div>
         </div>
       </div>

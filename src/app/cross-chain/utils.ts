@@ -6,6 +6,7 @@ import {
   calculateMovingAverage,
   formatPrice as formatPriceUtil,
 } from '@/lib/utils/chartSharedUtils';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 export { chainNames, chainColors };
 export type { Blockchain };
@@ -16,12 +17,12 @@ export const getDiffColorGradient = (diffPercent: number): string => {
     return 'bg-gray-50';
   }
   if (diffPercent > 0.5) {
-    if (diffPercent > 2) return 'bg-red-200';
-    if (diffPercent > 1) return 'bg-red-100';
+    if (diffPercent > 2) return 'bg-red-100';
+    if (diffPercent > 1) return 'bg-red-50';
     return 'bg-red-50';
   } else {
-    if (diffPercent < -2) return 'bg-green-200';
-    if (diffPercent < -1) return 'bg-green-100';
+    if (diffPercent < -2) return 'bg-green-100';
+    if (diffPercent < -1) return 'bg-green-50';
     return 'bg-green-50';
   }
 };
@@ -31,13 +32,13 @@ export const getDiffTextColor = (diffPercent: number): string => {
     return 'text-gray-600';
   }
   if (diffPercent > 0.5) {
-    if (diffPercent > 2) return 'text-red-700';
-    if (diffPercent > 1) return 'text-red-600';
-    return 'text-red-500';
+    if (diffPercent > 2) return 'text-red-800';
+    if (diffPercent > 1) return 'text-red-700';
+    return 'text-red-600';
   } else {
-    if (diffPercent < -2) return 'text-green-700';
-    if (diffPercent < -1) return 'text-green-600';
-    return 'text-green-500';
+    if (diffPercent < -2) return 'text-green-800';
+    if (diffPercent < -1) return 'text-green-700';
+    return 'text-green-600';
   }
 };
 
@@ -51,7 +52,7 @@ export const getDiffColorGradientWithStyle = (
     const b = Math.floor(226 + (68 - 226) * intensity);
     return {
       bg: `rgba(${r}, ${g}, ${b}, 0.15)`,
-      text: intensity > 0.5 ? '#dc2626' : '#ef4444',
+      text: intensity > 0.5 ? semanticColors.danger.dark : semanticColors.danger.DEFAULT,
     };
   } else if (diffPercent < -0.5) {
     const intensity = Math.min((-diffPercent - 0.5) / 2, 1);
@@ -60,10 +61,10 @@ export const getDiffColorGradientWithStyle = (
     const b = Math.floor(226 + (68 - 226) * intensity);
     return {
       bg: `rgba(${r}, ${g}, ${b}, 0.15)`,
-      text: intensity > 0.5 ? '#059669' : '#10B981',
+      text: intensity > 0.5 ? semanticColors.success.dark : semanticColors.success.DEFAULT,
     };
   }
-  return { bg: 'transparent', text: '#6b7280' };
+  return { bg: 'transparent', text: baseColors.gray[500] };
 };
 
 export const getHeatmapColor = (percent: number, maxPercent: number): string => {
@@ -296,30 +297,30 @@ const normalCDF = (x: number): number => {
 };
 
 export const getIntegrityColor = (value: number): string => {
-  if (value >= 95) return '#10B981';
-  if (value >= 90) return '#F59E0B';
-  return '#EF4444';
+  if (value >= 95) return semanticColors.success.DEFAULT;
+  if (value >= 90) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 };
 
 export const getJumpColor = (count: number): string => {
-  if (count < 3) return '#10B981';
-  if (count <= 5) return '#F59E0B';
-  return '#EF4444';
+  if (count < 3) return semanticColors.success.DEFAULT;
+  if (count <= 5) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 };
 
 export const getVolatilityColor = (value: number): string => {
-  if (value < 0.1) return '#10B981';
-  if (value <= 0.3) return '#F59E0B';
-  return '#EF4444';
+  if (value < 0.1) return semanticColors.success.DEFAULT;
+  if (value <= 0.3) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 };
 
 export const getDataFreshness = (
   delay: { avgDelay: number; maxDelay: number } | undefined
 ): { status: string; color: string } => {
   if (!delay) return { status: 'unknown', color: 'text-gray-400' };
-  if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-green-600' };
-  if (delay.avgDelay < 15) return { status: 'good', color: 'text-yellow-600' };
-  return { status: 'slow', color: 'text-red-600' };
+  if (delay.avgDelay < 5) return { status: 'excellent', color: 'text-green-700' };
+  if (delay.avgDelay < 15) return { status: 'good', color: 'text-yellow-700' };
+  return { status: 'slow', color: 'text-red-700' };
 };
 
 export const formatPrice = (price: number, decimals = 4): string => {

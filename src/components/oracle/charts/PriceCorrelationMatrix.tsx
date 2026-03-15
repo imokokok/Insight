@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
+import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -65,13 +66,12 @@ const calculatePearsonCorrelation = (x: number[], y: number[]): number => {
 };
 
 const getCorrelationColor = (correlation: number): string => {
-  const normalizedCorrelation = (correlation + 1) / 2;
-
-  const r = Math.round(normalizedCorrelation * 220);
-  const g = Math.round((1 - Math.abs(normalizedCorrelation - 0.5) * 2) * 100);
-  const b = Math.round((1 - normalizedCorrelation) * 220);
-
-  return `rgb(${r}, ${g}, ${b})`;
+  // 使用 colors.ts 中的颜色配置
+  if (correlation >= 0.7) return semanticColors.success.DEFAULT;
+  if (correlation >= 0.3) return baseColors.primary[400];
+  if (correlation >= -0.3) return baseColors.gray[300];
+  if (correlation >= -0.7) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 };
 
 const getCorrelationTextColor = (correlation: number): string => {
@@ -79,7 +79,7 @@ const getCorrelationTextColor = (correlation: number): string => {
   if (absCorrelation > 0.7) {
     return 'text-white';
   }
-  return 'text-gray-800';
+  return `text-[${baseColors.gray[800]}]`;
 };
 
 const getCorrelationLevel = (correlation: number, t: (key: string) => string): string => {
@@ -93,10 +93,10 @@ const getCorrelationLevel = (correlation: number, t: (key: string) => string): s
 
 const getCorrelationLevelColor = (correlation: number): string => {
   const absCorrelation = Math.abs(correlation);
-  if (absCorrelation >= 0.7) return 'text-green-600';
-  if (absCorrelation >= 0.5) return 'text-blue-600';
-  if (absCorrelation >= 0.3) return 'text-yellow-600';
-  return 'text-gray-600';
+  if (absCorrelation >= 0.7) return `text-[${semanticColors.success.dark}]`;
+  if (absCorrelation >= 0.5) return `text-[${baseColors.primary[600]}]`;
+  if (absCorrelation >= 0.3) return `text-[${semanticColors.warning.dark}]`;
+  return `text-[${baseColors.gray[600]}]`;
 };
 
 export function PriceCorrelationMatrix({
@@ -181,14 +181,14 @@ export function PriceCorrelationMatrix({
 
   const colorLegend = [
     {
-      color: 'rgb(110, 50, 220)',
+      color: semanticColors.danger.DEFAULT,
       label: '-1.0',
       desc: t('priceCorrelation.legend.perfectNegative'),
     },
-    { color: 'rgb(160, 100, 180)', label: '-0.5', desc: t('priceCorrelation.legend.negative') },
-    { color: 'rgb(200, 150, 150)', label: '0.0', desc: t('priceCorrelation.legend.none') },
-    { color: 'rgb(180, 100, 100)', label: '0.5', desc: t('priceCorrelation.legend.positive') },
-    { color: 'rgb(220, 50, 50)', label: '1.0', desc: t('priceCorrelation.legend.perfectPositive') },
+    { color: semanticColors.warning.DEFAULT, label: '-0.5', desc: t('priceCorrelation.legend.negative') },
+    { color: baseColors.gray[300], label: '0.0', desc: t('priceCorrelation.legend.none') },
+    { color: baseColors.primary[400], label: '0.5', desc: t('priceCorrelation.legend.positive') },
+    { color: semanticColors.success.DEFAULT, label: '1.0', desc: t('priceCorrelation.legend.perfectPositive') },
   ];
 
   return (
@@ -208,23 +208,23 @@ export function PriceCorrelationMatrix({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">{t('priceCorrelation.avgCorrelation')}</p>
-            <p className="text-xl font-bold text-blue-700">{stats.avgCorrelation.toFixed(3)}</p>
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>{t('priceCorrelation.avgCorrelation')}</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>{stats.avgCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">{t('priceCorrelation.maxCorrelation')}</p>
-            <p className="text-xl font-bold text-green-700">{stats.maxCorrelation.toFixed(3)}</p>
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.success.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.success.dark }}>{t('priceCorrelation.maxCorrelation')}</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.success.text }}>{stats.maxCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-red-50  p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">{t('priceCorrelation.minCorrelation')}</p>
-            <p className="text-xl font-bold text-red-700">{stats.minCorrelation.toFixed(3)}</p>
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.danger.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.danger.dark }}>{t('priceCorrelation.minCorrelation')}</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.danger.text }}>{stats.minCorrelation.toFixed(3)}</p>
           </div>
-          <div className="bg-purple-50  p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.slate[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.slate[600] }}>
               {t('priceCorrelation.highCorrelationCount')}
             </p>
-            <p className="text-xl font-bold text-purple-700">{stats.highCorrelationCount}</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.slate[700] }}>{stats.highCorrelationCount}</p>
           </div>
         </div>
 
@@ -267,7 +267,7 @@ export function PriceCorrelationMatrix({
                           className={`flex-1 min-w-[60px] aspect-square rounded-md flex items-center justify-center text-xs font-medium cursor-pointer transition-all hover:scale-110 hover:z-10 hover:ring-2 hover:ring-gray-400 ${getCorrelationTextColor(correlation)}`}
                           style={{
                             backgroundColor: isDiagonal
-                              ? '#F3F4F6'
+                              ? baseColors.gray[100]
                               : getCorrelationColor(correlation),
                           }}
                           onMouseEnter={() =>
@@ -281,7 +281,7 @@ export function PriceCorrelationMatrix({
                           onMouseLeave={() => setHoveredCell(null)}
                         >
                           {isDiagonal ? (
-                            <span className="text-gray-400">-</span>
+                            <span style={{ color: baseColors.gray[400] }}>-</span>
                           ) : (
                             <span className="font-mono">{correlation.toFixed(2)}</span>
                           )}
@@ -295,13 +295,13 @@ export function PriceCorrelationMatrix({
           </div>
 
           {hoveredCell && (
-            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 bg-gray-900 text-white text-xs  px-4 py-3 z-20  min-w-[220px]">
+            <div className="absolute left-1/2 top-0 transform -translate-x-1/2 -translate-y-full mb-2 text-white text-xs px-4 py-3 z-20 min-w-[220px]" style={{ backgroundColor: baseColors.gray[900] }}>
               <div className="font-semibold text-sm mb-2">
                 {getOracleName(hoveredCell.oracle1)} ↔ {getOracleName(hoveredCell.oracle2)}
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">
+                  <span style={{ color: baseColors.gray[400] }}>
                     {t('priceCorrelation.correlationCoefficient')}:
                   </span>
                   <span className="font-mono font-semibold">
@@ -309,13 +309,13 @@ export function PriceCorrelationMatrix({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">{t('priceCorrelation.correlationLevel')}:</span>
+                  <span style={{ color: baseColors.gray[400] }}>{t('priceCorrelation.correlationLevel')}:</span>
                   <span className={getCorrelationLevelColor(hoveredCell.correlation)}>
                     {getCorrelationLevel(hoveredCell.correlation, t)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">
+                  <span style={{ color: baseColors.gray[400] }}>
                     {t('priceCorrelation.correlationDirection')}:
                   </span>
                   <span>
@@ -328,18 +328,18 @@ export function PriceCorrelationMatrix({
                 </div>
               </div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                <div className="border-8 border-transparent border-t-gray-900" />
+                <div className="border-8 border-transparent" style={{ borderTopColor: baseColors.gray[900] }} />
               </div>
             </div>
           )}
         </div>
 
-        <div className="bg-gray-50  p-4">
-          <div className="text-xs text-gray-600 mb-2 font-medium">
+        <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
+          <div className="text-xs mb-2 font-medium" style={{ color: baseColors.gray[600] }}>
             {t('priceCorrelation.legend.title')}
           </div>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-xs text-gray-500">-1.0</span>
+            <span className="text-xs" style={{ color: baseColors.gray[500] }}>-1.0</span>
             <div className="flex gap-0.5">
               {colorLegend.map((item, index) => (
                 <div
@@ -350,9 +350,9 @@ export function PriceCorrelationMatrix({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-500">1.0</span>
+            <span className="text-xs" style={{ color: baseColors.gray[500] }}>1.0</span>
           </div>
-          <div className="flex items-center justify-center gap-4 mt-2 text-xs text-gray-500">
+          <div className="flex items-center justify-center gap-4 mt-2 text-xs" style={{ color: baseColors.gray[500] }}>
             <span>{t('priceCorrelation.legend.lowCorrelation')}</span>
             <span>|</span>
             <span>{t('priceCorrelation.legend.highCorrelation')}</span>
@@ -360,8 +360,8 @@ export function PriceCorrelationMatrix({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50  p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+          <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
+            <h4 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[700] }}>
               {t('priceCorrelation.distribution.title')}
             </h4>
             <div className="space-y-2">
@@ -383,14 +383,14 @@ export function PriceCorrelationMatrix({
 
                 return (
                   <div key={item.range} className="flex items-center gap-2">
-                    <div className="w-20 text-xs text-gray-600">{item.range}</div>
-                    <div className="flex-1 bg-gray-200  h-2 overflow-hidden">
+                    <div className="w-20 text-xs" style={{ color: baseColors.gray[600] }}>{item.range}</div>
+                    <div className="flex-1 h-2 overflow-hidden" style={{ backgroundColor: baseColors.gray[200] }}>
                       <div
-                        className="h-full  transition-all bg-blue-500"
-                        style={{ width: `${percentage}%` }}
+                        className="h-full transition-all"
+                        style={{ width: `${percentage}%`, backgroundColor: baseColors.primary[500] }}
                       />
                     </div>
-                    <div className="w-16 text-right text-xs text-gray-500">
+                    <div className="w-16 text-right text-xs" style={{ color: baseColors.gray[500] }}>
                       {count} ({percentage}%)
                     </div>
                   </div>
@@ -399,8 +399,8 @@ export function PriceCorrelationMatrix({
             </div>
           </div>
 
-          <div className="bg-gray-50  p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+          <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
+            <h4 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[700] }}>
               {t('priceCorrelation.distribution.topPairs')}
             </h4>
             <div className="space-y-2">
@@ -415,8 +415,8 @@ export function PriceCorrelationMatrix({
                 .slice(0, 5)
                 .map((cell, idx) => (
                   <div key={`${cell.oracle1}-${cell.oracle2}`} className="flex items-center gap-2">
-                    <span className="w-5 text-xs text-gray-400 font-medium">{idx + 1}</span>
-                    <span className="flex-1 text-sm text-gray-700 truncate">
+                    <span className="w-5 text-xs font-medium" style={{ color: baseColors.gray[400] }}>{idx + 1}</span>
+                    <span className="flex-1 text-sm truncate" style={{ color: baseColors.gray[700] }}>
                       {getOracleName(cell.oracle1)} ↔ {getOracleName(cell.oracle2)}
                     </span>
                     <span
@@ -430,10 +430,11 @@ export function PriceCorrelationMatrix({
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200  p-4">
+        <div className="p-4" style={{ backgroundColor: baseColors.primary[50], borderColor: baseColors.primary[200], borderWidth: '1px' }}>
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 flex-shrink-0 mt-0.5"
+              style={{ color: baseColors.primary[600] }}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -444,10 +445,10 @@ export function PriceCorrelationMatrix({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">
+              <h4 className="text-sm font-semibold mb-1" style={{ color: baseColors.primary[800] }}>
                 {t('priceCorrelation.explanation.title')}
               </h4>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs" style={{ color: baseColors.primary[700] }}>
                 {t('priceCorrelation.explanation.description')}
               </p>
             </div>

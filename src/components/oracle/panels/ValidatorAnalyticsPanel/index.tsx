@@ -8,7 +8,7 @@ import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHe
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { StakingCalculator } from '../../common/StakingCalculator';
 import { createLogger } from '@/lib/utils/logger';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors, animationColors } from '@/lib/config/colors';
 import { ValidatorHistoryChart } from './ValidatorHistoryChart';
 import { EarningsTrendChart } from './EarningsTrendChart';
 import {
@@ -60,14 +60,14 @@ function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-200  p-5 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{title}</p>
           <p className="text-gray-900 text-2xl font-bold">{value}</p>
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
         </div>
-        <div className="p-3 bg-blue-50  text-blue-600">{icon}</div>
+        <div className="p-3 rounded-lg" style={{ backgroundColor: baseColors.primary[50], color: baseColors.primary[600] }}>{icon}</div>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ function PieChart({
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
       <div className="mb-4">
         <p className="text-gray-900 text-sm font-semibold">{title}</p>
         {subtitle && <p className="text-gray-500 text-xs mt-0.5">{subtitle}</p>}
@@ -195,11 +195,11 @@ function ValidatorTable({
       );
     }
     return sortDirection === 'asc' ? (
-      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4" style={{ color: baseColors.primary[600] }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       </svg>
     ) : (
-      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4" style={{ color: baseColors.primary[600] }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
     );
@@ -208,7 +208,7 @@ function ValidatorTable({
   const getTypeBadge = (type: string) => {
     return (
       <span
-        className={`px-2 py-1  text-xs font-medium ${VALIDATOR_TYPE_STYLES[type] || 'bg-gray-100 text-gray-700'}`}
+        className={`px-2 py-1 rounded text-xs font-medium ${VALIDATOR_TYPE_STYLES[type] || 'bg-gray-100 text-gray-700'}`}
       >
         {VALIDATOR_TYPE_LABELS[type] || type}
       </span>
@@ -293,7 +293,7 @@ function ValidatorTable({
             >
               <td className="py-3 px-4">
                 <span
-                  className={`inline-flex items-center justify-center w-6 h-6  text-xs font-semibold ${
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold ${
                     index < 3 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -326,10 +326,10 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 bg-gray-200  overflow-hidden">
+                  <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: baseColors.gray[200] }}>
                     <div
-                      className="h-full bg-green-500 "
-                      style={{ width: `${validator.successRate}%` }}
+                      className="h-full rounded-full"
+                      style={{ width: `${validator.successRate}%`, backgroundColor: semanticColors.success.DEFAULT }}
                     />
                   </div>
                   <span className="text-sm text-gray-900">{validator.successRate}%</span>
@@ -337,10 +337,10 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 bg-gray-200  overflow-hidden">
+                  <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: baseColors.gray[200] }}>
                     <div
-                      className="h-full bg-blue-500 "
-                      style={{ width: `${validator.reputation}%` }}
+                      className="h-full rounded-full"
+                      style={{ width: `${validator.reputation}%`, backgroundColor: baseColors.primary[500] }}
                     />
                   </div>
                   <span className="text-sm text-gray-900">{validator.reputation}</span>
@@ -350,14 +350,14 @@ function ValidatorTable({
                 <span className="text-sm text-gray-900">{formatNumber(validator.staked)}</span>
               </td>
               <td className="py-3 px-4">
-                <span className="text-sm font-medium text-green-600">
+                <span className="text-sm font-medium" style={{ color: semanticColors.success.DEFAULT }}>
                   {formatNumber(validator.earnings)}
                 </span>
               </td>
               <td className="py-3 px-4">
                 <button
                   onClick={() => onViewHistory(validator)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100  transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -608,7 +608,7 @@ export function ValidatorAnalyticsPanel() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
           <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
         </div>
       </div>
@@ -624,15 +624,15 @@ export function ValidatorAnalyticsPanel() {
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
-              <div className="animate-spin  h-4 w-4 border-2 border-blue-600 border-t-transparent" />
-              <span className="text-sm text-blue-600">刷新中...</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
+              <span className="text-sm" style={{ color: baseColors.primary[600] }}>刷新中...</span>
             </div>
           )}
         </div>
         <button
           onClick={() => fetchData(true)}
           disabled={isRefreshing}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100  transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
             className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -725,7 +725,7 @@ export function ValidatorAnalyticsPanel() {
               placeholder="搜索验证者名称..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
             {searchQuery && (
               <button
@@ -754,7 +754,7 @@ export function ValidatorAnalyticsPanel() {
             <select
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-3 py-1.5 border border-gray-200  text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -768,7 +768,7 @@ export function ValidatorAnalyticsPanel() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 border border-gray-200  text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               上一页
             </button>
@@ -789,7 +789,7 @@ export function ValidatorAnalyticsPanel() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`w-8 h-8  text-sm font-medium transition-all duration-200 ${
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${
                       currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
@@ -804,7 +804,7 @@ export function ValidatorAnalyticsPanel() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1.5 border border-gray-200  text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               下一页
             </button>
@@ -835,7 +835,7 @@ export function ValidatorAnalyticsPanel() {
 
       {showValidatorModal && selectedValidator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white   w-full max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{selectedValidator.name}</h3>
@@ -845,7 +845,7 @@ export function ValidatorAnalyticsPanel() {
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100  transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -855,12 +855,12 @@ export function ValidatorAnalyticsPanel() {
 
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50  p-4">
+                <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.type')}
                   </p>
                   <span
-                    className={`inline-block px-2 py-1  text-xs font-medium ${
+                    className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                       selectedValidator.type === 'institution'
                         ? 'bg-purple-100 text-purple-700'
                         : selectedValidator.type === 'independent'
@@ -875,13 +875,13 @@ export function ValidatorAnalyticsPanel() {
                         : '社区'}
                   </span>
                 </div>
-                <div className="bg-gray-50  p-4">
+                <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.region')}
                   </p>
                   <p className="text-sm font-semibold text-gray-900">{selectedValidator.region}</p>
                 </div>
-                <div className="bg-gray-50  p-4">
+                <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.staked')}
                   </p>
@@ -889,11 +889,11 @@ export function ValidatorAnalyticsPanel() {
                     {formatNumber(selectedValidator.staked)} UMA
                   </p>
                 </div>
-                <div className="bg-gray-50  p-4">
+                <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.earnings')}
                   </p>
-                  <p className="text-sm font-semibold text-green-600">
+                  <p className="text-sm font-semibold" style={{ color: semanticColors.success.DEFAULT }}>
                     {formatNumber(selectedValidator.earnings)} UMA
                   </p>
                 </div>
@@ -920,7 +920,7 @@ export function ValidatorAnalyticsPanel() {
                     </svg>
                   </a>
                 </div>
-                <div className="bg-gray-50  p-4 font-mono text-sm text-gray-700 break-all">
+                <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm text-gray-700 break-all">
                   {selectedValidator.address}
                 </div>
               </div>
@@ -928,7 +928,7 @@ export function ValidatorAnalyticsPanel() {
               {isHistoryLoading ? (
                 <div className="flex items-center justify-center h-48">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
                     <p className="text-gray-500 text-sm">{t('uma.loading')}</p>
                   </div>
                 </div>
@@ -944,13 +944,13 @@ export function ValidatorAnalyticsPanel() {
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('uma.validatorAnalytics.estimatedRewards')}
                 </h4>
-                <div className="bg-gray-100 border border-gray-200  p-6">
+                <div className="bg-gray-100 border border-gray-200 rounded-lg p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         {t('uma.validatorAnalytics.estimatedDaily')}
                       </p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-2xl font-bold" style={{ color: baseColors.primary[600] }}>
                         {formatNumber(Math.round(selectedValidator.earnings / 30))}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
@@ -961,7 +961,7 @@ export function ValidatorAnalyticsPanel() {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         {t('uma.validatorAnalytics.estimatedMonthly')}
                       </p>
-                      <p className="text-2xl font-bold text-purple-600">
+                      <p className="text-2xl font-bold" style={{ color: chartColors.recharts.purple }}>
                         {formatNumber(selectedValidator.earnings)}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
@@ -972,7 +972,7 @@ export function ValidatorAnalyticsPanel() {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         {t('uma.validatorAnalytics.estimatedYearly')}
                       </p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold" style={{ color: semanticColors.success.DEFAULT }}>
                         {formatNumber(selectedValidator.earnings * 12)}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
