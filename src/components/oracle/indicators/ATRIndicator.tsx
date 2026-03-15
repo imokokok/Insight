@@ -1,209 +1,129 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ComposedChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  Area,
-  Bar,
+  ReferenceLine,
+  CartesianGrid,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
-import { calculateATR, calculateTrueRange } from '@/lib/indicators';
-import type { PriceDataPoint } from '@/lib/indicators';
+import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
-export interface OraclePriceHistory {
-  oracle: OracleProvider;
-  prices: PriceDataPoint[];
-}
-
-export interface ATRIndicatorProps {
-  data: OraclePriceHistory[];
-  oracleNames?: Partial<Record<OracleProvider, string>>;
-  className?: string;
-  defaultPeriod?: number;
-}
-
-const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
-};
-
-const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-  [OracleProvider.UMA]: chartColors.oracle.uma,
-  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
-  [OracleProvider.API3]: chartColors.oracle.api3,
-  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
-};
-
-interface ATRResult {
-  timestamp: string;
-  rawTimestamp: number;
-  price: number;
-  tr: number;
+interface ATRDataPoint {
+  timestamp: number;
   atr: number;
-  atrPercent: number;
-  upperChannel: number;
-  lowerChannel: number;
-  volatilityLevel: 'low' | 'medium' | 'high' | 'extreme';
+  price: number;
+  high: number;
+  low: number;
+  close: number;
 }
 
-function getVolatilityLevel(atrPercent: number): 'low' | 'medium' | 'high' | 'extreme' {
-  if (atrPercent < 0.5) return 'low';
-  if (atrPercent < 1.0) return 'medium';
-  if (atrPercent < 2.0) return 'high';
-  return 'extreme';
-}
-
-function getVolatilityColor(level: 'low' | 'medium' | 'high' | 'extreme'): string {
-  switch (level) {
-    case 'low':
-      return chartColors.semantic.success;
-    case 'medium':
-      return chartColors.semantic.warning;
-    case 'high':
-      return chartColors.semantic.danger;
-    case 'extreme':
-      return '#991B1B';
-  }
+interface ATRIndicatorProps {
+  data: ATRDataPoint[];
+  period?: number;
+  height?: number;
+  showThresholds?: boolean;
 }
 
 export function ATRIndicator({
   data,
-  oracleNames: customOracleNames,
-  className,
-  defaultPeriod = 14,
+  period = 14,
+  height = 200,
+  showThresholds = true,
 }: ATRIndicatorProps) {
-  const { t } = useI18n();
-  const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
-  const [selectedOracle, setSelectedOracle] = useState<OracleProvider>(
-    data[0]?.oracle || OracleProvider.CHAINLINK
-  );
-  const [period, setPeriod] = useState(defaultPeriod);
-  const [showChannels, setShowChannels] = useState(true);
+  const processedData = useMemo(() => {
+    if (data.length === 0) return [];
 
-  const selectedOracleData = useMemo(() => {
-    return data.find((d) => d.oracle === selectedOracle);
-  }, [data, selectedOracle]);
+    // Calculate ATR using Wilder's smoothing method
+    const atrData: (ATRDataPoint & { tr: number; atrValue: number })[] = [];
 
-  const chartData = useMemo(() => {
-    if (!selectedOracleData) return [];
+    for (let i = 0; i < data.length; i++) {
+      const current = data[i];
+      const prev = i > 0 ? data[i - 1] : null;
 
-    const sortedPrices = [...selectedOracleData.prices].sort(
-      (a, b) => (a.timestamp || 0) - (b.timestamp || 0)
-    );
+      // Calculate True Range
+      const tr1 = current.high - current.low;
+      const tr2 = prev ? Math.abs(current.high - prev.close) : 0;
+      const tr3 = prev ? Math.abs(current.low - prev.close) : 0;
+      const tr = Math.max(tr1, tr2, tr3);
 
-    const { tr, atr } = calculateATR(sortedPrices, period);
+      atrData.push({
+        ...current,
+        tr,
+        atrValue: 0,
+      });
+    }
 
-    return sortedPrices.map((point, index) => {
-      const currentATR = atr[index];
-      const atrPercent =
-        !isNaN(currentATR) && point.price > 0 ? (currentATR / point.price) * 100 : 0;
+    // Calculate ATR using Wilder's smoothing
+    let atrSum = 0;
+    for (let i = 0; i < atrData.length; i++) {
+      if (i < period) {
+        atrSum += atrData[i].tr;
+        atrData[i].atrValue = atrSum / (i + 1);
+      } else {
+        atrData[i].atrValue =
+          (atrData[i - 1].atrValue * (period - 1) + atrData[i].tr) / period;
+      }
+    }
 
-      const volatilityLevel = getVolatilityLevel(atrPercent);
+    return atrData;
+  }, [data, period]);
 
-      return {
-        timestamp: new Date(point.timestamp || 0).toLocaleTimeString('zh-CN', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        rawTimestamp: point.timestamp || 0,
-        price: point.price,
-        tr: tr[index],
-        atr: currentATR,
-        atrPercent: atrPercent,
-        upperChannel: point.price + currentATR * 2,
-        lowerChannel: point.price - currentATR * 2,
-        volatilityLevel,
-      };
-    });
-  }, [selectedOracleData, period]);
+  const statistics = useMemo(() => {
+    if (processedData.length === 0) return null;
 
-  const stats = useMemo(() => {
-    if (chartData.length === 0) return null;
+    const atrValues = processedData.map((d) => d.atrValue);
+    const currentATR = atrValues[atrValues.length - 1];
+    const avgATR = atrValues.reduce((a, b) => a + b, 0) / atrValues.length;
+    const maxATR = Math.max(...atrValues);
+    const minATR = Math.min(...atrValues);
 
-    const validATR = chartData.filter((d) => !isNaN(d.atr));
-    const validATRPercent = chartData.filter((d) => !isNaN(d.atrPercent));
-
-    const avgATR = validATR.reduce((sum, d) => sum + d.atr, 0) / (validATR.length || 1);
-    const avgATRPercent =
-      validATRPercent.reduce((sum, d) => sum + d.atrPercent, 0) / (validATRPercent.length || 1);
-
-    const lastPoint = chartData[chartData.length - 1];
+    // Calculate volatility levels
+    const highVolatilityThreshold = avgATR * 1.5;
+    const lowVolatilityThreshold = avgATR * 0.5;
 
     return {
-      currentATR: lastPoint.atr,
-      currentATRPercent: lastPoint.atrPercent,
+      currentATR,
       avgATR,
-      avgATRPercent,
-      maxATR: Math.max(...validATR.map((d) => d.atr)),
-      volatilityLevel: lastPoint.volatilityLevel,
+      maxATR,
+      minATR,
+      highVolatilityThreshold,
+      lowVolatilityThreshold,
     };
-  }, [chartData]);
+  }, [processedData]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
-
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
-        <p className="text-sm font-semibold text-gray-900 mb-2">{data.timestamp}</p>
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">价格</span>
-            <span className="text-sm font-medium">${data.price.toFixed(2)}</span>
+      <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-lg">
+        <p className="text-sm font-medium text-gray-900 mb-2">{formatTime(label)}</p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">ATR:</span>
+            <span className="text-sm font-mono font-medium" style={{ color: chartColors.recharts.chainlink }}>
+              {data.atrValue.toFixed(4)}
+            </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">真实波幅 (TR)</span>
-            <span className="text-sm font-medium">${data.tr.toFixed(4)}</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">True Range:</span>
+            <span className="text-sm font-mono">{data.tr.toFixed(4)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">ATR ({period})</span>
-            <span className="text-sm font-bold text-blue-600">${data.atr.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">ATR %</span>
-            <span className="text-sm font-bold text-blue-600">{data.atrPercent.toFixed(4)}%</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">波动等级</span>
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded"
-              style={{
-                backgroundColor: `${getVolatilityColor(data.volatilityLevel)}20`,
-                color: getVolatilityColor(data.volatilityLevel),
-              }}
-            >
-              {data.volatilityLevel === 'low'
-                ? '低'
-                : data.volatilityLevel === 'medium'
-                  ? '中'
-                  : data.volatilityLevel === 'high'
-                    ? '高'
-                    : '极高'}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">价格区间:</span>
+            <span className="text-sm font-mono">
+              {data.low.toFixed(2)} - {data.high.toFixed(2)}
             </span>
           </div>
         </div>
@@ -211,224 +131,151 @@ export function ATRIndicator({
     );
   };
 
-  if (!selectedOracleData) {
+  if (processedData.length === 0) {
     return (
-      <DashboardCard title="ATR 平均真实波幅" className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">暂无数据</div>
-      </DashboardCard>
+      <div className="flex items-center justify-center h-48 text-gray-400">
+        <p>暂无数据</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <DashboardCard title="ATR 平均真实波幅" className={className}>
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">预言机:</span>
-              <select
-                value={selectedOracle}
-                onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {data.map((oracleData) => (
-                  <option key={oracleData.oracle} value={oracleData.oracle}>
-                    {oracleNames[oracleData.oracle]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">周期:</span>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(Number(e.target.value))}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={7}>7</option>
-                <option value={14}>14</option>
-                <option value={21}>21</option>
-                <option value={28}>28</option>
-              </select>
-            </div>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showChannels}
-                onChange={(e) => setShowChannels(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-600">显示ATR通道</span>
-            </label>
+    <div className="space-y-4">
+      {/* Statistics */}
+      {statistics && (
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">当前 ATR</p>
+            <p
+              className="text-lg font-bold"
+              style={{
+                color:
+                  statistics.currentATR > statistics.highVolatilityThreshold
+                    ? semanticColors.danger.DEFAULT
+                    : statistics.currentATR < statistics.lowVolatilityThreshold
+                      ? semanticColors.success.DEFAULT
+                      : baseColors.gray[900],
+              }}
+            >
+              {statistics.currentATR.toFixed(4)}
+            </p>
           </div>
-
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">当前 ATR</p>
-                <p className="text-xl font-bold text-blue-600">${stats.currentATR.toFixed(4)}</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">ATR %</p>
-                <p className="text-xl font-bold text-purple-600">
-                  {stats.currentATRPercent.toFixed(4)}%
-                </p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">平均 ATR</p>
-                <p className="text-xl font-bold text-amber-600">${stats.avgATR.toFixed(4)}</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">波动等级</p>
-                <p
-                  className="text-xl font-bold"
-                  style={{ color: getVolatilityColor(stats.volatilityLevel) }}
-                >
-                  {stats.volatilityLevel === 'low'
-                    ? '低'
-                    : stats.volatilityLevel === 'medium'
-                      ? '中'
-                      : stats.volatilityLevel === 'high'
-                        ? '高'
-                        : '极高'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">价格与ATR通道</h4>
-            <div style={{ height: 350 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) => `$${value.toFixed(0)}`}
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-
-                  {showChannels && (
-                    <>
-                      <Area
-                        type="monotone"
-                        dataKey="upperChannel"
-                        stroke="none"
-                        fill={chartColors.recharts.primary}
-                        fillOpacity={0.1}
-                        name="上轨 (Price + 2×ATR)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="lowerChannel"
-                        stroke="none"
-                        fill={chartColors.recharts.white}
-                        fillOpacity={1}
-                        name="下轨 (Price - 2×ATR)"
-                      />
-                    </>
-                  )}
-
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke={ORACLE_COLORS[selectedOracle]}
-                    strokeWidth={2}
-                    dot={false}
-                    name="价格"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">平均 ATR</p>
+            <p className="text-lg font-bold text-gray-900">{statistics.avgATR.toFixed(4)}</p>
           </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">ATR 趋势 ({period}周期)</h4>
-            <div style={{ height: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) => `$${value.toFixed(2)}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="atr"
-                    stroke={chartColors.recharts.primary}
-                    fill={chartColors.recharts.primary}
-                    fillOpacity={0.2}
-                    name="ATR"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">最高 ATR</p>
+            <p className="text-lg font-bold" style={{ color: semanticColors.danger.DEFAULT }}>
+              {statistics.maxATR.toFixed(4)}
+            </p>
           </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">真实波幅 (TR)</h4>
-            <div style={{ height: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) => `$${value.toFixed(2)}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="tr" fill={chartColors.recharts.warning} name="真实波幅" />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-blue-50  p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">ATR 指标说明</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • <strong>真实波幅 (TR)</strong>: max(High-Low, |High-Previous Close|, |Low-Previous
-                Close|)
-              </li>
-              <li>
-                • <strong>ATR</strong>: TR的n周期指数移动平均，反映市场波动性
-              </li>
-              <li>
-                • <strong>ATR %</strong>: ATR占当前价格的百分比，便于不同价格资产的比较
-              </li>
-              <li>
-                • <strong>ATR通道</strong>: 基于ATR的价格通道，用于识别价格突破和支撑/阻力位
-              </li>
-              <li>• ATR上升表示波动性增加，ATR下降表示市场趋于平静</li>
-            </ul>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">最低 ATR</p>
+            <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+              {statistics.minATR.toFixed(4)}
+            </p>
           </div>
         </div>
-      </DashboardCard>
+      )}
+
+      {/* Chart */}
+      <div style={{ height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+            <XAxis
+              dataKey="timestamp"
+              tickFormatter={formatTime}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              tickLine={false}
+            />
+            <YAxis
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              tickLine={false}
+              width={60}
+              tickFormatter={(value) => value.toFixed(2)}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+
+            {/* Volatility zones */}
+            {showThresholds && statistics && (
+              <>
+                <ReferenceLine
+                  y={statistics.highVolatilityThreshold}
+                  stroke={semanticColors.danger.DEFAULT}
+                  strokeDasharray="5 5"
+                  label={{
+                    value: '高波动',
+                    position: 'right',
+                    fill: semanticColors.danger.DEFAULT,
+                    fontSize: 10,
+                  }}
+                />
+                <ReferenceLine
+                  y={statistics.lowVolatilityThreshold}
+                  stroke={semanticColors.success.DEFAULT}
+                  strokeDasharray="5 5"
+                  label={{
+                    value: '低波动',
+                    position: 'right',
+                    fill: semanticColors.success.DEFAULT,
+                    fontSize: 10,
+                  }}
+                />
+                <ReferenceLine
+                  y={statistics.avgATR}
+                  stroke={chartColors.recharts.tick}
+                  strokeDasharray="3 3"
+                  label={{
+                    value: '平均',
+                    position: 'right',
+                    fill: chartColors.recharts.tick,
+                    fontSize: 10,
+                  }}
+                />
+              </>
+            )}
+
+            {/* True Range bars */}
+            <Bar
+              dataKey="tr"
+              fill={baseColors.gray[200]}
+              opacity={0.3}
+              name="True Range"
+            />
+
+            {/* ATR line */}
+            <Line
+              type="monotone"
+              dataKey="atrValue"
+              stroke={chartColors.recharts.chainlink}
+              strokeWidth={2}
+              dot={false}
+              name={`ATR (${period})`}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-4 h-0.5"
+            style={{ backgroundColor: chartColors.recharts.chainlink }}
+          />
+          <span className="text-gray-600">ATR ({period})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-3 rounded" style={{ backgroundColor: baseColors.gray[200] }} />
+          <span className="text-gray-600">True Range</span>
+        </div>
+      </div>
     </div>
   );
 }
+
+export default ATRIndicator;

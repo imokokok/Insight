@@ -18,7 +18,7 @@ import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton } from '../forms/DataExportButton';
 import { useI18n } from '@/lib/i18n/provider';
-import { chainColors, chartColors } from '@/lib/config/colors';
+import { chainColors, chartColors, baseColors, semanticColors, animationColors } from '@/lib/config/colors';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -74,7 +74,7 @@ function StatCard({ title, value, icon, trend, suffix, t }: StatCardProps) {
     : '';
 
   return (
-    <div className="bg-white border border-gray-200  p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{title}</p>
@@ -93,7 +93,7 @@ function StatCard({ title, value, icon, trend, suffix, t }: StatCardProps) {
             </div>
           )}
         </div>
-        <div className="p-2.5 bg-blue-50  text-blue-600">{icon}</div>
+        <div className="p-2.5 bg-blue-50 rounded-lg text-blue-600">{icon}</div>
       </div>
     </div>
   );
@@ -116,10 +116,10 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   if (!data) return null;
 
   return (
-    <div className="bg-white border border-gray-200  p-3 ">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 min-w-[220px] shadow-lg">
       <p className="text-gray-600 text-xs mb-1 font-medium">{data.name}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 " style={{ backgroundColor: data.color }} />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
         <span className="text-gray-900 font-mono font-semibold">
           {data.value.toLocaleString()} {t('crossChainPanel.requests')}
         </span>
@@ -140,8 +140,8 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white   w-full max-w-lg max-h-[90vh] overflow-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between -2xl">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
             <div
               className="w-3 h-3 "
@@ -149,7 +149,7 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
             />
             <h2 className="text-lg font-bold text-gray-900">{chain.chainName}</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100  transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <svg
               className="w-5 h-5 text-gray-500"
               fill="none"
@@ -162,7 +162,7 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-gray-50  p-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
               {t('crossChainPanel.chainId')}
             </p>
@@ -170,27 +170,27 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-blue-50  p-4 text-center">
+            <div className="bg-blue-50 rounded-lg p-4 text-center">
               <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange24h')}</p>
-              <p className="text-blue-600 font-bold text-lg">
+              <p className="font-bold text-lg" style={{ color: baseColors.primary[600] }}>
                 {chain.requestCount24h.toLocaleString()}
               </p>
             </div>
-            <div className="bg-green-50  p-4 text-center">
+            <div className="bg-green-50 rounded-lg p-4 text-center">
               <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange7d')}</p>
-              <p className="text-green-600 font-bold text-lg">
+              <p className="font-bold text-lg" style={{ color: semanticColors.success.DEFAULT }}>
                 {chain.requestCount7d.toLocaleString()}
               </p>
             </div>
-            <div className="bg-purple-50  p-4 text-center">
+            <div className="bg-purple-50 rounded-lg p-4 text-center">
               <p className="text-gray-500 text-xs mb-1">{t('crossChainPanel.timeRange30d')}</p>
-              <p className="text-purple-600 font-bold text-lg">
+              <p className="font-bold text-lg" style={{ color: chartColors.recharts.purple }}>
                 {chain.requestCount30d.toLocaleString()}
               </p>
             </div>
           </div>
 
-          <div className="bg-gray-50  p-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <svg
@@ -217,7 +217,7 @@ function ChainDetailModal({ chain, onClose, t }: ChainDetailModalProps) {
               {chain.supportedSymbols.map((symbol) => (
                 <span
                   key={symbol}
-                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium "
+                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded"
                 >
                   {symbol}
                 </span>
@@ -384,7 +384,7 @@ export function CrossChainPanel({
           <p className="text-gray-500 text-sm">{error}</p>
           <button
             onClick={fetchData}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm  hover:bg-blue-600 transition-colors"
+            className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
           >
             {t('crossChainPanel.retry')}
           </button>
@@ -418,14 +418,14 @@ export function CrossChainPanel({
             ]}
             compact
           />
-          <div className="flex items-center gap-2 bg-gray-100  p-1">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
             {(Object.keys(TIME_RANGE_CONFIG) as TimeRangeKey[]).map((key) => (
               <button
                 key={key}
                 onClick={() => setTimeRange(key)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   timeRange === key
-                    ? 'bg-white text-gray-900 '
+                    ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -492,7 +492,7 @@ export function CrossChainPanel({
 
       <RequestTypeDistribution />
 
-      <div className="bg-white border border-gray-200  p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-gray-900 text-sm font-semibold">
@@ -533,7 +533,7 @@ export function CrossChainPanel({
                 tickFormatter={(value) => formatNumber(value)}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+              <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: animationColors.fade.cursor }} />
               <Bar
                 dataKey="value"
                 onClick={(data) => {
@@ -551,7 +551,7 @@ export function CrossChainPanel({
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200  p-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="text-gray-900 text-sm font-semibold">
             {t('crossChainPanel.chainOverview')}
@@ -571,7 +571,7 @@ export function CrossChainPanel({
               <div
                 key={chain.chainId}
                 onClick={() => setSelectedChain(chain)}
-                className={`bg-gray-50  p-3 hover:bg-gray-100 transition-colors cursor-pointer group relative ${
+                className={`bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer group relative ${
                   isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''
                 } ${isDisabled ? 'opacity-60' : ''}`}
               >
@@ -608,7 +608,7 @@ export function CrossChainPanel({
                 </div>
                 <div className="flex items-center gap-2 mb-2 pr-6">
                   <div
-                    className="w-2.5 h-2.5 "
+                    className="w-2.5 h-2.5 rounded-full"
                     style={{ backgroundColor: getChainColor(chain.chainName, index) }}
                   />
                   <span className="text-gray-900 font-medium text-sm">{chain.chainName}</span>

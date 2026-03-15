@@ -9,6 +9,7 @@ import {
   getCorrelationSizeScale,
   colorblindLegendConfig,
 } from '../colorblindTheme';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 interface CorrelationMatrixProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -40,18 +41,18 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
       : 0;
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
+    <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">
+        <h3 className="text-sm font-medium uppercase tracking-wide" style={{ color: baseColors.gray[900] }}>
           {t('crossChain.chainCorrelationAnalysis')}
         </h3>
         {avgSampleSize > 0 && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>
             {t('crossChain.sampleSize')} n = {avgSampleSize}
           </span>
         )}
       </div>
-      <p className="text-xs text-gray-500 mb-4">
+      <p className="text-xs mb-4" style={{ color: baseColors.gray[500] }}>
         {t('crossChain.pearsonCorrelationDesc')} {t('crossChain.significanceMarkers')}
       </p>
       <div className="overflow-x-auto">
@@ -60,14 +61,14 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
             <div className="w-24 shrink-0" />
             {filteredChains.map((chain) => (
               <div key={chain} className="flex-1 min-w-20 text-center px-1 py-2">
-                <span className="text-xs font-medium text-gray-600">{chainNames[chain]}</span>
+                <span className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>{chainNames[chain]}</span>
               </div>
             ))}
           </div>
           {filteredChains.map((chainX) => (
             <div key={chainX} className="flex">
               <div className="w-24 shrink-0 flex items-center py-1">
-                <span className="text-xs font-medium text-gray-600">{chainNames[chainX]}</span>
+                <span className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>{chainNames[chainX]}</span>
               </div>
               {filteredChains.map((chainY) => {
                 const result = correlationMatrixWithSignificance[chainX]?.[chainY];
@@ -76,7 +77,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                 const pValue = result?.pValue ?? 1;
                 const sampleSize = result?.sampleSize ?? 0;
                 const bgColor = getCorrelationColorFn(correlation);
-                const textColor = Math.abs(correlation) > 0.5 ? 'text-white' : 'text-gray-900';
+                const textColor = Math.abs(correlation) > 0.5 ? baseColors.gray[50] : baseColors.gray[900];
 
                 // 色盲模式下使用形状大小编码
                 const sizeScale = colorblindMode ? getCorrelationSizeScale(correlation) : 1;
@@ -94,14 +95,13 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     style={{ backgroundColor: bgColor }}
                     title={`${chainNames[chainX]} vs ${chainNames[chainY]}: r = ${correlation.toFixed(4)}, p = ${pValue.toFixed(4)}, n = ${sampleSize}`}
                   >
-                    <span className={`text-xs font-medium ${textColor}`} style={cellSize}>
+                    <span className="text-xs font-medium" style={{ color: textColor, ...cellSize }}>
                       {correlation.toFixed(2)}
                     </span>
                     {significanceLevel && (
                       <span
-                        className={`absolute top-0.5 right-0.5 text-[8px] font-bold ${
-                          Math.abs(correlation) > 0.5 ? 'text-white/80' : 'text-gray-600'
-                        }`}
+                        className="absolute top-0.5 right-0.5 text-[8px] font-bold"
+                        style={{ color: Math.abs(correlation) > 0.5 ? baseColors.gray[50] + 'CC' : baseColors.gray[600] }}
                       >
                         {significanceLevel}
                       </span>
@@ -109,10 +109,11 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                     {/* 色盲模式下添加形状指示器 */}
                     {colorblindMode && (
                       <div
-                        className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-gray-800/20"
+                        className="absolute bottom-1 left-1/2 -translate-x-1/2"
                         style={{
                           width: `${4 + Math.abs(correlation) * 8}px`,
                           height: `${4 + Math.abs(correlation) * 8}px`,
+                          backgroundColor: baseColors.gray[800] + '33'
                         }}
                       />
                     )}
@@ -123,7 +124,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
           ))}
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                 {colorblindMode
                   ? colorblindLegendConfig.correlation.negativeLabel
                   : t('crossChain.negativeCorrelation')}
@@ -132,11 +133,11 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
                 className="w-32 h-3"
                 style={{
                   background: colorblindMode
-                    ? `linear-gradient(to right, ${colorblindLegendConfig.correlation.negativeColor}, #ffffff, ${colorblindLegendConfig.correlation.positiveColor})`
-                    : 'linear-gradient(to right, #dc2626, #ffffff, #1e40af)',
+                    ? `linear-gradient(to right, ${colorblindLegendConfig.correlation.negativeColor}, ${baseColors.gray[50]}, ${colorblindLegendConfig.correlation.positiveColor})`
+                    : `linear-gradient(to right, ${semanticColors.danger.dark}, ${baseColors.gray[50]}, ${baseColors.primary[800]})`,
                 }}
               />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                 {colorblindMode
                   ? colorblindLegendConfig.correlation.positiveLabel
                   : t('crossChain.positiveCorrelation')}
@@ -144,7 +145,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
             </div>
             {/* 色盲模式下图例说明 */}
             {colorblindMode && (
-              <div className="flex items-center gap-2 ml-2 px-2 py-1 bg-blue-50 border border-blue-200 text-xs text-blue-700">
+              <div className="flex items-center gap-2 ml-2 px-2 py-1 text-xs" style={{ backgroundColor: semanticColors.info.light, border: `1px solid ${semanticColors.info.light}`, color: semanticColors.info.text }}>
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path
@@ -157,10 +158,10 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
               </div>
             )}
             <div className="flex items-center gap-2 ml-4">
-              <span className="text-xs text-gray-500">显著性:</span>
-              <span className="text-[10px] font-bold text-gray-700">*** p&lt;0.001</span>
-              <span className="text-[10px] font-bold text-gray-700">** p&lt;0.01</span>
-              <span className="text-[10px] font-bold text-gray-700">* p&lt;0.05</span>
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>显著性:</span>
+              <span className="text-[10px] font-bold" style={{ color: baseColors.gray[700] }}>*** p&lt;0.001</span>
+              <span className="text-[10px] font-bold" style={{ color: baseColors.gray[700] }}>** p&lt;0.01</span>
+              <span className="text-[10px] font-bold" style={{ color: baseColors.gray[700] }}>* p&lt;0.05</span>
             </div>
           </div>
         </div>

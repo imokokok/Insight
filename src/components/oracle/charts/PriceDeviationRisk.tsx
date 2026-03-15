@@ -12,7 +12,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 interface DeviationDataPoint {
   timestamp: string;
@@ -144,10 +144,10 @@ export function PriceDeviationRisk() {
                 />
                 <Tooltip
                   formatter={(value) => [`${Number(value).toFixed(3)}%`, '偏差']}
-                  labelStyle={{ color: '#374151' }}
+                  labelStyle={{ color: semanticColors.neutral.text }}
                   contentStyle={{
                     backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    border: `1px solid ${baseColors.gray[200]}`,
                   }}
                 />
                 <ReferenceLine y={DEVIATION_THRESHOLD} stroke={semanticColors.warning.DEFAULT} strokeDasharray="5 5" />

@@ -28,6 +28,7 @@ import {
   BarChart3,
   X,
 } from 'lucide-react';
+import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface OracleComparisonProps {
   data: ComparisonData[];
@@ -99,13 +100,13 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
   const CustomTooltip = ({ active, payload, label }: TooltipProps<(typeof radarData)[0]>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 p-2 min-w-[160px]">
+        <div className="bg-white border border-gray-200 rounded p-2 min-w-[160px]">
           <p className="font-medium text-gray-900 mb-1.5 text-sm">{label}</p>
           <div className="space-y-1">
             {payload.map((entry, index) => (
               <div key={index} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2" style={{ backgroundColor: entry.color }} />
+                  <div className="w-2 h-2 rounded" style={{ backgroundColor: entry.color }} />
                   <span className="text-gray-600">{entry.name}:</span>
                 </div>
                 <span className="font-medium text-gray-900">{Number(entry.value).toFixed(0)}</span>
@@ -122,7 +123,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
     return (
       <div className="py-12 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
             {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
           </span>
@@ -166,7 +167,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           </button>
 
           {showSelector && (
-            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 z-10">
+            <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded z-10">
               <div className="p-1.5">
                 <p className="text-xs text-gray-500 mb-1.5 px-2">
                   {locale === 'zh-CN'
@@ -181,7 +182,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                       !selectedOracles.includes(oracle.oracle) &&
                       selectedOracles.length >= MAX_SELECTION
                     }
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left transition-colors ${
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left transition-colors rounded ${
                       selectedOracles.includes(oracle.oracle)
                         ? 'bg-blue-50 text-blue-700'
                         : 'hover:bg-gray-50 text-gray-700'
@@ -193,7 +194,10 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5" style={{ backgroundColor: oracle.color }} />
+                      <div
+                        className="w-2.5 h-2.5 rounded"
+                        style={{ backgroundColor: oracle.color }}
+                      />
                       <span className="text-sm">{oracle.oracle}</span>
                     </div>
                     {selectedOracles.includes(oracle.oracle) && (
@@ -214,14 +218,14 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
             return (
               <div
                 key={oracleName}
-                className="flex items-center gap-1.5 px-2 py-1 text-sm border"
+                className="flex items-center gap-1.5 px-2 py-1 text-sm border rounded"
                 style={{
                   backgroundColor: `${oracle.color}15`,
                   color: oracle.color,
                   borderColor: `${oracle.color}40`,
                 }}
               >
-                <div className="w-1.5 h-1.5" style={{ backgroundColor: oracle.color }} />
+                <div className="w-1.5 h-1.5 rounded" style={{ backgroundColor: oracle.color }} />
                 {oracleName}
                 <button onClick={() => toggleOracle(oracleName)} className="hover:opacity-70">
                   <X className="w-3 h-3" />
@@ -249,12 +253,15 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           <div className="h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} margin={{ top: 16, right: 60, bottom: 16, left: 60 }}>
-                <PolarGrid stroke="#E5E7EB" />
-                <PolarAngleAxis dataKey="metric" tick={{ fill: '#6B7280', fontSize: 11 }} />
+                <PolarGrid stroke={chartColors.recharts.grid} />
+                <PolarAngleAxis
+                  dataKey="metric"
+                  tick={{ fill: chartColors.recharts.tick, fontSize: 11 }}
+                />
                 <PolarRadiusAxis
                   angle={90}
                   domain={[0, 100]}
-                  tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                  tick={{ fill: chartColors.recharts.axis, fontSize: 10 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />

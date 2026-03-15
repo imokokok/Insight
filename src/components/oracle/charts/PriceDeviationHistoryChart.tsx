@@ -17,6 +17,7 @@ import {
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 
 type BaselineType = 'average' | 'median' | 'chainlink';
 
@@ -224,7 +225,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path  strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            <path strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
           </svg>
         );
       case 'decreasing':
@@ -235,7 +236,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path  strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         );
       default:
@@ -246,7 +247,7 @@ export function PriceDeviationHistoryChart({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path  strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+            <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
           </svg>
         );
     }
@@ -325,16 +326,16 @@ export function PriceDeviationHistoryChart({
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={30}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
                 domain={['auto', 'auto']}
               />
@@ -350,9 +351,9 @@ export function PriceDeviationHistoryChart({
                 }}
                 labelFormatter={(label) => `${t('priceDeviationHistory.time') || '时间'}: ${label}`}
                 contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  backgroundColor: baseColors.gray[50],
+                  border: `1px solid ${chartColors.recharts.grid}`,
+                  boxShadow: shadowColors.tooltip,
                 }}
               />
               <Legend
@@ -360,27 +361,27 @@ export function PriceDeviationHistoryChart({
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
-                label={{ value: 'Warning', fill: '#f59e0b', fontSize: 10 }}
+                label={{ value: 'Warning', fill: chartColors.recharts.warning, fontSize: 10 }}
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.warning}
-                stroke="#f59e0b"
+                stroke={chartColors.recharts.warning}
                 strokeDasharray="5 5"
               />
               <ReferenceLine
                 y={DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
-                label={{ value: 'Critical', fill: '#ef4444', fontSize: 10 }}
+                label={{ value: 'Critical', fill: chartColors.recharts.danger, fontSize: 10 }}
               />
               <ReferenceLine
                 y={-DEVIATION_THRESHOLDS.critical}
-                stroke="#ef4444"
+                stroke={chartColors.recharts.danger}
                 strokeDasharray="5 5"
               />
-              <ReferenceLine y={0} stroke="#6b7280" strokeWidth={1} />
+              <ReferenceLine y={0} stroke={baseColors.gray[500]} strokeWidth={1} />
               {selectedOracles.map((provider) => (
                 <Line
                   key={provider}
@@ -399,7 +400,7 @@ export function PriceDeviationHistoryChart({
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-0.5 bg-orange-500 border-dashed"
-              style={{ borderTop: '2px dashed #f59e0b' }}
+              style={{ borderTop: `2px dashed ${chartColors.recharts.warning}` }}
             />
             <span className="text-xs text-gray-600">
               {t('priceDeviationHistory.warningThreshold') || '警告阈值'} (±0.5%)
@@ -408,7 +409,7 @@ export function PriceDeviationHistoryChart({
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-0.5 bg-red-500 border-dashed"
-              style={{ borderTop: '2px dashed #ef4444' }}
+              style={{ borderTop: `2px dashed ${chartColors.recharts.danger}` }}
             />
             <span className="text-xs text-gray-600">
               {t('priceDeviationHistory.criticalThreshold') || '异常阈值'} (±1.0%)
@@ -422,12 +423,12 @@ export function PriceDeviationHistoryChart({
           {selectedOracles.map((provider) => {
             const stats = deviationStats[provider];
             return (
-              <div key={provider} className="bg-gray-50  p-4 border border-gray-200">
+              <div key={provider} className="bg-gray-50 p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <div
-                    className="w-3 h-3 "
-                    style={{ backgroundColor: oracleColors[provider] }}
-                  />
+                className="w-3 h-3"
+                style={{ backgroundColor: oracleColors[provider] }}
+              />
                   <span className="font-medium text-gray-900">{oracleNames[provider]}</span>
                 </div>
                 <div className="space-y-2">
@@ -508,16 +509,16 @@ export function PriceDeviationHistoryChart({
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="time"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={30}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value.toFixed(2)}%`}
               />
               <Tooltip
@@ -549,25 +550,25 @@ export function PriceDeviationHistoryChart({
 
       <DashboardCard title={t('priceDeviationHistory.overallStats') || '整体偏离统计'}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50  p-4 text-center">
+          <div className="bg-blue-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.baselineType') || '当前基准'}
             </p>
             <p className="text-lg font-semibold text-blue-600">{getBaselineLabel(baselineType)}</p>
           </div>
-          <div className="bg-green-50  p-4 text-center">
+          <div className="bg-green-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.dataPoints') || '数据点数'}
             </p>
             <p className="text-lg font-semibold text-green-600">{deviationHistory.length}</p>
           </div>
-          <div className="bg-purple-50  p-4 text-center">
+          <div className="bg-purple-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.oracleCount') || '预言机数量'}
             </p>
             <p className="text-lg font-semibold text-purple-600">{selectedOracles.length}</p>
           </div>
-          <div className="bg-orange-50  p-4 text-center">
+          <div className="bg-orange-50 p-4 text-center">
             <p className="text-sm text-gray-600 mb-1">
               {t('priceDeviationHistory.warningCount') || '警告次数'}
             </p>

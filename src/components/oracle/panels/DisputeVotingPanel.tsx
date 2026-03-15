@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { formatNumber } from '@/lib/utils/format';
@@ -120,21 +120,21 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
         value: votingData.votesFor,
         percentage: (votingData.votesFor / totalVotes) * 100,
         color: chartColors.semantic.success,
-        lightColor: '#d1fae5',
+        lightColor: semanticColors.success.light,
       },
       {
         label: '反对',
         value: votingData.votesAgainst,
         percentage: (votingData.votesAgainst / totalVotes) * 100,
         color: chartColors.semantic.danger,
-        lightColor: '#fee2e2',
+        lightColor: semanticColors.danger.light,
       },
       {
         label: '弃权',
         value: votingData.votesAbstain,
         percentage: (votingData.votesAbstain / totalVotes) * 100,
         color: chartColors.recharts.tick,
-        lightColor: '#f3f4f6',
+        lightColor: baseColors.gray[100],
       },
     ];
   }, [votingData, totalVotes]);
@@ -158,7 +158,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             {segments.map((segment, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 " style={{ backgroundColor: segment.color }} />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: segment.color }} />
                   <span className="text-sm text-gray-600">{segment.label}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -197,9 +197,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                 {formatNumber(totalVotes, true)} / {formatNumber(votingData.quorum, true)}
               </span>
             </div>
-            <div className="h-2 bg-gray-100  overflow-hidden">
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full  transition-all duration-500 ${
+                className={`h-full rounded-full transition-all duration-500 ${
                   isQuorumReached ? 'bg-green-500' : 'bg-blue-500'
                 }`}
                 style={{ width: `${Math.min(quorumProgress, 100)}%` }}
@@ -224,9 +224,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
                 {supportRate.toFixed(1)}% / {votingData.threshold}%
               </span>
             </div>
-            <div className="h-2 bg-gray-100  overflow-hidden">
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full  transition-all duration-500 ${
+                className={`h-full rounded-full transition-all duration-500 ${
                   isThresholdReached ? 'bg-green-500' : 'bg-yellow-500'
                 }`}
                 style={{ width: `${Math.min((supportRate / votingData.threshold) * 100, 100)}%` }}
@@ -237,7 +237,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
         {/* Status Badge */}
         <div
-          className={`p-3  ${
+          className={`p-3 rounded-lg ${
             isQuorumReached && isThresholdReached
               ? 'bg-green-50 border border-green-200'
               : isQuorumReached
@@ -390,7 +390,7 @@ function ValidatorVoteList({
                 <button
                   key={pos}
                   onClick={() => setFilterPosition(pos)}
-                  className={`px-3 py-1.5 text-xs font-medium  transition-all ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                     filterPosition === pos
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -407,7 +407,7 @@ function ValidatorVoteList({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-1.5 text-xs border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="power">投票权</option>
               <option value="time">时间</option>
@@ -422,7 +422,7 @@ function ValidatorVoteList({
             const count = validatorVotes.filter((v) => v.position === pos).length;
             const config = positionConfig[pos];
             return (
-              <div key={pos} className={`p-3  border ${config.borderColor} ${config.bgColor}`}>
+              <div key={pos} className={`p-3 rounded-lg border ${config.borderColor} ${config.bgColor}`}>
                 <div className="flex items-center gap-2">
                   <span className={config.color}>{config.icon}</span>
                   <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
@@ -480,7 +480,7 @@ function ValidatorVoteList({
                     </td>
                     <td className="py-3 px-3 text-center">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium  ${config.bgColor} ${config.color}`}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded ${config.bgColor} ${config.color}`}
                       >
                         {config.icon}
                         {config.label}
@@ -496,9 +496,9 @@ function ValidatorVoteList({
                     </td>
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <div className="w-16 h-1.5 bg-gray-200  overflow-hidden">
+                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className={`h-full  ${
+                            className={`h-full rounded-full ${
                               vote.reputation >= 90
                                 ? 'bg-green-500'
                                 : vote.reputation >= 80
@@ -547,11 +547,11 @@ export function DisputeVotingPanel({ votingData, loading = false }: DisputeVotin
   if (loading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200  p-6 animate-pulse">
+        <div className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
-          <div className="h-40 bg-gray-200  mx-auto w-40"></div>
+          <div className="h-40 bg-gray-200 rounded-full mx-auto w-40"></div>
         </div>
-        <div className="bg-white border border-gray-200  p-6 animate-pulse">
+        <div className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (

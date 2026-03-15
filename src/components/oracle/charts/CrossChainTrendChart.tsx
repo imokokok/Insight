@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -10,11 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Brush,
 } from 'recharts';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+import { useI18n } from '@/lib/i18n/provider';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
 
@@ -81,23 +83,23 @@ const METRIC_CONFIG: Record<
   MetricType,
   { label: string; unit: string; icon: typeof Activity; color: string }
 > = {
-  price: { label: '价格', unit: '$', icon: DollarSign, color: '#3b82f6' },
-  requests: { label: '请求量', unit: '', icon: Activity, color: '#10b981' },
-  gas: { label: 'Gas费用', unit: 'Gwei', icon: Fuel, color: '#f59e0b' },
+  price: { label: '价格', unit: '$', icon: DollarSign, color: chartColors.recharts.primary },
+  requests: { label: '请求量', unit: '', icon: Activity, color: semanticColors.success.DEFAULT },
+  gas: { label: 'Gas费用', unit: 'Gwei', icon: Fuel, color: semanticColors.warning.DEFAULT },
 };
 
 // 链颜色映射
 const CHAIN_COLORS: Record<string, string> = {
-  Ethereum: '#627EEA',
-  'BNB Chain': '#F3BA2F',
-  Polygon: '#8247E5',
-  Arbitrum: '#28A0F0',
-  Optimism: '#FF0420',
-  Avalanche: '#E84142',
-  Fantom: '#1969FF',
-  Base: '#0052FF',
-  zkSync: '#8C8DFC',
-  Linea: '#00D395',
+  Ethereum: chainColors.ethereum,
+  'BNB Chain': chainColors.bnbChain,
+  Polygon: chainColors.polygon,
+  Arbitrum: chainColors.arbitrum,
+  Optimism: chainColors.optimism,
+  Avalanche: chainColors.avalanche,
+  Fantom: chainColors.fantom,
+  Base: chainColors.base,
+  zkSync: chainColors.zkSync,
+  Linea: chainColors.linea,
 };
 
 // ============================================
@@ -250,7 +252,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
   const config = METRIC_CONFIG[metric];
 
   return (
-    <div className="bg-white border border-gray-200  p-3  min-w-[180px]">
+    <div className="bg-white border border-gray-200 p-3 min-w-[180px]" style={{ boxShadow: shadowColors.tooltip }}>
       <p className="text-xs text-gray-500 mb-2 font-medium">{label}</p>
       <div className="space-y-1.5">
         {payload
@@ -259,7 +261,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
           .map((item, index) => (
             <div key={index} className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 " style={{ backgroundColor: item.color }} />
+                <span className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
                 <span className="text-xs text-gray-600">{item.dataKey}</span>
               </div>
               <span className="text-xs font-semibold text-gray-900">
@@ -291,7 +293,7 @@ function MetricButton({ metric, currentMetric, onClick }: MetricButtonProps) {
     <button
       onClick={() => onClick(metric)}
       className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-        isActive ? 'bg-white  ring-1 ring-gray-200' : 'hover:bg-gray-100 text-gray-600'
+        isActive ? 'bg-white ring-1 ring-gray-200' : 'hover:bg-gray-100 text-gray-600'
       }`}
       style={{
         color: isActive ? config.color : undefined,
@@ -317,7 +319,7 @@ function TimeRangeButton({ range, currentRange, onClick }: TimeRangeButtonProps)
     <button
       onClick={() => onClick(range)}
       className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-        isActive ? 'bg-blue-500 text-white ' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        isActive ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
       {label}
@@ -346,9 +348,9 @@ function ChainLegendItem({ chain, color, data, metric }: ChainLegendItemProps) {
   const config = METRIC_CONFIG[metric];
 
   return (
-    <div className="flex items-center justify-between p-2 bg-gray-50 ">
+    <div className="flex items-center justify-between p-2 bg-gray-50">
       <div className="flex items-center gap-2">
-        <span className="w-3 h-3 " style={{ backgroundColor: color }} />
+        <span className="w-3 h-3" style={{ backgroundColor: color }} />
         <span className="text-xs font-medium text-gray-700">{chain}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -454,7 +456,7 @@ export function CrossChainTrendChart({
   const headerContent = (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-gray-100  p-1">
+        <div className="flex items-center gap-2 bg-gray-100 p-1">
           {(Object.keys(METRIC_CONFIG) as MetricType[]).map((m) => (
             <MetricButton key={m} metric={m} currentMetric={metric} onClick={setMetric} />
           ))}
@@ -478,7 +480,7 @@ export function CrossChainTrendChart({
       <div className="space-y-4">
         {/* 统计卡片 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">当前总和</p>
             <p className="text-lg font-bold text-blue-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -488,7 +490,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">平均值</p>
             <p className="text-lg font-bold text-purple-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -498,7 +500,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">最高值</p>
             <p className="text-lg font-bold text-green-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -508,7 +510,7 @@ export function CrossChainTrendChart({
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
           </div>
-          <div className="p-3 bg-gray-100 border border-gray-200 ">
+          <div className="p-3 bg-gray-100 border border-gray-200">
             <p className="text-xs text-gray-600 mb-1">最低值</p>
             <p className="text-lg font-bold text-orange-700">
               {metric === 'price' && currentMetricConfig.unit}
@@ -524,7 +526,7 @@ export function CrossChainTrendChart({
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent  animate-spin" />
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent animate-spin" />
               <p className="text-sm text-gray-500">加载中...</p>
             </div>
           </div>

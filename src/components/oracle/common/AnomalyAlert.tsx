@@ -73,17 +73,19 @@ const PROVIDER_NAMES: Record<OracleProvider, string> = {
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
+import { chartColors } from '@/lib/config/colors';
+
 const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: '#375BD2',
-  [OracleProvider.PYTH]: '#E6B800',
-  [OracleProvider.BAND_PROTOCOL]: '#516BEB',
-  [OracleProvider.UMA]: '#FF4D4D',
-  [OracleProvider.API3]: '#7B3FE4',
-  [OracleProvider.REDSTONE]: '#FF4D4D',
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
+  [OracleProvider.PYTH]: chartColors.marketOverview.pyth,
+  [OracleProvider.BAND_PROTOCOL]: chartColors.marketOverview.band,
+  [OracleProvider.UMA]: chartColors.marketOverview.uma,
+  [OracleProvider.API3]: chartColors.oracle.api3,
+  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 const SEVERITY_COLORS = {

@@ -30,7 +30,7 @@ import { ChartExportData } from '@/utils/chartExport';
 import { downsampleData } from '@/utils/downsampling';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { createLogger } from '@/lib/utils/logger';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { useUMARealtimePrice, UMAPriceData } from '@/hooks/useUMARealtime';
 import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
 import { useBrushZoom } from '@/hooks/useChartZoom';
@@ -560,12 +560,12 @@ export function PriceChart({
   const connectionStatusClass = useMemo(() => {
     switch (umaConnectionStatus) {
       case 'connected':
-        return 'bg-green-500 animate-pulse';
+        return { backgroundColor: semanticColors.success.DEFAULT, animation: 'pulse' };
       case 'connecting':
       case 'reconnecting':
-        return 'bg-yellow-500 animate-pulse';
+        return { backgroundColor: semanticColors.warning.DEFAULT, animation: 'pulse' };
       default:
-        return 'bg-red-500';
+        return { backgroundColor: semanticColors.danger.DEFAULT };
     }
   }, [umaConnectionStatus]);
 
@@ -580,24 +580,26 @@ export function PriceChart({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div>
-                <span className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                <span className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`} style={{ color: baseColors.gray[900] }}>
                   ${currentPrice.toFixed(4)}
                 </span>
                 <span
-                  className={`ml-2 text-sm font-medium ${
-                    priceChange.percent >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
+                  className="ml-2 text-sm font-medium"
+                  style={{ color: priceChange.percent >= 0 ? semanticColors.success.dark : semanticColors.danger.dark }}
                 >
                   {priceChange.percent >= 0 ? '+' : ''}
                   {priceChange.percent.toFixed(2)}%
                 </span>
               </div>
               {isUMAClient && realtimeEnabled && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 ">
-                  <span className={`w-2 h-2  ${connectionStatusClass}`} />
-                  <span className="text-xs text-gray-600">{connectionStatusText}</span>
+                <div className="flex items-center gap-1.5 px-2 py-1" style={{ backgroundColor: baseColors.gray[100] }}>
+                  <span
+                    className={`w-2 h-2 ${connectionStatusClass.animation === 'pulse' ? 'animate-pulse' : ''}`}
+                    style={{ backgroundColor: connectionStatusClass.backgroundColor }}
+                  />
+                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>{connectionStatusText}</span>
                   {umaRealtimePrice && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                       {t('priceChart.confidence')}: {(umaRealtimePrice.confidence * 100).toFixed(1)}
                       %
                     </span>
@@ -638,17 +640,27 @@ export function PriceChart({
           <div className={`flex flex-wrap items-center gap-2 ${isMobile ? 'gap-1' : ''}`}>
             {!isMobile && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{t('priceChart.granularity')}:</span>
-                <div className="flex items-center gap-1 bg-gray-100  p-1">
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.granularity')}:</span>
+                <div className="flex items-center gap-1 p-1" style={{ backgroundColor: baseColors.gray[100] }}>
                   {(Object.keys(GRANULARITY_CONFIG) as DataGranularity[]).map((g) => (
                     <button
                       key={g}
                       onClick={() => setGranularity(g)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                        granularity === g
-                          ? 'bg-white text-blue-600 '
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      style={{
+                        backgroundColor: granularity === g ? baseColors.gray[50] : 'transparent',
+                        color: granularity === g ? baseColors.primary[600] : baseColors.gray[600],
+                      }}
+                      onMouseEnter={(e) => {
+                        if (granularity !== g) {
+                          e.currentTarget.style.color = baseColors.gray[900];
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (granularity !== g) {
+                          e.currentTarget.style.color = baseColors.gray[600];
+                        }
+                      }}
                     >
                       {GRANULARITY_CONFIG[g].label}
                     </button>
@@ -658,94 +670,149 @@ export function PriceChart({
             )}
 
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>
                 {t('priceChart.indicators')}:
               </span>
               <div
-                className={`flex items-center gap-1 bg-gray-100  p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}
+                className={`flex items-center gap-1 p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}
+                style={{ backgroundColor: baseColors.gray[100] }}
               >
                 {!isMobile && (
                   <button
                     onClick={toggleBollingerBands}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                      showBollingerBands
-                        ? 'bg-white text-purple-600 '
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                    style={{
+                      backgroundColor: showBollingerBands ? baseColors.gray[50] : 'transparent',
+                      color: showBollingerBands ? chartColors.recharts.purple : baseColors.gray[600],
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showBollingerBands) e.currentTarget.style.color = baseColors.gray[900];
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showBollingerBands) e.currentTarget.style.color = baseColors.gray[600];
+                    }}
                     title={t('priceChart.bollingerBands')}
                   >
-                    <span className="w-2 h-2  bg-purple-500" />
+                    <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.purple }} />
                     {t('priceChart.bollingerBands')}
                   </button>
                 )}
                 <button
                   onClick={toggleMA7}
-                  className={`px-3 py-1.5 font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${isMobile ? 'text-[10px] px-2' : 'text-xs'} ${
-                    showMA7 ? 'bg-white text-amber-600 ' : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${isMobile ? 'text-[10px] px-2' : 'text-xs px-3 py-1.5'}`}
+                  style={{
+                    backgroundColor: showMA7 ? baseColors.gray[50] : 'transparent',
+                    color: showMA7 ? chartColors.recharts.warning : baseColors.gray[600],
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showMA7) e.currentTarget.style.color = baseColors.gray[900];
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showMA7) e.currentTarget.style.color = baseColors.gray[600];
+                  }}
                   title={t('priceChart.ma7')}
                 >
-                  <span className="w-2 h-2  bg-amber-500" />
+                  <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.warning }} />
                   MA7
                 </button>
                 {!isMobile && (
                   <button
                     onClick={toggleMA14}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                      showMA14 ? 'bg-white text-blue-600 ' : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                    style={{
+                      backgroundColor: showMA14 ? baseColors.gray[50] : 'transparent',
+                      color: showMA14 ? baseColors.primary[600] : baseColors.gray[600],
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[900];
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[600];
+                    }}
                     title={t('priceChart.ma14')}
                   >
-                    <span className="w-2 h-2  bg-blue-500" />
+                    <span className="w-2 h-2" style={{ backgroundColor: baseColors.primary[500] }} />
                     MA14
                   </button>
                 )}
                 {!isMobile && (
                   <button
                     onClick={toggleMA30}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                      showMA30 ? 'bg-white text-indigo-600 ' : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                    style={{
+                      backgroundColor: showMA30 ? baseColors.gray[50] : 'transparent',
+                      color: showMA30 ? chartColors.recharts.purple : baseColors.gray[600],
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[900];
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[600];
+                    }}
                     title={t('priceChart.ma30')}
                   >
-                    <span className="w-2 h-2  bg-indigo-500" />
+                    <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.purple }} />
                     MA30
                   </button>
                 )}
 
                 {!isMobile && (
                   <>
-                    <div className="w-px h-4 bg-gray-300 mx-1" />
+                    <div className="w-px h-4 mx-1" style={{ backgroundColor: baseColors.gray[300] }} />
                     <button
                       onClick={toggleRSI}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showRSI ? 'bg-white text-green-600 ' : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                      style={{
+                        backgroundColor: showRSI ? baseColors.gray[50] : 'transparent',
+                        color: showRSI ? semanticColors.success.dark : baseColors.gray[600],
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!showRSI) e.currentTarget.style.color = baseColors.gray[900];
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!showRSI) e.currentTarget.style.color = baseColors.gray[600];
+                      }}
                       title={t('priceChart.rsi')}
                     >
-                      <span className="w-2 h-2  bg-green-500" />
+                      <span className="w-2 h-2" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
                       RSI
                     </button>
                     <button
                       onClick={toggleMACD}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showMACD ? 'bg-white text-red-600 ' : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                      style={{
+                        backgroundColor: showMACD ? baseColors.gray[50] : 'transparent',
+                        color: showMACD ? semanticColors.danger.dark : baseColors.gray[600],
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!showMACD) e.currentTarget.style.color = baseColors.gray[900];
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!showMACD) e.currentTarget.style.color = baseColors.gray[600];
+                      }}
                       title={t('priceChart.macd')}
                     >
-                      <span className="w-2 h-2  bg-red-500" />
+                      <span className="w-2 h-2" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
                       MACD
                     </button>
 
-                    <div className="w-px h-4 bg-gray-300 mx-1" />
+                    <div className="w-px h-4 mx-1" style={{ backgroundColor: baseColors.gray[300] }} />
                     <button
                       onClick={toggleVolume}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${
-                        showVolume ? 'bg-white text-cyan-600 ' : 'text-gray-600 hover:text-gray-900'
-                      }`}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
+                      style={{
+                        backgroundColor: showVolume ? baseColors.gray[50] : 'transparent',
+                        color: showVolume ? chartColors.recharts.cyan : baseColors.gray[600],
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!showVolume) e.currentTarget.style.color = baseColors.gray[900];
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!showVolume) e.currentTarget.style.color = baseColors.gray[600];
+                      }}
                       title={t('priceChart.volume')}
                     >
-                      <span className="w-2 h-2  bg-cyan-500" />
+                      <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.cyan }} />
                       {t('priceChart.volume')}
                     </button>
                   </>
@@ -755,13 +822,13 @@ export function PriceChart({
           </div>
 
           {showComparisonPanel && (
-            <div className="p-4 bg-purple-50  border border-purple-100">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">
+            <div className="p-4" style={{ backgroundColor: baseColors.primary[50], border: `1px solid ${baseColors.primary[100]}` }}>
+              <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[700] }}>
                 {t('priceChart.timeComparison')}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs text-gray-600 font-medium">
+                  <label className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
                     {t('priceChart.timePeriod1')}
                   </label>
                   <div className="flex items-center gap-2">
@@ -771,21 +838,23 @@ export function PriceChart({
                       onChange={(e) =>
                         setComparison((prev) => ({ ...prev, period1Start: e.target.value }))
                       }
-                      className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
+                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
                     />
-                    <span className="text-xs text-gray-400">{t('priceChart.to')}</span>
+                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>{t('priceChart.to')}</span>
                     <input
                       type="date"
                       value={comparison.period1End}
                       onChange={(e) =>
                         setComparison((prev) => ({ ...prev, period1End: e.target.value }))
                       }
-                      className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
+                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs text-gray-600 font-medium">
+                  <label className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
                     {t('priceChart.timePeriod2')}
                   </label>
                   <div className="flex items-center gap-2">
@@ -795,16 +864,18 @@ export function PriceChart({
                       onChange={(e) =>
                         setComparison((prev) => ({ ...prev, period2Start: e.target.value }))
                       }
-                      className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
+                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
                     />
-                    <span className="text-xs text-gray-400">{t('priceChart.to')}</span>
+                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>{t('priceChart.to')}</span>
                     <input
                       type="date"
                       value={comparison.period2End}
                       onChange={(e) =>
                         setComparison((prev) => ({ ...prev, period2End: e.target.value }))
                       }
-                      className="px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
+                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
                     />
                   </div>
                 </div>
@@ -818,7 +889,11 @@ export function PriceChart({
                     !comparison.period2Start ||
                     !comparison.period2End
                   }
-                  className="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded-md min-h-[44px] min-w-[44px]"
+                  style={{
+                    backgroundColor: (!comparison.period1Start || !comparison.period1End || !comparison.period2Start || !comparison.period2End) ? baseColors.gray[300] : baseColors.primary[600],
+                    cursor: (!comparison.period1Start || !comparison.period1End || !comparison.period2Start || !comparison.period2End) ? 'not-allowed' : 'pointer',
+                  }}
                 >
                   {t('priceChart.startComparison')}
                 </button>
@@ -833,7 +908,12 @@ export function PriceChart({
                     });
                     setShowComparisonPanel(false);
                   }}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 min-h-[44px] min-w-[44px]"
+                  className="px-3 py-1.5 text-xs font-medium rounded-md min-h-[44px] min-w-[44px]"
+                  style={{
+                    backgroundColor: baseColors.gray[50],
+                    border: `1px solid ${baseColors.gray[200]}`,
+                    color: baseColors.gray[600],
+                  }}
                 >
                   {t('priceChart.cancelComparison')}
                 </button>
@@ -845,8 +925,12 @@ export function PriceChart({
 
       <div
         ref={chartContainerRef}
-        className={`flex-1 min-h-0 bg-gray-50  transition-all duration-300 ${isRefreshing ? 'ring-2 ring-blue-400 ring-opacity-50' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}
-        style={{ opacity: chartOpacity }}
+        className={`flex-1 min-h-0 transition-all duration-300 ${isRefreshing ? 'ring-2' : ''} ${isMobile ? 'p-1' : 'p-2 sm:p-4'}`}
+        style={{
+          opacity: chartOpacity,
+          backgroundColor: baseColors.gray[50],
+          boxShadow: isRefreshing ? `0 0 0 2px ${baseColors.primary[400]}80` : undefined,
+        }}
       >
         <ResponsiveContainer width="100%" height={chartHeights.main}>
           <ComposedChart
@@ -915,7 +999,7 @@ export function PriceChart({
                 verticalAlign="top"
                 height={36}
                 formatter={(value) => (
-                  <span className="text-xs text-gray-600">
+                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>
                     {value === 'price' ? t('priceChart.timePeriod1') : t('priceChart.timePeriod2')}
                   </span>
                 )}
@@ -1167,10 +1251,10 @@ export function PriceChart({
         {showRSI && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
-              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[600] }}>
                 RSI
               </span>
-              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[400] }}>
                 {t('priceChart.rsiPeriod')}
               </span>
             </div>
@@ -1249,10 +1333,10 @@ export function PriceChart({
         {showMACD && (
           <div className={`${isMobile ? 'mt-1' : 'mt-2'}`}>
             <div className="flex items-center justify-between px-2 mb-1">
-              <span className={`font-medium text-gray-600 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`font-medium ${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[600] }}>
                 MACD
               </span>
-              <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[400] }}>
                 {t('priceChart.macdPeriod')}
               </span>
             </div>
@@ -1343,18 +1427,18 @@ export function PriceChart({
           className={`flex items-center justify-center gap-4 mt-3 flex-wrap ${isMobile ? 'gap-2' : ''}`}
         >
           <div className="flex items-center gap-2">
-            <span className={`bg-blue-500  ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`} />
-            <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+            <span className={`${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`} style={{ backgroundColor: chartColors.recharts.primary }} />
+            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>
               {t('priceChart.price')}
             </span>
           </div>
           {comparison.enabled && (
             <div className="flex items-center gap-2">
               <span
-                className={`bg-purple-500  ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
-                style={{ borderTop: '2px dashed #8b5cf6' }}
+                className={`${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
+                style={{ borderTop: `2px dashed ${chartColors.recharts.purple}` }}
               />
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>
                 {t('priceChart.comparisonPrice')}
               </span>
             </div>
@@ -1362,48 +1446,48 @@ export function PriceChart({
           {showMA7 && (
             <div className="flex items-center gap-2">
               <span
-                className={`bg-amber-500  border-dashed ${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
-                style={{ borderTop: '2px dashed #f59e0b' }}
+                className={`${isMobile ? 'w-2 h-0.5' : 'w-3 h-0.5'}`}
+                style={{ borderTop: `2px dashed ${chartColors.recharts.warning}` }}
               />
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>MA7</span>
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>MA7</span>
             </div>
           )}
           {!isMobile && showBollingerBands && (
             <>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-purple-500/10 border border-purple-500 border-dashed rounded" />
-                <span className="text-xs text-gray-500">{t('priceChart.bollingerBands')}</span>
+                <span className="w-3 h-3 rounded" style={{ backgroundColor: `${chartColors.recharts.purple}1A`, border: `1px dashed ${chartColors.recharts.purple}` }} />
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.bollingerBands')}</span>
               </div>
             </>
           )}
           {!isMobile && showRSI && (
             <div className="flex items-center gap-2">
-              <span className="w-3 h-0.5 bg-green-500 " />
-              <span className="text-xs text-gray-500">RSI</span>
+              <span className="w-3 h-0.5" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>RSI</span>
             </div>
           )}
           {!isMobile && showMACD && (
             <>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-blue-500 " />
-                <span className="text-xs text-gray-500">MACD</span>
+                <span className="w-3 h-0.5" style={{ backgroundColor: chartColors.macd.line }} />
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>MACD</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-0.5 bg-orange-500 " />
-                <span className="text-xs text-gray-500">{t('priceChart.signal')}</span>
+                <span className="w-3 h-0.5" style={{ backgroundColor: chartColors.macd.signal }} />
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.signal')}</span>
               </div>
             </>
           )}
           {!isMobile && showVolume && (
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-500/30 rounded" />
-              <span className="text-xs text-gray-500">{t('priceChart.volume')}</span>
+              <span className="w-3 h-3 rounded" style={{ backgroundColor: `${semanticColors.success.DEFAULT}4D` }} />
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('priceChart.volume')}</span>
             </div>
           )}
           {anomalyDetectionEnabled && anomalies.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className={`bg-red-500  ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`} />
-              <span className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+              <span className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`} style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`} style={{ color: baseColors.gray[500] }}>
                 {t('priceChart.anomalyPoints')} ({anomalies.length})
               </span>
             </div>

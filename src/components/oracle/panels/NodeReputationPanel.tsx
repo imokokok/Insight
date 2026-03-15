@@ -17,7 +17,7 @@ import {
   Legend,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, shadowColors, baseColors } from '@/lib/config/colors';
 
 type NodeType = 'data_provider' | 'validator' | 'aggregator';
 
@@ -255,9 +255,9 @@ function AccuracyStats({
                 t('nodeReputation.tooltip.accuracy'),
               ]}
               contentStyle={{
-                backgroundColor: '#ffffff',
+                backgroundColor: baseColors.gray[50],
                 border: `1px solid ${chartColors.recharts.grid}`,
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                boxShadow: shadowColors.tooltip,
               }}
             />
             <Bar dataKey="accuracy" fill={chartColors.recharts.primary} >
@@ -335,9 +335,9 @@ function ResponseTimeDistribution({
                 t('nodeReputation.tooltip.responseCount'),
               ]}
               contentStyle={{
-                backgroundColor: '#ffffff',
+                backgroundColor: baseColors.gray[50],
                 border: `1px solid ${chartColors.recharts.grid}`,
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                boxShadow: shadowColors.tooltip,
               }}
             />
             <Bar dataKey="count" fill={chartColors.recharts.primary} >
@@ -536,9 +536,9 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
                 t('nodeReputation.tooltip.nodeCount'),
               ]}
               contentStyle={{
-                backgroundColor: '#ffffff',
+                backgroundColor: baseColors.gray[50],
                 border: `1px solid ${chartColors.recharts.grid}`,
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                boxShadow: shadowColors.tooltip,
               }}
             />
             <Legend

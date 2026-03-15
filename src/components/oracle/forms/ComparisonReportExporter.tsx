@@ -2,7 +2,7 @@
 
 import { useState, useCallback, RefObject } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { exportColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { exportColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ComparisonReportExporter');
@@ -270,7 +270,14 @@ export function ComparisonReportExporter({
       {/* 导出按钮 */}
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white  hover:bg-green-700 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+        style={{ backgroundColor: semanticColors.success.dark }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = semanticColors.success.DEFAULT;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = semanticColors.success.dark;
+        }}
         title="导出报告"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,12 +293,13 @@ export function ComparisonReportExporter({
       {/* 导出选项模态框 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white   max-w-md w-full mx-4">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">导出对比报告</h3>
+          <div className="bg-white rounded-lg max-w-md w-full mx-4" style={{ boxShadow: shadowColors.medium }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: baseColors.gray[100] }}>
+              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>导出对比报告</h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                style={{ color: baseColors.gray[400] }}
+                className="hover:text-gray-600"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -300,7 +308,7 @@ export function ComparisonReportExporter({
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm" style={{ color: baseColors.gray[600] }}>
                 选择要导出的格式。CSV 适合数据分析，PNG 适合展示分享，JSON 适合程序处理。
               </p>
 
@@ -310,14 +318,24 @@ export function ComparisonReportExporter({
                     exportToCSV();
                     setShowModal(false);
                   }}
-                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                  className="flex items-center gap-3 p-4 border rounded-lg transition-colors text-left"
+                  style={{ borderColor: baseColors.gray[200] }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = baseColors.primary[500];
+                    e.currentTarget.style.backgroundColor = baseColors.primary[50];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = baseColors.gray[200];
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                 >
-                  <div className="p-2 bg-green-100 ">
+                  <div className="p-2 rounded" style={{ backgroundColor: semanticColors.success.light }}>
                     <svg
-                      className="w-6 h-6 text-green-600"
+                      className="w-6 h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      style={{ color: semanticColors.success.DEFAULT }}
                     >
                       <path
                         strokeLinejoin="round"
@@ -327,8 +345,8 @@ export function ComparisonReportExporter({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">导出为 CSV</p>
-                    <p className="text-sm text-gray-500">适用于 Excel 或数据分析</p>
+                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>导出为 CSV</p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>适用于 Excel 或数据分析</p>
                   </div>
                 </button>
 
@@ -338,14 +356,26 @@ export function ComparisonReportExporter({
                     setShowModal(false);
                   }}
                   disabled={isExporting}
-                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
+                  className="flex items-center gap-3 p-4 border rounded-lg transition-colors text-left disabled:opacity-50"
+                  style={{ borderColor: baseColors.gray[200] }}
+                  onMouseEnter={(e) => {
+                    if (!isExporting) {
+                      e.currentTarget.style.borderColor = baseColors.primary[500];
+                      e.currentTarget.style.backgroundColor = baseColors.primary[50];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = baseColors.gray[200];
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                 >
-                  <div className="p-2 bg-purple-100 ">
+                  <div className="p-2 rounded" style={{ backgroundColor: baseColors.primary[100] }}>
                     <svg
-                      className="w-6 h-6 text-purple-600"
+                      className="w-6 h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      style={{ color: baseColors.primary[600] }}
                     >
                       <path
                         strokeLinejoin="round"
@@ -355,10 +385,10 @@ export function ComparisonReportExporter({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>
                       {isExporting ? '导出中...' : '导出为 PNG'}
                     </p>
-                    <p className="text-sm text-gray-500">保存为图片格式</p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>保存为图片格式</p>
                   </div>
                 </button>
 
@@ -367,14 +397,24 @@ export function ComparisonReportExporter({
                     exportToJSON();
                     setShowModal(false);
                   }}
-                  className="flex items-center gap-3 p-4 border border-gray-200  hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                  className="flex items-center gap-3 p-4 border rounded-lg transition-colors text-left"
+                  style={{ borderColor: baseColors.gray[200] }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = baseColors.primary[500];
+                    e.currentTarget.style.backgroundColor = baseColors.primary[50];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = baseColors.gray[200];
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                 >
-                  <div className="p-2 bg-blue-100 ">
+                  <div className="p-2 rounded" style={{ backgroundColor: baseColors.primary[100] }}>
                     <svg
-                      className="w-6 h-6 text-blue-600"
+                      className="w-6 h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      style={{ color: baseColors.primary[600] }}
                     >
                       <path
                         strokeLinejoin="round"
@@ -384,17 +424,24 @@ export function ComparisonReportExporter({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">导出为 JSON</p>
-                    <p className="text-sm text-gray-500">适用于程序处理</p>
+                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>导出为 JSON</p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>适用于程序处理</p>
                   </div>
                 </button>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 -xl">
+            <div className="px-6 py-4 rounded-b-lg" style={{ backgroundColor: baseColors.gray[50] }}>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-full px-4 py-2 bg-gray-200 text-gray-800  hover:bg-gray-300 transition-colors"
+                className="w-full px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: baseColors.gray[200], color: baseColors.gray[800] }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = baseColors.gray[300];
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = baseColors.gray[200];
+                }}
               >
                 取消
               </button>
@@ -434,25 +481,25 @@ export function FullReportExporter({
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f5f5f5;
+      background: ${baseColors.gray[100]};
       padding: 40px;
-      color: #333;
+      color: ${baseColors.gray[700]};
     }
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      background: white;
+      background: ${exportColors.background};
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: ${shadowColors.tooltip};
       padding: 40px;
     }
     h1 {
       font-size: 28px;
       margin-bottom: 8px;
-      color: #111;
+      color: ${baseColors.gray[900]};
     }
     .subtitle {
-      color: #666;
+      color: ${baseColors.gray[600]};
       margin-bottom: 32px;
     }
     .section {
@@ -463,7 +510,7 @@ export function FullReportExporter({
       font-weight: 600;
       margin-bottom: 16px;
       padding-bottom: 8px;
-      border-bottom: 2px solid #e5e5e5;
+      border-bottom: 2px solid ${baseColors.gray[200]};
     }
     .stats-grid {
       display: grid;
@@ -472,14 +519,14 @@ export function FullReportExporter({
       margin-bottom: 24px;
     }
     .stat-card {
-      background: #f9fafb;
+      background: ${baseColors.gray[50]};
       border-radius: 8px;
       padding: 16px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid ${baseColors.gray[200]};
     }
     .stat-label {
       font-size: 12px;
-      color: #6b7280;
+      color: ${baseColors.gray[500]};
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 4px;
@@ -487,7 +534,7 @@ export function FullReportExporter({
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #111;
+      color: ${baseColors.gray[900]};
     }
     table {
       width: 100%;
@@ -497,17 +544,17 @@ export function FullReportExporter({
     th, td {
       text-align: left;
       padding: 12px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid ${baseColors.gray[200]};
     }
     th {
-      background: #f9fafb;
+      background: ${baseColors.gray[50]};
       font-weight: 600;
       font-size: 12px;
       text-transform: uppercase;
-      color: #6b7280;
+      color: ${baseColors.gray[500]};
     }
     tr:hover {
-      background: #f9fafb;
+      background: ${baseColors.gray[50]};
     }
     .badge {
       display: inline-block;
@@ -516,15 +563,15 @@ export function FullReportExporter({
       font-size: 12px;
       font-weight: 500;
     }
-    .badge-green { background: #d1fae5; color: #065f46; }
-    .badge-yellow { background: #fef3c7; color: #92400e; }
-    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-green { background: ${semanticColors.success.light}; color: ${semanticColors.success.text}; }
+    .badge-yellow { background: ${semanticColors.warning.light}; color: ${semanticColors.warning.text}; }
+    .badge-red { background: ${semanticColors.danger.light}; color: ${semanticColors.danger.text}; }
     .footer {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid ${baseColors.gray[200]};
       text-align: center;
-      color: #9ca3af;
+      color: ${baseColors.gray[400]};
       font-size: 12px;
     }
   </style>
@@ -630,7 +677,16 @@ export function FullReportExporter({
     <button
       onClick={generateFullReport}
       disabled={isGenerating}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50"
+      className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50"
+      style={{ backgroundColor: baseColors.primary[600] }}
+      onMouseEnter={(e) => {
+        if (!isGenerating) {
+          e.currentTarget.style.backgroundColor = baseColors.primary[700];
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = baseColors.primary[600];
+      }}
     >
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

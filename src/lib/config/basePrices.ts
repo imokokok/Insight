@@ -24,6 +24,12 @@ export interface BasePrices {
   DAI: number;
   WBTC: number;
   WETH: number;
+  AAVE: number;
+  MKR: number;
+  SNX: number;
+  COMP: number;
+  YFI: number;
+  CRV: number;
   [key: string]: number;
 }
 
@@ -49,6 +55,12 @@ const DEFAULT_BASE_PRICES: BasePrices = {
   DAI: 1,
   WBTC: 68000,
   WETH: 3500,
+  AAVE: 95,
+  MKR: 1650,
+  SNX: 2.8,
+  COMP: 65,
+  YFI: 7500,
+  CRV: 0.45,
 };
 
 function getBasePrices(): BasePrices {

@@ -1,11 +1,12 @@
 'use client';
 
 import { Blockchain } from '@/lib/oracles';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 import { chainColors, SparklineProps, ProgressBarProps, JumpIndicatorProps } from '../constants';
 
 export function Sparkline({ data, color, width = 80, height = 20 }: SparklineProps) {
   if (!data || data.length < 2) {
-    return <span className="text-gray-400 text-xs">-</span>;
+    return <span className="text-gray-400 text-xs" style={{ color: baseColors.gray[400] }}>-</span>;
   }
 
   const recentData = data.slice(-20);
@@ -45,7 +46,7 @@ export function ProgressBar({
   const percentage = Math.min((value / max) * 100, 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-gray-200 overflow-hidden min-w-[60px]">
+      <div className="flex-1 h-2 overflow-hidden min-w-[60px]" style={{ backgroundColor: baseColors.gray[200] }}>
         <div
           className="h-full transition-all duration-300"
           style={{
@@ -55,7 +56,7 @@ export function ProgressBar({
         />
       </div>
       {showValue && (
-        <span className="text-xs font-mono text-gray-600 min-w-[45px] text-right">
+        <span className="text-xs font-mono min-w-[45px] text-right" style={{ color: baseColors.gray[600] }}>
           {value.toFixed(1)}
           {suffix}
         </span>
@@ -66,9 +67,9 @@ export function ProgressBar({
 
 export function JumpIndicator({ count }: JumpIndicatorProps) {
   const getJumpColor = (cnt: number): string => {
-    if (cnt < 3) return '#10B981';
-    if (cnt <= 5) return '#F59E0B';
-    return '#EF4444';
+    if (cnt < 3) return semanticColors.success.main;
+    if (cnt <= 5) return semanticColors.warning.main;
+    return semanticColors.danger.main;
   };
 
   const color = getJumpColor(count);
@@ -81,12 +82,12 @@ export function JumpIndicator({ count }: JumpIndicatorProps) {
             key={level}
             className="w-2 h-4"
             style={{
-              backgroundColor: count >= level ? color : '#E5E7EB',
+              backgroundColor: count >= level ? color : baseColors.gray[200],
             }}
           />
         ))}
       </div>
-      <span className="text-xs font-mono text-gray-600">{count}</span>
+      <span className="text-xs font-mono" style={{ color: baseColors.gray[600] }}>{count}</span>
     </div>
   );
 }
@@ -95,8 +96,12 @@ export function TrendIndicator({ changePercent }: { changePercent: number | null
   if (changePercent === null) return null;
   const isPositive = changePercent >= 0;
   return (
-    <span className={`text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-      {isPositive ? '↑' : '↓'} {Math.abs(changePercent).toFixed(2)}%
+    <span
+      className="text-xs font-medium"
+      style={{ color: isPositive ? semanticColors.success.main : semanticColors.danger.main }}
+    >
+      {isPositive ? '+' : ''}
+      {Math.abs(changePercent).toFixed(1)}%
     </span>
   );
 }

@@ -13,6 +13,7 @@ import {
   AnomalyData,
 } from '@/app/market-overview/types';
 import { ExportConfig, ExportDataType, generateExportFileName } from '@/lib/export/exportConfig';
+import { baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('marketData:priceCalculations');
 
@@ -218,7 +219,7 @@ function exportToExcel(config: ExportConfig, data: ExportDataOptions): Blob {
   workbook.push('  <Styles>');
   workbook.push('    <Style ss:ID="header">');
   workbook.push('      <Font ss:Bold="1"/>');
-  workbook.push('      <Interior ss:Color="#C0C0C0" ss:Pattern="Solid"/>');
+  workbook.push('      <Interior ss:Color={baseColors.gray[400]} ss:Pattern="Solid"/>');
   workbook.push('    </Style>');
   workbook.push('  </Styles>');
 

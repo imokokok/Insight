@@ -1,578 +1,411 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ComposedChart,
   Line,
+  Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  Area,
-  Bar,
   ReferenceLine,
+  CartesianGrid,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
-import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
-import { calculateBollingerBandsExtended } from '@/lib/indicators';
-import type { PriceDataPoint } from '@/lib/indicators';
+import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
-export interface OraclePriceHistory {
-  oracle: OracleProvider;
-  prices: PriceDataPoint[];
-}
-
-export interface BollingerBandsProps {
-  data: OraclePriceHistory[];
-  oracleNames?: Partial<Record<OracleProvider, string>>;
-  className?: string;
-  defaultPeriod?: number;
-  defaultMultiplier?: number;
-}
-
-const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
-};
-
-const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-  [OracleProvider.UMA]: chartColors.oracle.uma,
-  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
-  [OracleProvider.API3]: chartColors.oracle.api3,
-  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
-};
-
-interface BollingerResult {
-  timestamp: string;
-  rawTimestamp: number;
+interface BollingerDataPoint {
+  timestamp: number;
   price: number;
-  middle: number;
   upper: number;
+  middle: number;
   lower: number;
   bandwidth: number;
-  bandwidthPercent: number;
-  position: number;
-  squeeze: boolean;
-  breakout: 'upper' | 'lower' | null;
+  percentB: number;
 }
 
-function getPositionDescription(position: number): string {
-  if (position > 1) return '超买区';
-  if (position > 0.5) return '强势区';
-  if (position > -0.5) return '中性区';
-  if (position > -1) return '弱势区';
-  return '超卖区';
-}
-
-function getPositionColor(position: number): string {
-  if (position > 1) return chartColors.semantic.danger;
-  if (position > 0.5) return chartColors.semantic.warning;
-  if (position > -0.5) return chartColors.recharts.tick;
-  if (position > -1) return chartColors.semantic.success;
-  return '#059669';
+interface BollingerBandsProps {
+  data: Array<{
+    timestamp: number;
+    price: number;
+    high: number;
+    low: number;
+    close: number;
+  }>;
+  period?: number;
+  multiplier?: number;
+  height?: number;
+  showBandwidth?: boolean;
 }
 
 export function BollingerBands({
   data,
-  oracleNames: customOracleNames,
-  className,
-  defaultPeriod = 20,
-  defaultMultiplier = 2,
+  period = 20,
+  multiplier = 2,
+  height = 300,
+  showBandwidth = true,
 }: BollingerBandsProps) {
-  const { t } = useI18n();
-  const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
-  const [selectedOracle, setSelectedOracle] = useState<OracleProvider>(
-    data[0]?.oracle || OracleProvider.CHAINLINK
-  );
-  const [period, setPeriod] = useState(defaultPeriod);
-  const [multiplier, setMultiplier] = useState(defaultMultiplier);
-  const [showSqueeze, setShowSqueeze] = useState(true);
+  const processedData = useMemo(() => {
+    if (data.length < period) return [];
 
-  const selectedOracleData = useMemo(() => {
-    return data.find((d) => d.oracle === selectedOracle);
-  }, [data, selectedOracle]);
+    const result: BollingerDataPoint[] = [];
 
-  const chartData = useMemo(() => {
-    if (!selectedOracleData) return [];
+    for (let i = period - 1; i < data.length; i++) {
+      // Calculate SMA (middle band)
+      let sum = 0;
+      for (let j = i - period + 1; j <= i; j++) {
+        sum += data[j].close;
+      }
+      const sma = sum / period;
 
-    const pricesWithTimestamp = selectedOracleData.prices.map((p, i) => ({
-      ...p,
-      timestamp: p.timestamp || i,
-    }));
+      // Calculate standard deviation
+      let varianceSum = 0;
+      for (let j = i - period + 1; j <= i; j++) {
+        varianceSum += Math.pow(data[j].close - sma, 2);
+      }
+      const stdDev = Math.sqrt(varianceSum / period);
 
-    const result = calculateBollingerBandsExtended(pricesWithTimestamp, period, multiplier);
-    const sortedPrices = [...pricesWithTimestamp].sort(
-      (a, b) => (a.timestamp || 0) - (b.timestamp || 0)
-    );
+      // Calculate bands
+      const upper = sma + multiplier * stdDev;
+      const lower = sma - multiplier * stdDev;
 
-    let previousBandwidth = 0;
+      // Calculate bandwidth (%)
+      const bandwidth = ((upper - lower) / sma) * 100;
 
-    return sortedPrices.map((point, i) => {
-      const bandwidth = result.bandwidth[i];
-      const bandwidthPercent = result.bandwidthPercent[i];
-      const squeeze =
-        bandwidthPercent < 5 || (previousBandwidth > 0 && bandwidth < previousBandwidth * 0.8);
+      // Calculate %B
+      const percentB = ((data[i].close - lower) / (upper - lower)) * 100;
 
-      let breakout: 'upper' | 'lower' | null = null;
-      if (point.price > result.upper[i]) breakout = 'upper';
-      else if (point.price < result.lower[i]) breakout = 'lower';
-
-      previousBandwidth = bandwidth;
-
-      return {
-        timestamp: new Date(point.timestamp || 0).toLocaleTimeString('zh-CN', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        rawTimestamp: point.timestamp || 0,
-        price: point.price,
-        middle: result.middle[i],
-        upper: result.upper[i],
-        lower: result.lower[i],
+      result.push({
+        timestamp: data[i].timestamp,
+        price: data[i].close,
+        upper,
+        middle: sma,
+        lower,
         bandwidth,
-        bandwidthPercent,
-        position: result.position[i],
-        squeeze,
-        breakout,
-      } as BollingerResult;
-    });
-  }, [selectedOracleData, period, multiplier]);
+        percentB: Math.max(0, Math.min(100, percentB)),
+      });
+    }
 
-  const stats = useMemo(() => {
-    if (chartData.length === 0) return null;
+    return result;
+  }, [data, period, multiplier]);
 
-    const validData = chartData.filter((d) => !isNaN(d.middle));
-    const lastPoint = validData[validData.length - 1];
+  const statistics = useMemo(() => {
+    if (processedData.length === 0) return null;
 
-    const avgBandwidth =
-      validData.reduce((sum, d) => sum + d.bandwidthPercent, 0) / (validData.length || 1);
+    const bandwidths = processedData.map((d) => d.bandwidth);
+    const percentBs = processedData.map((d) => d.percentB);
 
-    const squeezeCount = validData.filter((d) => d.squeeze).length;
-    const squeezePercent = (squeezeCount / validData.length) * 100;
+    const avgBandwidth = bandwidths.reduce((a, b) => a + b, 0) / bandwidths.length;
+    const currentBandwidth = bandwidths[bandwidths.length - 1];
+    const minBandwidth = Math.min(...bandwidths);
+    const maxBandwidth = Math.max(...bandwidths);
 
-    const upperBreakouts = validData.filter((d) => d.breakout === 'upper').length;
-    const lowerBreakouts = validData.filter((d) => d.breakout === 'lower').length;
-
-    const maxBandwidth = Math.max(...validData.map((d) => d.bandwidthPercent));
-    const minBandwidth = Math.min(...validData.map((d) => d.bandwidthPercent));
+    const currentPercentB = percentBs[percentBs.length - 1];
+    const touchesUpper = percentBs.filter((p) => p >= 95).length;
+    const touchesLower = percentBs.filter((p) => p <= 5).length;
 
     return {
-      currentPosition: lastPoint.position,
-      currentBandwidth: lastPoint.bandwidthPercent,
       avgBandwidth,
-      squeezePercent,
-      upperBreakouts,
-      lowerBreakouts,
-      maxBandwidth,
+      currentBandwidth,
       minBandwidth,
-      positionDescription: getPositionDescription(lastPoint.position),
+      maxBandwidth,
+      currentPercentB,
+      touchesUpper,
+      touchesLower,
+      squeeze: currentBandwidth < avgBandwidth * 0.6,
+      expansion: currentBandwidth > avgBandwidth * 1.4,
     };
-  }, [chartData]);
+  }, [processedData]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
-
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
-        <p className="text-sm font-semibold text-gray-900 mb-2">{data.timestamp}</p>
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">价格</span>
-            <span className="text-sm font-bold">${data.price.toFixed(2)}</span>
+      <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-lg">
+        <p className="text-sm font-medium text-gray-900 mb-2">{formatTime(label)}</p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">价格:</span>
+            <span className="text-sm font-mono font-medium">${data.price.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">中轨 (SMA{period})</span>
-            <span className="text-sm font-medium text-blue-600">${data.middle.toFixed(2)}</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm" style={{ color: semanticColors.danger.DEFAULT }}>上轨:</span>
+            <span className="text-sm font-mono">${data.upper.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">上轨</span>
-            <span className="text-sm font-medium text-green-600">${data.upper.toFixed(2)}</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm" style={{ color: chartColors.recharts.tick }}>中轨:</span>
+            <span className="text-sm font-mono">${data.middle.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">下轨</span>
-            <span className="text-sm font-medium text-red-600">${data.lower.toFixed(2)}</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm" style={{ color: semanticColors.success.DEFAULT }}>下轨:</span>
+            <span className="text-sm font-mono">${data.lower.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">带宽 %</span>
-            <span className="text-sm font-medium">{data.bandwidthPercent.toFixed(2)}%</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">带宽:</span>
+            <span className="text-sm font-mono">{data.bandwidth.toFixed(2)}%</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">位置系数</span>
-            <span
-              className="text-sm font-medium"
-              style={{ color: getPositionColor(data.position) }}
-            >
-              {data.position.toFixed(2)}
-            </span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-gray-600">%B:</span>
+            <span className="text-sm font-mono">{data.percentB.toFixed(2)}%</span>
           </div>
-          {data.squeeze && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">状态</span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-700">
-                挤压
-              </span>
-            </div>
-          )}
-          {data.breakout && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">突破</span>
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${
-                  data.breakout === 'upper'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
-                }`}
-              >
-                {data.breakout === 'upper' ? '向上突破' : '向下突破'}
-              </span>
-            </div>
-          )}
         </div>
       </div>
     );
   };
 
-  if (!selectedOracleData) {
+  if (processedData.length === 0) {
     return (
-      <DashboardCard title="布林带 (Bollinger Bands)" className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">暂无数据</div>
-      </DashboardCard>
+      <div className="flex items-center justify-center h-48 text-gray-400">
+        <p>数据不足，需要至少 {period} 个数据点</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <DashboardCard title="布林带 (Bollinger Bands)" className={className}>
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">预言机:</span>
-              <select
-                value={selectedOracle}
-                onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {data.map((oracleData) => (
-                  <option key={oracleData.oracle} value={oracleData.oracle}>
-                    {oracleNames[oracleData.oracle]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">周期:</span>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(Number(e.target.value))}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={30}>30</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">标准差倍数:</span>
-              <select
-                value={multiplier}
-                onChange={(e) => setMultiplier(Number(e.target.value))}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={1.5}>1.5</option>
-                <option value={2}>2</option>
-                <option value={2.5}>2.5</option>
-                <option value={3}>3</option>
-              </select>
-            </div>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showSqueeze}
-                onChange={(e) => setShowSqueeze(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-600">高亮挤压区域</span>
-            </label>
+    <div className="space-y-4">
+      {/* Statistics */}
+      {statistics && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">当前带宽</p>
+            <p
+              className="text-lg font-bold"
+              style={{
+                color: statistics.squeeze
+                  ? semanticColors.warning.DEFAULT
+                  : statistics.expansion
+                    ? semanticColors.danger.DEFAULT
+                    : baseColors.gray[900],
+              }}
+            >
+              {statistics.currentBandwidth.toFixed(2)}%
+            </p>
+            {statistics.squeeze && (
+              <p className="text-xs" style={{ color: semanticColors.warning.DEFAULT }}>挤压</p>
+            )}
+            {statistics.expansion && (
+              <p className="text-xs" style={{ color: semanticColors.danger.DEFAULT }}>扩张</p>
+            )}
           </div>
-
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">当前位置</p>
-                <p
-                  className="text-xl font-bold"
-                  style={{ color: getPositionColor(stats.currentPosition) }}
-                >
-                  {stats.positionDescription}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  系数: {stats.currentPosition.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">带宽 %</p>
-                <p className="text-xl font-bold text-purple-600">
-                  {stats.currentBandwidth.toFixed(2)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">平均: {stats.avgBandwidth.toFixed(2)}%</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">挤压时间占比</p>
-                <p className="text-xl font-bold text-amber-600">
-                  {stats.squeezePercent.toFixed(1)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">预示潜在突破</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">突破统计</p>
-                <p className="text-xl font-bold text-green-600">
-                  ↑{stats.upperBreakouts} ↓{stats.lowerBreakouts}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">上/下突破次数</p>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">布林带价格通道</h4>
-            <div style={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) => `$${value.toFixed(0)}`}
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-
-                  <Area
-                    type="monotone"
-                    dataKey="upper"
-                    stroke="none"
-                    fill={chartColors.semantic.success}
-                    fillOpacity={0.1}
-                    name="上轨"
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="lower"
-                    stroke="none"
-                    fill={chartColors.recharts.white}
-                    fillOpacity={1}
-                    name="下轨"
-                  />
-
-                  <Line
-                    type="monotone"
-                    dataKey="upper"
-                    stroke={chartColors.semantic.success}
-                    strokeWidth={1.5}
-                    dot={false}
-                    name={`上轨 (SMA${period}+${multiplier}σ)`}
-                  />
-
-                  <Line
-                    type="monotone"
-                    dataKey="middle"
-                    stroke={chartColors.recharts.tick}
-                    strokeWidth={1.5}
-                    strokeDasharray="5 5"
-                    dot={false}
-                    name={`中轨 (SMA${period})`}
-                  />
-
-                  <Line
-                    type="monotone"
-                    dataKey="lower"
-                    stroke={chartColors.semantic.danger}
-                    strokeWidth={1.5}
-                    dot={false}
-                    name={`下轨 (SMA${period}-${multiplier}σ)`}
-                  />
-
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke={ORACLE_COLORS[selectedOracle]}
-                    strokeWidth={2.5}
-                    dot={(props: any) => {
-                      const { cx, cy, payload } = props;
-                      if (payload.breakout === 'upper') {
-                        return (
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={4}
-                            fill={chartColors.semantic.success}
-                            stroke={chartColors.recharts.white}
-                            strokeWidth={2}
-                          />
-                        );
-                      }
-                      if (payload.breakout === 'lower') {
-                        return (
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={4}
-                            fill={chartColors.semantic.danger}
-                            stroke={chartColors.recharts.white}
-                            strokeWidth={2}
-                          />
-                        );
-                      }
-                      return <></>;
-                    }}
-                    name="价格"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">%B 位置</p>
+            <p
+              className="text-lg font-bold"
+              style={{
+                color:
+                  statistics.currentPercentB >= 95
+                    ? semanticColors.danger.DEFAULT
+                    : statistics.currentPercentB <= 5
+                      ? semanticColors.success.DEFAULT
+                      : baseColors.gray[900],
+              }}
+            >
+              {statistics.currentPercentB.toFixed(1)}%
+            </p>
           </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">带宽百分比趋势</h4>
-            <div style={{ height: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) => `${value.toFixed(1)}%`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="bandwidthPercent"
-                    stroke={chartColors.recharts.purple}
-                    fill={chartColors.recharts.purple}
-                    fillOpacity={0.2}
-                    name="带宽 %"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">触及上轨</p>
+            <p className="text-lg font-bold" style={{ color: semanticColors.danger.DEFAULT }}>
+              {statistics.touchesUpper} 次
+            </p>
           </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">价格位置系数</h4>
-            <div style={{ height: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    minTickGap={40}
-                  />
-                  <YAxis
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    domain={[-1.5, 1.5]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="position"
-                    stroke={chartColors.recharts.primary}
-                    strokeWidth={2}
-                    dot={false}
-                    name="位置系数"
-                  />
-                  <ReferenceLine
-                    y={1}
-                    stroke={chartColors.semantic.success}
-                    strokeDasharray="3 3"
-                    label="上轨边界"
-                  />
-                  <ReferenceLine
-                    y={-1}
-                    stroke={chartColors.semantic.danger}
-                    strokeDasharray="3 3"
-                    label="下轨边界"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-blue-50  p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">布林带指标说明</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • <strong>中轨</strong>: {period}周期简单移动平均线 (SMA{period})
-              </li>
-              <li>
-                • <strong>上轨/下轨</strong>: 中轨 ± {multiplier} × 标准差，包含约
-                {multiplier === 2
-                  ? '95'
-                  : multiplier === 1.5
-                    ? '87'
-                    : multiplier === 2.5
-                      ? '99'
-                      : '99.7'}
-                %的价格数据
-              </li>
-              <li>
-                • <strong>带宽 %</strong>: (上轨 - 下轨) / 中轨 × 100%，反映波动性大小
-              </li>
-              <li>
-                • <strong>位置系数</strong>: (价格 - 中轨) / ({multiplier} ×
-                标准差)，-1到1之间为正常区间
-              </li>
-              <li>
-                • <strong>挤压 (Squeeze)</strong>: 带宽收窄，预示即将出现大行情
-              </li>
-              <li>
-                • <strong>突破</strong>: 价格突破上轨或下轨，可能预示趋势延续或反转
-              </li>
-            </ul>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">触及下轨</p>
+            <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+              {statistics.touchesLower} 次
+            </p>
           </div>
         </div>
-      </DashboardCard>
+      )}
+
+      {/* Main Chart */}
+      <div style={{ height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+            <XAxis
+              dataKey="timestamp"
+              tickFormatter={formatTime}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              tickLine={false}
+            />
+            <YAxis
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              tickLine={false}
+              width={60}
+              tickFormatter={(value) => `$${value.toFixed(0)}`}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+
+            {/* %B reference lines */}
+            <ReferenceLine y={0} stroke={chartColors.recharts.grid} strokeDasharray="3 3" />
+            <ReferenceLine
+              y={processedData[processedData.length - 1]?.upper}
+              stroke={semanticColors.danger.DEFAULT}
+              strokeDasharray="5 5"
+              strokeOpacity={0.5}
+            />
+            <ReferenceLine
+              y={processedData[processedData.length - 1]?.lower}
+              stroke={semanticColors.success.DEFAULT}
+              strokeDasharray="5 5"
+              strokeOpacity={0.5}
+            />
+
+            {/* Bollinger Bands Area */}
+            <Area
+              type="monotone"
+              dataKey="upper"
+              stroke="none"
+              fill={baseColors.primary[100]}
+              fillOpacity={0.3}
+              name="上轨"
+            />
+            <Area
+              type="monotone"
+              dataKey="lower"
+              stroke="none"
+              fill="white"
+              fillOpacity={1}
+              name="下轨区域"
+            />
+
+            {/* Band lines */}
+            <Line
+              type="monotone"
+              dataKey="upper"
+              stroke={semanticColors.danger.DEFAULT}
+              strokeWidth={1.5}
+              dot={false}
+              name="上轨"
+            />
+            <Line
+              type="monotone"
+              dataKey="middle"
+              stroke={chartColors.recharts.tick}
+              strokeWidth={1.5}
+              strokeDasharray="5 5"
+              dot={false}
+              name="中轨 (SMA)"
+            />
+            <Line
+              type="monotone"
+              dataKey="lower"
+              stroke={semanticColors.success.DEFAULT}
+              strokeWidth={1.5}
+              dot={false}
+              name="下轨"
+            />
+
+            {/* Price line */}
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke={chartColors.recharts.chainlink}
+              strokeWidth={2}
+              dot={false}
+              name="价格"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5" style={{ backgroundColor: chartColors.recharts.chainlink }} />
+          <span className="text-gray-600">价格</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+          <span className="text-gray-600">上轨</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5" style={{ backgroundColor: chartColors.recharts.tick }} />
+          <span className="text-gray-600">中轨 (SMA {period})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+          <span className="text-gray-600">下轨</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-3 rounded" style={{ backgroundColor: baseColors.primary[100] }} />
+          <span className="text-gray-600">布林带区域</span>
+        </div>
+      </div>
+
+      {/* Bandwidth Chart */}
+      {showBandwidth && (
+        <div className="pt-4 border-t border-gray-200">
+          <p className="text-sm font-medium text-gray-700 mb-2">带宽指标 (Bandwidth)</p>
+          <div style={{ height: 100 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={processedData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.3} />
+                <XAxis
+                  dataKey="timestamp"
+                  tickFormatter={formatTime}
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
+                  tickLine={false}
+                  width={40}
+                  tickFormatter={(value) => `${value.toFixed(0)}%`}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload || payload.length === 0) return null;
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-lg">
+                        <p className="text-xs text-gray-600">带宽: {data.bandwidth.toFixed(2)}%</p>
+                      </div>
+                    );
+                  }}
+                  cursor={{ fill: animationColors.fade.cursor }}
+                />
+                {statistics && (
+                  <>
+                    <ReferenceLine
+                      y={statistics.avgBandwidth}
+                      stroke={chartColors.recharts.tick}
+                      strokeDasharray="3 3"
+                    />
+                    <ReferenceLine
+                      y={statistics.avgBandwidth * 0.6}
+                      stroke={semanticColors.warning.DEFAULT}
+                      strokeDasharray="3 3"
+                    />
+                  </>
+                )}
+                <Area
+                  type="monotone"
+                  dataKey="bandwidth"
+                  stroke={chartColors.recharts.purple}
+                  fill={chartColors.recharts.purple}
+                  fillOpacity={0.2}
+                  name="带宽"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default BollingerBands;

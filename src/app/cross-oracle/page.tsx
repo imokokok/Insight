@@ -43,7 +43,9 @@ import {
   TabNavigation,
   StatsSection,
   PriceTableSection,
+  PairSelector,
 } from './components';
+import { symbols } from './constants';
 import { useCrossOraclePage } from './useCrossOraclePage';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
@@ -247,7 +249,6 @@ export default function CrossOraclePage() {
         calculateChangePercent={calculateChangePercent}
         getConsistencyRating={getConsistencyRating}
         t={t}
-        onSymbolChange={setSelectedSymbol}
       />
 
       <PriceTableSection
@@ -263,7 +264,6 @@ export default function CrossOraclePage() {
         avgPrice={avgPrice}
         standardDeviation={standardDeviation}
         validPrices={validPrices}
-        selectedSymbol={selectedSymbol}
         selectedOracles={selectedOracles}
         oracleChartColors={oracleChartColors}
         onSort={handleSort}
@@ -271,7 +271,6 @@ export default function CrossOraclePage() {
         onSetHoveredRow={setHoveredRowIndex}
         onSetSelectedRow={setSelectedRowIndex}
         onHoverOracle={setHoveredOracle}
-        onSymbolChange={setSelectedSymbol}
         onToggleOracle={toggleOracle}
         t={t}
       />
@@ -582,7 +581,7 @@ export default function CrossOraclePage() {
                   activeDot={{
                     r: hoveredOracle === oracle ? 8 : 6,
                     strokeWidth: 2,
-                    stroke: '#ffffff',
+                    stroke: baseColors.gray[50],
                     fill: oracleChartColors[oracle],
                   }}
                   onMouseEnter={() => setHoveredOracle(oracle)}
@@ -767,10 +766,10 @@ export default function CrossOraclePage() {
         @keyframes pulse-highlight {
           0%,
           100% {
-            box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+            box-shadow: 0 0 0 0 ${chartColors.recharts.warning}B3;
           }
           50% {
-            box-shadow: 0 0 0 8px rgba(251, 191, 36, 0);
+            box-shadow: 0 0 0 8px ${chartColors.recharts.warning}00;
           }
         }
         .outlier-highlight-pulse {
@@ -831,9 +830,19 @@ export default function CrossOraclePage() {
       )}
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b border-gray-200">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t('crossOracle.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">{t('crossOracle.title')}</h1>
+            <p className="text-sm text-gray-500 mt-1">{t('crossOracle.subtitle')}</p>
+          </div>
+          <div className="hidden sm:block">
+            <PairSelector
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              symbols={symbols}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
         <div className="flex items-center gap-2 mt-4 md:mt-0 flex-wrap">
           <div className="relative" ref={filterPanelRef}>
@@ -1192,7 +1201,7 @@ export default function CrossOraclePage() {
                     activeDot={{
                       r: 6,
                       strokeWidth: 2,
-                      stroke: '#ffffff',
+                      stroke: baseColors.gray[50],
                       fill: oracleChartColors[oracle],
                     }}
                   />
@@ -1215,14 +1224,14 @@ export default function CrossOraclePage() {
             <div className="flex items-center gap-2">
               <span
                 className="w-5 h-3"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.15)' }}
+                style={{ backgroundColor: chartColors.chart.blueLight }}
               />
               <span>±1 标准差范围</span>
             </div>
             <div className="flex items-center gap-2">
               <span
                 className="w-5 h-3"
-                style={{ backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
+                style={{ backgroundColor: baseColors.primary[300] }}
               />
               <span>±2 标准差范围</span>
             </div>

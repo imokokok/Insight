@@ -13,7 +13,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
 type QualityStatus = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -84,36 +84,40 @@ const ORACLE_COLORS: Record<string, string> = {
 
 const getStatusConfig = (t: (key: string) => string) => ({
   excellent: {
-    color: 'text-green-600',
-    bgColor: 'bg-green-500',
-    lightBg: 'bg-green-50',
-    borderColor: 'border-green-200',
+    color: semanticColors.success.DEFAULT,
+    bgColor: semanticColors.success.DEFAULT,
+    lightBg: semanticColors.success.light,
+    borderColor: semanticColors.success.light,
     label: t('dataQuality.excellent'),
     score: 90,
+    semanticColor: semanticColors.success.DEFAULT,
   },
   good: {
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500',
-    lightBg: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    color: baseColors.primary[600],
+    bgColor: baseColors.primary[500],
+    lightBg: baseColors.primary[50],
+    borderColor: baseColors.primary[100],
     label: t('dataQuality.good'),
     score: 70,
+    semanticColor: baseColors.primary[500],
   },
   warning: {
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-500',
-    lightBg: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
+    color: semanticColors.warning.DEFAULT,
+    bgColor: semanticColors.warning.DEFAULT,
+    lightBg: semanticColors.warning.light,
+    borderColor: semanticColors.warning.light,
     label: t('dataQuality.warning'),
     score: 50,
+    semanticColor: semanticColors.warning.DEFAULT,
   },
   critical: {
-    color: 'text-red-600',
-    bgColor: 'bg-red-500',
-    lightBg: 'bg-red-50',
-    borderColor: 'border-red-200',
+    color: semanticColors.danger.DEFAULT,
+    bgColor: semanticColors.danger.DEFAULT,
+    lightBg: semanticColors.danger.light,
+    borderColor: semanticColors.danger.light,
     label: t('dataQuality.critical'),
     score: 30,
+    semanticColor: semanticColors.danger.DEFAULT,
   },
 });
 
@@ -343,24 +347,27 @@ function PriceDeviationCard({
           return (
             <div
               key={item.oracle}
-              className="flex items-center justify-between p-3 bg-gray-50  hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-between p-3 hover:bg-gray-100 transition-colors"
+              style={{ backgroundColor: baseColors.gray[50] }}
             >
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 " style={{ backgroundColor: ORACLE_COLORS[item.oracle] }} />
-                <span className="font-medium text-gray-900 text-sm">{item.oracle}</span>
+                <span className="font-medium text-sm" style={{ color: baseColors.gray[900] }}>{item.oracle}</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm font-mono text-gray-900">${item.price.toFixed(4)}</p>
+                  <p className="text-sm font-mono" style={{ color: baseColors.gray[900] }}>${item.price.toFixed(4)}</p>
                   <p
-                    className={`text-xs ${item.deviationPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    className="text-xs"
+                    style={{ color: item.deviationPercent >= 0 ? semanticColors.success.DEFAULT : semanticColors.danger.DEFAULT }}
                   >
                     {item.deviationPercent >= 0 ? '+' : ''}
                     {item.deviationPercent.toFixed(3)}%
                   </p>
                 </div>
                 <span
-                  className={`px-2 py-1 text-xs font-medium  ${config.lightBg} ${config.color}`}
+                  className="px-2 py-1 text-xs font-medium"
+                  style={{ backgroundColor: config.lightBg, color: config.color }}
                 >
                   {config.label}
                 </span>
@@ -456,15 +463,15 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
 
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-green-500 rounded" />
+          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
           <span className="text-xs text-gray-500">{t('dataQuality.normal')} (&lt;0.2%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-yellow-500 rounded" />
+          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
           <span className="text-xs text-gray-500">{t('dataQuality.warningRange')} (0.2-0.5%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 bg-red-500 rounded" />
+          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
           <span className="text-xs text-gray-500">{t('dataQuality.criticalRange')} (&gt;0.5%)</span>
         </div>
       </div>
@@ -571,7 +578,7 @@ function LatencyDistributionChart({
           <Bar dataKey="percentage">
             {data.map((entry, index) => {
               let color: string = chartColors.semantic.success;
-              if (index >= 7) color = '#f43f5e';
+              if (index >= 7) color = semanticColors.danger.DEFAULT;
               else if (index >= 5) color = chartColors.semantic.warning;
               else if (index >= 3) color = chartColors.recharts.primary;
               return <Cell key={`cell-${index}`} fill={color} />;
@@ -915,7 +922,14 @@ export function DataQualityPanel({
           </span>
           <button
             onClick={updateData}
-            className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm font-medium  hover:bg-blue-100 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium transition-colors"
+            style={{ backgroundColor: baseColors.primary[50], color: baseColors.primary[600] }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = baseColors.primary[100];
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = baseColors.primary[50];
+            }}
           >
             {t('dataQuality.refreshData')}
           </button>

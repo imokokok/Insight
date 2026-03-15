@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { calculateCDF, CDFResult } from '@/lib/utils/statistics';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface CDFChartProps {
   data: number[];
@@ -44,7 +45,7 @@ export function CDFChart({
   height = 350,
   showPercentileLabels = true,
   showGrid = true,
-  color = '#3b82f6',
+  color = chartColors.recharts.primaryLight,
 }: CDFChartProps) {
   const { t } = useI18n();
 
@@ -56,21 +57,21 @@ export function CDFChart({
         key: 'p50',
         value: cdfResult.p50,
         label: 'P50',
-        color: '#10b981',
+        color: semanticColors.success.DEFAULT,
         description: t('cdfChart.p50Desc') || '50% 的数据低于此值',
       },
       {
         key: 'p95',
         value: cdfResult.p95,
         label: 'P95',
-        color: '#f59e0b',
+        color: semanticColors.warning.DEFAULT,
         description: t('cdfChart.p95Desc') || '95% 的数据低于此值',
       },
       {
         key: 'p99',
         value: cdfResult.p99,
         label: 'P99',
-        color: '#f43f5e',
+        color: semanticColors.danger.DEFAULT,
         description: t('cdfChart.p99Desc') || '99% 的数据低于此值',
       },
     ],
@@ -117,7 +118,7 @@ export function CDFChart({
     );
 
     return (
-      <div className="bg-white border border-gray-200  p-3  min-w-[180px]">
+      <div className="bg-white border border-gray-200 rounded p-3 min-w-[180px]">
         <p className="text-xs text-gray-500 font-medium mb-2">{t('cdfChart.latency') || '延迟'}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -153,7 +154,7 @@ export function CDFChart({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white border border-gray-200  p-5 ${className}`}>
+      <div className={`bg-white border border-gray-200 rounded p-5 ${className}`}>
         <div className="text-center py-10">
           <p className="text-gray-500">{t('cdfChart.noData') || '暂无数据'}</p>
         </div>
@@ -181,7 +182,7 @@ export function CDFChart({
         {percentileConfig.map((item) => (
           <div
             key={item.key}
-            className="bg-white border border-gray-200  p-4"
+            className="bg-white border border-gray-200 rounded p-4"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
           >
             <div className="flex items-center justify-between mb-2">
@@ -204,7 +205,7 @@ export function CDFChart({
       {/* Statistics Grid */}
       <div className="grid grid-cols-5 gap-3">
         {stats.map((item) => (
-          <div key={item.label} className="bg-white border border-gray-200  p-3 text-center">
+          <div key={item.label} className="bg-white border border-gray-200 rounded p-3 text-center">
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>
@@ -213,7 +214,7 @@ export function CDFChart({
       </div>
 
       {/* CDF Chart */}
-      <div className="bg-white border border-gray-200  p-5">
+      <div className="bg-white border border-gray-200 rounded p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('cdfChart.chartTitle') || 'CDF 曲线'}
@@ -225,36 +226,36 @@ export function CDFChart({
 
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={cdfResult.points} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
+            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />}
             <XAxis
               dataKey="value"
               type="number"
               domain={[cdfResult.min, cdfResult.max]}
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               label={{
                 value: t('cdfChart.xAxisLabel') || '延迟 (ms)',
                 position: 'insideBottom',
                 offset: -10,
-                fill: '#6b7280',
+                fill: chartColors.recharts.tick,
                 fontSize: 11,
               }}
             />
             <YAxis
               dataKey="probability"
               domain={[0, 100]}
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               tickFormatter={(value) => `${value}%`}
               label={{
                 value: t('cdfChart.yAxisLabel') || '累积概率 (%)',
                 angle: -90,
                 position: 'insideLeft',
-                fill: '#6b7280',
+                fill: chartColors.recharts.tick,
                 fontSize: 11,
               }}
             />
@@ -276,7 +277,7 @@ export function CDFChart({
               stroke={color}
               strokeWidth={2.5}
               dot={false}
-              activeDot={{ r: 5, fill: color, stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: color, stroke: baseColors.gray[50], strokeWidth: 2 }}
             />
 
             {/* Percentile Reference Lines */}
@@ -284,39 +285,39 @@ export function CDFChart({
               <>
                 <ReferenceLine
                   x={cdfResult.p50}
-                  stroke="#10b981"
+                  stroke={semanticColors.success.DEFAULT}
                   strokeDasharray="5 5"
                   strokeWidth={2}
                   label={{
                     value: 'P50',
                     position: 'top',
-                    fill: '#10b981',
+                    fill: semanticColors.success.DEFAULT,
                     fontSize: 11,
                     fontWeight: 600,
                   }}
                 />
                 <ReferenceLine
                   x={cdfResult.p95}
-                  stroke="#f59e0b"
+                  stroke={semanticColors.warning.DEFAULT}
                   strokeDasharray="5 5"
                   strokeWidth={2}
                   label={{
                     value: 'P95',
                     position: 'top',
-                    fill: '#f59e0b',
+                    fill: semanticColors.warning.DEFAULT,
                     fontSize: 11,
                     fontWeight: 600,
                   }}
                 />
                 <ReferenceLine
                   x={cdfResult.p99}
-                  stroke="#f43f5e"
+                  stroke={semanticColors.danger.DEFAULT}
                   strokeDasharray="5 5"
                   strokeWidth={2}
                   label={{
                     value: 'P99',
                     position: 'top',
-                    fill: '#f43f5e',
+                    fill: semanticColors.danger.DEFAULT,
                     fontSize: 11,
                     fontWeight: 600,
                   }}
@@ -327,32 +328,42 @@ export function CDFChart({
                   x={cdfResult.p50}
                   y={50}
                   r={5}
-                  fill="#10b981"
-                  stroke="#fff"
+                  fill={semanticColors.success.DEFAULT}
+                  stroke={baseColors.gray[50]}
                   strokeWidth={2}
                 />
                 <ReferenceDot
                   x={cdfResult.p95}
                   y={95}
                   r={5}
-                  fill="#f59e0b"
-                  stroke="#fff"
+                  fill={semanticColors.warning.DEFAULT}
+                  stroke={baseColors.gray[50]}
                   strokeWidth={2}
                 />
                 <ReferenceDot
                   x={cdfResult.p99}
                   y={99}
                   r={5}
-                  fill="#f43f5e"
-                  stroke="#fff"
+                  fill={semanticColors.danger.DEFAULT}
+                  stroke={baseColors.gray[50]}
                   strokeWidth={2}
                 />
               </>
             )}
 
             {/* 50% reference line */}
-            <ReferenceLine y={50} stroke="#6b7280" strokeDasharray="3 3" strokeOpacity={0.5} />
-            <ReferenceLine y={95} stroke="#6b7280" strokeDasharray="3 3" strokeOpacity={0.5} />
+            <ReferenceLine
+              y={50}
+              stroke={chartColors.recharts.secondaryAxis}
+              strokeDasharray="3 3"
+              strokeOpacity={0.5}
+            />
+            <ReferenceLine
+              y={95}
+              stroke={chartColors.recharts.secondaryAxis}
+              strokeDasharray="3 3"
+              strokeOpacity={0.5}
+            />
           </LineChart>
         </ResponsiveContainer>
 
@@ -363,22 +374,22 @@ export function CDFChart({
             <span className="text-xs text-gray-500">{t('cdfChart.cdfCurve') || 'CDF 曲线'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-green-500 " />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
             <span className="text-xs text-gray-500">P50 (中位数)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-yellow-500 " />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
             <span className="text-xs text-gray-500">P95</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 " />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
             <span className="text-xs text-gray-500">P99</span>
           </div>
         </div>
       </div>
 
       {/* CDF Explanation */}
-      <div className="bg-blue-50  p-4">
+      <div className="bg-blue-50 rounded p-4">
         <h4 className="text-sm font-medium text-blue-900 mb-2">
           {t('cdfChart.aboutTitle') || '关于累积分布函数 (CDF)'}
         </h4>

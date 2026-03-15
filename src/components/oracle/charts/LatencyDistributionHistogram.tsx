@@ -13,6 +13,7 @@ import {
   Cell,
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { CDFChart } from './CDFChart';
 import { LatencyTrendMiniChart, LatencyDataPoint } from './LatencyTrendMiniChart';
 
@@ -127,10 +128,10 @@ function createHistogramBins(data: number[], bucketSize: number = 50): Histogram
 }
 
 function getBarColorByLatency(minLatency: number): string {
-  if (minLatency < 100) return '#10b981';
-  if (minLatency < 200) return '#3b82f6';
-  if (minLatency < 300) return '#f59e0b';
-  return '#f43f5e';
+  if (minLatency < 100) return semanticColors.success.DEFAULT;
+  if (minLatency < 200) return chartColors.recharts.primary;
+  if (minLatency < 300) return semanticColors.warning.DEFAULT;
+  return semanticColors.danger.DEFAULT;
 }
 
 // Generate mock trend data if not provided
@@ -226,7 +227,7 @@ export function LatencyDistributionHistogram({
 
   const formatTooltip = (bin: HistogramBin) => {
     return (
-      <div className="bg-white border border-gray-200  p-3 ">
+      <div className="bg-white border border-gray-200 p-3" style={{ boxShadow: shadowColors.tooltip }}>
         <p className="text-xs text-gray-600 font-medium mb-2">
           {t('latencyDistribution.range')}: {bin.range}ms
         </p>
@@ -245,9 +246,9 @@ export function LatencyDistributionHistogram({
   };
 
   const percentileItems = [
-    { label: 'P50', value: stats.p50, color: '#10b981', desc: t('latencyDistribution.p50Desc') },
-    { label: 'P95', value: stats.p95, color: '#f59e0b', desc: t('latencyDistribution.p95Desc') },
-    { label: 'P99', value: stats.p99, color: '#f43f5e', desc: t('latencyDistribution.p99Desc') },
+    { label: 'P50', value: stats.p50, color: semanticColors.success.DEFAULT, desc: t('latencyDistribution.p50Desc') },
+    { label: 'P95', value: stats.p95, color: semanticColors.warning.DEFAULT, desc: t('latencyDistribution.p95Desc') },
+    { label: 'P99', value: stats.p99, color: semanticColors.danger.DEFAULT, desc: t('latencyDistribution.p99Desc') },
   ];
 
   const statItems = [
@@ -265,7 +266,7 @@ export function LatencyDistributionHistogram({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white border border-gray-200  p-5 ${className}`}>
+      <div className={`bg-white border border-gray-200 p-5 ${className}`}>
         <div className="text-center py-10">
           <p className="text-gray-500">{t('latencyDistribution.noData')}</p>
         </div>
@@ -275,7 +276,7 @@ export function LatencyDistributionHistogram({
 
   const renderHistogramView = () => (
     <>
-      <div className="bg-white border border-gray-200  p-5">
+      <div className="bg-white border border-gray-200 p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
             {t('latencyDistribution.histogramTitle')}
@@ -285,22 +286,22 @@ export function LatencyDistributionHistogram({
 
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={histogramData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
             <XAxis
               dataKey="range"
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               angle={-45}
               textAnchor="end"
               height={60}
             />
             <YAxis
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
+              axisLine={{ stroke: chartColors.recharts.grid }}
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
@@ -312,39 +313,39 @@ export function LatencyDistributionHistogram({
             />
             <ReferenceLine
               x={stats.p50.toString()}
-              stroke="#10b981"
+              stroke={semanticColors.success.DEFAULT}
               strokeWidth={2}
               strokeDasharray="5 5"
               label={{
                 value: 'P50',
                 position: 'top',
-                fill: '#10b981',
+                fill: semanticColors.success.DEFAULT,
                 fontSize: 11,
                 fontWeight: 600,
               }}
             />
             <ReferenceLine
               x={stats.p95.toString()}
-              stroke="#f59e0b"
+              stroke={semanticColors.warning.DEFAULT}
               strokeWidth={2}
               strokeDasharray="5 5"
               label={{
                 value: 'P95',
                 position: 'top',
-                fill: '#f59e0b',
+                fill: semanticColors.warning.DEFAULT,
                 fontSize: 11,
                 fontWeight: 600,
               }}
             />
             <ReferenceLine
               x={stats.p99.toString()}
-              stroke="#f43f5e"
+              stroke={semanticColors.danger.DEFAULT}
               strokeWidth={2}
               strokeDasharray="5 5"
               label={{
                 value: 'P99',
                 position: 'top',
-                fill: '#f43f5e',
+                fill: semanticColors.danger.DEFAULT,
                 fontSize: 11,
                 fontWeight: 600,
               }}
@@ -359,19 +360,19 @@ export function LatencyDistributionHistogram({
 
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-green-500 rounded" />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
             <span className="text-xs text-gray-500">0-100ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-blue-500 rounded" />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.primary }} />
             <span className="text-xs text-gray-500">100-200ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-yellow-500 rounded" />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
             <span className="text-xs text-gray-500">200-300ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 rounded" />
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
             <span className="text-xs text-gray-500">300ms+</span>
           </div>
         </div>
@@ -393,14 +394,14 @@ export function LatencyDistributionHistogram({
         )}
 
         {/* View Switcher */}
-        <div className="flex bg-gray-100  p-1">
+        <div className="flex bg-gray-100 p-1">
           {viewOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setCurrentView(option.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-all ${
                 currentView === option.value
-                  ? 'bg-white text-gray-900  font-medium'
+                  ? 'bg-white text-gray-900 font-medium'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -416,7 +417,7 @@ export function LatencyDistributionHistogram({
         {percentileItems.map((item) => (
           <div
             key={item.label}
-            className="bg-white border border-gray-200  p-4"
+            className="bg-white border border-gray-200 p-4"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
           >
             <div className="flex items-center justify-between mb-2">
@@ -436,7 +437,7 @@ export function LatencyDistributionHistogram({
       {/* Statistics Grid - Always visible */}
       <div className="grid grid-cols-6 gap-3">
         {statItems.map((item) => (
-          <div key={item.label} className="bg-white border border-gray-200  p-3 text-center">
+          <div key={item.label} className="bg-white border border-gray-200 p-3 text-center">
             <span className="text-xl mb-1 block">{item.icon}</span>
             <p className="text-xs text-gray-500 mb-1">{item.label}</p>
             <p className="text-sm font-semibold text-gray-900">{item.value}</p>

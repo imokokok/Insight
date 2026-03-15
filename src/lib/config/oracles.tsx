@@ -14,6 +14,8 @@ import {
 import { MarketDataConfig } from '@/components/oracle/panels/MarketDataPanel';
 import { NetworkDataConfig } from '@/components/oracle/panels/NetworkHealthPanel';
 import { ReactNode } from 'react';
+import { chartColors } from '@/lib/config/colors';
+import Image from 'next/image';
 
 export interface OracleConfig {
   provider: OracleProvider;
@@ -57,12 +59,13 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     client: new ChainlinkClient(),
     iconBgColor: 'bg-blue-600',
     icon: (
-      <svg viewBox="0 0 256 256" className="w-8 h-8" fill="none">
-        <path d="M128 0L16 64v128l112 64 112-64V64L128 0z" fill="#375BD2" />
-        <path d="M208 64l-80 46-80-46 80-46 80 46z" fill="#6582F0" />
-        <path d="M48 64v128l80 46V110l-80-46z" fill="#2A4CAD" />
-        <path d="M208 64v128l-80 46V110l80-46z" fill="#375BD2" />
-      </svg>
+      <Image
+        src="/logos/oracles/chainlink.svg"
+        alt="Chainlink"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'LINK',
@@ -121,11 +124,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.CRONOS,
     ],
     client: new BandProtocolClient(),
-    iconBgColor: 'bg-purple-600',
+    iconBgColor: `bg-[${chartColors.marketOverview.band}]`,
     icon: (
-      <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">BAND</span>
-      </div>
+      <Image
+        src="/logos/oracles/band.svg"
+        alt="Band Protocol"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'BAND',
@@ -192,11 +199,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
     ],
     client: new UMAClient(),
-    iconBgColor: 'bg-yellow-500',
+    iconBgColor: `bg-[${chartColors.marketOverview.uma}]`,
     icon: (
-      <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">UMA</span>
-      </div>
+      <Image
+        src="/logos/oracles/uma.svg"
+        alt="UMA"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'UMA',
@@ -254,11 +265,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
     ],
     client: new PythClient(),
-    iconBgColor: 'bg-gradient-to-r from-purple-500 to-pink-500',
+    iconBgColor: `bg-[${chartColors.marketOverview.pyth}]`,
     icon: (
-      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">PYTH</span>
-      </div>
+      <Image
+        src="/logos/oracles/pyth.svg"
+        alt="Pyth"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'PYTH',
@@ -316,11 +331,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.OPTIMISM,
     ],
     client: new API3Client(),
-    iconBgColor: 'bg-green-600',
+    iconBgColor: `bg-[${chartColors.marketOverview.api3}]`,
     icon: (
-      <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">API3</span>
-      </div>
+      <Image
+        src="/logos/oracles/api3.svg"
+        alt="API3"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'API3',
@@ -383,11 +402,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.ZKSYNC,
     ],
     client: new RedStoneClient(),
-    iconBgColor: 'bg-red-500',
+    iconBgColor: `bg-[${chartColors.oracle.redstone}]`,
     icon: (
-      <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-xs">RED</span>
-      </div>
+      <Image
+        src="/logos/oracles/redstone.svg"
+        alt="RedStone"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'REDSTONE',
@@ -444,11 +467,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
     ],
     client: new DIAClient(),
-    iconBgColor: 'bg-indigo-600',
+    iconBgColor: `bg-[${chartColors.oracle.dia}]`,
     icon: (
-      <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-sm">DIA</span>
-      </div>
+      <Image
+        src="/logos/oracles/dia.svg"
+        alt="DIA"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'DIA',
@@ -505,11 +532,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.AVALANCHE,
     ],
     client: new TellorClient(),
-    iconBgColor: 'bg-purple-600',
+    iconBgColor: `bg-[${chartColors.oracle.tellor}]`,
     icon: (
-      <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-xs">TRB</span>
-      </div>
+      <Image
+        src="/logos/oracles/tellor.svg"
+        alt="Tellor"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'TRB',
@@ -565,11 +596,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
     ],
     client: new ChronicleClient(),
-    iconBgColor: 'bg-amber-600',
+    iconBgColor: `bg-[${chartColors.oracle.chronicle}]`,
     icon: (
-      <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-xs">CHR</span>
-      </div>
+      <Image
+        src="/logos/oracles/chronicle.svg"
+        alt="Chronicle"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'CHRONICLE',
@@ -619,11 +654,15 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     defaultChain: Blockchain.BNB_CHAIN,
     supportedChains: [Blockchain.BNB_CHAIN],
     client: new WINkLinkClient(),
-    iconBgColor: 'bg-pink-600',
+    iconBgColor: `bg-[${chartColors.oracle.winklink}]`,
     icon: (
-      <div className="w-8 h-8 bg-pink-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-xs">WIN</span>
-      </div>
+      <Image
+        src="/logos/oracles/winklink.svg"
+        alt="WINkLink"
+        width={32}
+        height={32}
+        className="w-8 h-8"
+      />
     ),
     marketData: {
       symbol: 'WINKLINK',

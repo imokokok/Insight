@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
-import { semanticColors } from '@/lib/config/colors';
+import { semanticColors, chainColors } from '@/lib/config/colors';
 
 export interface BandChainPriceData {
   chain: string;
@@ -23,12 +23,12 @@ export interface BandCrossChainPriceConsistencyProps {
 }
 
 const BAND_SUPPORTED_CHAINS = [
-  { name: 'Cosmos Hub', chainId: 'cosmoshub-4', icon: '⚛️', color: '#2E3359' },
-  { name: 'Osmosis', chainId: 'osmosis-1', icon: '💧', color: '#9945FF' },
-  { name: 'Ethereum', chainId: '1', icon: '⟠', color: '#627EEA' },
-  { name: 'Polygon', chainId: '137', icon: '⬡', color: '#8247E5' },
-  { name: 'Avalanche', chainId: '43114', icon: '🔺', color: '#E84142' },
-  { name: 'Fantom', chainId: '250', icon: '👻', color: '#1969FF' },
+  { name: 'Cosmos Hub', chainId: 'cosmoshub-4', icon: '⚛️', color: chainColors.cosmosHub },
+  { name: 'Osmosis', chainId: 'osmosis-1', icon: '💧', color: chainColors.osmosis },
+  { name: 'Ethereum', chainId: '1', icon: '⟠', color: chainColors.ethereum },
+  { name: 'Polygon', chainId: '137', icon: '⬡', color: chainColors.polygon },
+  { name: 'Avalanche', chainId: '43114', icon: '🔺', color: chainColors.avalanche },
+  { name: 'Fantom', chainId: '250', icon: '👻', color: chainColors.fantom },
 ];
 
 const SYMBOLS = ['BTC/USD', 'ETH/USD', 'USDC/USD'];
@@ -134,8 +134,8 @@ function generateComparisonData(
 
 function getDeviationColor(deviation: number): string {
   const color = getDeviationColorUtil(deviation);
-  if (color === '#22c55e') return 'text-green-600';
-  if (color === '#f59e0b') return 'text-yellow-600';
+  if (color === semanticColors.success.DEFAULT) return 'text-green-600';
+  if (color === semanticColors.warning.DEFAULT) return 'text-yellow-600';
   return 'text-red-600';
 }
 
@@ -170,7 +170,7 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
   };
 
   return (
-    <div className="bg-white border border-gray-200  p-5">
+    <div className="bg-white border border-gray-200 rounded p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-gray-900 text-sm font-semibold">价格偏离热力图</p>
@@ -568,7 +568,7 @@ export function BandCrossChainPriceConsistency({
         </div>
 
         {isComparisonMode && (
-          <div className="bg-blue-50 border border-blue-200  p-4 mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-700 whitespace-nowrap">选择日期:</label>
@@ -596,7 +596,7 @@ export function BandCrossChainPriceConsistency({
         )}
 
         {hasWarnings && !isComparisonMode && (
-          <div className="bg-yellow-50 border border-yellow-200  p-4 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4">
             <div className="flex items-start gap-3">
               <svg
                 className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
@@ -629,12 +629,12 @@ export function BandCrossChainPriceConsistency({
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div className="bg-purple-50  p-3 text-center">
+              <div className="bg-purple-50 rounded p-3 text-center">
                 <p className="text-xs text-purple-600 mb-1">基准价格</p>
                 <p className="text-lg font-bold text-purple-700">${basePrice.toFixed(2)}</p>
                 <p className="text-xs text-purple-500 mt-1">Cosmos Hub</p>
               </div>
-              <div className="bg-gray-50  p-3 text-center">
+              <div className="bg-gray-50 rounded p-3 text-center">
                 <p className="text-xs text-gray-600 mb-1">最大偏差</p>
                 <p className={`text-lg font-bold ${getDeviationColor(maxDeviation)}`}>
                   {maxDeviation.toFixed(3)}%
@@ -647,7 +647,7 @@ export function BandCrossChainPriceConsistency({
                       : '偏差较大'}
                 </p>
               </div>
-              <div className="bg-gray-50  p-3 text-center">
+              <div className="bg-gray-50 rounded p-3 text-center">
                 <p className="text-xs text-gray-600 mb-1">平均延迟</p>
                 <p className="text-lg font-bold text-gray-700">{avgLatency}ms</p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -741,14 +741,14 @@ export function BandCrossChainPriceConsistency({
                         </td>
                         <td className="text-center py-3 px-3">
                           <span
-                            className={`inline-flex px-2 py-0.5 text-xs font-medium  ${
-                              chain.status === 'normal'
-                                ? 'bg-green-100 text-green-700'
-                                : chain.status === 'warning'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-red-100 text-red-700'
-                            }`}
-                          >
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
+                          chain.status === 'normal'
+                            ? 'bg-green-100 text-green-700'
+                            : chain.status === 'warning'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}
+                      >
                             {chain.status === 'normal'
                               ? '正常'
                               : chain.status === 'warning'
@@ -770,7 +770,7 @@ export function BandCrossChainPriceConsistency({
         <PriceDeviationHeatmap priceDataMap={priceDataMap} selectedSymbol={selectedSymbol} />
       )}
 
-      <div className="bg-purple-50 border border-purple-200  p-5">
+      <div className="bg-purple-50 border border-purple-200 rounded p-5">
         <div className="flex items-start gap-3">
           <svg
             className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0"

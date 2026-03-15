@@ -310,7 +310,7 @@ function SingleGauge({
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize="8"
-                fill="#9CA3AF"
+                fill={chartColors.recharts.axisLight}
                 fontWeight="500"
               >
                 {type === 'percentage'

@@ -9,6 +9,7 @@ import { formatTimestamp } from '@/types/common/timestamps';
 import { OracleProvider } from '@/types/oracle';
 import { providerNames } from '@/lib/constants';
 import { createLogger } from '@/lib/utils/logger';
+import { baseColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('snapshot-page');
 
@@ -49,9 +50,9 @@ export default function SnapshotPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 w-64 mb-2" />
-          <div className="h-4 bg-gray-200 w-48 mb-8" />
-          <div className="h-96 bg-gray-200" />
+          <div className="h-8 bg-gray-200 rounded w-64 mb-2" />
+          <div className="h-4 bg-gray-200 rounded w-48 mb-8" />
+          <div className="h-96 bg-gray-200 rounded" />
         </div>
       </div>
     );
@@ -60,11 +61,11 @@ export default function SnapshotPage() {
   if (error || !snapshot) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 p-6 text-center">
+        <div className="bg-red-50 border border-red-200 rounded p-6 text-center">
           <p className="text-red-600 mb-4">{error || '快照不存在或已被删除'}</p>
           <Link
             href="/"
-            className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             返回首页
           </Link>
@@ -105,7 +106,13 @@ export default function SnapshotPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+              <span
+                className="px-3 py-1 text-xs font-medium rounded-full"
+                style={{
+                  backgroundColor: semanticColors.success.light,
+                  color: semanticColors.success.text,
+                }}
+              >
                 公开分享
               </span>
             </div>
@@ -213,14 +220,17 @@ export default function SnapshotPage() {
                       <tr key={index} className="border-b border-gray-100">
                         <td className="py-2 px-3">
                           <span
-                            className="inline-flex items-center gap-2 px-2 py-1 text-sm border"
+                            className="inline-flex items-center gap-2 px-2 py-1 text-sm border rounded"
                             style={{
-                              backgroundColor: '#e0e7ff',
-                              color: '#4338ca',
-                              borderColor: '#c7d2fe',
+                              backgroundColor: baseColors.primary[100],
+                              color: baseColors.primary[700],
+                              borderColor: baseColors.primary[200],
                             }}
                           >
-                            <span className="w-2 h-2" style={{ backgroundColor: '#4338ca' }} />
+                            <span
+                              className="w-2 h-2 rounded"
+                              style={{ backgroundColor: baseColors.primary[700] }}
+                            />
                             {oracleNames[price.provider as OracleProvider]}
                           </span>
                         </td>

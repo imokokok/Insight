@@ -1,477 +1,318 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
-  ComposedChart,
+  BarChart,
   Bar,
-  Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  CartesianGrid,
   Cell,
 } from 'recharts';
-import { OracleProvider } from '@/types/oracle';
+import { chainColors, chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
 
-export interface GasFeeData {
-  oracle: OracleProvider;
+interface GasFeeData {
   chain: string;
-  updateCost: number; // in USD
-  updateFrequency: number; // updates per hour
-  avgGasPrice: number; // in Gwei
-  lastUpdate: number;
+  chainId: number;
+  updateFee: number; // USD
+  verificationFee: number; // USD
+  currency: string;
 }
 
-export interface GasFeeComparisonProps {
+interface GasFeeComparisonProps {
   data: GasFeeData[];
-  oracleNames?: Partial<Record<OracleProvider, string>>;
-  className?: string;
+  loading?: boolean;
 }
 
-const DEFAULT_ORACLE_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
+const CHAIN_COLOR_MAP: Record<string, string> = {
+  Ethereum: chainColors.ethereum,
+  'Arbitrum One': chainColors.arbitrum,
+  Optimism: chainColors.optimism,
+  Base: chainColors.base,
+  Polygon: chainColors.polygon,
+  Avalanche: chainColors.avalanche,
+  BSC: chainColors.bsc,
+  Fantom: chainColors.fantom,
+  Metis: chainColors.metis,
+  Moonbeam: chainColors.moonbeam,
+  Moonriver: chainColors.moonriver,
+  Gnosis: chainColors.gnosis,
+  Celo: chainColors.celo,
+  zkSync: chainColors.zksync,
+  Scroll: chainColors.scroll,
+  Linea: chainColors.linea,
+  Mantle: chainColors.mantle,
 };
 
-const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.oracle['band-protocol'],
-  [OracleProvider.UMA]: chartColors.oracle.uma,
-  [OracleProvider.PYTH]: chartColors.oracle['pyth'],
-  [OracleProvider.API3]: chartColors.oracle.api3,
-  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
-};
-
-const CHAIN_COLORS: Record<string, string> = {
-  ethereum: chartColors.recharts.chainlink,
-  arbitrum: '#28A0F0',
-  optimism: '#FF0420',
-  polygon: chartColors.oracle['pyth'],
-  base: '#0052FF',
-  avalanche: '#E84142',
-  bnb: '#F3BA2F',
-  fantom: '#1969FF',
-  cosmos: '#2E3148',
-  solana: '#14F195',
-};
-
-interface ChartDataPoint {
-  oracle: string;
-  chain: string;
-  updateCost: number;
-  hourlyCost: number;
-  dailyCost: number;
-  monthlyCost: number;
-  updateFrequency: number;
-  avgGasPrice: number;
-  efficiency: number;
+function getChainColor(chainName: string): string {
+  return CHAIN_COLOR_MAP[chainName] || baseColors.gray[400];
 }
 
-export function GasFeeComparison({
-  data,
-  oracleNames: customOracleNames,
-  className,
-}: GasFeeComparisonProps) {
+export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProps) {
   const { t } = useI18n();
-  const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
-  const [viewMode, setViewMode] = useState<'cost' | 'efficiency' | 'frequency'>('cost');
-  const [timeFrame, setTimeFrame] = useState<'hourly' | 'daily' | 'monthly'>('daily');
+  const [sortBy, setSortBy] = useState<'update' | 'verification' | 'total'>('total');
 
-  const chartData = useMemo(() => {
-    return data.map((item) => {
-      const hourlyCost = item.updateCost * item.updateFrequency;
-      const dailyCost = hourlyCost * 24;
-      const monthlyCost = dailyCost * 30;
+  const processedData = useMemo(() => {
+    return data
+      .map((item) => ({
+        ...item,
+        total: item.updateFee + item.verificationFee,
+      }))
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'update':
+            return b.updateFee - a.updateFee;
+          case 'verification':
+            return b.verificationFee - a.verificationFee;
+          case 'total':
+          default:
+            return b.total - a.total;
+        }
+      });
+  }, [data, sortBy]);
 
-      // Efficiency score: lower cost = higher efficiency (inverse relationship)
-      const efficiency = Math.max(0, 100 - dailyCost * 10);
+  const statistics = useMemo(() => {
+    if (processedData.length === 0) return null;
 
-      return {
-        oracle: oracleNames[item.oracle] || item.oracle,
-        chain: item.chain,
-        updateCost: item.updateCost,
-        hourlyCost,
-        dailyCost,
-        monthlyCost,
-        updateFrequency: item.updateFrequency,
-        avgGasPrice: item.avgGasPrice,
-        efficiency,
-        oracleId: item.oracle,
-      };
-    });
-  }, [data, oracleNames]);
+    const updateFees = processedData.map((d) => d.updateFee);
+    const verificationFees = processedData.map((d) => d.verificationFee);
+    const totals = processedData.map((d) => d.total);
 
-  const stats = useMemo(() => {
-    if (data.length === 0) return null;
-
-    const costs = chartData.map((d) => d.dailyCost);
-    const efficiencies = chartData.map((d) => d.efficiency);
-    const frequencies = chartData.map((d) => d.updateFrequency);
+    const cheapest = processedData[processedData.length - 1];
+    const mostExpensive = processedData[0];
 
     return {
-      avgCost: costs.reduce((a, b) => a + b, 0) / costs.length,
-      minCost: Math.min(...costs),
-      maxCost: Math.max(...costs),
-      avgEfficiency: efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length,
-      avgFrequency: frequencies.reduce((a, b) => a + b, 0) / frequencies.length,
-      totalOracles: data.length,
+      avgUpdate: updateFees.reduce((a, b) => a + b, 0) / updateFees.length,
+      avgVerification: verificationFees.reduce((a, b) => a + b, 0) / verificationFees.length,
+      avgTotal: totals.reduce((a, b) => a + b, 0) / totals.length,
+      cheapest,
+      mostExpensive,
+      savings: mostExpensive ? ((mostExpensive.total - cheapest.total) / mostExpensive.total) * 100 : 0,
     };
-  }, [chartData, data.length]);
+  }, [processedData]);
 
-  const getCostField = () => {
-    switch (timeFrame) {
-      case 'hourly':
-        return 'hourlyCost';
-      case 'daily':
-        return 'dailyCost';
-      case 'monthly':
-        return 'monthlyCost';
-      default:
-        return 'dailyCost';
-    }
+  const formatCurrency = (value: number) => {
+    if (value === undefined || value === null || isNaN(value)) return '-';
+    if (value < 0.01) return `<$0.01`;
+    return `$${value.toFixed(2)}`;
   };
 
-  const getCostLabel = () => {
-    switch (timeFrame) {
-      case 'hourly':
-        return t('gasFee.hourlyCost');
-      case 'daily':
-        return t('gasFee.dailyCost');
-      case 'monthly':
-        return t('gasFee.monthlyCost');
-      default:
-        return t('gasFee.dailyCost');
-    }
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
-
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
-        <p className="text-sm font-semibold text-gray-900 mb-2">{data.oracle}</p>
-        <p className="text-xs text-gray-500 mb-2">{data.chain}</p>
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.singleUpdateCost')}</span>
-            <span className="text-sm font-medium">${data.updateCost.toFixed(4)}</span>
+      <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-lg min-w-[200px]">
+        <div className="flex items-center gap-2 mb-2">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: getChainColor(data.chain) }}
+          />
+          <span className="font-medium text-gray-900">{data.chain}</span>
+        </div>
+        <div className="space-y-1 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600">更新费用:</span>
+            <span className="font-mono">{formatCurrency(data.updateFee)}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.updateFrequency')}</span>
-            <span className="text-sm font-medium">
-              {data.updateFrequency} {t('gasFee.timesPerHour')}
+          <div className="flex justify-between">
+            <span className="text-gray-600">验证费用:</span>
+            <span className="font-mono">{formatCurrency(data.verificationFee)}</span>
+          </div>
+          <div className="flex justify-between pt-1 border-t border-gray-100">
+            <span className="text-gray-600 font-medium">总计:</span>
+            <span className="font-mono font-bold" style={{ color: baseColors.primary[600] }}>
+              {formatCurrency(data.total)}
             </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.hourlyCost')}</span>
-            <span className="text-sm font-medium">${data.hourlyCost.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.dailyCost')}</span>
-            <span className="text-sm font-medium">${data.dailyCost.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.monthlyCost')}</span>
-            <span className="text-sm font-medium">${data.monthlyCost.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.avgGasPrice')}</span>
-            <span className="text-sm font-medium">{data.avgGasPrice.toFixed(2)} Gwei</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-600">{t('gasFee.efficiencyScore')}</span>
-            <span className="text-sm font-bold text-blue-600">{data.efficiency.toFixed(1)}</span>
           </div>
         </div>
       </div>
     );
   };
 
-  if (data.length === 0) {
+  if (loading) {
     return (
-      <DashboardCard title={t('gasFee.title')} className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">
-          {t('gasFee.noData')}
+      <DashboardCard title={t('gasFeeComparison.title') || 'Gas 费用对比'}>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-gray-50 rounded-lg p-3 animate-pulse">
+                <div className="h-3 bg-gray-200 rounded w-20 mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
+              </div>
+            ))}
+          </div>
+          <div className="h-64 bg-gray-100 rounded-lg animate-pulse"></div>
         </div>
       </DashboardCard>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <DashboardCard title={t('gasFee.title')} className={className}>
-        <div className="space-y-6">
-          {/* Controls */}
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{t('common.view')}</span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setViewMode('cost')}
-                  className={`px-3 py-1.5 text-sm  transition-colors ${
-                    viewMode === 'cost'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('gasFee.costComparison')}
-                </button>
-                <button
-                  onClick={() => setViewMode('efficiency')}
-                  className={`px-3 py-1.5 text-sm  transition-colors ${
-                    viewMode === 'efficiency'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('gasFee.efficiencyScore')}
-                </button>
-                <button
-                  onClick={() => setViewMode('frequency')}
-                  className={`px-3 py-1.5 text-sm  transition-colors ${
-                    viewMode === 'frequency'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {t('gasFee.updateFrequency')}
-                </button>
-              </div>
+    <DashboardCard title={t('gasFeeComparison.title') || 'Gas 费用对比'}>
+      <div className="space-y-4">
+        {/* Statistics */}
+        {statistics && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-500 mb-1">平均更新费用</p>
+              <p className="text-lg font-bold text-gray-900">
+                {formatCurrency(statistics.avgUpdate)}
+              </p>
             </div>
-
-            {viewMode === 'cost' && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{t('common.timeRange')}</span>
-                <select
-                  value={timeFrame}
-                  onChange={(e) => setTimeFrame(e.target.value as any)}
-                  className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="hourly">{t('common.hourly')}</option>
-                  <option value="daily">{t('common.daily')}</option>
-                  <option value="monthly">{t('common.monthly')}</option>
-                </select>
-              </div>
-            )}
-          </div>
-
-          {/* Stats Cards */}
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">{t('gasFee.avgDailyCost')}</p>
-                <p className="text-2xl font-bold text-blue-600">${stats.avgCost.toFixed(4)}</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">{t('gasFee.minCost')}</p>
-                <p className="text-2xl font-bold text-green-600">${stats.minCost.toFixed(4)}</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">{t('gasFee.maxCost')}</p>
-                <p className="text-2xl font-bold text-orange-600">${stats.maxCost.toFixed(4)}</p>
-              </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">{t('gasFee.avgUpdateFrequency')}</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {stats.avgFrequency.toFixed(1)}/h
-                </p>
-              </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-500 mb-1">平均验证费用</p>
+              <p className="text-lg font-bold text-gray-900">
+                {formatCurrency(statistics.avgVerification)}
+              </p>
             </div>
-          )}
-
-          {/* Chart */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {viewMode === 'cost'
-                ? getCostLabel()
-                : viewMode === 'efficiency'
-                  ? t('gasFee.efficiencyScore')
-                  : `${t('gasFee.updateFrequency')} (${t('gasFee.timesPerHour')})`}
-            </h4>
-            <div style={{ height: 320 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
-                  data={chartData}
-                  layout="vertical"
-                  margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                  <XAxis
-                    type="number"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                    tickFormatter={(value) =>
-                      viewMode === 'cost'
-                        ? `$${value.toFixed(2)}`
-                        : viewMode === 'efficiency'
-                          ? value.toFixed(0)
-                          : value.toFixed(1)
-                    }
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="oracle"
-                    stroke={chartColors.recharts.axis}
-                    tick={{ fontSize: 12, fill: chartColors.recharts.tickDark }}
-                    width={90}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar
-                    dataKey={
-                      viewMode === 'cost'
-                        ? getCostField()
-                        : viewMode === 'efficiency'
-                          ? 'efficiency'
-                          : 'updateFrequency'
-                    }
-                    maxBarSize={40}
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          viewMode === 'efficiency'
-                            ? entry.efficiency > 80
-                              ? chartColors.semantic.success
-                              : entry.efficiency > 50
-                                ? chartColors.semantic.warning
-                                : chartColors.semantic.danger
-                            : ORACLE_COLORS[entry.oracleId as OracleProvider] ||
-                              chartColors.recharts.tick
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </ComposedChart>
-              </ResponsiveContainer>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-500 mb-1">最便宜链</p>
+              <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+                {statistics.cheapest?.chain || '-'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {statistics.cheapest ? formatCurrency(statistics.cheapest.total) : '-'}
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs text-gray-500 mb-1">最高节省</p>
+              <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+                {statistics.savings.toFixed(0)}%
+              </p>
+              <p className="text-xs text-gray-500">
+                vs {statistics.mostExpensive?.chain || '-'}
+              </p>
             </div>
           </div>
+        )}
 
-          {/* Data Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.oracle')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('common.chain')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('gasFee.singleCost')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('gasFee.updateFrequency')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('gasFee.dailyCost')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('gasFee.monthlyCost')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('gasFee.efficiencyScore')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {chartData.map((row, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div
-                          className="w-3 h-3  mr-2"
-                          style={{
-                            backgroundColor:
-                              ORACLE_COLORS[row.oracleId as OracleProvider] ||
-                              chartColors.recharts.tick,
-                          }}
-                        />
-                        <span className="text-sm font-medium text-gray-900">{row.oracle}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                      {row.chain}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${row.updateCost.toFixed(4)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                      {row.updateFrequency} {t('gasFee.timesPerHour')}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${row.dailyCost.toFixed(4)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      ${row.monthlyCost.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          row.efficiency > 80
-                            ? 'bg-green-100 text-green-700'
-                            : row.efficiency > 50
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {row.efficiency.toFixed(1)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Explanation */}
-          <div className="bg-blue-50  p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('gasFee.analysisTitle')}</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • <strong>{t('gasFee.singleUpdateCost')}</strong>:{' '}
-                {t('gasFee.analysis.singleUpdateCostDesc')}
-              </li>
-              <li>
-                • <strong>{t('gasFee.updateFrequency')}</strong>:{' '}
-                {t('gasFee.analysis.updateFrequencyDesc')}
-              </li>
-              <li>
-                •{' '}
-                <strong>
-                  {t('gasFee.dailyCost')}/{t('gasFee.monthlyCost')}
-                </strong>
-                : {t('gasFee.analysis.periodicCostDesc')}
-              </li>
-              <li>
-                • <strong>{t('gasFee.efficiencyScore')}</strong>:{' '}
-                {t('gasFee.analysis.efficiencyScoreDesc')}
-              </li>
-              <li>• {t('gasFee.analysis.lowFreqHighEfficiency')}</li>
-            </ul>
+        {/* Sort controls */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">排序:</span>
+          <div className="flex items-center gap-1">
+            {(['total', 'update', 'verification'] as const).map((key) => (
+              <button
+                key={key}
+                onClick={() => setSortBy(key)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  sortBy === key
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {key === 'total' ? '总计' : key === 'update' ? '更新' : '验证'}
+              </button>
+            ))}
           </div>
         </div>
-      </DashboardCard>
-    </div>
+
+        {/* Chart */}
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+              <XAxis
+                dataKey="chain"
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
+                tickLine={false}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                tickLine={false}
+                tickFormatter={(value) => `$${value.toFixed(2)}`}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+              <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                {processedData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={getChainColor(entry.chain)}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Chain comparison table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                  链
+                </th>
+                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                  更新费用
+                </th>
+                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                  验证费用
+                </th>
+                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                  总计
+                </th>
+                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                  排名
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {processedData.map((item, index) => (
+                <tr
+                  key={item.chain}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="py-2 px-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: getChainColor(item.chain) }}
+                      />
+                      <span className="font-medium text-gray-900">{item.chain}</span>
+                    </div>
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono">
+                    {formatCurrency(item.updateFee)}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono">
+                    {formatCurrency(item.verificationFee)}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono font-medium" style={{ color: baseColors.primary[600] }}>
+                    {formatCurrency(item.total)}
+                  </td>
+                  <td className="py-2 px-3 text-right">
+                    <span
+                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
+                        index === 0
+                          ? 'bg-green-100 text-green-700'
+                          : index === 1
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : index === 2
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </DashboardCard>
   );
 }
+
+export default GasFeeComparison;

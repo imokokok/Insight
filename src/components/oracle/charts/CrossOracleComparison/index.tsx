@@ -24,10 +24,10 @@ import {
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { DashboardCard, FlatStatItem, FlatSection } from '../../common/DashboardCard';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
 import { createLogger } from '@/lib/utils/logger';
 import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
-import { chartColors, semanticColors } from '@/lib/config/colors';
 import {
   oracleClients,
   oracleNames,
@@ -715,7 +715,7 @@ export function CrossOracleComparison() {
                     className="flex items-center gap-2 text-sm text-amber-700"
                   >
                     <div
-                      className="w-2 h-2 "
+                      className="w-2 h-2"
                       style={{ backgroundColor: oracleColors[alert.provider] }}
                     />
                     <span className="font-medium">{alert.name}</span>
@@ -767,7 +767,7 @@ export function CrossOracleComparison() {
                     <tr key={data.provider} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center justify-center w-5 h-5  text-xs font-medium ${
+                          className={`inline-flex items-center justify-center w-5 h-5 text-xs font-medium ${
                             data.rank === 1
                               ? 'bg-red-100 text-red-800'
                               : data.rank === 2
@@ -783,7 +783,7 @@ export function CrossOracleComparison() {
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="flex items-center">
                           <div
-                            className="w-2.5 h-2.5  mr-2"
+                            className="w-2.5 h-2.5 mr-2"
                             style={{ backgroundColor: data.color }}
                           />
                           <span className="font-medium text-gray-900">{data.name}</span>
@@ -830,7 +830,7 @@ export function CrossOracleComparison() {
                   strokeDasharray="3 3"
                   horizontal={true}
                   vertical={false}
-                  stroke="#f3f4f6"
+                  stroke={baseColors.gray[100]}
                 />
                 <XAxis
                   type="number"
@@ -848,7 +848,7 @@ export function CrossOracleComparison() {
                     `${label} - $${deviationChartData.find((d) => d.name === label)?.price.toFixed(2)}`
                   }
                 />
-                <ReferenceLine x={0} stroke="#9ca3af" strokeWidth={1} />
+                <ReferenceLine x={0} stroke={chartColors.recharts.axis} strokeWidth={1} />
                 <Bar dataKey="deviation">
                   {deviationChartData.map((entry, index) => (
                     <Cell
@@ -891,7 +891,7 @@ export function CrossOracleComparison() {
               data={lineChartData}
               margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} />
               <XAxis dataKey="time" tickFormatter={() => ''} />
               <YAxis
                 domain={['auto', 'auto']}
@@ -916,7 +916,7 @@ export function CrossOracleComparison() {
               ))}
               <ReferenceLine
                 y={priceStats?.avg}
-                stroke="#9ca3af"
+                stroke={chartColors.recharts.axis}
                 strokeDasharray="3 3"
                 label={{ value: t('crossOracle.average'), position: 'right', fontSize: 10 }}
               />
@@ -1020,7 +1020,7 @@ export function CrossOracleComparison() {
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-2.5 h-2.5  mr-2"
+                          className="w-2.5 h-2.5 mr-2"
                           style={{ backgroundColor: oracleColors[data.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -1065,7 +1065,7 @@ export function CrossOracleComparison() {
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis
                   tickFormatter={(value) => `$${Number(value).toFixed(0)}`}
@@ -1091,7 +1091,7 @@ export function CrossOracleComparison() {
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} />
                 <XAxis dataKey="time" tickFormatter={() => ''} />
                 <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
                 <Tooltip />
@@ -1152,7 +1152,7 @@ export function CrossOracleComparison() {
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-2.5 h-2.5  mr-2"
+                          className="w-2.5 h-2.5 mr-2"
                           style={{ backgroundColor: oracleColors[perf.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -1194,7 +1194,7 @@ export function CrossOracleComparison() {
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} margin={{ top: 10, right: 60, left: 60, bottom: 10 }}>
-              <PolarGrid stroke="#e5e7eb" />
+              <PolarGrid stroke={baseColors.gray[200]} />
               <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10 }} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
               {selectedOracles.map((provider) => (

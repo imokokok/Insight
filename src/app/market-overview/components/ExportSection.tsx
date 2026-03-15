@@ -6,6 +6,7 @@ import { Download, ChevronDown, Table, FileJson, Image as ImageIcon } from 'luci
 import { ChartType } from '../types';
 import { createLogger } from '@/lib/utils/logger';
 import { useI18n } from '@/lib/i18n/provider';
+import { exportColors } from '@/lib/config/colors';
 
 const logger = createLogger('ExportSection');
 
@@ -32,7 +33,7 @@ export default function ExportSection({
 
     try {
       const canvas = await html2canvas(chartContainerRef.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: exportColors.background,
         scale: 2,
         useCORS: true,
         logging: false,
@@ -53,16 +54,16 @@ export default function ExportSection({
       finalCanvas.width = canvas.width;
       finalCanvas.height = canvas.height + extraHeight;
 
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = exportColors.background;
       ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
       ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = '#111827';
+      ctx.fillStyle = exportColors.text.primary;
       ctx.textAlign = 'left';
       ctx.fillText(title, padding, padding + 24);
 
       ctx.font = '14px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = '#6b7280';
+      ctx.fillStyle = exportColors.text.secondary;
       ctx.fillText(
         `${t('marketOverview.export.exportTime')}: ${timestamp}`,
         padding,

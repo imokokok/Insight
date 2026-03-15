@@ -15,7 +15,7 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { chartColors } from '@/lib/config/colors';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {
   calculateSMA,
   calculateEMA,
@@ -67,10 +67,10 @@ const ORACLE_COLORS: Record<OracleProvider, string> = {
   [OracleProvider.PYTH]: chartColors.oracle['pyth'],
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: '#6366F1',
-  [OracleProvider.TELLOR]: '#AA96DA',
-  [OracleProvider.CHRONICLE]: '#E11D48',
-  [OracleProvider.WINKLINK]: '#FF4D4D',
+  [OracleProvider.DIA]: chartColors.oracle.dia,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
+  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
+  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };
 
 const MA_CONFIGS: MovingAverageConfig[] = [
@@ -192,12 +192,12 @@ export function MovingAverageChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4   border border-gray-200 min-w-[220px]">
-        <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
+      <div className="bg-white p-4 border min-w-[220px]" style={{ borderColor: baseColors.gray[200] }}>
+        <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
         <div className="space-y-1.5">
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">{entry.name}</span>
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>{entry.name}</span>
               <span className="text-sm font-medium font-mono" style={{ color: entry.color }}>
                 {typeof entry.value === 'number' ? `$${entry.value.toFixed(2)}` : entry.value}
               </span>
@@ -222,11 +222,12 @@ export function MovingAverageChart({
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">预言机:</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>预言机:</span>
               <select
                 value={selectedOracle}
                 onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-sm border px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ borderColor: baseColors.gray[200] }}
               >
                 {data.map((oracleData) => (
                   <option key={oracleData.oracle} value={oracleData.oracle}>
@@ -237,7 +238,7 @@ export function MovingAverageChart({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">均线:</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>均线:</span>
               <div className="flex gap-1">
                 {[5, 10, 20].map((window) => (
                   <button
@@ -250,8 +251,9 @@ export function MovingAverageChart({
                     className={`px-2 py-1 text-xs rounded transition-colors ${
                       selectedMA.includes(window)
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : ''
                     }`}
+                    style={!selectedMA.includes(window) ? { backgroundColor: baseColors.gray[100], color: baseColors.gray[600] } : {}}
                   >
                     MA{window}
                   </button>
@@ -266,7 +268,7 @@ export function MovingAverageChart({
                 onChange={(e) => setShowEMA(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-600">显示EMA</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>显示EMA</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -276,27 +278,27 @@ export function MovingAverageChart({
                 onChange={(e) => setShowBollingerBands(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-600">布林带</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>布林带</span>
             </label>
           </div>
 
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">当前价格</p>
-                <p className="text-xl font-bold text-blue-600">${stats.currentPrice.toFixed(2)}</p>
+              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>当前价格</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.info }}>${stats.currentPrice.toFixed(2)}</p>
               </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">MA5</p>
-                <p className="text-xl font-bold text-amber-600">${stats.sma5.toFixed(2)}</p>
+              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA5</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.warning }}>${stats.sma5.toFixed(2)}</p>
               </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">MA10</p>
-                <p className="text-xl font-bold text-green-600">${stats.sma10.toFixed(2)}</p>
+              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA10</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.success }}>${stats.sma10.toFixed(2)}</p>
               </div>
-              <div className="bg-gray-100 border border-gray-200  p-4">
-                <p className="text-xs text-gray-600 mb-1">MA20</p>
-                <p className="text-xl font-bold text-purple-600">${stats.sma20.toFixed(2)}</p>
+              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA20</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.purple }}>${stats.sma20.toFixed(2)}</p>
               </div>
             </div>
           )}
@@ -304,21 +306,22 @@ export function MovingAverageChart({
           {stats && (
             <div className="flex items-center gap-4">
               <div
-                className={`px-4 py-2  text-sm font-medium ${
+                className="px-4 py-2 text-sm font-medium"
+                style={
                   stats.trend === 'bullish'
-                    ? 'bg-green-100 text-green-700'
+                    ? { backgroundColor: semanticColors.success + '20', color: semanticColors.success }
                     : stats.trend === 'bearish'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-700'
-                }`}
+                      ? { backgroundColor: semanticColors.danger + '20', color: semanticColors.danger }
+                      : { backgroundColor: baseColors.gray[100], color: baseColors.gray[700] }
+                }
               >
                 趋势:{' '}
                 {stats.trend === 'bullish' ? '看涨' : stats.trend === 'bearish' ? '看跌' : '中性'}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm" style={{ color: baseColors.gray[600] }}>
                 布林带位置: <span className="font-medium">{stats.bbPosition.toFixed(1)}%</span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm" style={{ color: baseColors.gray[600] }}>
                 滚动标准差: <span className="font-medium">${stats.volatility.toFixed(4)}</span>
               </div>
             </div>
@@ -391,7 +394,7 @@ export function MovingAverageChart({
                         key={`SMA${window}`}
                         type="monotone"
                         dataKey={`SMA${window}`}
-                        stroke={config?.color || '#6B7280'}
+                        stroke={config?.color || baseColors.gray[500]}
                         strokeWidth={1.5}
                         dot={false}
                         name={`MA${window}`}
@@ -453,9 +456,9 @@ export function MovingAverageChart({
             </div>
           )}
 
-          <div className="bg-blue-50  p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">指标说明</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+          <div className="p-4" style={{ backgroundColor: semanticColors.info + '10' }}>
+            <h4 className="text-sm font-medium mb-2" style={{ color: semanticColors.info }}>指标说明</h4>
+            <ul className="text-sm space-y-1" style={{ color: semanticColors.info }}>
               <li>
                 • <strong>SMA (简单移动平均线)</strong>: n周期内价格的算术平均值，用于平滑价格波动
               </li>

@@ -21,6 +21,7 @@ import { TooltipProps, CustomDotProps } from '@/types/ui/recharts';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
+import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 
 const logger = createLogger('LatencyTrendChart');
 
@@ -290,9 +291,9 @@ function downsampleLatencyData(
 
 function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
   if (payload?.isAnomaly) {
-    return <Dot cx={cx} cy={cy} r={5} fill="#EF4444" stroke="#FFF" strokeWidth={2} />;
+    return <Dot cx={cx} cy={cy} r={5} fill={semanticColors.danger.DEFAULT} stroke={chartColors.recharts.whiteLight} strokeWidth={2} />;
   }
-  return <Dot cx={cx} cy={cy} r={3} fill="#3B82F6" stroke="#FFF" strokeWidth={2} />;
+  return <Dot cx={cx} cy={cy} r={3} fill={chartColors.recharts.primary} stroke={chartColors.recharts.whiteLight} strokeWidth={2} />;
 }
 
 function calculateDynamicThreshold(data: LatencyDataPoint[]): DynamicThreshold {
@@ -576,52 +577,60 @@ export function LatencyTrendChart({
     const isDynamicAnomaly = dataPoint.latency > dynamicThreshold.threshold;
 
     return (
-      <div className="bg-white p-3   border border-gray-200 min-w-[200px]">
-        <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">延迟</span>
-            <span
-              className={`text-sm font-bold ${
-                dataPoint.isAnomaly ? 'text-red-600' : 'text-blue-600'
-              }`}
-            >
-              {dataPoint.latency} ms
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">固定阈值</span>
-            <span className="text-xs text-gray-700">{anomalyThreshold} ms</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">动态阈值</span>
-            <span className="text-xs text-amber-600">{dynamicThreshold.threshold} ms</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">基线 MA20</span>
-            <span className="text-xs text-emerald-600">{dynamicThreshold.baseline} ms</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">标准差 σ</span>
-            <span className="text-xs text-gray-700">{dynamicThreshold.stdDev}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">状态</span>
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded ${
-                dataPoint.isAnomaly ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-              }`}
-            >
-              {dataPoint.isAnomaly ? '异常' : '正常'}
-            </span>
-          </div>
-          {isDynamicAnomaly && (
-            <div className="mt-2 pt-2 border-t border-gray-100">
-              <span className="text-xs text-amber-600 font-medium">⚠️ 超过动态阈值</span>
-            </div>
-          )}
+      <div
+      className="p-3 min-w-[200px]"
+      style={{
+        backgroundColor: baseColors.gray[50],
+        border: `1px solid ${baseColors.gray[200]}`,
+        boxShadow: shadowColors.tooltip,
+      }}
+    >
+      <p className="text-xs font-medium mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>延迟</span>
+          <span
+            className="text-sm font-bold"
+            style={{ color: dataPoint.isAnomaly ? semanticColors.danger.dark : baseColors.primary[600] }}
+          >
+            {dataPoint.latency} ms
+          </span>
         </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>固定阈值</span>
+          <span className="text-xs" style={{ color: baseColors.gray[700] }}>{anomalyThreshold} ms</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>动态阈值</span>
+          <span className="text-xs" style={{ color: semanticColors.warning.dark }}>{dynamicThreshold.threshold} ms</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>基线 MA20</span>
+          <span className="text-xs" style={{ color: semanticColors.success.dark }}>{dynamicThreshold.baseline} ms</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>标准差 σ</span>
+          <span className="text-xs" style={{ color: baseColors.gray[700] }}>{dynamicThreshold.stdDev}</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>状态</span>
+          <span
+            className="text-xs font-medium px-2 py-0.5 rounded"
+            style={{
+              backgroundColor: dataPoint.isAnomaly ? semanticColors.danger.light : semanticColors.success.light,
+              color: dataPoint.isAnomaly ? semanticColors.danger.text : semanticColors.success.text,
+            }}
+          >
+            {dataPoint.isAnomaly ? '异常' : '正常'}
+          </span>
+        </div>
+        {isDynamicAnomaly && (
+          <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+            <span className="text-xs font-medium" style={{ color: semanticColors.warning.dark }}>⚠️ 超过动态阈值</span>
+          </div>
+        )}
       </div>
+    </div>
     );
   };
 
@@ -633,7 +642,7 @@ export function LatencyTrendChart({
         x2={data[period.end]?.timestamp}
         y1={anomalyThreshold}
         y2={maxLatency}
-        fill="#FEE2E2"
+        fill={semanticColors.danger.light}
         fillOpacity={0.5}
       />
     ));
@@ -645,19 +654,22 @@ export function LatencyTrendChart({
       headerAction={
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 text-xs">
-            <span className="w-2 h-2  bg-red-500" />
-            <span className="text-gray-500">延迟异常</span>
+            <span className="w-2 h-2" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+            <span style={{ color: baseColors.gray[500] }}>延迟异常</span>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="p-1.5 hover:bg-gray-100  transition-colors disabled:opacity-50"
+            className="p-1.5 transition-colors disabled:opacity-50"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = baseColors.gray[100]; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
             title="刷新数据"
           >
             <svg
-              className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
               fill="none"
-              stroke="currentColor"
+              stroke={baseColors.gray[500]}
               viewBox="0 0 24 24"
             >
               <path
@@ -673,32 +685,32 @@ export function LatencyTrendChart({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-blue-50  p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">平均延迟</p>
-            <p className="text-xl font-bold text-blue-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>平均延迟</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {stats.avg}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
-            <p className="text-xs text-green-600 mb-1">最小延迟</p>
-            <p className="text-xl font-bold text-green-700">
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.success.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.success.dark }}>最小延迟</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.success.text }}>
               {stats.min}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-orange-50  p-3 text-center">
-            <p className="text-xs text-orange-600 mb-1">最大延迟</p>
-            <p className="text-xl font-bold text-orange-700">
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.warning.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.warning.dark }}>最大延迟</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.warning.text }}>
               {stats.max}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
           </div>
-          <div className="bg-red-50  p-3 text-center">
-            <p className="text-xs text-red-600 mb-1">异常次数</p>
-            <p className="text-xl font-bold text-red-700">
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.danger.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.danger.dark }}>异常次数</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.danger.text }}>
               {stats.anomalyCount}
-              <span className="text-sm font-normal text-red-500 ml-1">
+              <span className="text-sm font-normal ml-1" style={{ color: semanticColors.danger.DEFAULT }}>
                 ({stats.anomalyPercent}%)
               </span>
             </p>
@@ -707,154 +719,157 @@ export function LatencyTrendChart({
 
         {/* Dynamic Threshold Statistics */}
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-amber-50  p-3 text-center">
-            <p className="text-xs text-amber-600 mb-1">动态阈值</p>
-            <p className="text-xl font-bold text-amber-700">
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.warning.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.warning.dark }}>动态阈值</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.warning.text }}>
               {dynamicThreshold.threshold}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-amber-500 mt-1">MA20 + 2σ</p>
+            <p className="text-xs mt-1" style={{ color: semanticColors.warning.DEFAULT }}>MA20 + 2σ</p>
           </div>
-          <div className="bg-emerald-50  p-3 text-center">
-            <p className="text-xs text-emerald-600 mb-1">基线 MA20</p>
-            <p className="text-xl font-bold text-emerald-700">
+          <div className="p-3 text-center" style={{ backgroundColor: semanticColors.success.light }}>
+            <p className="text-xs mb-1" style={{ color: semanticColors.success.dark }}>基线 MA20</p>
+            <p className="text-xl font-bold" style={{ color: semanticColors.success.text }}>
               {dynamicThreshold.baseline}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-emerald-500 mt-1">20点移动平均</p>
+            <p className="text-xs mt-1" style={{ color: semanticColors.success.DEFAULT }}>20点移动平均</p>
           </div>
-          <div className="bg-cyan-50  p-3 text-center">
-            <p className="text-xs text-cyan-600 mb-1">标准差 σ</p>
-            <p className="text-xl font-bold text-cyan-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.slate[100] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.slate[600] }}>标准差 σ</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.slate[700] }}>
               {dynamicThreshold.stdDev}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-cyan-500 mt-1">波动程度</p>
+            <p className="text-xs mt-1" style={{ color: baseColors.slate[500] }}>波动程度</p>
           </div>
-          <div className="bg-violet-50  p-3 text-center">
-            <p className="text-xs text-violet-600 mb-1">阈值调整次数</p>
-            <p className="text-xl font-bold text-violet-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[100] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>阈值调整次数</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {thresholdHistory.length}
               <span className="text-sm font-normal ml-1">次</span>
             </p>
-            <p className="text-xs text-violet-500 mt-1">每5分钟更新</p>
+            <p className="text-xs mt-1" style={{ color: baseColors.primary[500] }}>每5分钟更新</p>
           </div>
         </div>
 
         {/* Percentile Statistics */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-indigo-50  p-3 text-center">
-            <p className="text-xs text-indigo-600 mb-1">P50 (中位数)</p>
-            <p className="text-xl font-bold text-indigo-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>P50 (中位数)</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {stats.p50}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-indigo-500 mt-1">50% 数据低于此值</p>
+            <p className="text-xs mt-1" style={{ color: baseColors.primary[500] }}>50% 数据低于此值</p>
           </div>
-          <div className="bg-purple-50  p-3 text-center">
-            <p className="text-xs text-purple-600 mb-1">P90</p>
-            <p className="text-xl font-bold text-purple-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.slate[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.slate[600] }}>P90</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.slate[700] }}>
               {stats.p90}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-purple-500 mt-1">90% 数据低于此值</p>
+            <p className="text-xs mt-1" style={{ color: baseColors.slate[500] }}>90% 数据低于此值</p>
           </div>
-          <div className="bg-pink-50  p-3 text-center">
-            <p className="text-xs text-pink-600 mb-1">P99</p>
-            <p className="text-xl font-bold text-pink-700">
+          <div className="p-3 text-center" style={{ backgroundColor: baseColors.gray[50] }}>
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>P99</p>
+            <p className="text-xl font-bold" style={{ color: baseColors.gray[700] }}>
               {stats.p99}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
-            <p className="text-xs text-pink-500 mt-1">99% 数据低于此值</p>
+            <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>99% 数据低于此值</p>
           </div>
         </div>
 
         {/* 预测控制面板 */}
-        <div className="bg-gray-100 border border-gray-200  p-4 border border-violet-100">
+        <div className="p-4" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5" fill={baseColors.primary[600]} viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
                   clipRule="evenodd"
                 />
               </svg>
-              <h4 className="text-sm font-semibold text-gray-900">时序预测控制</h4>
+              <h4 className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>时序预测控制</h4>
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showPrediction}
                 onChange={(e) => setShowPrediction(e.target.checked)}
-                className="w-4 h-4 text-violet-600 rounded border-gray-300 focus:ring-violet-500"
+                className="w-4 h-4 rounded"
+                style={{ accentColor: baseColors.primary[600] }}
               />
-              <span className="text-xs text-gray-700">显示预测</span>
+              <span className="text-xs" style={{ color: baseColors.gray[700] }}>显示预测</span>
             </label>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">SMA周期</label>
+              <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>SMA周期</label>
               <select
                 value={smaPeriod}
                 onChange={(e) => setSmaPeriod(Number(e.target.value))}
-                className="w-full text-sm border border-gray-300  px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full text-sm px-3 py-2"
+                style={{ border: `1px solid ${baseColors.gray[300]}` }}
               >
                 <option value={5}>5 点</option>
                 <option value={10}>10 点</option>
                 <option value={20}>20 点</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">移动平均计算窗口</p>
+              <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>移动平均计算窗口</p>
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">预测周期</label>
+              <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>预测周期</label>
               <select
                 value={predictionPeriod}
                 onChange={(e) => setPredictionPeriod(Number(e.target.value))}
-                className="w-full text-sm border border-gray-300  px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full text-sm px-3 py-2"
+                style={{ border: `1px solid ${baseColors.gray[300]}` }}
               >
                 <option value={5}>5 点</option>
                 <option value={10}>10 点</option>
                 <option value={20}>20 点</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">未来预测数据点数量</p>
+              <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>未来预测数据点数量</p>
             </div>
           </div>
 
           {/* 预测准确度统计 */}
           {showPrediction && (
-            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-violet-200">
+            <div className="grid grid-cols-3 gap-3 pt-4" style={{ borderTop: `1px solid ${baseColors.primary[200]}` }}>
               <div className="text-center">
-                <p className="text-xs text-violet-600 mb-1">MAE</p>
-                <p className="text-lg font-bold text-violet-700">
+                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>MAE</p>
+                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
                   {predictionAccuracy.mae}
                   <span className="text-xs font-normal ml-1">ms</span>
                 </p>
-                <p className="text-xs text-violet-500">平均绝对误差</p>
+                <p className="text-xs" style={{ color: baseColors.primary[500] }}>平均绝对误差</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-violet-600 mb-1">RMSE</p>
-                <p className="text-lg font-bold text-violet-700">
+                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>RMSE</p>
+                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
                   {predictionAccuracy.rmse}
                   <span className="text-xs font-normal ml-1">ms</span>
                 </p>
-                <p className="text-xs text-violet-500">均方根误差</p>
+                <p className="text-xs" style={{ color: baseColors.primary[500] }}>均方根误差</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-violet-600 mb-1">MAPE</p>
-                <p className="text-lg font-bold text-violet-700">
+                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>MAPE</p>
+                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
                   {predictionAccuracy.mape}
                   <span className="text-xs font-normal ml-1">%</span>
                 </p>
-                <p className="text-xs text-violet-500">平均绝对百分比误差</p>
+                <p className="text-xs" style={{ color: baseColors.primary[500] }}>平均绝对百分比误差</p>
               </div>
             </div>
           )}
 
-          <div className="mt-4 text-xs text-gray-600">
+          <div className="mt-4 text-xs" style={{ color: baseColors.gray[600] }}>
             <p>
-              <span className="font-medium text-violet-700">预测说明：</span>
+              <span className="font-medium" style={{ color: baseColors.primary[700] }}>预测说明：</span>
               基于SMA({smaPeriod})计算预测值，置信区间为预测值 ± 1.96 × 标准差（95%置信度）。
               当前预测未来 {predictionPeriod} 个时间点的延迟值。
             </p>
@@ -864,16 +879,16 @@ export function LatencyTrendChart({
         <div style={{ height: 280 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
               <XAxis
                 dataKey="timestamp"
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 minTickGap={15}
               />
               <YAxis
-                stroke="#9ca3af"
-                tick={{ fontSize: 11, fill: '#6b7280' }}
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                 tickFormatter={(value) => `${value}`}
                 domain={[0, 'auto']}
                 width={50}
@@ -881,7 +896,7 @@ export function LatencyTrendChart({
                   value: 'ms',
                   angle: -90,
                   position: 'insideLeft',
-                  fill: '#9ca3af',
+                  fill: chartColors.recharts.axis,
                   fontSize: 11,
                 }}
               />
@@ -890,48 +905,48 @@ export function LatencyTrendChart({
               {/* Fixed threshold line */}
               <ReferenceLine
                 y={anomalyThreshold}
-                stroke="#EF4444"
+                stroke={semanticColors.danger.DEFAULT}
                 strokeDasharray="5 5"
                 label={{
                   value: `固定阈值 (${anomalyThreshold}ms)`,
                   position: 'right',
-                  fill: '#EF4444',
+                  fill: semanticColors.danger.DEFAULT,
                   fontSize: 10,
                 }}
               />
               {/* Dynamic threshold line */}
               <ReferenceLine
                 y={dynamicThreshold.threshold}
-                stroke="#F59E0B"
+                stroke={semanticColors.warning.DEFAULT}
                 strokeDasharray="8 4"
                 strokeWidth={2}
                 label={{
                   value: `动态阈值 (${dynamicThreshold.threshold}ms)`,
                   position: 'right',
-                  fill: '#F59E0B',
+                  fill: semanticColors.warning.DEFAULT,
                   fontSize: 10,
                 }}
               />
               {/* Baseline (moving average) line */}
               <ReferenceLine
                 y={dynamicThreshold.baseline}
-                stroke="#10B981"
+                stroke={semanticColors.success.DEFAULT}
                 strokeDasharray="3 3"
                 label={{
                   value: `基线 MA20 (${dynamicThreshold.baseline}ms)`,
                   position: 'left',
-                  fill: '#10B981',
+                  fill: semanticColors.success.DEFAULT,
                   fontSize: 10,
                 }}
               />
               <ReferenceLine
                 y={stats.avg}
-                stroke="#3B82F6"
+                stroke={chartColors.recharts.primary}
                 strokeDasharray="3 3"
                 label={{
                   value: `平均 (${stats.avg}ms)`,
                   position: 'left',
-                  fill: '#3B82F6',
+                  fill: chartColors.recharts.primary,
                   fontSize: 10,
                 }}
               />
@@ -941,7 +956,7 @@ export function LatencyTrendChart({
                   type="monotone"
                   dataKey="upperBound"
                   stroke="none"
-                  fill="#8B5CF6"
+                  fill={chartColors.recharts.prediction}
                   fillOpacity={0.1}
                   legendType="none"
                 />
@@ -951,7 +966,7 @@ export function LatencyTrendChart({
                   type="monotone"
                   dataKey="lowerBound"
                   stroke="none"
-                  fill="#fff"
+                  fill={baseColors.gray[50]}
                   fillOpacity={1}
                   legendType="none"
                 />
@@ -960,10 +975,10 @@ export function LatencyTrendChart({
               <Line
                 type="monotone"
                 dataKey="latency"
-                stroke="#3B82F6"
+                stroke={chartColors.recharts.primary}
                 strokeWidth={2}
                 dot={<CustomDot />}
-                activeDot={{ r: 5, fill: '#3B82F6', stroke: '#FFF', strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: chartColors.recharts.primary, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
                 name="实际延迟"
                 connectNulls={false}
               />
@@ -972,11 +987,11 @@ export function LatencyTrendChart({
                 <Line
                   type="monotone"
                   dataKey="predicted"
-                  stroke="#8B5CF6"
+                  stroke={chartColors.recharts.prediction}
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  dot={{ r: 4, fill: '#8B5CF6', stroke: '#FFF', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: '#8B5CF6', stroke: '#FFF', strokeWidth: 2 }}
+                  dot={{ r: 4, fill: chartColors.recharts.prediction, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: chartColors.recharts.prediction, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
                   name="SMA预测"
                   connectNulls={false}
                 />
@@ -986,19 +1001,19 @@ export function LatencyTrendChart({
         </div>
 
         {/* Latency Distribution Histogram */}
-        <div className="bg-gray-50  p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">延迟分布直方图</h4>
+        <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
+          <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[900] }}>延迟分布直方图</h4>
           <div style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={stats.histogramData}
                 margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
                 <XAxis
                   dataKey="range"
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
                   angle={-45}
                   textAnchor="end"
                   height={50}
@@ -1007,18 +1022,18 @@ export function LatencyTrendChart({
                     value: '延迟范围 (ms)',
                     position: 'insideBottom',
                     offset: -10,
-                    fill: '#9ca3af',
+                    fill: chartColors.recharts.axis,
                     fontSize: 11,
                   }}
                 />
                 <YAxis
-                  stroke="#9ca3af"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  stroke={chartColors.recharts.axis}
+                  tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                   label={{
                     value: '频次',
                     angle: -90,
                     position: 'insideLeft',
-                    fill: '#9ca3af',
+                    fill: chartColors.recharts.axis,
                     fontSize: 11,
                   }}
                 />
@@ -1027,27 +1042,27 @@ export function LatencyTrendChart({
                     if (!active || !payload || payload.length === 0) return null;
                     const data = payload[0].payload as HistogramDataPoint;
                     return (
-                      <div className="bg-white p-2   border border-gray-200">
-                        <p className="text-xs text-gray-500 mb-1">延迟范围</p>
-                        <p className="text-sm font-semibold text-gray-900">{data.range} ms</p>
-                        <p className="text-xs text-gray-500 mt-1">频次</p>
-                        <p className="text-sm font-semibold text-blue-600">{data.count}</p>
+                      <div className="p-2" style={{ backgroundColor: baseColors.gray[50], border: `1px solid ${baseColors.gray[200]}` }}>
+                        <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>延迟范围</p>
+                        <p className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>{data.range} ms</p>
+                        <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>频次</p>
+                        <p className="text-sm font-semibold" style={{ color: chartColors.recharts.primary }}>{data.count}</p>
                       </div>
                     );
                   }}
                 />
-                <Bar dataKey="count" fill="#3B82F6" stroke="#2563EB" strokeWidth={1} />
+                <Bar dataKey="count" fill={chartColors.recharts.primary} stroke={chartColors.recharts.primaryDark} strokeWidth={1} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {stats.anomalyCount > 0 && (
-          <div className="bg-red-50 border border-red-200  p-3">
+          <div className="p-3" style={{ backgroundColor: semanticColors.danger.light, border: `1px solid ${baseColors.primary[200]}` }}>
             <div className="flex items-start gap-2">
               <svg
-                className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
-                fill="currentColor"
+                className="w-5 h-5 flex-shrink-0 mt-0.5"
+                fill={semanticColors.danger.dark}
                 viewBox="0 0 20 20"
               >
                 <path
@@ -1057,8 +1072,8 @@ export function LatencyTrendChart({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">检测到延迟异常</h4>
-                <p className="text-xs text-red-700">
+                <h4 className="text-sm font-semibold mb-1" style={{ color: semanticColors.danger.text }}>检测到延迟异常</h4>
+                <p className="text-xs" style={{ color: semanticColors.danger.dark }}>
                   在过去1小时内，有 {stats.anomalyCount} 个数据点（{stats.anomalyPercent}
                   %）的延迟超过了 {anomalyThreshold}ms 阈值。 最长异常持续时间为{' '}
                   {stats.longestAnomalyDuration} 分钟。
@@ -1070,10 +1085,10 @@ export function LatencyTrendChart({
         )}
 
         {/* Dynamic Threshold Explanation Card */}
-        <div className="bg-gray-100 border border-gray-200  p-4 border border-amber-100">
+        <div className="p-4" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
-              <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5" fill={semanticColors.warning.dark} viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -1082,25 +1097,25 @@ export function LatencyTrendChart({
               </svg>
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">动态阈值机制说明</h4>
-              <div className="space-y-2 text-xs text-gray-700">
+              <h4 className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>动态阈值机制说明</h4>
+              <div className="space-y-2 text-xs" style={{ color: baseColors.gray[700] }}>
                 <p>
-                  <span className="font-medium text-amber-700">计算公式：</span>
+                  <span className="font-medium" style={{ color: semanticColors.warning.dark }}>计算公式：</span>
                   动态阈值 = 基线(MA20) + 2 × 标准差(σ)
                 </p>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div>
-                    <p className="font-medium text-emerald-700 mb-1">基线 MA20</p>
-                    <p className="text-gray-600">
+                    <p className="font-medium mb-1" style={{ color: semanticColors.success.dark }}>基线 MA20</p>
+                    <p style={{ color: baseColors.gray[600] }}>
                       最近20个数据点的移动平均值，代表当前延迟的基准水平
                     </p>
                   </div>
                   <div>
-                    <p className="font-medium text-cyan-700 mb-1">标准差 σ</p>
-                    <p className="text-gray-600">衡量延迟数据的波动程度，2σ 覆盖约95%的正常数据</p>
+                    <p className="font-medium mb-1" style={{ color: baseColors.slate[700] }}>标准差 σ</p>
+                    <p style={{ color: baseColors.gray[600] }}>衡量延迟数据的波动程度，2σ 覆盖约95%的正常数据</p>
                   </div>
                 </div>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2" style={{ color: baseColors.gray[600] }}>
                   <span className="font-medium">调整频率：</span>
                   系统每5分钟自动重新计算一次阈值，已调整 {thresholdHistory.length} 次。
                   动态阈值能够自适应网络状况变化，比固定阈值更灵敏地检测异常。
@@ -1110,9 +1125,9 @@ export function LatencyTrendChart({
           </div>
         </div>
 
-        <div className="bg-blue-50  p-3">
-          <h4 className="text-sm font-medium text-blue-900 mb-1">关于价格更新延迟</h4>
-          <p className="text-xs text-blue-800">
+        <div className="p-3" style={{ backgroundColor: baseColors.primary[50] }}>
+          <h4 className="text-sm font-medium mb-1" style={{ color: baseColors.primary[900] }}>关于价格更新延迟</h4>
+          <p className="text-xs" style={{ color: baseColors.primary[800] }}>
             价格更新延迟反映了 Pyth Network 预言机从数据源获取价格更新到链上可用的时间。
             正常情况下延迟应保持在 200ms 以下。当延迟异常升高时，可能表示网络拥堵、
             数据源响应缓慢或系统负载过高，建议关注异常时段并评估对应用的影响。

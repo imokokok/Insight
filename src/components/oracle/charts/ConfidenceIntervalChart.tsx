@@ -16,7 +16,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
-import { chartColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
 
 const logger = createLogger('ConfidenceIntervalChart');
 
@@ -108,13 +108,20 @@ function CustomDot({ cx, cy, payload }: CustomDotProps) {
         cy={cy}
         r={4}
         fill={semanticColors.danger.DEFAULT}
-        stroke="#FFF"
+        stroke={baseColors.gray[50]}
         strokeWidth={2}
       />
     );
   }
   return (
-    <Dot cx={cx} cy={cy} r={3} fill={chartColors.recharts.pink} stroke="#FFF" strokeWidth={2} />
+    <Dot
+      cx={cx}
+      cy={cy}
+      r={3}
+      fill={chartColors.recharts.pink}
+      stroke={baseColors.gray[50]}
+      strokeWidth={2}
+    />
   );
 }
 
@@ -131,7 +138,7 @@ function CustomTooltip({ active, payload, label, threshold }: CustomTooltipProps
   const dataPoint = payload[0].payload;
 
   return (
-    <div className="bg-white p-3   border border-gray-200 min-w-[200px]">
+    <div className="bg-white p-3 rounded border border-gray-200 min-w-[200px]">
       <p className="text-xs font-medium text-gray-900 mb-2">{label}</p>
       <div className="space-y-1">
         <div className="flex justify-between items-center">
@@ -284,7 +291,7 @@ export function ConfidenceIntervalChart({
     return (
       <DashboardCard title="置信区间宽度趋势" className={className}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin  h-8 w-8 border-b-2 border-pink-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
           <span className="ml-3 text-gray-600">正在加载数据...</span>
         </div>
       </DashboardCard>
@@ -300,17 +307,17 @@ export function ConfidenceIntervalChart({
             <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">模拟数据</span>
           )}
           <div className="flex items-center gap-1 text-xs">
-            <span className="w-2 h-2  bg-red-500" />
+            <span className="w-2 h-2 rounded bg-red-500" />
             <span className="text-gray-500">超出阈值</span>
           </div>
-          <div className="flex bg-gray-100  p-0.5">
+          <div className="flex bg-gray-100 rounded p-0.5">
             {(['24H', '7D', '30D'] as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                   timeRange === range
-                    ? 'bg-white text-gray-900 '
+                    ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -324,7 +331,7 @@ export function ConfidenceIntervalChart({
     >
       <div className="space-y-4">
         {error && (
-          <div className="bg-amber-50 border border-amber-200  p-3">
+          <div className="bg-amber-50 border border-amber-200 rounded p-3">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -339,19 +346,19 @@ export function ConfidenceIntervalChart({
         )}
 
         <div className="grid grid-cols-4 gap-3">
-          <div className="bg-pink-50  p-3 text-center">
+          <div className="bg-pink-50 rounded p-3 text-center">
             <p className="text-xs text-pink-600 mb-1">平均宽度</p>
             <p className="text-xl font-bold text-pink-700">{(stats.avg * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-green-50  p-3 text-center">
+          <div className="bg-green-50 rounded p-3 text-center">
             <p className="text-xs text-green-600 mb-1">最小宽度</p>
             <p className="text-xl font-bold text-green-700">{(stats.min * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-orange-50  p-3 text-center">
+          <div className="bg-orange-50 rounded p-3 text-center">
             <p className="text-xs text-orange-600 mb-1">最大宽度</p>
             <p className="text-xl font-bold text-orange-700">{(stats.max * 100).toFixed(2)}%</p>
           </div>
-          <div className="bg-red-50  p-3 text-center">
+          <div className="bg-red-50 rounded p-3 text-center">
             <p className="text-xs text-red-600 mb-1">超出阈值</p>
             <p className="text-xl font-bold text-red-700">
               {stats.aboveThresholdCount}
@@ -400,7 +407,7 @@ export function ConfidenceIntervalChart({
                 activeDot={{
                   r: 5,
                   fill: chartColors.recharts.pink,
-                  stroke: '#FFF',
+                  stroke: baseColors.gray[50],
                   strokeWidth: 2,
                 }}
               />
@@ -409,7 +416,7 @@ export function ConfidenceIntervalChart({
         </div>
 
         {stats.aboveThresholdCount > 0 && (
-          <div className="bg-red-50 border border-red-200  p-3">
+          <div className="bg-red-50 border border-red-200 rounded p-3">
             <div className="flex items-start gap-2">
               <svg
                 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
@@ -434,7 +441,7 @@ export function ConfidenceIntervalChart({
           </div>
         )}
 
-        <div className="bg-blue-50  p-3">
+        <div className="bg-blue-50 rounded p-3">
           <h4 className="text-sm font-medium text-blue-900 mb-1">关于置信区间宽度</h4>
           <p className="text-xs text-blue-800">
             置信区间宽度反映了 Pyth Network

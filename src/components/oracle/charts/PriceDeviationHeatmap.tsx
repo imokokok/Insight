@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '../common/DashboardCard';
 import { OracleProvider } from '@/types/oracle';
+import { heatmapColors, baseColors } from '@/lib/config/colors';
 
 export interface PriceDeviationDataPoint {
   timestamp: number;
@@ -25,33 +26,33 @@ interface PriceDeviationHeatmapProps {
 }
 
 const oracleColors: Record<string, string> = {
-  Chainlink: '#375BD2',
-  'Band Protocol': '#9B51E0',
-  UMA: '#FF6B6B',
-  'Pyth Network': '#EC4899',
-  API3: '#10B981',
+  Chainlink: heatmapColors.oracle.chainlink,
+  'Band Protocol': heatmapColors.oracle.bandProtocol,
+  UMA: heatmapColors.oracle.uma,
+  'Pyth Network': heatmapColors.oracle.pythNetwork,
+  API3: heatmapColors.oracle.api3,
 };
 
 // 色盲友好的预言机颜色
 const accessibleOracleColors: Record<string, string> = {
-  Chainlink: '#003f5c',
-  'Band Protocol': '#2f4b7c',
-  UMA: '#665191',
-  'Pyth Network': '#a05195',
-  API3: '#d45087',
+  Chainlink: heatmapColors.accessible.chainlink,
+  'Band Protocol': heatmapColors.accessible.bandProtocol,
+  UMA: heatmapColors.accessible.uma,
+  'Pyth Network': heatmapColors.accessible.pythNetwork,
+  API3: heatmapColors.accessible.api3,
 };
 
 const getDeviationColor = (deviation: number): string => {
   const absDeviation = Math.abs(deviation);
-  if (absDeviation < 0.1) return '#10B981';
-  if (absDeviation < 0.25) return '#34D399';
-  if (absDeviation < 0.5) return '#6EE7B7';
-  if (absDeviation < 0.75) return '#FCD34D';
-  if (absDeviation < 1) return '#FBBF24';
-  if (absDeviation < 1.5) return '#F59E0B';
-  if (absDeviation < 2) return '#EF4444';
-  if (absDeviation < 3) return '#DC2626';
-  return '#B91C1C';
+  if (absDeviation < 0.1) return heatmapColors.deviation.extremelyLow;
+  if (absDeviation < 0.25) return heatmapColors.deviation.low;
+  if (absDeviation < 0.5) return heatmapColors.deviation.lower;
+  if (absDeviation < 0.75) return heatmapColors.deviation.medium;
+  if (absDeviation < 1) return heatmapColors.deviation.higher;
+  if (absDeviation < 1.5) return heatmapColors.deviation.high;
+  if (absDeviation < 2) return heatmapColors.deviation.veryHigh;
+  if (absDeviation < 3) return heatmapColors.deviation.extremelyHigh;
+  return heatmapColors.deviation.anomaly;
 };
 
 const getDeviationTextColor = (deviation: number): string => {
@@ -69,6 +70,18 @@ const formatFullTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp);
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 };
+
+const getColorLegend = (t: (key: string) => string) => [
+  { color: heatmapColors.deviation.extremelyLow, label: '< 0.1%', range: t('priceDeviationHeatmap.range.extremelyLow') },
+  { color: heatmapColors.deviation.low, label: '0.1-0.25%', range: t('priceDeviationHeatmap.range.low') },
+  { color: heatmapColors.deviation.lower, label: '0.25-0.5%', range: t('priceDeviationHeatmap.range.lower') },
+  { color: heatmapColors.deviation.medium, label: '0.5-0.75%', range: t('priceDeviationHeatmap.range.medium') },
+  { color: heatmapColors.deviation.higher, label: '0.75-1%', range: t('priceDeviationHeatmap.range.higher') },
+  { color: heatmapColors.deviation.high, label: '1-1.5%', range: t('priceDeviationHeatmap.range.high') },
+  { color: heatmapColors.deviation.veryHigh, label: '1.5-2%', range: t('priceDeviationHeatmap.range.veryHigh') },
+  { color: heatmapColors.deviation.extremelyHigh, label: '2-3%', range: t('priceDeviationHeatmap.range.extremelyHigh') },
+  { color: heatmapColors.deviation.anomaly, label: '> 3%', range: t('priceDeviationHeatmap.range.anomaly') },
+];
 
 export function PriceDeviationHeatmap({
   data,
@@ -148,18 +161,6 @@ export function PriceDeviationHeatmap({
     return heatmapData.get(`${oracle}-${timestamp}`);
   };
 
-  const getColorLegend = (t: (key: string) => string) => [
-    { color: '#10B981', label: '< 0.1%', range: t('priceDeviationHeatmap.range.extremelyLow') },
-    { color: '#34D399', label: '0.1-0.25%', range: t('priceDeviationHeatmap.range.low') },
-    { color: '#6EE7B7', label: '0.25-0.5%', range: t('priceDeviationHeatmap.range.lower') },
-    { color: '#FCD34D', label: '0.5-0.75%', range: t('priceDeviationHeatmap.range.medium') },
-    { color: '#FBBF24', label: '0.75-1%', range: t('priceDeviationHeatmap.range.higher') },
-    { color: '#F59E0B', label: '1-1.5%', range: t('priceDeviationHeatmap.range.high') },
-    { color: '#EF4444', label: '1.5-2%', range: t('priceDeviationHeatmap.range.veryHigh') },
-    { color: '#DC2626', label: '2-3%', range: t('priceDeviationHeatmap.range.extremelyHigh') },
-    { color: '#B91C1C', label: '> 3%', range: t('priceDeviationHeatmap.range.anomaly') },
-  ];
-
   return (
     <DashboardCard
       title={t('priceDeviationHeatmap.title')}
@@ -216,7 +217,7 @@ export function PriceDeviationHeatmap({
                         backgroundColor:
                           (useAccessibleColors
                             ? accessibleOracleColors[oracle]
-                            : oracleColors[oracle]) || '#6B7280',
+                            : oracleColors[oracle]) || baseColors.gray[500],
                       }}
                     />
                     <span className="text-sm text-gray-700 truncate">{oracle}</span>
@@ -234,7 +235,7 @@ export function PriceDeviationHeatmap({
                             hasData ? getDeviationTextColor(deviation) : 'bg-gray-100'
                           }`}
                           style={{
-                            backgroundColor: hasData ? getDeviationColor(deviation) : '#F3F4F6',
+                            backgroundColor: hasData ? getDeviationColor(deviation) : heatmapColors.deviation.noData,
                           }}
                           onMouseEnter={() =>
                             hasData &&
@@ -373,7 +374,7 @@ export function PriceDeviationHeatmap({
                         backgroundColor:
                           (useAccessibleColors
                             ? accessibleOracleColors[item.oracle]
-                            : oracleColors[item.oracle]) || '#6B7280',
+                            : oracleColors[item.oracle]) || baseColors.gray[500],
                       }}
                     />
                     <span className="flex-1 text-sm text-gray-700 truncate">{item.oracle}</span>

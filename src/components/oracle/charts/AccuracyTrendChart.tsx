@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { AccuracyTrendPoint } from '@/hooks/usePriceHistory';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface AccuracyTrendChartProps {
   data: AccuracyTrendPoint[];
@@ -30,7 +31,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
   if (active && payload && payload.length) {
     const dataPoint = payload[0].payload;
     return (
-      <div className="bg-white p-4   border border-gray-200">
+      <div className="bg-white p-4 rounded border border-gray-200">
         <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
         <div className="space-y-1">
           <p className="text-sm">
@@ -86,31 +87,31 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
   }, [data]);
 
   return (
-    <div className="bg-white  border border-gray-200 p-6">
+    <div className="bg-white rounded border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">{t('pyth.trend.title')}</h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3  bg-blue-500" />
+            <div className="w-3 h-3 rounded bg-blue-500" />
             <span className="text-sm text-gray-600">{t('pyth.trend.accuracy')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3  bg-red-500" />
+            <div className="w-3 h-3 rounded bg-red-500" />
             <span className="text-sm text-gray-600">{t('pyth.trend.deviation')}</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-3 bg-blue-50  text-center">
+        <div className="p-3 bg-blue-50 rounded text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.avgAccuracy')}</p>
           <p className="text-xl font-bold text-blue-600">{avgAccuracy.toFixed(2)}%</p>
         </div>
-        <div className="p-3 bg-green-50  text-center">
+        <div className="p-3 bg-green-50 rounded text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.maxAccuracy')}</p>
           <p className="text-xl font-bold text-green-600">{maxAccuracy.toFixed(2)}%</p>
         </div>
-        <div className="p-3 bg-orange-50  text-center">
+        <div className="p-3 bg-orange-50 rounded text-center">
           <p className="text-sm text-gray-600 mb-1">{t('pyth.trend.minAccuracy')}</p>
           <p className="text-xl font-bold text-orange-600">{minAccuracy.toFixed(2)}%</p>
         </div>
@@ -119,11 +120,11 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
       <div style={{ height: 350 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
             <XAxis
               dataKey="displayDate"
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               minTickGap={20}
               angle={-45}
               textAnchor="end"
@@ -131,8 +132,8 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
             />
             <YAxis
               yAxisId="accuracy"
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               domain={[90, 100]}
               tickFormatter={(value) => `${value}%`}
               width={60}
@@ -140,8 +141,8 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
             <YAxis
               yAxisId="deviation"
               orientation="right"
-              stroke="#9ca3af"
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              stroke={chartColors.recharts.axis}
+              tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
               tickFormatter={(value) => `${value.toFixed(2)}%`}
               width={60}
             />
@@ -151,21 +152,21 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
               yAxisId="accuracy"
               type="monotone"
               dataKey="accuracy"
-              stroke="#3b82f6"
+              stroke={chartColors.recharts.primary}
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 6, fill: '#3b82f6' }}
+              activeDot={{ r: 6, fill: chartColors.recharts.primary }}
               name={t('pyth.trend.accuracy')}
             />
             <Line
               yAxisId="deviation"
               type="monotone"
               dataKey="deviation"
-              stroke="#ef4444"
+              stroke={chartColors.recharts.danger}
               strokeWidth={1.5}
               strokeDasharray="5 5"
               dot={false}
-              activeDot={{ r: 4, fill: '#ef4444' }}
+              activeDot={{ r: 4, fill: chartColors.recharts.danger }}
               name={t('pyth.trend.deviation')}
             />
             {eventPoints.map((point, index) => (
@@ -175,8 +176,8 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
                 y={point.accuracy}
                 yAxisId="accuracy"
                 r={8}
-                fill="#f59e0b"
-                stroke="#fff"
+                fill={chartColors.recharts.warning}
+                stroke={baseColors.gray[50]}
                 strokeWidth={2}
               />
             ))}
@@ -193,9 +194,9 @@ export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
             {eventPoints.map((point, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 "
+                className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded"
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-500  flex items-center justify-center">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
                   <svg
                     className="w-4 h-4 text-white"
                     fill="none"
