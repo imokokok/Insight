@@ -23,7 +23,7 @@ import {
 } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import { DashboardCard, MetricCard } from '../../common/DashboardCard';
+import { DashboardCard, FlatStatItem, FlatSection } from '../../common/DashboardCard';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
 import { createLogger } from '@/lib/utils/logger';
 import { ComparisonReportExporter } from '@/components/oracle/forms/ComparisonReportExporter';
@@ -440,7 +440,7 @@ export function CrossOracleComparison() {
 
   return (
     <div className="space-y-6" ref={chartRef}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{t('crossOracleComparison.title')}</h2>
           <p className="text-gray-500 mt-1">{t('crossOracleComparison.subtitle')}</p>
@@ -464,26 +464,24 @@ export function CrossOracleComparison() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard>
-          <div className="text-center">
-            <p className="text-sm text-gray-500 mb-2">
-              {t('crossOracleComparison.consistencyScore')}
-            </p>
-            <p className={`text-4xl font-bold ${getConsistencyColor(consistencyScore)}`}>
-              {consistencyScore}
-            </p>
-            <p className="text-sm text-gray-600 mt-1">{getConsistencyLabel(consistencyScore)}</p>
-          </div>
-        </DashboardCard>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4 border-b border-gray-100">
+        <div className="text-center md:text-left">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+            {t('crossOracleComparison.consistencyScore')}
+          </p>
+          <p className={`text-3xl font-bold ${getConsistencyColor(consistencyScore)}`}>
+            {consistencyScore}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">{getConsistencyLabel(consistencyScore)}</p>
+        </div>
 
         {priceStats && (
           <>
-            <MetricCard
+            <FlatStatItem
               label={t('crossOracle.averagePrice')}
               value={`$${priceStats.avg.toFixed(2)}`}
               icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -493,12 +491,12 @@ export function CrossOracleComparison() {
                 </svg>
               }
             />
-            <MetricCard
+            <FlatStatItem
               label={t('crossOracle.priceRange')}
               value={`$${priceStats.range.toFixed(2)}`}
               subValue={`${((priceStats.range / priceStats.avg) * 100).toFixed(2)}%`}
               icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -508,12 +506,12 @@ export function CrossOracleComparison() {
                 </svg>
               }
             />
-            <MetricCard
+            <FlatStatItem
               label={t('crossOracle.standardDeviation')}
               value={`$${priceStats.stdDev.toFixed(2)}`}
               subValue={`${((priceStats.stdDev / priceStats.avg) * 100).toFixed(2)}%`}
               icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -528,14 +526,14 @@ export function CrossOracleComparison() {
       </div>
 
       {extendedStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4 border-b border-gray-100">
+          <FlatStatItem
             label={t('crossOracle.stats.highestPrice')}
             value={`$${priceStats?.max.toFixed(2)}`}
             subValue={extendedStats.maxPriceOracle?.name}
             icon={
               <svg
-                className="w-5 h-5 text-green-500"
+                className="w-4 h-4 text-green-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -549,13 +547,13 @@ export function CrossOracleComparison() {
               </svg>
             }
           />
-          <MetricCard
+          <FlatStatItem
             label={t('crossOracle.stats.lowestPrice')}
             value={`$${priceStats?.min.toFixed(2)}`}
             subValue={extendedStats.minPriceOracle?.name}
             icon={
               <svg
-                className="w-5 h-5 text-red-500"
+                className="w-4 h-4 text-red-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -569,13 +567,13 @@ export function CrossOracleComparison() {
               </svg>
             }
           />
-          <MetricCard
+          <FlatStatItem
             label={t('crossOracle.stats.maxPriceDifference')}
             value={`${extendedStats.maxDeviation.toFixed(3)}%`}
             subValue={t('crossOracle.stats.deviationFromAverage')}
             icon={
               <svg
-                className="w-5 h-5 text-amber-500"
+                className="w-4 h-4 text-amber-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -589,12 +587,12 @@ export function CrossOracleComparison() {
               </svg>
             }
           />
-          <MetricCard
+          <FlatStatItem
             label={t('crossOracle.stats.avgResponseTime')}
             value={`${Math.round(extendedStats.avgResponseTime)}ms`}
             icon={
               <svg
-                className="w-5 h-5 text-blue-500"
+                className="w-4 h-4 text-blue-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -611,34 +609,36 @@ export function CrossOracleComparison() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title={t('crossOracle.selectTradingPair')}>
-          <div className="flex flex-wrap gap-2">
-            {symbols.map((symbol) => (
-              <button
-                key={symbol}
-                onClick={() => setSelectedSymbol(symbol)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedSymbol === symbol
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {symbol}/USD
-              </button>
-            ))}
-          </div>
-        </DashboardCard>
-
-        <DashboardCard title={`${t('crossOracle.selectOraclesTitle')} (${selectedOracles.length}/3)`}>
-          <div className="space-y-3">
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.selectTradingPair')}</h3>
             <div className="flex flex-wrap gap-2">
+              {symbols.map((symbol) => (
+                <button
+                  key={symbol}
+                  onClick={() => setSelectedSymbol(symbol)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    selectedSymbol === symbol
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {symbol}/USD
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/3)</h3>
+            <div className="flex flex-wrap gap-2 mb-3">
               {getOracleProvidersSortedByMarketCap().map((provider) => (
                 <button
                   key={provider}
                   onClick={() => toggleOracle(provider)}
                   disabled={!selectedOracles.includes(provider) && selectedOracles.length >= 3}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                     selectedOracles.includes(provider)
                       ? 'text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -655,10 +655,10 @@ export function CrossOracleComparison() {
             </div>
             <button
               onClick={handleQuickCompare}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg"
+              className="px-4 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
             >
-              <span className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -670,12 +670,12 @@ export function CrossOracleComparison() {
               </span>
             </button>
           </div>
-        </DashboardCard>
+        </div>
       </div>
 
-      <DashboardCard title={t('crossOracle.deviationThresholdSettings')}>
-        <div className="flex items-center gap-4">
-          <label className="text-sm text-gray-700">{t('crossOracle.priceDeviationThreshold')}</label>
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <label className="text-sm font-medium text-gray-700">{t('crossOracle.priceDeviationThreshold')}</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -684,7 +684,7 @@ export function CrossOracleComparison() {
               step="0.1"
               value={deviationThreshold}
               onChange={(e) => setDeviationThreshold(parseFloat(e.target.value))}
-              className="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-32 h-1.5 bg-gray-200 rounded appearance-none cursor-pointer accent-blue-600"
             />
             <input
               type="number"
@@ -693,160 +693,159 @@ export function CrossOracleComparison() {
               step="0.1"
               value={deviationThreshold}
               onChange={(e) => setDeviationThreshold(parseFloat(e.target.value) || 1)}
-              className="w-20 px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-16 px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <span className="text-sm text-gray-500">%</span>
           </div>
         </div>
-      </DashboardCard>
+      </div>
 
       {deviationAlerts.length > 0 && (
-        <DashboardCard>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <svg
-                className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-amber-800 mb-2">{t('crossOracle.priceDeviationAlert')}</h3>
-                <div className="space-y-2">
-                  {deviationAlerts.map((alert) => (
+        <div className="py-4 border-b border-amber-100">
+          <div className="flex items-start gap-3">
+            <svg
+              className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-amber-800 mb-2">{t('crossOracle.priceDeviationAlert')}</h3>
+              <div className="space-y-1.5">
+                {deviationAlerts.map((alert) => (
+                  <div
+                    key={alert.provider}
+                    className="flex items-center gap-2 text-sm text-amber-700"
+                  >
                     <div
-                      key={alert.provider}
-                      className="flex items-center gap-2 text-sm text-amber-700"
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: oracleColors[alert.provider] }}
-                      />
-                      <span className="font-medium">{alert.name}</span>
-                      <span>{t('crossOracleComparison.deviation')} {alert.deviation.toFixed(3)}%</span>
-                      <span className="text-amber-600">(${alert.price.toFixed(2)})</span>
-                    </div>
-                  ))}
-                </div>
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: oracleColors[alert.provider] }}
+                    />
+                    <span className="font-medium">{alert.name}</span>
+                    <span>{t('crossOracleComparison.deviation')} {alert.deviation.toFixed(3)}%</span>
+                    <span className="text-amber-600">(${alert.price.toFixed(2)})</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </DashboardCard>
+        </div>
       )}
 
       {deviationData.length > 0 && (
-        <DashboardCard title={t('crossOracle.differenceAnalysisPanel')}>
-          <div className="space-y-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracle.oraclePerformanceRanking.rank')}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracle.oracle')}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracle.price')}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracle.stats.deviationFromAverage')}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracle.confidence')}
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('crossOracleComparison.avgResponseTime')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {deviationData
-                    .sort((a, b) => b.deviationPercent - a.deviationPercent)
-                    .map((data) => (
-                      <tr key={data.provider} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-                              data.rank === 1
-                                ? 'bg-red-100 text-red-800'
-                                : data.rank === 2
-                                  ? 'bg-orange-100 text-orange-800'
-                                  : data.rank === 3
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {data.rank}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div
-                              className="w-3 h-3 rounded-full mr-2"
-                              style={{ backgroundColor: data.color }}
-                            />
-                            <span className="font-medium text-gray-900">{data.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-900 font-mono">
-                          ${data.price.toFixed(2)}
-                        </td>
-                        <td
-                          className={`px-4 py-3 whitespace-nowrap font-mono ${
-                            data.deviationFromAvg > 0 ? 'text-green-600' : 'text-red-600'
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.differenceAnalysisPanel')}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracle.oraclePerformanceRanking.rank')}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracle.oracle')}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracle.price')}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracle.stats.deviationFromAverage')}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracle.confidence')}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('crossOracleComparison.avgResponseTime')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {deviationData
+                  .sort((a, b) => b.deviationPercent - a.deviationPercent)
+                  .map((data) => (
+                    <tr key={data.provider} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium ${
+                            data.rank === 1
+                              ? 'bg-red-100 text-red-800'
+                              : data.rank === 2
+                                ? 'bg-orange-100 text-orange-800'
+                                : data.rank === 3
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {data.deviationFromAvg > 0 ? '+' : ''}
-                          {data.deviationFromAvg.toFixed(3)}%
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                          {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                          {data.responseTime}ms
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+                          {data.rank}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full mr-2"
+                            style={{ backgroundColor: data.color }}
+                          />
+                          <span className="font-medium text-gray-900">{data.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-900 font-mono">
+                        ${data.price.toFixed(2)}
+                      </td>
+                      <td
+                        className={`px-3 py-2 whitespace-nowrap font-mono ${
+                          data.deviationFromAvg > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {data.deviationFromAvg > 0 ? '+' : ''}
+                        {data.deviationFromAvg.toFixed(3)}%
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">
+                        {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">
+                        {data.responseTime}ms
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
-        </DashboardCard>
+        </div>
       )}
 
       {deviationChartData.length > 0 && (
-        <DashboardCard title={t('crossOracle.priceDifferenceVisualization')}>
-          <div className="h-80">
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceDifferenceVisualization')}</h3>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={deviationChartData}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+                margin={{ top: 10, right: 20, left: 80, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
                 <XAxis
                   type="number"
                   domain={['dataMin - 0.5', 'dataMax + 0.5']}
                   tickFormatter={(value) => `${value.toFixed(2)}%`}
+                  tick={{ fontSize: 11 }}
                 />
-                <YAxis type="category" dataKey="name" width={90} />
+                <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
                 <Tooltip
                   formatter={(value: any) => [`${Number(value) > 0 ? '+' : ''}${Number(value).toFixed(3)}%`, t('crossOracle.stats.deviationFromAverage')]}
                   labelFormatter={(label) =>
                     `${label} - $${deviationChartData.find((d) => d.name === label)?.price.toFixed(2)}`
                   }
                 />
-                <ReferenceLine x={0} stroke={chartColors.recharts.tick} strokeWidth={2} />
-                <Bar dataKey="deviation" radius={[4, 4, 4, 4]}>
+                <ReferenceLine x={0} stroke="#9ca3af" strokeWidth={1} />
+                <Bar dataKey="deviation" radius={[2, 2, 2, 2]}>
                   {deviationChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -857,56 +856,57 @@ export function CrossOracleComparison() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex items-center justify-center gap-6 mt-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-green-500"></div>
+          <div className="flex items-center justify-center gap-6 mt-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
               <span className="text-gray-600">{t('crossOracle.aboveAverage')}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-red-500"></div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-red-500"></div>
               <span className="text-gray-600">{t('crossOracle.belowAverage')}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-gray-600"></div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-gray-600"></div>
               <span className="text-gray-600">{t('crossOracle.zeroLineAverage')}</span>
             </div>
           </div>
-        </DashboardCard>
+        </div>
       )}
 
-      <DashboardCard title={t('crossOracle.multiOraclePriceComparison')}>
-        <div className="h-96">
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.multiOraclePriceComparison')}</h3>
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={lineChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" />
+            <ComposedChart data={lineChartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="time" tickFormatter={() => ''} />
-              <YAxis domain={['auto', 'auto']} tickFormatter={(value) => `$${value?.toFixed(2) || 0}`} />
+              <YAxis domain={['auto', 'auto']} tickFormatter={(value) => `$${value?.toFixed(2) || 0}`} tick={{ fontSize: 11 }} />
               <Tooltip
                 formatter={(value: any, name: any) => [`$${Number(value)?.toFixed(2) || 0}`, name]}
                 labelFormatter={() => t('crossOracle.priceHistory')}
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
               {selectedOracles.map((provider) => (
                 <Line
                   key={provider}
                   type="monotone"
                   dataKey={oracleNames[provider]}
                   stroke={oracleColors[provider]}
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                   dot={false}
                   connectNulls
                 />
               ))}
               <ReferenceLine
                 y={priceStats?.avg}
-                stroke={chartColors.recharts.tick}
+                stroke="#9ca3af"
                 strokeDasharray="3 3"
-                label={{ value: t('crossOracle.average'), position: 'right' }}
+                label={{ value: t('crossOracle.average'), position: 'right', fontSize: 10 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-      </DashboardCard>
+      </div>
 
       <PriceDeviationHistoryChart
         priceHistory={Object.fromEntries(
@@ -918,13 +918,14 @@ export function CrossOracleComparison() {
         chainlinkPrice={priceData.find((d) => d.provider === OracleProvider.CHAINLINK)?.price}
       />
 
-      <DashboardCard title={t('crossOracle.priceComparisonDetails')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceComparisonDetails')}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -933,7 +934,7 @@ export function CrossOracleComparison() {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('price')}
                 >
                   <div className="flex items-center gap-1">
@@ -942,7 +943,7 @@ export function CrossOracleComparison() {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('deviation')}
                 >
                   <div className="flex items-center gap-1">
@@ -951,7 +952,7 @@ export function CrossOracleComparison() {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('confidence')}
                 >
                   <div className="flex items-center gap-1">
@@ -960,7 +961,7 @@ export function CrossOracleComparison() {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                   onClick={() => handleSort('responseTime')}
                 >
                   <div className="flex items-center gap-1">
@@ -968,12 +969,12 @@ export function CrossOracleComparison() {
                     {getSortIcon('responseTime')}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.trend')}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {sortedPriceData.map((data) => {
                 const deviation = priceStats
                   ? ((data.price - priceStats.avg) / priceStats.avg) * 100
@@ -993,40 +994,40 @@ export function CrossOracleComparison() {
                 return (
                   <tr
                     key={data.provider}
-                    className={`hover:bg-gray-50 transition-colors ${
-                      shouldHighlight ? 'bg-red-50' : ''
+                    className={`border-b border-gray-100 hover:bg-gray-50 ${
+                      shouldHighlight ? 'bg-red-50/50' : ''
                     }`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-3 h-3 rounded-full mr-3"
+                          className="w-2.5 h-2.5 rounded-full mr-2"
                           style={{ backgroundColor: oracleColors[data.provider] }}
                         />
                         <span className="font-medium text-gray-900">
                           {oracleNames[data.provider]}
                         </span>
                         {shouldHighlight && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                             {t('crossOracleComparison.highDeviation')}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-mono">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-900 font-mono">
                       ${data.price.toFixed(2)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap font-mono ${deviationColor}`}>
+                    <td className={`px-3 py-2.5 whitespace-nowrap font-mono ${deviationColor}`}>
                       {deviation > 0 ? '+' : ''}
                       {deviation.toFixed(3)}%
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-500">
                       {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-500">
                       {data.responseTime}ms
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       <TrendIndicator trend={trend} />
                     </td>
                   </tr>
@@ -1035,18 +1036,19 @@ export function CrossOracleComparison() {
             </tbody>
           </table>
         </div>
-      </DashboardCard>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title={t('crossOracle.currentPriceComparison')}>
-          <div className="h-80">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4 border-b border-gray-100">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.currentPriceComparison')}</h3>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} />
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, t('crossOracle.price')]} />
-                <Bar dataKey="price" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]}>
+                <Bar dataKey="price" radius={[2, 2, 0, 0]}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -1054,24 +1056,25 @@ export function CrossOracleComparison() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </DashboardCard>
+        </div>
 
-        <DashboardCard title={t('crossOracle.priceTrendComparison')}>
-          <div className="h-80">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.priceTrendComparison')}</h3>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="time" tickFormatter={() => ''} />
-                <YAxis domain={['auto', 'auto']} />
+                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
                 {selectedOracles.map((provider) => (
                   <Line
                     key={provider}
                     type="monotone"
                     dataKey={oracleNames[provider]}
                     stroke={oracleColors[provider]}
-                    strokeWidth={2}
+                    strokeWidth={1.5}
                     dot={false}
                     connectNulls
                   />
@@ -1079,46 +1082,47 @@ export function CrossOracleComparison() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </DashboardCard>
+        </div>
       </div>
 
-      <DashboardCard title={t('crossOracle.performanceComparison')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.performanceComparison')}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.oracle')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.stats.avgResponseTime')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.dataQualityScoreCard.metrics.updateFrequency')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracleComparison.dataSources')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracleComparison.supportedChains')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.dataQualityScoreCard.dimensions.reliability')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('crossOracle.metrics.accuracy')}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {performanceData
                 .filter((p) => selectedOracles.includes(p.provider))
                 .map((perf) => (
-                  <tr key={perf.provider} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={perf.provider} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
-                          className="w-3 h-3 rounded-full mr-3"
+                          className="w-2.5 h-2.5 rounded-full mr-2"
                           style={{ backgroundColor: oracleColors[perf.provider] }}
                         />
                         <span className="font-medium text-gray-900">
@@ -1126,24 +1130,24 @@ export function CrossOracleComparison() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-900">
                       {perf.responseTime}ms
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-900">
                       {perf.updateFrequency < 1
                         ? `${(perf.updateFrequency * 1000).toFixed(0)}ms`
                         : `${perf.updateFrequency}s`}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-900">
                       {perf.dataSources}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-900">
                       {perf.supportedChains}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       <span className="text-green-600 font-medium">{perf.reliability}%</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       <span className="text-blue-600 font-medium">{perf.accuracy}%</span>
                     </td>
                   </tr>
@@ -1151,15 +1155,16 @@ export function CrossOracleComparison() {
             </tbody>
           </table>
         </div>
-      </DashboardCard>
+      </div>
 
-      <DashboardCard title={t('crossOracle.comprehensivePerformanceRadar')}>
-        <div className="h-96">
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('crossOracle.comprehensivePerformanceRadar')}</h3>
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={radarData}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="metric" />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} />
+            <RadarChart data={radarData} margin={{ top: 10, right: 60, left: 60, bottom: 10 }}>
+              <PolarGrid stroke="#e5e7eb" />
+              <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10 }} />
+              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
               {selectedOracles.map((provider) => (
                 <Radar
                   key={provider}
@@ -1168,17 +1173,17 @@ export function CrossOracleComparison() {
                   stroke={oracleColors[provider]}
                   fill={oracleColors[provider]}
                   fillOpacity={0.1}
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                 />
               ))}
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
-      </DashboardCard>
+      </div>
 
-      <DashboardCard title={t('crossOracle.autoRefreshSettings')}>
-        <div className="flex items-center gap-4">
+      <div className="py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -1192,7 +1197,7 @@ export function CrossOracleComparison() {
             <select
               value={refreshInterval}
               onChange={(e) => setRefreshInterval(Number(e.target.value))}
-              className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value={10000}>10s</option>
               <option value={30000}>30s</option>
@@ -1201,7 +1206,7 @@ export function CrossOracleComparison() {
             </select>
           )}
         </div>
-      </DashboardCard>
+      </div>
     </div>
   );
 }

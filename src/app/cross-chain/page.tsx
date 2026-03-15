@@ -313,11 +313,11 @@ export default function CrossChainPage() {
       ) : (
         <>
           {/* Stats Grid - Responsive layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b border-gray-200">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b border-gray-100">
             {statsData.map((stat, index) => (
               <div
                 key={index}
-                className={`px-3 sm:px-4 py-3 bg-white sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-gray-100 ${index > 0 ? 'sm:border-l sm:border-gray-200' : ''}`}
+                className={`px-3 sm:px-4 py-3 sm:bg-transparent ${index > 0 ? 'sm:border-l sm:border-gray-100' : ''}`}
                 title={stat.tooltip}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -334,8 +334,8 @@ export default function CrossChainPage() {
             ))}
           </div>
 
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+          <div className="mb-8 pb-8 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
               {t('crossChain.priceDistributionAnalysis')}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -343,7 +343,7 @@ export default function CrossChainPage() {
                 <h4 className="text-xs font-medium text-gray-700 mb-3">
                   {t('crossChain.priceDistributionHistogram')}
                 </h4>
-                <div className="h-64 bg-gray-50 p-4 rounded-lg">
+                <div className="h-64 py-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={priceDistributionData}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -375,19 +375,19 @@ export default function CrossChainPage() {
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  <div className="bg-white border rounded-lg p-3">
+                  <div className="py-3">
                     <div className="text-xs text-gray-500">{t('crossChain.medianLine')}</div>
                     <div className="text-lg font-semibold text-green-600">
                       ${medianPrice.toFixed(4)}
                     </div>
                   </div>
-                  <div className="bg-white border rounded-lg p-3">
+                  <div className="py-3">
                     <div className="text-xs text-gray-500">{t('crossChain.meanLine')}</div>
                     <div className="text-lg font-semibold text-blue-600">
                       ${avgPrice.toFixed(4)}
                     </div>
                   </div>
-                  <div className="bg-white border rounded-lg p-3">
+                  <div className="py-3">
                     <div className="text-xs text-gray-500">{t('crossChain.standardDeviation')}</div>
                     <div className="text-lg font-semibold text-purple-600">
                       ${standardDeviation.toFixed(4)}
@@ -399,7 +399,7 @@ export default function CrossChainPage() {
                 <h4 className="text-xs font-medium text-gray-700 mb-3">
                   {t('crossChain.chainPriceBoxPlot')}
                 </h4>
-                <div className="h-64 bg-gray-50 p-4 rounded-lg">
+                <div className="h-64 py-4">
                   <StandardBoxPlot data={boxPlotData} />
                 </div>
               </div>
@@ -413,21 +413,21 @@ export default function CrossChainPage() {
               <RollingCorrelationChart data={data} />
               <CointegrationAnalysis data={data} />
 
-              <div className="mb-8 pb-8 border-b border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide mb-4">
+              <div className="mb-8 pb-8 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
                   {t('crossChain.stabilityAnalysis')}
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 px-4 text-xs font-medium text-gray-500">
+                      <tr className="border-b border-gray-100">
+                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">
                           {t('crossChain.blockchain')}
                         </th>
-                        <th className="py-3 px-4 text-xs font-medium text-gray-500">数据完整性</th>
-                        <th className="py-3 px-4 text-xs font-medium text-gray-500">价格波动率</th>
-                        <th className="py-3 px-4 text-xs font-medium text-gray-500">价格跳动频率</th>
-                        <th className="py-3 px-4 text-xs font-medium text-gray-500 text-right">
+                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">数据完整性</th>
+                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">价格波动率</th>
+                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500">价格跳动频率</th>
+                        <th className="px-3 py-2.5 text-xs font-medium text-gray-500 text-right">
                           {t('crossChain.stabilityRating')}
                         </th>
                       </tr>
@@ -441,7 +441,7 @@ export default function CrossChainPage() {
                         const jumpCount = priceJumpFrequency[chain] ?? 0;
                         return (
                           <tr key={chain} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-3 px-4">
+                            <td className="px-3 py-2.5">
                               <div className="flex items-center">
                                 <div
                                   className="w-3 h-3 mr-2"
@@ -450,10 +450,10 @@ export default function CrossChainPage() {
                                 <span className="text-sm font-medium">{chainNames[chain]}</span>
                               </div>
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="px-3 py-2.5">
                               <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="px-3 py-2.5">
                               <ProgressBar
                                 value={volatility}
                                 color={getVolatilityColor(volatility)}
@@ -461,10 +461,10 @@ export default function CrossChainPage() {
                                 suffix="%"
                               />
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="px-3 py-2.5">
                               <JumpIndicator count={jumpCount} />
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="px-3 py-2.5 text-right">
                               <span
                                 className={`text-sm font-medium ${stabilityRating === 'stable' ? 'text-green-600' : stabilityRating === 'moderate' ? 'text-yellow-600' : 'text-red-600'}`}
                               >

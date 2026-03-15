@@ -1,7 +1,6 @@
 'use client';
 
 import { MarketDepth } from '@/lib/oracles/tellor';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 
 interface TellorMarketDepthPanelProps {
@@ -19,30 +18,31 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
   const askLevels = data.levels.filter((l) => l.askVolume > 0);
 
   return (
-    <DashboardCard title={t('tellor.marketDepth.title')}>
+    <div className="py-4 border-b border-gray-100">
+      <h3 className="text-sm font-semibold mb-3">{t('tellor.marketDepth.title')}</h3>
       <div className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.symbol')}</p>
-            <p className="text-xl font-bold text-cyan-600">{data.symbol}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.symbol')}</p>
+            <p className="text-lg font-bold text-cyan-600">{data.symbol}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.totalBid')}</p>
-            <p className="text-xl font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBid')}</p>
+            <p className="text-lg font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.totalAsk')}</p>
-            <p className="text-xl font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAsk')}</p>
+            <p className="text-lg font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
           </div>
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>
-            <p className="text-xl font-bold text-cyan-600">{data.spreadPercent.toFixed(4)}%</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>
+            <p className="text-lg font-bold text-cyan-600">{data.spreadPercent.toFixed(4)}%</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-medium text-green-700 mb-3">
+            <h4 className="text-xs font-medium text-green-700 mb-3">
               {t('tellor.marketDepth.bids')}
             </h4>
             <div className="space-y-2">
@@ -65,7 +65,7 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
 
           <div>
-            <h4 className="text-sm font-medium text-red-700 mb-3">
+            <h4 className="text-xs font-medium text-red-700 mb-3">
               {t('tellor.marketDepth.asks')}
             </h4>
             <div className="space-y-2">
@@ -88,7 +88,7 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
         </div>
       </div>
-    </DashboardCard>
+    </div>
   );
 }
 

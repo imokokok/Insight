@@ -1,7 +1,6 @@
 'use client';
 
 import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { Blockchain } from '@/types/oracle';
 
@@ -29,52 +28,53 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
   };
 
   return (
-    <DashboardCard title={t('tellor.multiChain.title')}>
+    <div className="py-4 border-b border-gray-100">
+      <h3 className="text-sm font-semibold mb-3">{t('tellor.multiChain.title')}</h3>
       <div className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.symbol')}</p>
-            <p className="text-xl font-bold text-cyan-600">{data.symbol}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.multiChain.symbol')}</p>
+            <p className="text-lg font-bold text-cyan-600">{data.symbol}</p>
           </div>
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.aggregatedPrice')}</p>
-            <p className="text-xl font-bold text-cyan-600">${data.aggregatedPrice.toFixed(4)}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.multiChain.aggregatedPrice')}</p>
+            <p className="text-lg font-bold text-cyan-600">${data.aggregatedPrice.toFixed(4)}</p>
           </div>
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.deviation')}</p>
-            <p className={`text-xl font-bold ${getDeviationColor(data.priceDeviation)}`}>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.multiChain.deviation')}</p>
+            <p className={`text-lg font-bold ${getDeviationColor(data.priceDeviation)}`}>
               {data.priceDeviation.toFixed(4)}%
             </p>
           </div>
-          <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.maxDeviation')}</p>
-            <p className={`text-xl font-bold ${getDeviationColor(data.maxDeviation)}`}>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.multiChain.maxDeviation')}</p>
+            <p className={`text-lg font-bold ${getDeviationColor(data.maxDeviation)}`}>
               {data.maxDeviation.toFixed(4)}%
             </p>
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.consensusMethod')}</p>
-          <p className="text-lg font-medium text-gray-900">{data.consensusMethod}</p>
+        <div className="py-4 border-b border-gray-100">
+          <p className="text-xs text-gray-600 mb-1">{t('tellor.multiChain.consensusMethod')}</p>
+          <p className="text-sm font-medium text-gray-900">{data.consensusMethod}</p>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">
+          <h4 className="text-xs font-medium text-gray-700 mb-3">
             {t('tellor.multiChain.chainPrices')}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.chainPrices.map((chainPrice: MultiChainPrice) => (
               <div
                 key={chainPrice.chain}
-                className="bg-white border border-gray-200 rounded-lg p-4"
+                className="py-4 border-b border-gray-100"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h5 className="font-semibold text-gray-900">
                     {getChainLabel(chainPrice.chain)}
                   </h5>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getConfidenceColor(
+                    className={`px-2 py-1 text-xs font-medium rounded-md ${getConfidenceColor(
                       chainPrice.confidence
                     )}`}
                   >
@@ -105,7 +105,7 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
           </div>
         </div>
       </div>
-    </DashboardCard>
+    </div>
   );
 }
 

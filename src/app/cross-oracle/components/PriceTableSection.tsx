@@ -59,17 +59,17 @@ export function PriceTableSection({
 }: PriceTableSectionProps) {
   return (
     <>
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="py-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <h3 className="text-sm font-semibold text-gray-900">
             {t('crossOracle.currentPriceComparison')}
-          </h2>
+          </h3>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">交易对:</span>
+            <span className="text-xs text-gray-500">交易对:</span>
             <select
               value={selectedSymbol}
               onChange={(e) => onSymbolChange(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {symbols.map((symbol) => (
                 <option key={symbol} value={symbol}>
@@ -84,7 +84,7 @@ export function PriceTableSection({
             <button
               key={oracle}
               onClick={() => onToggleOracle(oracle)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded border transition-colors ${
                 selectedOracles.includes(oracle)
                   ? 'bg-blue-50 border-blue-300 text-blue-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -100,7 +100,7 @@ export function PriceTableSection({
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="py-4">
         <PriceTable
           priceData={priceData}
           filteredPriceData={filteredPriceData}

@@ -2,7 +2,6 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
-import { DashboardCard } from '@/components/oracle';
 import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
 
 interface ChronicleScuttlebuttPanelProps {
@@ -58,17 +57,18 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   return (
     <div className="space-y-6">
       {/* Security Overview */}
-      <DashboardCard title={t('chronicle.scuttlebutt.title')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.title')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.securityLevel')}</p>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize border ${getSecurityLevelColor(data.securityLevel)}`}>
+          <div className="py-2">
+            <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.securityLevel')}</p>
+            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium capitalize border ${getSecurityLevelColor(data.securityLevel)}`}>
               {data.securityLevel}
             </span>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.auditScore')}</p>
-            <p className="text-2xl font-bold text-gray-900">{data.auditScore}/100</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.auditScore')}</p>
+            <p className="text-xl font-bold text-gray-900">{data.auditScore}/100</p>
             <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-amber-500 h-2 rounded-full transition-all duration-500"
@@ -76,43 +76,45 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
               />
             </div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500 mb-1">{t('chronicle.scuttlebutt.verificationStatus')}</p>
+          <div className="py-2">
+            <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.verificationStatus')}</p>
             <div className="flex items-center gap-2">
               {getVerificationStatusIcon(data.verificationStatus)}
-              <span className="text-lg font-semibold text-gray-900 capitalize">{data.verificationStatus}</span>
+              <span className="text-sm font-semibold text-gray-900 capitalize">{data.verificationStatus}</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {t('chronicle.scuttlebutt.lastAudit')}: {formatDate(data.lastAuditTimestamp)}
             </p>
           </div>
         </div>
-      </DashboardCard>
+      </div>
 
       {/* Security Features */}
-      <DashboardCard title={t('chronicle.scuttlebutt.securityFeatures')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.securityFeatures')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.securityFeatures.map((feature, index) => (
             <div
               key={index}
-              className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100"
+              className="flex items-center gap-3 py-2"
             >
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
               <span className="text-sm text-gray-700">{feature}</span>
             </div>
           ))}
         </div>
-      </DashboardCard>
+      </div>
 
       {/* Historical Events */}
-      <DashboardCard title={t('chronicle.scuttlebutt.historicalEvents')}>
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.historicalEvents')}</h3>
         <div className="space-y-3">
           {data.historicalEvents.map((event, index) => (
             <div
               key={index}
-              className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg"
+              className="flex items-start gap-4 py-4 border-b border-gray-100 last:border-0"
             >
-              <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}>
+              <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}>
                 {event.severity}
               </span>
               <div className="flex-1 min-w-0">
@@ -125,7 +127,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             </div>
           ))}
         </div>
-      </DashboardCard>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ interface DashboardCardProps {
   className?: string;
   headerAction?: ReactNode;
   onClick?: () => void;
+  variant?: 'default' | 'flat';
 }
 
 export function DashboardCard({
@@ -16,19 +17,35 @@ export function DashboardCard({
   className = '',
   headerAction,
   onClick,
+  variant = 'default',
 }: DashboardCardProps) {
+  const variantClasses = {
+    default: 'bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm',
+    flat: 'bg-transparent border-0 rounded-none shadow-none',
+  };
+
+  const headerClasses = {
+    default: 'flex items-center justify-between px-5 py-4 border-b border-gray-100',
+    flat: 'flex items-center justify-between py-2 mb-4',
+  };
+
+  const contentClasses = {
+    default: 'p-5',
+    flat: '',
+  };
+
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm ${className}`}
+      className={`${variantClasses[variant]} ${className}`}
       onClick={onClick}
     >
       {title && (
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className={headerClasses[variant]}>
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
           {headerAction && <div>{headerAction}</div>}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className={contentClasses[variant]}>{children}</div>
     </div>
   );
 }
@@ -105,3 +122,79 @@ export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
 const MemoizedMetricCard = memo(MetricCard);
 
 export { MemoizedMetricCard };
+
+interface FlatStatItemProps {
+  label: string;
+  value: string | number;
+  subValue?: string;
+  icon?: ReactNode;
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+  className?: string;
+}
+
+export function FlatStatItem({
+  label,
+  value,
+  subValue,
+  icon,
+  trend,
+  trendValue,
+  className = '',
+}: FlatStatItemProps) {
+  const trendColors = {
+    up: 'text-green-600',
+    down: 'text-red-600',
+    neutral: 'text-gray-500',
+  };
+
+  const trendIcons = {
+    up: '↑',
+    down: '↓',
+    neutral: '→',
+  };
+
+  return (
+    <div className={`py-2 ${className}`}>
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+          <p className="text-xl font-semibold text-gray-900">{value}</p>
+          {subValue && <p className="text-xs text-gray-400 mt-0.5">{subValue}</p>}
+          {trend && trendValue && (
+            <p className={`text-xs mt-1 font-medium ${trendColors[trend]}`}>
+              {trendIcons[trend]} {trendValue}
+            </p>
+          )}
+        </div>
+        {icon && <div className="p-1.5 bg-gray-50 rounded text-gray-500 flex-shrink-0 ml-2">{icon}</div>}
+      </div>
+    </div>
+  );
+}
+
+interface FlatSectionProps {
+  title?: string;
+  children: ReactNode;
+  className?: string;
+  headerAction?: ReactNode;
+}
+
+export function FlatSection({
+  title,
+  children,
+  className = '',
+  headerAction,
+}: FlatSectionProps) {
+  return (
+    <div className={`py-4 ${className}`}>
+      {(title || headerAction) && (
+        <div className="flex items-center justify-between mb-3">
+          {title && <h3 className="text-sm font-semibold text-gray-900">{title}</h3>}
+          {headerAction && <div>{headerAction}</div>}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
