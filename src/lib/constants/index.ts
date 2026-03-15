@@ -6,15 +6,15 @@ import {
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLAR]: 'Tellar',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
+    [OracleProvider.BAND_PROTOCOL]: 'Band Protocol',
+    [OracleProvider.UMA]: 'UMA',
+    [OracleProvider.PYTH]: 'Pyth',
+    [OracleProvider.API3]: 'API3',
+    [OracleProvider.REDSTONE]: 'RedStone',
+    [OracleProvider.DIA]: 'DIA',
+    [OracleProvider.TELLOR]: 'Tellor',
+    [OracleProvider.CHRONICLE]: 'Chronicle',
+    [OracleProvider.WINKLINK]: 'WINkLink',
 };
 
 // i18n 键名映射，用于将 OracleProvider 映射到 navbar i18n 键
@@ -26,7 +26,7 @@ export const oracleI18nKeys: Record<OracleProvider, string> = {
   [OracleProvider.API3]: 'api3',
   [OracleProvider.REDSTONE]: 'redstone',
   [OracleProvider.DIA]: 'dia',
-  [OracleProvider.TELLAR]: 'tellar',
+  [OracleProvider.TELLOR]: 'tellor',
   [OracleProvider.CHRONICLE]: 'chronicle',
   [OracleProvider.WINKLINK]: 'winklink',
 };
@@ -91,7 +91,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
-  [OracleProvider.TELLAR]: configChartColors.oracle.tellar,
+  [OracleProvider.TELLOR]: configChartColors.oracle.tellor,
   [OracleProvider.CHRONICLE]: configChartColors.oracle.chronicle,
   [OracleProvider.WINKLINK]: configChartColors.oracle.winklink,
 };

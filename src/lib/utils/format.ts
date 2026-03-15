@@ -33,9 +33,11 @@ export function formatCompactNumber(value: number): string {
   return value.toLocaleString();
 }
 
-export function formatCompactNumberV2(value: number, decimals: number = 1): string {
+export function formatCompactNumberWithDecimals(value: number, decimals: number = 1): string {
   if (value >= 1e9) return `${(value / 1e9).toFixed(decimals)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(decimals)}M`;
   if (value >= 1e3) return `${(value / 1e3).toFixed(decimals)}K`;
   return value.toString();
 }
+
+export { formatCompactNumberWithDecimals as formatCompactNumberV2 };

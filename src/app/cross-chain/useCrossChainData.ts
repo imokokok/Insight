@@ -10,7 +10,7 @@ import {
   API3Client,
   RedStoneClient,
   DIAClient,
-  TellarClient,
+  TellorClient,
   ChronicleClient,
   WINkLinkClient,
   BaseOracleClient,
@@ -49,7 +49,7 @@ const oracleClients = {
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.TELLOR]: new TellorClient(),
   [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
@@ -1085,7 +1085,7 @@ export function useCrossChainData(): UseCrossChainDataReturn {
       [OracleProvider.API3]: 'API3',
       [OracleProvider.REDSTONE]: 'RedStone',
       [OracleProvider.DIA]: 'DIA',
-      [OracleProvider.TELLAR]: 'Tellar',
+      [OracleProvider.TELLOR]: 'Tellor',
       [OracleProvider.CHRONICLE]: 'Chronicle',
       [OracleProvider.WINKLINK]: 'WINkLink',
     };

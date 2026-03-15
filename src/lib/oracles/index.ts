@@ -5,7 +5,7 @@ export { PythClient } from './pythNetwork';
 export { API3Client } from './api3';
 export { RedStoneClient } from './redstone';
 export { DIAClient } from './dia';
-export { TellarClient } from './tellar';
+export { TellorClient } from './tellor';
 export { ChronicleClient } from './chronicle';
 export { WINkLinkClient } from './winklink';
 export type { RedStoneMetrics, RedStoneProviderInfo } from './redstone';
@@ -22,8 +22,8 @@ export type {
   MarketDepth,
   MultiChainPrice,
   MultiChainAggregation,
-  TellarNetworkStats,
-} from './tellar';
+  TellorNetworkStats,
+} from './tellor';
 export type {
   ScuttlebuttData,
   MakerDAOAsset,

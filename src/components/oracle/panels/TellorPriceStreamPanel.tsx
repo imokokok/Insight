@@ -1,15 +1,15 @@
 'use client';
 
-import { PriceStreamPoint } from '@/lib/oracles/tellar';
+import { PriceStreamPoint } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { useEffect, useRef } from 'react';
 
-interface TellarPriceStreamPanelProps {
+interface TellorPriceStreamPanelProps {
   data: PriceStreamPoint[];
 }
 
-export function TellarPriceStreamPanel({ data }: TellarPriceStreamPanelProps) {
+export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
   const { t } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -36,25 +36,23 @@ export function TellarPriceStreamPanel({ data }: TellarPriceStreamPanelProps) {
   const volume24h = data.reduce((acc, p) => acc + p.volume, 0);
 
   return (
-    <DashboardCard title={t('tellar.priceStream.title')}>
+    <DashboardCard title={t('tellor.priceStream.title')}>
       <div className="space-y-4">
-        {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.priceStream.currentPrice')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.priceStream.currentPrice')}</p>
             <p className="text-2xl font-bold text-cyan-600">${latestPrice.toFixed(4)}</p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.priceStream.avgPrice')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.priceStream.avgPrice')}</p>
             <p className="text-2xl font-bold text-cyan-600">${avgPrice.toFixed(4)}</p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.priceStream.volume')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.priceStream.volume')}</p>
             <p className="text-2xl font-bold text-cyan-600">{volume24h.toLocaleString()}</p>
           </div>
         </div>
 
-        {/* Price Stream */}
         <div
           ref={scrollRef}
           className="bg-gray-900 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm"
@@ -83,7 +81,7 @@ export function TellarPriceStreamPanel({ data }: TellarPriceStreamPanelProps) {
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <span className="text-gray-400">
-                    {t('tellar.priceStream.volume')}: {point.volume}
+                    {t('tellor.priceStream.volume')}: {point.volume}
                   </span>
                   <span className="text-gray-500">{point.source}</span>
                 </div>
@@ -95,3 +93,5 @@ export function TellarPriceStreamPanel({ data }: TellarPriceStreamPanelProps) {
     </DashboardCard>
   );
 }
+
+export { TellorPriceStreamPanel as TellarPriceStreamPanel };

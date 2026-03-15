@@ -7,7 +7,7 @@ import { PythClient } from './pythNetwork';
 import { API3Client } from './api3';
 import { RedStoneClient } from './redstone';
 import { DIAClient } from './dia';
-import { TellarClient } from './tellar';
+import { TellorClient } from './tellor';
 import { ChronicleClient } from './chronicle';
 import { WINkLinkClient } from './winklink';
 import { OracleClientConfig } from './base';
@@ -74,7 +74,7 @@ export class OracleClientFactory {
       OracleProvider.API3,
       OracleProvider.REDSTONE,
       OracleProvider.DIA,
-      OracleProvider.TELLAR,
+      OracleProvider.TELLOR,
       OracleProvider.CHRONICLE,
       OracleProvider.WINKLINK,
     ];
@@ -138,8 +138,8 @@ export class OracleClientFactory {
         return new RedStoneClient(this.config);
       case OracleProvider.DIA:
         return new DIAClient(this.config);
-      case OracleProvider.TELLAR:
-        return new TellarClient(this.config);
+      case OracleProvider.TELLOR:
+        return new TellorClient(this.config);
       case OracleProvider.CHRONICLE:
         return new ChronicleClient(this.config);
       case OracleProvider.WINKLINK:

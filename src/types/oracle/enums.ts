@@ -6,7 +6,7 @@ export enum OracleProvider {
   API3 = 'api3',
   REDSTONE = 'redstone',
   DIA = 'dia',
-  TELLAR = 'tellar',
+  TELLOR = 'tellor',
   CHRONICLE = 'chronicle',
   WINKLINK = 'winklink',
 }

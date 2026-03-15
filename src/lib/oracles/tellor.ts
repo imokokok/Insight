@@ -47,7 +47,7 @@ export interface MultiChainAggregation {
   lastUpdated: number;
 }
 
-export interface TellarNetworkStats {
+export interface TellorNetworkStats {
   activeNodes: number;
   nodeUptime: number;
   avgResponseTime: number;
@@ -60,8 +60,8 @@ export interface TellarNetworkStats {
   stakingTokenSymbol: string;
 }
 
-export class TellarClient extends BaseOracleClient {
-  name = OracleProvider.TELLAR;
+export class TellorClient extends BaseOracleClient {
+  name = OracleProvider.TELLOR;
   supportedChains = [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -84,8 +84,8 @@ export class TellarClient extends BaseOracleClient {
       );
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch price from Tellar',
-        'TELLAR_ERROR'
+        error instanceof Error ? error.message : 'Failed to fetch price from Tellor',
+        'TELLOR_ERROR'
       );
     }
   }
@@ -103,8 +103,8 @@ export class TellarClient extends BaseOracleClient {
       );
     } catch (error) {
       throw this.createError(
-        error instanceof Error ? error.message : 'Failed to fetch historical prices from Tellar',
-        'TELLAR_HISTORICAL_ERROR'
+        error instanceof Error ? error.message : 'Failed to fetch historical prices from Tellor',
+        'TELLOR_HISTORICAL_ERROR'
       );
     }
   }
@@ -113,7 +113,7 @@ export class TellarClient extends BaseOracleClient {
     const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
     const stream: PriceStreamPoint[] = [];
     const now = Date.now();
-    const interval = 1000; // 1 second
+    const interval = 1000;
 
     let currentPrice = basePrice;
 
@@ -130,7 +130,7 @@ export class TellarClient extends BaseOracleClient {
         volume: Math.floor(Math.random() * 1000) + 100,
         change: Number(change.toFixed(4)),
         changePercent: Number(changePercent.toFixed(4)),
-        source: ['Tellar Node A', 'Tellar Node B', 'Tellar Node C'][Math.floor(Math.random() * 3)],
+        source: ['Tellor Node A', 'Tellor Node B', 'Tellor Node C'][Math.floor(Math.random() * 3)],
       });
     }
 
@@ -259,7 +259,7 @@ export class TellarClient extends BaseOracleClient {
     };
   }
 
-  async getNetworkStats(): Promise<TellarNetworkStats> {
+  async getNetworkStats(): Promise<TellorNetworkStats> {
     return {
       activeNodes: 72,
       nodeUptime: 99.9,
@@ -273,7 +273,7 @@ export class TellarClient extends BaseOracleClient {
       ],
       status: 'online',
       latency: 95,
-      stakingTokenSymbol: 'TELLAR',
+      stakingTokenSymbol: 'TRB',
     };
   }
 

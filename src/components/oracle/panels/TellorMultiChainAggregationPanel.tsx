@@ -1,15 +1,15 @@
 'use client';
 
-import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellar';
+import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { Blockchain } from '@/types/oracle';
 
-interface TellarMultiChainAggregationPanelProps {
+interface TellorMultiChainAggregationPanelProps {
   data: MultiChainAggregation;
 }
 
-export function TellarMultiChainAggregationPanel({ data }: TellarMultiChainAggregationPanelProps) {
+export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggregationPanelProps) {
   const { t } = useI18n();
 
   const getChainLabel = (chain: Blockchain) => {
@@ -29,42 +29,39 @@ export function TellarMultiChainAggregationPanel({ data }: TellarMultiChainAggre
   };
 
   return (
-    <DashboardCard title={t('tellar.multiChain.title')}>
+    <DashboardCard title={t('tellor.multiChain.title')}>
       <div className="space-y-6">
-        {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.multiChain.symbol')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.symbol')}</p>
             <p className="text-xl font-bold text-cyan-600">{data.symbol}</p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.multiChain.aggregatedPrice')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.aggregatedPrice')}</p>
             <p className="text-xl font-bold text-cyan-600">${data.aggregatedPrice.toFixed(4)}</p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.multiChain.deviation')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.deviation')}</p>
             <p className={`text-xl font-bold ${getDeviationColor(data.priceDeviation)}`}>
               {data.priceDeviation.toFixed(4)}%
             </p>
           </div>
           <div className="bg-cyan-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">{t('tellar.multiChain.maxDeviation')}</p>
+            <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.maxDeviation')}</p>
             <p className={`text-xl font-bold ${getDeviationColor(data.maxDeviation)}`}>
               {data.maxDeviation.toFixed(4)}%
             </p>
           </div>
         </div>
 
-        {/* Consensus Method */}
         <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">{t('tellar.multiChain.consensusMethod')}</p>
+          <p className="text-sm text-gray-600 mb-1">{t('tellor.multiChain.consensusMethod')}</p>
           <p className="text-lg font-medium text-gray-900">{data.consensusMethod}</p>
         </div>
 
-        {/* Chain Prices */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-3">
-            {t('tellar.multiChain.chainPrices')}
+            {t('tellor.multiChain.chainPrices')}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.chainPrices.map((chainPrice: MultiChainPrice) => (
@@ -87,17 +84,17 @@ export function TellarMultiChainAggregationPanel({ data }: TellarMultiChainAggre
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{t('tellar.multiChain.price')}</span>
+                    <span className="text-gray-600">{t('tellor.multiChain.price')}</span>
                     <span className="font-medium text-gray-900">
                       ${chainPrice.price.toFixed(4)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{t('tellar.multiChain.latency')}</span>
+                    <span className="text-gray-600">{t('tellor.multiChain.latency')}</span>
                     <span className="font-medium text-gray-900">{chainPrice.latency}ms</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{t('tellar.multiChain.lastUpdate')}</span>
+                    <span className="text-gray-600">{t('tellor.multiChain.lastUpdate')}</span>
                     <span className="font-medium text-gray-900">
                       {new Date(chainPrice.timestamp).toLocaleTimeString('zh-CN')}
                     </span>
@@ -111,3 +108,5 @@ export function TellarMultiChainAggregationPanel({ data }: TellarMultiChainAggre
     </DashboardCard>
   );
 }
+
+export { TellorMultiChainAggregationPanel as TellarMultiChainAggregationPanel };

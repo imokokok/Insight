@@ -6,7 +6,7 @@ import {
   API3Client,
   RedStoneClient,
   DIAClient,
-  TellarClient,
+  TellorClient,
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
@@ -78,7 +78,7 @@ export const oracleClients = {
   [OracleProvider.API3]: new API3Client(),
   [OracleProvider.REDSTONE]: new RedStoneClient(),
   [OracleProvider.DIA]: new DIAClient(),
-  [OracleProvider.TELLAR]: new TellarClient(),
+  [OracleProvider.TELLOR]: new TellorClient(),
   [OracleProvider.CHRONICLE]: new ChronicleClient(),
   [OracleProvider.WINKLINK]: new WINkLinkClient(),
 };
@@ -91,7 +91,7 @@ export const oracleNames: Record<OracleProvider, string> = {
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLAR]: 'Tellar',
+  [OracleProvider.TELLOR]: 'Tellor',
   [OracleProvider.CHRONICLE]: 'Chronicle',
   [OracleProvider.WINKLINK]: 'WINkLink',
 };
@@ -104,7 +104,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.API3]: chartColors.oracle.api3,
   [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
   [OracleProvider.DIA]: chartColors.oracle.dia,
-  [OracleProvider.TELLAR]: chartColors.oracle.tellar,
+  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
   [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
   [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
 };

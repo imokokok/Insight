@@ -43,7 +43,7 @@ interface NodeReputationPanelProps {
   updateInterval?: number;
 }
 
-const COLORS = {
+const SCORE_COLORS = {
   excellent: chartColors.semantic.success,
   good: chartColors.recharts.primary,
   fair: chartColors.semantic.warning,
@@ -114,10 +114,10 @@ function ReputationScoreGauge({ score }: { score: number }) {
   const { t } = useI18n();
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return COLORS.excellent;
-    if (score >= 80) return COLORS.good;
-    if (score >= 70) return COLORS.fair;
-    return COLORS.poor;
+    if (score >= 90) return SCORE_COLORS.excellent;
+    if (score >= 80) return SCORE_COLORS.good;
+    if (score >= 70) return SCORE_COLORS.fair;
+    return SCORE_COLORS.poor;
   };
 
   const getScoreLabel = (score: number) => {
@@ -181,7 +181,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         <div>
           <div
             className="w-3 h-3 rounded-full mx-auto mb-1"
-            style={{ backgroundColor: COLORS.excellent }}
+            style={{ backgroundColor: SCORE_COLORS.excellent }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.excellent')}</p>
           <p className="text-xs text-gray-400">90+</p>
@@ -189,7 +189,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         <div>
           <div
             className="w-3 h-3 rounded-full mx-auto mb-1"
-            style={{ backgroundColor: COLORS.good }}
+            style={{ backgroundColor: SCORE_COLORS.good }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.good')}</p>
           <p className="text-xs text-gray-400">80-89</p>
@@ -197,7 +197,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         <div>
           <div
             className="w-3 h-3 rounded-full mx-auto mb-1"
-            style={{ backgroundColor: COLORS.fair }}
+            style={{ backgroundColor: SCORE_COLORS.fair }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.fair')}</p>
           <p className="text-xs text-gray-400">70-79</p>
@@ -205,7 +205,7 @@ function ReputationScoreGauge({ score }: { score: number }) {
         <div>
           <div
             className="w-3 h-3 rounded-full mx-auto mb-1"
-            style={{ backgroundColor: COLORS.poor }}
+            style={{ backgroundColor: SCORE_COLORS.poor }}
           ></div>
           <p className="text-xs text-gray-500">{t('nodeReputation.reputationScore.poor')}</p>
           <p className="text-xs text-gray-400">&lt;70</p>
@@ -265,12 +265,12 @@ function AccuracyStats({
               {data.map((entry, index) => {
                 const color =
                   entry.accuracy >= 99
-                    ? COLORS.excellent
+                    ? SCORE_COLORS.excellent
                     : entry.accuracy >= 98
-                      ? COLORS.good
+                      ? SCORE_COLORS.good
                       : entry.accuracy >= 97
-                        ? COLORS.fair
-                        : COLORS.poor;
+                        ? SCORE_COLORS.fair
+                        : SCORE_COLORS.poor;
                 return <Cell key={`cell-${index}`} fill={color} />;
               })}
             </Bar>
@@ -345,12 +345,12 @@ function ResponseTimeDistribution({
             <Bar dataKey="count" fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => {
                 if (entry.range === '0-50ms')
-                  return <Cell key={`cell-${index}`} fill={COLORS.excellent} />;
+                  return <Cell key={`cell-${index}`} fill={SCORE_COLORS.excellent} />;
                 if (entry.range === '50-100ms')
-                  return <Cell key={`cell-${index}`} fill={COLORS.good} />;
+                  return <Cell key={`cell-${index}`} fill={SCORE_COLORS.good} />;
                 if (entry.range === '100-150ms')
-                  return <Cell key={`cell-${index}`} fill={COLORS.fair} />;
-                return <Cell key={`cell-${index}`} fill={COLORS.poor} />;
+                  return <Cell key={`cell-${index}`} fill={SCORE_COLORS.fair} />;
+                return <Cell key={`cell-${index}`} fill={SCORE_COLORS.poor} />;
               })}
             </Bar>
           </BarChart>
@@ -362,22 +362,22 @@ function ResponseTimeDistribution({
           <div className="flex items-center gap-1">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: COLORS.excellent }}
+              style={{ backgroundColor: SCORE_COLORS.excellent }}
             ></div>
             <span>{t('nodeReputation.responseTime.excellent')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.good }}></div>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.good }}></div>
             <span>{t('nodeReputation.responseTime.good')}</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.fair }}></div>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.fair }}></div>
             <span>{t('nodeReputation.responseTime.fair')}</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.poor }}></div>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: SCORE_COLORS.poor }}></div>
             <span>{t('nodeReputation.responseTime.slow')}</span>
           </div>
         </div>
@@ -503,7 +503,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
     type,
   }));
 
-  const COLORS_MAP = [chartColors.recharts.primary, chartColors.semantic.success, chartColors.recharts.purple];
+  const NODE_TYPE_COLORS_MAP = [chartColors.recharts.primary, chartColors.semantic.success, chartColors.recharts.purple];
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -529,7 +529,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
               dataKey="value"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS_MAP[index]} />
+                <Cell key={`cell-${index}`} fill={NODE_TYPE_COLORS_MAP[index]} />
               ))}
             </Pie>
             <Tooltip
@@ -558,7 +558,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
           <div key={item.type} className="text-center p-2 bg-gray-50 rounded-lg">
             <div
               className="w-3 h-3 rounded-full mx-auto mb-1"
-              style={{ backgroundColor: COLORS_MAP[index] }}
+              style={{ backgroundColor: NODE_TYPE_COLORS_MAP[index] }}
             ></div>
             <p className="text-xs text-gray-500">{item.name}</p>
             <p className="text-sm font-bold text-gray-900">{item.value}</p>

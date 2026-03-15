@@ -7,7 +7,7 @@ import {
   API3Client,
   RedStoneClient,
   DIAClient,
-  TellarClient,
+  TellorClient,
   ChronicleClient,
   WINkLinkClient,
 } from '@/lib/oracles';
@@ -491,10 +491,10 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: true,
     },
   },
-  [OracleProvider.TELLAR]: {
-    provider: OracleProvider.TELLAR,
-    name: 'Tellar',
-    symbol: 'TELLAR',
+  [OracleProvider.TELLOR]: {
+    provider: OracleProvider.TELLOR,
+    name: 'Tellor',
+    symbol: 'TRB',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
       Blockchain.ETHEREUM,
@@ -504,17 +504,17 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
       Blockchain.AVALANCHE,
     ],
-    client: new TellarClient(),
-    iconBgColor: 'bg-cyan-600',
+    client: new TellorClient(),
+    iconBgColor: 'bg-purple-600',
     icon: (
-      <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center">
-        <span className="text-white font-bold text-xs">TEL</span>
+      <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+        <span className="text-white font-bold text-xs">TRB</span>
       </div>
     ),
     marketData: {
-      symbol: 'TELLAR',
-      tokenName: 'Tellar',
-      tokenSymbol: 'TELLAR',
+      symbol: 'TRB',
+      tokenName: 'Tellor',
+      tokenSymbol: 'TRB',
       marketCap: 180000000,
       volume24h: 8000000,
       circulatingSupply: 120000000,
@@ -539,7 +539,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       ],
       status: 'online',
       latency: 95,
-      stakingTokenSymbol: 'TELLAR',
+      stakingTokenSymbol: 'TRB',
     },
     features: {
       hasNodeAnalytics: false,

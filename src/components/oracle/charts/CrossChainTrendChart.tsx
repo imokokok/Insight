@@ -15,7 +15,7 @@ import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
-import { formatCompactNumberV2 } from '@/lib/utils/format';
+import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';
 
 const logger = createLogger('CrossChainTrendChart');
@@ -268,7 +268,7 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
               <span className="text-xs font-semibold text-gray-900">
                 {metric === 'price' && config.unit}
                 {metric === 'requests'
-                  ? formatCompactNumberV2(item.value as number)
+                  ? formatCompactNumberWithDecimals(item.value as number)
                   : (item.value as number).toFixed(metric === 'price' ? 4 : 2)}
                 {metric !== 'price' && config.unit}
               </span>
@@ -360,7 +360,7 @@ function ChainLegendItem({ chain, color, data, metric }: ChainLegendItemProps) {
         <span className="text-xs text-gray-900">
           {metric === 'price' && config.unit}
           {metric === 'requests'
-            ? formatCompactNumberV2(data.currentValue)
+            ? formatCompactNumberWithDecimals(data.currentValue)
             : data.currentValue.toFixed(metric === 'price' ? 4 : 2)}
           {metric !== 'price' && config.unit}
         </span>
@@ -420,7 +420,7 @@ export function CrossChainTrendChart({
   const formatYAxisTick = useCallback(
     (value: number): string => {
       if (metric === 'requests') {
-        return formatCompactNumberV2(value);
+        return formatCompactNumberWithDecimals(value);
       }
       return value.toFixed(metric === 'price' ? 2 : 0);
     },
@@ -488,7 +488,7 @@ export function CrossChainTrendChart({
             <p className="text-lg font-bold text-blue-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
-                ? formatCompactNumberV2(stats.totalValue)
+                ? formatCompactNumberWithDecimals(stats.totalValue)
                 : stats.totalValue.toFixed(metric === 'price' ? 4 : 2)}
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
@@ -498,7 +498,7 @@ export function CrossChainTrendChart({
             <p className="text-lg font-bold text-purple-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
-                ? formatCompactNumberV2(stats.avgValue)
+                ? formatCompactNumberWithDecimals(stats.avgValue)
                 : stats.avgValue.toFixed(metric === 'price' ? 4 : 2)}
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
@@ -508,7 +508,7 @@ export function CrossChainTrendChart({
             <p className="text-lg font-bold text-green-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
-                ? formatCompactNumberV2(stats.maxValue)
+                ? formatCompactNumberWithDecimals(stats.maxValue)
                 : stats.maxValue.toFixed(metric === 'price' ? 4 : 2)}
               {metric !== 'price' && currentMetricConfig.unit}
             </p>
@@ -518,7 +518,7 @@ export function CrossChainTrendChart({
             <p className="text-lg font-bold text-orange-700">
               {metric === 'price' && currentMetricConfig.unit}
               {metric === 'requests'
-                ? formatCompactNumberV2(stats.minValue)
+                ? formatCompactNumberWithDecimals(stats.minValue)
                 : stats.minValue.toFixed(metric === 'price' ? 4 : 2)}
               {metric !== 'price' && currentMetricConfig.unit}
             </p>

@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
-import { formatCompactNumberV2 } from '@/lib/utils/format';
+import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { useI18n } from '@/lib/i18n/provider';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
@@ -179,7 +179,7 @@ export function RequestTrendChart({
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">{t('requestTrend.requests')}</span>
               <span className="text-xs font-semibold text-blue-600">
-                {formatCompactNumberV2(dataPoint.requests)}
+                {formatCompactNumberWithDecimals(dataPoint.requests)}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -231,7 +231,7 @@ export function RequestTrendChart({
           <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.avgRequests')}</p>
             <p className="text-xl font-bold text-blue-700">
-              {formatCompactNumberV2(stats.avgRequests)}
+              {formatCompactNumberWithDecimals(stats.avgRequests)}
             </p>
             <p className="text-xs text-blue-600 mt-0.5">
               {t('requestTrend.per')}
@@ -241,7 +241,7 @@ export function RequestTrendChart({
           <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.peakRequests')}</p>
             <p className="text-xl font-bold text-purple-700">
-              {formatCompactNumberV2(stats.peakRequests)}
+              {formatCompactNumberWithDecimals(stats.peakRequests)}
             </p>
             <p className="text-xs text-purple-600 mt-0.5">{t('requestTrend.peakRecord')}</p>
           </div>
@@ -256,7 +256,7 @@ export function RequestTrendChart({
           <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">{t('requestTrend.totalRequests')}</p>
             <p className="text-xl font-bold text-orange-700">
-              {formatCompactNumberV2(stats.totalRequests)}
+              {formatCompactNumberWithDecimals(stats.totalRequests)}
             </p>
             <p className="text-xs text-orange-600 mt-0.5">{t('requestTrend.cumulativeRequests')}</p>
           </div>
@@ -295,7 +295,7 @@ export function RequestTrendChart({
                   tick={{ fontSize: 11, fill: chartColors.recharts.tickLight }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(value) => formatCompactNumberV2(value)}
+                  tickFormatter={(value) => formatCompactNumberWithDecimals(value)}
                   width={50}
                 />
                 <Tooltip content={<CustomTooltip />} />

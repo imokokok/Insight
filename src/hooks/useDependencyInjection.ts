@@ -40,7 +40,7 @@ export function useSnapshotService(): ISnapshotService {
   return useService<ISnapshotService>(SERVICE_TOKENS.SNAPSHOT_SERVICE);
 }
 
-export function useDI() {
+export function useDependencyInjection() {
   const ensureRegistered = useCallback(() => {
     if (!isServicesRegistered()) {
       registerServices();
@@ -69,3 +69,5 @@ export function useDI() {
     [resolve, has, ensureRegistered]
   );
 }
+
+export { useDependencyInjection as useDI };
