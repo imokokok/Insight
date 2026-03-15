@@ -6,6 +6,7 @@
     </linearGradient>
   </defs>
   <circle cx="128" cy="128" r="128" fill="url(#pythGrad)"/>
-  <path d="M128 48L64 80v96l64 32 64-32V80l-64-32zm0 144l-48-24V104l48-24 48 24v64l-48 24z" fill="white"/>
-  <circle cx="128" cy="128" r="24" fill="white"/>
+  <path d="M128 48L64 88v80l64 40 64-40V88l-64-40zm0 144l-48-30V102l48-30 48 30v60l-48 30z" fill="white"/>
+  <path d="M128 88l-32 20v40l32 20 32-20v-40l-32-20z" fill="#E9D5FF"/>
+  <circle cx="128" cy="128" r="16" fill="white"/>
 </svg>

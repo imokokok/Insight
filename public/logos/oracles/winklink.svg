@@ -6,7 +6,8 @@
     </linearGradient>
   </defs>
   <circle cx="128" cy="128" r="128" fill="url(#winkGrad)"/>
-  <path d="M128 48L48 88v80l80 40 80-40V88l-80-40zm0 144l-56-28V100l56-28 56 28v64l-56 28z" fill="white"/>
-  <path d="M128 80L88 100v56l40 20 40-20v-56l-40-20z" fill="#FBCFE8"/>
-  <circle cx="128" cy="128" r="20" fill="white"/>
+  <path d="M80 96c0-13.3 10.7-24 24-24h48c13.3 0 24 10.7 24 24v64c0 13.3-10.7 24-24 24h-48c-13.3 0-24-10.7-24-24V96zm24 0v64h48V96h-48z" fill="white"/>
+  <circle cx="104" cy="128" r="12" fill="white"/>
+  <circle cx="152" cy="128" r="12" fill="white"/>
+  <path d="M120 140h16v8h-16v-8z" fill="#EC4899"/>
 </svg>

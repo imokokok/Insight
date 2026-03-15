@@ -549,6 +549,7 @@ export function OraclePageTemplate({
                 chain={config.defaultChain}
                 config={config.marketData}
                 iconBgColor={config.iconBgColor}
+                icon={config.icon}
               />
             </div>
           )}

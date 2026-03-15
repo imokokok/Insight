@@ -160,6 +160,7 @@ export function WINkLinkPageContent() {
                   client={client}
                   config={config.marketData}
                   iconBgColor={config.iconBgColor}
+                  icon={config.icon}
                 />
               </div>
               <div>

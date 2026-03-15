@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
+import Image from 'next/image';
 import { tradingPairs } from '../constants';
 import { baseColors, chartColors } from '@/lib/config/colors';
 
@@ -21,24 +22,55 @@ const categoryLabels: Record<Category, string> = {
   defi: 'DeFi',
 };
 
+// 加密货币到logo文件的映射
+const cryptoLogoMap: Record<string, string> = {
+  BTC: '/logos/cryptos/btc.svg',
+  ETH: '/logos/cryptos/eth.svg',
+  SOL: '/logos/cryptos/sol.svg',
+  AVAX: '/logos/cryptos/avax.svg',
+  LINK: '/logos/cryptos/link.svg',
+  UNI: '/logos/cryptos/uni.svg',
+  AAVE: '/logos/cryptos/aave.svg',
+  MKR: '/logos/cryptos/mkr.svg',
+  SNX: '/logos/cryptos/snx.svg',
+  COMP: '/logos/cryptos/comp.svg',
+  YFI: '/logos/cryptos/yfi.svg',
+  CRV: '/logos/cryptos/crv.svg',
+};
+
 // 加密货币图标组件
 const CryptoIcon: React.FC<{ symbol: string; className?: string }> = ({
   symbol,
   className = 'w-5 h-5',
 }) => {
   const baseAsset = symbol.split('/')[0];
+  const [hasError, setHasError] = useState(false);
 
-  // 从 tradingPairs 获取颜色配置
+  // 获取logo路径
+  const logoPath = cryptoLogoMap[baseAsset];
+
+  // 如果有logo路径且未加载失败，显示官方logo
+  if (logoPath && !hasError) {
+    return (
+      <Image
+        src={logoPath}
+        alt={`${baseAsset} logo`}
+        width={20}
+        height={20}
+        className={`rounded-full ${className}`}
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
+  // 回退到文字占位符
   const pairConfig = tradingPairs.find((p) => p.symbol === symbol);
-  const iconColor = pairConfig?.iconColor;
-
-  // 如果没有找到配置，使用默认颜色
-  const bgColor = iconColor || chartColors.recharts.axis;
+  const iconColor = pairConfig?.iconColor || chartColors.recharts.axis;
 
   return (
     <div
       className={`rounded-full flex items-center justify-center text-xs font-bold text-white ${className}`}
-      style={{ backgroundColor: bgColor }}
+      style={{ backgroundColor: iconColor }}
     >
       {baseAsset.slice(0, 2)}
     </div>
