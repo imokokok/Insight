@@ -15,49 +15,51 @@ interface TellorRiskPanelProps {
   data: RiskMetrics;
 }
 
-const tellorSecurityEvents: RiskEvent[] = [
+const getTellorSecurityEvents = (t: ReturnType<typeof useTranslations>): RiskEvent[] => [
   {
     date: '2024-02-15',
     type: 'upgrade',
-    title: 'Tellor Layer Launch',
-    description: 'Migration to dedicated Tellor Layer blockchain for improved scalability',
+    title: t('tellor.risk.securityEvents.tellorLayerLaunch.title'),
+    description: t('tellor.risk.securityEvents.tellorLayerLaunch.description'),
     status: 'resolved',
   },
   {
     date: '2024-01-20',
     type: 'response',
-    title: 'Dispute Resolution Optimization',
-    description: 'Enhanced dispute mechanism with faster resolution times',
+    title: t('tellor.risk.securityEvents.disputeResolutionOptimization.title'),
+    description: t('tellor.risk.securityEvents.disputeResolutionOptimization.description'),
     status: 'resolved',
   },
   {
     date: '2023-12-10',
     type: 'upgrade',
-    title: 'Staking Contract V2',
-    description: 'Upgraded staking contracts with improved reward distribution',
+    title: t('tellor.risk.securityEvents.stakingContractV2.title'),
+    description: t('tellor.risk.securityEvents.stakingContractV2.description'),
     status: 'resolved',
   },
   {
     date: '2023-11-05',
     type: 'maintenance',
-    title: 'Reporter Node Upgrade',
-    description: 'Routine maintenance for reporter node infrastructure',
+    title: t('tellor.risk.securityEvents.reporterNodeUpgrade.title'),
+    description: t('tellor.risk.securityEvents.reporterNodeUpgrade.description'),
     status: 'resolved',
   },
 ];
 
-const tellorMitigationMeasures: MitigationMeasure[] = [
-  { name: 'Dispute Mechanism', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'Staking Slashing', type: 'technical', status: 'active', effectiveness: 88 },
-  { name: 'Multi-Source Data', type: 'technical', status: 'active', effectiveness: 85 },
-  { name: 'Decentralized Governance', type: 'governance', status: 'active', effectiveness: 82 },
-  { name: 'Reporter Incentives', type: 'operational', status: 'active', effectiveness: 90 },
-  { name: 'Transparency Reports', type: 'operational', status: 'active', effectiveness: 78 },
+const getTellorMitigationMeasures = (t: ReturnType<typeof useTranslations>): MitigationMeasure[] => [
+  { name: t('tellor.risk.mitigationMeasures.disputeMechanism'), type: 'technical', status: 'active', effectiveness: 92 },
+  { name: t('tellor.risk.mitigationMeasures.stakingSlashing'), type: 'technical', status: 'active', effectiveness: 88 },
+  { name: t('tellor.risk.mitigationMeasures.multiSourceData'), type: 'technical', status: 'active', effectiveness: 85 },
+  { name: t('tellor.risk.mitigationMeasures.decentralizedGovernance'), type: 'governance', status: 'active', effectiveness: 82 },
+  { name: t('tellor.risk.mitigationMeasures.reporterIncentives'), type: 'operational', status: 'active', effectiveness: 90 },
+  { name: t('tellor.risk.mitigationMeasures.transparencyReports'), type: 'operational', status: 'active', effectiveness: 78 },
 ];
 
 export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const tellorSecurityEvents = getTellorSecurityEvents(t);
+  const tellorMitigationMeasures = getTellorMitigationMeasures(t);
 
   const getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {

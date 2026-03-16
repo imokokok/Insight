@@ -39,25 +39,35 @@ const COLORS = {
   band: chartColors.oracle['band-protocol'],
   api3: chartColors.oracle.api3,
   uma: chartColors.oracle.uma,
+  redstone: chartColors.oracle.redstone,
+  dia: chartColors.oracle.dia,
+  tellor: chartColors.oracle.tellor,
+  chronicle: chartColors.oracle.chronicle,
+  winklink: chartColors.oracle.winklink,
   others: chartColors.oracle.redstone,
 };
 
 const marketShareData = [
-  { name: 'Chainlink', value: 65, color: COLORS.chainlink, tvs: '$42.1B', chains: 15 },
-  { name: 'Pyth Network', value: 15, color: COLORS.pyth, tvs: '$15.2B', chains: 20 },
-  { name: 'Band Protocol', value: 8, color: COLORS.band, tvs: '$4.1B', chains: 12 },
-  { name: 'API3', value: 7, color: COLORS.api3, tvs: '$3.5B', chains: 10 },
-  { name: 'UMA', value: 5, color: COLORS.uma, tvs: '$2.5B', chains: 8 },
+  { name: 'Chainlink', value: 62.5, color: COLORS.chainlink, tvs: '$42.1B', chains: 15 },
+  { name: 'Pyth Network', value: 18.3, color: COLORS.pyth, tvs: '$15.2B', chains: 20 },
+  { name: 'Band Protocol', value: 8.7, color: COLORS.band, tvs: '$4.1B', chains: 12 },
+  { name: 'API3', value: 6.2, color: COLORS.api3, tvs: '$3.5B', chains: 10 },
+  { name: 'UMA', value: 4.3, color: COLORS.uma, tvs: '$2.5B', chains: 8 },
+  { name: 'RedStone', value: 3.5, color: COLORS.redstone, tvs: '$2.1B', chains: 6 },
+  { name: 'DIA', value: 2.8, color: COLORS.dia, tvs: '$1.6B', chains: 9 },
+  { name: 'Tellor', value: 2.2, color: COLORS.tellor, tvs: '$1.3B', chains: 7 },
+  { name: 'Chronicle', value: 1.8, color: COLORS.chronicle, tvs: '$1.0B', chains: 5 },
+  { name: 'WINkLink', value: 1.2, color: COLORS.winklink, tvs: '$0.7B', chains: 3 },
 ];
 
 const tvsTrendData = [
-  { month: 'Jan', chainlink: 28, pyth: 5, band: 3, api3: 2, uma: 1.5 },
-  { month: 'Feb', chainlink: 30, pyth: 6, band: 3.2, api3: 2.2, uma: 1.6 },
-  { month: 'Mar', chainlink: 32, pyth: 7, band: 3.3, api3: 2.5, uma: 1.8 },
-  { month: 'Apr', chainlink: 35, pyth: 8, band: 3.5, api3: 2.8, uma: 2 },
-  { month: 'May', chainlink: 38, pyth: 10, band: 3.6, api3: 3, uma: 2.1 },
-  { month: 'Jun', chainlink: 40, pyth: 12, band: 3.8, api3: 3.2, uma: 2.2 },
-  { month: 'Jul', chainlink: 42.1, pyth: 15, band: 4, api3: 3.5, uma: 2.5 },
+  { month: 'Jan', chainlink: 28, pyth: 5, band: 3, api3: 2, uma: 1.5, redstone: 1.2, dia: 0.9, tellor: 0.7, chronicle: 0.5, winklink: 0.4 },
+  { month: 'Feb', chainlink: 30, pyth: 6, band: 3.2, api3: 2.2, uma: 1.6, redstone: 1.3, dia: 1.0, tellor: 0.75, chronicle: 0.55, winklink: 0.42 },
+  { month: 'Mar', chainlink: 32, pyth: 7, band: 3.3, api3: 2.5, uma: 1.8, redstone: 1.4, dia: 1.1, tellor: 0.8, chronicle: 0.6, winklink: 0.45 },
+  { month: 'Apr', chainlink: 35, pyth: 8, band: 3.5, api3: 2.8, uma: 2, redstone: 1.6, dia: 1.2, tellor: 0.85, chronicle: 0.65, winklink: 0.47 },
+  { month: 'May', chainlink: 38, pyth: 10, band: 3.6, api3: 3, uma: 2.1, redstone: 1.8, dia: 1.3, tellor: 0.9, chronicle: 0.7, winklink: 0.48 },
+  { month: 'Jun', chainlink: 40, pyth: 12, band: 3.8, api3: 3.2, uma: 2.2, redstone: 2.0, dia: 1.4, tellor: 1.0, chronicle: 0.8, winklink: 0.6 },
+  { month: 'Jul', chainlink: 42.1, pyth: 15, band: 4, api3: 3.5, uma: 2.5, redstone: 2.1, dia: 1.6, tellor: 1.3, chronicle: 1.0, winklink: 0.7 },
 ];
 
 const chainSupportData = [
@@ -66,6 +76,11 @@ const chainSupportData = [
   { name: 'Band Protocol', chains: 12, color: COLORS.band, protocols: 120 },
   { name: 'API3', chains: 10, color: COLORS.api3, protocols: 85 },
   { name: 'UMA', chains: 8, color: COLORS.uma, protocols: 45 },
+  { name: 'RedStone', chains: 6, color: COLORS.redstone, protocols: 32 },
+  { name: 'DIA', chains: 9, color: COLORS.dia, protocols: 28 },
+  { name: 'Tellor', chains: 7, color: COLORS.tellor, protocols: 22 },
+  { name: 'Chronicle', chains: 5, color: COLORS.chronicle, protocols: 18 },
+  { name: 'WINkLink', chains: 3, color: COLORS.winklink, protocols: 12 },
 ];
 
 const timeRanges = [
@@ -294,6 +309,71 @@ export default function OracleMarketOverview() {
               opacity={hoveredItem && hoveredItem !== 'UMA' ? 0.4 : 1}
               style={{ cursor: 'pointer' }}
               onMouseEnter={() => setHoveredItem('UMA')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line
+              type="monotone"
+              dataKey="redstone"
+              name="RedStone"
+              stroke={COLORS.redstone}
+              strokeWidth={hoveredItem === 'RedStone' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'RedStone' ? 5 : 3, fill: COLORS.redstone }}
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'RedStone' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('RedStone')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line
+              type="monotone"
+              dataKey="dia"
+              name="DIA"
+              stroke={COLORS.dia}
+              strokeWidth={hoveredItem === 'DIA' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'DIA' ? 5 : 3, fill: COLORS.dia }}
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'DIA' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('DIA')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line
+              type="monotone"
+              dataKey="tellor"
+              name="Tellor"
+              stroke={COLORS.tellor}
+              strokeWidth={hoveredItem === 'Tellor' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'Tellor' ? 5 : 3, fill: COLORS.tellor }}
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'Tellor' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('Tellor')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line
+              type="monotone"
+              dataKey="chronicle"
+              name="Chronicle"
+              stroke={COLORS.chronicle}
+              strokeWidth={hoveredItem === 'Chronicle' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'Chronicle' ? 5 : 3, fill: COLORS.chronicle }}
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'Chronicle' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('Chronicle')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            <Line
+              type="monotone"
+              dataKey="winklink"
+              name="WINkLink"
+              stroke={COLORS.winklink}
+              strokeWidth={hoveredItem === 'WINkLink' || !hoveredItem ? 2 : 1.5}
+              dot={{ r: hoveredItem === 'WINkLink' ? 5 : 3, fill: COLORS.winklink }}
+              activeDot={{ r: 7 }}
+              opacity={hoveredItem && hoveredItem !== 'WINkLink' ? 0.4 : 1}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setHoveredItem('WINkLink')}
               onMouseLeave={() => setHoveredItem(null)}
             />
           </LineChart>

@@ -7,6 +7,11 @@ export const ORACLE_COLORS = {
   band: chartColors.oracle['band-protocol'],
   api3: chartColors.oracle.api3,
   uma: chartColors.oracle.uma,
+  redstone: chartColors.oracle.redstone,
+  dia: chartColors.oracle.dia,
+  tellor: chartColors.oracle.tellor,
+  chronicle: chartColors.oracle.chronicle,
+  winklink: chartColors.oracle.winklink,
   others: chartColors.recharts.tick,
 } as const;
 
@@ -87,6 +92,81 @@ export const MOCK_ORACLE_DATA: OracleMarketData[] = [
     change7d: 2.1,
     change30d: 5.4,
   },
+  {
+    name: 'RedStone',
+    share: 3.5,
+    color: ORACLE_COLORS.redstone,
+    tvs: '$2.1B',
+    tvsValue: 2.1,
+    chains: 6,
+    protocols: 32,
+    avgLatency: 300,
+    accuracy: 99.3,
+    updateFrequency: 600,
+    change24h: 3.2,
+    change7d: 8.5,
+    change30d: 18.7,
+  },
+  {
+    name: 'DIA',
+    share: 2.8,
+    color: ORACLE_COLORS.dia,
+    tvs: '$1.6B',
+    tvsValue: 1.6,
+    chains: 9,
+    protocols: 28,
+    avgLatency: 750,
+    accuracy: 99.0,
+    updateFrequency: 2400,
+    change24h: 0.5,
+    change7d: 4.2,
+    change30d: 11.3,
+  },
+  {
+    name: 'Tellor',
+    share: 2.2,
+    color: ORACLE_COLORS.tellor,
+    tvs: '$1.3B',
+    tvsValue: 1.3,
+    chains: 7,
+    protocols: 22,
+    avgLatency: 1800,
+    accuracy: 98.7,
+    updateFrequency: 5400,
+    change24h: -0.3,
+    change7d: 1.8,
+    change30d: 6.5,
+  },
+  {
+    name: 'Chronicle',
+    share: 1.8,
+    color: ORACLE_COLORS.chronicle,
+    tvs: '$1.0B',
+    tvsValue: 1.0,
+    chains: 5,
+    protocols: 18,
+    avgLatency: 500,
+    accuracy: 99.4,
+    updateFrequency: 1200,
+    change24h: 1.2,
+    change7d: 5.6,
+    change30d: 14.2,
+  },
+  {
+    name: 'WINkLink',
+    share: 1.2,
+    color: ORACLE_COLORS.winklink,
+    tvs: '$0.7B',
+    tvsValue: 0.7,
+    chains: 3,
+    protocols: 12,
+    avgLatency: 600,
+    accuracy: 98.8,
+    updateFrequency: 1800,
+    change24h: -0.5,
+    change7d: 2.3,
+    change30d: 7.8,
+  },
 ];
 
 // 生成TVS趋势数据
@@ -101,6 +181,11 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
   let bandBase = 3.5;
   let api3Base = 2.5;
   let umaBase = 2;
+  let redstoneBase = 1.5;
+  let diaBase = 1.2;
+  let tellorBase = 0.9;
+  let chronicleBase = 0.7;
+  let winklinkBase = 0.5;
 
   // 置信区间系数 (95% 置信区间约为 ±5%)
   const confidenceInterval = 0.05;
@@ -120,6 +205,11 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
     bandBase *= 1 + (Math.random() - 0.5) * volatility;
     api3Base *= 1 + (Math.random() - 0.5) * volatility;
     umaBase *= 1 + (Math.random() - 0.5) * volatility;
+    redstoneBase *= 1 + (Math.random() - 0.5) * volatility;
+    diaBase *= 1 + (Math.random() - 0.5) * volatility;
+    tellorBase *= 1 + (Math.random() - 0.5) * volatility;
+    chronicleBase *= 1 + (Math.random() - 0.5) * volatility;
+    winklinkBase *= 1 + (Math.random() - 0.5) * volatility;
 
     // 计算置信区间上下界
     const chainlinkUpper = chainlinkBase * (1 + confidenceInterval);
@@ -132,6 +222,16 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
     const api3Lower = api3Base * (1 - confidenceInterval);
     const umaUpper = umaBase * (1 + confidenceInterval);
     const umaLower = umaBase * (1 - confidenceInterval);
+    const redstoneUpper = redstoneBase * (1 + confidenceInterval);
+    const redstoneLower = redstoneBase * (1 - confidenceInterval);
+    const diaUpper = diaBase * (1 + confidenceInterval);
+    const diaLower = diaBase * (1 - confidenceInterval);
+    const tellorUpper = tellorBase * (1 + confidenceInterval);
+    const tellorLower = tellorBase * (1 - confidenceInterval);
+    const chronicleUpper = chronicleBase * (1 + confidenceInterval);
+    const chronicleLower = chronicleBase * (1 - confidenceInterval);
+    const winklinkUpper = winklinkBase * (1 + confidenceInterval);
+    const winklinkLower = winklinkBase * (1 - confidenceInterval);
 
     data.push({
       timestamp,
@@ -151,7 +251,22 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
       uma: Number(umaBase.toFixed(2)),
       umaUpper: Number(umaUpper.toFixed(2)),
       umaLower: Number(umaLower.toFixed(2)),
-      total: Number((chainlinkBase + pythBase + bandBase + api3Base + umaBase).toFixed(2)),
+      redstone: Number(redstoneBase.toFixed(2)),
+      redstoneUpper: Number(redstoneUpper.toFixed(2)),
+      redstoneLower: Number(redstoneLower.toFixed(2)),
+      dia: Number(diaBase.toFixed(2)),
+      diaUpper: Number(diaUpper.toFixed(2)),
+      diaLower: Number(diaLower.toFixed(2)),
+      tellor: Number(tellorBase.toFixed(2)),
+      tellorUpper: Number(tellorUpper.toFixed(2)),
+      tellorLower: Number(tellorLower.toFixed(2)),
+      chronicle: Number(chronicleBase.toFixed(2)),
+      chronicleUpper: Number(chronicleUpper.toFixed(2)),
+      chronicleLower: Number(chronicleLower.toFixed(2)),
+      winklink: Number(winklinkBase.toFixed(2)),
+      winklinkUpper: Number(winklinkUpper.toFixed(2)),
+      winklinkLower: Number(winklinkLower.toFixed(2)),
+      total: Number((chainlinkBase + pythBase + bandBase + api3Base + umaBase + redstoneBase + diaBase + tellorBase + chronicleBase + winklinkBase).toFixed(2)),
     });
   }
 
@@ -165,6 +280,11 @@ export const CHAIN_SUPPORT_DATA: ChainSupportData[] = [
   { name: 'Band Protocol', chains: 12, protocols: 120, color: ORACLE_COLORS.band },
   { name: 'API3', chains: 10, protocols: 85, color: ORACLE_COLORS.api3 },
   { name: 'UMA', chains: 8, protocols: 45, color: ORACLE_COLORS.uma },
+  { name: 'RedStone', chains: 6, protocols: 32, color: ORACLE_COLORS.redstone },
+  { name: 'DIA', chains: 9, protocols: 28, color: ORACLE_COLORS.dia },
+  { name: 'Tellor', chains: 7, protocols: 22, color: ORACLE_COLORS.tellor },
+  { name: 'Chronicle', chains: 5, protocols: 18, color: ORACLE_COLORS.chronicle },
+  { name: 'WINkLink', chains: 3, protocols: 12, color: ORACLE_COLORS.winklink },
 ];
 
 // 模拟资产数据

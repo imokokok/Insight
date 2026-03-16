@@ -60,6 +60,21 @@ export interface TVSTrendData {
   uma: number;
   umaUpper: number;
   umaLower: number;
+  redstone: number;
+  redstoneUpper: number;
+  redstoneLower: number;
+  dia: number;
+  diaUpper: number;
+  diaLower: number;
+  tellor: number;
+  tellorUpper: number;
+  tellorLower: number;
+  chronicle: number;
+  chronicleUpper: number;
+  chronicleLower: number;
+  winklink: number;
+  winklinkUpper: number;
+  winklinkLower: number;
   total: number;
 }
 
