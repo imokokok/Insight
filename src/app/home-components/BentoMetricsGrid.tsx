@@ -378,7 +378,7 @@ export default function BentoMetricsGrid() {
   };
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-slate-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>

@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n/provider';
 import { ArrowRight, Search, TrendingUp, Shield, Zap, BookOpen, Activity } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { chartColors } from '@/lib/config/colors';
+import HeroBackground from './HeroBackground';
 
 const generateTrendData = (baseValue: number, points: number = 20) => {
   const data = [];
@@ -53,7 +54,8 @@ export default function ProfessionalHero() {
   const metrics = getMetrics(t);
 
   return (
-    <section className="relative min-h-screen flex flex-col bg-white overflow-hidden">
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
+      <HeroBackground />
       <div className="relative z-10 flex-1 flex items-center px-6 lg:px-12 xl:px-20 py-12">
         <div className="w-full max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
