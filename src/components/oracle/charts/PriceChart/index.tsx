@@ -1025,9 +1025,9 @@ export function PriceChart({
               tick={{ fontSize: isMobile ? 9 : 11, fill: chartColors.recharts.tick }}
               tickLine={false}
               axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
-              minTickGap={isMobile ? 60 : 30}
+              minTickGap={isMobile ? 60 : 40}
               hide={showRSI || showMACD}
-              interval={isMobile ? 'preserveStartEnd' : 0}
+              interval="preserveStartEnd"
             />
 
             <YAxis
@@ -1356,9 +1356,9 @@ export function PriceChart({
                   tick={{ fontSize: isMobile ? 9 : 11, fill: chartColors.recharts.tick }}
                   tickLine={false}
                   axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
-                  minTickGap={isMobile ? 60 : 30}
+                  minTickGap={isMobile ? 60 : 40}
                   hide={showMACD}
-                  interval={isMobile ? 'preserveStartEnd' : 0}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   domain={[0, 100]}
@@ -1444,8 +1444,8 @@ export function PriceChart({
                   tick={{ fontSize: isMobile ? 9 : 11, fill: chartColors.recharts.tick }}
                   tickLine={false}
                   axisLine={{ stroke: chartColors.recharts.grid, strokeOpacity: 0.5 }}
-                  minTickGap={isMobile ? 60 : 30}
-                  interval={isMobile ? 'preserveStartEnd' : 0}
+                  minTickGap={isMobile ? 60 : 40}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   stroke={chartColors.recharts.axis}
