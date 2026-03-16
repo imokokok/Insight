@@ -1,0 +1,347 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
+import { UMAClient } from '@/lib/oracles/uma';
+import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
+import { DashboardCard } from '../../common/DashboardCard';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+} from 'recharts';
+
+interface UMARiskPanelProps {
+  client: UMAClient;
+}
+
+export function UMARiskPanel({ client }: UMARiskPanelProps) {
+  const { t } = useI18n();
+  const [validators, setValidators] = useState<ValidatorData[]>([]);
+  const [disputeStats, setDisputeStats] = useState<DisputeEfficiencyStats | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [validatorData, efficiencyStats] = await Promise.all([
+          client.getValidators(),
+          client.getDisputeEfficiencyStats(),
+        ]);
+        setValidators(validatorData);
+        setDisputeStats(efficiencyStats);
+      } catch (error) {
+        console.error('Failed to fetch UMA risk data:', error);
+      }
+    };
+
+    fetchData();
+  }, [client]);
+
+  // 验证者类型分布
+  const validatorTypeDistribution = [
+    {
+      name: t('uma.risk.institution'),
+      value: validators.filter((v) => v.type === 'institution').length,
+      color: '#3b82f6',
+    },
+    {
+      name: t('uma.risk.independent'),
+      value: validators.filter((v) => v.type === 'independent').length,
+      color: '#10b981',
+    },
+    {
+      name: t('uma.risk.community'),
+      value: validators.filter((v) => v.type === 'community').length,
+      color: '#f59e0b',
+    },
+  ];
+
+  // 验证者质押分布
+  const totalStaked = validators.reduce((sum, v) => sum + v.staked, 0);
+  const validatorStakingDistribution = [
+    {
+      name: t('uma.risk.top10'),
+      value: validators
+        .sort((a, b) => b.staked - a.staked)
+        .slice(0, 10)
+        .reduce((sum, v) => sum + v.staked, 0),
+      color: '#ef4444',
+    },
+    {
+      name: t('uma.risk.remaining'),
+      value: totalStaked - validators
+        .sort((a, b) => b.staked - a.staked)
+        .slice(0, 10)
+        .reduce((sum, v) => sum + v.staked, 0),
+      color: '#e5e7eb',
+    },
+  ];
+
+  // 计算集中度风险
+  const top10Percentage = (validatorStakingDistribution[0].value / totalStaked) * 100;
+  const concentrationRisk = top10Percentage > 60 ? 'high' : top10Percentage > 40 ? 'medium' : 'low';
+
+  // 争议解决时间分布
+  const resolutionTimeData = disputeStats?.resolutionTimeDistribution.map((item) => ({
+    range: item.range,
+    count: item.count,
+  })) ?? [
+    { range: '0-2h', count: 15 },
+    { range: '2-6h', count: 25 },
+    { range: '6-12h', count: 20 },
+    { range: '12-24h', count: 18 },
+    { range: '24-48h', count: 12 },
+    { range: '48h+', count: 5 },
+  ];
+
+  // 争议成功率趋势
+  const successRateData = disputeStats?.successRateTrend.map((item) => ({
+    date: item.date,
+    rate: item.rate,
+  })) ?? [];
+
+  // 经济安全指标
+  const economicSecurityMetrics = [
+    {
+      label: t('uma.risk.totalStakedValue'),
+      value: `$${(totalStaked / 1e6).toFixed(2)}M`,
+      status: 'healthy' as const,
+      description: t('uma.risk.totalStakedDesc'),
+    },
+    {
+      label: t('uma.risk.avgValidatorStake'),
+      value: `${(totalStaked / (validators.length || 1) / 1000).toFixed(0)}K`,
+      status: 'healthy' as const,
+      description: t('uma.risk.avgValidatorStakeDesc'),
+    },
+    {
+      label: t('uma.risk.concentrationRisk'),
+      value: `${top10Percentage.toFixed(1)}%`,
+      status: concentrationRisk === 'high' ? 'critical' : concentrationRisk === 'medium' ? 'warning' : 'healthy' as const,
+      description: t('uma.risk.concentrationRiskDesc'),
+    },
+    {
+      label: t('uma.risk.avgDisputeResolution'),
+      value: `${disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h`,
+      status: (disputeStats?.avgResolutionTime ?? 4.2) < 6 ? 'healthy' : 'warning' as const,
+      description: t('uma.risk.avgDisputeResolutionDesc'),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* 经济安全指标 */}
+      <DashboardCard title={t('uma.risk.economicSecurity')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {economicSecurityMetrics.map((metric, index) => (
+            <div key={index} className="p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">{metric.label}</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    metric.status === 'healthy'
+                      ? 'bg-green-500'
+                      : metric.status === 'warning'
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                  }`}
+                />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+              <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
+
+      {/* 验证者分布图表 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardCard title={t('uma.risk.validatorTypeDistribution')}>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={validatorTypeDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {validatorTypeDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(value, name) => [String(value), name]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-center gap-6 mt-4">
+            {validatorTypeDistribution.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-sm text-gray-600">
+                  {item.name}: {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
+
+        <DashboardCard title={t('uma.risk.stakingConcentration')}>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={validatorStakingDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {validatorStakingDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(value) => [`$${(Number(value) / 1e6).toFixed(2)}M`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              {t('uma.risk.top10ValidatorsControl', { percentage: top10Percentage.toFixed(1) })}
+            </p>
+            <p
+              className={`text-sm font-medium mt-1 ${
+                concentrationRisk === 'high'
+                  ? 'text-red-600'
+                  : concentrationRisk === 'medium'
+                  ? 'text-yellow-600'
+                  : 'text-green-600'
+              }`}
+            >
+              {concentrationRisk === 'high'
+                ? t('uma.risk.highConcentrationWarning')
+                : concentrationRisk === 'medium'
+                ? t('uma.risk.mediumConcentration')
+                : t('uma.risk.healthyDistribution')}
+            </p>
+          </div>
+        </DashboardCard>
+      </div>
+
+      {/* 争议风险指标 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardCard title={t('uma.risk.disputeResolutionTime')}>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={resolutionTimeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="range" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(value) => [String(value), t('uma.risk.disputeCount')]}
+                />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500">{t('uma.risk.avgResolutionTime')}</p>
+              <p className="text-lg font-semibold">{disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500">{t('uma.risk.medianResolutionTime')}</p>
+              <p className="text-lg font-semibold">{disputeStats?.medianResolutionTime ?? 4}h</p>
+            </div>
+          </div>
+        </DashboardCard>
+
+        <DashboardCard title={t('uma.risk.disputeSuccessRateTrend')}>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={successRateData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(value) => [`${Number(value).toFixed(1)}%`, t('uma.risk.successRate')]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="rate"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">
+              {t('uma.risk.disputeSuccessRateDescription', {
+                rate: disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate.toFixed(1) ?? 78,
+              })}
+            </p>
+          </div>
+        </DashboardCard>
+      </div>
+
+      {/* 风险评估总结 */}
+      <DashboardCard title={t('uma.risk.assessmentSummary')}>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+            <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-medium text-green-900">{t('uma.risk.networkHealth')}</p>
+              <p className="text-sm text-green-700">{t('uma.risk.networkHealthDesc')}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-medium text-blue-900">{t('uma.risk.economicSecurity')}</p>
+              <p className="text-sm text-blue-700">{t('uma.risk.economicSecurityDesc')}</p>
+            </div>
+          </div>
+          {concentrationRisk !== 'low' && (
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <p className="font-medium text-yellow-900">{t('uma.risk.concentrationRisk')}</p>
+                <p className="text-sm text-yellow-700">{t('uma.risk.concentrationRiskDesc')}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </DashboardCard>
+    </div>
+  );
+}

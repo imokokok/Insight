@@ -19,9 +19,15 @@ import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { usePythAllData } from '@/hooks/usePythData';
 
+type SortField = 'stake' | 'accuracy' | 'name';
+type SortOrder = 'asc' | 'desc';
+
 export default function PythNetworkPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('market');
+  const [publisherSortField, setPublisherSortField] = useState<SortField>('stake');
+  const [publisherSortOrder, setPublisherSortOrder] = useState<SortOrder>('desc');
+  const [publisherSearchQuery, setPublisherSearchQuery] = useState('');
 
   const config = getOracleConfig(OracleProvider.PYTH);
   const client = useMemo(() => new PythClient(), []);
@@ -31,6 +37,7 @@ export default function PythNetworkPage() {
     historicalData,
     networkStats,
     publishers,
+    validators,
     isLoading,
     isError,
     errors,
@@ -72,7 +79,12 @@ export default function PythNetworkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
           </svg>
         ),
       },
@@ -115,7 +127,12 @@ export default function PythNetworkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -199,13 +216,17 @@ export default function PythNetworkPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('pyth.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('pyth.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e9).toFixed(1)}B PYTH
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('pyth.stats.updateFrequency')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('pyth.stats.updateFrequency')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">
                         {networkStats?.updateFrequency ?? 1}s
                       </span>
@@ -225,18 +246,331 @@ export default function PythNetworkPage() {
           {activeTab === 'publishers' && (
             <div className="space-y-6">
               <DashboardCard title={t('pyth.publishers.title')}>
+                {/* 搜索和排序控件 */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder={t('pyth.publishers.searchPlaceholder') || '搜索发布者...'}
+                      value={publisherSearchQuery}
+                      onChange={(e) => setPublisherSearchQuery(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={publisherSortField}
+                      onChange={(e) => setPublisherSortField(e.target.value as SortField)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    >
+                      <option value="stake">
+                        {t('pyth.publishers.sortByStake') || '按质押排序'}
+                      </option>
+                      <option value="accuracy">
+                        {t('pyth.publishers.sortByAccuracy') || '按准确率排序'}
+                      </option>
+                      <option value="name">
+                        {t('pyth.publishers.sortByName') || '按名称排序'}
+                      </option>
+                    </select>
+                    <button
+                      onClick={() =>
+                        setPublisherSortOrder(publisherSortOrder === 'asc' ? 'desc' : 'asc')
+                      }
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      {publisherSortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 发布者统计 */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="p-4 bg-violet-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {t('pyth.publishers.totalPublishers') || '发布者总数'}
+                    </p>
+                    <p className="text-2xl font-bold text-violet-600">{publishers?.length || 0}</p>
+                  </div>
+                  <div className="p-4 bg-violet-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {t('pyth.publishers.totalStaked') || '总质押'}
+                    </p>
+                    <p className="text-2xl font-bold text-violet-600">
+                      {((publishers?.reduce((sum, p) => sum + p.stake, 0) || 0) / 1e9).toFixed(2)}B
+                    </p>
+                  </div>
+                  <div className="p-4 bg-violet-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {t('pyth.publishers.avgAccuracy') || '平均准确率'}
+                    </p>
+                    <p className="text-2xl font-bold text-violet-600">
+                      {publishers?.length
+                        ? (
+                            publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length
+                          ).toFixed(1)
+                        : 0}
+                      %
+                    </p>
+                  </div>
+                  <div className="p-4 bg-violet-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {t('pyth.publishers.topPublisher') || '头部发布者'}
+                    </p>
+                    <p className="text-lg font-bold text-violet-600 truncate">
+                      {publishers?.sort((a, b) => b.stake - a.stake)[0]?.name || '-'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 发布者列表 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {publishers?.map((publisher) => (
-                    <div key={publisher.id} className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {t('pyth.publishers.stake')}: {(publisher.stake / 1e6).toFixed(1)}M PYTH
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {t('pyth.publishers.accuracy')}: {publisher.accuracy}%
-                      </p>
+                  {publishers
+                    ?.filter((publisher) =>
+                      publisher.name.toLowerCase().includes(publisherSearchQuery.toLowerCase())
+                    )
+                    ?.sort((a, b) => {
+                      let comparison = 0;
+                      switch (publisherSortField) {
+                        case 'stake':
+                          comparison = a.stake - b.stake;
+                          break;
+                        case 'accuracy':
+                          comparison = a.accuracy - b.accuracy;
+                          break;
+                        case 'name':
+                          comparison = a.name.localeCompare(b.name);
+                          break;
+                      }
+                      return publisherSortOrder === 'asc' ? comparison : -comparison;
+                    })
+                    ?.map((publisher, index) => (
+                      <div
+                        key={publisher.id}
+                        className="p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
+                          <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">
+                              {t('pyth.publishers.stake')}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {(publisher.stake / 1e6).toFixed(1)}M PYTH
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-violet-600 h-2 rounded-full"
+                              style={{
+                                width: `${Math.min((publisher.stake / (publishers?.[0]?.stake || 1)) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">
+                              {t('pyth.publishers.accuracy')}
+                            </span>
+                            <span
+                              className={`text-sm font-medium ${
+                                publisher.accuracy >= 99 ? 'text-green-600' : 'text-yellow-600'
+                              }`}
+                            >
+                              {publisher.accuracy}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                            <span className="text-sm text-gray-600">
+                              {t('pyth.publishers.contribution') || '贡献度'}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {(
+                                (publisher.stake /
+                                  (publishers?.reduce((sum, p) => sum + p.stake, 0) || 1)) *
+                                100
+                              ).toFixed(2)}
+                              %
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </DashboardCard>
+            </div>
+          )}
+
+          {activeTab === 'validators' && (
+            <div className="space-y-6">
+              {/* 验证者统计卡片 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {t('pyth.validators.totalValidators') || '验证者总数'}
+                  </p>
+                  <p className="text-2xl font-bold text-violet-600">{validators?.length || 0}</p>
+                </div>
+                <div className="p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {t('pyth.validators.activeValidators') || '活跃验证者'}
+                  </p>
+                  <p className="text-2xl font-bold text-violet-600">
+                    {validators?.filter((v) => v.status === 'active').length || 0}
+                  </p>
+                </div>
+                <div className="p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {t('pyth.validators.totalStaked') || '总质押'}
+                  </p>
+                  <p className="text-2xl font-bold text-violet-600">
+                    {((validators?.reduce((sum, v) => sum + v.stake, 0) || 0) / 1e9).toFixed(2)}B
+                  </p>
+                </div>
+                <div className="p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {t('pyth.validators.avgUptime') || '平均在线率'}
+                  </p>
+                  <p className="text-2xl font-bold text-violet-600">
+                    {validators?.length
+                      ? (
+                          validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length
+                        ).toFixed(1)
+                      : 0}
+                    %
+                  </p>
+                </div>
+              </div>
+
+              <DashboardCard title={t('pyth.validators.title') || '验证者列表'}>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                          {t('pyth.validators.name') || '名称'}
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                          {t('pyth.validators.status') || '状态'}
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                          {t('pyth.validators.stake') || '质押'}
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                          {t('pyth.validators.uptime') || '在线率'}
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                          {t('pyth.validators.rewards') || '奖励'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {validators
+                        ?.sort((a, b) => b.stake - a.stake)
+                        ?.map((validator) => (
+                          <tr
+                            key={validator.id}
+                            className="border-b border-gray-100 hover:bg-gray-50"
+                          >
+                            <td className="py-3 px-4 font-medium text-gray-900">
+                              {validator.name}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  validator.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : validator.status === 'inactive'
+                                      ? 'bg-gray-100 text-gray-700'
+                                      : 'bg-red-100 text-red-700'
+                                }`}
+                              >
+                                {validator.status === 'active'
+                                  ? t('pyth.validators.statusActive') || '活跃'
+                                  : validator.status === 'inactive'
+                                    ? t('pyth.validators.statusInactive') || '离线'
+                                    : t('pyth.validators.statusJailed') || '监禁'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              {(validator.stake / 1e6).toFixed(1)}M PYTH
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span
+                                className={
+                                  validator.uptime >= 99
+                                    ? 'text-green-600'
+                                    : validator.uptime >= 95
+                                      ? 'text-yellow-600'
+                                      : 'text-red-600'
+                                }
+                              >
+                                {validator.uptime}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              {(validator.rewards / 1e3).toFixed(1)}K PYTH
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </DashboardCard>
+            </div>
+          )}
+
+          {activeTab === 'cross-chain' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('pyth.crossChain.title') || '跨链支持'}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {config.supportedChains.map((chain) => (
+                    <div key={chain} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center">
+                          <span className="text-violet-600 font-bold">{chain.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{chain}</h4>
+                          <p className="text-xs text-gray-500">
+                            {t('pyth.crossChain.supported') || '已支持'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            {t('pyth.crossChain.updateFrequency') || '更新频率'}
+                          </span>
+                          <span className="font-medium">1s</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            {t('pyth.crossChain.latency') || '延迟'}
+                          </span>
+                          <span className="font-medium">&lt; 500ms</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">
+                            {t('pyth.crossChain.status') || '状态'}
+                          </span>
+                          <span className="text-green-600 font-medium">
+                            {t('pyth.crossChain.online') || '在线'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   ))}
+                </div>
+                <div className="mt-6 p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-violet-800">
+                    {t('pyth.crossChain.description') ||
+                      `Pyth 通过 Wormhole 跨链协议支持 ${config.supportedChains.length} 条区块链，实现亚秒级价格更新。`}
+                  </p>
                 </div>
               </DashboardCard>
             </div>
@@ -249,7 +583,11 @@ export default function PythNetworkPage() {
                   {[
                     { category: t('pyth.priceFeeds.categories.crypto'), count: 350, icon: '₿' },
                     { category: t('pyth.priceFeeds.categories.equities'), count: 80, icon: '📈' },
-                    { category: t('pyth.priceFeeds.categories.commodities'), count: 45, icon: '🛢️' },
+                    {
+                      category: t('pyth.priceFeeds.categories.commodities'),
+                      count: 45,
+                      icon: '🛢️',
+                    },
                     { category: t('pyth.priceFeeds.categories.forex'), count: 45, icon: '💱' },
                   ].map((feed) => (
                     <div key={feed.category} className="p-4 bg-gray-50 rounded-lg text-center">

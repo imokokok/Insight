@@ -239,6 +239,126 @@ export function ChainlinkRiskPanel() {
         </div>
       </DashboardCard>
 
+      {/* Service-Level Risk Assessment */}
+      <DashboardCard title={t('chainlink.riskAssessment.serviceLevelRisk')}>
+        <div className="space-y-4">
+          {[
+            {
+              service: 'CCIP',
+              availability: 99.97,
+              incidents: 0,
+              riskLevel: 'low',
+              lastIncident: 'N/A',
+            },
+            {
+              service: 'Data Feeds',
+              availability: 99.99,
+              incidents: 1,
+              riskLevel: 'low',
+              lastIncident: '2024-01-20',
+            },
+            {
+              service: 'Functions',
+              availability: 99.95,
+              incidents: 0,
+              riskLevel: 'low',
+              lastIncident: 'N/A',
+            },
+            {
+              service: 'Automation',
+              availability: 99.98,
+              incidents: 0,
+              riskLevel: 'low',
+              lastIncident: 'N/A',
+            },
+            {
+              service: 'VRF',
+              availability: 99.96,
+              incidents: 0,
+              riskLevel: 'low',
+              lastIncident: 'N/A',
+            },
+            {
+              service: 'Proof of Reserve',
+              availability: 99.99,
+              incidents: 0,
+              riskLevel: 'low',
+              lastIncident: 'N/A',
+            },
+          ].map((service) => (
+            <div key={service.service} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-900 w-32">{service.service}</span>
+                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 rounded-full"
+                    style={{ width: `${service.availability}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-600">{service.availability}%</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">
+                  {service.incidents > 0 ? `${service.incidents} incidents` : 'No incidents'}
+                </span>
+                <span
+                  className={`px-2 py-1 rounded text-xs ${
+                    service.riskLevel === 'low'
+                      ? 'bg-green-100 text-green-700'
+                      : service.riskLevel === 'medium'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {t(`chainlink.riskAssessment.riskLevel.${service.riskLevel}`)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
+
+      {/* Service-Specific Risk Factors */}
+      <DashboardCard title={t('chainlink.riskAssessment.serviceRiskFactors')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.riskAssessment.ccipRisks')}</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.rmnCoverage')}</span>
+                <span className="font-medium text-green-600">Active</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.rateLimiting')}</span>
+                <span className="font-medium text-green-600">Enabled</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.circuitBreakers')}</span>
+                <span className="font-medium text-green-600">Active</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.riskAssessment.vrfRisks')}</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.cryptographicSecurity')}</span>
+                <span className="font-medium text-green-600">256-bit</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.onChainVerification')}</span>
+                <span className="font-medium text-green-600">100%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.riskAssessment.blockHashDependency')}</span>
+                <span className="font-medium text-yellow-600">Medium</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DashboardCard>
+
       {/* Mitigation Measures */}
       <DashboardCard title={t('chainlink.riskAssessment.mitigationMeasures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -18,6 +18,7 @@ import { ChainlinkNodesPanel } from '@/components/oracle/panels/ChainlinkNodesPa
 import { ChainlinkDataFeedsPanel } from '@/components/oracle/panels/ChainlinkDataFeedsPanel';
 import { ChainlinkRiskPanel } from '@/components/oracle/panels/ChainlinkRiskPanel';
 import { ChainlinkEcosystemPanel } from '@/components/oracle/panels/ChainlinkEcosystemPanel';
+import { ChainlinkServicesPanel } from '@/components/oracle/panels/ChainlinkServicesPanel';
 import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -237,6 +238,8 @@ export default function ChainlinkPage() {
           {activeTab === 'nodes' && <ChainlinkNodesPanel />}
 
           {activeTab === 'data-feeds' && <ChainlinkDataFeedsPanel />}
+
+          {activeTab === 'services' && <ChainlinkServicesPanel />}
 
           {activeTab === 'ecosystem' && <ChainlinkEcosystemPanel />}
 

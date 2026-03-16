@@ -42,6 +42,7 @@ export type {
   RandomNumberService,
   GamingData,
   WINkLinkNetworkStats,
+  WINkLinkRiskMetrics,
 } from './winklink';
 export {
   PythHermesClient,

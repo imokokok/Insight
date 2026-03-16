@@ -121,6 +121,103 @@ export interface RiskMetrics {
   }[];
 }
 
+export interface EcosystemProtocol {
+  id: string;
+  name: string;
+  category: 'lending' | 'dex' | 'derivatives' | 'yield' | 'insurance' | 'other';
+  tvl: number;
+  dataFeeds: string[];
+  logo?: string;
+  website?: string;
+  integrationDate: number;
+}
+
+export interface EcosystemStats {
+  totalProtocols: number;
+  totalTvl: number;
+  protocolsByCategory: {
+    category: string;
+    count: number;
+    tvl: number;
+  }[];
+  topProtocols: EcosystemProtocol[];
+  monthlyGrowth: {
+    timestamp: number;
+    protocolCount: number;
+    totalTvl: number;
+  }[];
+  dataFeedUsage: {
+    feedId: string;
+    feedName: string;
+    usageCount: number;
+    protocols: string[];
+  }[];
+}
+
+export interface Dispute {
+  id: string;
+  reporterId: string;
+  reporterAddress: string;
+  disputedValue: number;
+  proposedValue: number;
+  stakeAmount: number;
+  status: 'open' | 'resolved' | 'rejected';
+  outcome?: 'reporter_won' | 'disputer_won';
+  createdAt: number;
+  resolvedAt?: number;
+  votesForReporter: number;
+  votesForDisputer: number;
+  reward?: number;
+}
+
+export interface DisputeStats {
+  totalDisputes: number;
+  openDisputes: number;
+  resolvedDisputes: number;
+  successRate: number;
+  avgResolutionTime: number;
+  totalRewardsDistributed: number;
+  totalSlashed: number;
+  recentDisputes: Dispute[];
+  disputeTrend: {
+    timestamp: number;
+    opened: number;
+    resolved: number;
+  }[];
+}
+
+export interface StakingCalculation {
+  stakeAmount: number;
+  duration: number;
+  isActiveReporter: boolean;
+  disputeParticipation: number;
+  estimatedApr: number;
+  estimatedReward: number;
+  disputeBonus: number;
+  totalEstimatedReturn: number;
+  roi: number;
+}
+
+export interface TellorNetworkHealth {
+  overallHealth: number;
+  reporterDistribution: {
+    region: string;
+    count: number;
+    percentage: number;
+  }[];
+  updateFrequencyHeatmap: {
+    hour: number;
+    day: number;
+    intensity: number;
+  }[];
+  chainActivity: {
+    chain: Blockchain;
+    updates24h: number;
+    avgLatency: number;
+    healthScore: number;
+  }[];
+}
+
 export class TellorClient extends BaseOracleClient {
   name = OracleProvider.TELLOR;
   supportedChains = [
@@ -472,6 +569,166 @@ export class TellorClient extends BaseOracleClient {
           timestamp: now - 10800000,
         },
       ],
+    };
+  }
+
+  async getEcosystemStats(): Promise<EcosystemStats> {
+    const protocols: EcosystemProtocol[] = [
+      { id: '1', name: 'Aave', category: 'lending', tvl: 8500000000, dataFeeds: ['ETH/USD', 'BTC/USD', 'LINK/USD'], integrationDate: Date.now() - 86400000 * 365 },
+      { id: '2', name: 'Compound', category: 'lending', tvl: 4200000000, dataFeeds: ['ETH/USD', 'USDC/USD', 'DAI/USD'], integrationDate: Date.now() - 86400000 * 300 },
+      { id: '3', name: 'Synthetix', category: 'derivatives', tvl: 2800000000, dataFeeds: ['ETH/USD', 'BTC/USD', 'SNX/USD'], integrationDate: Date.now() - 86400000 * 280 },
+      { id: '4', name: 'Liquity', category: 'lending', tvl: 1200000000, dataFeeds: ['ETH/USD'], integrationDate: Date.now() - 86400000 * 250 },
+      { id: '5', name: 'Alchemix', category: 'yield', tvl: 450000000, dataFeeds: ['ETH/USD', 'DAI/USD'], integrationDate: Date.now() - 86400000 * 200 },
+      { id: '6', name: 'Ribbon Finance', category: 'derivatives', tvl: 380000000, dataFeeds: ['ETH/USD', 'BTC/USD'], integrationDate: Date.now() - 86400000 * 180 },
+      { id: '7', name: 'Nexus Mutual', category: 'insurance', tvl: 320000000, dataFeeds: ['ETH/USD', 'NXM/USD'], integrationDate: Date.now() - 86400000 * 150 },
+      { id: '8', name: 'Uniswap V3', category: 'dex', tvl: 2100000000, dataFeeds: ['ETH/USD', 'UNI/USD'], integrationDate: Date.now() - 86400000 * 400 },
+    ];
+
+    const categories = ['lending', 'dex', 'derivatives', 'yield', 'insurance', 'other'];
+    const protocolsByCategory = categories.map(cat => {
+      const catProtocols = protocols.filter(p => p.category === cat);
+      return {
+        category: cat,
+        count: catProtocols.length,
+        tvl: catProtocols.reduce((sum, p) => sum + p.tvl, 0),
+      };
+    }).filter(c => c.count > 0);
+
+    const monthlyGrowth = Array.from({ length: 12 }, (_, i) => ({
+      timestamp: Date.now() - (11 - i) * 30 * 86400000,
+      protocolCount: Math.floor(5 + i * 0.5),
+      totalTvl: 10000000000 + i * 500000000 + Math.random() * 1000000000,
+    }));
+
+    const dataFeedUsage = [
+      { feedId: '1', feedName: 'ETH/USD', usageCount: 45, protocols: ['Aave', 'Compound', 'Synthetix'] },
+      { feedId: '2', feedName: 'BTC/USD', usageCount: 32, protocols: ['Aave', 'Synthetix', 'Ribbon'] },
+      { feedId: '3', feedName: 'LINK/USD', usageCount: 28, protocols: ['Aave', 'Nexus Mutual'] },
+      { feedId: '4', feedName: 'DAI/USD', usageCount: 25, protocols: ['Compound', 'Alchemix'] },
+      { feedId: '5', feedName: 'USDC/USD', usageCount: 22, protocols: ['Compound', 'Uniswap'] },
+    ];
+
+    return {
+      totalProtocols: protocols.length,
+      totalTvl: protocols.reduce((sum, p) => sum + p.tvl, 0),
+      protocolsByCategory,
+      topProtocols: protocols.slice(0, 6),
+      monthlyGrowth,
+      dataFeedUsage,
+    };
+  }
+
+  async getDisputeStats(): Promise<DisputeStats> {
+    const disputes: Dispute[] = Array.from({ length: 15 }, (_, i) => {
+      const status = Math.random() > 0.3 ? 'resolved' : 'open';
+      const createdAt = Date.now() - Math.floor(Math.random() * 30 * 86400000);
+      return {
+        id: `dispute-${i + 1}`,
+        reporterId: `reporter-${Math.floor(Math.random() * 20) + 1}`,
+        reporterAddress: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        disputedValue: Number((2000 + Math.random() * 500).toFixed(2)),
+        proposedValue: Number((2000 + Math.random() * 500).toFixed(2)),
+        stakeAmount: Math.floor(Math.random() * 50000) + 10000,
+        status: status as 'open' | 'resolved' | 'rejected',
+        outcome: status === 'resolved' ? (Math.random() > 0.4 ? 'reporter_won' : 'disputer_won') : undefined,
+        createdAt,
+        resolvedAt: status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
+        votesForReporter: Math.floor(Math.random() * 50) + 10,
+        votesForDisputer: Math.floor(Math.random() * 50) + 10,
+        reward: status === 'resolved' ? Math.floor(Math.random() * 10000) + 1000 : undefined,
+      };
+    });
+
+    const resolvedDisputes = disputes.filter(d => d.status === 'resolved');
+    const successRate = resolvedDisputes.length > 0
+      ? resolvedDisputes.filter(d => d.outcome === 'disputer_won').length / resolvedDisputes.length
+      : 0;
+
+    const avgResolutionTime = resolvedDisputes.length > 0
+      ? resolvedDisputes.reduce((sum, d) => sum + ((d.resolvedAt || 0) - d.createdAt), 0) / resolvedDisputes.length / 86400000
+      : 0;
+
+    const disputeTrend = Array.from({ length: 30 }, (_, i) => ({
+      timestamp: Date.now() - (29 - i) * 86400000,
+      opened: Math.floor(Math.random() * 3),
+      resolved: Math.floor(Math.random() * 2),
+    }));
+
+    return {
+      totalDisputes: disputes.length,
+      openDisputes: disputes.filter(d => d.status === 'open').length,
+      resolvedDisputes: resolvedDisputes.length,
+      successRate: Number((successRate * 100).toFixed(2)),
+      avgResolutionTime: Number(avgResolutionTime.toFixed(1)),
+      totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
+      totalSlashed: resolvedDisputes.filter(d => d.outcome === 'disputer_won').reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
+      recentDisputes: disputes.slice(0, 10),
+      disputeTrend,
+    };
+  }
+
+  calculateStaking(params: {
+    stakeAmount: number;
+    duration: number;
+    isActiveReporter: boolean;
+    disputeParticipation: number;
+  }): StakingCalculation {
+    const baseApr = 10.2;
+    const reporterBonus = params.isActiveReporter ? 5 : 0;
+    const disputeBonus = params.disputeParticipation * 2;
+    const estimatedApr = baseApr + reporterBonus + disputeBonus;
+    
+    const estimatedReward = (params.stakeAmount * estimatedApr * params.duration) / (365 * 100);
+    const disputeBonusReward = (params.stakeAmount * disputeBonus * params.duration) / (365 * 100);
+    const totalEstimatedReturn = estimatedReward;
+    const roi = (totalEstimatedReturn / params.stakeAmount) * 100;
+
+    return {
+      stakeAmount: params.stakeAmount,
+      duration: params.duration,
+      isActiveReporter: params.isActiveReporter,
+      disputeParticipation: params.disputeParticipation,
+      estimatedApr: Number(estimatedApr.toFixed(2)),
+      estimatedReward: Number(estimatedReward.toFixed(2)),
+      disputeBonus: Number(disputeBonusReward.toFixed(2)),
+      totalEstimatedReturn: Number(totalEstimatedReturn.toFixed(2)),
+      roi: Number(roi.toFixed(2)),
+    };
+  }
+
+  async getNetworkHealth(): Promise<TellorNetworkHealth> {
+    const regions = ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa'];
+    const reporterDistribution = regions.map(region => {
+      const count = Math.floor(Math.random() * 20) + 5;
+      return {
+        region,
+        count,
+        percentage: 0,
+      };
+    });
+    const totalReporters = reporterDistribution.reduce((sum, r) => sum + r.count, 0);
+    reporterDistribution.forEach(r => {
+      r.percentage = Number(((r.count / totalReporters) * 100).toFixed(1));
+    });
+
+    const updateFrequencyHeatmap = Array.from({ length: 168 }, (_, i) => ({
+      hour: i % 24,
+      day: Math.floor(i / 24),
+      intensity: Math.random(),
+    }));
+
+    const chainActivity = this.supportedChains.map(chain => ({
+      chain,
+      updates24h: Math.floor(Math.random() * 5000) + 1000,
+      avgLatency: Math.floor(Math.random() * 100) + 50,
+      healthScore: Math.floor(Math.random() * 20) + 80,
+    }));
+
+    return {
+      overallHealth: 92,
+      reporterDistribution,
+      updateFrequencyHeatmap,
+      chainActivity,
     };
   }
 }

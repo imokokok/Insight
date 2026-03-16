@@ -1616,8 +1616,9 @@
     "tabs": {
       "market": "Market Data",
       "network": "Network Health",
-      "dataSources": "Data Sources",
-      "crossChain": "Cross-Chain",
+      "dataFeeds": "Data Feeds",
+      "nftData": "NFT Data",
+      "staking": "Staking",
       "ecosystem": "Ecosystem",
       "risk": "Risk Assessment"
     },
@@ -1628,7 +1629,27 @@
       "networkUptime": "Network Uptime",
       "volume24h": "24h Volume",
       "marketCap": "Market Cap",
-      "circulatingSupply": "Circulating Supply"
+      "circulatingSupply": "Circulating Supply",
+      "activeDataSources": "Active Data Sources",
+      "dataFeeds": "Data Feeds",
+      "avgResponseTime": "Avg Response Time",
+      "totalFeeds": "Total Feeds",
+      "activeFeeds": "Active Feeds",
+      "avgConfidence": "Avg Confidence",
+      "dataSources": "Data Sources",
+      "totalCollections": "Total Collections",
+      "trendingCollections": "Trending Collections",
+      "avgFloorPrice": "Avg Floor Price",
+      "nftChains": "NFT Chains",
+      "totalStaked": "Total Staked",
+      "stakerCount": "Staker Count",
+      "rewardsDistributed": "Rewards Distributed",
+      "totalProtocols": "Total Protocols",
+      "totalTvl": "Total TVL",
+      "dexIntegrations": "DEX Integrations",
+      "lendingIntegrations": "Lending Integrations",
+      "dataQuality": "Data Quality",
+      "oracleDiversity": "Oracle Diversity"
     },
     "error": {
       "loadingFailed": "Loading failed"
@@ -1678,9 +1699,87 @@
     "dataSources": {
       "title": "Data Sources Management"
     },
+    "dataFeeds": {
+      "title": "Data Feeds",
+      "totalFeeds": "Total Feeds",
+      "activeFeeds": "Active Feeds",
+      "assetType": "Asset Type",
+      "all": "All",
+      "crypto": "Crypto",
+      "fiat": "Fiat",
+      "nft": "NFT",
+      "commodity": "Commodity",
+      "chains": "Chains",
+      "updateFrequency": "Update Frequency",
+      "confidence": "Confidence",
+      "status": "Status",
+      "active": "Active",
+      "paused": "Paused",
+      "deprecated": "Deprecated",
+      "description": "Description",
+      "createdAt": "Created At",
+      "dataSourcesUsed": "Data Sources Used",
+      "noData": "No data feeds available"
+    },
+    "nftData": {
+      "title": "NFT Floor Price Data",
+      "totalCollections": "Total Collections",
+      "trendingCount": "Trending",
+      "chainsSupported": "Chains Supported",
+      "avgConfidence": "Avg Confidence",
+      "byChain": "By Chain",
+      "trendingTitle": "Trending",
+      "floorPrice": "Floor Price",
+      "change24h": "24h Change",
+      "allCollections": "All Collections",
+      "24h": "24h",
+      "volume24h": "24h Volume",
+      "totalSupply": "Total Supply",
+      "confidence": "Confidence",
+      "updateFrequency": "Update Frequency",
+      "noData": "No NFT data available"
+    },
+    "staking": {
+      "title": "Staking Details",
+      "totalStaked": "Total Staked",
+      "currentApr": "Current APR",
+      "stakerCount": "Staker Count",
+      "rewardPool": "Reward Pool",
+      "rewardsDistributed": "Rewards Distributed",
+      "minStakeAmount": "Min Stake Amount",
+      "lockPeriods": "Lock Periods",
+      "aprByPeriod": "APR by Period",
+      "historicalApr": "Historical APR Trend",
+      "calculator": "Reward Calculator",
+      "stakeAmount": "Stake Amount",
+      "lockPeriod": "Lock Period",
+      "estimatedRewards": "Estimated Rewards",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "days": "days",
+      "noData": "No staking data available"
+    },
     "ecosystem": {
       "title": "Ecosystem",
-      "description": "DIA integrations with major DeFi protocols"
+      "description": "DIA integrations with major DeFi protocols",
+      "totalProtocols": "Total Protocols",
+      "totalTvl": "Total TVL",
+      "allCategories": "All Categories",
+      "dex": "DEX",
+      "lending": "Lending",
+      "derivatives": "Derivatives",
+      "yield": "Yield",
+      "insurance": "Insurance",
+      "other": "Other",
+      "integrationDepth": "Integration Depth",
+      "full": "Full",
+      "partial": "Partial",
+      "experimental": "Experimental",
+      "dataFeedsUsed": "Data Feeds Used",
+      "visitWebsite": "Visit Website",
+      "noData": "No ecosystem data available"
     },
     "risk": {
       "dataSourceConcentration": "Data Source Concentration",
@@ -1706,7 +1805,10 @@
       "marketDepth": "Market Depth",
       "multiChain": "Multi-Chain Aggregation",
       "reporters": "Reporters",
-      "risk": "Risk Assessment"
+      "risk": "Risk Assessment",
+      "disputes": "Disputes",
+      "staking": "Staking",
+      "ecosystem": "Ecosystem"
     },
     "stats": {
       "activeNodes": "Active Nodes",
@@ -1768,7 +1870,21 @@
       "successRate": "Success Rate",
       "rewards": "Rewards",
       "status": "Status",
-      "lastReport": "Last Report"
+      "lastReport": "Last Report",
+      "avgDisputes": "Avg Disputes",
+      "perReporter": "per Reporter",
+      "disputeSuccessRate": "Dispute Success Rate",
+      "won": "Won",
+      "totalDisputeRewards": "Total Dispute Rewards",
+      "distributed": "Distributed",
+      "reporterDetails": "Reporter Details",
+      "disputeStats": "Dispute Statistics",
+      "participated": "Participated",
+      "earned": "Earned",
+      "revenueAttribution": "Revenue Attribution",
+      "reportingRevenue": "Reporting Revenue",
+      "disputeRevenue": "Dispute Revenue",
+      "totalRevenue": "Total Revenue"
     },
     "risk": {
       "overallLevel": "Overall Risk Level",
@@ -1788,6 +1904,99 @@
       "latencyRisk": "Latency Risk",
       "updateFrequencyRisk": "Update Frequency Risk",
       "alerts": "Risk Alerts"
+    },
+    "network": {
+      "overallHealth": "Overall Network Health",
+      "basedOnMetrics": "Based on network performance metrics",
+      "healthScore": "Health Score",
+      "reporterDistribution": "Reporter Distribution",
+      "chainActivity": "Chain Activity",
+      "updates24h": "24h Updates",
+      "avgLatency": "Avg Latency",
+      "health": "Health",
+      "updateFrequencyHeatmap": "Update Frequency Heatmap",
+      "low": "Low",
+      "high": "High"
+    },
+    "ecosystem": {
+      "totalProtocols": "Total Protocols",
+      "integrated": "Integrated",
+      "totalTvl": "Total TVL",
+      "tvl": "TVL",
+      "dataFeeds": "Data Feeds",
+      "totalUsage": "Total Usage",
+      "avgTvlPerProtocol": "Avg TVL per Protocol",
+      "avgTvl": "Avg TVL",
+      "protocolsByCategory": "Protocols by Category",
+      "topProtocols": "Top Protocols",
+      "growthTrend": "Ecosystem Growth Trend",
+      "dataFeedUsage": "Data Feed Usage",
+      "uses": "uses",
+      "lending": "Lending",
+      "dex": "DEX",
+      "derivatives": "Derivatives",
+      "yield": "Yield",
+      "insurance": "Insurance",
+      "other": "Other"
+    },
+    "staking": {
+      "calculator": {
+        "title": "Staking Calculator",
+        "stakeAmount": "Stake Amount",
+        "duration": "Staking Duration",
+        "activeReporter": "Active Reporter",
+        "activeReporterDesc": "Earn additional rewards by actively reporting data",
+        "disputeParticipation": "Dispute Participation",
+        "disputeParticipationDesc": "Expected number of disputes to participate in per month",
+        "estimatedApr": "Estimated APR",
+        "apr": "Annual Percentage Rate",
+        "estimatedReward": "Estimated Reward",
+        "totalReward": "Total Reward",
+        "disputeBonus": "Dispute Bonus",
+        "extra": "Extra",
+        "roi": "ROI",
+        "returnOnInvestment": "Return on Investment",
+        "breakdown": "Reward Breakdown",
+        "baseApr": "Base APR",
+        "reporterBonus": "Reporter Bonus",
+        "disputeBonusLabel": "Dispute Bonus",
+        "totalApr": "Total APR"
+      }
+    },
+    "disputes": {
+      "flow": {
+        "title": "Dispute Resolution Flow",
+        "submit": "Submit Data",
+        "submitDesc": "Reporter submits price data",
+        "challenge": "Challenge",
+        "challengeDesc": "Disputer challenges the data",
+        "vote": "Vote",
+        "voteDesc": "Community votes on validity",
+        "resolve": "Resolve",
+        "resolveDesc": "Dispute is resolved"
+      },
+      "totalDisputes": "Total Disputes",
+      "open": "Open",
+      "successRate": "Success Rate",
+      "disputerWins": "Disputer Wins",
+      "avgResolutionTime": "Avg Resolution Time",
+      "average": "Average",
+      "totalRewards": "Total Rewards",
+      "distributed": "Distributed",
+      "trend": "Dispute Trend",
+      "daysAgo": "days ago",
+      "today": "Today",
+      "opened": "Opened",
+      "resolved": "Resolved",
+      "recentDisputes": "Recent Disputes",
+      "reporter": "Reporter",
+      "stake": "Stake",
+      "status": "Status",
+      "outcome": "Outcome",
+      "votes": "Votes",
+      "reward": "Reward",
+      "reporterWon": "Reporter Won",
+      "disputerWon": "Disputer Won"
     }
   },
   "bandProtocol": {
@@ -1806,7 +2015,10 @@
     "menu": {
       "marketData": "Market Data",
       "networkHealth": "Network Health",
+      "validators": "Validators",
       "crossChain": "Cross-Chain Data",
+      "dataFeeds": "Data Feeds",
+      "staking": "Staking",
       "ecosystem": "Ecosystem",
       "riskAssessment": "Risk Assessment",
       "crossOracle": "Cross-Oracle Compare"
@@ -1814,7 +2026,10 @@
     "pageTitles": {
       "market": "Market Data Overview",
       "network": "Network Health Monitor",
+      "validators": "Validator Analytics",
       "crossChain": "Cross-Chain Data Analysis",
+      "dataFeeds": "Data Feeds Dashboard",
+      "staking": "Staking Dashboard",
       "ecosystem": "Ecosystem Integrations",
       "risk": "Risk Assessment Dashboard",
       "crossOracle": "Cross-Oracle Comparison"
@@ -1954,6 +2169,94 @@
       "ibcTransfers": "IBC Transfers",
       "ibcChannels": "IBC Channels",
       "avgLatency": "Avg Latency"
+    },
+    "staking": {
+      "totalStaked": "Total Staked",
+      "stakingApr": "Staking APR",
+      "ofTotalSupply": "of total supply",
+      "annualReturn": "Annual Return",
+      "activeValidators": "Active Validators",
+      "outOf": "out of",
+      "total": "total",
+      "inflationRate": "Inflation Rate",
+      "annual": "Annual",
+      "stakingDistribution": "Staking Distribution",
+      "tier": {
+        "whale": "Whale",
+        "large": "Large",
+        "medium": "Medium",
+        "small": "Small"
+      },
+      "validators": "Validators",
+      "ofNetwork": "of network",
+      "topValidators": "Top Validators",
+      "rank": "Rank",
+      "validator": "Validator",
+      "stakedAmount": "Staked Amount",
+      "commission": "Commission",
+      "uptime": "Uptime",
+      "stakingInfo": "Staking Info",
+      "unbondingPeriod": "Unbonding Period",
+      "days": "days",
+      "unbondingDesc": "Time required to unstake tokens",
+      "minStake": "Minimum Stake",
+      "minStakeDesc": "Minimum stake required to become a validator",
+      "communityPool": "Community Pool",
+      "communityPoolDesc": "Community funds for ecosystem development"
+    },
+    "validators": {
+      "totalValidators": "Total Validators",
+      "active": "Active",
+      "avgCommission": "Avg Commission",
+      "networkAverage": "Network Average",
+      "avgUptime": "Avg Uptime",
+      "last30Days": "Last 30 Days",
+      "topRegion": "Top Region",
+      "ofNetwork": "of network",
+      "geographicDistribution": "Geographic Distribution",
+      "validatorList": "Validator List",
+      "sortBy": "Sort By",
+      "rank": "Rank",
+      "stake": "Stake",
+      "validator": "Validator",
+      "stakedTokens": "Staked Tokens",
+      "status": "Status",
+      "jailed": "Jailed",
+      "validatorInfo": "Validator Info",
+      "slashing": "Slashing Rate",
+      "slashingDesc": "Double-sign slashing penalty",
+      "maxValidators": "Max Validators",
+      "maxValidatorsDesc": "Maximum active validator set size"
+    },
+    "dataFeeds": {
+      "totalFeeds": "Total Price Feeds",
+      "dataSources": "Data Sources",
+      "totalSources": "total sources",
+      "avgConfidence": "Avg Confidence",
+      "acrossAllFeeds": "across all feeds",
+      "avgUpdateFreq": "Avg Update Frequency",
+      "updateInterval": "Update Interval",
+      "priceFeeds": "Price Feeds",
+      "allCategories": "All Categories",
+      "crypto": "Crypto",
+      "stablecoin": "Stablecoin",
+      "symbol": "Symbol",
+      "price": "Price",
+      "change24h": "24h Change",
+      "updateFreq": "Update Freq",
+      "confidence": "Confidence",
+      "sources": "Sources",
+      "status": "Status",
+      "feeds": "feeds",
+      "reliability": "Reliability",
+      "latency": "Latency",
+      "dataQuality": "Data Quality",
+      "multiSource": "Multi-Source Aggregation",
+      "multiSourceDesc": "Aggregates prices from multiple independent sources for accuracy",
+      "realTime": "Real-Time Updates",
+      "realTimeDesc": "Sub-second price updates tracking market movements",
+      "decentralized": "Decentralized",
+      "decentralizedDesc": "Secured by 70+ decentralized validators"
     },
     "refresh": "Refresh",
     "export": "Export",
@@ -2264,6 +2567,8 @@
       "market": "Market Data",
       "network": "Network Health",
       "providers": "Data Providers",
+      "dataStreams": "Data Streams",
+      "crossChain": "Cross Chain",
       "ecosystem": "Ecosystem",
       "risk": "Risk Assessment"
     },
@@ -2283,7 +2588,36 @@
       "avgUpdateTime": "Average Update Time",
       "dataQuality": "Data Quality",
       "accuracyRate": "Accuracy Rate",
-      "sourceList": "Source List"
+      "sourceList": "Source List",
+      "reputation": "Reputation",
+      "dataPoints": "Data Points",
+      "lastUpdate": "Last Update",
+      "sortBy": "Sort By",
+      "filter": "Filter",
+      "all": "All",
+      "highReputation": "High Reputation",
+      "mostData": "Most Data Points"
+    },
+    "dataStreams": {
+      "title": "Data Streams",
+      "updateFrequency": "Update Frequency",
+      "dataFreshness": "Data Freshness",
+      "streamCount": "Active Streams",
+      "avgLatency": "Average Latency",
+      "modularFee": "Modular Fee",
+      "freshnessScore": "Freshness Score",
+      "providerCount": "Provider Count",
+      "avgReputation": "Avg Reputation"
+    },
+    "crossChain": {
+      "title": "Cross Chain Support",
+      "supportedChains": "Supported Chains",
+      "chainList": "Chain List",
+      "updateFrequency": "Update Frequency",
+      "latency": "Latency",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "risk": {
       "title": "Risk Assessment",
@@ -2293,7 +2627,15 @@
       "overall": "Overall Risk"
     },
     "ecosystem": {
-      "title": "Ecosystem"
+      "title": "Ecosystem",
+      "categories": {
+        "defi": "DeFi",
+        "nft": "NFT",
+        "gaming": "Gaming",
+        "infrastructure": "Infrastructure"
+      },
+      "integrations": "Integrations",
+      "partners": "Partners"
     }
   },
   "pythNetwork": {
@@ -2465,7 +2807,9 @@
       "marketData": "Market Data",
       "networkHealth": "Network Health",
       "publishers": "Publishers",
-      "priceFeeds": "Price Feeds"
+      "priceFeeds": "Price Feeds",
+      "validators": "Validators",
+      "crossChain": "Cross-chain"
     },
     "stats": {
       "updateFrequency": "Update Frequency",
@@ -2515,7 +2859,10 @@
       "dapi": "dAPI Services",
       "staking": "Staking & Coverage",
       "advantages": "Core Advantages",
-      "advanced": "Technical Analysis",
+      "analytics": "Technical Analysis",
+      "gas": "Gas Comparison",
+      "risk": "Risk Assessment",
+      "crossOracle": "Cross-Oracle",
       "ecosystem": "Ecosystem"
     },
     "firstPartyOracle": {
@@ -2541,6 +2888,84 @@
       "noInsurance": "✗ No",
       "advantagesTitle": "First-Party Oracle Advantages",
       "advantagesDesc": "API3, as a first-party oracle, obtains data directly from data sources without intermediaries, providing higher transparency, faster response times, and more reliable data quality."
+    },
+    "risk": {
+      "overview": {
+        "title": "Risk Assessment Overview",
+        "description": "Comprehensive risk analysis of API3 network including coverage pool collateralization, data source concentration, network health, and staking risks."
+      },
+      "coveragePool": {
+        "title": "Coverage Pool Risk",
+        "collateralization": "Collateralization Ratio",
+        "ratio": "Coverage Ratio",
+        "totalStaked": "Total Staked",
+        "lowRisk": "Healthy coverage pool with sufficient collateralization",
+        "mediumRisk": "Moderate risk, coverage ratio below optimal",
+        "criticalRisk": "Critical risk, insufficient coverage collateralization"
+      },
+      "concentration": {
+        "title": "Data Source Concentration",
+        "diversificationScore": "Diversification Score",
+        "cryptoAssets": "Crypto Assets",
+        "totalDapis": "Total dAPIs",
+        "concentration": "Concentration Ratio",
+        "diversified": "Well diversified data sources across asset types",
+        "mediumConcentration": "Moderate concentration in crypto assets",
+        "highConcentration": "High concentration risk, over-reliance on crypto"
+      },
+      "network": {
+        "title": "Network Health Risk",
+        "healthScore": "Network Health Score",
+        "uptime": "Node Uptime",
+        "responseTime": "Avg Response Time",
+        "excellent": "Excellent network health and performance",
+        "fair": "Fair network health, minor issues detected",
+        "poor": "Poor network health, significant risks present"
+      },
+      "staking": {
+        "title": "Staking Risk",
+        "riskScore": "Staking Risk Score",
+        "apr": "Staking APR",
+        "lockup": "Lockup Period",
+        "moderate": "Moderate risk with sustainable yield",
+        "elevatedRisk": "Elevated risk due to high APR",
+        "highYieldRisk": "High risk, unsustainable yield levels"
+      }
+    },
+    "crossOracle": {
+      "overview": {
+        "title": "Cross-Oracle Comparison",
+        "description": "Compare API3 performance metrics against other leading oracle providers including Chainlink, Pyth, Band Protocol, and DIA."
+      },
+      "responseTime": {
+        "title": "Response Time Comparison",
+        "description": "Lower response time indicates faster data delivery"
+      },
+      "accuracy": {
+        "title": "Data Accuracy Comparison",
+        "description": "Higher accuracy indicates more reliable price data"
+      },
+      "availability": {
+        "title": "Network Availability",
+        "description": "Uptime percentage over the last 30 days"
+      },
+      "costEfficiency": {
+        "title": "Cost Efficiency",
+        "description": "Cost-effectiveness score based on gas fees and update frequency"
+      },
+      "updateFrequency": {
+        "title": "Update Frequency",
+        "description": "Average time between price updates in seconds"
+      },
+      "advantages": {
+        "title": "API3 Competitive Advantages",
+        "firstParty": "First-Party Architecture",
+        "firstPartyValue": "Direct API provider connections eliminate middlemen",
+        "quantifiableSecurity": "Quantifiable Security",
+        "quantifiableSecurityValue": "On-chain coverage pools provide transparent security guarantees",
+        "dapi": "dAPI Services",
+        "dapiValue": "Decentralized APIs with aggregated data from multiple sources"
+      }
     },
     "pageTitles": {
       "market": "Market Data Overview",
@@ -4949,7 +5374,9 @@
       "network": "Network Health",
       "tron": "TRON Ecosystem",
       "staking": "Node Staking",
-      "gaming": "Gaming Data"
+      "gaming": "Gaming Data",
+      "risk": "Risk Assessment",
+      "crossOracle": "Cross-Oracle Comparison"
     },
     "loading": "Loading WINkLink data...",
     "error": {
@@ -4962,7 +5389,10 @@
       "networkUptime": "Network Uptime",
       "volume24h": "24h Volume",
       "marketCap": "Market Cap",
-      "circulatingSupply": "Circulating Supply"
+      "circulatingSupply": "Circulating Supply",
+      "vrfDailyRequests": "VRF Daily Requests",
+      "gamingVolume": "Gaming Volume",
+      "activeGames": "Active Games"
     },
     "tron": {
       "title": "TRON Ecosystem Integration",

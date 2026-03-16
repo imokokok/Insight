@@ -1,5 +1,5 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { WINkLinkClient, TRONEcosystem, NodeStakingData, GamingData } from '@/lib/oracles';
+import { WINkLinkClient, TRONEcosystem, NodeStakingData, GamingData, WINkLinkRiskMetrics } from '@/lib/oracles';
 import { Blockchain } from '@/types/oracle';
 import { useMemo } from 'react';
 
@@ -53,6 +53,14 @@ export function useWINkLinkNetworkStats() {
   });
 }
 
+export function useWINkLinkRiskMetrics() {
+  return useQuery<WINkLinkRiskMetrics>({
+    queryKey: ['winklink', 'risk'],
+    queryFn: () => client.getRiskMetrics(),
+    refetchInterval: 60000,
+  });
+}
+
 interface UseWINkLinkAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -98,10 +106,16 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
         enabled,
         refetchInterval: 60000,
       },
+      {
+        queryKey: ['winklink', 'risk'],
+        queryFn: () => client.getRiskMetrics(),
+        enabled,
+        refetchInterval: 60000,
+      },
     ],
   });
 
-  const [priceResult, historicalResult, tronResult, stakingResult, gamingResult, networkResult] =
+  const [priceResult, historicalResult, tronResult, stakingResult, gamingResult, networkResult, riskResult] =
     results;
 
   const isLoading = results.some((r) => r.isLoading);
@@ -120,6 +134,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       staking: stakingResult.data,
       gaming: gamingResult.data,
       networkStats: networkResult.data,
+      riskMetrics: riskResult.data,
       isLoading,
       isError,
       errors,
@@ -132,6 +147,7 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
       stakingResult.data,
       gamingResult.data,
       networkResult.data,
+      riskResult.data,
       isLoading,
       isError,
       errors,

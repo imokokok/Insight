@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '../common/DashboardCard';
+import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import {
   Shield,
   AlertTriangle,
@@ -9,6 +10,8 @@ import {
   TrendingDown,
   Activity,
   Lock,
+  FileCheck,
+  Clock,
 } from 'lucide-react';
 
 interface RiskMetric {
@@ -24,13 +27,13 @@ interface ChronicleRiskData {
   validatorConcentration: number;
   priceDeviation: number;
   systemStability: number;
-  auditScore: number;
   lastIncident: string;
   incidentCount30d: number;
 }
 
 interface ChronicleRiskAssessmentPanelProps {
   data?: ChronicleRiskData;
+  scuttlebuttData?: ScuttlebuttData;
 }
 
 function getRiskLevel(score: number): {
@@ -121,6 +124,7 @@ function RiskScoreCard({
 
 export function ChronicleRiskAssessmentPanel({
   data,
+  scuttlebuttData,
 }: ChronicleRiskAssessmentPanelProps) {
   const { t } = useI18n();
 
@@ -131,10 +135,15 @@ export function ChronicleRiskAssessmentPanel({
     validatorConcentration: 85,
     priceDeviation: 90,
     systemStability: 87,
-    auditScore: 98,
     lastIncident: '15 days ago',
     incidentCount30d: 0,
   };
+
+  // Get audit score from scuttlebutt data if available
+  const auditScore = scuttlebuttData?.auditScore ?? 98;
+  const securityLevel = scuttlebuttData?.securityLevel ?? 'high';
+  const verificationStatus = scuttlebuttData?.verificationStatus ?? 'verified';
+  const lastAuditTimestamp = scuttlebuttData?.lastAuditTimestamp;
 
   const overallRisk = getRiskLevel(riskData.overallRiskScore);
 
@@ -213,17 +222,68 @@ export function ChronicleRiskAssessmentPanel({
           />
           <RiskScoreCard
             title={t('chronicle.risk.auditScore')}
-            score={riskData.auditScore}
+            score={auditScore}
             description={t('chronicle.risk.auditScoreDesc')}
             icon={CheckCircle}
           />
         </div>
       </div>
 
+      {/* Scuttlebutt Security Integration */}
+      <DashboardCard title={t('chronicle.risk.scuttlebuttIntegration')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-green-100' : securityLevel === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}>
+              <Shield className={`w-6 h-6 ${securityLevel === 'high' ? 'text-green-600' : securityLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">
+                {t('chronicle.risk.securityLevel')}
+              </p>
+              <p className="text-xl font-bold text-gray-900 capitalize">
+                {securityLevel}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-green-100' : verificationStatus === 'pending' ? 'bg-yellow-100' : 'bg-red-100'}`}>
+              <FileCheck className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-green-600' : verificationStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">
+                {t('chronicle.risk.verificationStatus')}
+              </p>
+              <p className="text-xl font-bold text-gray-900 capitalize">
+                {verificationStatus}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Clock className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">
+                {t('chronicle.risk.lastAudit')}
+              </p>
+              <p className="text-xl font-bold text-gray-900">
+                {lastAuditTimestamp ? new Date(lastAuditTimestamp).toLocaleDateString() : '7 days ago'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800">
+            <span className="font-medium">{t('chronicle.risk.scuttlebuttNote')}</span>
+            {t('chronicle.risk.scuttlebuttNoteDesc')}
+          </p>
+        </div>
+      </DashboardCard>
+
       {/* Incident Summary */}
       <DashboardCard title={t('chronicle.risk.incidentSummary')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center gap-4 p-4 bg-gray-50">
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="p-3 bg-green-100 rounded-full">
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
@@ -236,7 +296,7 @@ export function ChronicleRiskAssessmentPanel({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4 p-4 bg-gray-50">
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="p-3 bg-blue-100 rounded-full">
               <Activity className="w-6 h-6 text-blue-600" />
             </div>
