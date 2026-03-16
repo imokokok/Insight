@@ -11,7 +11,7 @@ import {
   Loader2,
   CheckCircle,
 } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface NotificationSettings {
   emailNotifications: boolean;
@@ -58,7 +58,7 @@ function Toggle({
 }
 
 export function NotificationPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     if (typeof window === 'undefined') return defaultSettings;
     const saved = localStorage.getItem(STORAGE_KEY);

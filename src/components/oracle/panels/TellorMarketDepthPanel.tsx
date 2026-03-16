@@ -1,14 +1,14 @@
 'use client';
 
 import { MarketDepth } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface TellorMarketDepthPanelProps {
   data: MarketDepth;
 }
 
 export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const maxVolume = Math.max(...data.levels.map((l) => Math.max(l.bidVolume, l.askVolume)));
 

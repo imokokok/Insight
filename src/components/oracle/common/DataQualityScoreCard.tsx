@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export interface DataQualityScoreCardProps {
   completeness?: number | { successCount: number; totalCount: number };
@@ -129,7 +129,7 @@ export function DataQualityScoreCard({
   freshness,
   reliability,
 }: DataQualityScoreCardProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const completenessValue =
     typeof completeness === 'number'

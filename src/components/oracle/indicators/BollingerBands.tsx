@@ -13,6 +13,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 interface BollingerDataPoint {
   timestamp: number;
@@ -45,6 +46,7 @@ export function BollingerBands({
   height = 300,
   showBandwidth = true,
 }: BollingerBandsProps) {
+  const t = useTranslations();
   const processedData = useMemo(() => {
     if (data.length < period) return [];
 
@@ -119,7 +121,7 @@ export function BollingerBands({
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -131,29 +133,29 @@ export function BollingerBands({
         <p className="text-sm font-medium text-gray-900 mb-2">{formatTime(label)}</p>
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-gray-600">价格:</span>
+            <span className="text-sm text-gray-600">{t('charts.bollinger.price')}:</span>
             <span className="text-sm font-mono font-medium">${data.price.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm" style={{ color: semanticColors.danger.DEFAULT }}>
-              上轨:
+              {t('charts.bollinger.upperBand')}:
             </span>
             <span className="text-sm font-mono">${data.upper.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm" style={{ color: chartColors.recharts.tick }}>
-              中轨:
+              {t('charts.bollinger.middleBand')}:
             </span>
             <span className="text-sm font-mono">${data.middle.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm" style={{ color: semanticColors.success.DEFAULT }}>
-              下轨:
+              {t('charts.bollinger.lowerBand')}:
             </span>
             <span className="text-sm font-mono">${data.lower.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-gray-600">带宽:</span>
+            <span className="text-sm text-gray-600">{t('charts.bollinger.bandwidth')}:</span>
             <span className="text-sm font-mono">{data.bandwidth.toFixed(2)}%</span>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -168,7 +170,7 @@ export function BollingerBands({
   if (processedData.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-gray-400">
-        <p>数据不足，需要至少 {period} 个数据点</p>
+        <p>{t('charts.bollinger.insufficientData', { period })}</p>
       </div>
     );
   }
@@ -179,7 +181,7 @@ export function BollingerBands({
       {statistics && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">当前带宽</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.bollinger.currentBandwidth')}</p>
             <p
               className="text-lg font-bold"
               style={{
@@ -194,17 +196,17 @@ export function BollingerBands({
             </p>
             {statistics.squeeze && (
               <p className="text-xs" style={{ color: semanticColors.warning.DEFAULT }}>
-                挤压
+                {t('charts.bollinger.squeeze')}
               </p>
             )}
             {statistics.expansion && (
               <p className="text-xs" style={{ color: semanticColors.danger.DEFAULT }}>
-                扩张
+                {t('charts.bollinger.expansion')}
               </p>
             )}
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">%B 位置</p>
+            <p className="text-xs text-gray-500 mb-1">%B {t('charts.bollinger.position')}</p>
             <p
               className="text-lg font-bold"
               style={{
@@ -220,15 +222,15 @@ export function BollingerBands({
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">触及上轨</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.bollinger.touchesUpper')}</p>
             <p className="text-lg font-bold" style={{ color: semanticColors.danger.DEFAULT }}>
-              {statistics.touchesUpper} 次
+              {statistics.touchesUpper} {t('charts.bollinger.times')}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">触及下轨</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.bollinger.touchesLower')}</p>
             <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
-              {statistics.touchesLower} 次
+              {statistics.touchesLower} {t('charts.bollinger.times')}
             </p>
           </div>
         </div>
@@ -282,7 +284,7 @@ export function BollingerBands({
               stroke="none"
               fill={baseColors.primary[100]}
               fillOpacity={0.3}
-              name="上轨"
+              name={t('charts.bollinger.upperBand')}
             />
             <Area
               type="monotone"
@@ -290,7 +292,7 @@ export function BollingerBands({
               stroke="none"
               fill="white"
               fillOpacity={1}
-              name="下轨区域"
+              name={t('charts.bollinger.lowerBandArea')}
             />
 
             {/* Band lines */}
@@ -300,7 +302,7 @@ export function BollingerBands({
               stroke={semanticColors.danger.DEFAULT}
               strokeWidth={1.5}
               dot={false}
-              name="上轨"
+              name={t('charts.bollinger.upperBand')}
             />
             <Line
               type="monotone"
@@ -309,7 +311,7 @@ export function BollingerBands({
               strokeWidth={1.5}
               strokeDasharray="5 5"
               dot={false}
-              name="中轨 (SMA)"
+              name={t('charts.bollinger.middleBandSMA', { period })}
             />
             <Line
               type="monotone"
@@ -317,7 +319,7 @@ export function BollingerBands({
               stroke={semanticColors.success.DEFAULT}
               strokeWidth={1.5}
               dot={false}
-              name="下轨"
+              name={t('charts.bollinger.lowerBand')}
             />
 
             {/* Price line */}
@@ -327,7 +329,7 @@ export function BollingerBands({
               stroke={chartColors.recharts.chainlink}
               strokeWidth={2}
               dot={false}
-              name="价格"
+              name={t('charts.bollinger.price')}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -337,30 +339,30 @@ export function BollingerBands({
       <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5" style={{ backgroundColor: chartColors.recharts.chainlink }} />
-          <span className="text-gray-600">价格</span>
+          <span className="text-gray-600">{t('charts.bollinger.price')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
-          <span className="text-gray-600">上轨</span>
+          <span className="text-gray-600">{t('charts.bollinger.upperBand')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5" style={{ backgroundColor: chartColors.recharts.tick }} />
-          <span className="text-gray-600">中轨 (SMA {period})</span>
+          <span className="text-gray-600">{t('charts.bollinger.middleBandSMA', { period })}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
-          <span className="text-gray-600">下轨</span>
+          <span className="text-gray-600">{t('charts.bollinger.lowerBand')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 rounded" style={{ backgroundColor: baseColors.primary[100] }} />
-          <span className="text-gray-600">布林带区域</span>
+          <span className="text-gray-600">{t('charts.bollinger.bollingerArea')}</span>
         </div>
       </div>
 
       {/* Bandwidth Chart */}
       {showBandwidth && (
         <div className="pt-4 border-t border-gray-200">
-          <p className="text-sm font-medium text-gray-700 mb-2">带宽指标 (Bandwidth)</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">{t('charts.bollinger.bandwidthIndicator')}</p>
           <div style={{ height: 100 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
@@ -392,7 +394,7 @@ export function BollingerBands({
                     const data = payload[0].payload;
                     return (
                       <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-lg">
-                        <p className="text-xs text-gray-600">带宽: {data.bandwidth.toFixed(2)}%</p>
+                        <p className="text-xs text-gray-600">{t('charts.bollinger.bandwidth')}: {data.bandwidth.toFixed(2)}%</p>
                       </div>
                     );
                   }}
@@ -418,7 +420,7 @@ export function BollingerBands({
                   stroke={chartColors.recharts.purple}
                   fill={chartColors.recharts.purple}
                   fillOpacity={0.2}
-                  name="带宽"
+                  name={t('charts.bollinger.bandwidth')}
                 />
               </ComposedChart>
             </ResponsiveContainer>

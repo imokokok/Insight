@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSharedUtils';
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
 import { semanticColors, chainColors } from '@/lib/config/colors';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export interface BandChainPriceData {
   chain: string;
@@ -158,7 +158,7 @@ interface PriceDeviationHeatmapProps {
 }
 
 function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationHeatmapProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const symbols = SYMBOLS;
   const chains = BAND_SUPPORTED_CHAINS;
 
@@ -501,6 +501,7 @@ function HistoricalComparisonView({
 export function BandCrossChainPriceConsistency({
   className = '',
 }: BandCrossChainPriceConsistencyProps) {
+  const t = useTranslations();
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC/USD');
   const [isComparisonMode, setIsComparisonMode] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(formatDate(new Date()));
@@ -540,9 +541,9 @@ export function BandCrossChainPriceConsistency({
       <div className="bg-white border border-gray-200  p-5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">跨链价格一致性监控</h3>
-            <p className="text-sm text-gray-500 mt-1">Band Protocol 各链价格同步状态</p>
-          </div>
+                <h3 className="text-lg font-semibold text-gray-900">{t('bandCrossChainPriceConsistency.title')}</h3>
+                <p className="text-sm text-gray-500 mt-1">{t('bandCrossChainPriceConsistency.subtitle')}</p>
+              </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2 bg-gray-100  p-1">
@@ -569,7 +570,7 @@ export function BandCrossChainPriceConsistency({
                   onChange={(e) => setIsComparisonMode(e.target.checked)}
                   className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">对比历史</span>
+                <span className="text-sm text-gray-700">{t('bandCrossChainPriceConsistency.compareHistory')}</span>
               </label>
             </div>
           </div>
@@ -579,7 +580,7 @@ export function BandCrossChainPriceConsistency({
           <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-700 whitespace-nowrap">选择日期:</label>
+                <label className="text-sm text-gray-700 whitespace-nowrap">{t('bandCrossChainPriceConsistency.selectDate')}:</label>
                 <input
                   type="date"
                   value={selectedDate}
@@ -590,7 +591,7 @@ export function BandCrossChainPriceConsistency({
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-700 whitespace-nowrap">选择时间:</label>
+                <label className="text-sm text-gray-700 whitespace-nowrap">{t('bandCrossChainPriceConsistency.selectTime')}:</label>
                 <input
                   type="time"
                   value={selectedTime}
@@ -598,7 +599,7 @@ export function BandCrossChainPriceConsistency({
                   className="px-3 py-1.5 text-sm border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <span className="text-xs text-blue-600">可选范围: 最近30天</span>
+              <span className="text-xs text-blue-600">{t('bandCrossChainPriceConsistency.dateRange')}</span>
             </div>
           </div>
         )}
@@ -619,9 +620,9 @@ export function BandCrossChainPriceConsistency({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-yellow-800">检测到跨链价格偏差</h4>
+                <h4 className="text-sm font-medium text-yellow-800">{t('bandCrossChainPriceConsistency.warningTitle')}</h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  部分链的价格与基准价格（Cosmos Hub）存在偏差，请关注价格一致性。
+                  {t('bandCrossChainPriceConsistency.warningDesc')}
                 </p>
               </div>
             </div>
@@ -638,28 +639,28 @@ export function BandCrossChainPriceConsistency({
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div className="bg-purple-50 rounded p-3 text-center">
-                <p className="text-xs text-purple-600 mb-1">基准价格</p>
+                <p className="text-xs text-purple-600 mb-1">{t('bandCrossChainPriceConsistency.basePrice')}</p>
                 <p className="text-lg font-bold text-purple-700">${basePrice.toFixed(2)}</p>
                 <p className="text-xs text-purple-500 mt-1">Cosmos Hub</p>
               </div>
               <div className="bg-gray-50 rounded p-3 text-center">
-                <p className="text-xs text-gray-600 mb-1">最大偏差</p>
+                <p className="text-xs text-gray-600 mb-1">{t('bandCrossChainPriceConsistency.maxDeviation')}</p>
                 <p className={`text-lg font-bold ${getDeviationColor(maxDeviation)}`}>
                   {maxDeviation.toFixed(3)}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {maxDeviation < DEVIATION_THRESHOLDS.normal
-                    ? '一致性良好'
+                    ? t('bandCrossChainPriceConsistency.deviationStatus.good')
                     : maxDeviation < DEVIATION_THRESHOLDS.warning
-                      ? '存在轻微偏差'
-                      : '偏差较大'}
+                      ? t('bandCrossChainPriceConsistency.deviationStatus.slight')
+                      : t('bandCrossChainPriceConsistency.deviationStatus.large')}
                 </p>
               </div>
               <div className="bg-gray-50 rounded p-3 text-center">
-                <p className="text-xs text-gray-600 mb-1">平均延迟</p>
+                <p className="text-xs text-gray-600 mb-1">{t('bandCrossChainPriceConsistency.avgLatency')}</p>
                 <p className="text-lg font-bold text-gray-700">{avgLatency}ms</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {avgLatency < 100 ? '更新及时' : '更新正常'}
+                  {avgLatency < 100 ? t('bandCrossChainPriceConsistency.latencyStatus.timely') : t('bandCrossChainPriceConsistency.latencyStatus.normal')}
                 </p>
               </div>
             </div>
@@ -668,15 +669,15 @@ export function BandCrossChainPriceConsistency({
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">链</th>
-                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">价格</th>
-                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">偏差</th>
+                    <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('bandCrossChainPriceConsistency.chain')}</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('bandCrossChainPriceConsistency.price')}</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('bandCrossChainPriceConsistency.deviation')}</th>
                     <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">
-                      偏差可视化
+                      {t('bandCrossChainPriceConsistency.deviationVisualization')}
                     </th>
-                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">延迟</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('bandCrossChainPriceConsistency.latency')}</th>
                     <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">
-                      状态
+                      {t('bandCrossChainPriceConsistency.status.label')}
                     </th>
                   </tr>
                 </thead>
@@ -694,7 +695,7 @@ export function BandCrossChainPriceConsistency({
                               </span>
                               {index === 0 && (
                                 <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
-                                  基准
+                                  {t('bandCrossChainPriceConsistency.baseline')}
                                 </span>
                               )}
                             </div>
@@ -758,10 +759,10 @@ export function BandCrossChainPriceConsistency({
                             }`}
                           >
                             {chain.status === 'normal'
-                              ? '正常'
+                              ? t('bandCrossChainPriceConsistency.status.normal')
                               : chain.status === 'warning'
-                                ? '警告'
-                                : '异常'}
+                                ? t('bandCrossChainPriceConsistency.status.warning')
+                                : t('bandCrossChainPriceConsistency.status.critical')}
                           </span>
                         </td>
                       </tr>

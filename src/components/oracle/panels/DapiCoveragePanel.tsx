@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
 
@@ -29,7 +29,7 @@ interface DapiCoveragePanelProps {
 }
 
 function TotalDapisCard({ total }: { total: number }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-gray-100 border border-gray-200  p-6 text-white ">
@@ -88,7 +88,7 @@ function DistributionBar({
 }
 
 function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const chains = [
     { key: 'ethereum', label: 'Ethereum', value: data.ethereum, color: 'bg-indigo-500' },
@@ -114,7 +114,7 @@ function ChainDistribution({ data }: { data: DapiCoverage['byChain'] }) {
 }
 
 function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequency'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const frequencies = [
     {
@@ -171,7 +171,7 @@ function UpdateFrequencyDistribution({ data }: { data: DapiCoverage['updateFrequ
 }
 
 function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const segments = [
     { key: 'crypto', value: data.crypto, color: chartColors.recharts.primary },
@@ -233,7 +233,7 @@ function DonutChart({ data }: { data: DapiCoverage['byAssetType'] }) {
 }
 
 function AssetTypeDonut({ data }: { data: DapiCoverage['byAssetType'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((sum, val) => sum + val, 0);
   const legend = [
     { label: t('dapiCoverage.crypto'), value: data.crypto, color: 'bg-blue-500' },

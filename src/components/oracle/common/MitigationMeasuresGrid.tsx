@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 import { getMeasureStatusColor } from '@/lib/utils/riskUtils';
 import type { MitigationMeasure } from '@/types/risk';
@@ -11,7 +11,7 @@ export interface MitigationMeasuresGridProps {
 }
 
 export function MitigationMeasuresGrid({ measures, className = '' }: MitigationMeasuresGridProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getTypeLabel = (type: MitigationMeasure['type']) => {
     switch (type) {

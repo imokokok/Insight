@@ -5,7 +5,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import { Blockchain, OracleProvider } from '@/types/oracle';
 import { MetricCard } from '../common/DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
@@ -237,7 +237,7 @@ function EMADisplay({
   selectedPeriod: EMAPeriod;
   onPeriodChange: (period: EMAPeriod) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const selectedEMA = emaData.find((ema) => ema.period === selectedPeriod);
 
   const trendColors = {

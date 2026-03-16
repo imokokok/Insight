@@ -6,7 +6,7 @@ import type { PieSectorDataItem } from 'recharts';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 
 interface StakingDistributionChartProps {
@@ -165,7 +165,7 @@ export function StakingDistributionChart({
   validators,
   onSegmentClick,
 }: StakingDistributionChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const { pieData, totalStake, metrics, othersData } = useMemo(() => {
     const sortedValidators = [...validators].sort((a, b) => b.tokens - a.tokens);

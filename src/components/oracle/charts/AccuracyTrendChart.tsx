@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   ReferenceDot,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { AccuracyTrendPoint } from '@/hooks/usePriceHistory';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
@@ -58,7 +58,7 @@ function CustomTooltip({ active, payload, label, t }: CustomTooltipProps) {
 }
 
 export function AccuracyTrendChart({ data }: AccuracyTrendChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const chartData = useMemo(() => {
     return data.map((point) => ({

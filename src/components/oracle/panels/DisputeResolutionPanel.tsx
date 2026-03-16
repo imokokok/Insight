@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   UMAClient,
   DisputeData,
@@ -74,7 +74,7 @@ function DisputeOverviewCard({
   overview: DisputeOverview | null;
   loading: boolean;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (loading || !overview) {
     return (
@@ -161,7 +161,7 @@ function DisputeOverviewCard({
 }
 
 function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [showByType, setShowByType] = useState(false);
 
   const maxValue = Math.max(...trends.flatMap((d) => [d.filed, d.resolved]));
@@ -297,7 +297,7 @@ function DisputeTrendChart({ trends }: { trends: DisputeTrend[] }) {
 }
 
 function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const distribution = {
     active: disputes.filter((d) => d.status === 'active').length,
@@ -374,7 +374,7 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
 }
 
 function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [filter, setFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<DisputeType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'timestamp' | 'reward'>('timestamp');
@@ -796,7 +796,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
 }
 
 export function DisputeResolutionPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [loading, setLoading] = useState(true);
   const [disputes, setDisputes] = useState<DisputeData[]>([]);
   const [trends, setTrends] = useState<DisputeTrend[]>([]);

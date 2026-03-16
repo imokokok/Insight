@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface KPIDashboardProps {
@@ -23,7 +23,7 @@ function ScrollIndicator({
   currentIndex: number;
   onIndicatorClick: (index: number) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   return (
     <div className="flex justify-center gap-2 mt-4 md:hidden">
       {Array.from({ length: totalItems }).map((_, index) => (
@@ -100,7 +100,7 @@ function formatPrice(price: number): string {
 }
 
 function PriceCard({ price, previousPrice }: { price: number; previousPrice: number | null }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isFlashing, setIsFlashing] = useState(false);
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPriceRef = useRef(previousPrice);
@@ -169,7 +169,7 @@ function PriceChangeCard({
   priceChangePercent: number;
   colorBlindMode?: boolean;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevPercentRef = useRef(priceChangePercent);
 
@@ -237,7 +237,7 @@ function UpdateFrequencyCard({
   frequency: number;
   intervals: UpdateInterval[];
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevFreqRef = useRef(frequency);
 
@@ -313,7 +313,7 @@ function NetworkHealthCard({
   health: 'healthy' | 'warning' | 'critical';
   colorBlindMode?: boolean;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevHealthRef = useRef(health);
 
@@ -377,7 +377,7 @@ function DataQualityGauge({
   score: number;
   colorBlindMode?: boolean;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [borderFlash, setBorderFlash] = useState(false);
   const prevScoreRef = useRef(score);
 
@@ -469,7 +469,7 @@ export function KPIDashboard({
   dataQualityScore,
   className = '',
 }: KPIDashboardProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [intervals, setIntervals] = useState<UpdateInterval[]>([]);
   const lastUpdateRef = useRef<number>(Date.now());

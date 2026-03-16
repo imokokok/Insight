@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { RiskMetrics } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 import {
   DataFreshnessIndicator,
@@ -56,7 +56,7 @@ const tellorMitigationMeasures: MitigationMeasure[] = [
 ];
 
 export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {

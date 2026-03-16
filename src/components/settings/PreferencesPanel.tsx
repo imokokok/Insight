@@ -12,7 +12,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface UserPreferences {
   defaultOracle: string;
@@ -50,20 +50,20 @@ const symbolOptions = [
 ];
 
 const timeRangeOptions = [
-  { value: '1h', label: '1 小时' },
-  { value: '6h', label: '6 小时' },
-  { value: '24h', label: '24 小时' },
-  { value: '7d', label: '7 天' },
-  { value: '30d', label: '30 天' },
+  { value: '1h', key: 'settings.preferences.timeRange.hour1' },
+  { value: '6h', key: 'settings.preferences.timeRange.hour6' },
+  { value: '24h', key: 'settings.preferences.timeRange.day1' },
+  { value: '7d', key: 'settings.preferences.timeRange.day7' },
+  { value: '30d', key: 'settings.preferences.timeRange.day30' },
 ];
 
 const languageOptions = [
-  { value: 'zh-CN', label: '简体中文' },
-  { value: 'en-US', label: 'English' },
+  { value: 'zh-CN', key: 'settings.preferences.languages.zhCN' },
+  { value: 'en-US', key: 'settings.preferences.languages.en' },
 ];
 
 export function PreferencesPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     if (typeof window === 'undefined') return defaultPreferences;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -195,7 +195,7 @@ export function PreferencesPanel() {
               >
                 {timeRangeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.key)}
                   </option>
                 ))}
               </select>
@@ -216,7 +216,7 @@ export function PreferencesPanel() {
               >
                 {languageOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.key)}
                   </option>
                 ))}
               </select>

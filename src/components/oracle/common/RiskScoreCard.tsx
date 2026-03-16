@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 import { getScoreColor, getScoreBarColor, getRiskLevel } from '@/lib/utils/riskUtils';
 
@@ -21,7 +21,7 @@ export function RiskScoreCard({
   trendValue,
   className = '',
 }: RiskScoreCardProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const clampedScore = Math.min(Math.max(score, 0), 100);
   const riskLevel = getRiskLevel(clampedScore);

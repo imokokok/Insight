@@ -1,5 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import { OracleMarketData, AssetData, TVSTrendData } from '@/app/market-overview/types';
+import { OracleMarketData, AssetData, TVSTrendData } from '@/app/[locale]/market-overview/types';
 import {
   fetchOraclesData,
   fetchAssetsData,

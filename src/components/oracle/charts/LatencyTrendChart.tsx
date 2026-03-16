@@ -22,6 +22,7 @@ import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 const logger = createLogger('LatencyTrendChart');
 
@@ -343,6 +344,7 @@ export function LatencyTrendChart({
   className,
   anomalyThreshold = 200,
 }: LatencyTrendChartProps) {
+  const t = useTranslations();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [thresholdHistory, setThresholdHistory] = useState<ThresholdHistoryEntry[]>([]);
   const [dynamicThreshold, setDynamicThreshold] = useState<DynamicThreshold>({
@@ -421,9 +423,9 @@ export function LatencyTrendChart({
         );
 
         if (err instanceof NotImplementedError) {
-          setError('Pyth API 不支持历史价格查询，使用模拟数据');
+          setError(t('charts.latency.pythNotSupported'));
         } else {
-          setError('无法获取延迟数据，使用模拟数据');
+          setError(t('charts.latency.fetchError'));
         }
 
         const mockData = generateMockLatencyData(anomalyThreshold);
@@ -609,7 +611,7 @@ export function LatencyTrendChart({
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              延迟
+              {t('charts.latency.latency')}
             </span>
             <span
               className="text-sm font-bold"
@@ -622,7 +624,7 @@ export function LatencyTrendChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              固定阈值
+              {t('charts.latency.fixedThreshold')}
             </span>
             <span className="text-xs" style={{ color: baseColors.gray[700] }}>
               {anomalyThreshold} ms
@@ -630,7 +632,7 @@ export function LatencyTrendChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              动态阈值
+              {t('charts.latency.dynamicThreshold')}
             </span>
             <span className="text-xs" style={{ color: semanticColors.warning.dark }}>
               {dynamicThreshold.threshold} ms
@@ -638,7 +640,7 @@ export function LatencyTrendChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              基线 MA20
+              {t('charts.latency.baselineMA20')}
             </span>
             <span className="text-xs" style={{ color: semanticColors.success.dark }}>
               {dynamicThreshold.baseline} ms
@@ -646,7 +648,7 @@ export function LatencyTrendChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              标准差 σ
+              {t('charts.latency.stdDev')}
             </span>
             <span className="text-xs" style={{ color: baseColors.gray[700] }}>
               {dynamicThreshold.stdDev}
@@ -654,7 +656,7 @@ export function LatencyTrendChart({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              状态
+              {t('charts.latency.status')}
             </span>
             <span
               className="text-xs font-medium px-2 py-0.5 rounded"
@@ -667,13 +669,13 @@ export function LatencyTrendChart({
                   : semanticColors.success.text,
               }}
             >
-              {dataPoint.isAnomaly ? '异常' : '正常'}
+              {dataPoint.isAnomaly ? t('charts.latency.abnormal') : t('charts.latency.normal')}
             </span>
           </div>
           {isDynamicAnomaly && (
             <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
               <span className="text-xs font-medium" style={{ color: semanticColors.warning.dark }}>
-                ⚠️ 超过动态阈值
+                ⚠️ {t('charts.latency.exceedsDynamicThreshold')}
               </span>
             </div>
           )}
@@ -698,12 +700,12 @@ export function LatencyTrendChart({
 
   return (
     <DashboardCard
-      title="价格更新延迟趋势"
+      title={t('charts.latency.title')}
       headerAction={
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 text-xs">
             <span className="w-2 h-2" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
-            <span style={{ color: baseColors.gray[500] }}>延迟异常</span>
+            <span style={{ color: baseColors.gray[500] }}>{t('charts.latency.anomaly')}</span>
           </div>
           <button
             onClick={handleRefresh}
@@ -716,7 +718,7 @@ export function LatencyTrendChart({
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
             }}
-            title="刷新数据"
+            title={t('charts.latency.refresh')}
           >
             <svg
               className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -739,7 +741,7 @@ export function LatencyTrendChart({
         <div className="grid grid-cols-4 gap-3">
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
             <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-              平均延迟
+              {t('charts.latency.avgLatency')}
             </p>
             <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {stats.avg}
@@ -751,7 +753,7 @@ export function LatencyTrendChart({
             style={{ backgroundColor: semanticColors.success.light }}
           >
             <p className="text-xs mb-1" style={{ color: semanticColors.success.dark }}>
-              最小延迟
+              {t('charts.latency.minLatency')}
             </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.success.text }}>
               {stats.min}
@@ -763,7 +765,7 @@ export function LatencyTrendChart({
             style={{ backgroundColor: semanticColors.warning.light }}
           >
             <p className="text-xs mb-1" style={{ color: semanticColors.warning.dark }}>
-              最大延迟
+              {t('charts.latency.maxLatency')}
             </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.warning.text }}>
               {stats.max}
@@ -772,7 +774,7 @@ export function LatencyTrendChart({
           </div>
           <div className="p-3 text-center" style={{ backgroundColor: semanticColors.danger.light }}>
             <p className="text-xs mb-1" style={{ color: semanticColors.danger.dark }}>
-              异常次数
+              {t('charts.latency.anomalyCount')}
             </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.danger.text }}>
               {stats.anomalyCount}
@@ -793,7 +795,7 @@ export function LatencyTrendChart({
             style={{ backgroundColor: semanticColors.warning.light }}
           >
             <p className="text-xs mb-1" style={{ color: semanticColors.warning.dark }}>
-              动态阈值
+              {t('charts.latency.dynamicThreshold')}
             </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.warning.text }}>
               {dynamicThreshold.threshold}
@@ -808,38 +810,38 @@ export function LatencyTrendChart({
             style={{ backgroundColor: semanticColors.success.light }}
           >
             <p className="text-xs mb-1" style={{ color: semanticColors.success.dark }}>
-              基线 MA20
+              {t('charts.latency.baselineMA20')}
             </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.success.text }}>
               {dynamicThreshold.baseline}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
             <p className="text-xs mt-1" style={{ color: semanticColors.success.DEFAULT }}>
-              20点移动平均
+              {t('charts.latency.ma20Description')}
             </p>
           </div>
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.slate[100] }}>
             <p className="text-xs mb-1" style={{ color: baseColors.slate[600] }}>
-              标准差 σ
+              {t('charts.latency.stdDev')}
             </p>
             <p className="text-xl font-bold" style={{ color: baseColors.slate[700] }}>
               {dynamicThreshold.stdDev}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
             <p className="text-xs mt-1" style={{ color: baseColors.slate[500] }}>
-              波动程度
+              {t('charts.latency.volatility')}
             </p>
           </div>
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[100] }}>
             <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-              阈值调整次数
+              {t('charts.latency.thresholdAdjustments')}
             </p>
             <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {thresholdHistory.length}
-              <span className="text-sm font-normal ml-1">次</span>
+              <span className="text-sm font-normal ml-1">{t('charts.latency.times')}</span>
             </p>
             <p className="text-xs mt-1" style={{ color: baseColors.primary[500] }}>
-              每5分钟更新
+              {t('charts.latency.updateFrequency')}
             </p>
           </div>
         </div>
@@ -848,14 +850,14 @@ export function LatencyTrendChart({
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
             <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-              P50 (中位数)
+              {t('charts.latency.p50')}
             </p>
             <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
               {stats.p50}
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
             <p className="text-xs mt-1" style={{ color: baseColors.primary[500] }}>
-              50% 数据低于此值
+              {t('charts.latency.p50Description')}
             </p>
           </div>
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.slate[50] }}>
@@ -867,7 +869,7 @@ export function LatencyTrendChart({
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
             <p className="text-xs mt-1" style={{ color: baseColors.slate[500] }}>
-              90% 数据低于此值
+              {t('charts.latency.p90Description')}
             </p>
           </div>
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.gray[50] }}>
@@ -879,7 +881,7 @@ export function LatencyTrendChart({
               <span className="text-sm font-normal ml-1">ms</span>
             </p>
             <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              99% 数据低于此值
+              {t('charts.latency.p99Description')}
             </p>
           </div>
         </div>
@@ -902,7 +904,7 @@ export function LatencyTrendChart({
                 />
               </svg>
               <h4 className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>
-                时序预测控制
+                {t('charts.latency.predictionControl')}
               </h4>
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
@@ -914,7 +916,7 @@ export function LatencyTrendChart({
                 style={{ accentColor: baseColors.primary[600] }}
               />
               <span className="text-xs" style={{ color: baseColors.gray[700] }}>
-                显示预测
+                {t('charts.latency.showPrediction')}
               </span>
             </label>
           </div>
@@ -922,7 +924,7 @@ export function LatencyTrendChart({
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
-                SMA周期
+                {t('charts.latency.smaPeriod')}
               </label>
               <select
                 value={smaPeriod}
@@ -930,17 +932,17 @@ export function LatencyTrendChart({
                 className="w-full text-sm px-3 py-2"
                 style={{ border: `1px solid ${baseColors.gray[300]}` }}
               >
-                <option value={5}>5 点</option>
-                <option value={10}>10 点</option>
-                <option value={20}>20 点</option>
+                <option value={5}>5 {t('charts.latency.points')}</option>
+                <option value={10}>10 {t('charts.latency.points')}</option>
+                <option value={20}>20 {t('charts.latency.points')}</option>
               </select>
               <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                移动平均计算窗口
+                {t('charts.latency.smaDescription')}
               </p>
             </div>
             <div>
               <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
-                预测周期
+                {t('charts.latency.predictionPeriod')}
               </label>
               <select
                 value={predictionPeriod}
@@ -948,12 +950,12 @@ export function LatencyTrendChart({
                 className="w-full text-sm px-3 py-2"
                 style={{ border: `1px solid ${baseColors.gray[300]}` }}
               >
-                <option value={5}>5 点</option>
-                <option value={10}>10 点</option>
-                <option value={20}>20 点</option>
+                <option value={5}>5 {t('charts.latency.points')}</option>
+                <option value={10}>10 {t('charts.latency.points')}</option>
+                <option value={20}>20 {t('charts.latency.points')}</option>
               </select>
               <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                未来预测数据点数量
+                {t('charts.latency.predictionDescription')}
               </p>
             </div>
           </div>
@@ -973,7 +975,7 @@ export function LatencyTrendChart({
                   <span className="text-xs font-normal ml-1">ms</span>
                 </p>
                 <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  平均绝对误差
+                  {t('charts.latency.mae')}
                 </p>
               </div>
               <div className="text-center">
@@ -985,7 +987,7 @@ export function LatencyTrendChart({
                   <span className="text-xs font-normal ml-1">ms</span>
                 </p>
                 <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  均方根误差
+                  {t('charts.latency.rmse')}
                 </p>
               </div>
               <div className="text-center">
@@ -997,7 +999,7 @@ export function LatencyTrendChart({
                   <span className="text-xs font-normal ml-1">%</span>
                 </p>
                 <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  平均绝对百分比误差
+                  {t('charts.latency.mape')}
                 </p>
               </div>
             </div>
@@ -1006,10 +1008,9 @@ export function LatencyTrendChart({
           <div className="mt-4 text-xs" style={{ color: baseColors.gray[600] }}>
             <p>
               <span className="font-medium" style={{ color: baseColors.primary[700] }}>
-                预测说明：
+                {t('charts.latency.predictionNote')}
               </span>
-              基于SMA({smaPeriod})计算预测值，置信区间为预测值 ± 1.96 × 标准差（95%置信度）。
-              当前预测未来 {predictionPeriod} 个时间点的延迟值。
+              {t('charts.latency.predictionNoteDesc', { smaPeriod, predictionPeriod })}
             </p>
           </div>
         </div>
@@ -1046,7 +1047,7 @@ export function LatencyTrendChart({
                 stroke={semanticColors.danger.DEFAULT}
                 strokeDasharray="5 5"
                 label={{
-                  value: `固定阈值 (${anomalyThreshold}ms)`,
+                  value: `${t('charts.latency.fixedThreshold')} (${anomalyThreshold}ms)`,
                   position: 'right',
                   fill: semanticColors.danger.DEFAULT,
                   fontSize: 10,
@@ -1059,7 +1060,7 @@ export function LatencyTrendChart({
                 strokeDasharray="8 4"
                 strokeWidth={2}
                 label={{
-                  value: `动态阈值 (${dynamicThreshold.threshold}ms)`,
+                  value: `${t('charts.latency.dynamicThreshold')} (${dynamicThreshold.threshold}ms)`,
                   position: 'right',
                   fill: semanticColors.warning.DEFAULT,
                   fontSize: 10,
@@ -1071,7 +1072,7 @@ export function LatencyTrendChart({
                 stroke={semanticColors.success.DEFAULT}
                 strokeDasharray="3 3"
                 label={{
-                  value: `基线 MA20 (${dynamicThreshold.baseline}ms)`,
+                  value: `${t('charts.latency.baselineMA20')} (${dynamicThreshold.baseline}ms)`,
                   position: 'left',
                   fill: semanticColors.success.DEFAULT,
                   fontSize: 10,
@@ -1082,7 +1083,7 @@ export function LatencyTrendChart({
                 stroke={chartColors.recharts.primary}
                 strokeDasharray="3 3"
                 label={{
-                  value: `平均 (${stats.avg}ms)`,
+                  value: `${t('charts.latency.avg')} (${stats.avg}ms)`,
                   position: 'left',
                   fill: chartColors.recharts.primary,
                   fontSize: 10,
@@ -1122,7 +1123,7 @@ export function LatencyTrendChart({
                   stroke: chartColors.recharts.whiteLight,
                   strokeWidth: 2,
                 }}
-                name="实际延迟"
+                name={t('charts.latency.actualLatency')}
                 connectNulls={false}
               />
               {/* 预测线 */}
@@ -1145,7 +1146,7 @@ export function LatencyTrendChart({
                     stroke: chartColors.recharts.whiteLight,
                     strokeWidth: 2,
                   }}
-                  name="SMA预测"
+                  name={t('charts.latency.smaPrediction')}
                   connectNulls={false}
                 />
               )}
@@ -1156,7 +1157,7 @@ export function LatencyTrendChart({
         {/* Latency Distribution Histogram */}
         <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
           <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[900] }}>
-            延迟分布直方图
+            {t('charts.latency.histogramTitle')}
           </h4>
           <div style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -1178,7 +1179,7 @@ export function LatencyTrendChart({
                   height={50}
                   interval={0}
                   label={{
-                    value: '延迟范围 (ms)',
+                    value: t('charts.latency.latencyRange'),
                     position: 'insideBottom',
                     offset: -10,
                     fill: chartColors.recharts.axis,
@@ -1189,7 +1190,7 @@ export function LatencyTrendChart({
                   stroke={chartColors.recharts.axis}
                   tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
                   label={{
-                    value: '频次',
+                    value: t('charts.latency.frequency'),
                     angle: -90,
                     position: 'insideLeft',
                     fill: chartColors.recharts.axis,
@@ -1209,7 +1210,7 @@ export function LatencyTrendChart({
                         }}
                       >
                         <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
-                          延迟范围
+                          {t('charts.latency.latencyRangeLabel')}
                         </p>
                         <p
                           className="text-sm font-semibold"
@@ -1218,7 +1219,7 @@ export function LatencyTrendChart({
                           {data.range} ms
                         </p>
                         <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                          频次
+                          {t('charts.latency.frequency')}
                         </p>
                         <p
                           className="text-sm font-semibold"
@@ -1266,13 +1267,15 @@ export function LatencyTrendChart({
                   className="text-sm font-semibold mb-1"
                   style={{ color: semanticColors.danger.text }}
                 >
-                  检测到延迟异常
+                  {t('charts.latency.anomalyDetected')}
                 </h4>
                 <p className="text-xs" style={{ color: semanticColors.danger.dark }}>
-                  在过去1小时内，有 {stats.anomalyCount} 个数据点（{stats.anomalyPercent}
-                  %）的延迟超过了 {anomalyThreshold}ms 阈值。 最长异常持续时间为{' '}
-                  {stats.longestAnomalyDuration} 分钟。
-                  高延迟可能导致价格更新不及时，影响交易决策的准确性。
+                  {t('charts.latency.anomalyDesc', {
+                    count: stats.anomalyCount,
+                    percent: stats.anomalyPercent,
+                    threshold: anomalyThreshold,
+                    duration: stats.longestAnomalyDuration,
+                  })}
                 </p>
               </div>
             </div>
@@ -1299,37 +1302,36 @@ export function LatencyTrendChart({
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
-                动态阈值机制说明
+                {t('charts.latency.dynamicThresholdTitle')}
               </h4>
               <div className="space-y-2 text-xs" style={{ color: baseColors.gray[700] }}>
                 <p>
                   <span className="font-medium" style={{ color: semanticColors.warning.dark }}>
-                    计算公式：
+                    {t('charts.latency.formula')}
                   </span>
-                  动态阈值 = 基线(MA20) + 2 × 标准差(σ)
+                  {t('charts.latency.formulaDesc')}
                 </p>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div>
                     <p className="font-medium mb-1" style={{ color: semanticColors.success.dark }}>
-                      基线 MA20
+                      {t('charts.latency.baselineMA20')}
                     </p>
                     <p style={{ color: baseColors.gray[600] }}>
-                      最近20个数据点的移动平均值，代表当前延迟的基准水平
+                      {t('charts.latency.baselineDesc')}
                     </p>
                   </div>
                   <div>
                     <p className="font-medium mb-1" style={{ color: baseColors.slate[700] }}>
-                      标准差 σ
+                      {t('charts.latency.stdDevLabel')}
                     </p>
                     <p style={{ color: baseColors.gray[600] }}>
-                      衡量延迟数据的波动程度，2σ 覆盖约95%的正常数据
+                      {t('charts.latency.stdDevDesc')}
                     </p>
                   </div>
                 </div>
                 <p className="mt-2" style={{ color: baseColors.gray[600] }}>
-                  <span className="font-medium">调整频率：</span>
-                  系统每5分钟自动重新计算一次阈值，已调整 {thresholdHistory.length} 次。
-                  动态阈值能够自适应网络状况变化，比固定阈值更灵敏地检测异常。
+                  <span className="font-medium">{t('charts.latency.adjustmentFreq')}</span>
+                  {t('charts.latency.adjustmentDesc', { count: thresholdHistory.length })}
                 </p>
               </div>
             </div>
@@ -1338,12 +1340,10 @@ export function LatencyTrendChart({
 
         <div className="p-3" style={{ backgroundColor: baseColors.primary[50] }}>
           <h4 className="text-sm font-medium mb-1" style={{ color: baseColors.primary[900] }}>
-            关于价格更新延迟
+            {t('charts.latency.aboutTitle')}
           </h4>
           <p className="text-xs" style={{ color: baseColors.primary[800] }}>
-            价格更新延迟反映了 Pyth Network 预言机从数据源获取价格更新到链上可用的时间。
-            正常情况下延迟应保持在 200ms 以下。当延迟异常升高时，可能表示网络拥堵、
-            数据源响应缓慢或系统负载过高，建议关注异常时段并评估对应用的影响。
+            {t('charts.latency.aboutDesc')}
           </p>
         </div>
       </div>

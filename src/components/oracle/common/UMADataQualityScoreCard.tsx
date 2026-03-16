@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UMAClient, DataQualityScore } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { UMAScoreExplanationModal } from './UMAScoreExplanationModal';
 import { chartColors, semanticColors } from '@/lib/config/colors';
@@ -10,7 +10,7 @@ import { chartColors, semanticColors } from '@/lib/config/colors';
 const logger = createLogger('UMADataQualityScoreCard');
 
 function TrendIndicator({ trend }: { trend: 'up' | 'down' | 'stable' }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (trend === 'up') {
     return (
@@ -106,7 +106,7 @@ function ScoreCard({
 }
 
 export function UMADataQualityScoreCard() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [data, setData] = useState<DataQualityScore | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);

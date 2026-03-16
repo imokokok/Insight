@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AlertHistoryProps {
   events: AlertEvent[];
@@ -16,7 +16,7 @@ type FilterStatus = 'all' | 'acknowledged' | 'unacknowledged';
 type SortOrder = 'newest' | 'oldest';
 
 export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();

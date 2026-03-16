@@ -21,7 +21,7 @@ import {
   ReferenceLine,
   ComposedChart,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { DashboardCard, FlatStatItem, FlatSection } from '../../common/DashboardCard';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
@@ -48,7 +48,7 @@ import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 const logger = createLogger('CrossOracleComparison');
 
 export function CrossOracleComparison() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const chartRef = useRef<HTMLDivElement>(null);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([

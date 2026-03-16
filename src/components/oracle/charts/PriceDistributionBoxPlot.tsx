@@ -13,7 +13,7 @@ import {
   ZAxis,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface BoxPlotStats {
@@ -316,7 +316,7 @@ export function PriceDistributionBoxPlot({
   className = '',
   title,
 }: PriceDistributionBoxPlotProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const chartTitle = title || t('priceDistribution.title');
 
   const { chartData, outliersData, yDomain } = useMemo(() => {

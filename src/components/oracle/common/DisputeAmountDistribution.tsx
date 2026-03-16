@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeAmountDistributionStats } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 
@@ -66,7 +66,7 @@ function AmountDistributionHistogram({
 }: {
   amountRanges: DisputeAmountDistributionStats['amountRanges'];
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxCount = Math.max(...amountRanges.map((r) => r.count));
 
   return (
@@ -115,7 +115,7 @@ function EfficiencyMetricsCard({
   efficiency: DisputeAmountDistributionStats['efficiency'];
   totalResolved: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const metrics = [
     {
@@ -194,7 +194,7 @@ function AmountTrendChart({
 }: {
   amountTrends: DisputeAmountDistributionStats['amountTrends'];
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const maxStake = Math.max(...amountTrends.map((d) => d.avgStake));
   const maxReward = Math.max(...amountTrends.map((d) => d.avgReward));
@@ -353,7 +353,7 @@ function AmountTrendChart({
 
 // 主组件
 export function DisputeAmountDistribution() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stats, setStats] = useState<DisputeAmountDistributionStats | null>(null);
   const [loading, setLoading] = useState(true);
 

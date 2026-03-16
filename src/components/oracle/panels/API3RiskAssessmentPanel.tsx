@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { StakingData } from '@/lib/oracles/api3';
 import { AirnodeNetworkStats } from '@/lib/oracles/api3';
 import { DapiCoverage } from '@/lib/oracles/api3';
@@ -103,7 +103,7 @@ const api3MitigationMeasures: MitigationMeasure[] = [
 ];
 
 function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const coverageRatio = staking?.coveragePool?.coverageRatio ?? 1.5;
   const totalStaked = staking?.totalStaked ?? 0;
@@ -147,7 +147,7 @@ function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
 }
 
 function DataSourceConcentrationRisk({ dapiCoverage }: { dapiCoverage?: DapiCoverage }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const totalDapis = dapiCoverage?.totalDapis ?? 0;
   const cryptoCount = dapiCoverage?.byAssetType?.crypto ?? 0;
@@ -196,7 +196,7 @@ function DataSourceConcentrationRisk({ dapiCoverage }: { dapiCoverage?: DapiCove
 }
 
 function NetworkHealthRisk({ airnodeStats }: { airnodeStats?: AirnodeNetworkStats }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const uptime = airnodeStats?.nodeUptime ?? 99.8;
   const responseTime = airnodeStats?.avgResponseTime ?? 200;
@@ -239,7 +239,7 @@ function NetworkHealthRisk({ airnodeStats }: { airnodeStats?: AirnodeNetworkStat
 }
 
 function StakingRisk({ staking }: { staking?: StakingData }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const stakingApr = staking?.stakingApr ?? 12.5;
 
@@ -286,7 +286,7 @@ export function API3RiskAssessmentPanel({
   airnodeStats,
   dapiCoverage,
 }: API3RiskAssessmentPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const handleRefresh = () => {

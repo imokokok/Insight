@@ -12,7 +12,7 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { CDFChart } from './CDFChart';
 import { LatencyTrendMiniChart, LatencyDataPoint } from './LatencyTrendMiniChart';
@@ -202,7 +202,7 @@ export function LatencyDistributionHistogram({
   trendData: externalTrendData,
   anomalyThreshold = 200,
 }: LatencyDistributionHistogramProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [currentView, setCurrentView] = useState<ViewMode>('histogram');
   const [timeRange, setTimeRange] = useState<TimeRange>('1h');
 
@@ -220,9 +220,9 @@ export function LatencyDistributionHistogram({
   }, []);
 
   const viewOptions: { value: ViewMode; label: string; icon: string }[] = [
-    { value: 'histogram', label: '直方图', icon: '📊' },
+    { value: 'histogram', label: t('charts.latencyDistribution.histogram'), icon: '📊' },
     { value: 'cdf', label: 'CDF', icon: '📈' },
-    { value: 'trend', label: '趋势', icon: '📉' },
+    { value: 'trend', label: t('charts.latencyDistribution.trend'), icon: '📉' },
   ];
 
   const formatTooltip = (bin: HistogramBin) => {
@@ -453,19 +453,20 @@ export function LatencyDistributionHistogram({
         {percentileItems.map((item) => (
           <div
             key={item.label}
-            className="bg-white border border-gray-200 p-4"
+            className="bg-white border border-gray-200 p-4 overflow-hidden group relative"
             style={{ borderLeftColor: item.color, borderLeftWidth: 3 }}
+            title={`${item.label}: ${item.value}ms - ${item.desc}`}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">
                 {item.label}
               </span>
             </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-gray-900">{item.value}</span>
-              <span className="text-sm text-gray-500">ms</span>
+            <div className="flex items-baseline gap-1 overflow-hidden">
+              <span className="text-2xl font-bold text-gray-900 truncate">{item.value}</span>
+              <span className="text-sm text-gray-500 flex-shrink-0">ms</span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">{item.desc}</p>
+            <p className="text-xs text-gray-400 mt-2 truncate">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -473,10 +474,14 @@ export function LatencyDistributionHistogram({
       {/* Statistics Grid - Always visible */}
       <div className="grid grid-cols-6 gap-3">
         {statItems.map((item) => (
-          <div key={item.label} className="bg-white border border-gray-200 p-3 text-center">
+          <div 
+            key={item.label} 
+            className="bg-white border border-gray-200 p-3 text-center overflow-hidden"
+            title={`${item.label}: ${item.value}`}
+          >
             <span className="text-xl mb-1 block">{item.icon}</span>
-            <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-            <p className="text-sm font-semibold text-gray-900">{item.value}</p>
+            <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{item.value}</p>
           </div>
         ))}
       </div>

@@ -24,7 +24,7 @@ import {
 import type { TooltipContentProps, DotItemDotProps } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import {
   useSelectedTimeRange,
@@ -178,7 +178,7 @@ export function DataQualityTrend({
   oracleNames: customOracleNames,
   className,
 }: DataQualityTrendProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(
     data.map((d) => d.oracle)
@@ -331,7 +331,14 @@ export function DataQualityTrend({
 
   // 雷达图数据
   const radarData = useMemo(() => {
-    const dimensions = ['准确性', '可用性', '一致性', '响应速度', '心跳合规', '基础质量'];
+    const dimensions = [
+      t('charts.dataQuality.accuracy'),
+      t('charts.dataQuality.availability'),
+      t('charts.dataQuality.consistency'),
+      t('charts.dataQuality.responseSpeed'),
+      t('charts.dataQuality.heartbeatCompliance'),
+      t('charts.dataQuality.baseQuality'),
+    ];
 
     return dimensions.map((dimension) => {
       const dataPoint: RadarDataPoint = { metric: dimension };
@@ -341,22 +348,22 @@ export function DataQualityTrend({
         if (!stat) return;
 
         switch (dimension) {
-          case '准确性':
+          case t('charts.dataQuality.accuracy'):
             dataPoint[item.name] = stat.avgAccuracy;
             break;
-          case '可用性':
+          case t('charts.dataQuality.availability'):
             dataPoint[item.name] = stat.avgAvailability;
             break;
-          case '一致性':
+          case t('charts.dataQuality.consistency'):
             dataPoint[item.name] = stat.avgConsistency;
             break;
-          case '响应速度':
+          case t('charts.dataQuality.responseSpeed'):
             dataPoint[item.name] = Math.max(0, 100 - stat.avgLatency / 5);
             break;
-          case '心跳合规':
+          case t('charts.dataQuality.heartbeatCompliance'):
             dataPoint[item.name] = stat.avgHeartbeat;
             break;
-          case '基础质量':
+          case t('charts.dataQuality.baseQuality'):
             dataPoint[item.name] = stat.avgScore;
             break;
         }
@@ -409,11 +416,11 @@ export function DataQualityTrend({
                 </div>
                 <div className="text-xs text-gray-500 space-y-0.5">
                   <div className="flex justify-between">
-                    <span>延迟:</span>
+                    <span>{t('charts.dataQuality.latency')}:</span>
                     <span>{!isNaN(latency) ? latency.toFixed(0) : '-'}ms</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>偏离:</span>
+                    <span>{t('charts.dataQuality.deviation')}:</span>
                     <span>{!isNaN(deviation) ? deviation.toFixed(4) : '-'}%</span>
                   </div>
                   {(isOutlier || isStale) && (
@@ -426,7 +433,7 @@ export function DataQualityTrend({
                             color: semanticColors.danger.text,
                           }}
                         >
-                          异常值
+                          {t('charts.dataQuality.outlier')}
                         </span>
                       )}
                       {isStale && (
@@ -437,7 +444,7 @@ export function DataQualityTrend({
                             color: semanticColors.warning.text,
                           }}
                         >
-                          过期
+                          {t('charts.dataQuality.stale')}
                         </span>
                       )}
                     </div>
@@ -502,26 +509,26 @@ export function DataQualityTrend({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <DashboardCard title="数据质量趋势分析">
+      <DashboardCard title={t('charts.dataQuality.title')}>
         <div className="space-y-6">
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">时间范围:</span>
+              <span className="text-sm text-gray-600">{t('charts.dataQuality.timeRange')}:</span>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as '1h' | '6h' | '24h' | '7d')}
                 className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="1h">1小时</option>
-                <option value="6h">6小时</option>
-                <option value="24h">24小时</option>
-                <option value="7d">7天</option>
+                <option value="1h">{t('charts.dataQuality.1hour')}</option>
+                <option value="6h">{t('charts.dataQuality.6hours')}</option>
+                <option value="24h">{t('charts.dataQuality.24hours')}</option>
+                <option value="7d">{t('charts.dataQuality.7days')}</option>
               </select>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">选择预言机:</span>
+              <span className="text-sm text-gray-600">{t('charts.dataQuality.selectOracle')}:</span>
               {data.map((oracle) => (
                 <label key={oracle.oracle} className="flex items-center gap-1.5 cursor-pointer">
                   <input
@@ -544,7 +551,7 @@ export function DataQualityTrend({
                   onChange={(e) => setShowRadarChart(e.target.checked)}
                   className="w-4 h-4 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">显示雷达图</span>
+                <span className="text-sm text-gray-700">{t('charts.dataQuality.showRadarChart')}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -553,14 +560,14 @@ export function DataQualityTrend({
                   onChange={(e) => setShowRanking(e.target.checked)}
                   className="w-4 h-4 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">显示排名</span>
+                <span className="text-sm text-gray-700">{t('charts.dataQuality.showRanking')}</span>
               </label>
             </div>
           </div>
 
           {/* Quality Score Chart */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">质量评分趋势</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.dataQuality.qualityScoreTrend')}</h4>
             <div style={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -583,19 +590,19 @@ export function DataQualityTrend({
                     y={90}
                     stroke={semanticColors.success.DEFAULT}
                     strokeDasharray="3 3"
-                    label="优秀"
+                    label={t('charts.dataQuality.excellent')}
                   />
                   <ReferenceLine
                     y={75}
                     stroke={chartColors.recharts.primary}
                     strokeDasharray="3 3"
-                    label="良好"
+                    label={t('charts.dataQuality.good')}
                   />
                   <ReferenceLine
                     y={60}
                     stroke={semanticColors.warning.DEFAULT}
                     strokeDasharray="3 3"
-                    label="及格"
+                    label={t('charts.dataQuality.pass')}
                   />
 
                   {selectedOracles.map((oracle) => (
@@ -606,7 +613,7 @@ export function DataQualityTrend({
                       stroke={ORACLE_COLORS[oracle]}
                       strokeWidth={2}
                       dot={false}
-                      name={`${oracleNames[oracle]} 质量分`}
+                      name={`${oracleNames[oracle]} ${t('charts.dataQuality.qualityScore')}`}
                     />
                   ))}
 
@@ -651,7 +658,7 @@ export function DataQualityTrend({
 
                   <div className="space-y-2">
                     <div>
-                      <p className="text-xs text-gray-500">平均质量分</p>
+                      <p className="text-xs text-gray-500">{t('charts.dataQuality.avgQualityScore')}</p>
                       <p
                         className="text-2xl font-bold"
                         style={{ color: getQualityColor(qualityLevel) }}
@@ -662,13 +669,13 @@ export function DataQualityTrend({
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-gray-500">范围:</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.range')}:</span>
                         <span className="ml-1 font-medium">
                           {stat.minScore.toFixed(0)}-{stat.maxScore.toFixed(0)}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500">趋势:</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.trend')}:</span>
                         <span
                           className={`ml-1 font-medium ${
                             stat.trend === 'improving'
@@ -679,21 +686,21 @@ export function DataQualityTrend({
                           }`}
                         >
                           {stat.trend === 'improving'
-                            ? '↑ 改善'
+                            ? t('charts.dataQuality.improving')
                             : stat.trend === 'declining'
-                              ? '↓ 下降'
-                              : '→ 稳定'}
+                              ? t('charts.dataQuality.declining')
+                              : t('charts.dataQuality.stable')}
                         </span>
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-gray-200 space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">平均延迟</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.avgLatency')}</span>
                         <span className="font-medium">{stat.avgLatency.toFixed(0)}ms</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">异常率</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.outlierRate')}</span>
                         <span
                           className={`font-medium ${
                             stat.outlierRate > 5 ? 'text-red-600' : 'text-green-600'
@@ -703,7 +710,7 @@ export function DataQualityTrend({
                         </span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">过期率</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.staleRate')}</span>
                         <span
                           className={`font-medium ${
                             stat.staleRate > 2 ? 'text-red-600' : 'text-green-600'
@@ -713,7 +720,7 @@ export function DataQualityTrend({
                         </span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">心跳合规</span>
+                        <span className="text-gray-500">{t('charts.dataQuality.heartbeatComplianceShort')}</span>
                         <span className="font-medium">{stat.avgHeartbeat.toFixed(1)}%</span>
                       </div>
                     </div>
@@ -727,34 +734,34 @@ export function DataQualityTrend({
 
       {/* 质量排名 */}
       {showRanking && rankingData.length > 0 && (
-        <DashboardCard title="质量排名">
+        <DashboardCard title={t('charts.dataQuality.qualityRanking')}>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    排名
+                    {t('charts.dataQuality.rank')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    预言机
+                    {t('charts.dataQuality.oracle')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    综合评分
+                    {t('charts.dataQuality.overallScore')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    基础质量
+                    {t('charts.dataQuality.baseQuality')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    准确性
+                    {t('charts.dataQuality.accuracy')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    可用性
+                    {t('charts.dataQuality.availability')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    一致性
+                    {t('charts.dataQuality.consistency')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    趋势
+                    {t('charts.dataQuality.trend')}
                   </th>
                 </tr>
               </thead>
@@ -813,10 +820,10 @@ export function DataQualityTrend({
                         }`}
                       >
                         {item.trend === 'improving'
-                          ? '↑ 改善'
+                          ? t('charts.dataQuality.improving')
                           : item.trend === 'declining'
-                            ? '↓ 下降'
-                            : '→ 稳定'}
+                            ? t('charts.dataQuality.declining')
+                            : t('charts.dataQuality.stable')}
                       </span>
                     </td>
                   </tr>
@@ -829,7 +836,7 @@ export function DataQualityTrend({
 
       {/* 雷达图对比 */}
       {showRadarChart && radarData.length > 0 && (
-        <DashboardCard title="多维度质量对比">
+        <DashboardCard title={t('charts.dataQuality.multiDimensionComparison')}>
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
@@ -852,32 +859,32 @@ export function DataQualityTrend({
             </ResponsiveContainer>
           </div>
           <div className="mt-4 text-sm text-gray-600">
-            <p className="font-medium mb-2">维度说明:</p>
+            <p className="font-medium mb-2">{t('charts.dataQuality.dimensionDescription')}:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               <div>
-                • <strong>准确性</strong>: 价格准确度评分
+                • <strong>{t('charts.dataQuality.accuracy')}</strong>: {t('charts.dataQuality.accuracyDesc')}
               </div>
               <div>
-                • <strong>可用性</strong>: 服务可用性百分比
+                • <strong>{t('charts.dataQuality.availability')}</strong>: {t('charts.dataQuality.availabilityDesc')}
               </div>
               <div>
-                • <strong>一致性</strong>: 数据一致性评分
+                • <strong>{t('charts.dataQuality.consistency')}</strong>: {t('charts.dataQuality.consistencyDesc')}
               </div>
               <div>
-                • <strong>响应速度</strong>: 数据更新延迟
+                • <strong>{t('charts.dataQuality.responseSpeed')}</strong>: {t('charts.dataQuality.responseSpeedDesc')}
               </div>
               <div>
-                • <strong>心跳合规</strong>: 更新频率合规率
+                • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>: {t('charts.dataQuality.heartbeatComplianceDesc')}
               </div>
               <div>
-                • <strong>基础质量</strong>: 综合基础质量分
+                • <strong>{t('charts.dataQuality.baseQuality')}</strong>: {t('charts.dataQuality.baseQualityDesc')}
               </div>
             </div>
           </div>
         </DashboardCard>
       )}
 
-      <DashboardCard title="更新延迟对比">
+      <DashboardCard title={t('charts.dataQuality.updateLatencyComparison')}>
         <div style={{ height: 250 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -904,7 +911,7 @@ export function DataQualityTrend({
                   stroke={ORACLE_COLORS[oracle]}
                   strokeWidth={1.5}
                   dot={false}
-                  name={`${oracleNames[oracle]} 延迟`}
+                  name={`${oracleNames[oracle]} ${t('charts.dataQuality.latency')}`}
                 />
               ))}
             </ComposedChart>
@@ -912,7 +919,7 @@ export function DataQualityTrend({
         </div>
       </DashboardCard>
 
-      <DashboardCard title="价格偏离中位数">
+      <DashboardCard title={t('charts.dataQuality.priceDeviationFromMedian')}>
         <div style={{ height: 250 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -960,7 +967,7 @@ export function DataQualityTrend({
                     }
                     return <></>;
                   }}
-                  name={`${oracleNames[oracle]} 偏离`}
+                  name={`${oracleNames[oracle]} ${t('charts.dataQuality.deviation')}`}
                 />
               ))}
             </ComposedChart>
@@ -968,7 +975,7 @@ export function DataQualityTrend({
         </div>
       </DashboardCard>
 
-      <DashboardCard title="心跳合规率">
+      <DashboardCard title={t('charts.dataQuality.heartbeatComplianceRate')}>
         <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -991,7 +998,7 @@ export function DataQualityTrend({
                 y={95}
                 stroke={semanticColors.success.DEFAULT}
                 strokeDasharray="3 3"
-                label="目标"
+                label={t('charts.dataQuality.target')}
               />
 
               {selectedOracles.map((oracle) => (
@@ -1002,7 +1009,7 @@ export function DataQualityTrend({
                   stroke={ORACLE_COLORS[oracle]}
                   strokeWidth={2}
                   dot={false}
-                  name={`${oracleNames[oracle]} 合规率`}
+                  name={`${oracleNames[oracle]} ${t('charts.dataQuality.complianceRate')}`}
                 />
               ))}
             </ComposedChart>
@@ -1010,24 +1017,24 @@ export function DataQualityTrend({
         </div>
       </DashboardCard>
 
-      <DashboardCard title="数据质量评分说明">
+      <DashboardCard title={t('charts.dataQuality.qualityScoreDescription')}>
         <div className="text-sm text-blue-800 space-y-2">
-          <p>质量评分基于以下维度计算 (满分100分):</p>
+          <p>{t('charts.dataQuality.qualityScoreDescTitle')}</p>
           <ul className="space-y-1 ml-4">
             <li>
-              • <strong>更新延迟</strong>: 数据更新所需时间，延迟越高扣分越多 (最高-30分)
+              • <strong>{t('charts.dataQuality.updateLatency')}</strong>: {t('charts.dataQuality.updateLatencyDesc')}
             </li>
             <li>
-              • <strong>价格偏离</strong>: 与中位数的偏差程度，偏离越大扣分越多 (最高-25分)
+              • <strong>{t('charts.dataQuality.priceDeviation')}</strong>: {t('charts.dataQuality.priceDeviationDesc')}
             </li>
             <li>
-              • <strong>异常值检测</strong>: 被识别为统计异常值 (-20分)
+              • <strong>{t('charts.dataQuality.outlierDetection')}</strong>: {t('charts.dataQuality.outlierDetectionDesc')}
             </li>
             <li>
-              • <strong>数据过期</strong>: 超过预期更新周期 (-30分)
+              • <strong>{t('charts.dataQuality.dataStale')}</strong>: {t('charts.dataQuality.dataStaleDesc')}
             </li>
             <li>
-              • <strong>心跳合规</strong>: 按预期频率更新的比例 (最高-15分)
+              • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>: {t('charts.dataQuality.heartbeatComplianceDescLong')}
             </li>
           </ul>
           <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">
@@ -1036,25 +1043,25 @@ export function DataQualityTrend({
                 className="w-3 h-3"
                 style={{ backgroundColor: semanticColors.success.DEFAULT }}
               />
-              <span>优秀 (90-100)</span>
+              <span>{t('charts.dataQuality.excellent')} (90-100)</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="w-3 h-3" style={{ backgroundColor: semanticColors.info.DEFAULT }} />
-              <span>良好 (75-89)</span>
+              <span>{t('charts.dataQuality.good')} (75-89)</span>
             </span>
             <span className="flex items-center gap-1">
               <span
                 className="w-3 h-3"
                 style={{ backgroundColor: semanticColors.warning.DEFAULT }}
               />
-              <span>及格 (60-74)</span>
+              <span>{t('charts.dataQuality.pass')} (60-74)</span>
             </span>
             <span className="flex items-center gap-1">
               <span
                 className="w-3 h-3"
                 style={{ backgroundColor: semanticColors.danger.DEFAULT }}
               />
-              <span>不及格 (&lt;60)</span>
+              <span>{t('charts.dataQuality.fail')} (&lt;60)</span>
             </span>
           </div>
         </div>

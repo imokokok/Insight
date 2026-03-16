@@ -2,7 +2,7 @@
 
 import React, { Component, ReactNode, useEffect } from 'react';
 import { createLogger } from '@/lib/utils/logger';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   isAppError,
   ValidationError,
@@ -184,7 +184,7 @@ function getErrorConfig(error?: Error): {
 }
 
 function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const config = getErrorConfig(error);
 
   const colorMap: Record<string, { bg: string; text: string; button: string }> = {
@@ -345,7 +345,7 @@ function useSentryUserContext() {
 }
 
 function useErrorTranslations() {
-  const { t } = useI18n();
+  const t = useTranslations();
   useSentryUserContext();
   return {
     somethingWrong: t('error.boundary.somethingWrong'),

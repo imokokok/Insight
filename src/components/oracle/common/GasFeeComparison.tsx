@@ -19,7 +19,7 @@ import {
   animationColors,
 } from '@/lib/config/colors';
 import { DashboardCard } from './DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export interface GasFeeData {
   chain: string;
@@ -59,7 +59,7 @@ function getChainColor(chainName: string): string {
 }
 
 export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [sortBy, setSortBy] = useState<'update' | 'verification' | 'total'>('total');
 
   const processedData = useMemo(() => {
@@ -124,15 +124,15 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
         </div>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">更新费用:</span>
+            <span className="text-gray-600">{t('gasFeeComparison.updateFee')}:</span>
             <span className="font-mono">{formatCurrency(data.updateFee)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">验证费用:</span>
+            <span className="text-gray-600">{t('gasFeeComparison.verificationFee')}:</span>
             <span className="font-mono">{formatCurrency(data.verificationFee)}</span>
           </div>
           <div className="flex justify-between pt-1 border-t border-gray-100">
-            <span className="text-gray-600 font-medium">总计:</span>
+            <span className="text-gray-600 font-medium">{t('gasFeeComparison.total')}:</span>
             <span className="font-mono font-bold" style={{ color: baseColors.primary[600] }}>
               {formatCurrency(data.total)}
             </span>
@@ -144,7 +144,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
 
   if (loading) {
     return (
-      <DashboardCard title={t('gasFeeComparison.title') || 'Gas 费用对比'}>
+      <DashboardCard title={t('gasFeeComparison.title')}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
@@ -161,25 +161,25 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
   }
 
   return (
-    <DashboardCard title={t('gasFeeComparison.title') || 'Gas 费用对比'}>
+    <DashboardCard title={t('gasFeeComparison.title')}>
       <div className="space-y-4">
         {/* Statistics */}
         {statistics && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">平均更新费用</p>
+              <p className="text-xs text-gray-500 mb-1">{t('gasFeeComparison.avgUpdateFee')}</p>
               <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(statistics.avgUpdate)}
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">平均验证费用</p>
+              <p className="text-xs text-gray-500 mb-1">{t('gasFeeComparison.avgVerificationFee')}</p>
               <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(statistics.avgVerification)}
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">最便宜链</p>
+              <p className="text-xs text-gray-500 mb-1">{t('gasFeeComparison.cheapestChain')}</p>
               <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
                 {statistics.cheapest?.chain || '-'}
               </p>
@@ -188,7 +188,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">最高节省</p>
+              <p className="text-xs text-gray-500 mb-1">{t('gasFeeComparison.maxSavings')}</p>
               <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
                 {statistics.savings.toFixed(0)}%
               </p>
@@ -199,7 +199,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
 
         {/* Sort controls */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">排序:</span>
+          <span className="text-sm text-gray-500">{t('gasFeeComparison.sort')}:</span>
           <div className="flex items-center gap-1">
             {(['total', 'update', 'verification'] as const).map((key) => (
               <button
@@ -211,7 +211,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {key === 'total' ? '总计' : key === 'update' ? '更新' : '验证'}
+                {key === 'total' ? t('gasFeeComparison.total') : key === 'update' ? t('gasFeeComparison.update') : t('gasFeeComparison.verification')}
               </button>
             ))}
           </div>
@@ -257,19 +257,19 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  链
+                  {t('gasFeeComparison.chain')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  更新费用
+                  {t('gasFeeComparison.updateFee')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  验证费用
+                  {t('gasFeeComparison.verificationFee')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  总计
+                  {t('gasFeeComparison.total')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  排名
+                  {t('gasFeeComparison.rank')}
                 </th>
               </tr>
             </thead>

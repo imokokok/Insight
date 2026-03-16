@@ -113,6 +113,21 @@ function generatePriceHistory(count: number = 100): PriceHistoryPoint[] {
   return data;
 }
 
+// Market condition descriptions - these will be translated in components that use this hook
+export const marketConditionDescriptions: Record<ExtremeMarketEvent['type'], string> = {
+  flash_crash: 'hooks.marketConditions.flashCrash',
+  pump: 'hooks.marketConditions.pump',
+  high_volatility: 'hooks.marketConditions.highVolatility',
+  liquidity_crisis: 'hooks.marketConditions.liquidityCrisis',
+};
+
+// Network event keys - these will be translated in components that use this hook
+export const networkEventKeys = {
+  marketAbnormal: 'hooks.networkEvents.marketAbnormal',
+  networkCongestion: 'hooks.networkEvents.networkCongestion',
+  sourceSwitch: 'hooks.networkEvents.sourceSwitch',
+};
+
 function generateExtremeEvents(data: PriceHistoryPoint[]): ExtremeMarketEvent[] {
   const extremePoints = data.filter((d) => d.marketCondition === 'extreme');
   const events: ExtremeMarketEvent[] = [];
@@ -132,13 +147,6 @@ function generateExtremeEvents(data: PriceHistoryPoint[]): ExtremeMarketEvent[] 
           ? 'medium'
           : 'low';
 
-    const descriptions: Record<ExtremeMarketEvent['type'], string> = {
-      flash_crash: '市场价格快速下跌，预言机价格保持稳定',
-      pump: '市场价格快速上涨，预言机价格延迟跟随',
-      high_volatility: '市场波动率异常升高，价格偏差增大',
-      liquidity_crisis: '市场流动性不足，价差扩大',
-    };
-
     events.push({
       id: `extreme-${index}`,
       timestamp: point.timestamp,
@@ -154,7 +162,7 @@ function generateExtremeEvents(data: PriceHistoryPoint[]): ExtremeMarketEvent[] 
       marketPrice: point.marketPrice,
       deviation: point.deviationPercent,
       recoveryTime: Math.floor(Math.random() * 300) + 30,
-      description: descriptions[type],
+      description: marketConditionDescriptions[type],
     });
   });
 
@@ -177,9 +185,9 @@ function generateAccuracyTrend(days: number = 30): AccuracyTrendPoint[] {
     const deviation = (100 - accuracy) / 10 + Math.random() * 0.2;
 
     let event: string | undefined;
-    if (i === 5) event = '市场异常波动';
-    if (i === 15) event = '网络拥堵';
-    if (i === 25) event = '数据源切换';
+    if (i === 5) event = networkEventKeys.marketAbnormal;
+    if (i === 15) event = networkEventKeys.networkCongestion;
+    if (i === 25) event = networkEventKeys.sourceSwitch;
 
     data.push({
       date,

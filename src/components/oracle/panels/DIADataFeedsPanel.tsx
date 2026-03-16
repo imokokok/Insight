@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CustomFeed, DataSourceTransparency } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle/enums';
 
 interface DIADataFeedsPanelProps {
@@ -13,7 +13,7 @@ interface DIADataFeedsPanelProps {
 type AssetType = 'all' | 'crypto' | 'fiat' | 'nft' | 'commodity';
 
 export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedAssetType, setSelectedAssetType] = useState<AssetType>('all');
   const [selectedChain, setSelectedChain] = useState<Blockchain | 'all'>('all');
   const [expandedFeed, setExpandedFeed] = useState<string | null>(null);

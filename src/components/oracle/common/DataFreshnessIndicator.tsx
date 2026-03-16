@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 import { isDataStale, formatRelativeTime } from '@/lib/utils/riskUtils';
 
@@ -20,7 +20,7 @@ export function DataFreshnessIndicator({
   isLoading = false,
   className = '',
 }: DataFreshnessIndicatorProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [displayTime, setDisplayTime] = useState<string>('');
   const [isStale, setIsStale] = useState<boolean>(false);
 

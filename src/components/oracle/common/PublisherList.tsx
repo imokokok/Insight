@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Publisher, PublisherStatus } from '@/types/oracle';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;
@@ -82,7 +82,7 @@ const mockPublishers: Publisher[] = [
 ];
 
 function StatusBadge({ status }: { status: PublisherStatus }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const config = {
     active: { bg: 'bg-green-100', text: 'text-green-700', label: t('publisher.status.active') },
     inactive: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('publisher.status.inactive') },
@@ -154,7 +154,7 @@ export function PublisherList({
   onPublisherSelect,
   onAnomalyDetected,
 }: PublisherListProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [filter, setFilter] = useState<string>('all');
 
   const anomalyDetection = useMemo(() => {

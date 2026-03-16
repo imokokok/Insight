@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
 export interface AnomalyData {
@@ -20,39 +20,39 @@ export interface AnomalyStatsPanelProps {
   loading?: boolean;
 }
 
-const SEVERITY_CONFIG = {
+const getSeverityConfig = (t: (key: string) => string) => ({
   low: {
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '低',
+    label: t('panels.anomalyStats.low'),
   },
   medium: {
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
-    label: '中',
+    label: t('panels.anomalyStats.medium'),
   },
   high: {
     color: 'text-orange-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
-    label: '高',
+    label: t('panels.anomalyStats.high'),
   },
   critical: {
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '严重',
+    label: t('panels.anomalyStats.criticalSeverity'),
   },
-};
+});
 
-const TYPE_CONFIG = {
-  spike: { label: '暴涨', icon: '↑', color: 'text-green-600' },
-  drop: { label: '暴跌', icon: '↓', color: 'text-red-600' },
-  stale: { label: '停滞', icon: '−', color: 'text-gray-600' },
-  outlier: { label: '异常', icon: '!', color: 'text-orange-600' },
-};
+const getTypeConfig = (t: (key: string) => string) => ({
+  spike: { label: t('panels.anomalyStats.spike'), icon: '↑', color: 'text-green-600' },
+  drop: { label: t('panels.anomalyStats.drop'), icon: '↓', color: 'text-red-600' },
+  stale: { label: t('panels.anomalyStats.stale'), icon: '−', color: 'text-gray-600' },
+  outlier: { label: t('panels.anomalyStats.outlier'), icon: '!', color: 'text-orange-600' },
+});
 
 function StatCard({
   title,
@@ -92,8 +92,10 @@ function StatCard({
 }
 
 function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [filter, setFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'critical'>('all');
+  const SEVERITY_CONFIG = getSeverityConfig(t);
+  const TYPE_CONFIG = getTypeConfig(t);
 
   const filteredAnomalies = useMemo(() => {
     if (filter === 'all') return anomalies;
@@ -111,7 +113,7 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
   };
 
   return (
-    <DashboardCard title={t('anomalyStats.recentAnomalies') || '最近异常'}>
+    <DashboardCard title={t('panels.anomalyStats.recentAnomalies')}>
       <div className="space-y-4">
         {/* Filter buttons */}
         <div className="flex flex-wrap gap-2">
@@ -125,7 +127,7 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {severity === 'all' ? '全部' : SEVERITY_CONFIG[severity].label}
+              {severity === 'all' ? t('panels.anomalyStats.all') : SEVERITY_CONFIG[severity].label}
             </button>
           ))}
         </div>
@@ -146,7 +148,7 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p>暂无异常数据</p>
+              <p>{t('panels.anomalyStats.noAnomalies')}</p>
             </div>
           ) : (
             filteredAnomalies.map((anomaly, index) => {
@@ -173,17 +175,17 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-500">价格: </span>
+                          <span className="text-gray-500">{t('panels.anomalyStats.price')}: </span>
                           <span className="font-mono font-medium">${anomaly.price.toFixed(2)}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">预期: </span>
+                          <span className="text-gray-500">{t('panels.anomalyStats.expected')}: </span>
                           <span className="font-mono font-medium">
                             ${anomaly.expectedPrice.toFixed(2)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500">偏差: </span>
+                          <span className="text-gray-500">{t('panels.anomalyStats.deviation')}: </span>
                           <span
                             className={`font-mono font-medium ${
                               anomaly.deviation > 0 ? 'text-green-600' : 'text-red-600'
@@ -194,7 +196,7 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500">来源: </span>
+                          <span className="text-gray-500">{t('panels.anomalyStats.source')}: </span>
                           <span className="font-medium">{anomaly.oracle}</span>
                         </div>
                       </div>
@@ -212,7 +214,8 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
 }
 
 function SeverityDistribution({ anomalies }: { anomalies: AnomalyData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
+  const SEVERITY_CONFIG = getSeverityConfig(t);
 
   const distribution = useMemo(() => {
     const counts = {
@@ -223,7 +226,7 @@ function SeverityDistribution({ anomalies }: { anomalies: AnomalyData[] }) {
     };
     const total = anomalies.length;
     return Object.entries(counts).map(([severity, count]) => ({
-      severity: severity as keyof typeof SEVERITY_CONFIG,
+      severity: severity as keyof ReturnType<typeof getSeverityConfig>,
       count,
       percentage: total > 0 ? (count / total) * 100 : 0,
     }));
@@ -232,7 +235,7 @@ function SeverityDistribution({ anomalies }: { anomalies: AnomalyData[] }) {
   const maxCount = Math.max(...distribution.map((d) => d.count), 1);
 
   return (
-    <DashboardCard title={t('anomalyStats.severityDistribution') || '严重程度分布'}>
+    <DashboardCard title={t('panels.anomalyStats.severityDistribution')}>
       <div className="space-y-4">
         {distribution.map(({ severity, count, percentage }) => {
           const config = SEVERITY_CONFIG[severity];
@@ -265,7 +268,8 @@ function SeverityDistribution({ anomalies }: { anomalies: AnomalyData[] }) {
 }
 
 function TypeBreakdown({ anomalies }: { anomalies: AnomalyData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
+  const TYPE_CONFIG = getTypeConfig(t);
 
   const breakdown = useMemo(() => {
     const counts = {
@@ -275,13 +279,13 @@ function TypeBreakdown({ anomalies }: { anomalies: AnomalyData[] }) {
       outlier: anomalies.filter((a) => a.type === 'outlier').length,
     };
     return Object.entries(counts).map(([type, count]) => ({
-      type: type as keyof typeof TYPE_CONFIG,
+      type: type as keyof ReturnType<typeof getTypeConfig>,
       count,
     }));
   }, [anomalies]);
 
   return (
-    <DashboardCard title={t('anomalyStats.typeBreakdown') || '异常类型'}>
+    <DashboardCard title={t('panels.anomalyStats.typeBreakdown')}>
       <div className="grid grid-cols-2 gap-3">
         {breakdown.map(({ type, count }) => {
           const config = TYPE_CONFIG[type];
@@ -299,7 +303,7 @@ function TypeBreakdown({ anomalies }: { anomalies: AnomalyData[] }) {
 }
 
 export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const stats = useMemo(() => {
     const total = anomalies.length;
@@ -344,7 +348,7 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title={t('anomalyStats.totalAnomalies') || '总异常数'}
+          title={t('panels.anomalyStats.totalAnomalies')}
           value={stats.total}
           trend={{ value: stats.trend, isPositive: stats.trend < 0 }}
           icon={
@@ -358,7 +362,7 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
           }
         />
         <StatCard
-          title={t('anomalyStats.criticalAnomalies') || '严重异常'}
+          title={t('panels.anomalyStats.criticalAnomalies')}
           value={stats.critical}
           subtitle={
             stats.total > 0 ? `${((stats.critical / stats.total) * 100).toFixed(1)}%` : '0%'
@@ -374,7 +378,7 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
           }
         />
         <StatCard
-          title={t('anomalyStats.highSeverity') || '高风险异常'}
+          title={t('panels.anomalyStats.highSeverity')}
           value={stats.high}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,7 +387,7 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
           }
         />
         <StatCard
-          title={t('anomalyStats.avgDeviation') || '平均偏差'}
+          title={t('panels.anomalyStats.avgDeviation')}
           value={`${stats.avgDeviation.toFixed(2)}%`}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

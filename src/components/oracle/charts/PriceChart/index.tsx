@@ -16,7 +16,7 @@ import {
   Area,
   ReferenceLine,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { BaseOracleClient } from '@/lib/oracles/base';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -76,7 +76,7 @@ export function PriceChart({
   defaultPrice,
   enableRealtime = true,
 }: PriceChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const screenSize = useScreenSize();
   const GRANULARITY_CONFIG = useMemo(() => getGranularityConfig(t), [t]);
   const globalTimeRange = useGlobalTimeRange();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { IntegratedProtocols } from '../common/IntegratedProtocols';
 import { DataSourceCoverage } from '../common/DataSourceCoverage';
 import { DataSourceTrend } from '../charts/DataSourceTrend';
@@ -56,7 +56,7 @@ function StatCard({
 }
 
 export function EcosystemPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const stats = useMemo(() => mockStats, []);
 
   return (

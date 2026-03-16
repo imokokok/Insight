@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { TRONEcosystem, TRONDApp, TRONNetworkGrowth } from '@/lib/oracles/winklink';
 import {
   Globe,
@@ -27,7 +27,7 @@ interface WINkLinkTRONEcosystemPanelProps {
 }
 
 export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {

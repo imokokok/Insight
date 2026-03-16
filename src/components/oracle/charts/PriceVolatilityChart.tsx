@@ -19,7 +19,7 @@ import { OracleProvider } from '@/types/oracle';
 import { TooltipProps } from '@/types/ui/recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { VolatilityAlert } from '../common/VolatilityAlert';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 import { getOracleColor } from '@/lib/oracles';
 
@@ -344,7 +344,7 @@ export function PriceVolatilityChart({
   className,
   alertThreshold = 2.0,
 }: PriceVolatilityChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
   const [selectedTimeScale, setSelectedTimeScale] = useState<TimeScale>('short');
 

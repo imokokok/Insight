@@ -1,7 +1,7 @@
 'use client';
 
 import { CrossChainCoverage, CrossChainAsset } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
 
 interface DIACrossChainCoveragePanelProps {
@@ -9,7 +9,7 @@ interface DIACrossChainCoveragePanelProps {
 }
 
 export function DIACrossChainCoveragePanel({ data }: DIACrossChainCoveragePanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getCoverageStatusColor = (status: string) => {
     switch (status) {

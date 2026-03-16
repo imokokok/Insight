@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from './DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { semanticColors } from '@/lib/config/colors';
 
 export interface VolatilityAlertProps {
@@ -113,7 +113,7 @@ function generateHistoricalEvents(
 }
 
 export function VolatilityAlert({ threshold, currentVolatility, className }: VolatilityAlertProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const alertLevel = useMemo(
     () => getAlertLevel(currentVolatility, threshold, t),

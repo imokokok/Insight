@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
 import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface ChronicleScuttlebuttPanelProps {
 }
 
 export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getSecurityLevelColor = (level: string) => {
     switch (level) {

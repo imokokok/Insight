@@ -25,7 +25,7 @@ import {
   OracleProvider,
   Blockchain,
 } from '@/lib/oracles';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 const logger = createLogger('PriceDeviationMonitor');
@@ -107,7 +107,7 @@ function formatDuration(ms: number): string {
 }
 
 export function PriceDeviationMonitor() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [symbol, setSymbol] = useState<string>('LINK');
   const [chain, setChain] = useState<Blockchain>(Blockchain.ETHEREUM);
   const [currentPrices, setCurrentPrices] = useState<CurrentPriceData[]>([]);

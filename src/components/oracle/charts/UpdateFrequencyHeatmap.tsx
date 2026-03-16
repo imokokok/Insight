@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   useSelectedTimeRange,
   useSetSelectedTimeRange,
@@ -33,7 +33,7 @@ export function UpdateFrequencyHeatmap({
   updateFrequency = 1,
   date = new Date(),
 }: UpdateFrequencyHeatmapProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const selectedHour = useSelectedHour();
   const setSelectedHour = useSetSelectedHour();
   const setSelectedTimeRange = useSetSelectedTimeRange();

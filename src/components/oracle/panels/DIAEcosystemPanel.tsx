@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { EcosystemIntegration } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
 
 type Category = 'all' | 'dex' | 'lending' | 'derivatives' | 'yield' | 'insurance';
@@ -75,7 +75,7 @@ function getBlockchainName(chain: Blockchain): string {
 }
 
 export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
 
   const categories: { key: Category; label: string }[] = [

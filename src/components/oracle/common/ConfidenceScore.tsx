@@ -15,7 +15,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations, useLocale } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
@@ -246,7 +246,7 @@ function generateMockData(t: (key: string) => string): ConfidenceData {
 }
 
 function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceLevel }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const levelConfig = LEVEL_CONFIG[level];
 
   const getLevelLabel = () => {
@@ -346,7 +346,7 @@ function OverallScoreGauge({ score, level }: { score: number; level: ConfidenceL
 }
 
 function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const radarData = dimensions.map((dim) => ({
     name: dim.name,
@@ -387,7 +387,7 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
 }
 
 function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return semanticColors.success.DEFAULT;
@@ -457,7 +457,8 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
 }
 
 function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
-  const { t, locale } = useI18n();
+  const t = useTranslations();
+  const locale = useLocale();
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
@@ -582,7 +583,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
 }
 
 function SuggestionsCard({ suggestions }: { suggestions: string[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200  p-6">
@@ -637,7 +638,8 @@ export function ConfidenceScore({
   autoUpdate = true,
   updateInterval = 30000,
 }: ConfidenceScoreProps) {
-  const { t, locale } = useI18n();
+  const t = useTranslations();
+  const locale = useLocale();
   const [data, setData] = useState<ConfidenceData | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);

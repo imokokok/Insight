@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { StakingDetails } from '@/lib/oracles/dia';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -10,7 +10,7 @@ interface DIAStakingPanelProps {
 }
 
 export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stakeAmount, setStakeAmount] = useState<string>('1000');
   const [selectedLockPeriod, setSelectedLockPeriod] = useState<number>(30);
 

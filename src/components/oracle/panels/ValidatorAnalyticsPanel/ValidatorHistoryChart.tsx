@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ValidatorHistoryData } from '@/lib/oracles/uma';
 import { chartColors } from '@/lib/config/colors';
 import { TimeRange, TIME_RANGE_OPTIONS } from './config';
@@ -15,7 +15,7 @@ export function ValidatorHistoryChart({
   timeRange: TimeRange;
   onTimeRangeChange: (range: TimeRange) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [activeMetric, setActiveMetric] = useState<'successRate' | 'responseTime' | 'reputation'>(
     'successRate'
   );

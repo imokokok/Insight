@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { DashboardCard } from './DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, shadowColors } from '@/lib/config/colors';
 
 type DataSourceCategory = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'etf' | 'indices';
@@ -117,7 +117,7 @@ const CATEGORY_EXAMPLES: Record<DataSourceCategory, string[]> = {
 };
 
 export function DataSourceCoverage() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const mockDataSources = useMemo(() => getMockDataSources(t), [t]);
 

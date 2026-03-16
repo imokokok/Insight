@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { ConnectionStatus } from '@/lib/supabase/realtime';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface ConnectionStatusIndicatorProps {
   showLabel?: boolean;
@@ -42,7 +42,7 @@ export function ConnectionStatusIndicator({
   const connectionStatus = useConnectionStatus();
   const { reconnect } = useRealtimeActions();
   const [isReconnecting, setIsReconnecting] = useState(false);
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -90,7 +90,7 @@ export function ConnectionStatusIndicator({
 
 export function ConnectionStatusBadge({ className = '' }: { className?: string }) {
   const connectionStatus = useConnectionStatus();
-  const { t } = useI18n();
+  const t = useTranslations();
   const config = statusConfig[connectionStatus];
 
   return (
@@ -114,7 +114,7 @@ export function ConnectionStatusBadge({ className = '' }: { className?: string }
 
 export function ConnectionStatusDot({ className = '' }: { className?: string }) {
   const connectionStatus = useConnectionStatus();
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div

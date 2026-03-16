@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AirnodeDeployments {
   total: number;
@@ -60,7 +60,7 @@ function DistributionBar({
 }
 
 function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((a, b) => a + b, 0);
   const regions = [
     {
@@ -127,7 +127,7 @@ function RegionDistribution({ data }: { data: AirnodeDeployments['byRegion'] }) 
 }
 
 function ChainDistribution({ data }: { data: AirnodeDeployments['byChain'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((a, b) => a + b, 0);
   const chains = [
     { label: 'Ethereum', value: data.ethereum, color: 'bg-purple-500' },
@@ -189,7 +189,7 @@ function ChainDistribution({ data }: { data: AirnodeDeployments['byChain'] }) {
 }
 
 function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProviderType'] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const total = Object.values(data).reduce((a, b) => a + b, 0);
   const providers = [
     {
@@ -263,7 +263,7 @@ function ProviderTypeDistribution({ data }: { data: AirnodeDeployments['byProvid
 }
 
 export function AirnodeDeploymentPanel({ data }: AirnodeDeploymentPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="space-y-6">

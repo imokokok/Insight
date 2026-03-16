@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -107,6 +108,7 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
+  const t = useTranslations();
   const [isExiting, setIsExiting] = useState(false);
   const exitTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -143,7 +145,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       <button
         onClick={handleRemove}
         className="flex-shrink-0 p-1 rounded hover:bg-black/5 transition-colors"
-        aria-label="关闭通知"
+        aria-label={t('ui.closeNotification')}
       >
         <X className="w-4 h-4 text-gray-400" />
       </button>

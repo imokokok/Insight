@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { TimeRange } from './TabNavigation';
 import { ExportModal } from '../forms/ExportModal';
 import { ExportOptions } from '@/hooks';
@@ -52,7 +52,7 @@ export function PageHeader({
   showExport = true,
   lastUpdateTime,
 }: PageHeaderProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [showExportModal, setShowExportModal] = useState(false);
   const [displayTime, setDisplayTime] = useState(formatLastUpdate(lastUpdateTime, t));
   const [showJustUpdated, setShowJustUpdated] = useState(false);

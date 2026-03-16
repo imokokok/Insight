@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { ValidatorData } from '@/lib/oracles/uma';
 import { formatNumber } from '@/lib/utils/format';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { StakingDistributionChart } from '../../charts/StakingDistributionChart';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { MultiValidatorComparison } from '../../charts/MultiValidatorComparison';
@@ -23,7 +23,7 @@ export function ValidatorPanel({
   autoUpdate = true,
   updateInterval = 60000,
 }: ValidatorPanelProps & { client: BandProtocolClient }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [validators, setValidators] = useState<ValidatorInfo[]>([]);
   const [filteredValidators, setFilteredValidators] = useState<ValidatorInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);

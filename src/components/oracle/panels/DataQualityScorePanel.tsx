@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Publisher } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
 
@@ -353,7 +353,7 @@ export function DataQualityScorePanel({
   symbol = 'BTC/USD',
   className = '',
 }: DataQualityScorePanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [historicalScores, setHistoricalScores] = useState<HistoricalScore[]>([]);
   const [alerts, setAlerts] = useState<QualityAlert[]>([]);
 

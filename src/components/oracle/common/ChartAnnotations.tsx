@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { chartColors, semanticColors } from '@/lib/config/colors';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 // ============================================
 // 类型定义
@@ -337,7 +337,7 @@ export function ChartAnnotations({
   dataStartTime,
   dataEndTime,
 }: ChartAnnotationsProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [hoveredAnnotation, setHoveredAnnotation] = useState<ChartAnnotation | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
@@ -448,7 +448,7 @@ export function ChartAnnotationOverlay({
   xAxisDomain,
   chartHeight,
 }: ChartAnnotationOverlayProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 

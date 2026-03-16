@@ -1,14 +1,14 @@
 'use client';
 
 import { DataSourceTransparency } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface DIADataTransparencyPanelProps {
   data: DataSourceTransparency[];
 }
 
 export function DIADataTransparencyPanel({ data }: DIADataTransparencyPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getTypeLabel = (type: string) => {
     switch (type) {

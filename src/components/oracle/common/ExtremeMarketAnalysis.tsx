@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ExtremeMarketEvent } from '@/hooks/usePriceHistory';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
@@ -57,7 +57,7 @@ const EVENT_TYPE_CONFIG = {
 };
 
 export function ExtremeMarketAnalysis({ events }: ExtremeMarketAnalysisProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const SEVERITY_CONFIG = {
     low: { color: semanticColors.success.DEFAULT, label: t('pyth.extreme.severityLow') },

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { ValidatorData } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 
 type ComparisonDimension = 'responseTime' | 'successRate' | 'earnings';
@@ -23,7 +23,7 @@ function formatNumber(num: number): string {
 }
 
 function ResponseTimeComparison({ validators }: { validators: ValidatorData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxResponseTime = Math.max(...validators.map((v) => v.responseTime));
 
   return (
@@ -62,7 +62,7 @@ function ResponseTimeComparison({ validators }: { validators: ValidatorData[] })
 }
 
 function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const dimensions = [
     { key: 'successRate', label: t('uma.validatorAnalytics.successRate'), max: 100 },
@@ -190,7 +190,7 @@ function SuccessRateRadarChart({ validators }: { validators: ValidatorData[] }) 
 }
 
 function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxEarnings = Math.max(...validators.map((v) => v.earnings));
 
   return (
@@ -231,7 +231,7 @@ function EarningsComparisonChart({ validators }: { validators: ValidatorData[] }
 }
 
 export function ValidatorComparison({ validators }: ValidatorComparisonProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [dimension, setDimension] = useState<ComparisonDimension>('responseTime');
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 import { getEventTypeColor, getStatusColor } from '@/lib/utils/riskUtils';
 import type { RiskEvent } from '@/types/risk';
@@ -12,7 +12,7 @@ export interface SecurityTimelineProps {
 }
 
 export function SecurityTimeline({ events, className = '', maxItems }: SecurityTimelineProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const displayEvents = maxItems ? events.slice(0, maxItems) : events;
 

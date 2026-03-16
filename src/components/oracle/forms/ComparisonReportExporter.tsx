@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, RefObject } from 'react';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../common/DashboardCard';
 import { exportColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
@@ -38,11 +39,12 @@ export function ComparisonReportExporter({
   chartRef,
   fileName = 'oracle-comparison-report',
 }: ComparisonReportExporterProps) {
+  const t = useTranslations();
   const [isExporting, setIsExporting] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   /**
-   * 导出数据为 CSV 格式
+   * Export data as CSV format
    */
   const exportToCSV = useCallback(() => {
     if (!data) return;
@@ -95,11 +97,11 @@ export function ComparisonReportExporter({
   }, [data, fileName]);
 
   /**
-   * 导出图表为 PNG 格式
+   * Export chart as PNG format
    */
   const exportToPNG = useCallback(async () => {
     if (!chartRef?.current) {
-      alert('无法找到图表元素');
+      alert(t('forms.chartElementNotFound'));
       return;
     }
 
@@ -113,7 +115,7 @@ export function ComparisonReportExporter({
       // 创建 canvas
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('无法创建 canvas 上下文');
+      if (!ctx) throw new Error(t('forms.canvasContextError'));
 
       // 设置 canvas 尺寸
       const rect = element.getBoundingClientRect();
@@ -235,14 +237,14 @@ export function ComparisonReportExporter({
       link.click();
     } catch (error) {
       logger.error('Export failed', error instanceof Error ? error : new Error(String(error)));
-      alert('导出失败，请重试');
+      alert(t('forms.exportFailed'));
     } finally {
       setIsExporting(false);
     }
   }, [chartRef, data, fileName]);
 
   /**
-   * 导出为 JSON 格式
+   * Export as JSON format
    */
   const exportToJSON = useCallback(() => {
     if (!data) return;
@@ -278,7 +280,7 @@ export function ComparisonReportExporter({
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = semanticColors.success.dark;
         }}
-        title="导出报告"
+        title={t('forms.exportReport')}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -287,7 +289,7 @@ export function ComparisonReportExporter({
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
           />
         </svg>
-        <span>导出</span>
+        <span>{t('forms.export')}</span>
       </button>
 
       {/* 导出选项模态框 */}
@@ -302,7 +304,7 @@ export function ComparisonReportExporter({
               style={{ borderColor: baseColors.gray[100] }}
             >
               <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
-                导出对比报告
+                {t('forms.exportComparisonReport')}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
@@ -317,7 +319,7 @@ export function ComparisonReportExporter({
 
             <div className="p-6 space-y-4">
               <p className="text-sm" style={{ color: baseColors.gray[600] }}>
-                选择要导出的格式。CSV 适合数据分析，PNG 适合展示分享，JSON 适合程序处理。
+                {t('forms.selectExportFormatDescription')}
               </p>
 
               <div className="grid grid-cols-1 gap-3">
@@ -357,10 +359,10 @@ export function ComparisonReportExporter({
                   </div>
                   <div>
                     <p className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      导出为 CSV
+                      {t('forms.exportAsCSV')}
                     </p>
                     <p className="text-sm" style={{ color: baseColors.gray[500] }}>
-                      适用于 Excel 或数据分析
+                      {t('forms.csvDescription')}
                     </p>
                   </div>
                 </button>
@@ -401,10 +403,10 @@ export function ComparisonReportExporter({
                   </div>
                   <div>
                     <p className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      {isExporting ? '导出中...' : '导出为 PNG'}
+                      {isExporting ? t('forms.exporting') : t('forms.exportAsPNG')}
                     </p>
                     <p className="text-sm" style={{ color: baseColors.gray[500] }}>
-                      保存为图片格式
+                      {t('forms.pngDescription')}
                     </p>
                   </div>
                 </button>
@@ -442,10 +444,10 @@ export function ComparisonReportExporter({
                   </div>
                   <div>
                     <p className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      导出为 JSON
+                      {t('forms.exportAsJSON')}
                     </p>
                     <p className="text-sm" style={{ color: baseColors.gray[500] }}>
-                      适用于程序处理
+                      {t('forms.jsonDescription')}
                     </p>
                   </div>
                 </button>
@@ -467,7 +469,7 @@ export function ComparisonReportExporter({
                   e.currentTarget.style.backgroundColor = baseColors.gray[200];
                 }}
               >
-                取消
+                {t('forms.cancel')}
               </button>
             </div>
           </div>
@@ -478,7 +480,7 @@ export function ComparisonReportExporter({
 }
 
 /**
- * 独立的报告导出组件，用于完整页面导出
+ * Standalone report exporter component for full page export
  */
 export function FullReportExporter({
   data,
@@ -487,6 +489,7 @@ export function FullReportExporter({
   data: ExportData;
   fileName?: string;
 }) {
+  const t = useTranslations();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateFullReport = useCallback(async () => {
@@ -719,7 +722,7 @@ export function FullReportExporter({
           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
         />
       </svg>
-      <span>{isGenerating ? '生成中...' : '生成完整报告'}</span>
+      <span>{isGenerating ? t('forms.generating') : t('forms.generateFullReport')}</span>
     </button>
   );
 }

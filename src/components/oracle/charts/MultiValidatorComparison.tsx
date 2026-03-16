@@ -16,6 +16,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { formatNumber } from '@/lib/utils/format';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 type MetricType = 'uptime' | 'staked' | 'commission';
 type TimeRange = '7D' | '30D' | '90D';
@@ -38,17 +39,21 @@ interface ChartDataPoint {
   [key: string]: string | number;
 }
 
-const TIME_RANGE_CONFIG: Record<TimeRange, { period: HistoryPeriod; label: string }> = {
-  '7D': { period: 7, label: '7天' },
-  '30D': { period: 30, label: '30天' },
-  '90D': { period: 90, label: '90天' },
-};
+function getTimeRangeConfig(t: (key: string) => string): Record<TimeRange, { period: HistoryPeriod; label: string }> {
+  return {
+    '7D': { period: 7, label: t('charts.multiValidator.days7') },
+    '30D': { period: 30, label: t('charts.multiValidator.days30') },
+    '90D': { period: 90, label: t('charts.multiValidator.days90') },
+  };
+}
 
-const METRIC_CONFIG: Record<MetricType, { label: string; unit: string; color: string }> = {
-  uptime: { label: '在线率', unit: '%', color: semanticColors.success.DEFAULT },
-  staked: { label: '质押量', unit: ' BAND', color: chartColors.recharts.primary },
-  commission: { label: '佣金率', unit: '%', color: chartColors.recharts.purple },
-};
+function getMetricConfig(t: (key: string) => string): Record<MetricType, { label: string; unit: string; color: string }> {
+  return {
+    uptime: { label: t('charts.multiValidator.uptime'), unit: '%', color: semanticColors.success.DEFAULT },
+    staked: { label: t('charts.multiValidator.staked'), unit: ' BAND', color: chartColors.recharts.primary },
+    commission: { label: t('charts.multiValidator.commission'), unit: '%', color: chartColors.recharts.purple },
+  };
+}
 
 const VALIDATOR_COLORS = [
   chartColors.recharts.primary,
@@ -63,16 +68,18 @@ function CustomTooltip({
   label,
   metricType,
   validators,
+  t,
 }: {
   active?: boolean;
   payload?: Array<{ dataKey: string; value: number; color: string }>;
   label?: string;
   metricType: MetricType;
   validators: ValidatorInfo[];
+  t: (key: string) => string;
 }) {
   if (!active || !payload || payload.length === 0) return null;
 
-  const config = METRIC_CONFIG[metricType];
+  const config = getMetricConfig(t)[metricType];
 
   return (
     <div
@@ -121,9 +128,11 @@ function CustomTooltip({
 function ComparisonTable({
   validators,
   historyData,
+  t,
 }: {
   validators: ValidatorInfo[];
   historyData: Map<string, ValidatorHistoryData[]>;
+  t: (key: string) => string;
 }) {
   const getTrendIcon = (change: number) => {
     if (change > 0.1) return '↗';
@@ -146,31 +155,31 @@ function ComparisonTable({
               className="py-3 px-4 text-xs font-medium uppercase tracking-wider"
               style={{ color: baseColors.gray[500] }}
             >
-              验证者
+              {t('charts.multiValidator.validator')}
             </th>
             <th
               className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
               style={{ color: baseColors.gray[500] }}
             >
-              平均在线率
+              {t('charts.multiValidator.avgUptime')}
             </th>
             <th
               className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
               style={{ color: baseColors.gray[500] }}
             >
-              最新质押量
+              {t('charts.multiValidator.latestStaked')}
             </th>
             <th
               className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
               style={{ color: baseColors.gray[500] }}
             >
-              佣金率
+              {t('charts.multiValidator.commissionRate')}
             </th>
             <th
               className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-center"
               style={{ color: baseColors.gray[500] }}
             >
-              变化趋势
+              {t('charts.multiValidator.trend')}
             </th>
           </tr>
         </thead>
@@ -241,11 +250,15 @@ function ComparisonTable({
 }
 
 export function MultiValidatorComparison({ validators, client }: MultiValidatorComparisonProps) {
+  const t = useTranslations();
   const [metricType, setMetricType] = useState<MetricType>('uptime');
   const [timeRange, setTimeRange] = useState<TimeRange>('30D');
   const [historyData, setHistoryData] = useState<Map<string, ValidatorHistoryData[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const TIME_RANGE_CONFIG = getTimeRangeConfig(t);
+  const METRIC_CONFIG = getMetricConfig(t);
 
   const fetchHistoryData = useCallback(async () => {
     if (validators.length < 2) return;
@@ -254,7 +267,8 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
     setError(null);
 
     try {
-      const period = TIME_RANGE_CONFIG[timeRange].period;
+      const timeRangeConfig = getTimeRangeConfig(t);
+      const period = timeRangeConfig[timeRange].period;
       const newHistoryData = new Map<string, ValidatorHistoryData[]>();
 
       await Promise.all(
@@ -369,7 +383,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
 
   return (
     <DashboardCard
-      title="多验证者历史对比"
+      title={t('charts.multiValidator.title')}
       headerAction={
         <div className="flex items-center gap-2">
           <div
@@ -406,7 +420,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs mr-1" style={{ color: baseColors.gray[500] }}>
-            指标:
+            {t('charts.multiValidator.metric')}:
           </span>
           {(Object.keys(METRIC_CONFIG) as MetricType[]).map((type) => (
             <button
@@ -490,7 +504,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
                     width={50}
                   />
                   <Tooltip
-                    content={<CustomTooltip metricType={metricType} validators={validators} />}
+                    content={<CustomTooltip metricType={metricType} validators={validators} t={t} />}
                   />
                   <Legend
                     verticalAlign="top"
@@ -533,7 +547,7 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
               ))}
             </div>
 
-            <ComparisonTable validators={validators} historyData={historyData} />
+            <ComparisonTable validators={validators} historyData={historyData} t={t} />
           </>
         )}
       </div>

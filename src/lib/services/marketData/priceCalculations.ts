@@ -11,7 +11,7 @@ import {
   CorrelationData,
   RiskMetrics,
   AnomalyData,
-} from '@/app/market-overview/types';
+} from '@/app/[locale]/market-overview/types';
 import { ExportConfig, ExportDataType, generateExportFileName } from '@/lib/export/exportConfig';
 import { baseColors } from '@/lib/config/colors';
 

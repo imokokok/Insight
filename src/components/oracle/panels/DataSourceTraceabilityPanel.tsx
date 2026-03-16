@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DataSourceInfo } from '@/lib/oracles/api3';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 
 interface DataSourceTraceabilityPanelProps {
@@ -451,7 +451,7 @@ function DataSourceCard({ source, t }: { source: DataSourceInfo; t: (key: string
 }
 
 export function DataSourceTraceabilityPanel({ data }: DataSourceTraceabilityPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const avgCredibility =
     data.length > 0

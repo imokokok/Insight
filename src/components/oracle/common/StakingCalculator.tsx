@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations, useLocale } from 'next-intl';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 
@@ -18,7 +18,8 @@ interface StakingCalculation {
 }
 
 export function StakingCalculator() {
-  const { t, locale } = useI18n();
+  const t = useTranslations();
+  const locale = useLocale();
   const [stakeAmount, setStakeAmount] = useState<number>(10000);
   const [validatorType, setValidatorType] = useState<ValidatorType>('independent');
   const [disputeFrequency, setDisputeFrequency] = useState<DisputeFrequency>('medium');

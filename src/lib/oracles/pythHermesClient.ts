@@ -122,18 +122,18 @@ export class PythHermesClient {
           ? priceData.confidence
           : String(priceData.confidence ?? '0');
 
-      const confidenceInterval = this.calculateConfidenceInterval(price, confidenceValue, exponent);
+      const confidenceInterval = this.calculateConfidenceInterval(price, confidenceValue, Number(exponent));
 
       return {
         provider: OracleProvider.PYTH,
         symbol: symbol.toUpperCase(),
         price,
         timestamp: (priceData.publish_time ?? Date.now() / 1000) * 1000,
-        decimals: Math.abs(exponent),
+        decimals: Math.abs(Number(exponent)),
         confidence: this.calculateConfidenceScore(
           confidenceValue,
           String(priceData.price),
-          exponent
+          Number(exponent)
         ),
         confidenceInterval,
         change24h: 0,
@@ -360,7 +360,7 @@ export class PythHermesClient {
     confidence: string,
     exponent: number
   ): ConfidenceInterval {
-    const confidenceValue = parseInt(confidence, 10) * Math.pow(10, Number(exponent));
+    const confidenceValue = parseInt(confidence, 10) * Math.pow(10, exponent);
     const halfSpread = confidenceValue / 2;
 
     return {

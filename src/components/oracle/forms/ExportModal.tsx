@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ExportFormat, DataType, ExportOptions, ExportScope, Resolution } from '@/hooks/useUtils';
 
 interface ExportModalProps {
@@ -27,7 +27,7 @@ export function ExportModal({
   chartTitle,
   dataSource,
 }: ExportModalProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [format, setFormat] = useState<ExportFormat>('json');
   const [dataType, setDataType] = useState<DataType>('all');
   const [timeRange, setTimeRange] = useState(defaultTimeRange);

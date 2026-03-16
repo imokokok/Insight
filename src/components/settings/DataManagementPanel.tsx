@@ -15,10 +15,10 @@ import {
   CheckCircle,
   X,
 } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export function DataManagementPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const user = useUser();
   const { signOut } = useAuthActions();
   const [isExporting, setIsExporting] = useState(false);
@@ -207,7 +207,7 @@ export function DataManagementPanel() {
       await signOut();
       window.location.href = '/';
     } catch (err) {
-      setError('删除账户失败，请重试');
+      setError(t('settings.data.deleteAccountError'));
     } finally {
       setIsDeleting(false);
     }

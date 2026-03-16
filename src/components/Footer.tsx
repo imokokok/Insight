@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 // Twitter/X Icon
@@ -83,7 +83,7 @@ function ApiIcon({ className }: { className?: string }) {
 }
 
 export default function Footer() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const platformLinks = [
     { label: t('navbar.home'), href: '/' },
@@ -121,7 +121,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gray-100 border border-gray-200  flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">I</span>
               </div>
               <span className="text-white font-bold text-xl">Insight</span>

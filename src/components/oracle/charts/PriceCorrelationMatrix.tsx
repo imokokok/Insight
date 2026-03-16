@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 
 export interface PriceDataPoint {
@@ -105,7 +105,7 @@ export function PriceCorrelationMatrix({
   className = '',
 }: PriceCorrelationMatrixProps) {
   const [hoveredCell, setHoveredCell] = useState<CorrelationCell | null>(null);
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const { correlationMatrix, oracleIds, priceArrays } = useMemo(() => {
     const ids = data.map((d) => d.oracleId);

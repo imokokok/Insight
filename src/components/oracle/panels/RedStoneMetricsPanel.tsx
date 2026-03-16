@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RedStoneClient, RedStoneMetrics, RedStoneProviderInfo } from '@/lib/oracles';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('RedStoneMetricsPanel');
@@ -13,7 +13,7 @@ interface RedStoneMetricsPanelProps {
 }
 
 export function RedStoneMetricsPanel({ client }: RedStoneMetricsPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [metrics, setMetrics] = useState<RedStoneMetrics | null>(null);
   const [providers, setProviders] = useState<RedStoneProviderInfo[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 type ConfidenceLevel = 90 | 95 | 99;
 
@@ -34,7 +34,7 @@ export function MoreOptionsDropdown({
   onShowAnomalyStats,
   compact = false,
 }: MoreOptionsDropdownProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [showConfidenceSubmenu, setShowConfidenceSubmenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

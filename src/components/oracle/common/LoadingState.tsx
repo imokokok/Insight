@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface LoadingStateProps {
   themeColor?: string;
@@ -8,7 +8,7 @@ interface LoadingStateProps {
 }
 
 export function LoadingState({ themeColor = 'blue', message }: LoadingStateProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const borderColorClass = `border-${themeColor}-200`;
   const spinnerColorClass = `border-t-${themeColor}-600`;

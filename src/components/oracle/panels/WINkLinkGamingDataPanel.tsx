@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   GamingData,
   GamingDataSource,
@@ -18,7 +18,7 @@ interface WINkLinkGamingDataPanelProps {
 }
 
 export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getCategoryColor = (category: string) => {
     switch (category) {

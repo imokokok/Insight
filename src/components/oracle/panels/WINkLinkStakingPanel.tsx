@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { NodeStakingData, WINkLinkNode } from '@/lib/oracles/winklink';
 import { Coins, Users, TrendingUp, Award, Globe, CheckCircle } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface WINkLinkStakingPanelProps {
 }
 
 export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getTierColor = (tier: string) => {
     switch (tier) {

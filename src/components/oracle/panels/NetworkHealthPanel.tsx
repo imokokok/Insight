@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { PerformanceGaugeGroup } from '../common/PerformanceGauge';
 import { DataQualityScoreCard } from '../common/DataQualityScoreCard';
 import { formatCompactNumber } from '@/lib/utils/format';
@@ -87,7 +87,7 @@ const getStatusConfig = (t: (key: string) => string) => ({
 });
 
 function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const statusConfig = getStatusConfig(t);
   const config = statusConfig[status];
 
@@ -134,7 +134,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
 }
 
 function MetricCardComponent({ metric }: { metric: NetworkMetric }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const trendColor =
     metric.trendDirection === 'up'
       ? 'text-green-600'
@@ -176,7 +176,7 @@ function ActivityHeatmap({
   hourlyData: number[];
   onHourClick?: (hour: number) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const maxValue = Math.max(...hourlyData);
   const minValue = Math.min(...hourlyData);
@@ -279,7 +279,7 @@ function ActivityHeatmap({
 }
 
 function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const tokenSymbol = metrics.tokenSymbol || 'BAND';
 
   return (
@@ -456,7 +456,7 @@ function BandProtocolMetricsCard({ metrics }: { metrics: BandProtocolMetrics }) 
 }
 
 function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const statusConfig = {
     active: {
@@ -662,7 +662,7 @@ function SolanaNetworkStatusCard({ metrics }: { metrics: SolanaNetworkMetrics })
 }
 
 function DataFreshnessIndicator({ lastUpdated, latency }: { lastUpdated: Date; latency: number }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getLatencyColor = (ms: number) => {
     if (ms < 100)
@@ -809,7 +809,7 @@ export function NetworkHealthPanel({
   updateInterval = 30000,
   onTimeRangeChange,
 }: NetworkHealthPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [networkData, setNetworkData] = useState(initialConfig);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
