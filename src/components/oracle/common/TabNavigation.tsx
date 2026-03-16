@@ -310,7 +310,7 @@ export function TabNavigation({
   return (
     <nav
       ref={containerRef}
-      className="relative flex space-x-1 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing py-2"
+      className="relative flex space-x-6 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing border-b border-gray-200"
       aria-label="Tabs"
       onMouseDown={handleMouseDown}
       onMouseLeave={handleMouseLeave}
@@ -330,11 +330,10 @@ export function TabNavigation({
             }}
             onClick={() => handleTabClick(tab.id)}
             className={`
-              relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 border
-              ${
-                isActive
-                  ? `bg-${themeColor}-100 text-${themeColor}-700 border-${themeColor}-300`
-                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-transparent'
+              relative flex items-center gap-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200
+              ${isActive
+                ? 'text-gray-900 border-b-2 border-gray-900'
+                : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
               }
             `}
           >

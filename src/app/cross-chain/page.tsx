@@ -208,7 +208,7 @@ export default function CrossChainPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
         <div>
           <h1 className="text-2xl font-semibold" style={{ color: baseColors.gray[900] }}>{t('crossChain.title')}</h1>

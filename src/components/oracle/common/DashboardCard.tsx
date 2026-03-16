@@ -36,33 +36,29 @@ interface StatCardProps {
   change: string;
   changeType: 'positive' | 'negative' | 'neutral';
   icon: ReactNode;
+  isFirst?: boolean;
 }
 
-export function StatCard({ title, value, change, changeType, icon }: StatCardProps) {
+export function StatCard({ title, value, change, changeType, icon, isFirst = false }: StatCardProps) {
+  const changeColor =
+    changeType === 'positive' ? 'text-green-600' : changeType === 'negative' ? 'text-red-600' : 'text-gray-500';
+
+  const changeSymbol = changeType === 'positive' ? '+' : changeType === 'negative' ? '-' : '';
+
   return (
-    <DashboardCard className="h-full">
-      <div className="flex items-start justify-between">
+    <div className={`px-4 py-2 ${isFirst ? '' : 'border-l border-gray-200'}`}>
+      <div className="flex items-start gap-3">
+        <div className="text-gray-400">{icon}</div>
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          <p
-            className={`text-xs mt-2 font-medium ${
-              changeType === 'positive'
-                ? 'text-green-600'
-                : changeType === 'negative'
-                  ? 'text-red-600'
-                  : 'text-gray-500'
-            }`}
-          >
-            {changeType === 'positive' && '↑ '}
-            {changeType === 'negative' && '↓ '}
-            {changeType === 'neutral' && '→ '}
+          <p className="text-xs text-gray-500 uppercase tracking-wider">{title}</p>
+          <p className="text-lg font-semibold text-gray-900">{value}</p>
+          <p className={`text-xs ${changeColor}`}>
+            {changeSymbol}
             {change}
           </p>
         </div>
-        <div className="p-2 bg-gray-100 text-gray-600">{icon}</div>
       </div>
-    </DashboardCard>
+    </div>
   );
 }
 

@@ -37,7 +37,7 @@ export default function FavoritesPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 w-48 mb-2" />
           <div className="h-4 bg-gray-200 w-64 mb-8" />
@@ -62,7 +62,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-red-500 flex items-center justify-center border border-red-600">

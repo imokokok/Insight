@@ -650,7 +650,7 @@ export default function PriceQueryPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
       <div aria-live="polite" className="sr-only">
         {loading
           ? t('priceQuery.loadingData')
