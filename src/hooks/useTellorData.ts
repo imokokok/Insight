@@ -8,6 +8,8 @@ import type {
   MarketDepth,
   MultiChainAggregation,
   TellorNetworkStats,
+  ReporterStats,
+  RiskMetrics,
 } from '@/lib/oracles/tellor';
 import { PriceData, Blockchain } from '@/types/oracle';
 
@@ -21,7 +23,9 @@ type TellorDataType =
   | 'multiChainAggregation'
   | 'networkStats'
   | 'liquidity'
-  | 'staking';
+  | 'staking'
+  | 'reporters'
+  | 'risk';
 
 const getTellorKey = (type: TellorDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['tellor', type];
@@ -257,6 +261,50 @@ export function useTellorStaking(enabled = true) {
   };
 }
 
+export function useTellorReporters(enabled = true) {
+  const queryKey = getTellorKey('reporters');
+
+  const { data, error, isLoading, refetch } = useQuery<ReporterStats, Error>({
+    queryKey,
+    queryFn: () => tellorClient.getReporterStats(),
+    enabled,
+    staleTime: 60000,
+    gcTime: 120000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    reporters: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useTellorRisk(enabled = true) {
+  const queryKey = getTellorKey('risk');
+
+  const { data, error, isLoading, refetch } = useQuery<RiskMetrics, Error>({
+    queryKey,
+    queryFn: () => tellorClient.getRiskMetrics(),
+    enabled,
+    staleTime: 60000,
+    gcTime: 120000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    risk: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
 interface UseTellorAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -285,6 +333,8 @@ interface UseTellorAllDataReturn {
         rewardPool: number;
       }
     | undefined;
+  reporters: ReporterStats | undefined;
+  risk: RiskMetrics | undefined;
   isLoading: boolean;
   isError: boolean;
   errors: Error[];
@@ -302,6 +352,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
   const networkStatsQuery = useTellorNetworkStats(enabled);
   const liquidityQuery = useTellorLiquidity(enabled);
   const stakingQuery = useTellorStaking(enabled);
+  const reportersQuery = useTellorReporters(enabled);
+  const riskQuery = useTellorRisk(enabled);
 
   const isLoading = useMemo(() => {
     if (!enabled) return false;
@@ -313,7 +365,9 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
       multiChainAggregationQuery.isLoading ||
       networkStatsQuery.isLoading ||
       liquidityQuery.isLoading ||
-      stakingQuery.isLoading
+      stakingQuery.isLoading ||
+      reportersQuery.isLoading ||
+      riskQuery.isLoading
     );
   }, [
     enabled,
@@ -325,6 +379,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     networkStatsQuery.isLoading,
     liquidityQuery.isLoading,
     stakingQuery.isLoading,
+    reportersQuery.isLoading,
+    riskQuery.isLoading,
   ]);
 
   const errors = useMemo(() => {
@@ -337,6 +393,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     if (networkStatsQuery.error) errs.push(networkStatsQuery.error);
     if (liquidityQuery.error) errs.push(liquidityQuery.error);
     if (stakingQuery.error) errs.push(stakingQuery.error);
+    if (reportersQuery.error) errs.push(reportersQuery.error);
+    if (riskQuery.error) errs.push(riskQuery.error);
     return errs;
   }, [
     priceQuery.error,
@@ -347,6 +405,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     networkStatsQuery.error,
     liquidityQuery.error,
     stakingQuery.error,
+    reportersQuery.error,
+    riskQuery.error,
   ]);
 
   const isError = errors.length > 0;
@@ -361,6 +421,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
       networkStatsQuery.refetch(),
       liquidityQuery.refetch(),
       stakingQuery.refetch(),
+      reportersQuery.refetch(),
+      riskQuery.refetch(),
     ]);
   }, [
     priceQuery.refetch,
@@ -371,6 +433,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     networkStatsQuery.refetch,
     liquidityQuery.refetch,
     stakingQuery.refetch,
+    reportersQuery.refetch,
+    riskQuery.refetch,
   ]);
 
   return {
@@ -382,6 +446,8 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     networkStats: networkStatsQuery.networkStats,
     liquidity: liquidityQuery.liquidity,
     staking: stakingQuery.staking,
+    reporters: reportersQuery.reporters,
+    risk: riskQuery.risk,
     isLoading,
     isError,
     errors,

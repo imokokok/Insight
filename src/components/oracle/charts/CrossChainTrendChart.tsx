@@ -30,7 +30,7 @@ export type TimeRange = '24h' | '7d' | '30d';
 export type MetricType = 'price' | 'requests' | 'gas';
 
 export interface CrossChainTrendChartProps {
-  client: BandProtocolClient;
+  client: unknown;
   chains: string[];
   defaultMetric?: MetricType;
   defaultTimeRange?: TimeRange;

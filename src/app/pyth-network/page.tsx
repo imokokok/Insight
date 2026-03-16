@@ -242,26 +242,29 @@ export default function PythNetworkPage() {
             </div>
           )}
 
-          {activeTab === 'ecosystem' && (
+          {activeTab === 'price-feeds' && (
             <div className="space-y-6">
-              <DashboardCard title={t('pyth.ecosystem.title')}>
-                <p className="text-gray-600">{t('pyth.ecosystem.description')}</p>
-              </DashboardCard>
-            </div>
-          )}
-
-          {activeTab === 'risk' && (
-            <div className="space-y-6">
-              <DashboardCard title={t('pyth.risk.title')}>
-                <p className="text-gray-600">{t('pyth.risk.description')}</p>
-              </DashboardCard>
-            </div>
-          )}
-
-          {activeTab === 'cross-oracle' && (
-            <div className="space-y-6">
-              <DashboardCard title={t('pyth.crossOracle.title')}>
-                <p className="text-gray-600">{t('pyth.crossOracle.description')}</p>
+              <DashboardCard title={t('pyth.priceFeeds.title')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { category: t('pyth.priceFeeds.categories.crypto'), count: 350, icon: '₿' },
+                    { category: t('pyth.priceFeeds.categories.equities'), count: 80, icon: '📈' },
+                    { category: t('pyth.priceFeeds.categories.commodities'), count: 45, icon: '🛢️' },
+                    { category: t('pyth.priceFeeds.categories.forex'), count: 45, icon: '💱' },
+                  ].map((feed) => (
+                    <div key={feed.category} className="p-4 bg-gray-50 rounded-lg text-center">
+                      <div className="text-2xl mb-2">{feed.icon}</div>
+                      <h4 className="font-semibold text-gray-900">{feed.category}</h4>
+                      <p className="text-2xl font-bold text-violet-600 mt-1">{feed.count}</p>
+                      <p className="text-xs text-gray-500">{t('pyth.priceFeeds.priceFeeds')}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 p-4 bg-violet-50 rounded-lg">
+                  <p className="text-sm text-violet-800">
+                    {t('pyth.priceFeeds.totalDescription', { count: 520 })}
+                  </p>
+                </div>
               </DashboardCard>
             </div>
           )}

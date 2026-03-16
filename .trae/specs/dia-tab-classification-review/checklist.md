@@ -1,0 +1,11 @@
+- [x] 已分析 DIA 当前 Tab 分类结构
+- [x] 已与其他预言机页面进行对比
+- [x] 已识别 Tab 分类中的问题
+- [x] 已提出优化建议
+- [x] 已更新 Tab 配置（coverage → cross-chain, transparency/verification → data-sources）
+- [x] 已创建 DIADataSourcesPanel 组件
+- [x] 已更新 DIA 页面 Tab 渲染逻辑
+- [x] 已添加 ecosystem Tab
+- [x] 已添加 risk Tab
+- [x] 已更新国际化文案（zh-CN 和 en）
+- [x] 构建成功验证

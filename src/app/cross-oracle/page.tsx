@@ -28,9 +28,6 @@ import {
   OraclePerformanceRanking,
 } from '@/components/oracle/common/OraclePerformanceRanking';
 import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
-import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
-import { ATRIndicator } from '@/components/oracle/indicators/ATRIndicator';
-import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
 import { SnapshotComparison } from '@/components/oracle/common/SnapshotComparison';
@@ -120,9 +117,6 @@ export default function CrossOraclePage() {
     latencyData,
     performanceData,
     maData,
-    gasFeeData,
-    atrData,
-    bollingerData,
     qualityTrendData,
     qualityScoreData,
     handleSort,
@@ -676,24 +670,9 @@ export default function CrossOraclePage() {
           )}
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">布林带分析</h2>
-          {bollingerData.some((d) => d.prices.length > 0) && (
-            <BollingerBands data={bollingerData} oracleNames={oracleNames} />
-          )}
-        </div>
 
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">ATR 平均真实波幅</h2>
-          {atrData.some((d) => d.prices.length > 0) && (
-            <ATRIndicator data={atrData} oracleNames={oracleNames} />
-          )}
-        </div>
 
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Gas 费用对比</h2>
-          <GasFeeComparison data={gasFeeData} oracleNames={oracleNames} />
-        </div>
+
 
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">数据质量趋势</h2>
@@ -715,7 +694,7 @@ export default function CrossOraclePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">选择预言机查看延迟数据</label>
               <select
                 value={selectedPerformanceOracle || ''}
-                onChange={(e) => setSelectedPerformanceOracle(e.target.value || null)}
+                onChange={(e) => setSelectedPerformanceOracle(e.target.value ? (e.target.value as OracleProvider) : null)}
                 className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">所有预言机</option>

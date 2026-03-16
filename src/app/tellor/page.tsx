@@ -17,6 +17,8 @@ import {
 import { TellorPriceStreamPanel } from '@/components/oracle/panels/TellorPriceStreamPanel';
 import { TellorMarketDepthPanel } from '@/components/oracle/panels/TellorMarketDepthPanel';
 import { TellorMultiChainAggregationPanel } from '@/components/oracle/panels/TellorMultiChainAggregationPanel';
+import { TellorReportersPanel } from '@/components/oracle/panels/TellorReportersPanel';
+import { TellorRiskPanel } from '@/components/oracle/panels/TellorRiskPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -38,6 +40,8 @@ export default function TellorPage() {
     networkStats,
     liquidity,
     staking,
+    reporters,
+    risk,
     isLoading,
     isError,
     errors,
@@ -235,12 +239,20 @@ export default function TellorPage() {
             <TellorPriceStreamPanel data={priceStream} />
           )}
 
-          {activeTab === 'market-depth' && marketDepth && (
-            <TellorMarketDepthPanel data={marketDepth} />
+          {activeTab === 'reporters' && reporters && (
+            <TellorReportersPanel data={reporters} />
           )}
 
           {activeTab === 'multi-chain' && multiChainAggregation && (
             <TellorMultiChainAggregationPanel data={multiChainAggregation} />
+          )}
+
+          {activeTab === 'risk' && risk && (
+            <TellorRiskPanel data={risk} />
+          )}
+
+          {activeTab === 'market-depth' && marketDepth && (
+            <TellorMarketDepthPanel data={marketDepth} />
           )}
         </div>
       </main>

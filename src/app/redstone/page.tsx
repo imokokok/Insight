@@ -239,6 +239,50 @@ export default function RedStonePage() {
             </div>
           )}
 
+          {activeTab === 'providers' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('redstone.providers.title')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{t('redstone.providers.dataSources')}</h4>
+                    <p className="text-2xl font-bold text-red-600 mt-2">50+</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('redstone.providers.activeSources')}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{t('redstone.providers.updateFrequency')}</h4>
+                    <p className="text-2xl font-bold text-red-600 mt-2">~60s</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('redstone.providers.avgUpdateTime')}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{t('redstone.providers.dataQuality')}</h4>
+                    <p className="text-2xl font-bold text-green-600 mt-2">99.8%</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('redstone.providers.accuracyRate')}</p>
+                  </div>
+                </div>
+              </DashboardCard>
+              <DashboardCard title={t('redstone.providers.sourceList')}>
+                <div className="space-y-3">
+                  {[
+                    { name: 'Binance', type: 'CEX', status: 'active', latency: '120ms' },
+                    { name: 'Coinbase', type: 'CEX', status: 'active', latency: '135ms' },
+                    { name: 'Kraken', type: 'CEX', status: 'active', latency: '145ms' },
+                    { name: 'Uniswap V3', type: 'DEX', status: 'active', latency: '200ms' },
+                    { name: 'Curve Finance', type: 'DEX', status: 'active', latency: '220ms' },
+                  ].map((source, index) => (
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span className="font-medium text-gray-900">{source.name}</span>
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{source.type}</span>
+                      </div>
+                      <span className="text-sm text-gray-500 font-mono">{source.latency}</span>
+                    </div>
+                  ))}
+                </div>
+              </DashboardCard>
+            </div>
+          )}
+
           {activeTab === 'risk' && riskMetrics && (
             <div className="space-y-6">
               <DashboardCard title={t('redstone.risk.title')}>
@@ -284,14 +328,6 @@ export default function RedStonePage() {
                     <p className="text-sm text-gray-600 mt-1">{riskMetrics.overallRisk}%</p>
                   </div>
                 </div>
-              </DashboardCard>
-            </div>
-          )}
-
-          {activeTab === 'cross-oracle' && (
-            <div className="space-y-6">
-              <DashboardCard title={t('redstone.crossOracle.title')}>
-                <p className="text-gray-600">{t('redstone.crossOracle.description')}</p>
               </DashboardCard>
             </div>
           )}

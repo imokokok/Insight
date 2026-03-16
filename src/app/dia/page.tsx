@@ -13,10 +13,11 @@ import {
   TabNavigation,
   LoadingState,
   ErrorFallback,
+  EcosystemPanel,
+  RiskAssessmentPanel,
 } from '@/components/oracle';
-import { DIADataTransparencyPanel } from '@/components/oracle/panels/DIADataTransparencyPanel';
+import { DIADataSourcesPanel } from '@/components/oracle/panels/DIADataSourcesPanel';
 import { DIACrossChainCoveragePanel } from '@/components/oracle/panels/DIACrossChainCoveragePanel';
-import { DIADataSourceVerificationPanel } from '@/components/oracle/panels/DIADataSourceVerificationPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -229,16 +230,27 @@ export default function DIAPage() {
             </div>
           )}
 
-          {activeTab === 'transparency' && dataTransparency.length > 0 && (
-            <DIADataTransparencyPanel data={dataTransparency} />
+          {activeTab === 'data-sources' && dataTransparency.length > 0 && (
+            <DIADataSourcesPanel 
+              transparencyData={dataTransparency} 
+              verificationData={dataSourceVerification} 
+            />
           )}
 
-          {activeTab === 'coverage' && crossChainCoverage && (
+          {activeTab === 'cross-chain' && crossChainCoverage && (
             <DIACrossChainCoveragePanel data={crossChainCoverage} />
           )}
 
-          {activeTab === 'verification' && dataSourceVerification.length > 0 && (
-            <DIADataSourceVerificationPanel data={dataSourceVerification} />
+          {activeTab === 'ecosystem' && (
+            <div className="space-y-6">
+              <EcosystemPanel />
+            </div>
+          )}
+
+          {activeTab === 'risk' && (
+            <div className="space-y-6">
+              <RiskAssessmentPanel provider={OracleProvider.DIA} />
+            </div>
           )}
         </div>
       </main>

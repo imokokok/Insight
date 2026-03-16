@@ -17,6 +17,7 @@ import {
 import { ChronicleScuttlebuttPanel } from '@/components/oracle/panels/ChronicleScuttlebuttPanel';
 import { ChronicleMakerDAOIntegrationPanel as ChronicleMakerDAOPanel } from '@/components/oracle/panels/ChronicleMakerDAOIntegrationPanel';
 import { ChronicleValidatorPanel as ChronicleValidatorMetricsPanel } from '@/components/oracle/panels/ChronicleValidatorPanel';
+import { ChronicleRiskAssessmentPanel } from '@/components/oracle/panels/ChronicleRiskAssessmentPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -239,6 +240,10 @@ export default function ChroniclePage() {
 
           {activeTab === 'validators' && validatorMetrics && (
             <ChronicleValidatorMetricsPanel data={validatorMetrics} />
+          )}
+
+          {activeTab === 'risk' && (
+            <ChronicleRiskAssessmentPanel />
           )}
         </div>
       </main>

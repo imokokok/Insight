@@ -113,18 +113,18 @@ export default function ProfessionalHero() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">
               <Link
-                href="/price-query"
+                href="/market-overview"
                 className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 group w-full sm:w-auto justify-center"
               >
-                {t('home.hero.ctaPrimary') || '开始探索'}
+                {t('home.hero.ctaPrimary') || '查看市场概览'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
               <Link
-                href="/docs"
+                href="/price-query"
                 className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-semibold border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors duration-200 group w-full sm:w-auto justify-center"
               >
-                <BookOpen className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
-                {t('home.hero.viewDocumentation')}
+                <Search className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
+                {t('home.hero.ctaSecondary') || '查询价格'}
               </Link>
             </div>
 

@@ -23,7 +23,7 @@ interface ATRDataPoint {
   close: number;
 }
 
-interface ATRIndicatorProps {
+export interface ATRIndicatorProps {
   data: ATRDataPoint[];
   period?: number;
   height?: number;

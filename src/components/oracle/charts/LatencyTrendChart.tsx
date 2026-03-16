@@ -956,7 +956,7 @@ export function LatencyTrendChart({
                   type="monotone"
                   dataKey="upperBound"
                   stroke="none"
-                  fill={chartColors.recharts.prediction}
+                  fill={chartColors.recharts.purple}
                   fillOpacity={0.1}
                   legendType="none"
                 />
@@ -987,11 +987,11 @@ export function LatencyTrendChart({
                 <Line
                   type="monotone"
                   dataKey="predicted"
-                  stroke={chartColors.recharts.prediction}
+                  stroke={chartColors.recharts.purple}
                   strokeWidth={2}
                   strokeDasharray="5 5"
-                  dot={{ r: 4, fill: chartColors.recharts.prediction, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: chartColors.recharts.prediction, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
+                  dot={{ r: 4, fill: chartColors.recharts.purple, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: chartColors.recharts.purple, stroke: chartColors.recharts.whiteLight, strokeWidth: 2 }}
                   name="SMA预测"
                   connectNulls={false}
                 />
