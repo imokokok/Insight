@@ -49,9 +49,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`relative px-4 py-3 text-left transition-all duration-200 border min-w-[140px] ${
-                isActive
-                  ? 'bg-white'
-                  : 'bg-transparent hover:bg-gray-50'
+                isActive ? 'bg-white' : 'bg-transparent hover:bg-gray-50'
               }`}
               style={{
                 borderColor: isActive ? baseColors.primary[500] : baseColors.gray[300],

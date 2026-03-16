@@ -112,12 +112,54 @@ const mitigationMeasures: MitigationMeasure[] = [
 
 // Score trend data for the chart
 const scoreTrendData = [
-  { date: '2024-01', overall: 82, decentralization: 80, security: 85, stability: 88, dataQuality: 84 },
-  { date: '2024-02', overall: 84, decentralization: 81, security: 86, stability: 89, dataQuality: 85 },
-  { date: '2024-03', overall: 85, decentralization: 81, security: 87, stability: 90, dataQuality: 86 },
-  { date: '2024-04', overall: 86, decentralization: 82, security: 87, stability: 90, dataQuality: 87 },
-  { date: '2024-05', overall: 87, decentralization: 82, security: 88, stability: 91, dataQuality: 88 },
-  { date: '2024-06', overall: 87, decentralization: 82, security: 88, stability: 91, dataQuality: 89 },
+  {
+    date: '2024-01',
+    overall: 82,
+    decentralization: 80,
+    security: 85,
+    stability: 88,
+    dataQuality: 84,
+  },
+  {
+    date: '2024-02',
+    overall: 84,
+    decentralization: 81,
+    security: 86,
+    stability: 89,
+    dataQuality: 85,
+  },
+  {
+    date: '2024-03',
+    overall: 85,
+    decentralization: 81,
+    security: 87,
+    stability: 90,
+    dataQuality: 86,
+  },
+  {
+    date: '2024-04',
+    overall: 86,
+    decentralization: 82,
+    security: 87,
+    stability: 90,
+    dataQuality: 87,
+  },
+  {
+    date: '2024-05',
+    overall: 87,
+    decentralization: 82,
+    security: 88,
+    stability: 91,
+    dataQuality: 88,
+  },
+  {
+    date: '2024-06',
+    overall: 87,
+    decentralization: 82,
+    security: 88,
+    stability: 91,
+    dataQuality: 89,
+  },
 ];
 
 interface CustomTooltipProps {
@@ -136,7 +178,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             <p key={index} className="text-sm flex items-center gap-2">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600 capitalize">{entry.dataKey}:</span>
-              <span className="font-bold" style={{ color: entry.color }}>{entry.value}</span>
+              <span className="font-bold" style={{ color: entry.color }}>
+                {entry.value}
+              </span>
             </p>
           ))}
         </div>
@@ -170,11 +214,15 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('band.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
-            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>
+              {overallScore}
+            </div>
             <div className="text-sm text-gray-500 mt-2">
               {t('band.riskAssessment.comprehensiveAssessment')}
             </div>
-            <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
+            <div
+              className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+            >
               {t(`band.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
@@ -280,23 +328,40 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
         <div className="flex items-center justify-center gap-6 mt-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.primary }} />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.primary }}
+            />
             <span className="text-xs text-gray-600">{t('band.riskAssessment.overall')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.success }} />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.success }}
+            />
             <span className="text-xs text-gray-600">{t('band.riskAssessment.security')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.warning }} />
-            <span className="text-xs text-gray-600">{t('band.riskAssessment.decentralization')}</span>
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.warning }}
+            />
+            <span className="text-xs text-gray-600">
+              {t('band.riskAssessment.decentralization')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.cyan }} />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.cyan }}
+            />
             <span className="text-xs text-gray-600">{t('band.riskAssessment.stability')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.purple }} />
+            <div
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.purple }}
+            />
             <span className="text-xs text-gray-600">{t('band.riskAssessment.dataQuality')}</span>
           </div>
         </div>
@@ -314,7 +379,9 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <span className="font-medium text-gray-900">22.5%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.top10ValidatorsShare')}</span>
+                <span className="text-gray-600">
+                  {t('band.riskAssessment.top10ValidatorsShare')}
+                </span>
                 <span className="font-medium text-gray-900">48.3%</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -352,12 +419,15 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
       <DashboardCard title={t('band.riskAssessment.crossChainRisk')}>
         <div className="space-y-4">
           {[
-            { chain: 'Cosmos Hub', availability: 99.90, latency: 3000, riskLevel: 'low' as const },
+            { chain: 'Cosmos Hub', availability: 99.9, latency: 3000, riskLevel: 'low' as const },
             { chain: 'Osmosis', availability: 99.85, latency: 2500, riskLevel: 'low' as const },
-            { chain: 'Juno', availability: 99.80, latency: 4000, riskLevel: 'low' as const },
+            { chain: 'Juno', availability: 99.8, latency: 4000, riskLevel: 'low' as const },
             { chain: 'Evmos', availability: 99.75, latency: 5000, riskLevel: 'low' as const },
           ].map((chain) => (
-            <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              key={chain.chain}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-900 w-32">{chain.chain}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">

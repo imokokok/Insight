@@ -89,9 +89,7 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
   if (!nftData) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="text-center text-gray-500 py-8">
-          {t('dia.nftData.noData')}
-        </div>
+        <div className="text-center text-gray-500 py-8">{t('dia.nftData.noData')}</div>
       </div>
     );
   }
@@ -106,7 +104,7 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
       {/* Summary Stats */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.nftData.title')}</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.totalCollections')}</p>
@@ -151,7 +149,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
       {/* Trending Collections */}
       {trending && trending.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.nftData.trendingTitle')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('dia.nftData.trendingTitle')}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {trending.map((collection) => (
               <div
@@ -163,7 +163,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
                     <h4 className="font-semibold text-gray-900">{collection.name}</h4>
                     <p className="text-sm text-gray-500">{collection.symbol}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs border ${getChainBadgeColor(collection.chain)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs border ${getChainBadgeColor(collection.chain)}`}
+                  >
                     {getChainLabel(collection.chain)}
                   </span>
                 </div>
@@ -174,7 +176,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">{t('dia.nftData.change24h')}</span>
-                    <span className={`px-2 py-0.5 rounded text-sm font-medium ${getPriceChangeBg(collection.floorPriceChange24h)} ${getPriceChangeColor(collection.floorPriceChange24h)}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded text-sm font-medium ${getPriceChangeBg(collection.floorPriceChange24h)} ${getPriceChangeColor(collection.floorPriceChange24h)}`}
+                    >
                       {formatPriceChange(collection.floorPriceChange24h)}
                     </span>
                   </div>
@@ -187,8 +191,10 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
 
       {/* All Collections */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.nftData.allCollections')}</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('dia.nftData.allCollections')}
+        </h3>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((collection) => (
             <div
@@ -201,7 +207,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
                   <h4 className="font-semibold text-gray-900 truncate">{collection.name}</h4>
                   <p className="text-sm text-gray-500">{collection.symbol}</p>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs border flex-shrink-0 ml-2 ${getChainBadgeColor(collection.chain)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs border flex-shrink-0 ml-2 ${getChainBadgeColor(collection.chain)}`}
+                >
                   {getChainLabel(collection.chain)}
                 </span>
               </div>
@@ -213,7 +221,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
                   <span className="text-sm text-gray-500">ETH</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-sm font-medium ${getPriceChangeColor(collection.floorPriceChange24h)}`}>
+                  <span
+                    className={`text-sm font-medium ${getPriceChangeColor(collection.floorPriceChange24h)}`}
+                  >
                     {formatPriceChange(collection.floorPriceChange24h)}
                   </span>
                   <span className="text-xs text-gray-400">{t('dia.nftData.24h')}</span>
@@ -224,18 +234,24 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="bg-gray-50 rounded p-2">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.nftData.volume24h')}</p>
-                  <p className="font-semibold text-gray-900">{collection.volume24h.toLocaleString()} ETH</p>
+                  <p className="font-semibold text-gray-900">
+                    {collection.volume24h.toLocaleString()} ETH
+                  </p>
                 </div>
                 <div className="bg-gray-50 rounded p-2">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.nftData.totalSupply')}</p>
-                  <p className="font-semibold text-gray-900">{collection.totalSupply.toLocaleString()}</p>
+                  <p className="font-semibold text-gray-900">
+                    {collection.totalSupply.toLocaleString()}
+                  </p>
                 </div>
               </div>
 
               {/* Confidence Score */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <span className="text-xs text-gray-500">{t('dia.nftData.confidence')}</span>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getConfidenceBg(collection.confidence)} ${getConfidenceColor(collection.confidence)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${getConfidenceBg(collection.confidence)} ${getConfidenceColor(collection.confidence)}`}
+                >
                   {(collection.confidence * 100).toFixed(0)}%
                 </span>
               </div>

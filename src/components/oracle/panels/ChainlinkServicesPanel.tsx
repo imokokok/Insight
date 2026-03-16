@@ -25,13 +25,34 @@ const servicesData: ServiceData[] = [
   {
     id: 'ccip',
     name: 'CCIP',
-    description: 'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers',
+    description:
+      'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers',
     status: 'active',
     metrics: [
-      { label: 'chainlink.services.ccip.messagesTransferred', value: '2.4M+', change: '+18%', changeType: 'positive' },
-      { label: 'chainlink.services.ccip.valueTransferred', value: '$12.8B+', change: '+25%', changeType: 'positive' },
-      { label: 'chainlink.services.ccip.avgTransferTime', value: '< 15 min', change: '-20%', changeType: 'positive' },
-      { label: 'chainlink.services.ccip.supportedChains', value: '18', change: '+3', changeType: 'positive' },
+      {
+        label: 'chainlink.services.ccip.messagesTransferred',
+        value: '2.4M+',
+        change: '+18%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.ccip.valueTransferred',
+        value: '$12.8B+',
+        change: '+25%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.ccip.avgTransferTime',
+        value: '< 15 min',
+        change: '-20%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.ccip.supportedChains',
+        value: '18',
+        change: '+3',
+        changeType: 'positive',
+      },
     ],
     features: [
       'Arbitrary messaging across chains',
@@ -40,24 +61,55 @@ const servicesData: ServiceData[] = [
       'Rate limiting for security',
       'Risk management network',
     ],
-    useCases: ['Cross-chain DeFi', 'Multi-chain NFTs', 'Cross-chain governance', 'Interoperable gaming'],
+    useCases: [
+      'Cross-chain DeFi',
+      'Multi-chain NFTs',
+      'Cross-chain governance',
+      'Interoperable gaming',
+    ],
     color: 'blue',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+        />
       </svg>
     ),
   },
   {
     id: 'functions',
     name: 'Functions',
-    description: 'Serverless Web3 platform for fetching data from any API and running custom computations',
+    description:
+      'Serverless Web3 platform for fetching data from any API and running custom computations',
     status: 'active',
     metrics: [
-      { label: 'chainlink.services.functions.totalCalls', value: '8.5M+', change: '+42%', changeType: 'positive' },
-      { label: 'chainlink.services.functions.avgExecutionTime', value: '< 3s', change: '-15%', changeType: 'positive' },
-      { label: 'chainlink.services.functions.supportedApis', value: '10,000+', change: '+500', changeType: 'positive' },
-      { label: 'chainlink.services.functions.successRate', value: '99.8%', change: '+0.2%', changeType: 'positive' },
+      {
+        label: 'chainlink.services.functions.totalCalls',
+        value: '8.5M+',
+        change: '+42%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.functions.avgExecutionTime',
+        value: '< 3s',
+        change: '-15%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.functions.supportedApis',
+        value: '10,000+',
+        change: '+500',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.functions.successRate',
+        value: '99.8%',
+        change: '+0.2%',
+        changeType: 'positive',
+      },
     ],
     features: [
       'Connect to any API',
@@ -70,7 +122,12 @@ const servicesData: ServiceData[] = [
     color: 'purple',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+        />
       </svg>
     ),
   },
@@ -80,10 +137,30 @@ const servicesData: ServiceData[] = [
     description: 'Reliable and performant smart contract automation for conditional execution',
     status: 'active',
     metrics: [
-      { label: 'chainlink.services.automation.tasksRegistered', value: '125K+', change: '+35%', changeType: 'positive' },
-      { label: 'chainlink.services.automation.dailyExecutions', value: '2.1M+', change: '+28%', changeType: 'positive' },
-      { label: 'chainlink.services.automation.gasSavings', value: '35%', change: '+5%', changeType: 'positive' },
-      { label: 'chainlink.services.automation.uptime', value: '99.99%', change: '0%', changeType: 'neutral' },
+      {
+        label: 'chainlink.services.automation.tasksRegistered',
+        value: '125K+',
+        change: '+35%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.automation.dailyExecutions',
+        value: '2.1M+',
+        change: '+28%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.automation.gasSavings',
+        value: '35%',
+        change: '+5%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.automation.uptime',
+        value: '99.99%',
+        change: '0%',
+        changeType: 'neutral',
+      },
     ],
     features: [
       'Time-based triggers',
@@ -96,7 +173,12 @@ const servicesData: ServiceData[] = [
     color: 'green',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
     ),
   },
@@ -106,10 +188,30 @@ const servicesData: ServiceData[] = [
     description: 'Verifiable Random Function for provably fair and tamper-proof randomness',
     status: 'active',
     metrics: [
-      { label: 'chainlink.services.vrf.requestsFulfilled', value: '15.2M+', change: '+55%', changeType: 'positive' },
-      { label: 'chainlink.services.vrf.v2_5Adoption', value: '78%', change: '+12%', changeType: 'positive' },
-      { label: 'chainlink.services.vrf.avgFulfillmentTime', value: '< 60s', change: '-10%', changeType: 'positive' },
-      { label: 'chainlink.services.vrf.gamingUsage', value: '45%', change: '+8%', changeType: 'positive' },
+      {
+        label: 'chainlink.services.vrf.requestsFulfilled',
+        value: '15.2M+',
+        change: '+55%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.vrf.v2_5Adoption',
+        value: '78%',
+        change: '+12%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.vrf.avgFulfillmentTime',
+        value: '< 60s',
+        change: '-10%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.vrf.gamingUsage',
+        value: '45%',
+        change: '+8%',
+        changeType: 'positive',
+      },
     ],
     features: [
       'Cryptographically proven randomness',
@@ -122,7 +224,12 @@ const servicesData: ServiceData[] = [
     color: 'pink',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+        />
       </svg>
     ),
   },
@@ -132,10 +239,30 @@ const servicesData: ServiceData[] = [
     description: 'Transparent on-chain attestation of off-chain or cross-chain asset reserves',
     status: 'active',
     metrics: [
-      { label: 'chainlink.services.por.assetsMonitored', value: '25+', change: '+5', changeType: 'positive' },
-      { label: 'chainlink.services.por.valueAttested', value: '$45B+', change: '+15%', changeType: 'positive' },
-      { label: 'chainlink.services.por.auditFrequency', value: 'Real-time', change: '-', changeType: 'neutral' },
-      { label: 'chainlink.services.por.integratedProtocols', value: '12', change: '+2', changeType: 'positive' },
+      {
+        label: 'chainlink.services.por.assetsMonitored',
+        value: '25+',
+        change: '+5',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.por.valueAttested',
+        value: '$45B+',
+        change: '+15%',
+        changeType: 'positive',
+      },
+      {
+        label: 'chainlink.services.por.auditFrequency',
+        value: 'Real-time',
+        change: '-',
+        changeType: 'neutral',
+      },
+      {
+        label: 'chainlink.services.por.integratedProtocols',
+        value: '12',
+        change: '+2',
+        changeType: 'positive',
+      },
     ],
     features: [
       'Real-time reserve monitoring',
@@ -144,11 +271,21 @@ const servicesData: ServiceData[] = [
       'Cross-chain reserve tracking',
       'DeFi collateral verification',
     ],
-    useCases: ['Stablecoin transparency', 'Wrapped assets', 'Cross-chain bridges', 'DeFi collateral'],
+    useCases: [
+      'Stablecoin transparency',
+      'Wrapped assets',
+      'Cross-chain bridges',
+      'DeFi collateral',
+    ],
     color: 'amber',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
     ),
   },
@@ -202,17 +339,23 @@ export function ChainlinkServicesPanel() {
 
         <DashboardCard title={t('chainlink.services.totalRequests')}>
           <div className="text-3xl font-bold text-gray-900">26.6M+</div>
-          <div className="text-sm text-green-600 mt-1">+35% {t('chainlink.services.thisMonth')}</div>
+          <div className="text-sm text-green-600 mt-1">
+            +35% {t('chainlink.services.thisMonth')}
+          </div>
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.services.totalValueSecured')}>
           <div className="text-3xl font-bold text-gray-900">$58B+</div>
-          <div className="text-sm text-gray-500 mt-1">{t('chainlink.services.acrossAllServices')}</div>
+          <div className="text-sm text-gray-500 mt-1">
+            {t('chainlink.services.acrossAllServices')}
+          </div>
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.services.avgUptime')}>
           <div className="text-3xl font-bold text-green-600">99.97%</div>
-          <div className="text-sm text-gray-500 mt-1">{t('chainlink.services.serviceAvailability')}</div>
+          <div className="text-sm text-gray-500 mt-1">
+            {t('chainlink.services.serviceAvailability')}
+          </div>
         </DashboardCard>
       </div>
 
@@ -228,14 +371,18 @@ export function ChainlinkServicesPanel() {
                   <div className={`p-2 rounded-lg ${colors.bg} ${colors.text}`}>{service.icon}</div>
                   <div>
                     <div className="font-semibold text-gray-900">{service.name}</div>
-                    <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(service.status)}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs ${getStatusColor(service.status)}`}
+                    >
                       {t(`chainlink.services.status.${service.status}`)}
                     </span>
                   </div>
                 </div>
               }
               className={`cursor-pointer transition-all ${
-                selectedService === service.id ? `ring-2 ring-blue-500 ${colors.bg}` : 'hover:shadow-md'
+                selectedService === service.id
+                  ? `ring-2 ring-blue-500 ${colors.bg}`
+                  : 'hover:shadow-md'
               }`}
             >
               <p className="text-sm text-gray-600 mb-4">{service.description}</p>
@@ -261,10 +408,15 @@ export function ChainlinkServicesPanel() {
 
               {/* Features */}
               <div className="space-y-1">
-                <div className="text-xs font-medium text-gray-700">{t('chainlink.services.keyFeatures')}</div>
+                <div className="text-xs font-medium text-gray-700">
+                  {t('chainlink.services.keyFeatures')}
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {service.features.slice(0, 3).map((feature, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                    >
                       {feature}
                     </span>
                   ))}
@@ -286,8 +438,12 @@ export function ChainlinkServicesPanel() {
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">{(chain.messages / 1000).toFixed(0)}K</div>
-                  <div className="text-xs text-gray-500">{t('chainlink.services.ccip.messages')}</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {(chain.messages / 1000).toFixed(0)}K
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {t('chainlink.services.ccip.messages')}
+                  </div>
                 </div>
                 <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -296,7 +452,9 @@ export function ChainlinkServicesPanel() {
                   ></div>
                 </div>
                 <div className="text-right w-20">
-                  <div className="text-sm font-medium text-gray-900">${(chain.value / 1e9).toFixed(1)}B</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    ${(chain.value / 1e9).toFixed(1)}B
+                  </div>
                   <div className="text-xs text-gray-500">{t('chainlink.services.ccip.value')}</div>
                 </div>
               </div>
@@ -311,11 +469,21 @@ export function ChainlinkServicesPanel() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-gray-600 font-medium">{t('chainlink.services.serviceName')}</th>
-                <th className="text-right py-3 text-gray-600 font-medium">{t('chainlink.services.requests')}</th>
-                <th className="text-right py-3 text-gray-600 font-medium">{t('chainlink.services.avgResponse')}</th>
-                <th className="text-center py-3 text-gray-600 font-medium">{t('chainlink.services.status.status')}</th>
-                <th className="text-left py-3 text-gray-600 font-medium">{t('chainlink.services.topUseCases')}</th>
+                <th className="text-left py-3 text-gray-600 font-medium">
+                  {t('chainlink.services.serviceName')}
+                </th>
+                <th className="text-right py-3 text-gray-600 font-medium">
+                  {t('chainlink.services.requests')}
+                </th>
+                <th className="text-right py-3 text-gray-600 font-medium">
+                  {t('chainlink.services.avgResponse')}
+                </th>
+                <th className="text-center py-3 text-gray-600 font-medium">
+                  {t('chainlink.services.status.status')}
+                </th>
+                <th className="text-left py-3 text-gray-600 font-medium">
+                  {t('chainlink.services.topUseCases')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -337,7 +505,10 @@ export function ChainlinkServicesPanel() {
                   <td className="py-3">
                     <div className="flex flex-wrap gap-1">
                       {service.useCases.slice(0, 2).map((useCase, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                        >
                           {useCase}
                         </span>
                       ))}

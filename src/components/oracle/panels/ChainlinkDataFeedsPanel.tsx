@@ -22,16 +22,106 @@ interface CategoryData {
 }
 
 const mockDataFeeds: DataFeed[] = [
-  { id: '1', name: 'ETH/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '0.5%', status: 'active', totalRequests: 12500000, reliability: 99.99 },
-  { id: '2', name: 'BTC/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '0.5%', status: 'active', totalRequests: 15200000, reliability: 99.99 },
-  { id: '3', name: 'LINK/USD', category: 'crypto', updateFrequency: '60s', deviationThreshold: '1%', status: 'active', totalRequests: 8900000, reliability: 99.98 },
-  { id: '4', name: 'EUR/USD', category: 'forex', updateFrequency: '300s', deviationThreshold: '0.1%', status: 'active', totalRequests: 5600000, reliability: 99.97 },
-  { id: '5', name: 'GBP/USD', category: 'forex', updateFrequency: '300s', deviationThreshold: '0.1%', status: 'active', totalRequests: 3200000, reliability: 99.96 },
-  { id: '6', name: 'XAU/USD', category: 'commodities', updateFrequency: '600s', deviationThreshold: '0.2%', status: 'active', totalRequests: 2100000, reliability: 99.95 },
-  { id: '7', name: 'Aave V2', category: 'defi', updateFrequency: '120s', deviationThreshold: '0.5%', status: 'active', totalRequests: 7800000, reliability: 99.98 },
-  { id: '8', name: 'Uniswap V3', category: 'defi', updateFrequency: '120s', deviationThreshold: '0.5%', status: 'active', totalRequests: 9200000, reliability: 99.98 },
-  { id: '9', name: 'S&P 500', category: 'indices', updateFrequency: '3600s', deviationThreshold: '0.1%', status: 'active', totalRequests: 1500000, reliability: 99.94 },
-  { id: '10', name: 'NFT Floor Price', category: 'nft', updateFrequency: '1800s', deviationThreshold: '2%', status: 'active', totalRequests: 890000, reliability: 99.92 },
+  {
+    id: '1',
+    name: 'ETH/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 12500000,
+    reliability: 99.99,
+  },
+  {
+    id: '2',
+    name: 'BTC/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 15200000,
+    reliability: 99.99,
+  },
+  {
+    id: '3',
+    name: 'LINK/USD',
+    category: 'crypto',
+    updateFrequency: '60s',
+    deviationThreshold: '1%',
+    status: 'active',
+    totalRequests: 8900000,
+    reliability: 99.98,
+  },
+  {
+    id: '4',
+    name: 'EUR/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 5600000,
+    reliability: 99.97,
+  },
+  {
+    id: '5',
+    name: 'GBP/USD',
+    category: 'forex',
+    updateFrequency: '300s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 3200000,
+    reliability: 99.96,
+  },
+  {
+    id: '6',
+    name: 'XAU/USD',
+    category: 'commodities',
+    updateFrequency: '600s',
+    deviationThreshold: '0.2%',
+    status: 'active',
+    totalRequests: 2100000,
+    reliability: 99.95,
+  },
+  {
+    id: '7',
+    name: 'Aave V2',
+    category: 'defi',
+    updateFrequency: '120s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 7800000,
+    reliability: 99.98,
+  },
+  {
+    id: '8',
+    name: 'Uniswap V3',
+    category: 'defi',
+    updateFrequency: '120s',
+    deviationThreshold: '0.5%',
+    status: 'active',
+    totalRequests: 9200000,
+    reliability: 99.98,
+  },
+  {
+    id: '9',
+    name: 'S&P 500',
+    category: 'indices',
+    updateFrequency: '3600s',
+    deviationThreshold: '0.1%',
+    status: 'active',
+    totalRequests: 1500000,
+    reliability: 99.94,
+  },
+  {
+    id: '10',
+    name: 'NFT Floor Price',
+    category: 'nft',
+    updateFrequency: '1800s',
+    deviationThreshold: '2%',
+    status: 'active',
+    totalRequests: 890000,
+    reliability: 99.92,
+  },
 ];
 
 const categoryData: CategoryData[] = [
@@ -71,22 +161,19 @@ export function ChainlinkDataFeedsPanel() {
         <DashboardCard title={t('chainlink.dataFeeds.categories')}>
           <div className="text-3xl font-bold text-gray-900">{categoryData.length}</div>
           <div className="text-sm text-gray-500 mt-1">
-            {t('chainlink.dataFeeds.defi')}, {t('chainlink.dataFeeds.crypto')}, {t('chainlink.dataFeeds.forex')}
+            {t('chainlink.dataFeeds.defi')}, {t('chainlink.dataFeeds.crypto')},{' '}
+            {t('chainlink.dataFeeds.forex')}
           </div>
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.dataFeeds.usageStats')}>
           <div className="text-3xl font-bold text-gray-900">2.8B</div>
-          <div className="text-sm text-gray-500 mt-1">
-            {t('chainlink.dataFeeds.totalRequests')}
-          </div>
+          <div className="text-sm text-gray-500 mt-1">{t('chainlink.dataFeeds.totalRequests')}</div>
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.dataFeeds.feedPerformance')}>
           <div className="text-3xl font-bold text-green-600">99.97%</div>
-          <div className="text-sm text-gray-500 mt-1">
-            {t('chainlink.dataFeeds.reliability')}
-          </div>
+          <div className="text-sm text-gray-500 mt-1">{t('chainlink.dataFeeds.reliability')}</div>
         </DashboardCard>
       </div>
 
@@ -96,7 +183,9 @@ export function ChainlinkDataFeedsPanel() {
           {categoryData.map((category) => (
             <button
               key={category.name}
-              onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+              onClick={() =>
+                setSelectedCategory(selectedCategory === category.name ? null : category.name)
+              }
               className={`p-3 rounded-lg border text-left transition-all ${
                 selectedCategory === category.name
                   ? 'border-blue-500 bg-blue-50'
@@ -161,8 +250,8 @@ export function ChainlinkDataFeedsPanel() {
                         feed.status === 'active'
                           ? 'bg-green-100 text-green-700'
                           : feed.status === 'paused'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
                       }`}
                     >
                       {t(`chainlink.dataFeeds.${feed.status}`)}

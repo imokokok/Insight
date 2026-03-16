@@ -16,6 +16,7 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ## Technology Stack
 
 ### Frontend
+
 - **Framework**: Next.js 16 (App Router)
 - **UI Library**: React 19
 - **Language**: TypeScript
@@ -25,12 +26,14 @@ Insight is a professional oracle data analytics platform that provides comprehen
 - **Animations**: Framer Motion
 
 ### Backend
+
 - **API**: Next.js API Routes
 - **Database**: Supabase (PostgreSQL with Row Level Security)
 - **Authentication**: Supabase Auth with OAuth support
 - **Real-time**: WebSocket, Supabase Realtime
 
 ### Oracle Clients
+
 - Pyth Hermes Client (`@pythnetwork/hermes-client`)
 - Custom oracle clients for Chainlink, Band Protocol, UMA, and API3
 
@@ -43,12 +46,14 @@ Insight is a professional oracle data analytics platform that provides comprehen
 ## Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd insight
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -64,17 +69,18 @@ Insight is a professional oracle data analytics platform that provides comprehen
 
 Create a `.env.local` file in the root directory with the following variables:
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `NEXT_PUBLIC_APP_URL` | Application base URL | No |
-| `NEXT_PUBLIC_WS_URL` | WebSocket server URL | No |
-| `NEXT_PUBLIC_ENABLE_REALTIME` | Enable real-time features (default: true) | No |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable Vercel Analytics | No |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | No |
+| Variable                                    | Description                               | Required |
+| ------------------------------------------- | ----------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                      | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                    | Yes      |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL                      | No       |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                      | No       |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true) | No       |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                   | No       |
+| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring             | No       |
 
 Example `.env.local`:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -87,14 +93,14 @@ NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING=true
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run test` | Run tests |
-| `npm run test:watch` | Run tests in watch mode |
+| Command                 | Description                    |
+| ----------------------- | ------------------------------ |
+| `npm run dev`           | Start development server       |
+| `npm run build`         | Build for production           |
+| `npm run start`         | Start production server        |
+| `npm run lint`          | Run ESLint                     |
+| `npm run test`          | Run tests                      |
+| `npm run test:watch`    | Run tests in watch mode        |
 | `npm run test:coverage` | Run tests with coverage report |
 
 ## Project Structure
@@ -179,22 +185,27 @@ insight/
 ## Supported Oracles
 
 ### Chainlink
+
 - **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom
 - **Features**: Node analytics, extensive data feeds, high reliability
 
 ### Band Protocol
+
 - **Supported Chains**: Cosmos, Osmosis, Juno, Ethereum, Polygon, Avalanche, Fantom, Cronos
 - **Features**: Validator analytics, cross-chain data feeds
 
 ### UMA
+
 - **Supported Chains**: Ethereum, Arbitrum, Optimism, Polygon, Base
 - **Features**: Optimistic oracle, dispute resolution, validator analytics
 
 ### Pyth
+
 - **Supported Chains**: Solana, Ethereum, Arbitrum, Polygon, Optimism, Avalanche, Base
 - **Features**: Publisher analytics, high-frequency updates, confidence intervals
 
 ### API3
+
 - **Supported Chains**: Ethereum, Arbitrum, Polygon, Avalanche, Base, BNB Chain, Optimism
 - **Features**: First-party oracle, quantifiable security, Airnode deployments
 
@@ -214,10 +225,12 @@ All tables have Row Level Security (RLS) enabled for data protection.
 ## API Endpoints
 
 ### Authentication
+
 - `GET /api/auth/callback` - OAuth callback handler
 - `GET /api/auth/profile` - Get user profile
 
 ### Alerts
+
 - `GET /api/alerts` - List user alerts
 - `POST /api/alerts` - Create new alert
 - `GET /api/alerts/[id]` - Get specific alert
@@ -227,12 +240,14 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `POST /api/alerts/events/[id]/acknowledge` - Acknowledge alert event
 
 ### Favorites
+
 - `GET /api/favorites` - List user favorites
 - `POST /api/favorites` - Create favorite
 - `GET /api/favorites/[id]` - Get specific favorite
 - `DELETE /api/favorites/[id]` - Delete favorite
 
 ### Snapshots
+
 - `GET /api/snapshots` - List user snapshots
 - `POST /api/snapshots` - Create snapshot
 - `GET /api/snapshots/[id]` - Get specific snapshot
@@ -240,6 +255,7 @@ All tables have Row Level Security (RLS) enabled for data protection.
 - `GET /api/snapshots/[id]/share` - Get shareable snapshot
 
 ### Oracles
+
 - `GET /api/oracles` - List all oracle providers
 - `GET /api/oracles/[provider]` - Get oracle data
 

@@ -23,7 +23,9 @@ export function Card({
     outlined: `${tailwindClasses.borderBase.DEFAULT} ${tailwindClasses.border.DEFAULT}`,
   };
 
-  const hoverClasses = hoverable ? `${tailwindClasses.hover.borderDark} ${tailwindClasses.cursor.pointer}` : '';
+  const hoverClasses = hoverable
+    ? `${tailwindClasses.hover.borderDark} ${tailwindClasses.cursor.pointer}`
+    : '';
 
   return (
     <div
@@ -41,7 +43,13 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`${tailwindClasses.spacing.cardPadding} ${tailwindClasses.borderBase.bottom} ${tailwindClasses.border.light} ${className}`}>{children}</div>;
+  return (
+    <div
+      className={`${tailwindClasses.spacing.cardPadding} ${tailwindClasses.borderBase.bottom} ${tailwindClasses.border.light} ${className}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 interface CardTitleProps {
@@ -50,7 +58,11 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return <h3 className={`${tailwindClasses.font.title} ${tailwindClasses.text.primary} ${className}`}>{children}</h3>;
+  return (
+    <h3 className={`${tailwindClasses.font.title} ${tailwindClasses.text.primary} ${className}`}>
+      {children}
+    </h3>
+  );
 }
 
 interface CardContentProps {

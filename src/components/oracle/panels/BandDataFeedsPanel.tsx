@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -165,20 +166,76 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
         ];
 
         const mockDataSources: DataSource[] = [
-          { name: 'Binance', type: 'CEX', feeds: 45, reliability: 99.9, avgLatency: 50, status: 'active' },
-          { name: 'Coinbase', type: 'CEX', feeds: 40, reliability: 99.8, avgLatency: 60, status: 'active' },
-          { name: 'Kraken', type: 'CEX', feeds: 35, reliability: 99.7, avgLatency: 70, status: 'active' },
-          { name: 'Huobi', type: 'CEX', feeds: 30, reliability: 99.6, avgLatency: 80, status: 'active' },
-          { name: 'OKX', type: 'CEX', feeds: 28, reliability: 99.5, avgLatency: 75, status: 'active' },
-          { name: 'KuCoin', type: 'CEX', feeds: 25, reliability: 99.4, avgLatency: 85, status: 'active' },
-          { name: 'Bitfinex', type: 'CEX', feeds: 20, reliability: 99.5, avgLatency: 90, status: 'active' },
-          { name: 'CryptoCompare', type: 'Aggregator', feeds: 50, reliability: 99.3, avgLatency: 100, status: 'active' },
+          {
+            name: 'Binance',
+            type: 'CEX',
+            feeds: 45,
+            reliability: 99.9,
+            avgLatency: 50,
+            status: 'active',
+          },
+          {
+            name: 'Coinbase',
+            type: 'CEX',
+            feeds: 40,
+            reliability: 99.8,
+            avgLatency: 60,
+            status: 'active',
+          },
+          {
+            name: 'Kraken',
+            type: 'CEX',
+            feeds: 35,
+            reliability: 99.7,
+            avgLatency: 70,
+            status: 'active',
+          },
+          {
+            name: 'Huobi',
+            type: 'CEX',
+            feeds: 30,
+            reliability: 99.6,
+            avgLatency: 80,
+            status: 'active',
+          },
+          {
+            name: 'OKX',
+            type: 'CEX',
+            feeds: 28,
+            reliability: 99.5,
+            avgLatency: 75,
+            status: 'active',
+          },
+          {
+            name: 'KuCoin',
+            type: 'CEX',
+            feeds: 25,
+            reliability: 99.4,
+            avgLatency: 85,
+            status: 'active',
+          },
+          {
+            name: 'Bitfinex',
+            type: 'CEX',
+            feeds: 20,
+            reliability: 99.5,
+            avgLatency: 90,
+            status: 'active',
+          },
+          {
+            name: 'CryptoCompare',
+            type: 'Aggregator',
+            feeds: 50,
+            reliability: 99.3,
+            avgLatency: 100,
+            status: 'active',
+          },
         ];
 
         setPriceFeeds(mockPriceFeeds);
         setDataSources(mockDataSources);
       } catch (error) {
-        console.error('Failed to fetch data feeds:', error);
+        logger.error('Failed to fetch data feeds:', error instanceof Error ? error : new Error(String(error)));
       } finally {
         setLoading(false);
       }
@@ -202,15 +259,17 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
     return `${Math.floor(minutes / 60)}h ago`;
   };
 
-  const filteredFeeds = selectedCategory === 'all' 
-    ? priceFeeds 
-    : priceFeeds.filter(feed => {
-        if (selectedCategory === 'crypto') return !feed.symbol.includes('USD/USD');
-        if (selectedCategory === 'stablecoin') return feed.symbol.includes('USD') && feed.price < 2;
-        return true;
-      });
+  const filteredFeeds =
+    selectedCategory === 'all'
+      ? priceFeeds
+      : priceFeeds.filter((feed) => {
+          if (selectedCategory === 'crypto') return !feed.symbol.includes('USD/USD');
+          if (selectedCategory === 'stablecoin')
+            return feed.symbol.includes('USD') && feed.price < 2;
+          return true;
+        });
 
-  const activeFeeds = priceFeeds.filter(f => f.status === 'active').length;
+  const activeFeeds = priceFeeds.filter((f) => f.status === 'active').length;
   const totalSources = dataSources.reduce((sum, s) => sum + s.feeds, 0);
   const avgConfidence = priceFeeds.reduce((sum, f) => sum + f.confidence, 0) / priceFeeds.length;
 
@@ -253,23 +312,20 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.dataFeeds.avgConfidence')}
           </p>
-          <p className="text-2xl font-bold text-purple-600">
-            {avgConfidence.toFixed(1)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.dataFeeds.acrossAllFeeds')}
-          </p>
+          <p className="text-2xl font-bold text-purple-600">{avgConfidence.toFixed(1)}%</p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.dataFeeds.acrossAllFeeds')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.dataFeeds.avgUpdateFreq')}
           </p>
           <p className="text-2xl font-bold text-gray-900">
-            {Math.round(priceFeeds.reduce((sum, f) => sum + f.updateFrequency, 0) / priceFeeds.length)}s
+            {Math.round(
+              priceFeeds.reduce((sum, f) => sum + f.updateFrequency, 0) / priceFeeds.length
+            )}
+            s
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.dataFeeds.updateInterval')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.dataFeeds.updateInterval')}</p>
         </div>
       </div>
 
@@ -334,9 +390,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                       </div>
                     </td>
                     <td className="text-right py-3 px-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatPrice(feed.price)}
-                      </p>
+                      <p className="text-sm font-medium text-gray-900">{formatPrice(feed.price)}</p>
                     </td>
                     <td className="text-right py-3 px-4">
                       <span
@@ -349,9 +403,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                       </span>
                     </td>
                     <td className="text-center py-3 px-4">
-                      <span className="text-sm text-gray-600">
-                        {feed.updateFrequency}s
-                      </span>
+                      <span className="text-sm text-gray-600">{feed.updateFrequency}s</span>
                     </td>
                     <td className="text-center py-3 px-4">
                       <div className="flex items-center justify-center gap-2">
@@ -361,9 +413,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                             style={{ width: `${feed.confidence}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-600">
-                          {feed.confidence.toFixed(1)}%
-                        </span>
+                        <span className="text-xs text-gray-600">{feed.confidence.toFixed(1)}%</span>
                       </div>
                     </td>
                     <td className="text-center py-3 px-4">
@@ -375,8 +425,8 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                           feed.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : feed.status === 'warning'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-gray-100 text-gray-600'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {feed.status === 'active' ? '●' : '○'} {feed.status}
@@ -393,9 +443,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
       {/* Data Sources */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.dataFeeds.dataSources')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('band.dataFeeds.dataSources')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -439,9 +487,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
       {/* Data Quality Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.dataFeeds.dataQuality')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('band.dataFeeds.dataQuality')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -449,25 +495,17 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
               <h4 className="font-medium text-purple-900 mb-2">
                 {t('band.dataFeeds.multiSource')}
               </h4>
-              <p className="text-sm text-purple-700">
-                {t('band.dataFeeds.multiSourceDesc')}
-              </p>
+              <p className="text-sm text-purple-700">{t('band.dataFeeds.multiSourceDesc')}</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">
-                {t('band.dataFeeds.realTime')}
-              </h4>
-              <p className="text-sm text-blue-700">
-                {t('band.dataFeeds.realTimeDesc')}
-              </p>
+              <h4 className="font-medium text-blue-900 mb-2">{t('band.dataFeeds.realTime')}</h4>
+              <p className="text-sm text-blue-700">{t('band.dataFeeds.realTimeDesc')}</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">
                 {t('band.dataFeeds.decentralized')}
               </h4>
-              <p className="text-sm text-green-700">
-                {t('band.dataFeeds.decentralizedDesc')}
-              </p>
+              <p className="text-sm text-green-700">{t('band.dataFeeds.decentralizedDesc')}</p>
             </div>
           </div>
         </CardContent>

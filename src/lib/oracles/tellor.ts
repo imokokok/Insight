@@ -485,7 +485,7 @@ export class TellorClient extends BaseOracleClient {
     });
 
     const totalStaked = reporters.reduce((sum, r) => sum + r.stakedAmount, 0);
-    const activeReporters = reporters.filter(r => r.status === 'active').length;
+    const activeReporters = reporters.filter((r) => r.status === 'active').length;
     const totalReports24h = reporters.reduce((sum, r) => sum + Math.floor(r.totalReports * 0.1), 0);
 
     const stakeRanges = [
@@ -495,8 +495,10 @@ export class TellorClient extends BaseOracleClient {
       { min: 100000, max: Infinity, label: '> 100K TRB' },
     ];
 
-    const stakeDistribution = stakeRanges.map(range => {
-      const count = reporters.filter(r => r.stakedAmount >= range.min && r.stakedAmount < range.max).length;
+    const stakeDistribution = stakeRanges.map((range) => {
+      const count = reporters.filter(
+        (r) => r.stakedAmount >= range.min && r.stakedAmount < range.max
+      ).length;
       return {
         range: range.label,
         count,
@@ -516,7 +518,9 @@ export class TellorClient extends BaseOracleClient {
       totalStaked,
       avgStakePerReporter: Math.floor(totalStaked / reporters.length),
       totalReports24h,
-      avgRewardsPerReporter: Math.floor(reporters.reduce((sum, r) => sum + r.rewardsEarned, 0) / reporters.length),
+      avgRewardsPerReporter: Math.floor(
+        reporters.reduce((sum, r) => sum + r.rewardsEarned, 0) / reporters.length
+      ),
       reporters: reporters.sort((a, b) => b.stakedAmount - a.stakedAmount).slice(0, 10),
       stakeDistribution,
       activityTrend,
@@ -574,25 +578,83 @@ export class TellorClient extends BaseOracleClient {
 
   async getEcosystemStats(): Promise<EcosystemStats> {
     const protocols: EcosystemProtocol[] = [
-      { id: '1', name: 'Aave', category: 'lending', tvl: 8500000000, dataFeeds: ['ETH/USD', 'BTC/USD', 'LINK/USD'], integrationDate: Date.now() - 86400000 * 365 },
-      { id: '2', name: 'Compound', category: 'lending', tvl: 4200000000, dataFeeds: ['ETH/USD', 'USDC/USD', 'DAI/USD'], integrationDate: Date.now() - 86400000 * 300 },
-      { id: '3', name: 'Synthetix', category: 'derivatives', tvl: 2800000000, dataFeeds: ['ETH/USD', 'BTC/USD', 'SNX/USD'], integrationDate: Date.now() - 86400000 * 280 },
-      { id: '4', name: 'Liquity', category: 'lending', tvl: 1200000000, dataFeeds: ['ETH/USD'], integrationDate: Date.now() - 86400000 * 250 },
-      { id: '5', name: 'Alchemix', category: 'yield', tvl: 450000000, dataFeeds: ['ETH/USD', 'DAI/USD'], integrationDate: Date.now() - 86400000 * 200 },
-      { id: '6', name: 'Ribbon Finance', category: 'derivatives', tvl: 380000000, dataFeeds: ['ETH/USD', 'BTC/USD'], integrationDate: Date.now() - 86400000 * 180 },
-      { id: '7', name: 'Nexus Mutual', category: 'insurance', tvl: 320000000, dataFeeds: ['ETH/USD', 'NXM/USD'], integrationDate: Date.now() - 86400000 * 150 },
-      { id: '8', name: 'Uniswap V3', category: 'dex', tvl: 2100000000, dataFeeds: ['ETH/USD', 'UNI/USD'], integrationDate: Date.now() - 86400000 * 400 },
+      {
+        id: '1',
+        name: 'Aave',
+        category: 'lending',
+        tvl: 8500000000,
+        dataFeeds: ['ETH/USD', 'BTC/USD', 'LINK/USD'],
+        integrationDate: Date.now() - 86400000 * 365,
+      },
+      {
+        id: '2',
+        name: 'Compound',
+        category: 'lending',
+        tvl: 4200000000,
+        dataFeeds: ['ETH/USD', 'USDC/USD', 'DAI/USD'],
+        integrationDate: Date.now() - 86400000 * 300,
+      },
+      {
+        id: '3',
+        name: 'Synthetix',
+        category: 'derivatives',
+        tvl: 2800000000,
+        dataFeeds: ['ETH/USD', 'BTC/USD', 'SNX/USD'],
+        integrationDate: Date.now() - 86400000 * 280,
+      },
+      {
+        id: '4',
+        name: 'Liquity',
+        category: 'lending',
+        tvl: 1200000000,
+        dataFeeds: ['ETH/USD'],
+        integrationDate: Date.now() - 86400000 * 250,
+      },
+      {
+        id: '5',
+        name: 'Alchemix',
+        category: 'yield',
+        tvl: 450000000,
+        dataFeeds: ['ETH/USD', 'DAI/USD'],
+        integrationDate: Date.now() - 86400000 * 200,
+      },
+      {
+        id: '6',
+        name: 'Ribbon Finance',
+        category: 'derivatives',
+        tvl: 380000000,
+        dataFeeds: ['ETH/USD', 'BTC/USD'],
+        integrationDate: Date.now() - 86400000 * 180,
+      },
+      {
+        id: '7',
+        name: 'Nexus Mutual',
+        category: 'insurance',
+        tvl: 320000000,
+        dataFeeds: ['ETH/USD', 'NXM/USD'],
+        integrationDate: Date.now() - 86400000 * 150,
+      },
+      {
+        id: '8',
+        name: 'Uniswap V3',
+        category: 'dex',
+        tvl: 2100000000,
+        dataFeeds: ['ETH/USD', 'UNI/USD'],
+        integrationDate: Date.now() - 86400000 * 400,
+      },
     ];
 
     const categories = ['lending', 'dex', 'derivatives', 'yield', 'insurance', 'other'];
-    const protocolsByCategory = categories.map(cat => {
-      const catProtocols = protocols.filter(p => p.category === cat);
-      return {
-        category: cat,
-        count: catProtocols.length,
-        tvl: catProtocols.reduce((sum, p) => sum + p.tvl, 0),
-      };
-    }).filter(c => c.count > 0);
+    const protocolsByCategory = categories
+      .map((cat) => {
+        const catProtocols = protocols.filter((p) => p.category === cat);
+        return {
+          category: cat,
+          count: catProtocols.length,
+          tvl: catProtocols.reduce((sum, p) => sum + p.tvl, 0),
+        };
+      })
+      .filter((c) => c.count > 0);
 
     const monthlyGrowth = Array.from({ length: 12 }, (_, i) => ({
       timestamp: Date.now() - (11 - i) * 30 * 86400000,
@@ -601,8 +663,18 @@ export class TellorClient extends BaseOracleClient {
     }));
 
     const dataFeedUsage = [
-      { feedId: '1', feedName: 'ETH/USD', usageCount: 45, protocols: ['Aave', 'Compound', 'Synthetix'] },
-      { feedId: '2', feedName: 'BTC/USD', usageCount: 32, protocols: ['Aave', 'Synthetix', 'Ribbon'] },
+      {
+        feedId: '1',
+        feedName: 'ETH/USD',
+        usageCount: 45,
+        protocols: ['Aave', 'Compound', 'Synthetix'],
+      },
+      {
+        feedId: '2',
+        feedName: 'BTC/USD',
+        usageCount: 32,
+        protocols: ['Aave', 'Synthetix', 'Ribbon'],
+      },
       { feedId: '3', feedName: 'LINK/USD', usageCount: 28, protocols: ['Aave', 'Nexus Mutual'] },
       { feedId: '4', feedName: 'DAI/USD', usageCount: 25, protocols: ['Compound', 'Alchemix'] },
       { feedId: '5', feedName: 'USDC/USD', usageCount: 22, protocols: ['Compound', 'Uniswap'] },
@@ -630,23 +702,34 @@ export class TellorClient extends BaseOracleClient {
         proposedValue: Number((2000 + Math.random() * 500).toFixed(2)),
         stakeAmount: Math.floor(Math.random() * 50000) + 10000,
         status: status as 'open' | 'resolved' | 'rejected',
-        outcome: status === 'resolved' ? (Math.random() > 0.4 ? 'reporter_won' : 'disputer_won') : undefined,
+        outcome:
+          status === 'resolved'
+            ? Math.random() > 0.4
+              ? 'reporter_won'
+              : 'disputer_won'
+            : undefined,
         createdAt,
-        resolvedAt: status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
+        resolvedAt:
+          status === 'resolved' ? createdAt + Math.floor(Math.random() * 7 * 86400000) : undefined,
         votesForReporter: Math.floor(Math.random() * 50) + 10,
         votesForDisputer: Math.floor(Math.random() * 50) + 10,
         reward: status === 'resolved' ? Math.floor(Math.random() * 10000) + 1000 : undefined,
       };
     });
 
-    const resolvedDisputes = disputes.filter(d => d.status === 'resolved');
-    const successRate = resolvedDisputes.length > 0
-      ? resolvedDisputes.filter(d => d.outcome === 'disputer_won').length / resolvedDisputes.length
-      : 0;
+    const resolvedDisputes = disputes.filter((d) => d.status === 'resolved');
+    const successRate =
+      resolvedDisputes.length > 0
+        ? resolvedDisputes.filter((d) => d.outcome === 'disputer_won').length /
+          resolvedDisputes.length
+        : 0;
 
-    const avgResolutionTime = resolvedDisputes.length > 0
-      ? resolvedDisputes.reduce((sum, d) => sum + ((d.resolvedAt || 0) - d.createdAt), 0) / resolvedDisputes.length / 86400000
-      : 0;
+    const avgResolutionTime =
+      resolvedDisputes.length > 0
+        ? resolvedDisputes.reduce((sum, d) => sum + ((d.resolvedAt || 0) - d.createdAt), 0) /
+          resolvedDisputes.length /
+          86400000
+        : 0;
 
     const disputeTrend = Array.from({ length: 30 }, (_, i) => ({
       timestamp: Date.now() - (29 - i) * 86400000,
@@ -656,12 +739,14 @@ export class TellorClient extends BaseOracleClient {
 
     return {
       totalDisputes: disputes.length,
-      openDisputes: disputes.filter(d => d.status === 'open').length,
+      openDisputes: disputes.filter((d) => d.status === 'open').length,
       resolvedDisputes: resolvedDisputes.length,
       successRate: Number((successRate * 100).toFixed(2)),
       avgResolutionTime: Number(avgResolutionTime.toFixed(1)),
       totalRewardsDistributed: resolvedDisputes.reduce((sum, d) => sum + (d.reward || 0), 0),
-      totalSlashed: resolvedDisputes.filter(d => d.outcome === 'disputer_won').reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
+      totalSlashed: resolvedDisputes
+        .filter((d) => d.outcome === 'disputer_won')
+        .reduce((sum, d) => sum + d.stakeAmount * 0.1, 0),
       recentDisputes: disputes.slice(0, 10),
       disputeTrend,
     };
@@ -677,7 +762,7 @@ export class TellorClient extends BaseOracleClient {
     const reporterBonus = params.isActiveReporter ? 5 : 0;
     const disputeBonus = params.disputeParticipation * 2;
     const estimatedApr = baseApr + reporterBonus + disputeBonus;
-    
+
     const estimatedReward = (params.stakeAmount * estimatedApr * params.duration) / (365 * 100);
     const disputeBonusReward = (params.stakeAmount * disputeBonus * params.duration) / (365 * 100);
     const totalEstimatedReturn = estimatedReward;
@@ -698,7 +783,7 @@ export class TellorClient extends BaseOracleClient {
 
   async getNetworkHealth(): Promise<TellorNetworkHealth> {
     const regions = ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa'];
-    const reporterDistribution = regions.map(region => {
+    const reporterDistribution = regions.map((region) => {
       const count = Math.floor(Math.random() * 20) + 5;
       return {
         region,
@@ -707,7 +792,7 @@ export class TellorClient extends BaseOracleClient {
       };
     });
     const totalReporters = reporterDistribution.reduce((sum, r) => sum + r.count, 0);
-    reporterDistribution.forEach(r => {
+    reporterDistribution.forEach((r) => {
       r.percentage = Number(((r.count / totalReporters) * 100).toFixed(1));
     });
 
@@ -717,7 +802,7 @@ export class TellorClient extends BaseOracleClient {
       intensity: Math.random(),
     }));
 
-    const chainActivity = this.supportedChains.map(chain => ({
+    const chainActivity = this.supportedChains.map((chain) => ({
       chain,
       updates24h: Math.floor(Math.random() * 5000) + 1000,
       avgLatency: Math.floor(Math.random() * 100) + 50,

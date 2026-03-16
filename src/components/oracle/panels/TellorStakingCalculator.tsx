@@ -48,7 +48,9 @@ export function TellorStakingCalculator() {
                     onChange={(e) => setStakeAmount(Number(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-right pr-10"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">TRB</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                    TRB
+                  </span>
                 </div>
               </div>
             </div>
@@ -77,7 +79,9 @@ export function TellorStakingCalculator() {
                     onChange={(e) => setDuration(Number(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-right pr-14"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">days</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                    days
+                  </span>
                 </div>
               </div>
             </div>
@@ -130,7 +134,9 @@ export function TellorStakingCalculator() {
                     onChange={(e) => setDisputeParticipation(Number(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-right pr-14"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">/month</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                    /month
+                  </span>
                 </div>
               </div>
             </div>
@@ -155,7 +161,9 @@ export function TellorStakingCalculator() {
             <p className="text-3xl font-bold text-cyan-600">
               {calculation.estimatedReward.toFixed(2)} TRB
             </p>
-            <p className="text-xs text-gray-500 mt-1">{t('tellor.staking.calculator.totalReward')}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t('tellor.staking.calculator.totalReward')}
+            </p>
           </div>
         </DashboardCard>
 
@@ -171,7 +179,9 @@ export function TellorStakingCalculator() {
         <DashboardCard title={t('tellor.staking.calculator.roi')}>
           <div className="py-2">
             <p className="text-3xl font-bold text-purple-600">{calculation.roi}%</p>
-            <p className="text-xs text-gray-500 mt-1">{t('tellor.staking.calculator.returnOnInvestment')}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t('tellor.staking.calculator.returnOnInvestment')}
+            </p>
           </div>
         </DashboardCard>
       </div>
@@ -199,7 +209,9 @@ export function TellorStakingCalculator() {
           )}
           <div className="border-t border-gray-200 pt-4">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-900">{t('tellor.staking.calculator.totalApr')}</span>
+              <span className="font-semibold text-gray-900">
+                {t('tellor.staking.calculator.totalApr')}
+              </span>
               <span className="text-2xl font-bold text-cyan-600">{calculation.estimatedApr}%</span>
             </div>
           </div>

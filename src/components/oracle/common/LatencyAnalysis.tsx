@@ -661,44 +661,44 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
           <p className="text-xs text-gray-500 mt-1">{t('latencyAnalysis.anomalies.description')}</p>
         </div>
         <span className="px-3 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded">
-            {anomalies.length} {t('latencyAnalysis.anomalies.count')}
-          </span>
+          {anomalies.length} {t('latencyAnalysis.anomalies.count')}
+        </span>
       </div>
 
       <div className="space-y-2 max-h-80 overflow-y-auto">
         {anomalies.map((anomaly) => {
-            const severity = severityConfig[anomaly.severity];
-            const type = typeConfig[anomaly.type];
+          const severity = severityConfig[anomaly.severity];
+          const type = typeConfig[anomaly.type];
 
-            return (
-              <div
-                key={anomaly.id}
-                className={`border ${severity.borderColor} ${severity.bgColor} rounded p-3`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg">{type.icon}</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">{type.label}</span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded ${severity.bgColor} ${severity.color}`}
-                        >
-                          {severity.label}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1">{getLocalizedMessage(anomaly)}</p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                        <span>{anomaly.chain}</span>
-                        <span>•</span>
-                        <span>{anomaly.timestamp.toLocaleTimeString('zh-CN')}</span>
-                      </div>
+          return (
+            <div
+              key={anomaly.id}
+              className={`border ${severity.borderColor} ${severity.bgColor} rounded p-3`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">{type.icon}</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">{type.label}</span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded ${severity.bgColor} ${severity.color}`}
+                      >
+                        {severity.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">{getLocalizedMessage(anomaly)}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      <span>{anomaly.chain}</span>
+                      <span>•</span>
+                      <span>{anomaly.timestamp.toLocaleTimeString('zh-CN')}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

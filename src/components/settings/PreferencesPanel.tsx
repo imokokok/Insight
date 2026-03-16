@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Palette,
   Globe,
@@ -79,6 +79,16 @@ export function PreferencesPanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
 
@@ -102,7 +112,10 @@ export function PreferencesPanel() {
     setIsSaving(false);
     setSuccess(t('settings.preferences.saveSuccess'));
 
-    setTimeout(() => setSuccess(null), 3000);
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+    }
+    successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
   };
 
   const updatePreference = <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => {

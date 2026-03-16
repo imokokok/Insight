@@ -50,27 +50,27 @@ The application uses environment variables for configuration. Create a `.env.loc
 
 ### Required Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | `https://xxxxx.supabase.co` |
+| Variable                        | Description                   | Example                           |
+| ------------------------------- | ----------------------------- | --------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL     | `https://xxxxx.supabase.co`       |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | `eyJhbGciOiJIUzI1NiIsInR5cCI6...` |
 
 ### Optional Environment Variables
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `NEXT_PUBLIC_APP_URL` | Application base URL | - | `https://insight.example.com` |
-| `NEXT_PUBLIC_WS_URL` | WebSocket server URL for real-time features | - | `wss://ws.example.com` |
-| `NEXT_PUBLIC_ENABLE_REALTIME` | Enable real-time features | `true` | `true` / `false` |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable Vercel Analytics | `false` | `true` / `false` |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | `false` | `true` / `false` |
+| Variable                                    | Description                                 | Default | Example                       |
+| ------------------------------------------- | ------------------------------------------- | ------- | ----------------------------- |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL                        | -       | `https://insight.example.com` |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL for real-time features | -       | `wss://ws.example.com`        |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features                   | `true`  | `true` / `false`              |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                     | `false` | `true` / `false`              |
+| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring               | `false` | `true` / `false`              |
 
 ### Server-Side Only Variables (for API routes)
 
-| Variable | Description | Required For |
-|----------|-------------|--------------|
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin access) | Server-side operations |
-| `SUPABASE_URL` | Alternative to NEXT_PUBLIC_SUPABASE_URL for server | Server-side operations |
+| Variable                    | Description                                        | Required For           |
+| --------------------------- | -------------------------------------------------- | ---------------------- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (admin access)           | Server-side operations |
+| `SUPABASE_URL`              | Alternative to NEXT_PUBLIC_SUPABASE_URL for server | Server-side operations |
 
 ### Example `.env.local`
 
@@ -133,6 +133,7 @@ See [src/lib/config/env.ts](src/lib/config/env.ts) for validation logic.
    - **Other providers**: Discord, Twitter, etc.
 
 3. For OAuth providers, configure the callback URL:
+
    ```
    https://your-domain.com/auth/callback
    ```
@@ -179,14 +180,14 @@ The migration automatically enables RLS on all tables. Verify:
 
 ### Database Tables Created
 
-| Table | Purpose | RLS Enabled |
-|-------|---------|-------------|
-| `user_profiles` | User preferences and settings | Yes |
-| `price_records` | Historical price data from oracles | Yes |
-| `user_snapshots` | User-saved price snapshots | Yes |
-| `user_favorites` | User favorite configurations | Yes |
-| `price_alerts` | Price alert configurations | Yes |
-| `alert_events` | Alert trigger event history | Yes |
+| Table            | Purpose                            | RLS Enabled |
+| ---------------- | ---------------------------------- | ----------- |
+| `user_profiles`  | User preferences and settings      | Yes         |
+| `price_records`  | Historical price data from oracles | Yes         |
+| `user_snapshots` | User-saved price snapshots         | Yes         |
+| `user_favorites` | User favorite configurations       | Yes         |
+| `price_alerts`   | Price alert configurations         | Yes         |
+| `alert_events`   | Alert trigger event history        | Yes         |
 
 ---
 
@@ -195,6 +196,7 @@ The migration automatically enables RLS on all tables. Verify:
 ### Step 1: Prepare Your Repository
 
 1. Push your code to GitHub:
+
    ```bash
    git add .
    git commit -m "Prepare for deployment"
@@ -277,6 +279,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 ```
 
 To view analytics:
+
 1. Go to your Vercel project dashboard
 2. Click **"Analytics"** tab
 3. Enable analytics if not already enabled
@@ -353,21 +356,21 @@ Run these queries in Supabase SQL Editor to verify:
 
 ```sql
 -- Check tables exist
-SELECT table_name FROM information_schema.tables 
+SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public';
 
 -- Verify RLS is enabled
-SELECT schemaname, tablename, rowsecurity 
-FROM pg_tables 
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
 WHERE schemaname = 'public';
 
 -- Check indexes
-SELECT indexname, tablename FROM pg_indexes 
+SELECT indexname, tablename FROM pg_indexes
 WHERE schemaname = 'public';
 
 -- Verify trigger exists
-SELECT tgname, tgrelid::regclass 
-FROM pg_trigger 
+SELECT tgname, tgrelid::regclass
+FROM pg_trigger
 WHERE tgname = 'on_auth_user_created';
 ```
 
@@ -399,17 +402,17 @@ The application includes several production optimizations configured in [next.co
 const nextConfig = {
   // Transpile recharts for better compatibility
   transpilePackages: ['recharts'],
-  
+
   // Remove console.log in production
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  
+
   // Optimize package imports
   experimental: {
     optimizePackageImports: ['recharts'],
   },
-  
+
   // Enable Turbopack for faster builds
   turbopack: {},
 };
@@ -418,6 +421,7 @@ const nextConfig = {
 ### Build Output
 
 The build process:
+
 1. Compiles TypeScript with strict mode
 2. Optimizes images and static assets
 3. Generates static pages where possible
@@ -468,28 +472,28 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linter
         run: npm run lint
-      
+
       - name: Run tests
         run: npm run test
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      
+
       - name: Build
         run: npm run build
         env:
@@ -605,6 +609,7 @@ feature/*   -> Preview (manual trigger)
 **Symptoms**: Build fails with type errors
 
 **Solutions**:
+
 ```bash
 # Check TypeScript errors locally
 npm run build
@@ -619,6 +624,7 @@ npm run build
 **Symptoms**: JavaScript heap out of memory
 
 **Solutions**:
+
 ```bash
 # Increase Node.js memory limit
 export NODE_OPTIONS="--max-old-space-size=4096"
@@ -635,6 +641,7 @@ npm run build
 **Symptoms**: App crashes, missing Supabase URL
 
 **Solutions**:
+
 1. Verify variables are set in Vercel dashboard
 2. Ensure variable names start with `NEXT_PUBLIC_` for client-side access
 3. Redeploy after adding new environment variables
@@ -647,6 +654,7 @@ npm run build
 **Symptoms**: API requests timeout, database errors
 
 **Solutions**:
+
 1. Check Supabase project status at [status.supabase.com](https://status.supabase.com)
 2. Verify `NEXT_PUBLIC_SUPABASE_URL` is correct
 3. Check if IP restrictions are enabled
@@ -657,6 +665,7 @@ npm run build
 **Symptoms**: "Permission denied" errors, empty results
 
 **Solutions**:
+
 1. Verify RLS policies in Supabase dashboard
 2. Check user is authenticated before querying
 3. Test policies with Supabase SQL Editor:
@@ -673,6 +682,7 @@ npm run build
 **Symptoms**: Redirect loop, authentication error
 
 **Solutions**:
+
 1. Verify callback URL in OAuth provider settings:
    - Google: `https://your-domain.com/auth/callback`
    - GitHub: `https://your-domain.com/auth/callback`
@@ -684,6 +694,7 @@ npm run build
 **Symptoms**: User logged out on refresh
 
 **Solutions**:
+
 1. Check middleware configuration in [src/middleware.ts](src/middleware.ts)
 2. Verify cookies are being set correctly
 3. Check for cross-origin issues
@@ -696,6 +707,7 @@ npm run build
 **Symptoms**: Real-time updates not working, connection errors
 
 **Solutions**:
+
 1. Verify `NEXT_PUBLIC_WS_URL` is correct (if using custom WebSocket)
 2. Check Supabase Realtime is enabled in project settings
 3. Verify firewall allows WebSocket connections
@@ -706,6 +718,7 @@ npm run build
 **Symptoms**: Data doesn't update in real-time
 
 **Solutions**:
+
 1. Check `NEXT_PUBLIC_ENABLE_REALTIME` is set to `true`
 2. Verify Supabase Realtime is enabled for tables
 3. Check subscription status in RealtimeContext
@@ -715,6 +728,7 @@ npm run build
 #### Slow Page Loads
 
 **Solutions**:
+
 1. Enable Vercel Speed Insights to identify issues
 2. Check for large bundle sizes:
    ```bash
@@ -727,6 +741,7 @@ npm run build
 #### High Memory Usage
 
 **Solutions**:
+
 1. Check for memory leaks in real-time subscriptions
 2. Implement proper cleanup in useEffect hooks
 3. Consider pagination for large data sets

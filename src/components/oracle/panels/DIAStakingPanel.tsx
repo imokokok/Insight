@@ -74,9 +74,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-2xl font-bold text-gray-900">
             {formatNumber(stakingDetails.totalStaked)} DIA
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('dia.staking.totalValueLocked')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dia.staking.totalValueLocked')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
@@ -85,9 +83,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-2xl font-bold text-purple-600">
             {stakingDetails.stakingApr.toFixed(2)}%
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('dia.staking.baseRate')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dia.staking.baseRate')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
@@ -96,9 +92,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-2xl font-bold text-gray-900">
             {formatNumber(stakingDetails.stakerCount)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('dia.staking.activeStakers')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dia.staking.activeStakers')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
@@ -107,9 +101,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-2xl font-bold text-green-600">
             {formatNumber(stakingDetails.rewardPool)} DIA
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('dia.staking.availableRewards')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dia.staking.availableRewards')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
@@ -118,18 +110,14 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
           <p className="text-2xl font-bold text-blue-600">
             {formatNumber(stakingDetails.rewardsDistributed)} DIA
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('dia.staking.totalDistributed')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dia.staking.totalDistributed')}</p>
         </div>
       </div>
 
       {/* Lock Period Options */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('dia.staking.lockPeriods')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('dia.staking.lockPeriods')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -151,12 +139,12 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
                   <p className="text-sm font-medium text-gray-700 mb-1">
                     {getLockPeriodLabel(period)}
                   </p>
-                  <p className={`text-2xl font-bold ${isSelected ? 'text-purple-600' : 'text-gray-900'}`}>
+                  <p
+                    className={`text-2xl font-bold ${isSelected ? 'text-purple-600' : 'text-gray-900'}`}
+                  >
                     {apr.toFixed(2)}%
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t('dia.staking.apr')}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{t('dia.staking.apr')}</p>
                   <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5">
                     <div
                       className="bg-purple-500 h-1.5 rounded-full"
@@ -168,7 +156,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
             })}
           </div>
           <p className="mt-4 text-sm text-gray-500">
-            {t('dia.staking.minStakeAmount')}: {' '}
+            {t('dia.staking.minStakeAmount')}:{' '}
             <span className="font-medium text-gray-700">
               {formatNumber(stakingDetails.minStakeAmount)} DIA
             </span>
@@ -179,9 +167,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
       {/* Staking Calculator */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('dia.staking.calculator')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('dia.staking.calculator')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -232,7 +218,7 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
 
               <div className="p-4 bg-purple-50 rounded-lg">
                 <p className="text-sm text-purple-700">
-                  {t('dia.staking.selectedApr')}: {' '}
+                  {t('dia.staking.selectedApr')}:{' '}
                   <span className="font-bold text-lg">
                     {stakingDetails.aprByPeriod[selectedLockPeriod].toFixed(2)}%
                   </span>
@@ -245,22 +231,16 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
               <h4 className="text-sm font-medium text-gray-700 mb-3">
                 {t('dia.staking.estimatedRewards')}
               </h4>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.staking.daily')}</p>
-                  <p className="text-lg font-bold text-gray-900">
-                    {rewards.daily.toFixed(4)} DIA
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    ~${(rewards.daily * 0.5).toFixed(2)}
-                  </p>
+                  <p className="text-lg font-bold text-gray-900">{rewards.daily.toFixed(4)} DIA</p>
+                  <p className="text-xs text-gray-400 mt-1">~${(rewards.daily * 0.5).toFixed(2)}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">{t('dia.staking.weekly')}</p>
-                  <p className="text-lg font-bold text-gray-900">
-                    {rewards.weekly.toFixed(4)} DIA
-                  </p>
+                  <p className="text-lg font-bold text-gray-900">{rewards.weekly.toFixed(4)} DIA</p>
                   <p className="text-xs text-gray-400 mt-1">
                     ~${(rewards.weekly * 0.5).toFixed(2)}
                   </p>
@@ -292,25 +272,24 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
       {/* Historical APR Trend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('dia.staking.historicalApr')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('dia.staking.historicalApr')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {/* Simple Line Chart using div bars */}
             <div className="h-48 flex items-end justify-between gap-1 px-2">
               {stakingDetails.historicalApr.map((data, index) => {
-                const maxHistoricalApr = Math.max(...stakingDetails.historicalApr.map(d => d.apr));
-                const minHistoricalApr = Math.min(...stakingDetails.historicalApr.map(d => d.apr));
+                const maxHistoricalApr = Math.max(
+                  ...stakingDetails.historicalApr.map((d) => d.apr)
+                );
+                const minHistoricalApr = Math.min(
+                  ...stakingDetails.historicalApr.map((d) => d.apr)
+                );
                 const historicalRange = maxHistoricalApr - minHistoricalApr || 1;
                 const height = ((data.apr - minHistoricalApr) / historicalRange) * 80 + 20;
-                
+
                 return (
-                  <div
-                    key={index}
-                    className="flex-1 flex flex-col items-center group"
-                  >
+                  <div key={index} className="flex-1 flex flex-col items-center group">
                     <div className="relative w-full">
                       <div
                         className="w-full bg-purple-500 rounded-t transition-all duration-300 group-hover:bg-purple-600"
@@ -335,12 +314,14 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
               </span>
               <span>
                 {new Date(
-                  stakingDetails.historicalApr[Math.floor(stakingDetails.historicalApr.length / 2)]?.timestamp || 0
+                  stakingDetails.historicalApr[Math.floor(stakingDetails.historicalApr.length / 2)]
+                    ?.timestamp || 0
                 ).toLocaleDateString()}
               </span>
               <span>
                 {new Date(
-                  stakingDetails.historicalApr[stakingDetails.historicalApr.length - 1]?.timestamp || 0
+                  stakingDetails.historicalApr[stakingDetails.historicalApr.length - 1]
+                    ?.timestamp || 0
                 ).toLocaleDateString()}
               </span>
             </div>
@@ -350,19 +331,23 @@ export function DIAStakingPanel({ stakingDetails }: DIAStakingPanelProps) {
               <div className="text-center">
                 <p className="text-xs text-gray-500">{t('dia.staking.avgApr')}</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {(stakingDetails.historicalApr.reduce((sum, d) => sum + d.apr, 0) / stakingDetails.historicalApr.length).toFixed(2)}%
+                  {(
+                    stakingDetails.historicalApr.reduce((sum, d) => sum + d.apr, 0) /
+                    stakingDetails.historicalApr.length
+                  ).toFixed(2)}
+                  %
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-gray-500">{t('dia.staking.maxApr')}</p>
                 <p className="text-lg font-semibold text-green-600">
-                  {Math.max(...stakingDetails.historicalApr.map(d => d.apr)).toFixed(2)}%
+                  {Math.max(...stakingDetails.historicalApr.map((d) => d.apr)).toFixed(2)}%
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-gray-500">{t('dia.staking.minApr')}</p>
                 <p className="text-lg font-semibold text-blue-600">
-                  {Math.min(...stakingDetails.historicalApr.map(d => d.apr)).toFixed(2)}%
+                  {Math.min(...stakingDetails.historicalApr.map((d) => d.apr)).toFixed(2)}%
                 </p>
               </div>
             </div>

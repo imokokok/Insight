@@ -307,9 +307,7 @@ export default function API3Page() {
           {activeTab === 'dapi' && dapiCoverage && (
             <div className="space-y-6">
               <DapiCoveragePanel data={dapiCoverage} />
-              {sourceTrace.length > 0 && (
-                <DataSourceTraceabilityPanel data={sourceTrace} />
-              )}
+              {sourceTrace.length > 0 && <DataSourceTraceabilityPanel data={sourceTrace} />}
             </div>
           )}
 
@@ -333,13 +331,17 @@ export default function API3Page() {
             <div className="space-y-6">
               {ohlc && ohlc.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <BollingerBands data={ohlc.filter(d => d.timestamp && d.high && d.low && d.close).map(d => ({ 
-                    timestamp: d.timestamp!, 
-                    price: d.price, 
-                    high: d.high!, 
-                    low: d.low!, 
-                    close: d.close! 
-                  }))} />
+                  <BollingerBands
+                    data={ohlc
+                      .filter((d) => d.timestamp && d.high && d.low && d.close)
+                      .map((d) => ({
+                        timestamp: d.timestamp!,
+                        price: d.price,
+                        high: d.high!,
+                        low: d.low!,
+                        close: d.close!,
+                      }))}
+                  />
                 </div>
               )}
 
@@ -354,20 +356,16 @@ export default function API3Page() {
           )}
 
           {activeTab === 'risk' && (
-            <API3RiskAssessmentPanel 
-              staking={staking} 
+            <API3RiskAssessmentPanel
+              staking={staking}
               airnodeStats={airnodeStats}
               dapiCoverage={dapiCoverage}
             />
           )}
 
-          {activeTab === 'cross-oracle' && (
-            <API3CrossOraclePanel />
-          )}
+          {activeTab === 'cross-oracle' && <API3CrossOraclePanel />}
 
-          {activeTab === 'ecosystem' && (
-            <EcosystemPanel />
-          )}
+          {activeTab === 'ecosystem' && <EcosystemPanel />}
         </div>
       </main>
     </div>

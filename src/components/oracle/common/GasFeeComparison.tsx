@@ -11,7 +11,13 @@ import {
   CartesianGrid,
   Cell,
 } from 'recharts';
-import { chainColors, chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
+import {
+  chainColors,
+  chartColors,
+  semanticColors,
+  baseColors,
+  animationColors,
+} from '@/lib/config/colors';
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 
@@ -91,7 +97,9 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
       avgTotal: totals.reduce((a, b) => a + b, 0) / totals.length,
       cheapest,
       mostExpensive,
-      savings: mostExpensive ? ((mostExpensive.total - cheapest.total) / mostExpensive.total) * 100 : 0,
+      savings: mostExpensive
+        ? ((mostExpensive.total - cheapest.total) / mostExpensive.total) * 100
+        : 0,
     };
   }, [processedData]);
 
@@ -184,9 +192,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
               <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
                 {statistics.savings.toFixed(0)}%
               </p>
-              <p className="text-xs text-gray-500">
-                vs {statistics.mostExpensive?.chain || '-'}
-              </p>
+              <p className="text-xs text-gray-500">vs {statistics.mostExpensive?.chain || '-'}</p>
             </div>
           </div>
         )}
@@ -215,7 +221,11 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                strokeOpacity={0.5}
+              />
               <XAxis
                 dataKey="chain"
                 stroke={chartColors.recharts.axis}
@@ -234,10 +244,7 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
               <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
               <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                 {processedData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={getChainColor(entry.chain)}
-                  />
+                  <Cell key={`cell-${index}`} fill={getChainColor(entry.chain)} />
                 ))}
               </Bar>
             </BarChart>
@@ -287,7 +294,10 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                   <td className="py-2 px-3 text-right font-mono">
                     {formatCurrency(item.verificationFee)}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono font-medium" style={{ color: baseColors.primary[600] }}>
+                  <td
+                    className="py-2 px-3 text-right font-mono font-medium"
+                    style={{ color: baseColors.primary[600] }}
+                  >
                     {formatCurrency(item.total)}
                   </td>
                   <td className="py-2 px-3 text-right">

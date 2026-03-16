@@ -12,21 +12,13 @@ import {
   ResponsiveContainer,
   Area,
 } from 'recharts';
-import {
-  PriceDeviationHeatmap,
-} from '@/components/oracle/charts/PriceDeviationHeatmap';
+import { PriceDeviationHeatmap } from '@/components/oracle/charts/PriceDeviationHeatmap';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { NoDataEmptyState } from '@/components/ui/EmptyState';
-import {
-  PriceDistributionBoxPlot,
-} from '@/components/oracle/charts/PriceDistributionBoxPlot';
-import {
-  PriceCorrelationMatrix,
-} from '@/components/oracle/charts/PriceCorrelationMatrix';
+import { PriceDistributionBoxPlot } from '@/components/oracle/charts/PriceDistributionBoxPlot';
+import { PriceCorrelationMatrix } from '@/components/oracle/charts/PriceCorrelationMatrix';
 import { PriceVolatilityChart } from '@/components/oracle/charts/PriceVolatilityChart';
-import {
-  OraclePerformanceRanking,
-} from '@/components/oracle/common/OraclePerformanceRanking';
+import { OraclePerformanceRanking } from '@/components/oracle/common/OraclePerformanceRanking';
 import { MovingAverageChart } from '@/components/oracle/charts/MovingAverageChart';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { SnapshotManager } from '@/components/oracle/common/SnapshotManager';
@@ -360,11 +352,19 @@ export default function CrossOraclePage() {
                 <defs>
                   <linearGradient id="stdDevGradient1" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
-                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
+                    <stop
+                      offset="100%"
+                      stopColor={chartColors.recharts.primary}
+                      stopOpacity={0.05}
+                    />
                   </linearGradient>
                   <linearGradient id="stdDevGradient2" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
-                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
+                    <stop
+                      offset="100%"
+                      stopColor={chartColors.recharts.primary}
+                      stopOpacity={0.01}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
@@ -513,7 +513,12 @@ export default function CrossOraclePage() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
-              <XAxis dataKey="timestamp" stroke={baseColors.gray[500]} fontSize={12} tickLine={false} />
+              <XAxis
+                dataKey="timestamp"
+                stroke={baseColors.gray[500]}
+                fontSize={12}
+                tickLine={false}
+              />
               <YAxis
                 stroke={baseColors.gray[500]}
                 fontSize={12}
@@ -670,10 +675,6 @@ export default function CrossOraclePage() {
           )}
         </div>
 
-
-
-
-
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">数据质量趋势</h2>
           {qualityTrendData.some((d) => d.data.length > 0) && (
@@ -691,10 +692,16 @@ export default function CrossOraclePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-gray-200 p-5">
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">选择预言机查看延迟数据</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                选择预言机查看延迟数据
+              </label>
               <select
                 value={selectedPerformanceOracle || ''}
-                onChange={(e) => setSelectedPerformanceOracle(e.target.value ? (e.target.value as OracleProvider) : null)}
+                onChange={(e) =>
+                  setSelectedPerformanceOracle(
+                    e.target.value ? (e.target.value as OracleProvider) : null
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">所有预言机</option>
@@ -707,7 +714,9 @@ export default function CrossOraclePage() {
             </div>
             <LatencyDistributionHistogram
               data={getOracleLatencyData(selectedPerformanceOracle)}
-              oracleName={selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : '所有预言机'}
+              oracleName={
+                selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : '所有预言机'
+              }
             />
           </div>
           <div className="bg-white border border-gray-200 p-5">
@@ -1079,46 +1088,46 @@ export default function CrossOraclePage() {
             </h2>
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-gray-100 p-0.5">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 12H4"
+                    />
+                  </svg>
+                </button>
+                <span className="px-3 text-sm text-gray-600 min-w-[4rem] text-center font-medium">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </div>
               <button
-                onClick={handleZoomOut}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
+                onClick={handleResetZoom}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 12H4"
-                  />
-                </svg>
+                重置
               </button>
-              <span className="px-3 text-sm text-gray-600 min-w-[4rem] text-center font-medium">
-                {Math.round(zoomLevel * 100)}%
-              </span>
               <button
-                onClick={handleZoomIn}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
+                onClick={() => setIsChartFullscreen(false)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </button>
-            </div>
-            <button
-              onClick={handleResetZoom}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            >
-              重置
-            </button>
-            <button
-              onClick={() => setIsChartFullscreen(false)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -1136,15 +1145,28 @@ export default function CrossOraclePage() {
                 <defs>
                   <linearGradient id="stdDevGradient1Fullscreen" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
-                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
+                    <stop
+                      offset="100%"
+                      stopColor={chartColors.recharts.primary}
+                      stopOpacity={0.05}
+                    />
                   </linearGradient>
                   <linearGradient id="stdDevGradient2Fullscreen" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
-                    <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
+                    <stop
+                      offset="100%"
+                      stopColor={chartColors.recharts.primary}
+                      stopOpacity={0.01}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
-                <XAxis dataKey="timestamp" stroke={baseColors.gray[500]} fontSize={12} tickLine={false} />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke={baseColors.gray[500]}
+                  fontSize={12}
+                  tickLine={false}
+                />
                 <YAxis
                   stroke={baseColors.gray[500]}
                   fontSize={12}
@@ -1228,17 +1250,11 @@ export default function CrossOraclePage() {
               <span>数据更新点</span>
             </div>
             <div className="flex items-center gap-2">
-              <span
-                className="w-5 h-3"
-                style={{ backgroundColor: chartColors.chart.blueLight }}
-              />
+              <span className="w-5 h-3" style={{ backgroundColor: chartColors.chart.blueLight }} />
               <span>±1 标准差范围</span>
             </div>
             <div className="flex items-center gap-2">
-              <span
-                className="w-5 h-3"
-                style={{ backgroundColor: baseColors.primary[300] }}
-              />
+              <span className="w-5 h-3" style={{ backgroundColor: baseColors.primary[300] }} />
               <span>±2 标准差范围</span>
             </div>
           </div>

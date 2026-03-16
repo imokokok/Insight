@@ -35,6 +35,7 @@
   - [x] SubTask 6.4: 测试所有交互功能正常工作
 
 # Task Dependencies
+
 - Task 2 依赖于 Task 1
 - Task 4 依赖于 Task 2
 - Task 6 依赖于 Task 1, 2, 3, 4, 5

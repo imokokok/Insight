@@ -155,9 +155,25 @@ export function useRedStoneAllData(options: UseRedStoneAllDataOptions) {
     gcTime: 600000,
   });
 
-  const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading || ecosystemQuery.isLoading || riskQuery.isLoading;
-  const isError = priceQuery.error !== null || historicalQuery.error !== null || networkQuery.error !== null || ecosystemQuery.error !== null || riskQuery.error !== null;
-  const errors = [priceQuery.error, historicalQuery.error, networkQuery.error, ecosystemQuery.error, riskQuery.error].filter(Boolean) as Error[];
+  const isLoading =
+    priceQuery.isLoading ||
+    historicalQuery.isLoading ||
+    networkQuery.isLoading ||
+    ecosystemQuery.isLoading ||
+    riskQuery.isLoading;
+  const isError =
+    priceQuery.error !== null ||
+    historicalQuery.error !== null ||
+    networkQuery.error !== null ||
+    ecosystemQuery.error !== null ||
+    riskQuery.error !== null;
+  const errors = [
+    priceQuery.error,
+    historicalQuery.error,
+    networkQuery.error,
+    ecosystemQuery.error,
+    riskQuery.error,
+  ].filter(Boolean) as Error[];
 
   const refetchAll = useCallback(() => {
     priceQuery.refetch();

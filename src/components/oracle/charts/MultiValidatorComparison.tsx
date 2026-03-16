@@ -50,7 +50,12 @@ const METRIC_CONFIG: Record<MetricType, { label: string; unit: string; color: st
   commission: { label: '佣金率', unit: '%', color: chartColors.recharts.purple },
 };
 
-const VALIDATOR_COLORS = [chartColors.recharts.primary, semanticColors.success.DEFAULT, semanticColors.warning.DEFAULT, semanticColors.danger.DEFAULT];
+const VALIDATOR_COLORS = [
+  chartColors.recharts.primary,
+  semanticColors.success.DEFAULT,
+  semanticColors.warning.DEFAULT,
+  semanticColors.danger.DEFAULT,
+];
 
 function CustomTooltip({
   active,
@@ -78,7 +83,9 @@ function CustomTooltip({
         boxShadow: shadowColors.tooltip,
       }}
     >
-      <p className="text-xs mb-2 font-medium" style={{ color: baseColors.gray[600] }}>{label}</p>
+      <p className="text-xs mb-2 font-medium" style={{ color: baseColors.gray[600] }}>
+        {label}
+      </p>
       <div className="space-y-1.5">
         {payload.map((entry, index) => {
           const validator = validators[index];
@@ -95,7 +102,9 @@ function CustomTooltip({
             <div key={entry.dataKey} className="flex items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2" style={{ backgroundColor: entry.color }} />
-                <span className="truncate max-w-[100px]" style={{ color: baseColors.gray[600] }}>{validator.moniker}</span>
+                <span className="truncate max-w-[100px]" style={{ color: baseColors.gray[600] }}>
+                  {validator.moniker}
+                </span>
               </div>
               <span className="font-mono font-medium" style={{ color: entry.color }}>
                 {value}
@@ -133,19 +142,34 @@ function ComparisonTable({
       <table className="w-full text-sm">
         <thead>
           <tr style={{ backgroundColor: baseColors.gray[50], textAlign: 'left' }}>
-            <th className="py-3 px-4 text-xs font-medium uppercase tracking-wider" style={{ color: baseColors.gray[500] }}>
+            <th
+              className="py-3 px-4 text-xs font-medium uppercase tracking-wider"
+              style={{ color: baseColors.gray[500] }}
+            >
               验证者
             </th>
-            <th className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right" style={{ color: baseColors.gray[500] }}>
+            <th
+              className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
+              style={{ color: baseColors.gray[500] }}
+            >
               平均在线率
             </th>
-            <th className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right" style={{ color: baseColors.gray[500] }}>
+            <th
+              className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
+              style={{ color: baseColors.gray[500] }}
+            >
               最新质押量
             </th>
-            <th className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right" style={{ color: baseColors.gray[500] }}>
+            <th
+              className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-right"
+              style={{ color: baseColors.gray[500] }}
+            >
               佣金率
             </th>
-            <th className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-center" style={{ color: baseColors.gray[500] }}>
+            <th
+              className="py-3 px-4 text-xs font-medium uppercase tracking-wider text-center"
+              style={{ color: baseColors.gray[500] }}
+            >
               变化趋势
             </th>
           </tr>
@@ -166,8 +190,12 @@ function ComparisonTable({
               <tr
                 key={validator.operatorAddress}
                 style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = baseColors.gray[50]; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = baseColors.gray[50];
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
@@ -175,8 +203,12 @@ function ComparisonTable({
                       className="w-3 h-3"
                       style={{ backgroundColor: VALIDATOR_COLORS[index % VALIDATOR_COLORS.length] }}
                     />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>{validator.moniker}</span>
-                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>#{validator.rank}</span>
+                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      {validator.moniker}
+                    </span>
+                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>
+                      #{validator.rank}
+                    </span>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-right">
@@ -340,7 +372,10 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
       title="多验证者历史对比"
       headerAction={
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 p-1" style={{ backgroundColor: baseColors.gray[100] }}>
+          <div
+            className="flex items-center gap-1 p-1"
+            style={{ backgroundColor: baseColors.gray[100] }}
+          >
             {(Object.keys(TIME_RANGE_CONFIG) as TimeRange[]).map((range) => (
               <button
                 key={range}
@@ -370,14 +405,17 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
     >
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs mr-1" style={{ color: baseColors.gray[500] }}>指标:</span>
+          <span className="text-xs mr-1" style={{ color: baseColors.gray[500] }}>
+            指标:
+          </span>
           {(Object.keys(METRIC_CONFIG) as MetricType[]).map((type) => (
             <button
               key={type}
               onClick={() => setMetricType(type)}
               className="px-3 py-1.5 text-xs font-medium transition-all"
               style={{
-                backgroundColor: metricType === type ? baseColors.primary[600] : baseColors.gray[100],
+                backgroundColor:
+                  metricType === type ? baseColors.primary[600] : baseColors.gray[100],
                 color: metricType === type ? baseColors.gray[50] : baseColors.gray[600],
               }}
               onMouseEnter={(e) => {
@@ -399,9 +437,21 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
         {loading ? (
           <ChartSkeleton height={300} showToolbar={false} variant="line" />
         ) : error ? (
-          <div className="p-6" style={{ height: 300, backgroundColor: semanticColors.danger.light, border: `1px solid ${baseColors.primary[200]}` }}>
+          <div
+            className="p-6"
+            style={{
+              height: 300,
+              backgroundColor: semanticColors.danger.light,
+              border: `1px solid ${baseColors.primary[200]}`,
+            }}
+          >
             <div className="flex items-center gap-3" style={{ color: semanticColors.danger.dark }}>
-              <svg className="w-5 h-5" fill="none" stroke={semanticColors.danger.dark} viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke={semanticColors.danger.dark}
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinejoin="round"
                   strokeWidth={2}
@@ -476,7 +526,9 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
                     className="w-3 h-3"
                     style={{ backgroundColor: VALIDATOR_COLORS[index % VALIDATOR_COLORS.length] }}
                   />
-                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>{validator.moniker}</span>
+                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+                    {validator.moniker}
+                  </span>
                 </div>
               ))}
             </div>

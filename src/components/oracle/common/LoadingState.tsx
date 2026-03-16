@@ -7,10 +7,7 @@ interface LoadingStateProps {
   message?: string;
 }
 
-export function LoadingState({ 
-  themeColor = 'blue',
-  message 
-}: LoadingStateProps) {
+export function LoadingState({ themeColor = 'blue', message }: LoadingStateProps) {
   const { t } = useI18n();
 
   const borderColorClass = `border-${themeColor}-200`;
@@ -19,8 +16,8 @@ export function LoadingState({
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div 
-          className={`w-12 h-12 border-4 ${borderColorClass} ${spinnerColorClass} rounded-full animate-spin`} 
+        <div
+          className={`w-12 h-12 border-4 ${borderColorClass} ${spinnerColorClass} rounded-full animate-spin`}
         />
         <p className="text-gray-500">{message || t('common.loading')}</p>
       </div>

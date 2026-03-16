@@ -13,7 +13,13 @@ import {
   Brush,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { chartColors, baseColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
+import {
+  chartColors,
+  baseColors,
+  semanticColors,
+  chainColors,
+  shadowColors,
+} from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 import { useI18n } from '@/lib/i18n/provider';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
@@ -252,7 +258,10 @@ function CustomTooltip({ active, payload, label, metric }: CustomTooltipProps) {
   const config = METRIC_CONFIG[metric];
 
   return (
-    <div className="bg-white border border-gray-200 p-3 min-w-[180px]" style={{ boxShadow: shadowColors.tooltip }}>
+    <div
+      className="bg-white border border-gray-200 p-3 min-w-[180px]"
+      style={{ boxShadow: shadowColors.tooltip }}
+    >
       <p className="text-xs text-gray-500 mb-2 font-medium">{label}</p>
       <div className="space-y-1.5">
         {payload

@@ -54,15 +54,11 @@ export function ChainlinkEcosystemPanel() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard title={t('chainlink.ecosystem.totalIntegratedProtocols')}>
           <div className="text-3xl font-bold text-gray-900">{totalProtocols}+</div>
-          <div className="text-sm text-gray-500 mt-1">
-            {t('chainlink.ecosystem.acrossDefi')}
-          </div>
+          <div className="text-sm text-gray-500 mt-1">{t('chainlink.ecosystem.acrossDefi')}</div>
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.ecosystem.totalValueSecured')}>
-          <div className="text-3xl font-bold text-gray-900">
-            ${(totalTVS / 1e9).toFixed(1)}B
-          </div>
+          <div className="text-3xl font-bold text-gray-900">${(totalTVS / 1e9).toFixed(1)}B</div>
           <div className="text-sm text-gray-500 mt-1">
             {t('chainlink.ecosystem.acrossAllProtocols')}
           </div>
@@ -153,7 +149,9 @@ export function ChainlinkEcosystemPanel() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="text-3xl font-bold text-gray-900">$12.8B+</div>
-                <div className="text-sm text-gray-500">{t('chainlink.ecosystem.ccipValueTransferred')}</div>
+                <div className="text-sm text-gray-500">
+                  {t('chainlink.ecosystem.ccipValueTransferred')}
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold text-gray-900">2.4M+</div>
@@ -179,7 +177,9 @@ export function ChainlinkEcosystemPanel() {
           </div>
 
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.ecosystem.ccipProtocols')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('chainlink.ecosystem.ccipProtocols')}
+            </h4>
             <div className="space-y-2">
               {[
                 { name: 'Synthetix', useCase: 'Cross-chain synths', tvs: '$450M' },
@@ -188,7 +188,10 @@ export function ChainlinkEcosystemPanel() {
                 { name: 'Radiant Capital', useCase: 'Omnichain lending', tvs: '$165M' },
                 { name: 'Stargate', useCase: 'Cross-chain transfers', tvs: '$420M' },
               ].map((protocol, idx) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                >
                   <div>
                     <div className="text-sm font-medium text-gray-900">{protocol.name}</div>
                     <div className="text-xs text-gray-500">{protocol.useCase}</div>
@@ -207,11 +210,23 @@ export function ChainlinkEcosystemPanel() {
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
                 </svg>
               </div>
-              <h4 className="font-medium text-gray-900">{t('chainlink.ecosystem.multiChainOracle')}</h4>
+              <h4 className="font-medium text-gray-900">
+                {t('chainlink.ecosystem.multiChainOracle')}
+              </h4>
             </div>
             <p className="text-sm text-gray-600">
               Secure and reliable data feeds across {totalChains}+ blockchain networks
@@ -221,8 +236,18 @@ export function ChainlinkEcosystemPanel() {
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <svg
+                  className="w-5 h-5 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
                 </svg>
               </div>
               <h4 className="font-medium text-gray-900">Decentralized Security</h4>
@@ -235,8 +260,18 @@ export function ChainlinkEcosystemPanel() {
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-5 h-5 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <h4 className="font-medium text-gray-900">{t('chainlink.ecosystem.dataSources')}</h4>

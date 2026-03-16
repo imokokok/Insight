@@ -227,10 +227,11 @@ export function LatencyDistributionHistogram({
 
   const formatTooltip = (bin: HistogramBin) => {
     return (
-      <div className="bg-white border border-gray-200 p-3" style={{ boxShadow: shadowColors.tooltip }}>
-        <p className="text-xs text-gray-600 font-medium mb-2">
-          范围: {bin.range}ms
-        </p>
+      <div
+        className="bg-white border border-gray-200 p-3"
+        style={{ boxShadow: shadowColors.tooltip }}
+      >
+        <p className="text-xs text-gray-600 font-medium mb-2">范围: {bin.range}ms</p>
         <div className="space-y-1">
           <div className="flex justify-between gap-4 text-xs">
             <span className="text-gray-500">数量:</span>
@@ -246,9 +247,24 @@ export function LatencyDistributionHistogram({
   };
 
   const percentileItems = [
-    { label: 'P50', value: stats.p50, color: semanticColors.success.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p50Desc') },
-    { label: 'P95', value: stats.p95, color: semanticColors.warning.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p95Desc') },
-    { label: 'P99', value: stats.p99, color: semanticColors.danger.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p99Desc') },
+    {
+      label: 'P50',
+      value: stats.p50,
+      color: semanticColors.success.DEFAULT,
+      desc: t('crossOracle.latencyDistribution.tooltip.p50Desc'),
+    },
+    {
+      label: 'P95',
+      value: stats.p95,
+      color: semanticColors.warning.DEFAULT,
+      desc: t('crossOracle.latencyDistribution.tooltip.p95Desc'),
+    },
+    {
+      label: 'P99',
+      value: stats.p99,
+      color: semanticColors.danger.DEFAULT,
+      desc: t('crossOracle.latencyDistribution.tooltip.p99Desc'),
+    },
   ];
 
   const statItems = [
@@ -281,12 +297,18 @@ export function LatencyDistributionHistogram({
           <h4 className="text-sm font-semibold text-gray-900">
             {t('crossOracle.latencyDistribution.title')}
           </h4>
-          <p className="text-xs text-gray-500 mt-1">{t('crossOracle.latencyDistribution.subtitle')}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {t('crossOracle.latencyDistribution.subtitle')}
+          </p>
         </div>
 
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={histogramData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.recharts.grid}
+              vertical={false}
+            />
             <XAxis
               dataKey="range"
               stroke={chartColors.recharts.axis}
@@ -360,19 +382,31 @@ export function LatencyDistributionHistogram({
 
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.success.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">0-100ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.primary }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: chartColors.recharts.primary }}
+            />
             <span className="text-xs text-gray-500">100-200ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">200-300ms</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">300ms+</span>
           </div>
         </div>
@@ -389,7 +423,9 @@ export function LatencyDistributionHistogram({
             <h3 className="text-lg font-semibold text-gray-900">
               {t('crossOracle.latencyDistribution.title')} - {oracleName}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">{t('crossOracle.latencyDistribution.subtitle')}</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {t('crossOracle.latencyDistribution.subtitle')}
+            </p>
           </div>
         )}
 

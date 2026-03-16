@@ -1,7 +1,4 @@
-import {
-  downsampleData,
-  downsampleDataForPerformance,
-} from '../src/utils/downsampling';
+import { downsampleData, downsampleDataForPerformance } from '../src/utils/downsampling';
 import type { DataPoint } from '../src/utils/downsampling';
 
 function generateTestData(count: number): DataPoint[] {

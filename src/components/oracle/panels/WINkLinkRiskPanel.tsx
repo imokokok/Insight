@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { WINkLinkRiskMetrics } from '@/lib/oracles/winklink';
 import {
@@ -48,9 +48,19 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date(data.lastUpdate));
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsRefreshing(false);
     }, 1000);

@@ -23,16 +23,14 @@ export function useOracleData(params: OracleDataParams = {}) {
   return useQuery<OracleData | OracleData[]>({
     queryKey: ['oracle-data', params],
     queryFn: async () => {
-      const url = params.provider 
-        ? `/api/oracles/${params.provider}`
-        : '/api/oracles';
-      
+      const url = params.provider ? `/api/oracles/${params.provider}` : '/api/oracles';
+
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch oracle data');
       }
-      
+
       return response.json();
     },
     staleTime: 60 * 1000,

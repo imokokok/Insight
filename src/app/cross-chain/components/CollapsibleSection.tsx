@@ -42,10 +42,7 @@ export function CollapsibleSection({
         style={{ backgroundColor: isExpanded ? baseColors.gray[50] : 'white' }}
       >
         <div className="text-left">
-          <h3
-            className="text-sm font-medium"
-            style={{ color: baseColors.gray[900] }}
-          >
+          <h3 className="text-sm font-medium" style={{ color: baseColors.gray[900] }}>
             {title}
           </h3>
           {description && (
@@ -55,10 +52,7 @@ export function CollapsibleSection({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span
-            className="text-xs"
-            style={{ color: baseColors.gray[400] }}
-          >
+          <span className="text-xs" style={{ color: baseColors.gray[400] }}>
             {isExpanded ? '收起' : '展开'}
           </span>
           <svg
@@ -70,12 +64,7 @@ export function CollapsibleSection({
             viewBox="0 0 24 24"
             style={{ color: baseColors.gray[400] }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </button>

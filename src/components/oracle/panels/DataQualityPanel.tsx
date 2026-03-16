@@ -352,14 +352,23 @@ function PriceDeviationCard({
             >
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 " style={{ backgroundColor: ORACLE_COLORS[item.oracle] }} />
-                <span className="font-medium text-sm" style={{ color: baseColors.gray[900] }}>{item.oracle}</span>
+                <span className="font-medium text-sm" style={{ color: baseColors.gray[900] }}>
+                  {item.oracle}
+                </span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm font-mono" style={{ color: baseColors.gray[900] }}>${item.price.toFixed(4)}</p>
+                  <p className="text-sm font-mono" style={{ color: baseColors.gray[900] }}>
+                    ${item.price.toFixed(4)}
+                  </p>
                   <p
                     className="text-xs"
-                    style={{ color: item.deviationPercent >= 0 ? semanticColors.success.DEFAULT : semanticColors.danger.DEFAULT }}
+                    style={{
+                      color:
+                        item.deviationPercent >= 0
+                          ? semanticColors.success.DEFAULT
+                          : semanticColors.danger.DEFAULT,
+                    }}
                   >
                     {item.deviationPercent >= 0 ? '+' : ''}
                     {item.deviationPercent.toFixed(3)}%
@@ -463,15 +472,24 @@ function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
 
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+          <span
+            className="w-2 h-2 rounded"
+            style={{ backgroundColor: semanticColors.success.DEFAULT }}
+          />
           <span className="text-xs text-gray-500">{t('dataQuality.normal')} (&lt;0.2%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+          <span
+            className="w-2 h-2 rounded"
+            style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+          />
           <span className="text-xs text-gray-500">{t('dataQuality.warningRange')} (0.2-0.5%)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+          <span
+            className="w-2 h-2 rounded"
+            style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+          />
           <span className="text-xs text-gray-500">{t('dataQuality.criticalRange')} (&gt;0.5%)</span>
         </div>
       </div>

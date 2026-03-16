@@ -37,47 +37,47 @@ Retrieve current price or historical prices from oracle providers.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `provider` | string | Yes | Oracle provider name |
-| `symbol` | string | Yes | Trading pair symbol (e.g., "BTC/USD") |
-| `chain` | string | No | Blockchain network |
-| `period` | number | No | Historical period in days (positive integer) |
+| Parameter  | Type   | Required | Description                                  |
+| ---------- | ------ | -------- | -------------------------------------------- |
+| `provider` | string | Yes      | Oracle provider name                         |
+| `symbol`   | string | Yes      | Trading pair symbol (e.g., "BTC/USD")        |
+| `chain`    | string | No       | Blockchain network                           |
+| `period`   | number | No       | Historical period in days (positive integer) |
 
 **Supported Providers:**
 
-| Provider | Value | Description |
-|----------|-------|-------------|
-| Chainlink | `chainlink` | Decentralized oracle network |
-| Band Protocol | `band-protocol` | Cross-chain data oracle |
-| UMA | `uma` | Optimistic oracle |
-| Pyth | `pyth` | High-frequency data oracle |
-| API3 | `api3` | First-party oracle solution |
+| Provider      | Value           | Description                  |
+| ------------- | --------------- | ---------------------------- |
+| Chainlink     | `chainlink`     | Decentralized oracle network |
+| Band Protocol | `band-protocol` | Cross-chain data oracle      |
+| UMA           | `uma`           | Optimistic oracle            |
+| Pyth          | `pyth`          | High-frequency data oracle   |
+| API3          | `api3`          | First-party oracle solution  |
 
 **Supported Chains:**
 
-| Chain | Value |
-|-------|-------|
-| Ethereum | `ethereum` |
-| Arbitrum | `arbitrum` |
-| Optimism | `optimism` |
-| Polygon | `polygon` |
-| Solana | `solana` |
+| Chain     | Value       |
+| --------- | ----------- |
+| Ethereum  | `ethereum`  |
+| Arbitrum  | `arbitrum`  |
+| Optimism  | `optimism`  |
+| Polygon   | `polygon`   |
+| Solana    | `solana`    |
 | Avalanche | `avalanche` |
-| Fantom | `fantom` |
+| Fantom    | `fantom`    |
 | BNB Chain | `bnb-chain` |
-| Base | `base` |
-| Scroll | `scroll` |
-| zkSync | `zksync` |
-| Aptos | `aptos` |
-| Sui | `sui` |
-| Gnosis | `gnosis` |
-| Mantle | `mantle` |
-| Linea | `linea` |
-| Cosmos | `cosmos` |
-| Osmosis | `osmosis` |
+| Base      | `base`      |
+| Scroll    | `scroll`    |
+| zkSync    | `zksync`    |
+| Aptos     | `aptos`     |
+| Sui       | `sui`       |
+| Gnosis    | `gnosis`    |
+| Mantle    | `mantle`    |
+| Linea     | `linea`     |
+| Cosmos    | `cosmos`    |
+| Osmosis   | `osmosis`   |
 | Injective | `injective` |
-| Sei | `sei` |
+| Sei       | `sei`       |
 
 **Response (Current Price):**
 
@@ -148,17 +148,17 @@ Alternative endpoint to retrieve prices using provider in the URL path.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `provider` | string | Yes | Oracle provider name (in URL path) |
+| Parameter  | Type   | Required | Description                        |
+| ---------- | ------ | -------- | ---------------------------------- |
+| `provider` | string | Yes      | Oracle provider name (in URL path) |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | Yes | Trading pair symbol |
-| `chain` | string | No | Blockchain network |
-| `period` | number | No | Historical period in days |
+| Parameter | Type   | Required | Description               |
+| --------- | ------ | -------- | ------------------------- |
+| `symbol`  | string | Yes      | Trading pair symbol       |
+| `chain`   | string | No       | Blockchain network        |
+| `period`  | number | No       | Historical period in days |
 
 **Example Request:**
 
@@ -305,10 +305,10 @@ Create a new price alert.
 
 **Condition Types:**
 
-| Type | Description |
-|------|-------------|
-| `above` | Alert when price goes above target |
-| `below` | Alert when price goes below target |
+| Type             | Description                            |
+| ---------------- | -------------------------------------- |
+| `above`          | Alert when price goes above target     |
+| `below`          | Alert when price goes below target     |
 | `change_percent` | Alert when price changes by percentage |
 
 **Response:**
@@ -354,9 +354,9 @@ Retrieve a specific alert by ID.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Alert UUID |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `id`      | string | Yes      | Alert UUID  |
 
 **Response:**
 
@@ -393,9 +393,9 @@ Update an existing alert.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Alert UUID |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `id`      | string | Yes      | Alert UUID  |
 
 **Request Body (all fields optional):**
 
@@ -445,9 +445,9 @@ Delete an alert.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Alert UUID |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `id`      | string | Yes      | Alert UUID  |
 
 **Response:**
 
@@ -472,10 +472,10 @@ Retrieve alert events for the authenticated user.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `acknowledged` | boolean | No | Filter by acknowledgment status |
-| `limit` | number | No | Limit number of results |
+| Parameter      | Type    | Required | Description                     |
+| -------------- | ------- | -------- | ------------------------------- |
+| `acknowledged` | boolean | No       | Filter by acknowledgment status |
+| `limit`        | number  | No       | Limit number of results         |
 
 **Response:**
 
@@ -487,7 +487,7 @@ Retrieve alert events for the authenticated user.
       "alert_id": "alert-uuid",
       "user_id": "user-uuid",
       "triggered_at": "2024-03-14T10:00:00Z",
-      "price": 70150.50,
+      "price": 70150.5,
       "condition_met": "above",
       "acknowledged": false,
       "acknowledged_at": null
@@ -512,9 +512,9 @@ Acknowledge an alert event.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Event UUID |
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `id`      | string | Yes      | Event UUID  |
 
 **Response:**
 
@@ -525,7 +525,7 @@ Acknowledge an alert event.
     "alert_id": "alert-uuid",
     "user_id": "user-uuid",
     "triggered_at": "2024-03-14T10:00:00Z",
-    "price": 70150.50,
+    "price": 70150.5,
     "condition_met": "above",
     "acknowledged": true,
     "acknowledged_at": "2024-03-14T10:05:00Z"
@@ -551,17 +551,17 @@ Retrieve all favorites for the authenticated user.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `config_type` | string | No | Filter by configuration type |
+| Parameter     | Type   | Required | Description                  |
+| ------------- | ------ | -------- | ---------------------------- |
+| `config_type` | string | No       | Filter by configuration type |
 
 **Config Types:**
 
-| Type | Description |
-|------|-------------|
+| Type            | Description                    |
+| --------------- | ------------------------------ |
 | `oracle_config` | Oracle configuration favorites |
-| `symbol` | Symbol favorites |
-| `chain_config` | Chain configuration favorites |
+| `symbol`        | Symbol favorites               |
+| `chain_config`  | Chain configuration favorites  |
 
 **Response:**
 
@@ -650,9 +650,9 @@ Retrieve a specific favorite by ID.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Favorite UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Favorite UUID |
 
 **Response:**
 
@@ -687,9 +687,9 @@ Update an existing favorite.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Favorite UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Favorite UUID |
 
 **Request Body (all fields optional):**
 
@@ -739,9 +739,9 @@ Delete a favorite.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Favorite UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Favorite UUID |
 
 **Response:**
 
@@ -786,11 +786,11 @@ Retrieve all snapshots for the authenticated user.
         }
       ],
       "stats": {
-        "avgPrice": 67450.00,
-        "weightedAvgPrice": 67445.50,
-        "maxPrice": 67480.00,
-        "minPrice": 67420.00,
-        "priceRange": 60.00,
+        "avgPrice": 67450.0,
+        "weightedAvgPrice": 67445.5,
+        "maxPrice": 67480.0,
+        "minPrice": 67420.0,
+        "priceRange": 60.0,
         "variance": 400.5,
         "standardDeviation": 20.01,
         "standardDeviationPercent": 0.03
@@ -834,11 +834,11 @@ Create a new snapshot.
     }
   ],
   "stats": {
-    "avgPrice": 67450.00,
-    "weightedAvgPrice": 67445.50,
-    "maxPrice": 67480.00,
-    "minPrice": 67420.00,
-    "priceRange": 60.00,
+    "avgPrice": 67450.0,
+    "weightedAvgPrice": 67445.5,
+    "maxPrice": 67480.0,
+    "minPrice": 67420.0,
+    "priceRange": 60.0,
     "variance": 400.5,
     "standardDeviation": 20.01,
     "standardDeviationPercent": 0.03
@@ -890,9 +890,9 @@ Retrieve a specific snapshot by ID.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Snapshot UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Snapshot UUID |
 
 **Notes:**
 
@@ -933,9 +933,9 @@ Update an existing snapshot.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Snapshot UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Snapshot UUID |
 
 **Request Body (all fields optional):**
 
@@ -983,9 +983,9 @@ Delete a snapshot.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Snapshot UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Snapshot UUID |
 
 **Response:**
 
@@ -1010,9 +1010,9 @@ Share a snapshot publicly.
 
 **Path Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Snapshot UUID |
+| Parameter | Type   | Required | Description   |
+| --------- | ------ | -------- | ------------- |
+| `id`      | string | Yes      | Snapshot UUID |
 
 **Response:**
 
@@ -1052,16 +1052,17 @@ OAuth callback handler for authentication providers.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `code` | string | Yes | OAuth authorization code |
-| `state` | string | No | Redirect path after authentication |
-| `error` | string | No | OAuth error code |
-| `error_description` | string | No | OAuth error description |
+| Parameter           | Type   | Required | Description                        |
+| ------------------- | ------ | -------- | ---------------------------------- |
+| `code`              | string | Yes      | OAuth authorization code           |
+| `state`             | string | No       | Redirect path after authentication |
+| `error`             | string | No       | OAuth error code                   |
+| `error_description` | string | No       | OAuth error description            |
 
 **Response:**
 
 Redirects to the application with authentication cookies set:
+
 - `sb-access-token`: Session access token
 - `sb-refresh-token`: Session refresh token
 
@@ -1170,6 +1171,7 @@ Cleanup expired price records from the database.
 **Authentication:**
 
 Requires `CRON_SECRET` in Authorization header:
+
 ```
 Authorization: Bearer <CRON_SECRET>
 ```
@@ -1215,19 +1217,19 @@ All error responses follow a consistent format:
 
 ### Error Code Reference
 
-| Code | HTTP Status | Description | Retryable |
-|------|-------------|-------------|-----------|
-| `MISSING_PARAMS` | 400 | Required parameters missing | No |
-| `INVALID_PARAMS` | 400 | Invalid parameter value | No |
-| `INVALID_PROVIDER` | 400 | Unknown oracle provider | No |
-| `BAD_REQUEST` | 400 | Malformed request body | No |
-| `UNAUTHORIZED` | 401 | Missing or invalid authentication | No |
-| `FORBIDDEN` | 403 | Insufficient permissions | No |
-| `NOT_FOUND` | 404 | Resource not found | No |
-| `CLIENT_NOT_FOUND` | 500 | Oracle client initialization failed | No |
-| `ORACLE_FETCH_FAILED` | 500 | Failed to fetch data from oracle | Yes |
-| `BATCH_REQUEST_FAILED` | 500 | Batch request processing failed | Yes |
-| `INTERNAL_ERROR` | 500 | Unexpected server error | Yes |
+| Code                   | HTTP Status | Description                         | Retryable |
+| ---------------------- | ----------- | ----------------------------------- | --------- |
+| `MISSING_PARAMS`       | 400         | Required parameters missing         | No        |
+| `INVALID_PARAMS`       | 400         | Invalid parameter value             | No        |
+| `INVALID_PROVIDER`     | 400         | Unknown oracle provider             | No        |
+| `BAD_REQUEST`          | 400         | Malformed request body              | No        |
+| `UNAUTHORIZED`         | 401         | Missing or invalid authentication   | No        |
+| `FORBIDDEN`            | 403         | Insufficient permissions            | No        |
+| `NOT_FOUND`            | 404         | Resource not found                  | No        |
+| `CLIENT_NOT_FOUND`     | 500         | Oracle client initialization failed | No        |
+| `ORACLE_FETCH_FAILED`  | 500         | Failed to fetch data from oracle    | Yes       |
+| `BATCH_REQUEST_FAILED` | 500         | Batch request processing failed     | Yes       |
+| `INTERNAL_ERROR`       | 500         | Unexpected server error             | Yes       |
 
 ### Error Response Examples
 
@@ -1277,12 +1279,12 @@ All error responses follow a consistent format:
 
 API endpoints are rate-limited to ensure fair usage:
 
-| Endpoint Type | Rate Limit | Window |
-|---------------|------------|--------|
-| Price queries | 100 requests | 1 minute |
-| Batch requests | 20 requests | 1 minute |
-| User operations | 60 requests | 1 minute |
-| Cron endpoints | 10 requests | 1 minute |
+| Endpoint Type   | Rate Limit   | Window   |
+| --------------- | ------------ | -------- |
+| Price queries   | 100 requests | 1 minute |
+| Batch requests  | 20 requests  | 1 minute |
+| User operations | 60 requests  | 1 minute |
+| Cron endpoints  | 10 requests  | 1 minute |
 
 Rate limit headers are included in responses:
 
@@ -1298,10 +1300,10 @@ X-RateLimit-Reset: 1710374460
 
 Oracle price data is cached for performance:
 
-| Data Type | Cache Duration | Stale-While-Revalidate |
-|-----------|----------------|------------------------|
-| Current Price | 30 seconds | 60 seconds |
-| Historical Prices | 5 minutes | 10 minutes |
+| Data Type         | Cache Duration | Stale-While-Revalidate |
+| ----------------- | -------------- | ---------------------- |
+| Current Price     | 30 seconds     | 60 seconds             |
+| Historical Prices | 5 minutes      | 10 minutes             |
 
 Cache headers are included in responses:
 
@@ -1311,10 +1313,10 @@ Cache-Control: public, s-maxage=30, stale-while-revalidate=60
 
 The `source` field in responses indicates data origin:
 
-| Source | Description |
-|--------|-------------|
+| Source  | Description                       |
+| ------- | --------------------------------- |
 | `fresh` | Data fetched directly from oracle |
-| `cache` | Data served from cache |
+| `cache` | Data served from cache            |
 
 ---
 

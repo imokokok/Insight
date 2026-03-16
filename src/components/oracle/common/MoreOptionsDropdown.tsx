@@ -188,7 +188,9 @@ export function MoreOptionsDropdown({
 
             {showPredictionInterval && (
               <div className="border-t border-gray-100 mt-1 pt-1">
-                <div className="px-4 py-2 text-xs text-gray-500 font-medium">{t('priceChart.confidence')}</div>
+                <div className="px-4 py-2 text-xs text-gray-500 font-medium">
+                  {t('priceChart.confidence')}
+                </div>
                 {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
                   <button
                     key={level}
@@ -249,7 +251,9 @@ export function MoreOptionsDropdown({
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 w-64 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">{t('priceChart.advancedFeatures')}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">
+              {t('priceChart.advancedFeatures')}
+            </h3>
           </div>
 
           <div className="py-1">
@@ -287,7 +291,9 @@ export function MoreOptionsDropdown({
                   </div>
                   <div>
                     <span className="font-medium">{t('priceChart.timeComparison')}</span>
-                    <p className="text-xs text-gray-500">{t('priceChart.timeComparisonDescription')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceChart.timeComparisonDescription')}
+                    </p>
                   </div>
                 </div>
                 {(comparisonEnabled || showComparisonPanel) && (
@@ -332,7 +338,9 @@ export function MoreOptionsDropdown({
                   </div>
                   <div>
                     <span className="font-medium">{t('priceChart.anomalyDetection')}</span>
-                    <p className="text-xs text-gray-500">{t('priceChart.anomalyDetectionDescription')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceChart.anomalyDetectionDescription')}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -404,7 +412,9 @@ export function MoreOptionsDropdown({
                   </div>
                   <div>
                     <span className="font-medium">{t('priceChart.predictionInterval')}</span>
-                    <p className="text-xs text-gray-500">{t('priceChart.predictionIntervalDescription')}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('priceChart.predictionIntervalDescription')}
+                    </p>
                   </div>
                 </div>
                 {showPredictionInterval && (
@@ -421,7 +431,9 @@ export function MoreOptionsDropdown({
 
             {showPredictionInterval && (
               <div className="mt-1 px-4 py-2 border-t border-gray-100">
-                <div className="text-xs text-gray-500 font-medium mb-2">{t('priceChart.confidenceSelection')}</div>
+                <div className="text-xs text-gray-500 font-medium mb-2">
+                  {t('priceChart.confidenceSelection')}
+                </div>
                 <div className="flex items-center gap-2">
                   {([90, 95, 99] as ConfidenceLevel[]).map((level) => (
                     <button

@@ -113,8 +113,11 @@ export function useChainlinkAllData(options: UseChainlinkAllDataOptions) {
   });
 
   const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading;
-  const isError = priceQuery.error !== null || historicalQuery.error !== null || networkQuery.error !== null;
-  const errors = [priceQuery.error, historicalQuery.error, networkQuery.error].filter(Boolean) as Error[];
+  const isError =
+    priceQuery.error !== null || historicalQuery.error !== null || networkQuery.error !== null;
+  const errors = [priceQuery.error, historicalQuery.error, networkQuery.error].filter(
+    Boolean
+  ) as Error[];
 
   const refetchAll = useCallback(() => {
     priceQuery.refetch();

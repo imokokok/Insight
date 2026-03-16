@@ -39,9 +39,20 @@ interface StatCardProps {
   isFirst?: boolean;
 }
 
-export function StatCard({ title, value, change, changeType, icon, isFirst = false }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  change,
+  changeType,
+  icon,
+  isFirst = false,
+}: StatCardProps) {
   const changeColor =
-    changeType === 'positive' ? 'text-green-600' : changeType === 'negative' ? 'text-red-600' : 'text-gray-500';
+    changeType === 'positive'
+      ? 'text-green-600'
+      : changeType === 'negative'
+        ? 'text-red-600'
+        : 'text-gray-500';
 
   const changeSymbol = changeType === 'positive' ? '+' : changeType === 'negative' ? '-' : '';
 
@@ -82,14 +93,14 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
   return (
-    <div className="bg-white border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200">
+    <div className="bg-white border border-gray-200 p-3 hover:border-gray-300 transition-colors duration-200">
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{label}</p>
-          <p className="text-gray-900 text-lg font-semibold">{value}</p>
-          {subValue && <p className="text-gray-400 text-xs mt-1">{subValue}</p>}
+        <div className="flex-1 min-w-0">
+          <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{label}</p>
+          <p className="text-gray-900 text-base font-semibold truncate">{value}</p>
+          {subValue && <p className="text-gray-400 text-[10px] mt-0.5 truncate">{subValue}</p>}
         </div>
-        <div className="p-2 bg-gray-100 text-gray-600">{icon}</div>
+        <div className="p-1.5 bg-gray-100 text-gray-600 flex-shrink-0 ml-2">{icon}</div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 # DIA页面改造检查清单
 
 ## Phase 1: 数据层扩展
+
 - [x] DIAClient扩展完成
   - [x] NFT数据类型定义正确
   - [x] getNFTData方法返回正确数据结构
@@ -16,6 +17,7 @@
   - [x] useDIAAllData整合所有新hooks
 
 ## Phase 2: Panel组件开发
+
 - [x] DIANFTDataPanel组件
   - [x] 组件能正确渲染
   - [x] NFT集合列表展示正确
@@ -46,6 +48,7 @@
   - [x] 国际化文本正确显示
 
 ## Phase 3: 主页面重构
+
 - [x] Tab结构正确
   - [x] 7个tabs正确显示
   - [x] Tab切换功能正常
@@ -61,6 +64,7 @@
   - [x] 数据更新及时
 
 ## Phase 4: 配置与国际化
+
 - [x] 配置文件更新
   - [x] oracles.tsx中DIA tabs配置正确
   - [x] themeColor和icon配置正确
@@ -76,6 +80,7 @@
   - [x] 所有中文翻译有对应英文
 
 ## Phase 5: 清理与优化
+
 - [x] 旧组件清理
   - [x] 旧data-sources panel已标记废弃
   - [x] 旧cross-chain panel已标记废弃
@@ -87,6 +92,7 @@
   - [x] 数据缓存策略有效
 
 ## Phase 6: 验证与测试
+
 - [x] 功能验证通过
   - [x] 所有7个tab正常显示和切换
   - [x] NFT数据展示正确

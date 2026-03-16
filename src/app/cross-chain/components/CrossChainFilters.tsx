@@ -95,9 +95,15 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
+      <div
+        className="flex flex-wrap items-end gap-4 mb-6 pb-6 border-b"
+        style={{ borderColor: baseColors.gray[200] }}
+      >
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+          <label
+            className="text-xs uppercase tracking-wide"
+            style={{ color: baseColors.gray[500] }}
+          >
             {t('crossChain.oracleProvider')}
           </label>
           <select
@@ -115,7 +121,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+          <label
+            className="text-xs uppercase tracking-wide"
+            style={{ color: baseColors.gray[500] }}
+          >
             {t('crossChain.symbol')}
           </label>
           <select
@@ -133,7 +142,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+          <label
+            className="text-xs uppercase tracking-wide"
+            style={{ color: baseColors.gray[500] }}
+          >
             {t('crossChain.timeRange')}
           </label>
           <div className="flex items-center p-1" style={{ backgroundColor: baseColors.gray[100] }}>
@@ -142,13 +154,15 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 key={range.value}
                 onClick={() => setSelectedTimeRange(range.value)}
                 className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                  selectedTimeRange === range.value
-                    ? 'bg-white border'
-                    : ''
+                  selectedTimeRange === range.value ? 'bg-white border' : ''
                 }`}
                 style={{
-                  color: selectedTimeRange === range.value ? baseColors.primary[600] : baseColors.gray[600],
-                  borderColor: selectedTimeRange === range.value ? baseColors.gray[300] : 'transparent'
+                  color:
+                    selectedTimeRange === range.value
+                      ? baseColors.primary[600]
+                      : baseColors.gray[600],
+                  borderColor:
+                    selectedTimeRange === range.value ? baseColors.gray[300] : 'transparent',
                 }}
               >
                 {range.label}
@@ -158,7 +172,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-wide flex items-center gap-2" style={{ color: baseColors.gray[500] }}>
+          <label
+            className="text-xs uppercase tracking-wide flex items-center gap-2"
+            style={{ color: baseColors.gray[500] }}
+          >
             {t('crossChain.baseChain')}
             {recommendedBaseChain && selectedBaseChain === recommendedBaseChain && (
               <span className="text-xs font-normal" style={{ color: baseColors.primary[500] }}>
@@ -183,7 +200,9 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
       </div>
 
       <div className="mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
-        <h3 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[900] }}>{t('crossChain.visibleChains')}</h3>
+        <h3 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[900] }}>
+          {t('crossChain.visibleChains')}
+        </h3>
         <div className="flex flex-wrap gap-2">
           {supportedChains.map((chain) => {
             const isVisible = visibleChains.includes(chain);
@@ -192,14 +211,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 key={chain}
                 onClick={() => toggleChain(chain)}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-2 ${
-                  isVisible
-                    ? 'text-white'
-                    : 'bg-white border hover:border-gray-400'
+                  isVisible ? 'text-white' : 'bg-white border hover:border-gray-400'
                 }`}
                 style={{
                   backgroundColor: isVisible ? baseColors.primary[600] : 'white',
                   borderColor: isVisible ? baseColors.primary[600] : baseColors.gray[300],
-                  color: isVisible ? 'white' : baseColors.gray[700]
+                  color: isVisible ? 'white' : baseColors.gray[700],
                 }}
               >
                 <span
@@ -227,11 +244,16 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
                 className="w-4 h-4 rounded-none focus:ring-blue-500"
                 style={{ color: baseColors.primary[600], borderColor: baseColors.gray[300] }}
               />
-              <span className="text-sm" style={{ color: baseColors.gray[700] }}>{t('crossChain.showMA')}</span>
+              <span className="text-sm" style={{ color: baseColors.gray[700] }}>
+                {t('crossChain.showMA')}
+              </span>
             </label>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+            <label
+              className="text-xs uppercase tracking-wide"
+              style={{ color: baseColors.gray[500] }}
+            >
               {t('crossChain.maPeriod')}:
             </label>
             <select
@@ -266,7 +288,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
         </h3>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+            <label
+              className="text-xs uppercase tracking-wide"
+              style={{ color: baseColors.gray[500] }}
+            >
               {t('crossChain.thresholdType')}
             </label>
             <select
@@ -287,7 +312,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+            <label
+              className="text-xs uppercase tracking-wide"
+              style={{ color: baseColors.gray[500] }}
+            >
               {t('crossChain.fixedThresholdPercent')}
             </label>
             <input
@@ -308,7 +336,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+            <label
+              className="text-xs uppercase tracking-wide"
+              style={{ color: baseColors.gray[500] }}
+            >
               {t('crossChain.volatilityMultiplier')}
             </label>
             <input
@@ -329,7 +360,10 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs uppercase tracking-wide" style={{ color: baseColors.gray[500] }}>
+            <label
+              className="text-xs uppercase tracking-wide"
+              style={{ color: baseColors.gray[500] }}
+            >
               {t('crossChain.calculationPeriod')}
             </label>
             <select

@@ -10,7 +10,10 @@ interface DIADataSourcesPanelProps {
   verificationData: DataSourceVerification[];
 }
 
-export function DIADataSourcesPanel({ transparencyData, verificationData }: DIADataSourcesPanelProps) {
+export function DIADataSourcesPanel({
+  transparencyData,
+  verificationData,
+}: DIADataSourcesPanelProps) {
   const { t } = useI18n();
 
   const getTypeLabel = (type: string) => {
@@ -62,19 +65,38 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
     switch (status) {
       case 'verified':
         return (
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         );
       case 'pending':
         return (
-          <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-yellow-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         );
       case 'failed':
         return (
-          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         );
@@ -92,7 +114,7 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
       {/* Data Sources Overview */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.dataSources.title')}</h3>
-        
+
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-indigo-50 rounded-lg p-4">
@@ -108,7 +130,10 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.dataTransparency.avgCredibility')}</p>
             <p className="text-2xl font-bold text-blue-600">
-              {(transparencyData.reduce((acc, s) => acc + s.credibilityScore, 0) / transparencyData.length).toFixed(1)}
+              {(
+                transparencyData.reduce((acc, s) => acc + s.credibilityScore, 0) /
+                transparencyData.length
+              ).toFixed(1)}
             </p>
           </div>
           <div className="bg-purple-50 rounded-lg p-4">
@@ -155,7 +180,9 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
                     </span>
                   </td>
                   <td className="py-3 px-3">
-                    <span className={`font-semibold ${getCredibilityColor(source.credibilityScore)}`}>
+                    <span
+                      className={`font-semibold ${getCredibilityColor(source.credibilityScore)}`}
+                    >
                       {source.credibilityScore}
                     </span>
                   </td>
@@ -178,8 +205,10 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
 
       {/* Verification Records */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.dataSourceVerification.title')}</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('dia.dataSourceVerification.title')}
+        </h3>
+
         {/* Verification Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -204,7 +233,9 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
               className={`border rounded-lg p-4 ${getVerificationStatusColor(verification.status)}`}
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-0.5">{getVerificationStatusIcon(verification.status)}</div>
+                <div className="flex-shrink-0 mt-0.5">
+                  {getVerificationStatusIcon(verification.status)}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{verification.verificationId}</h4>
@@ -226,7 +257,9 @@ export function DIADataSourcesPanel({ transparencyData, verificationData }: DIAD
                       <span className="font-medium">{verification.method}</span>
                     </span>
                     <span>
-                      <span className="opacity-75">{t('dia.dataSourceVerification.validators')}:</span>{' '}
+                      <span className="opacity-75">
+                        {t('dia.dataSourceVerification.validators')}:
+                      </span>{' '}
                       <span className="font-medium">{verification.validatorCount}</span>
                     </span>
                   </div>

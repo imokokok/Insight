@@ -452,13 +452,17 @@ export default function ChartRenderer({
               <span className="font-medium text-gray-900">{item.chains}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}:</span>
+              <span className="text-gray-500">
+                {locale === 'zh-CN' ? '协议数量' : 'Protocols'}:
+              </span>
               <span className="font-medium text-gray-900">{item.protocols}</span>
             </div>
             {oracleData && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">{locale === 'zh-CN' ? '市场份额' : 'Share'}:</span>
+                  <span className="text-gray-500">
+                    {locale === 'zh-CN' ? '市场份额' : 'Share'}:
+                  </span>
                   <span className="font-medium text-gray-900">{oracleData.share}%</span>
                 </div>
                 <div className="flex justify-between">
@@ -486,7 +490,11 @@ export default function ChartRenderer({
   };
 
   const renderBarChart = () => (
-    <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical" margin={{ left: 20, right: 30, top: 10, bottom: 10 }}>
+    <BarChart
+      data={CHAIN_SUPPORT_DATA}
+      layout="vertical"
+      margin={{ left: 20, right: 30, top: 10, bottom: 10 }}
+    >
       <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} horizontal={false} />
       <XAxis
         type="number"
@@ -568,10 +576,7 @@ export default function ChartRenderer({
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-3 h-3 rounded"
-                          style={{ backgroundColor: item.color }}
-                        />
+                        <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
                         <span className="font-medium text-gray-900">{item.name}</span>
                       </div>
                     </td>
@@ -582,9 +587,7 @@ export default function ChartRenderer({
                       <span className="text-gray-600">{item.protocols}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="font-medium text-gray-900">
-                        {oracleData?.share ?? '-'}%
-                      </span>
+                      <span className="font-medium text-gray-900">{oracleData?.share ?? '-'}%</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="text-gray-600">{oracleData?.tvs ?? '-'}</span>

@@ -58,7 +58,15 @@ const sourceTextColors: Record<EarningsSourceType, string> = {
 };
 
 // 趋势图标
-function TrendIcon({ trend, value, t }: { trend: 'up' | 'down' | 'stable'; value: number; t: (key: string) => string }) {
+function TrendIcon({
+  trend,
+  value,
+  t,
+}: {
+  trend: 'up' | 'down' | 'stable';
+  value: number;
+  t: (key: string) => string;
+}) {
   if (trend === 'up') {
     return (
       <span className="flex items-center gap-1 text-green-600 text-xs">

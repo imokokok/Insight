@@ -29,7 +29,13 @@ export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
 
   if (chainsWithHighDeviation.length > 0) {
     return (
-      <div className="mb-6 p-4 border" style={{ backgroundColor: semanticColors.warning.light, borderColor: semanticColors.warning.light }}>
+      <div
+        className="mb-6 p-4 border"
+        style={{
+          backgroundColor: semanticColors.warning.light,
+          borderColor: semanticColors.warning.light,
+        }}
+      >
         <div className="flex items-center gap-2">
           <svg
             className="w-5 h-5"
@@ -85,7 +91,10 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
 
   return (
     <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
-      <h3 className="text-sm font-medium uppercase tracking-wide mb-4" style={{ color: baseColors.gray[900] }}>
+      <h3
+        className="text-sm font-medium uppercase tracking-wide mb-4"
+        style={{ color: baseColors.gray[900] }}
+      >
         {t('crossChain.priceSpreadHeatmap')}
       </h3>
       <div className="overflow-x-auto">
@@ -115,11 +124,21 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             <div key={xChain} className="flex">
               <div
                 className="w-24 shrink-0 flex items-center py-1 transition-colors duration-150"
-                style={{ backgroundColor: hoveredCell && hoveredCell.yChain === xChain ? baseColors.gray[100] : 'transparent' }}
+                style={{
+                  backgroundColor:
+                    hoveredCell && hoveredCell.yChain === xChain
+                      ? baseColors.gray[100]
+                      : 'transparent',
+                }}
               >
                 <span
                   className="text-xs font-medium transition-colors"
-                  style={{ color: hoveredCell && hoveredCell.yChain === xChain ? baseColors.gray[900] : baseColors.gray[600] }}
+                  style={{
+                    color:
+                      hoveredCell && hoveredCell.yChain === xChain
+                        ? baseColors.gray[900]
+                        : baseColors.gray[600],
+                  }}
                 >
                   {chainNames[xChain]}
                 </span>
@@ -145,7 +164,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                         : getHeatmapColorFn(percent, maxHeatmapValue),
                       transform: isHovered && !isDiagonal ? 'scale(1.05)' : 'scale(1)',
                       zIndex: isHovered ? 10 : 1,
-                      boxShadow: isSelected ? `inset 0 0 0 2px ${baseColors.primary[500]}` : 'none'
+                      boxShadow: isSelected ? `inset 0 0 0 2px ${baseColors.primary[500]}` : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isDiagonal) {
@@ -176,11 +195,18 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                     }}
                   >
                     {isDiagonal ? (
-                      <span className="text-sm" style={{ color: baseColors.gray[300] }}>—</span>
+                      <span className="text-sm" style={{ color: baseColors.gray[300] }}>
+                        —
+                      </span>
                     ) : (
                       <span
                         className="text-xs font-medium"
-                        style={{ color: percent > maxHeatmapValue * 0.5 ? baseColors.gray[50] : baseColors.gray[900] }}
+                        style={{
+                          color:
+                            percent > maxHeatmapValue * 0.5
+                              ? baseColors.gray[50]
+                              : baseColors.gray[900],
+                        }}
                       >
                         {percent.toFixed(2)}%
                       </span>
@@ -191,7 +217,10 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             </div>
           ))}
           {/* Enhanced Legend */}
-          <div className="mt-6 p-4 border" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
+          <div
+            className="mt-6 p-4 border"
+            style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
+          >
             <div className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
               {t('crossChain.heatmapLegend')}
             </div>
@@ -225,7 +254,9 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                 <span>{t('crossChain.largeSpread')} (&gt;2%)</span>
               </div>
             </div>
-            <div className="mt-2 text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.heatmapHint')}</div>
+            <div className="mt-2 text-xs" style={{ color: baseColors.gray[500] }}>
+              {t('crossChain.heatmapHint')}
+            </div>
           </div>
         </div>
       </div>
@@ -522,7 +553,11 @@ function SelectedCellDetail({ data }: { data: ReturnType<typeof useCrossChainDat
           <div className="h-48 bg-gray-50 border border-gray-200 p-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={baseColors.gray[200]}
+                  vertical={false}
+                />
                 <XAxis dataKey="time" stroke={chartColors.recharts.axis} tick={{ fontSize: 10 }} />
                 <YAxis
                   domain={['auto', 'auto']}

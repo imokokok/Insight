@@ -1,14 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
-import {
-  DashboardCard,
-  DataFreshnessIndicator,
-  RiskScoreCard,
-} from '@/components/oracle/common';
+import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
 import {
   PieChart,
   Pie,
@@ -46,7 +43,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
         setDisputeStats(efficiencyStats);
         setLastUpdated(new Date());
       } catch (error) {
-        console.error('Failed to fetch UMA risk data:', error);
+        logger.error('Failed to fetch UMA risk data:', error instanceof Error ? error : new Error(String(error)));
       }
     };
 
@@ -100,18 +97,17 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
   const concentrationRisk = top10Percentage > 60 ? 'high' : top10Percentage > 40 ? 'medium' : 'low';
 
   // 争议解决时间分布
-  const resolutionTimeData =
-    disputeStats?.resolutionTimeDistribution.map((item) => ({
-      range: item.range,
-      count: item.count,
-    })) ?? [
-      { range: '0-2h', count: 15 },
-      { range: '2-6h', count: 25 },
-      { range: '6-12h', count: 20 },
-      { range: '12-24h', count: 18 },
-      { range: '24-48h', count: 12 },
-      { range: '48h+', count: 5 },
-    ];
+  const resolutionTimeData = disputeStats?.resolutionTimeDistribution.map((item) => ({
+    range: item.range,
+    count: item.count,
+  })) ?? [
+    { range: '0-2h', count: 15 },
+    { range: '2-6h', count: 25 },
+    { range: '6-12h', count: 20 },
+    { range: '12-24h', count: 18 },
+    { range: '24-48h', count: 12 },
+    { range: '48h+', count: 5 },
+  ];
 
   // 争议成功率趋势
   const successRateData =
@@ -171,7 +167,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
     },
     {
       title: t('uma.risk.disputeResolutionScore'),
-      score: Math.round(75 + (disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate ?? 78) * 0.25),
+      score: Math.round(
+        75 +
+          (disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate ?? 78) *
+            0.25
+      ),
       description: t('uma.risk.disputeResolutionScoreDesc'),
       trend: 'up' as const,
       trendValue: '+4.5%',
@@ -185,9 +185,19 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
     },
   ];
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsLoading(false);
     }, 1000);
@@ -261,7 +271,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
                   formatter={(value, name) => [String(value), name]}
                 />
               </PieChart>
@@ -297,7 +311,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
                   formatter={(value) => [`$${(Number(value) / 1e6).toFixed(2)}M`, '']}
                 />
               </PieChart>
@@ -336,7 +354,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 <XAxis dataKey="range" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
                   formatter={(value) => [String(value), t('uma.risk.disputeCount')]}
                 />
                 <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -346,7 +368,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
           <div className="mt-4 grid grid-cols-2 gap-4 text-center">
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-500">{t('uma.risk.avgResolutionTime')}</p>
-              <p className="text-lg font-semibold">{disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h</p>
+              <p className="text-lg font-semibold">
+                {disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h
+              </p>
             </div>
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-500">{t('uma.risk.medianResolutionTime')}</p>
@@ -363,7 +387,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
                   formatter={(value) => [`${Number(value).toFixed(1)}%`, t('uma.risk.successRate')]}
                 />
                 <Line
@@ -380,8 +408,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
             <p className="text-sm text-gray-600">
               {t('uma.risk.disputeSuccessRateDescription', {
                 rate:
-                  disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate.toFixed(1) ??
-                  78,
+                  disputeStats?.successRateTrend[
+                    disputeStats.successRateTrend.length - 1
+                  ]?.rate.toFixed(1) ?? 78,
               })}
             </p>
           </div>

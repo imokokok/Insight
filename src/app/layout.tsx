@@ -43,7 +43,9 @@ export default function RootLayout({
               <ErrorBoundary>
                 <AppInitializer>
                   <Navbar />
-                  <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>{children}</main>
+                  <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
+                    {children}
+                  </main>
                   <Footer />
                   <ConnectionStatusIndicator
                     showLabel={false}

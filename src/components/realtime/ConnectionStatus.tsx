@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { ConnectionStatus } from '@/lib/supabase/realtime';
 import { useI18n } from '@/lib/i18n/provider';
@@ -44,12 +44,22 @@ export function ConnectionStatusIndicator({
   const [isReconnecting, setIsReconnecting] = useState(false);
   const { t } = useI18n();
 
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+      }
+    };
+  }, []);
+
   const config = statusConfig[connectionStatus];
 
   const handleReconnect = async () => {
     setIsReconnecting(true);
     reconnect();
-    setTimeout(() => setIsReconnecting(false), 2000);
+    reconnectTimerRef.current = setTimeout(() => setIsReconnecting(false), 2000);
   };
 
   const isDisconnected = connectionStatus === 'disconnected' || connectionStatus === 'error';

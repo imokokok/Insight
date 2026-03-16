@@ -143,7 +143,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">{t('tellor.risk.max24h')}</span>
-              <span className="text-sm font-medium text-yellow-600">{data.priceDeviation.max24h.toFixed(4)}%</span>
+              <span className="text-sm font-medium text-yellow-600">
+                {data.priceDeviation.max24h.toFixed(4)}%
+              </span>
             </div>
           </div>
         </DashboardCard>
@@ -181,7 +183,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.concentrationRisk')}</span>
-                <span className="text-sm font-medium">{data.stakingRisk.concentrationRisk.toFixed(1)}%</span>
+                <span className="text-sm font-medium">
+                  {data.stakingRisk.concentrationRisk.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -193,7 +197,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.slashRisk')}</span>
-                <span className="text-sm font-medium text-green-600">{data.stakingRisk.slashRisk.toFixed(1)}%</span>
+                <span className="text-sm font-medium text-green-600">
+                  {data.stakingRisk.slashRisk.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -205,7 +211,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.rewardStability')}</span>
-                <span className="text-sm font-medium text-green-600">{data.stakingRisk.rewardStability.toFixed(1)}%</span>
+                <span className="text-sm font-medium text-green-600">
+                  {data.stakingRisk.rewardStability.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -222,7 +230,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.uptimeRisk')}</span>
-                <span className="text-sm font-medium text-green-600">{data.networkRisk.uptimeRisk.toFixed(1)}%</span>
+                <span className="text-sm font-medium text-green-600">
+                  {data.networkRisk.uptimeRisk.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -234,7 +244,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.latencyRisk')}</span>
-                <span className="text-sm font-medium">{data.networkRisk.latencyRisk.toFixed(1)}%</span>
+                <span className="text-sm font-medium">
+                  {data.networkRisk.latencyRisk.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -245,8 +257,12 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-600">{t('tellor.risk.updateFrequencyRisk')}</span>
-                <span className="text-sm font-medium text-green-600">{data.networkRisk.updateFrequencyRisk.toFixed(1)}%</span>
+                <span className="text-sm text-gray-600">
+                  {t('tellor.risk.updateFrequencyRisk')}
+                </span>
+                <span className="text-sm font-medium text-green-600">
+                  {data.networkRisk.updateFrequencyRisk.toFixed(1)}%
+                </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div
@@ -275,8 +291,8 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                 alert.type === 'critical'
                   ? 'bg-red-50 border border-red-200'
                   : alert.type === 'warning'
-                  ? 'bg-yellow-50 border border-yellow-200'
-                  : 'bg-blue-50 border border-blue-200'
+                    ? 'bg-yellow-50 border border-yellow-200'
+                    : 'bg-blue-50 border border-blue-200'
               }`}
             >
               <div
@@ -284,8 +300,8 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                   alert.type === 'critical'
                     ? 'bg-red-500'
                     : alert.type === 'warning'
-                    ? 'bg-yellow-500'
-                    : 'bg-blue-500'
+                      ? 'bg-yellow-500'
+                      : 'bg-blue-500'
                 }`}
               />
               <div className="flex-1">
@@ -299,8 +315,8 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                   alert.type === 'critical'
                     ? 'bg-red-100 text-red-700'
                     : alert.type === 'warning'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-blue-100 text-blue-700'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-blue-100 text-blue-700'
                 }`}
               >
                 {alert.type}

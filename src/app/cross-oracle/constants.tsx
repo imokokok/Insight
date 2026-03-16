@@ -92,9 +92,12 @@ export type DeviationFilter = 'all' | 'excellent' | 'good' | 'poor';
 export const getDeviationColorClass = (deviationPercent: number | null): string => {
   if (deviationPercent === null) return `text-[${baseColors.gray[400]}]`;
   const color = getDeviationColor(deviationPercent);
-  if (color === semanticColors.success.DEFAULT) return `text-[${semanticColors.success.dark}] bg-[${semanticColors.success.light}]`;
-  if (color === semanticColors.warning.DEFAULT) return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
-  if (color === semanticColors.danger.DEFAULT) return `text-[${semanticColors.danger.dark}] bg-[${semanticColors.danger.light}]`;
+  if (color === semanticColors.success.DEFAULT)
+    return `text-[${semanticColors.success.dark}] bg-[${semanticColors.success.light}]`;
+  if (color === semanticColors.warning.DEFAULT)
+    return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
+  if (color === semanticColors.danger.DEFAULT)
+    return `text-[${semanticColors.danger.dark}] bg-[${semanticColors.danger.light}]`;
   return `text-[${semanticColors.warning.dark}] bg-[${semanticColors.warning.light}]`;
 };
 

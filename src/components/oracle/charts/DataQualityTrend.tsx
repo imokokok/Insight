@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import {
   ComposedChart,
   Line,
@@ -21,6 +21,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
+import type { TooltipContentProps, DotItemDotProps } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
@@ -98,6 +99,39 @@ interface QualityMetrics {
   consistency: Record<OracleProvider, number>;
 }
 
+interface ChartDataPoint {
+  timestamp: string;
+  rawTimestamp: number;
+  [key: string]: string | number | boolean | null;
+}
+
+interface TooltipPayloadEntry {
+  dataKey: string;
+  value: number | string | null;
+  color: string;
+  name: string;
+}
+
+interface QualityStats {
+  avgScore: number;
+  minScore: number;
+  maxScore: number;
+  avgLatency: number;
+  outlierRate: number;
+  staleRate: number;
+  avgHeartbeat: number;
+  trend: 'improving' | 'stable' | 'declining';
+  avgAccuracy: number;
+  avgAvailability: number;
+  avgConsistency: number;
+  overallScore: number;
+}
+
+interface RadarDataPoint {
+  metric: string;
+  [key: string]: string | number;
+}
+
 function calculateQualityScore(point: QualityDataPoint): number {
   let score = 100;
 
@@ -152,6 +186,23 @@ export function DataQualityTrend({
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d'>('24h');
   const [showRadarChart, setShowRadarChart] = useState(true);
   const [showRanking, setShowRanking] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    refreshTimerRef.current = setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
+  }, []);
 
   const selectedTimeRange = useSelectedTimeRange();
   const { registerTimeRangeCallback, unregisterTimeRangeCallback } = useTimeRangeCallback();
@@ -170,7 +221,7 @@ export function DataQualityTrend({
 
   const chartData = useMemo(() => {
     return allTimestamps.map((timestamp) => {
-      const point: any = {
+      const point: ChartDataPoint = {
         timestamp: new Date(timestamp).toLocaleTimeString('zh-CN', {
           hour: '2-digit',
           minute: '2-digit',
@@ -211,23 +262,7 @@ export function DataQualityTrend({
 
   // 计算统计数据
   const stats = useMemo(() => {
-    const result: Record<
-      OracleProvider,
-      {
-        avgScore: number;
-        minScore: number;
-        maxScore: number;
-        avgLatency: number;
-        outlierRate: number;
-        staleRate: number;
-        avgHeartbeat: number;
-        trend: 'improving' | 'stable' | 'declining';
-        avgAccuracy: number;
-        avgAvailability: number;
-        avgConsistency: number;
-        overallScore: number;
-      }
-    > = {} as any;
+    const result: Partial<Record<OracleProvider, QualityStats>> = {};
 
     data.forEach((oracle) => {
       if (oracle.data.length === 0) return;
@@ -299,7 +334,7 @@ export function DataQualityTrend({
     const dimensions = ['准确性', '可用性', '一致性', '响应速度', '心跳合规', '基础质量'];
 
     return dimensions.map((dimension) => {
-      const dataPoint: any = { metric: dimension };
+      const dataPoint: RadarDataPoint = { metric: dimension };
 
       rankingData.forEach((item) => {
         const stat = stats[item.provider];
@@ -331,21 +366,33 @@ export function DataQualityTrend({
     });
   }, [rankingData, stats]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: Partial<TooltipContentProps<number, string>>) => {
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4 border border-gray-200 min-w-[240px]" style={{ boxShadow: shadowColors.tooltip }}>
+      <div
+        className="bg-white p-4 border border-gray-200 min-w-[240px]"
+        style={{ boxShadow: shadowColors.tooltip }}
+      >
         <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
         <div className="space-y-2">
           {selectedOracles.map((oracle) => {
-            const score = payload.find((p: any) => p.dataKey === `score_${oracle}`)?.value;
-            if (score === null || score === undefined) return null;
+            const scoreValue = payload.find((p) => p.dataKey === `score_${oracle}`)?.value;
+            const score = typeof scoreValue === 'number' ? scoreValue : parseFloat(String(scoreValue));
+            if (isNaN(score)) return null;
 
-            const latency = payload.find((p: any) => p.dataKey === `latency_${oracle}`)?.value;
-            const deviation = payload.find((p: any) => p.dataKey === `deviation_${oracle}`)?.value;
-            const isOutlier = payload.find((p: any) => p.dataKey === `outlier_${oracle}`)?.value;
-            const isStale = payload.find((p: any) => p.dataKey === `stale_${oracle}`)?.value;
+            const latencyValue = payload.find((p) => p.dataKey === `latency_${oracle}`)?.value;
+            const latency = typeof latencyValue === 'number' ? latencyValue : parseFloat(String(latencyValue));
+            const deviationValue = payload.find((p) => p.dataKey === `deviation_${oracle}`)?.value;
+            const deviation = typeof deviationValue === 'number' ? deviationValue : parseFloat(String(deviationValue));
+            const isOutlierValue = payload.find((p) => p.dataKey === `outlier_${oracle}`)?.value;
+            const isOutlier = Boolean(isOutlierValue);
+            const isStaleValue = payload.find((p) => p.dataKey === `stale_${oracle}`)?.value;
+            const isStale = Boolean(isStaleValue);
 
             return (
               <div key={oracle} className="border-t border-gray-100 pt-2 first:border-0 first:pt-0">
@@ -363,21 +410,33 @@ export function DataQualityTrend({
                 <div className="text-xs text-gray-500 space-y-0.5">
                   <div className="flex justify-between">
                     <span>延迟:</span>
-                    <span>{latency?.toFixed(0) || '-'}ms</span>
+                    <span>{!isNaN(latency) ? latency.toFixed(0) : '-'}ms</span>
                   </div>
                   <div className="flex justify-between">
                     <span>偏离:</span>
-                    <span>{deviation?.toFixed(4) || '-'}%</span>
+                    <span>{!isNaN(deviation) ? deviation.toFixed(4) : '-'}%</span>
                   </div>
                   {(isOutlier || isStale) && (
                     <div className="flex gap-2 mt-1">
                       {isOutlier && (
-                        <span className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: semanticColors.danger.light, color: semanticColors.danger.text }}>
+                        <span
+                          className="px-1.5 py-0.5 rounded text-xs"
+                          style={{
+                            backgroundColor: semanticColors.danger.light,
+                            color: semanticColors.danger.text,
+                          }}
+                        >
                           异常值
                         </span>
                       )}
                       {isStale && (
-                        <span className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: semanticColors.warning.light, color: semanticColors.warning.text }}>
+                        <span
+                          className="px-1.5 py-0.5 rounded text-xs"
+                          style={{
+                            backgroundColor: semanticColors.warning.light,
+                            color: semanticColors.warning.text,
+                          }}
+                        >
                           过期
                         </span>
                       )}
@@ -451,7 +510,7 @@ export function DataQualityTrend({
               <span className="text-sm text-gray-600">时间范围:</span>
               <select
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value as any)}
+                onChange={(e) => setTimeRange(e.target.value as '1h' | '6h' | '24h' | '7d')}
                 className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="1h">1小时</option>
@@ -520,9 +579,24 @@ export function DataQualityTrend({
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <ReferenceLine y={90} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="优秀" />
-                  <ReferenceLine y={75} stroke={chartColors.recharts.primary} strokeDasharray="3 3" label="良好" />
-                  <ReferenceLine y={60} stroke={semanticColors.warning.DEFAULT} strokeDasharray="3 3" label="及格" />
+                  <ReferenceLine
+                    y={90}
+                    stroke={semanticColors.success.DEFAULT}
+                    strokeDasharray="3 3"
+                    label="优秀"
+                  />
+                  <ReferenceLine
+                    y={75}
+                    stroke={chartColors.recharts.primary}
+                    strokeDasharray="3 3"
+                    label="良好"
+                  />
+                  <ReferenceLine
+                    y={60}
+                    stroke={semanticColors.warning.DEFAULT}
+                    strokeDasharray="3 3"
+                    label="及格"
+                  />
 
                   {selectedOracles.map((oracle) => (
                     <Line
@@ -856,7 +930,11 @@ export function DataQualityTrend({
               />
               <Tooltip />
               <Legend />
-              <ReferenceLine y={0} stroke={chartColors.recharts.secondaryAxis} strokeDasharray="3 3" />
+              <ReferenceLine
+                y={0}
+                stroke={chartColors.recharts.secondaryAxis}
+                strokeDasharray="3 3"
+              />
 
               {selectedOracles.map((oracle) => (
                 <Line
@@ -865,14 +943,14 @@ export function DataQualityTrend({
                   dataKey={`deviation_${oracle}`}
                   stroke={ORACLE_COLORS[oracle]}
                   strokeWidth={1.5}
-                  dot={(props: any) => {
+                  dot={(props: DotItemDotProps) => {
                     const { cx, cy, payload } = props;
                     const isOutlier = payload[`outlier_${oracle}`];
                     if (isOutlier) {
                       return (
                         <circle
-                          cx={cx}
-                          cy={cy}
+                          cx={cx as number}
+                          cy={cy as number}
                           r={4}
                           fill={semanticColors.danger.DEFAULT}
                           stroke={baseColors.gray[50]}
@@ -909,7 +987,12 @@ export function DataQualityTrend({
               />
               <Tooltip />
               <Legend />
-              <ReferenceLine y={95} stroke={semanticColors.success.DEFAULT} strokeDasharray="3 3" label="目标" />
+              <ReferenceLine
+                y={95}
+                stroke={semanticColors.success.DEFAULT}
+                strokeDasharray="3 3"
+                label="目标"
+              />
 
               {selectedOracles.map((oracle) => (
                 <Line
@@ -949,7 +1032,10 @@ export function DataQualityTrend({
           </ul>
           <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+              <span
+                className="w-3 h-3"
+                style={{ backgroundColor: semanticColors.success.DEFAULT }}
+              />
               <span>优秀 (90-100)</span>
             </span>
             <span className="flex items-center gap-1">
@@ -957,11 +1043,17 @@ export function DataQualityTrend({
               <span>良好 (75-89)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+              <span
+                className="w-3 h-3"
+                style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+              />
               <span>及格 (60-74)</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+              <span
+                className="w-3 h-3"
+                style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+              />
               <span>不及格 (&lt;60)</span>
             </span>
           </div>

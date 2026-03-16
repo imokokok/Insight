@@ -33,13 +33,23 @@ export function RiskScoreCard({
       case 'up':
         return (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
           </svg>
         );
       case 'down':
         return (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
           </svg>
         );
       default:
@@ -78,9 +88,7 @@ export function RiskScoreCard({
       <div className="space-y-4">
         <div className="flex items-end justify-between">
           <div>
-            <span className={`text-4xl font-bold ${scoreColor}`}>
-              {clampedScore}
-            </span>
+            <span className={`text-4xl font-bold ${scoreColor}`}>{clampedScore}</span>
             <span className="text-gray-400 text-lg">/100</span>
           </div>
           <div className="flex items-center gap-2">
@@ -103,9 +111,7 @@ export function RiskScoreCard({
           />
         </div>
 
-        {description && (
-          <p className="text-sm text-gray-600">{description}</p>
-        )}
+        {description && <p className="text-sm text-gray-600">{description}</p>}
       </div>
     </DashboardCard>
   );

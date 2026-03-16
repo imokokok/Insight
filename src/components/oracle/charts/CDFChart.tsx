@@ -374,15 +374,24 @@ export function CDFChart({
             <span className="text-xs text-gray-500">{t('cdfChart.cdfCurve') || 'CDF 曲线'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.success.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">P50 (中位数)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">P95</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+            <span
+              className="w-3 h-3 rounded"
+              style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+            />
             <span className="text-xs text-gray-500">P99</span>
           </div>
         </div>

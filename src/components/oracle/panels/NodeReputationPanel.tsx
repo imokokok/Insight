@@ -148,7 +148,14 @@ function ReputationScoreGauge({ score }: { score: number }) {
       <div className="flex items-center justify-center">
         <div className="relative w-32 h-32">
           <svg className="w-full h-full transform -rotate-90">
-            <circle cx="64" cy="64" r="45" stroke={chartColors.recharts.grid} strokeWidth="10" fill="none" />
+            <circle
+              cx="64"
+              cy="64"
+              r="45"
+              stroke={chartColors.recharts.grid}
+              strokeWidth="10"
+              fill="none"
+            />
             <circle
               cx="64"
               cy="64"
@@ -157,7 +164,6 @@ function ReputationScoreGauge({ score }: { score: number }) {
               strokeWidth="10"
               fill="none"
               strokeDasharray={strokeDasharray}
-              
               className="transition-all duration-1000"
             />
           </svg>
@@ -260,7 +266,7 @@ function AccuracyStats({
                 boxShadow: shadowColors.tooltip,
               }}
             />
-            <Bar dataKey="accuracy" fill={chartColors.recharts.primary} >
+            <Bar dataKey="accuracy" fill={chartColors.recharts.primary}>
               {data.map((entry, index) => {
                 const color =
                   entry.accuracy >= 99
@@ -340,7 +346,7 @@ function ResponseTimeDistribution({
                 boxShadow: shadowColors.tooltip,
               }}
             />
-            <Bar dataKey="count" fill={chartColors.recharts.primary} >
+            <Bar dataKey="count" fill={chartColors.recharts.primary}>
               {data.map((entry, index) => {
                 if (entry.range === '0-50ms')
                   return <Cell key={`cell-${index}`} fill={SCORE_COLORS.excellent} />;
@@ -358,10 +364,7 @@ function ResponseTimeDistribution({
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <div
-              className="w-2 h-2 "
-              style={{ backgroundColor: SCORE_COLORS.excellent }}
-            ></div>
+            <div className="w-2 h-2 " style={{ backgroundColor: SCORE_COLORS.excellent }}></div>
             <span>{t('nodeReputation.responseTime.excellent')}</span>
           </div>
           <div className="flex items-center gap-1">
@@ -422,7 +425,6 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
                 viewBox="0 0 24 24"
               >
                 <path
-                  
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
@@ -501,7 +503,11 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
     type,
   }));
 
-  const NODE_TYPE_COLORS_MAP = [chartColors.recharts.primary, chartColors.semantic.success, chartColors.recharts.purple];
+  const NODE_TYPE_COLORS_MAP = [
+    chartColors.recharts.primary,
+    chartColors.semantic.success,
+    chartColors.recharts.purple,
+  ];
 
   return (
     <div className="bg-white border border-gray-200  p-6">

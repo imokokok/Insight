@@ -16,7 +16,7 @@ type Breadcrumb = {
 
 export const captureException = (error: Error, context?: Record<string, unknown>) => {
   console.error('[Error]', error, context);
-  
+
   if (typeof window !== 'undefined') {
     Sentry.captureException(error, { extra: context });
   }
@@ -24,7 +24,7 @@ export const captureException = (error: Error, context?: Record<string, unknown>
 
 export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
   console.log(`[${level.toUpperCase()}]`, message);
-  
+
   if (typeof window !== 'undefined') {
     Sentry.captureMessage(message, level);
   }
@@ -40,10 +40,10 @@ export const startSpan = <T>(name: string, callback: () => T): T => {
 export const setUser = (user: SentryUser | User | null) => {
   if (typeof window !== 'undefined') {
     if (user) {
-      Sentry.setUser({ 
-        id: user.id, 
+      Sentry.setUser({
+        id: user.id,
         email: user.email,
-        username: (user as SentryUser).username 
+        username: (user as SentryUser).username,
       });
     } else {
       Sentry.setUser(null);

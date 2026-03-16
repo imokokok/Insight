@@ -75,18 +75,16 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
             tier: 'Large',
             minStake: 1000000,
             maxStake: 5000000,
-            validatorCount: validators.filter(
-              (v) => v.tokens >= 1000000 && v.tokens < 5000000
-            ).length,
+            validatorCount: validators.filter((v) => v.tokens >= 1000000 && v.tokens < 5000000)
+              .length,
             percentage: 0,
           },
           {
             tier: 'Medium',
             minStake: 500000,
             maxStake: 1000000,
-            validatorCount: validators.filter(
-              (v) => v.tokens >= 500000 && v.tokens < 1000000
-            ).length,
+            validatorCount: validators.filter((v) => v.tokens >= 500000 && v.tokens < 1000000)
+              .length,
             percentage: 0,
           },
           {
@@ -166,9 +164,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.staking.totalStaked')}
           </p>
-          <p className="text-2xl font-bold text-gray-900">
-            {formatNumber(stats.totalStaked)} BAND
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalStaked)} BAND</p>
           <p className="text-xs text-green-600 mt-1">
             {stats.stakingRatio.toFixed(2)}% {t('band.staking.ofTotalSupply')}
           </p>
@@ -177,20 +173,14 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.staking.stakingApr')}
           </p>
-          <p className="text-2xl font-bold text-purple-600">
-            {stats.stakingApr.toFixed(2)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.staking.annualReturn')}
-          </p>
+          <p className="text-2xl font-bold text-purple-600">{stats.stakingApr.toFixed(2)}%</p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.staking.annualReturn')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.staking.activeValidators')}
           </p>
-          <p className="text-2xl font-bold text-gray-900">
-            {stats.activeValidators}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{stats.activeValidators}</p>
           <p className="text-xs text-gray-500 mt-1">
             {t('band.staking.outOf')} {stats.totalValidators} {t('band.staking.total')}
           </p>
@@ -199,12 +189,8 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.staking.inflationRate')}
           </p>
-          <p className="text-2xl font-bold text-gray-900">
-            {stats.inflationRate.toFixed(2)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.staking.annual')}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{stats.inflationRate.toFixed(2)}%</p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.staking.annual')}</p>
         </div>
       </div>
 
@@ -251,9 +237,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
       {/* Top Validators by Stake */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.staking.topValidators')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('band.staking.topValidators')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -281,9 +265,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                 {topValidators.map((validator, index) => (
                   <tr
                     key={validator.address}
-                    className={`border-b border-gray-100 ${
-                      index % 2 === 0 ? 'bg-gray-50/50' : ''
-                    }`}
+                    className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50/50' : ''}`}
                   >
                     <td className="py-3 px-4">
                       <span
@@ -298,9 +280,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                     </td>
                     <td className="py-3 px-4">
                       <div>
-                        <p className="font-medium text-gray-900">
-                          {validator.moniker}
-                        </p>
+                        <p className="font-medium text-gray-900">{validator.moniker}</p>
                         <p className="text-xs text-gray-500 font-mono">
                           {validator.address.slice(0, 16)}...
                         </p>
@@ -322,8 +302,8 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                           validator.uptime >= 99
                             ? 'text-green-600'
                             : validator.uptime >= 95
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
                         }`}
                       >
                         {validator.uptime.toFixed(2)}%
@@ -340,9 +320,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
       {/* Staking Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.staking.stakingInfo')}
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('band.staking.stakingInfo')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -351,29 +329,19 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                 {t('band.staking.unbondingPeriod')}
               </h4>
               <p className="text-2xl font-bold text-purple-700">21 {t('band.staking.days')}</p>
-              <p className="text-sm text-purple-600 mt-1">
-                {t('band.staking.unbondingDesc')}
-              </p>
+              <p className="text-sm text-purple-600 mt-1">{t('band.staking.unbondingDesc')}</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">
-                {t('band.staking.minStake')}
-              </h4>
+              <h4 className="font-medium text-blue-900 mb-2">{t('band.staking.minStake')}</h4>
               <p className="text-2xl font-bold text-blue-700">1 BAND</p>
-              <p className="text-sm text-blue-600 mt-1">
-                {t('band.staking.minStakeDesc')}
-              </p>
+              <p className="text-sm text-blue-600 mt-1">{t('band.staking.minStakeDesc')}</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">
-                {t('band.staking.communityPool')}
-              </h4>
+              <h4 className="font-medium text-green-900 mb-2">{t('band.staking.communityPool')}</h4>
               <p className="text-2xl font-bold text-green-700">
                 {formatNumber(stats.communityPool)} BAND
               </p>
-              <p className="text-sm text-green-600 mt-1">
-                {t('band.staking.communityPoolDesc')}
-              </p>
+              <p className="text-sm text-green-600 mt-1">{t('band.staking.communityPoolDesc')}</p>
             </div>
           </div>
         </CardContent>

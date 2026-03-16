@@ -222,7 +222,11 @@ export default function CrossChainPage() {
       </div>
 
       {/* 稳定性分析表格 */}
-      <div id="stability" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+      <div
+        id="stability"
+        className="mb-8 pb-8 border-b"
+        style={{ borderColor: baseColors.gray[100] }}
+      >
         <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
           {t('crossChain.stabilityAnalysis')}
         </h3>
@@ -230,19 +234,34 @@ export default function CrossChainPage() {
           <table className="w-full text-left">
             <thead>
               <tr style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
-                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                <th
+                  className="px-3 py-2.5 text-xs font-medium"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   {t('crossChain.blockchain')}
                 </th>
-                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                <th
+                  className="px-3 py-2.5 text-xs font-medium"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   {t('crossChain.dataIntegrity')}
                 </th>
-                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                <th
+                  className="px-3 py-2.5 text-xs font-medium"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   {t('crossChain.priceVolatility')}
                 </th>
-                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                <th
+                  className="px-3 py-2.5 text-xs font-medium"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   {t('crossChain.priceJumpFrequency')}
                 </th>
-                <th className="px-3 py-2.5 text-xs font-medium text-right" style={{ color: baseColors.gray[500] }}>
+                <th
+                  className="px-3 py-2.5 text-xs font-medium text-right"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   {t('crossChain.stabilityRating')}
                 </th>
               </tr>
@@ -257,7 +276,10 @@ export default function CrossChainPage() {
                   <tr
                     key={chain}
                     className="hover:bg-gray-50"
-                    style={{ borderBottom: `1px solid ${baseColors.gray[100]}`, backgroundColor: 'transparent' }}
+                    style={{
+                      borderBottom: `1px solid ${baseColors.gray[100]}`,
+                      backgroundColor: 'transparent',
+                    }}
                   >
                     <td className="px-3 py-2.5">
                       <div className="flex items-center">
@@ -286,12 +308,15 @@ export default function CrossChainPage() {
                       <span
                         className="text-sm font-medium"
                         style={{
-                          color: stabilityRating === 'stable' ? semanticColors.success.main : stabilityRating === 'moderate' ? semanticColors.warning.main : semanticColors.danger.main
+                          color:
+                            stabilityRating === 'stable'
+                              ? semanticColors.success.main
+                              : stabilityRating === 'moderate'
+                                ? semanticColors.warning.main
+                                : semanticColors.danger.main,
                         }}
                       >
-                        {volatility > 0
-                          ? t(`crossChain.stability.${stabilityRating}`)
-                          : '-'}
+                        {volatility > 0 ? t(`crossChain.stability.${stabilityRating}`) : '-'}
                       </span>
                     </td>
                   </tr>
@@ -345,7 +370,11 @@ export default function CrossChainPage() {
   const renderChartsTab = () => (
     <>
       {/* 价格分布分析 */}
-      <div id="distribution" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+      <div
+        id="distribution"
+        className="mb-8 pb-8 border-b"
+        style={{ borderColor: baseColors.gray[100] }}
+      >
         <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
           {t('crossChain.priceDistributionAnalysis')}
         </h3>
@@ -366,7 +395,11 @@ export default function CrossChainPage() {
                     height={60}
                     stroke={chartColors.recharts.axis}
                   />
-                  <YAxis tick={{ fontSize: 11, fill: chartColors.recharts.tick }} width={40} stroke={chartColors.recharts.axis} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                    width={40}
+                    stroke={chartColors.recharts.axis}
+                  />
                   <Tooltip formatter={(value) => [value, '频率']} />
                   {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
                     <ReferenceLine
@@ -388,20 +421,32 @@ export default function CrossChainPage() {
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3">
               <div className="py-3">
-                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.medianLine')}</div>
-                <div className="text-lg font-semibold" style={{ color: semanticColors.success.main }}>
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.medianLine')}
+                </div>
+                <div
+                  className="text-lg font-semibold"
+                  style={{ color: semanticColors.success.main }}
+                >
                   ${medianPrice.toFixed(4)}
                 </div>
               </div>
               <div className="py-3">
-                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.meanLine')}</div>
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.meanLine')}
+                </div>
                 <div className="text-lg font-semibold" style={{ color: baseColors.primary[500] }}>
                   ${avgPrice.toFixed(4)}
                 </div>
               </div>
               <div className="py-3">
-                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.standardDeviation')}</div>
-                <div className="text-lg font-semibold" style={{ color: chartColors.recharts.purple }}>
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.standardDeviation')}
+                </div>
+                <div
+                  className="text-lg font-semibold"
+                  style={{ color: chartColors.recharts.purple }}
+                >
                   ${standardDeviation.toFixed(4)}
                 </div>
               </div>
@@ -436,24 +481,29 @@ export default function CrossChainPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b" style={{ borderColor: baseColors.gray[200] }}>
+      <div
+        className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 pb-6 border-b"
+        style={{ borderColor: baseColors.gray[200] }}
+      >
         <div>
-          <h1 className="text-2xl font-semibold" style={{ color: baseColors.gray[900] }}>{t('crossChain.title')}</h1>
-          <p className="text-sm mt-1" style={{ color: baseColors.gray[500] }}>{t('crossOracle.subtitle')}</p>
+          <h1 className="text-2xl font-semibold" style={{ color: baseColors.gray[900] }}>
+            {t('crossChain.title')}
+          </h1>
+          <p className="text-sm mt-1" style={{ color: baseColors.gray[500] }}>
+            {t('crossOracle.subtitle')}
+          </p>
         </div>
         <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap">
           {/* 色盲友好模式切换 */}
           <button
             onClick={() => setColorblindMode(!colorblindMode)}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm border rounded-none transition-colors ${
-              colorblindMode
-                ? ''
-                : 'hover:border-gray-400'
+              colorblindMode ? '' : 'hover:border-gray-400'
             }`}
             style={{
               backgroundColor: colorblindMode ? semanticColors.info.light : 'transparent',
               borderColor: colorblindMode ? semanticColors.info.light : baseColors.gray[300],
-              color: colorblindMode ? semanticColors.info.text : baseColors.gray[600]
+              color: colorblindMode ? semanticColors.info.text : baseColors.gray[600],
             }}
             title={
               colorblindMode
@@ -477,7 +527,12 @@ export default function CrossChainPage() {
             </svg>
             <span>{t('crossChain.colorblindFriendly')}</span>
             {colorblindMode && (
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: semanticColors.info.main }}>
+              <svg
+                className="w-4 h-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                style={{ color: semanticColors.info.main }}
+              >
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -486,7 +541,9 @@ export default function CrossChainPage() {
               </svg>
             )}
           </button>
-          <span className="text-sm" style={{ color: baseColors.gray[500] }}>{t('crossChain.export')}:</span>
+          <span className="text-sm" style={{ color: baseColors.gray[500] }}>
+            {t('crossChain.export')}:
+          </span>
           <button
             onClick={exportToCSV}
             disabled={loading || currentPrices.length === 0}
@@ -503,8 +560,13 @@ export default function CrossChainPage() {
           >
             JSON
           </button>
-          <div className="flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: baseColors.gray[200] }}>
-            <span className="text-sm" style={{ color: baseColors.gray[600] }}>{t('crossChain.autoRefresh')}</span>
+          <div
+            className="flex items-center gap-2 px-3 py-1.5 border"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
+            <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+              {t('crossChain.autoRefresh')}
+            </span>
             <select
               value={refreshInterval}
               onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
@@ -522,7 +584,12 @@ export default function CrossChainPage() {
             disabled={refreshStatus === 'refreshing'}
             className="px-4 py-2 text-sm text-white disabled:opacity-50"
             style={{
-              backgroundColor: refreshStatus === 'error' ? semanticColors.danger.main : refreshStatus === 'success' && showRefreshSuccess ? semanticColors.success.main : baseColors.gray[900]
+              backgroundColor:
+                refreshStatus === 'error'
+                  ? semanticColors.danger.main
+                  : refreshStatus === 'success' && showRefreshSuccess
+                    ? semanticColors.success.main
+                    : baseColors.gray[900],
             }}
           >
             {refreshStatus === 'refreshing'
@@ -547,8 +614,13 @@ export default function CrossChainPage() {
 
       {loading ? (
         <div className="py-16 flex flex-col justify-center items-center gap-3">
-          <div className="w-8 h-8 border-2 border-t-transparent animate-spin" style={{ borderColor: baseColors.gray[400] }} />
-          <div className="text-sm" style={{ color: baseColors.gray[500] }}>{t('crossChain.loadingData')}</div>
+          <div
+            className="w-8 h-8 border-2 border-t-transparent animate-spin"
+            style={{ borderColor: baseColors.gray[400] }}
+          />
+          <div className="text-sm" style={{ color: baseColors.gray[500] }}>
+            {t('crossChain.loadingData')}
+          </div>
         </div>
       ) : (
         <>

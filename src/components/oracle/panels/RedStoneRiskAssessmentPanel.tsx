@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard, DataFreshnessIndicator } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
@@ -115,10 +115,19 @@ export function RedStoneRiskAssessmentPanel() {
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = () => {
     setIsLoading(true);
-    // 模拟刷新数据
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsLoading(false);
     }, 1000);
@@ -135,19 +144,29 @@ export function RedStoneRiskAssessmentPanel() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DashboardCard title={t('redstone.riskAssessment.overallRiskScore')} className="lg:col-span-1">
+        <DashboardCard
+          title={t('redstone.riskAssessment.overallRiskScore')}
+          className="lg:col-span-1"
+        >
           <div className="text-center py-6">
-            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>
+              {overallScore}
+            </div>
             <div className="text-sm text-gray-500 mt-2">
               {t('redstone.riskAssessment.comprehensiveAssessment')}
             </div>
-            <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
+            <div
+              className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+            >
               {t(`redstone.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
         </DashboardCard>
 
-        <DashboardCard title={t('redstone.riskAssessment.dimensionScores')} className="lg:col-span-2">
+        <DashboardCard
+          title={t('redstone.riskAssessment.dimensionScores')}
+          className="lg:col-span-2"
+        >
           <div className="space-y-4">
             {riskMetrics.map((metric) => (
               <div key={metric.name}>
@@ -219,15 +238,21 @@ export function RedStoneRiskAssessmentPanel() {
             </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('redstone.riskAssessment.topProvidersShare')}</span>
+                <span className="text-gray-600">
+                  {t('redstone.riskAssessment.topProvidersShare')}
+                </span>
                 <span className="font-medium text-gray-900">18.5%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('redstone.riskAssessment.top5ProvidersShare')}</span>
+                <span className="text-gray-600">
+                  {t('redstone.riskAssessment.top5ProvidersShare')}
+                </span>
                 <span className="font-medium text-gray-900">45.2%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('redstone.riskAssessment.giniCoefficient')}</span>
+                <span className="text-gray-600">
+                  {t('redstone.riskAssessment.giniCoefficient')}
+                </span>
                 <span className="font-medium text-green-600">0.41</span>
               </div>
             </div>
@@ -258,7 +283,10 @@ export function RedStoneRiskAssessmentPanel() {
       <DashboardCard title={t('redstone.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
-            <div key={index} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
+            <div
+              key={index}
+              className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+            >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
@@ -271,7 +299,9 @@ export function RedStoneRiskAssessmentPanel() {
               </div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
-                  {event.status === 'resolved' ? t('redstone.riskAssessment.resolved') : t('redstone.riskAssessment.monitoring')}
+                  {event.status === 'resolved'
+                    ? t('redstone.riskAssessment.resolved')
+                    : t('redstone.riskAssessment.monitoring')}
                 </span>
               </div>
             </div>
@@ -282,12 +312,35 @@ export function RedStoneRiskAssessmentPanel() {
       <DashboardCard title={t('redstone.riskAssessment.modularArchitecture')}>
         <div className="space-y-4">
           {[
-            { component: 'Core Contracts', availability: 99.95, riskLevel: 'low' as const, lastAudit: '2024-02' },
-            { component: 'Data Provider Network', availability: 99.90, riskLevel: 'low' as const, lastAudit: '2024-01' },
-            { component: 'Arweave Storage', availability: 99.99, riskLevel: 'low' as const, lastAudit: '2023-12' },
-            { component: 'Price Feeds', availability: 99.92, riskLevel: 'low' as const, lastAudit: '2024-03' },
+            {
+              component: 'Core Contracts',
+              availability: 99.95,
+              riskLevel: 'low' as const,
+              lastAudit: '2024-02',
+            },
+            {
+              component: 'Data Provider Network',
+              availability: 99.9,
+              riskLevel: 'low' as const,
+              lastAudit: '2024-01',
+            },
+            {
+              component: 'Arweave Storage',
+              availability: 99.99,
+              riskLevel: 'low' as const,
+              lastAudit: '2023-12',
+            },
+            {
+              component: 'Price Feeds',
+              availability: 99.92,
+              riskLevel: 'low' as const,
+              lastAudit: '2024-03',
+            },
           ].map((item) => (
-            <div key={item.component} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              key={item.component}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-900 w-40">{item.component}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -317,7 +370,9 @@ export function RedStoneRiskAssessmentPanel() {
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}
+                >
                   {t(`redstone.riskAssessment.${measure.status}`)}
                 </span>
               </div>

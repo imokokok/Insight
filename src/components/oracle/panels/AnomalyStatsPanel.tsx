@@ -21,10 +21,30 @@ export interface AnomalyStatsPanelProps {
 }
 
 const SEVERITY_CONFIG = {
-  low: { color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', label: '低' },
-  medium: { color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', label: '中' },
-  high: { color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', label: '高' },
-  critical: { color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', label: '严重' },
+  low: {
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    label: '低',
+  },
+  medium: {
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    label: '中',
+  },
+  high: {
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    label: '高',
+  },
+  critical: {
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    label: '严重',
+  },
 };
 
 const TYPE_CONFIG = {
@@ -220,7 +240,9 @@ function SeverityDistribution({ anomalies }: { anomalies: AnomalyData[] }) {
             <div key={severity}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${config.bgColor.replace('bg-', 'bg-').replace('50', '500')}`} />
+                  <div
+                    className={`w-3 h-3 rounded-full ${config.bgColor.replace('bg-', 'bg-').replace('50', '500')}`}
+                  />
                   <span className="text-sm text-gray-600">{config.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -338,7 +360,9 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
         <StatCard
           title={t('anomalyStats.criticalAnomalies') || '严重异常'}
           value={stats.critical}
-          subtitle={stats.total > 0 ? `${((stats.critical / stats.total) * 100).toFixed(1)}%` : '0%'}
+          subtitle={
+            stats.total > 0 ? `${((stats.critical / stats.total) * 100).toFixed(1)}%` : '0%'
+          }
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -354,11 +378,7 @@ export function AnomalyStatsPanel({ anomalies, loading = false }: AnomalyStatsPa
           value={stats.high}
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
+              <path strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           }
         />

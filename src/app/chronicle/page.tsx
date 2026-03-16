@@ -113,7 +113,12 @@ export default function ChroniclePage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
           </svg>
         ),
       },
@@ -124,7 +129,12 @@ export default function ChroniclePage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -196,25 +206,33 @@ export default function ChroniclePage() {
                 <DashboardCard title={t('chronicle.quickStats')}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chronicle.stats.volume24h')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chronicle.stats.volume24h')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chronicle.stats.marketCap')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chronicle.stats.marketCap')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chronicle.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chronicle.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M CHRONICLE
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('chronicle.stats.stakingApr')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chronicle.stats.stakingApr')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">
                         {staking?.stakingApr ?? 7.8}%
                       </span>
@@ -236,9 +254,7 @@ export default function ChroniclePage() {
             <ChronicleScuttlebuttPanel data={scuttlebutt} />
           )}
 
-          {activeTab === 'makerdao' && makerDAO && (
-            <ChronicleMakerDAOPanel data={makerDAO} />
-          )}
+          {activeTab === 'makerdao' && makerDAO && <ChronicleMakerDAOPanel data={makerDAO} />}
 
           {activeTab === 'validators' && validatorMetrics && (
             <ChronicleValidatorMetricsPanel data={validatorMetrics} />

@@ -82,17 +82,17 @@ The Insight Oracle Data Analytics Platform is a modern web application built on 
 
 ### 1.2 Main Components and Interactions
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| Frontend | Next.js 16, React 19 | User interface with SSR/SSG |
-| State Management | React Query, Zustand | Server state & Client UI state |
-| Real-time | WebSocket, Supabase Realtime | Live price updates |
-| API | Next.js API Routes + Middleware | Backend endpoints with unified handler |
-| Oracle Clients | Custom TypeScript clients + DI | Oracle provider integration |
-| Database | Supabase PostgreSQL | Data persistence |
-| Authentication | Supabase Auth | User management |
-| Error Handling | Custom Error Classes | Unified error handling |
-| Dependency Injection | Custom DI Container | Testability & decoupling |
+| Component            | Technology                      | Purpose                                |
+| -------------------- | ------------------------------- | -------------------------------------- |
+| Frontend             | Next.js 16, React 19            | User interface with SSR/SSG            |
+| State Management     | React Query, Zustand            | Server state & Client UI state         |
+| Real-time            | WebSocket, Supabase Realtime    | Live price updates                     |
+| API                  | Next.js API Routes + Middleware | Backend endpoints with unified handler |
+| Oracle Clients       | Custom TypeScript clients + DI  | Oracle provider integration            |
+| Database             | Supabase PostgreSQL             | Data persistence                       |
+| Authentication       | Supabase Auth                   | User management                        |
+| Error Handling       | Custom Error Classes            | Unified error handling                 |
+| Dependency Injection | Custom DI Container             | Testability & decoupling               |
 
 ### 1.3 Data Flow
 
@@ -170,6 +170,7 @@ src/app/
 ### 2.2 React 19 with Server and Client Components
 
 #### Server Components (Default)
+
 Server Components are used for static content and data fetching that doesn't require client-side interactivity:
 
 ```typescript
@@ -188,6 +189,7 @@ export default async function ServerPage() {
 ```
 
 #### Client Components
+
 Client Components are used for interactive features:
 
 ```typescript
@@ -203,17 +205,17 @@ export default function InteractiveComponent() {
 
 ### 2.3 Page Organization
 
-| Page | Route | Purpose |
-|------|-------|---------|
-| Home | `/` | Dashboard with market overview, price ticker, metrics |
-| Market Overview | `/market-overview` | Comprehensive market analytics |
-| Price Query | `/price-query` | Price lookup and historical data |
-| Cross-Oracle | `/cross-oracle` | Compare prices across oracles |
-| Cross-Chain | `/cross-chain` | Cross-chain price analysis |
-| Oracle Pages | `/{oracle}` | Provider-specific analytics |
-| Alerts | `/alerts` | Price alert management |
-| Favorites | `/favorites` | Saved configurations |
-| Settings | `/settings` | User preferences |
+| Page            | Route              | Purpose                                               |
+| --------------- | ------------------ | ----------------------------------------------------- |
+| Home            | `/`                | Dashboard with market overview, price ticker, metrics |
+| Market Overview | `/market-overview` | Comprehensive market analytics                        |
+| Price Query     | `/price-query`     | Price lookup and historical data                      |
+| Cross-Oracle    | `/cross-oracle`    | Compare prices across oracles                         |
+| Cross-Chain     | `/cross-chain`     | Cross-chain price analysis                            |
+| Oracle Pages    | `/{oracle}`        | Provider-specific analytics                           |
+| Alerts          | `/alerts`          | Price alert management                                |
+| Favorites       | `/favorites`       | Saved configurations                                  |
+| Settings        | `/settings`        | User preferences                                      |
 
 ### 2.4 Dynamic Imports for Performance
 
@@ -317,24 +319,28 @@ src/components/
 ### 3.2 Oracle Component Categories
 
 #### Price Visualization
+
 - `PriceChart.tsx` - Standard price chart
 - `DynamicPriceChart.tsx` - Real-time updating chart
 - `PriceVolatilityChart.tsx` - Volatility visualization
 - `PriceDistributionBoxPlot.tsx` - Price distribution analysis
 
 #### Technical Indicators
+
 - `BollingerBands.tsx` - Bollinger Bands overlay
 - `RSIIndicator.tsx` - Relative Strength Index
 - `MACDIndicator.tsx` - Moving Average Convergence Divergence
 - `ATRIndicator.tsx` - Average True Range
 
 #### Data Quality
+
 - `DataQualityPanel.tsx` - Quality metrics panel
 - `DataQualityScoreCard.tsx` - Quality score display
 - `DataQualityIndicator.tsx` - Quality indicator badge
 - `ConfidenceScore.tsx` - Confidence visualization
 
 #### Cross-Chain Analysis
+
 - `CrossChainPanel.tsx` - Cross-chain overview
 - `CrossChainTrendChart.tsx` - Cross-chain trends
 - `CrossChainPriceConsistency.tsx` - Price consistency check
@@ -396,13 +402,12 @@ The application uses a hybrid state management approach:
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,      // 5 minutes
-      gcTime: 10 * 60 * 1000,        // 10 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retry: 3,
-      retryDelay: (attemptIndex) => 
-        Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: 1,
@@ -432,9 +437,9 @@ const swrConfig = {
 };
 
 const STALE_TIME_CONFIG = {
-  price: 30 * 1000,      // 30 seconds
+  price: 30 * 1000, // 30 seconds
   history: 5 * 60 * 1000, // 5 minutes
-  network: 60 * 1000,     // 1 minute
+  network: 60 * 1000, // 1 minute
 };
 ```
 
@@ -480,6 +485,7 @@ interface CrossChainStore {
 ### 4.5 React Context Providers
 
 #### AuthContext
+
 Manages authentication state and user sessions:
 
 ```typescript
@@ -489,7 +495,11 @@ interface AuthContextValue {
   profile: UserProfile | null;
   loading: boolean;
   error: AuthError | Error | null;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName?: string
+  ) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithOAuth: (provider: Provider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
@@ -499,6 +509,7 @@ interface AuthContextValue {
 ```
 
 #### RealtimeContext
+
 Manages real-time subscriptions:
 
 ```typescript
@@ -569,7 +580,7 @@ class MockWebSocketManager extends WebSocketManager {
 
     // TVS channel
     this.mockDataGenerators.set('tvs', () => ({...}));
-    
+
     // Market stats channel
     this.mockDataGenerators.set('marketStats', () => ({...}));
   }
@@ -611,14 +622,14 @@ class RealtimeManager {
 
 ### 5.4 Channel-Based Subscriptions
 
-| Channel | Purpose | Data Type |
-|---------|---------|-----------|
-| `prices` | Real-time price updates | Price data with symbol, price, change |
-| `tvs` | Total Value Secured | Oracle TVS with 24h change |
-| `marketStats` | Market statistics | Total TVS, chains, protocols |
-| `uma:prices` | UMA-specific prices | UMA oracle prices |
-| `uma:disputes` | Dispute events | Dispute status and details |
-| `uma:validators` | Validator activity | Validator metrics |
+| Channel          | Purpose                 | Data Type                             |
+| ---------------- | ----------------------- | ------------------------------------- |
+| `prices`         | Real-time price updates | Price data with symbol, price, change |
+| `tvs`            | Total Value Secured     | Oracle TVS with 24h change            |
+| `marketStats`    | Market statistics       | Total TVS, chains, protocols          |
+| `uma:prices`     | UMA-specific prices     | UMA oracle prices                     |
+| `uma:disputes`   | Dispute events          | Dispute status and details            |
+| `uma:validators` | Validator activity      | Validator metrics                     |
 
 ### 5.5 Heartbeat and Reconnection Logic
 
@@ -628,7 +639,7 @@ protected startHeartbeat(): void {
   this.heartbeatTimer = setInterval(() => {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.send({ type: 'ping', timestamp: Date.now() });
-      
+
       // Set timeout for pong response
       this.heartbeatTimeoutTimer = setTimeout(() => {
         logger.warn('Heartbeat timeout, reconnecting...');
@@ -698,22 +709,22 @@ The oracle handlers provide a unified interface for fetching price data:
 
 ```typescript
 // Core handler functions
-export async function handleGetPrice(
-  params: OracleQueryParams
-): Promise<NextResponse>;
+export async function handleGetPrice(params: OracleQueryParams): Promise<NextResponse>;
 
 export async function handleGetHistoricalPrices(
   params: OracleQueryParams & { period: number }
 ): Promise<NextResponse>;
 
-export async function handleBatchPrices(
-  requests: BatchPriceRequest[]
-): Promise<NextResponse>;
+export async function handleBatchPrices(requests: BatchPriceRequest[]): Promise<NextResponse>;
 
 // Validation functions
 export function validateProvider(provider: string): NextResponse | null;
 export function validateRequiredParams(params: Partial<OracleQueryParams>): NextResponse | null;
-export function validatePeriod(period: string | null): { valid: boolean; value?: number; error?: NextResponse };
+export function validatePeriod(period: string | null): {
+  valid: boolean;
+  value?: number;
+  error?: NextResponse;
+};
 ```
 
 ### 6.3 Error Handling and Response Formats
@@ -741,10 +752,7 @@ export const ErrorCodes = {
 #### Cached JSON Response
 
 ```typescript
-export function createCachedJsonResponse<T>(
-  data: T,
-  cacheConfig: CacheConfig
-): NextResponse {
+export function createCachedJsonResponse<T>(data: T, cacheConfig: CacheConfig): NextResponse {
   return NextResponse.json(data, {
     headers: {
       'Cache-Control': `public, s-maxage=${cacheConfig.maxAge}, stale-while-revalidate=${cacheConfig.staleWhileRevalidate}`,
@@ -761,24 +769,22 @@ export const CacheConfig = {
 ### 6.4 Batch Request Support
 
 ```typescript
-export async function handleBatchPrices(
-  requests: BatchPriceRequest[]
-): Promise<NextResponse> {
+export async function handleBatchPrices(requests: BatchPriceRequest[]): Promise<NextResponse> {
   const results = await Promise.allSettled(
     requests.map(async (req) => {
       const { provider, symbol, chain } = req;
       const client = getOracleClient(provider);
-      
+
       // Check cache first
       const cachedPrice = await queries.getLatestPrice(provider, symbol, chain);
       if (cachedPrice && isFresh(cachedPrice)) {
         return { provider, symbol, chain, data: cachedPrice, source: 'cache' };
       }
-      
+
       // Fetch fresh data
       const priceData = await client.getPrice(symbol, chain);
       await queries.savePriceRecord(priceData);
-      
+
       return { provider, symbol, chain, data: priceData, source: 'fresh' };
     })
   );
@@ -865,10 +871,7 @@ export class PythClient extends BaseOracleClient {
     Blockchain.SOLANA,
   ];
 
-  private generateConfidenceInterval(
-    price: number,
-    symbol: string
-  ): ConfidenceInterval {
+  private generateConfidenceInterval(price: number, symbol: string): ConfidenceInterval {
     const baseSpread = SPREAD_PERCENTAGES[symbol.toUpperCase()] || 0.05;
     const halfSpread = price * (baseSpread / 100 / 2);
     return {
@@ -913,11 +916,7 @@ export class API3Client extends BaseOracleClient {
 ```typescript
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-  ];
+  supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.OPTIMISM];
 }
 ```
 
@@ -938,7 +937,7 @@ export class PythHermesClient {
   async getLatestPrice(symbol: string): Promise<PriceData | null> {
     const priceId = PYTH_PRICE_FEED_IDS[normalizeSymbol(symbol)];
     const priceUpdates = await this.client.getLatestPriceUpdates([priceId]);
-    
+
     // Parse and return price data with confidence interval
     return {
       provider: OracleProvider.PYTH,
@@ -993,7 +992,7 @@ export async function getPriceFromDatabase(
     .order('timestamp', { ascending: false })
     .limit(1)
     .single();
-  
+
   return data ? mapToPriceData(data) : null;
 }
 ```
@@ -1045,91 +1044,97 @@ The database is hosted on Supabase with the following schema:
 ### 8.2 Tables
 
 #### user_profiles
+
 Extends Supabase auth.users with user preferences:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key, references auth.users |
-| display_name | TEXT | User display name |
-| preferences | JSONB | Default oracle, symbol, theme, chart settings |
-| notification_settings | JSONB | Email alerts, push notifications |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| updated_at | TIMESTAMPTZ | Last update timestamp |
+| Column                | Type        | Description                                   |
+| --------------------- | ----------- | --------------------------------------------- |
+| id                    | UUID        | Primary key, references auth.users            |
+| display_name          | TEXT        | User display name                             |
+| preferences           | JSONB       | Default oracle, symbol, theme, chart settings |
+| notification_settings | JSONB       | Email alerts, push notifications              |
+| created_at            | TIMESTAMPTZ | Creation timestamp                            |
+| updated_at            | TIMESTAMPTZ | Last update timestamp                         |
 
 #### price_records
+
 Stores historical price data from oracles:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| provider | TEXT | Oracle provider name |
-| symbol | TEXT | Trading pair symbol |
-| chain | TEXT | Blockchain network |
-| price | DECIMAL(20,8) | Price value |
-| timestamp | TIMESTAMPTZ | Price timestamp |
-| confidence | DECIMAL(5,4) | Confidence score (0-1) |
-| source | TEXT | Data source |
-| created_at | TIMESTAMPTZ | Record creation time |
-| ttl | TIMESTAMPTZ | Time-to-live for cache invalidation |
+| Column     | Type          | Description                         |
+| ---------- | ------------- | ----------------------------------- |
+| id         | UUID          | Primary key                         |
+| provider   | TEXT          | Oracle provider name                |
+| symbol     | TEXT          | Trading pair symbol                 |
+| chain      | TEXT          | Blockchain network                  |
+| price      | DECIMAL(20,8) | Price value                         |
+| timestamp  | TIMESTAMPTZ   | Price timestamp                     |
+| confidence | DECIMAL(5,4)  | Confidence score (0-1)              |
+| source     | TEXT          | Data source                         |
+| created_at | TIMESTAMPTZ   | Record creation time                |
+| ttl        | TIMESTAMPTZ   | Time-to-live for cache invalidation |
 
 #### user_snapshots
+
 Stores user price snapshots:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key to auth.users |
-| symbol | TEXT | Trading pair |
-| name | TEXT | Snapshot name |
-| selected_oracles | TEXT[] | Selected oracle providers |
-| price_data | JSONB | Snapshot price data |
-| stats | JSONB | Statistical data |
-| is_public | BOOLEAN | Public sharing flag |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| updated_at | TIMESTAMPTZ | Last update timestamp |
+| Column           | Type        | Description               |
+| ---------------- | ----------- | ------------------------- |
+| id               | UUID        | Primary key               |
+| user_id          | UUID        | Foreign key to auth.users |
+| symbol           | TEXT        | Trading pair              |
+| name             | TEXT        | Snapshot name             |
+| selected_oracles | TEXT[]      | Selected oracle providers |
+| price_data       | JSONB       | Snapshot price data       |
+| stats            | JSONB       | Statistical data          |
+| is_public        | BOOLEAN     | Public sharing flag       |
+| created_at       | TIMESTAMPTZ | Creation timestamp        |
+| updated_at       | TIMESTAMPTZ | Last update timestamp     |
 
 #### user_favorites
+
 Stores user favorite configurations:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key to auth.users |
-| name | TEXT | Favorite name |
-| config_type | TEXT | Type: oracle_config, symbol, chain_config |
-| config_data | JSONB | Configuration data |
-| created_at | TIMESTAMPTZ | Creation timestamp |
+| Column      | Type        | Description                               |
+| ----------- | ----------- | ----------------------------------------- |
+| id          | UUID        | Primary key                               |
+| user_id     | UUID        | Foreign key to auth.users                 |
+| name        | TEXT        | Favorite name                             |
+| config_type | TEXT        | Type: oracle_config, symbol, chain_config |
+| config_data | JSONB       | Configuration data                        |
+| created_at  | TIMESTAMPTZ | Creation timestamp                        |
 
 #### price_alerts
+
 Stores price alert configurations:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key to auth.users |
-| symbol | TEXT | Trading pair |
-| provider | TEXT | Oracle provider |
-| chain | TEXT | Blockchain network |
-| condition_type | TEXT | Condition: above, below, change_percent |
-| target_value | DECIMAL(20,8) | Target price value |
-| is_active | BOOLEAN | Active status |
-| last_triggered_at | TIMESTAMPTZ | Last trigger time |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| updated_at | TIMESTAMPTZ | Last update timestamp |
+| Column            | Type          | Description                             |
+| ----------------- | ------------- | --------------------------------------- |
+| id                | UUID          | Primary key                             |
+| user_id           | UUID          | Foreign key to auth.users               |
+| symbol            | TEXT          | Trading pair                            |
+| provider          | TEXT          | Oracle provider                         |
+| chain             | TEXT          | Blockchain network                      |
+| condition_type    | TEXT          | Condition: above, below, change_percent |
+| target_value      | DECIMAL(20,8) | Target price value                      |
+| is_active         | BOOLEAN       | Active status                           |
+| last_triggered_at | TIMESTAMPTZ   | Last trigger time                       |
+| created_at        | TIMESTAMPTZ   | Creation timestamp                      |
+| updated_at        | TIMESTAMPTZ   | Last update timestamp                   |
 
 #### alert_events
+
 Stores alert trigger events:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| alert_id | UUID | Foreign key to price_alerts |
-| user_id | UUID | Foreign key to auth.users |
-| triggered_at | TIMESTAMPTZ | Trigger timestamp |
-| price | DECIMAL(20,8) | Price at trigger |
-| condition_met | TEXT | Condition description |
-| acknowledged | BOOLEAN | Acknowledgment status |
-| acknowledged_at | TIMESTAMPTZ | Acknowledgment time |
+| Column          | Type          | Description                 |
+| --------------- | ------------- | --------------------------- |
+| id              | UUID          | Primary key                 |
+| alert_id        | UUID          | Foreign key to price_alerts |
+| user_id         | UUID          | Foreign key to auth.users   |
+| triggered_at    | TIMESTAMPTZ   | Trigger timestamp           |
+| price           | DECIMAL(20,8) | Price at trigger            |
+| condition_met   | TEXT          | Condition description       |
+| acknowledged    | BOOLEAN       | Acknowledgment status       |
+| acknowledged_at | TIMESTAMPTZ   | Acknowledgment time         |
 
 ### 8.3 Row Level Security (RLS) Policies
 
@@ -1196,7 +1201,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         pr.id, pr.provider, pr.symbol, pr.chain,
         pr.price, pr.timestamp, pr.confidence, pr.source
     FROM public.price_records pr
@@ -1241,48 +1246,48 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ```sql
 -- price_records indexes
-CREATE INDEX idx_price_records_provider_symbol 
+CREATE INDEX idx_price_records_provider_symbol
     ON public.price_records(provider, symbol);
-CREATE INDEX idx_price_records_timestamp 
+CREATE INDEX idx_price_records_timestamp
     ON public.price_records(timestamp DESC);
-CREATE INDEX idx_price_records_chain 
+CREATE INDEX idx_price_records_chain
     ON public.price_records(chain);
-CREATE INDEX idx_price_records_ttl 
+CREATE INDEX idx_price_records_ttl
     ON public.price_records(ttl);
-CREATE INDEX idx_price_records_provider_symbol_timestamp 
+CREATE INDEX idx_price_records_provider_symbol_timestamp
     ON public.price_records(provider, symbol, timestamp DESC);
 
 -- Partial index for active records
-CREATE INDEX idx_price_records_active 
+CREATE INDEX idx_price_records_active
     ON public.price_records(provider, symbol)
     WHERE (ttl > NOW());
 
 -- user_snapshots indexes
-CREATE INDEX idx_user_snapshots_user_id 
+CREATE INDEX idx_user_snapshots_user_id
     ON public.user_snapshots(user_id);
-CREATE INDEX idx_user_snapshots_symbol 
+CREATE INDEX idx_user_snapshots_symbol
     ON public.user_snapshots(symbol);
-CREATE INDEX idx_user_snapshots_created_at 
+CREATE INDEX idx_user_snapshots_created_at
     ON public.user_snapshots(created_at DESC);
-CREATE INDEX idx_user_snapshots_public 
+CREATE INDEX idx_user_snapshots_public
     ON public.user_snapshots(is_public) WHERE (is_public = true);
 
 -- price_alerts indexes
-CREATE INDEX idx_price_alerts_user_id 
+CREATE INDEX idx_price_alerts_user_id
     ON public.price_alerts(user_id);
-CREATE INDEX idx_price_alerts_symbol 
+CREATE INDEX idx_price_alerts_symbol
     ON public.price_alerts(symbol);
-CREATE INDEX idx_price_alerts_active 
+CREATE INDEX idx_price_alerts_active
     ON public.price_alerts(is_active) WHERE (is_active = true);
 
 -- alert_events indexes
-CREATE INDEX idx_alert_events_user_id 
+CREATE INDEX idx_alert_events_user_id
     ON public.alert_events(user_id);
-CREATE INDEX idx_alert_events_alert_id 
+CREATE INDEX idx_alert_events_alert_id
     ON public.alert_events(alert_id);
-CREATE INDEX idx_alert_events_triggered_at 
+CREATE INDEX idx_alert_events_triggered_at
     ON public.alert_events(triggered_at DESC);
-CREATE INDEX idx_alert_events_acknowledged 
+CREATE INDEX idx_alert_events_acknowledged
     ON public.alert_events(acknowledged) WHERE (acknowledged = false);
 ```
 
@@ -1345,9 +1350,7 @@ async function signIn(
 ### 9.3 OAuth Providers Support
 
 ```typescript
-async function signInWithOAuth(
-  provider: Provider
-): Promise<{ error: AuthError | null }> {
+async function signInWithOAuth(provider: Provider): Promise<{ error: AuthError | null }> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -1363,14 +1366,16 @@ async function signInWithOAuth(
 ```typescript
 // Get current session
 async function getSession(): Promise<{ session: Session | null }> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return { session };
 }
 
 // Listen for auth state changes
-function onAuthStateChange(
-  callback: (event: AuthChangeEvent, session: Session | null) => void
-): { data: { subscription: Subscription } } {
+function onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void): {
+  data: { subscription: Subscription };
+} {
   return supabase.auth.onAuthStateChange(callback);
 }
 ```
@@ -1458,11 +1463,11 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 
 The system supports three export formats:
 
-| Format | Extension | Library | Use Case |
-|--------|-----------|---------|----------|
-| CSV | `.csv` | Native | Simple data exchange |
-| JSON | `.json` | Native | API integration |
-| Excel | `.xlsx` | jsPDF + jsPDF-AutoTable | Reports |
+| Format | Extension | Library                 | Use Case             |
+| ------ | --------- | ----------------------- | -------------------- |
+| CSV    | `.csv`    | Native                  | Simple data exchange |
+| JSON   | `.json`   | Native                  | API integration      |
+| Excel  | `.xlsx`   | jsPDF + jsPDF-AutoTable | Reports              |
 
 ### 10.2 Export Configuration
 
@@ -1580,17 +1585,17 @@ export function generateExportFileName(config: ExportConfig): string {
 // Validate export configuration
 export function validateExportConfig(config: ExportConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   if (!config.name || config.name.trim() === '') {
     errors.push('Configuration name is required');
   }
-  
+
   if (!config.format || !['csv', 'json', 'excel'].includes(config.format)) {
     errors.push('Invalid export format');
   }
-  
+
   // ... more validation
-  
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -1603,8 +1608,8 @@ export function getTimeRangeHours(timeRange: ExportTimeRange): number {
     '30D': 720,
     '90D': 2160,
     '1Y': 8760,
-    'ALL': 0,
-    'custom': 720,
+    ALL: 0,
+    custom: 720,
   };
   return hoursMap[timeRange] || 720;
 }
@@ -1614,24 +1619,24 @@ export function getTimeRangeHours(timeRange: ExportTimeRange): number {
 
 ## Technology Stack Summary
 
-| Category | Technology | Version |
-|----------|------------|---------|
-| Framework | Next.js | 16.1.6 |
-| UI Library | React | 19.2.3 |
-| Language | TypeScript | 5.x |
-| Styling | Tailwind CSS | 4.x |
-| Charts | Recharts | 3.8.0 |
-| State Management | React Query | 5.90.21 |
-| Data Fetching | SWR | 2.4.1 |
-| Client State | Zustand | 5.0.11 |
-| Database | Supabase PostgreSQL | - |
-| Auth | Supabase Auth | 2.98.0 |
-| Real-time | Supabase Realtime | - |
-| Oracle Clients | Pyth Hermes Client | 2.0.0 |
-| Animations | Framer Motion | 12.36.0 |
-| Icons | Lucide React | 0.577.0 |
-| PDF Export | jsPDF | 4.2.0 |
-| Internationalization | next-intl | 4.8.3 |
+| Category             | Technology          | Version |
+| -------------------- | ------------------- | ------- |
+| Framework            | Next.js             | 16.1.6  |
+| UI Library           | React               | 19.2.3  |
+| Language             | TypeScript          | 5.x     |
+| Styling              | Tailwind CSS        | 4.x     |
+| Charts               | Recharts            | 3.8.0   |
+| State Management     | React Query         | 5.90.21 |
+| Data Fetching        | SWR                 | 2.4.1   |
+| Client State         | Zustand             | 5.0.11  |
+| Database             | Supabase PostgreSQL | -       |
+| Auth                 | Supabase Auth       | 2.98.0  |
+| Real-time            | Supabase Realtime   | -       |
+| Oracle Clients       | Pyth Hermes Client  | 2.0.0   |
+| Animations           | Framer Motion       | 12.36.0 |
+| Icons                | Lucide React        | 0.577.0 |
+| PDF Export           | jsPDF               | 4.2.0   |
+| Internationalization | next-intl           | 4.8.3   |
 
 ---
 
@@ -1662,12 +1667,12 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 
 ## Scripts
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| Development | `npm run dev` | Start development server |
-| Build | `npm run build` | Build for production |
-| Start | `npm run start` | Start production server |
-| Lint | `npm run lint` | Run ESLint |
-| Test | `npm run test` | Run Jest tests |
-| Test Watch | `npm run test:watch` | Run tests in watch mode |
+| Script        | Command                 | Description                   |
+| ------------- | ----------------------- | ----------------------------- |
+| Development   | `npm run dev`           | Start development server      |
+| Build         | `npm run build`         | Build for production          |
+| Start         | `npm run start`         | Start production server       |
+| Lint          | `npm run lint`          | Run ESLint                    |
+| Test          | `npm run test`          | Run Jest tests                |
+| Test Watch    | `npm run test:watch`    | Run tests in watch mode       |
 | Test Coverage | `npm run test:coverage` | Generate test coverage report |

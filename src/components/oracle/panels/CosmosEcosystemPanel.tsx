@@ -109,22 +109,30 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
       {/* Cosmos Ecosystem Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('band.ecosystem.cosmosSdkVersion')}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+            {t('band.ecosystem.cosmosSdkVersion')}
+          </p>
           <p className="text-2xl font-bold text-gray-900">v0.47</p>
           <p className="text-xs text-gray-500 mt-1">Cosmos SDK</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('band.ecosystem.ibcConnections')}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+            {t('band.ecosystem.ibcConnections')}
+          </p>
           <p className="text-2xl font-bold text-gray-900">{activeChains}</p>
           <p className="text-xs text-gray-500 mt-1">Active IBC channels</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('band.ecosystem.totalIBCTVL')}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+            {t('band.ecosystem.totalIBCTVL')}
+          </p>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalTVL)}</p>
           <p className="text-xs text-green-600 mt-1">↑ 8.5% Total Value Locked</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{t('band.ecosystem.ibcVolume24h')}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+            {t('band.ecosystem.ibcVolume24h')}
+          </p>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalVolume24h)}</p>
           <p className="text-xs text-green-600 mt-1">↑ 12.3% 24h IBC Volume</p>
         </div>
@@ -208,40 +216,28 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">
-                {t('band.ecosystem.keyFeatures')}
-              </h4>
+              <h4 className="font-medium text-gray-900">{t('band.ecosystem.keyFeatures')}</h4>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">
-                    {t('band.ecosystem.feature1')}
-                  </span>
+                  <span className="text-sm text-gray-600">{t('band.ecosystem.feature1')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">
-                    {t('band.ecosystem.feature2')}
-                  </span>
+                  <span className="text-sm text-gray-600">{t('band.ecosystem.feature2')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">
-                    {t('band.ecosystem.feature3')}
-                  </span>
+                  <span className="text-sm text-gray-600">{t('band.ecosystem.feature3')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">
-                    {t('band.ecosystem.feature4')}
-                  </span>
+                  <span className="text-sm text-gray-600">{t('band.ecosystem.feature4')}</span>
                 </li>
               </ul>
             </div>
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">
-                {t('band.ecosystem.integrations')}
-              </h4>
+              <h4 className="font-medium text-gray-900">{t('band.ecosystem.integrations')}</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-lg font-semibold text-gray-900">25+</p>

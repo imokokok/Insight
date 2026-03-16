@@ -3,6 +3,7 @@
 ## 背景
 
 当前跨预言机价格查询页面支持12个交易对：
+
 - **Layer 1**: BTC/USD, ETH/USD, SOL/USD, AVAX/USD
 - **DeFi**: LINK/USD, UNI/USD, AAVE/USD, MKR/USD, SNX/USD, COMP/USD, YFI/USD, CRV/USD
 
@@ -11,12 +12,14 @@
 ### 方案A：保守扩展（+8个，共20个）
 
 **新增 Layer 1 代币**:
+
 - NEAR/USD - NEAR Protocol
 - MATIC/USD - Polygon
 - ARB/USD - Arbitrum
 - OP/USD - Optimism
 
 **新增 DeFi 代币**:
+
 - LDO/USD - Lido DAO
 - SUSHI/USD - SushiSwap
 - 1INCH/USD - 1inch
@@ -27,18 +30,21 @@
 在方案A基础上增加：
 
 **新增 Layer 1 代币**:
+
 - DOT/USD - Polkadot
 - ADA/USD - Cardano
 - ATOM/USD - Cosmos
 - FTM/USD - Fantom
 
 **新增 DeFi 代币**:
+
 - FXS/USD - Frax Share
 - RPL/USD - Rocket Pool
 - GMX/USD - GMX
 - dYdX/USD - dYdX
 
 **新增 稳定币**:
+
 - USDC/USD - USD Coin
 - USDT/USD - Tether
 - DAI/USD - DAI
@@ -57,6 +63,7 @@
 ## 建议
 
 推荐**方案B（中等扩展）**，理由：
+
 1. 覆盖主流Layer 1和DeFi代币，满足大部分用户需求
 2. 包含稳定币对，可观察预言机对稳定币价格的追踪能力
 3. 数量适中（28个），既丰富选择又不至于 overwhelm 用户

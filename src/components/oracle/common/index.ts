@@ -83,9 +83,7 @@ export type {
 } from './BandCrossChainPriceConsistency';
 export { ChainEventMonitor } from './ChainEventMonitor';
 export type { ChainEventMonitorProps } from './ChainEventMonitor';
-export {
-  ChartAnnotations,
-} from './ChartAnnotations';
+export { ChartAnnotations } from './ChartAnnotations';
 export type {
   ChartAnnotation,
   AnnotationType,

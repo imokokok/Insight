@@ -581,7 +581,11 @@ export function PriceChart({
                   );
                 })}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                vertical={false}
+              />
               <XAxis
                 dataKey="time"
                 stroke={chartColors.recharts.axis}
@@ -812,7 +816,10 @@ export function PriceChart({
               {/* 价格突变事件参考线 */}
               {showPriceSpikes &&
                 priceSpikeEvents.map((event, index) => {
-                  const color = event.direction === 'up' ? semanticColors.success.dark : semanticColors.danger.DEFAULT;
+                  const color =
+                    event.direction === 'up'
+                      ? semanticColors.success.dark
+                      : semanticColors.danger.DEFAULT;
                   const label = `${event.direction === 'up' ? '↑' : '↓'} ${event.magnitude.toFixed(1)}%`;
 
                   return (
@@ -836,8 +843,10 @@ export function PriceChart({
               {/* 异常数据点标记 */}
               {showAnomalies &&
                 anomalyPoints.map((anomaly, index) => {
-                  const color = anomaly.deviation > 0 ? semanticColors.danger.DEFAULT : baseColors.primary[500];
-                  const strokeColor = anomaly.deviation > 0 ? semanticColors.danger.dark : baseColors.primary[600];
+                  const color =
+                    anomaly.deviation > 0 ? semanticColors.danger.DEFAULT : baseColors.primary[500];
+                  const strokeColor =
+                    anomaly.deviation > 0 ? semanticColors.danger.dark : baseColors.primary[600];
 
                   return (
                     <ReferenceDot

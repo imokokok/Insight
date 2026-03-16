@@ -416,7 +416,10 @@ export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProp
                 <span>中等 (0.5-0.7)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.chart.amber }}></div>
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: chartColors.chart.amber }}
+                ></div>
                 <span>弱 (0.3-0.5)</span>
               </div>
               <div className="flex items-center gap-2">

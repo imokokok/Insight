@@ -111,9 +111,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
   return (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('dia.ecosystem.title')}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.ecosystem.title')}</h3>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <div className="bg-gray-50 border border-gray-200 p-4 text-center">

@@ -113,9 +113,7 @@ export function StatsSection({
               <Clock className="w-4 h-4 text-amber-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.lastUpdated')}</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {mounted ? formattedTime : ''}
-                </p>
+                <p className="text-sm font-medium text-gray-900">{mounted ? formattedTime : ''}</p>
               </div>
             </div>
           </div>

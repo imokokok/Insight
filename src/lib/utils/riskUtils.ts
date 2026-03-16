@@ -81,15 +81,11 @@ export function getRiskLevelColor(level: RiskLevel): string {
 }
 
 export function getStatusColor(status: 'resolved' | 'monitoring'): string {
-  return status === 'resolved'
-    ? 'bg-green-100 text-green-700'
-    : 'bg-yellow-100 text-yellow-700';
+  return status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
 }
 
 export function getMeasureStatusColor(status: 'active' | 'inactive'): string {
-  return status === 'active'
-    ? 'bg-green-100 text-green-700'
-    : 'bg-gray-100 text-gray-600';
+  return status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
 }
 
 export function formatLatency(latency: number): string {
@@ -97,7 +93,5 @@ export function formatLatency(latency: number): string {
 }
 
 export function calculateOverallScore(metrics: { value: number }[]): number {
-  return Math.round(
-    metrics.reduce((sum, metric) => sum + metric.value, 0) / metrics.length
-  );
+  return Math.round(metrics.reduce((sum, metric) => sum + metric.value, 0) / metrics.length);
 }

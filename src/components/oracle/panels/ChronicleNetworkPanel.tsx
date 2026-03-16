@@ -20,7 +20,10 @@ interface ChronicleNetworkPanelProps {
   validatorMetrics: ValidatorNetwork;
 }
 
-export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: ChronicleNetworkPanelProps) {
+export function ChronicleNetworkPanel({
+  networkStats,
+  validatorMetrics,
+}: ChronicleNetworkPanelProps) {
   const { t } = useI18n();
 
   const getStatusColor = (status: string) => {
@@ -96,12 +99,8 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
         <DashboardCard title={t('chronicle.network.responseTime')} className="bg-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {networkStats.avgResponseTime}ms
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.avgLatency')}
-              </p>
+              <p className="text-2xl font-bold text-gray-900">{networkStats.avgResponseTime}ms</p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.avgLatency')}</p>
             </div>
             <div className="p-3 bg-amber-50 rounded-full">
               <Zap className="w-6 h-6 text-amber-600" />
@@ -113,9 +112,7 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
           <div className="flex items-center justify-between">
             <div>
               <p className="text-2xl font-bold text-gray-900">{networkStats.dataFeeds}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.activeFeeds')}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.activeFeeds')}</p>
             </div>
             <div className="p-3 bg-purple-50 rounded-full">
               <Activity className="w-6 h-6 text-purple-600" />
@@ -135,9 +132,7 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
                 <Shield className="w-5 h-5" />
                 <div>
                   <p className="font-semibold capitalize">{validatorMetrics.networkHealth}</p>
-                  <p className="text-sm opacity-80">
-                    {t('chronicle.network.networkHealthStatus')}
-                  </p>
+                  <p className="text-sm opacity-80">{t('chronicle.network.networkHealthStatus')}</p>
                 </div>
               </div>
             </div>
@@ -150,7 +145,9 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
                 </p>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 mb-1">{t('chronicle.network.updateFrequency')}</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t('chronicle.network.updateFrequency')}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
                   {networkStats.updateFrequency}s
                 </p>
@@ -209,7 +206,9 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-amber-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((validatorMetrics.totalStaked / 5e7) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min((validatorMetrics.totalStaked / 5e7) * 100, 100)}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -259,45 +258,29 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             <Clock className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.network.realtime')}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.realtimeDesc')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.network.realtime')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.realtimeDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             <TrendingUp className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.network.scalable')}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.scalableDesc')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.network.scalable')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.scalableDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             <Server className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.network.reliable')}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.reliableDesc')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.network.reliable')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.reliableDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
             <Shield className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-gray-900">
-                {t('chronicle.network.secure')}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.secureDesc')}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{t('chronicle.network.secure')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.secureDesc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
@@ -306,9 +289,7 @@ export function ChronicleNetworkPanel({ networkStats, validatorMetrics }: Chroni
               <p className="text-sm font-medium text-gray-900">
                 {t('chronicle.network.monitoring')}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('chronicle.network.monitoringDesc')}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">{t('chronicle.network.monitoringDesc')}</p>
             </div>
           </div>
         </div>

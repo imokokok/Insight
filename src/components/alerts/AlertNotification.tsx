@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
 import { useI18n } from '@/lib/i18n/provider';
@@ -16,16 +16,22 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
   const [isLeaving, setIsLeaving] = useState(false);
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();
   const { t } = useI18n();
+  const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     requestAnimationFrame(() => {
       setIsVisible(true);
     });
+    return () => {
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+      }
+    };
   }, []);
 
   const handleDismiss = useCallback(() => {
     setIsLeaving(true);
-    setTimeout(() => {
+    dismissTimerRef.current = setTimeout(() => {
       onDismiss(event.id!);
     }, 300);
   }, [event.id, onDismiss]);

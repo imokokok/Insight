@@ -67,7 +67,12 @@ function StatCard({
           <p className="text-gray-900 text-2xl font-bold">{value}</p>
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
         </div>
-        <div className="p-3 rounded-lg" style={{ backgroundColor: baseColors.primary[50], color: baseColors.primary[600] }}>{icon}</div>
+        <div
+          className="p-3 rounded-lg"
+          style={{ backgroundColor: baseColors.primary[50], color: baseColors.primary[600] }}
+        >
+          {icon}
+        </div>
       </div>
     </div>
   );
@@ -195,11 +200,23 @@ function ValidatorTable({
       );
     }
     return sortDirection === 'asc' ? (
-      <svg className="w-4 h-4" style={{ color: baseColors.primary[600] }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-4 h-4"
+        style={{ color: baseColors.primary[600] }}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       </svg>
     ) : (
-      <svg className="w-4 h-4" style={{ color: baseColors.primary[600] }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-4 h-4"
+        style={{ color: baseColors.primary[600] }}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
     );
@@ -326,10 +343,16 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: baseColors.gray[200] }}>
+                  <div
+                    className="w-16 h-2 rounded-full overflow-hidden"
+                    style={{ backgroundColor: baseColors.gray[200] }}
+                  >
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${validator.successRate}%`, backgroundColor: semanticColors.success.DEFAULT }}
+                      style={{
+                        width: `${validator.successRate}%`,
+                        backgroundColor: semanticColors.success.DEFAULT,
+                      }}
                     />
                   </div>
                   <span className="text-sm text-gray-900">{validator.successRate}%</span>
@@ -337,10 +360,16 @@ function ValidatorTable({
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: baseColors.gray[200] }}>
+                  <div
+                    className="w-16 h-2 rounded-full overflow-hidden"
+                    style={{ backgroundColor: baseColors.gray[200] }}
+                  >
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${validator.reputation}%`, backgroundColor: baseColors.primary[500] }}
+                      style={{
+                        width: `${validator.reputation}%`,
+                        backgroundColor: baseColors.primary[500],
+                      }}
                     />
                   </div>
                   <span className="text-sm text-gray-900">{validator.reputation}</span>
@@ -350,7 +379,10 @@ function ValidatorTable({
                 <span className="text-sm text-gray-900">{formatNumber(validator.staked)}</span>
               </td>
               <td className="py-3 px-4">
-                <span className="text-sm font-medium" style={{ color: semanticColors.success.DEFAULT }}>
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: semanticColors.success.DEFAULT }}
+                >
                   {formatNumber(validator.earnings)}
                 </span>
               </td>
@@ -625,7 +657,9 @@ export function ValidatorAnalyticsPanel() {
           {isRefreshing && (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
-              <span className="text-sm" style={{ color: baseColors.primary[600] }}>刷新中...</span>
+              <span className="text-sm" style={{ color: baseColors.primary[600] }}>
+                刷新中...
+              </span>
             </div>
           )}
         </div>
@@ -893,7 +927,10 @@ export function ValidatorAnalyticsPanel() {
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                     {t('uma.validatorAnalytics.earnings')}
                   </p>
-                  <p className="text-sm font-semibold" style={{ color: semanticColors.success.DEFAULT }}>
+                  <p
+                    className="text-sm font-semibold"
+                    style={{ color: semanticColors.success.DEFAULT }}
+                  >
                     {formatNumber(selectedValidator.earnings)} UMA
                   </p>
                 </div>
@@ -961,7 +998,10 @@ export function ValidatorAnalyticsPanel() {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         {t('uma.validatorAnalytics.estimatedMonthly')}
                       </p>
-                      <p className="text-2xl font-bold" style={{ color: chartColors.recharts.purple }}>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: chartColors.recharts.purple }}
+                      >
                         {formatNumber(selectedValidator.earnings)}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
@@ -972,7 +1012,10 @@ export function ValidatorAnalyticsPanel() {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
                         {t('uma.validatorAnalytics.estimatedYearly')}
                       </p>
-                      <p className="text-2xl font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: semanticColors.success.DEFAULT }}
+                      >
                         {formatNumber(selectedValidator.earnings * 12)}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">

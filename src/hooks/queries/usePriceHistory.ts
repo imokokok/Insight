@@ -25,13 +25,13 @@ export function usePriceHistory(params: PriceHistoryParams) {
       if (params.provider) searchParams.set('provider', params.provider);
       if (params.chain) searchParams.set('chain', params.chain);
       if (params.period) searchParams.set('period', params.period.toString());
-      
+
       const response = await fetch(`/api/oracles/history?${searchParams.toString()}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch price history');
       }
-      
+
       const data = await response.json();
       return data.history || [];
     },

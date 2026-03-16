@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-background: var(--background);
@@ -23,12 +23,12 @@
 }
 
 :root {
-  --background: #FAFAFA;
+  --background: #fafafa;
   --foreground: #171717;
 
   /* Dune Style - Flat Design */
-  --bg-dune: #FAFAFA;
-  --border-dune-separator: #E5E7EB;
+  --bg-dune: #fafafa;
+  --border-dune-separator: #e5e7eb;
 
   /* Primary Brand Colors */
   --finance-primary: #1e40af;
@@ -336,7 +336,8 @@ body {
 }
 
 @keyframes pulse-finance {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -349,7 +350,8 @@ body {
 }
 
 @keyframes pulse-live {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -505,7 +507,8 @@ body {
    ============================================ */
 
 @keyframes pulse-slow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.8;
     transform: scale(1);
   }
@@ -516,7 +519,8 @@ body {
 }
 
 @keyframes pulse-slow-reverse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1.05);
   }
@@ -527,7 +531,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(-50%, -50%) translateY(0);
   }
   50% {
@@ -574,11 +579,21 @@ body {
 
 /* Gradient orb utilities */
 .gradient-orb-blue {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.12) 0%,
+    rgba(59, 130, 246, 0.05) 40%,
+    transparent 70%
+  );
   filter: blur(60px);
 }
 
 .gradient-orb-purple {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.1) 0%,
+    rgba(139, 92, 246, 0.04) 40%,
+    transparent 70%
+  );
   filter: blur(50px);
 }

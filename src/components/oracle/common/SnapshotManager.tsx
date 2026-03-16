@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/stores/authStore';
 import { OracleSnapshot } from '@/types/oracle';
 import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
@@ -65,6 +65,20 @@ export function SnapshotManager({
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
   const [migrationSnapshots, setMigrationSnapshots] = useState<OracleSnapshot[]>([]);
   const [isMigrating, setIsMigrating] = useState(false);
+
+  const copiedTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const loadTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) {
+        clearTimeout(copiedTimerRef.current);
+      }
+      if (loadTimerRef.current) {
+        clearTimeout(loadTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     loadSnapshots();
@@ -166,7 +180,10 @@ export function SnapshotManager({
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
+      if (copiedTimerRef.current) {
+        clearTimeout(copiedTimerRef.current);
+      }
+      copiedTimerRef.current = setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
       logger.error(
         'Failed to copy share link',
@@ -247,7 +264,10 @@ export function SnapshotManager({
               onClick={(e) => {
                 e.stopPropagation();
                 onSaveSnapshot();
-                setTimeout(loadSnapshots, 100);
+                if (loadTimerRef.current) {
+                  clearTimeout(loadTimerRef.current);
+                }
+                loadTimerRef.current = setTimeout(loadSnapshots, 100);
               }}
               className="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white border border-indigo-600 hover:bg-indigo-700 hover:border-indigo-700 transition-colors"
             >

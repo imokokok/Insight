@@ -49,6 +49,12 @@ export interface PythPriceUpdate {
   exponent: number;
 }
 
+export interface PythWebSocketPriceMessage {
+  type: 'price_update';
+  price_id: string;
+  price: PythPriceData;
+}
+
 function isPythPriceData(data: unknown): data is PythPriceData {
   if (typeof data !== 'object' || data === null) {
     return false;
@@ -98,9 +104,9 @@ export class PythHermesClient {
         return null;
       }
 
-      const parsed = priceUpdates.parsed[0] as any;
+      const parsed = priceUpdates.parsed?.[0];
 
-      if (!parsed.price || !isPythPriceData(parsed.price)) {
+      if (!parsed || !parsed.price || !isPythPriceData(parsed.price)) {
         logger.error(
           'Invalid price data format in getLatestPrice',
           new Error(`Expected PythPriceData, got: ${JSON.stringify(parsed.price)}`)
@@ -296,7 +302,7 @@ export class PythHermesClient {
     }
   }
 
-  private handlePriceUpdate(data: any): void {
+  private handlePriceUpdate(data: PythWebSocketPriceMessage): void {
     const priceId = data.price_id;
     const callbacks = this.priceCallbacks.get(priceId);
 

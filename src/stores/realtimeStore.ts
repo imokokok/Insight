@@ -31,9 +31,18 @@ interface RealtimeActions {
     callback?: (payload: PriceUpdatePayload) => void,
     filters?: { provider?: string; symbol?: string; chain?: string }
   ) => () => void;
-  subscribeToAlertEvents: (userId: string, callback?: (payload: AlertEventPayload) => void) => () => void;
-  subscribeToSnapshotChanges: (userId: string, callback?: (payload: SnapshotChangePayload) => void) => () => void;
-  subscribeToFavoriteChanges: (userId: string, callback?: (payload: FavoriteChangePayload) => void) => () => void;
+  subscribeToAlertEvents: (
+    userId: string,
+    callback?: (payload: AlertEventPayload) => void
+  ) => () => void;
+  subscribeToSnapshotChanges: (
+    userId: string,
+    callback?: (payload: SnapshotChangePayload) => void
+  ) => () => void;
+  subscribeToFavoriteChanges: (
+    userId: string,
+    callback?: (payload: FavoriteChangePayload) => void
+  ) => () => void;
   reconnect: () => void;
   reset: () => void;
   _initialize: () => void;
@@ -141,7 +150,8 @@ export const useLastFavoriteChange = () => useRealtimeStore((state) => state.las
 export const usePriceUpdateCount = () => useRealtimeStore((state) => state.priceUpdateCount);
 export const useAlertEventCount = () => useRealtimeStore((state) => state.alertEventCount);
 export const useReconnectAttempts = () => useRealtimeStore((state) => state.reconnectAttempts);
-export const useIsConnected = () => useRealtimeStore((state) => state.connectionStatus === 'connected');
+export const useIsConnected = () =>
+  useRealtimeStore((state) => state.connectionStatus === 'connected');
 
 export const useRealtimeActions = () =>
   useRealtimeStore(
