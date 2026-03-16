@@ -17,7 +17,6 @@ import {
   DollarSign,
   Layers,
   Globe,
-  ChevronRight,
   Info,
   RefreshCw,
   Clock,
@@ -33,7 +32,6 @@ import {
   X,
   AlertTriangle,
   ChevronDown,
-  LayoutDashboard,
 } from 'lucide-react';
 import Link from 'next/link';
 import ChartRenderer from './components/ChartRenderer';
@@ -213,17 +211,6 @@ export default function MarketOverviewPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
-            <LayoutDashboard className="w-4 h-4" />
-            {locale === 'zh-CN' ? '首页' : 'Home'}
-          </Link>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-900 font-medium">
-            {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
-          </span>
-        </nav>
-
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
