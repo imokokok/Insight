@@ -9,7 +9,7 @@ export default function ProfessionalCTA() {
   const isZh = locale === 'zh-CN';
 
   return (
-    <section className="py-16 sm:py-20 bg-white">
+    <section className="py-16 sm:py-20 bg-white border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
         <div className="relative overflow-hidden bg-gray-900 p-8 sm:p-12 lg:p-16">
           <div className="relative z-10 text-center">

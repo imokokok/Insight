@@ -173,7 +173,7 @@ export default function FeatureCards() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   return (
-    <section className="py-12 sm:py-16 bg-white">
+    <section className="py-12 sm:py-16 bg-white border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="text-center mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
