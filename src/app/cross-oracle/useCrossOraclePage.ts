@@ -84,6 +84,9 @@ export interface UseCrossOraclePageReturn {
   setHoveredOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
   selectedOracleFromChart: OracleProvider | null;
   setSelectedOracleFromChart: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
+  selectedPerformanceOracle: OracleProvider | null;
+  setSelectedPerformanceOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
+  getOracleLatencyData: (oracle: OracleProvider | null) => number[];
   t: (key: string) => string;
   router: ReturnType<typeof useRouter>;
   user: ReturnType<typeof useAuth>['user'];
@@ -205,6 +208,9 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
   const [useAccessibleColors, setUseAccessibleColors] = useState(false);
   const [hoveredOracle, setHoveredOracle] = useState<OracleProvider | null>(null);
   const [selectedOracleFromChart, setSelectedOracleFromChart] = useState<OracleProvider | null>(
+    null
+  );
+  const [selectedPerformanceOracle, setSelectedPerformanceOracle] = useState<OracleProvider | null>(
     null
   );
 
@@ -625,6 +631,24 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
       : [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
   }, [historicalData, selectedOracles]);
 
+  const getOracleLatencyData = useCallback(
+    (oracle: OracleProvider | null): number[] => {
+      if (!oracle) return latencyData;
+      const latencies: number[] = [];
+      const history = historicalData[oracle] || [];
+      for (let i = 1; i < history.length; i++) {
+        const timeDiff = history[i].timestamp - history[i - 1].timestamp;
+        if (timeDiff > 0 && timeDiff < 3600000) {
+          latencies.push(timeDiff);
+        }
+      }
+      return latencies.length > 0
+        ? latencies
+        : [150, 180, 200, 220, 250, 280, 300, 320, 350, 400, 450, 500];
+    },
+    [historicalData, latencyData]
+  );
+
   const performanceData =
     useMemo((): import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[] => {
       return selectedOracles.map((oracle) => {
@@ -915,6 +939,9 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
     setHoveredOracle,
     selectedOracleFromChart,
     setSelectedOracleFromChart,
+    selectedPerformanceOracle,
+    setSelectedPerformanceOracle,
+    getOracleLatencyData,
     t,
     router,
     user,

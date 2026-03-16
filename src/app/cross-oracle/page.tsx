@@ -90,6 +90,9 @@ export default function CrossOraclePage() {
     setUseAccessibleColors,
     hoveredOracle,
     setHoveredOracle,
+    selectedPerformanceOracle,
+    setSelectedPerformanceOracle,
+    getOracleLatencyData,
     t,
     router,
     user,
@@ -708,7 +711,25 @@ export default function CrossOraclePage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">性能对比分析</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-gray-200 p-5">
-            <LatencyDistributionHistogram data={latencyData} oracleName="所有预言机" />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">选择预言机查看延迟数据</label>
+              <select
+                value={selectedPerformanceOracle || ''}
+                onChange={(e) => setSelectedPerformanceOracle(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">所有预言机</option>
+                {selectedOracles.map((oracle) => (
+                  <option key={oracle} value={oracle}>
+                    {oracleNames[oracle]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <LatencyDistributionHistogram
+              data={getOracleLatencyData(selectedPerformanceOracle)}
+              oracleName={selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : '所有预言机'}
+            />
           </div>
           <div className="bg-white border border-gray-200 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">预言机性能摘要</h3>
@@ -716,7 +737,13 @@ export default function CrossOraclePage() {
               {performanceData.map((data) => (
                 <div
                   key={data.provider}
-                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100"
+                  className={`flex items-center justify-between p-3 border transition-colors ${
+                    selectedPerformanceOracle === data.provider
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-gray-50 border-gray-100'
+                  }`}
+                  onClick={() => setSelectedPerformanceOracle(data.provider)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3" style={{ backgroundColor: data.color }} />
