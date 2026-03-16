@@ -90,12 +90,8 @@ export function DataFreshnessIndicator({
           <div className={`w-2 h-2 ${getStatusDot()} ${!isStale ? 'animate-pulse' : ''}`} />
         </div>
         <div className="flex-1">
-          <p className="text-sm text-gray-600">
-            {t('oracleCommon.dataFreshness.lastUpdated')}
-          </p>
-          <p className={`text-sm font-medium ${getStatusColor()}`}>
-            {displayTime}
-          </p>
+          <p className="text-sm text-gray-600">{t('oracleCommon.dataFreshness.lastUpdated')}</p>
+          <p className={`text-sm font-medium ${getStatusColor()}`}>{displayTime}</p>
         </div>
         {isStale && (
           <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium">

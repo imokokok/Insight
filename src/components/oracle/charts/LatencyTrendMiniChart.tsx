@@ -171,14 +171,19 @@ export function LatencyTrendMiniChart({
     const point = payload[0].payload;
 
     return (
-      <div className="bg-white border border-gray-200 p-3 min-w-[160px]" style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}>
+      <div
+        className="bg-white border border-gray-200 p-3 min-w-[160px]"
+        style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}
+      >
         <p className="text-xs text-gray-500 font-medium mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">{t('trendChart.latency') || '延迟'}:</span>
             <span
               className={`text-sm font-semibold ${
-                point.isAnomaly ? `text-[${semanticColors.danger.DEFAULT}]` : `text-[${baseColors.primary[600]}]`
+                point.isAnomaly
+                  ? `text-[${semanticColors.danger.DEFAULT}]`
+                  : `text-[${baseColors.primary[600]}]`
               }`}
             >
               {point.latency}ms
@@ -188,7 +193,9 @@ export function LatencyTrendMiniChart({
             <span className="text-xs text-gray-500">{t('trendChart.status') || '状态'}:</span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded ${
-                point.isAnomaly ? `bg-[${semanticColors.danger.light}] text-[${semanticColors.danger.text}]` : `bg-[${semanticColors.success.light}] text-[${semanticColors.success.text}]`
+                point.isAnomaly
+                  ? `bg-[${semanticColors.danger.light}] text-[${semanticColors.danger.text}]`
+                  : `bg-[${semanticColors.success.light}] text-[${semanticColors.success.text}]`
               }`}
             >
               {point.isAnomaly
@@ -395,13 +402,22 @@ export function LatencyTrendMiniChart({
                     cx={cx}
                     cy={cy}
                     r={payload.isAnomaly ? 4 : 2}
-                    fill={payload.isAnomaly ? semanticColors.danger.DEFAULT : chartColors.recharts.primary}
+                    fill={
+                      payload.isAnomaly
+                        ? semanticColors.danger.DEFAULT
+                        : chartColors.recharts.primary
+                    }
                     stroke={chartColors.recharts.white}
                     strokeWidth={1}
                   />
                 );
               }}
-              activeDot={{ r: 6, fill: chartColors.recharts.primary, stroke: chartColors.recharts.white, strokeWidth: 2 }}
+              activeDot={{
+                r: 6,
+                fill: chartColors.recharts.primary,
+                stroke: chartColors.recharts.white,
+                strokeWidth: 2,
+              }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -409,28 +425,34 @@ export function LatencyTrendMiniChart({
         {/* Legend */}
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
-          <span className="w-4 h-0.5 rounded" style={{ backgroundColor: chartColors.recharts.primary }} />
-          <span className="text-xs text-gray-500">{t('trendChart.latencyLine') || '延迟'}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
-          <span className="text-xs text-gray-500">
-            {t('trendChart.anomalyPoint') || '异常点'}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-3 rounded" style={{ backgroundColor: semanticColors.danger.light }} />
-          <span className="text-xs text-gray-500">
-            {t('trendChart.anomalyArea') || '异常时段'}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="w-4 h-0.5 rounded"
-            style={{ borderTop: `2px dashed ${semanticColors.danger.DEFAULT}` }}
-          />
-          <span className="text-xs text-gray-500">{t('trendChart.threshold') || '阈值'}</span>
-        </div>
+            <span
+              className="w-4 h-0.5 rounded"
+              style={{ backgroundColor: chartColors.recharts.primary }}
+            />
+            <span className="text-xs text-gray-500">{t('trendChart.latencyLine') || '延迟'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+            <span className="text-xs text-gray-500">
+              {t('trendChart.anomalyPoint') || '异常点'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-3 rounded"
+              style={{ backgroundColor: semanticColors.danger.light }}
+            />
+            <span className="text-xs text-gray-500">
+              {t('trendChart.anomalyArea') || '异常时段'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-0.5 rounded"
+              style={{ borderTop: `2px dashed ${semanticColors.danger.DEFAULT}` }}
+            />
+            <span className="text-xs text-gray-500">{t('trendChart.threshold') || '阈值'}</span>
+          </div>
         </div>
       </div>
 

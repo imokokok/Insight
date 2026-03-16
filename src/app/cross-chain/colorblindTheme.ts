@@ -29,7 +29,9 @@ export const getColorblindHeatmapColor = (percent: number, maxPercent: number): 
 
   const normalizedValue = Math.min(percent / maxPercent, 1);
   const index = Math.floor(normalizedValue * (accessibleColors.chart.sequence.length - 1));
-  return accessibleColors.chart.sequence[Math.min(index, accessibleColors.chart.sequence.length - 1)];
+  return accessibleColors.chart.sequence[
+    Math.min(index, accessibleColors.chart.sequence.length - 1)
+  ];
 };
 
 /**
@@ -44,16 +46,28 @@ export const getColorblindCorrelationColor = (correlation: number): string => {
   if (clampedCorrelation >= 0) {
     // 正相关: 白色 -> 黄色/橙色
     const t = clampedCorrelation;
-    const r = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(1, 3), 16)) * t);
-    const g = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(3, 5), 16)) * t);
-    const b = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(5, 7), 16)) * t);
+    const r = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(1, 3), 16)) * t
+    );
+    const g = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(3, 5), 16)) * t
+    );
+    const b = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.up.color.slice(5, 7), 16)) * t
+    );
     return `rgb(${r}, ${g}, ${b})`;
   } else {
     // 负相关: 白色 -> 蓝色
     const t = Math.abs(clampedCorrelation);
-    const r = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(1, 3), 16)) * t);
-    const g = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(3, 5), 16)) * t);
-    const b = Math.floor(255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(5, 7), 16)) * t);
+    const r = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(1, 3), 16)) * t
+    );
+    const g = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(3, 5), 16)) * t
+    );
+    const b = Math.floor(
+      255 - (255 - parseInt(accessibleColors.priceChange.down.color.slice(5, 7), 16)) * t
+    );
     return `rgb(${r}, ${g}, ${b})`;
   }
 };
@@ -92,7 +106,10 @@ export const getColorblindDiffColor = (diffPercent: number): { bg: string; text:
     const b = Math.floor(219 + (parseInt(upColor.slice(5, 7), 16) - 219) * intensity);
     return {
       bg: `rgba(${r}, ${g}, ${b}, 0.2)`,
-      text: intensity > 0.5 ? accessibleColors.priceChange.up.color : accessibleColors.priceChange.up.color,
+      text:
+        intensity > 0.5
+          ? accessibleColors.priceChange.up.color
+          : accessibleColors.priceChange.up.color,
     };
   } else {
     // 负差异 - 蓝色
@@ -103,7 +120,10 @@ export const getColorblindDiffColor = (diffPercent: number): { bg: string; text:
     const b = Math.floor(254 + (parseInt(downColor.slice(5, 7), 16) - 254) * intensity);
     return {
       bg: `rgba(${r}, ${g}, ${b}, 0.2)`,
-      text: intensity > 0.5 ? accessibleColors.priceChange.down.color : accessibleColors.priceChange.down.color,
+      text:
+        intensity > 0.5
+          ? accessibleColors.priceChange.down.color
+          : accessibleColors.priceChange.down.color,
     };
   }
 };

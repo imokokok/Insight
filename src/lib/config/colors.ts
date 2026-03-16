@@ -518,15 +518,15 @@ export const uiColors = {
 
 export const heatmapColors = {
   deviation: {
-    extremelyLow: '#10B981',    // < 0.1%
-    low: '#34D399',             // 0.1-0.25%
-    lower: '#6EE7B7',           // 0.25-0.5%
-    medium: '#FCD34D',          // 0.5-0.75%
-    higher: '#FBBF24',          // 0.75-1%
-    high: '#F59E0B',            // 1-1.5%
-    veryHigh: '#EF4444',        // 1.5-2%
-    extremelyHigh: '#DC2626',   // 2-3%
-    anomaly: '#B91C1C',         // > 3%
+    extremelyLow: '#10B981', // < 0.1%
+    low: '#34D399', // 0.1-0.25%
+    lower: '#6EE7B7', // 0.25-0.5%
+    medium: '#FCD34D', // 0.5-0.75%
+    higher: '#FBBF24', // 0.75-1%
+    high: '#F59E0B', // 1-1.5%
+    veryHigh: '#EF4444', // 1.5-2%
+    extremelyHigh: '#DC2626', // 2-3%
+    anomaly: '#B91C1C', // > 3%
     noData: '#F3F4F6',
   },
   oracle: {

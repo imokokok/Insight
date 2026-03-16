@@ -10,10 +10,7 @@ export interface MitigationMeasuresGridProps {
   className?: string;
 }
 
-export function MitigationMeasuresGrid({
-  measures,
-  className = '',
-}: MitigationMeasuresGridProps) {
+export function MitigationMeasuresGrid({ measures, className = '' }: MitigationMeasuresGridProps) {
   const { t } = useI18n();
 
   const getTypeLabel = (type: MitigationMeasure['type']) => {
@@ -79,10 +76,10 @@ export function MitigationMeasuresGrid({
               className="border border-gray-200 p-4 hover:border-gray-300 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-900 flex-1 pr-2">
-                  {measure.name}
-                </h4>
-                <span className={`px-2 py-0.5 text-xs font-medium ${getMeasureStatusColor(measure.status)}`}>
+                <h4 className="text-sm font-medium text-gray-900 flex-1 pr-2">{measure.name}</h4>
+                <span
+                  className={`px-2 py-0.5 text-xs font-medium ${getMeasureStatusColor(measure.status)}`}
+                >
                   {getStatusLabel(measure.status)}
                 </span>
               </div>
@@ -98,9 +95,7 @@ export function MitigationMeasuresGrid({
                   <span className="text-gray-500">
                     {t('oracleCommon.mitigationMeasures.effectivenessLabel')}
                   </span>
-                  <span className="font-medium text-gray-700">
-                    {measure.effectiveness}%
-                  </span>
+                  <span className="font-medium text-gray-700">{measure.effectiveness}%</span>
                 </div>
                 <div className="relative h-1.5 bg-gray-100 overflow-hidden">
                   <div

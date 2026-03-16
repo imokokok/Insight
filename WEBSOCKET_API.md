@@ -37,13 +37,13 @@ If this environment variable is not configured, a warning will be logged and rea
 
 The WebSocket connection can be in one of the following states:
 
-| State | Description |
-|-------|-------------|
-| `connecting` | Connection is being established |
-| `connected` | Connection is active and ready |
-| `disconnected` | Connection is closed |
+| State          | Description                              |
+| -------------- | ---------------------------------------- |
+| `connecting`   | Connection is being established          |
+| `connected`    | Connection is active and ready           |
+| `disconnected` | Connection is closed                     |
 | `reconnecting` | Attempting to reconnect after disconnect |
-| `error` | Connection encountered an error |
+| `error`        | Connection encountered an error          |
 
 ### Auto-Connect Behavior
 
@@ -56,7 +56,7 @@ For development and testing purposes, a mock WebSocket implementation is availab
 ```typescript
 const { status, lastMessage } = useWebSocket({
   useMock: true,
-  channels: ['prices', 'tvs']
+  channels: ['prices', 'tvs'],
 });
 ```
 
@@ -66,14 +66,14 @@ const { status, lastMessage } = useWebSocket({
 
 The WebSocket manager accepts the following configuration options:
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `url` | `string` | - | WebSocket server URL (required) |
-| `reconnectInterval` | `number` | `3000` | Base interval between reconnection attempts (ms) |
-| `maxReconnectAttempts` | `number` | `5` | Maximum number of reconnection attempts |
-| `heartbeatInterval` | `number` | `30000` | Interval for sending heartbeat pings (ms) |
-| `heartbeatTimeout` | `number` | `10000` | Timeout for heartbeat response (ms) |
-| `useExponentialBackoff` | `boolean` | `false` | Enable exponential backoff for reconnection |
+| Option                  | Type      | Default | Description                                      |
+| ----------------------- | --------- | ------- | ------------------------------------------------ |
+| `url`                   | `string`  | -       | WebSocket server URL (required)                  |
+| `reconnectInterval`     | `number`  | `3000`  | Base interval between reconnection attempts (ms) |
+| `maxReconnectAttempts`  | `number`  | `5`     | Maximum number of reconnection attempts          |
+| `heartbeatInterval`     | `number`  | `30000` | Interval for sending heartbeat pings (ms)        |
+| `heartbeatTimeout`      | `number`  | `10000` | Timeout for heartbeat response (ms)              |
+| `useExponentialBackoff` | `boolean` | `false` | Enable exponential backoff for reconnection      |
 
 ### Configuration Example
 
@@ -99,13 +99,13 @@ const wsManager = new WebSocketManager({
 
 The WebSocket protocol supports the following message types:
 
-| Type | Direction | Description |
-|------|-----------|-------------|
-| `subscribe` | Client → Server | Subscribe to a channel |
+| Type          | Direction       | Description                |
+| ------------- | --------------- | -------------------------- |
+| `subscribe`   | Client → Server | Subscribe to a channel     |
 | `unsubscribe` | Client → Server | Unsubscribe from a channel |
-| `ping` | Client → Server | Heartbeat ping |
-| `pong` | Server → Client | Heartbeat response |
-| `update` | Server → Client | Data update message |
+| `ping`        | Client → Server | Heartbeat ping             |
+| `pong`        | Server → Client | Heartbeat response         |
+| `update`      | Server → Client | Data update message        |
 
 ### Subscribe Message
 
@@ -142,14 +142,14 @@ The WebSocket protocol supports the following message types:
 
 The following channels are available for subscription:
 
-| Channel | Description | Update Frequency |
-|---------|-------------|------------------|
-| `prices` | Real-time price updates for oracle assets | ~2s (mock) |
-| `tvs` | Total Value Secured updates by oracle | ~2s (mock) |
-| `marketStats` | Market statistics updates | ~2s (mock) |
-| `uma:prices` | UMA-specific price updates | ~2s (mock) |
-| `uma:disputes` | UMA dispute status updates | ~2s (mock) |
-| `uma:validators` | UMA validator activity updates | ~2s (mock) |
+| Channel          | Description                               | Update Frequency |
+| ---------------- | ----------------------------------------- | ---------------- |
+| `prices`         | Real-time price updates for oracle assets | ~2s (mock)       |
+| `tvs`            | Total Value Secured updates by oracle     | ~2s (mock)       |
+| `marketStats`    | Market statistics updates                 | ~2s (mock)       |
+| `uma:prices`     | UMA-specific price updates                | ~2s (mock)       |
+| `uma:disputes`   | UMA dispute status updates                | ~2s (mock)       |
+| `uma:validators` | UMA validator activity updates            | ~2s (mock)       |
 
 ---
 
@@ -174,7 +174,7 @@ interface WebSocketMessage<T = unknown> {
   "channel": "prices",
   "data": {
     "symbol": "BTC",
-    "price": 45000.00,
+    "price": 45000.0,
     "change24h": 2.5,
     "timestamp": 1699999999999
   },
@@ -190,10 +190,10 @@ interface WebSocketMessage<T = unknown> {
 
 ```typescript
 interface PriceData {
-  symbol: string;      // Asset symbol (e.g., 'BTC', 'ETH', 'LINK', 'PYTH', 'BAND')
-  price: number;       // Current price in USD
-  change24h: number;   // 24-hour price change percentage
-  timestamp: number;   // Unix timestamp in milliseconds
+  symbol: string; // Asset symbol (e.g., 'BTC', 'ETH', 'LINK', 'PYTH', 'BAND')
+  price: number; // Current price in USD
+  change24h: number; // 24-hour price change percentage
+  timestamp: number; // Unix timestamp in milliseconds
 }
 ```
 
@@ -202,7 +202,7 @@ interface PriceData {
 ```json
 {
   "symbol": "BTC",
-  "price": 45000.00,
+  "price": 45000.0,
   "change24h": 2.5,
   "timestamp": 1699999999999
 }
@@ -212,10 +212,10 @@ interface PriceData {
 
 ```typescript
 interface TVSData {
-  oracle: string;      // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'Band Protocol', 'API3', 'UMA')
-  tvs: number;         // Total Value Secured in billions USD
-  change24h: number;   // 24-hour TVS change percentage
-  timestamp: number;   // Unix timestamp in milliseconds
+  oracle: string; // Oracle name (e.g., 'Chainlink', 'Pyth Network', 'Band Protocol', 'API3', 'UMA')
+  tvs: number; // Total Value Secured in billions USD
+  change24h: number; // 24-hour TVS change percentage
+  timestamp: number; // Unix timestamp in milliseconds
 }
 ```
 
@@ -234,12 +234,12 @@ interface TVSData {
 
 ```typescript
 interface MarketStats {
-  totalTVS: number;          // Total Value Secured across all oracles (billions USD)
-  totalChains: number;       // Number of supported chains
-  totalProtocols: number;    // Number of integrated protocols
-  marketDominance: number;   // Market dominance percentage
-  avgUpdateLatency: number;  // Average update latency in milliseconds
-  timestamp: number;         // Unix timestamp in milliseconds
+  totalTVS: number; // Total Value Secured across all oracles (billions USD)
+  totalChains: number; // Number of supported chains
+  totalProtocols: number; // Number of integrated protocols
+  marketDominance: number; // Market dominance percentage
+  avgUpdateLatency: number; // Average update latency in milliseconds
+  timestamp: number; // Unix timestamp in milliseconds
 }
 ```
 
@@ -260,12 +260,12 @@ interface MarketStats {
 
 ```typescript
 interface UMAPriceData {
-  symbol: string;       // Asset symbol (e.g., 'BTC', 'ETH', 'UMA', 'USDC', 'DAI')
-  price: number;        // Current price in USD
-  change24h: number;    // 24-hour price change percentage
-  timestamp: number;    // Unix timestamp in milliseconds
-  confidence: number;   // Confidence level (0-1)
-  source: string;       // Data source identifier
+  symbol: string; // Asset symbol (e.g., 'BTC', 'ETH', 'UMA', 'USDC', 'DAI')
+  price: number; // Current price in USD
+  change24h: number; // 24-hour price change percentage
+  timestamp: number; // Unix timestamp in milliseconds
+  confidence: number; // Confidence level (0-1)
+  source: string; // Data source identifier
 }
 ```
 
@@ -286,13 +286,13 @@ interface UMAPriceData {
 
 ```typescript
 interface UMADisputeData {
-  id: string;                    // Dispute identifier
-  timestamp: number;             // Unix timestamp in milliseconds
+  id: string; // Dispute identifier
+  timestamp: number; // Unix timestamp in milliseconds
   status: 'active' | 'resolved' | 'rejected';
   type: 'price' | 'state' | 'liquidation' | 'other';
-  reward: number;                // Reward amount in tokens
-  resolutionTime?: number;       // Resolution time in hours (if resolved)
-  transactionHash: string;       // Transaction hash (0x-prefixed)
+  reward: number; // Reward amount in tokens
+  resolutionTime?: number; // Resolution time in hours (if resolved)
+  transactionHash: string; // Transaction hash (0x-prefixed)
 }
 ```
 
@@ -314,12 +314,12 @@ interface UMADisputeData {
 
 ```typescript
 interface UMAValidatorData {
-  validatorId: string;     // Validator identifier
-  timestamp: number;       // Unix timestamp in milliseconds
-  responseTime: number;    // Response time in milliseconds
-  successRate: number;     // Success rate percentage (0-100)
-  staked: number;          // Staked amount in tokens
-  earnings: number;        // Total earnings in tokens
+  validatorId: string; // Validator identifier
+  timestamp: number; // Unix timestamp in milliseconds
+  responseTime: number; // Response time in milliseconds
+  successRate: number; // Success rate percentage (0-100)
+  staked: number; // Staked amount in tokens
+  earnings: number; // Total earnings in tokens
 }
 ```
 
@@ -366,13 +366,13 @@ function calculateBackoffDelay(attempt: number, baseDelay: number): number {
 
 **Backoff Example (baseDelay: 3000ms):**
 
-| Attempt | Delay |
-|---------|-------|
-| 1 | ~3000ms |
-| 2 | ~6000ms |
-| 3 | ~12000ms |
-| 4 | ~24000ms |
-| 5 | ~30000ms (capped) |
+| Attempt | Delay             |
+| ------- | ----------------- |
+| 1       | ~3000ms           |
+| 2       | ~6000ms           |
+| 3       | ~12000ms          |
+| 4       | ~24000ms          |
+| 5       | ~30000ms (capped) |
 
 ### Channel Resubscription
 
@@ -411,10 +411,10 @@ Client                          Server
 
 ### Configuration
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
+| Parameter           | Default | Description                    |
+| ------------------- | ------- | ------------------------------ |
 | `heartbeatInterval` | 30000ms | Interval between ping messages |
-| `heartbeatTimeout` | 10000ms | Time to wait for pong response |
+| `heartbeatTimeout`  | 10000ms | Time to wait for pong response |
 
 ### Timeout Handling
 
@@ -437,9 +437,9 @@ this.heartbeatTimeoutTimer = setTimeout(() => {
 import { useWebSocket } from '@/lib/realtime/websocket';
 
 function PriceDisplay() {
-  const { status, lastMessage, lastUpdated } = useWebSocket<{ 
-    symbol: string; 
-    price: number; 
+  const { status, lastMessage, lastUpdated } = useWebSocket<{
+    symbol: string;
+    price: number;
   }>({
     channels: ['prices'],
     autoConnect: true,
@@ -463,10 +463,10 @@ function PriceDisplay() {
 
 ```typescript
 interface UseWebSocketOptions {
-  url?: string;           // Override default WebSocket URL
-  channels?: string[];    // Channels to subscribe to
-  autoConnect?: boolean;  // Auto-connect on mount (default: true)
-  useMock?: boolean;      // Use mock WebSocket (default: false)
+  url?: string; // Override default WebSocket URL
+  channels?: string[]; // Channels to subscribe to
+  autoConnect?: boolean; // Auto-connect on mount (default: true)
+  useMock?: boolean; // Use mock WebSocket (default: false)
 }
 ```
 
@@ -474,17 +474,17 @@ interface UseWebSocketOptions {
 
 ```typescript
 interface UseWebSocketReturn<T> {
-  status: WebSocketStatus;                    // Current connection status
-  lastMessage: WebSocketMessage<T> | null;    // Last received message
-  lastUpdated: Date | null;                   // Timestamp of last update
-  connect: () => void;                        // Connect to server
-  disconnect: () => void;                     // Disconnect from server
-  reconnect: () => void;                      // Reconnect to server
-  send: (message: Record<string, unknown>) => void;  // Send message
+  status: WebSocketStatus; // Current connection status
+  lastMessage: WebSocketMessage<T> | null; // Last received message
+  lastUpdated: Date | null; // Timestamp of last update
+  connect: () => void; // Connect to server
+  disconnect: () => void; // Disconnect from server
+  reconnect: () => void; // Reconnect to server
+  send: (message: Record<string, unknown>) => void; // Send message
   subscribe: <U>(channel: string, handler: MessageHandler<U>) => void; // Subscribe to channel
-  isConnected: boolean;                       // true if status === 'connected'
-  isConnecting: boolean;                      // true if status === 'connecting'
-  isReconnecting: boolean;                    // true if status === 'reconnecting'
+  isConnected: boolean; // true if status === 'connected'
+  isConnecting: boolean; // true if status === 'connecting'
+  isReconnecting: boolean; // true if status === 'reconnecting'
 }
 ```
 
@@ -715,9 +715,9 @@ import {
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_WS_URL` | No | WebSocket server URL. If not set, real-time features are disabled. |
+| Variable             | Required | Description                                                        |
+| -------------------- | -------- | ------------------------------------------------------------------ |
+| `NEXT_PUBLIC_WS_URL` | No       | WebSocket server URL. If not set, real-time features are disabled. |
 
 ---
 

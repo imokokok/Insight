@@ -175,8 +175,12 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
     <div className="bg-white border border-gray-200 rounded p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-gray-900 text-sm font-semibold">{t('bandCrossChainPriceConsistency.priceDeviationHeatmap')}</p>
-          <p className="text-gray-500 text-xs mt-0.5">{t('bandCrossChainPriceConsistency.heatmapSubtitle')}</p>
+          <p className="text-gray-900 text-sm font-semibold">
+            {t('bandCrossChainPriceConsistency.priceDeviationHeatmap')}
+          </p>
+          <p className="text-gray-500 text-xs mt-0.5">
+            {t('bandCrossChainPriceConsistency.heatmapSubtitle')}
+          </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>{t('bandCrossChainPriceConsistency.low')}</span>
@@ -195,7 +199,9 @@ function PriceDeviationHeatmap({ priceDataMap, selectedSymbol }: PriceDeviationH
         <table className="w-full">
           <thead>
             <tr>
-              <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-24">{t('bandCrossChainPriceConsistency.token')}</th>
+              <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-24">
+                {t('bandCrossChainPriceConsistency.token')}
+              </th>
               {chains.map((chain) => (
                 <th
                   key={chain.chainId}
@@ -743,14 +749,14 @@ export function BandCrossChainPriceConsistency({
                         </td>
                         <td className="text-center py-3 px-3">
                           <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
-                          chain.status === 'normal'
-                            ? 'bg-green-100 text-green-700'
-                            : chain.status === 'warning'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
-                        }`}
-                      >
+                            className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
+                              chain.status === 'normal'
+                                ? 'bg-green-100 text-green-700'
+                                : chain.status === 'warning'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-red-100 text-red-700'
+                            }`}
+                          >
                             {chain.status === 'normal'
                               ? '正常'
                               : chain.status === 'warning'

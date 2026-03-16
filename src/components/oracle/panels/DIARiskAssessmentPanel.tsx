@@ -131,22 +131,82 @@ const sourceTypeDistribution = [
 
 // 评分趋势数据
 const scoreTrendData = [
-  { date: '2024-01', overall: 80, decentralization: 75, security: 82, stability: 85, dataQuality: 82 },
-  { date: '2024-02', overall: 82, decentralization: 76, security: 83, stability: 86, dataQuality: 83 },
-  { date: '2024-03', overall: 83, decentralization: 77, security: 84, stability: 87, dataQuality: 84 },
-  { date: '2024-04', overall: 84, decentralization: 77, security: 84, stability: 87, dataQuality: 85 },
-  { date: '2024-05', overall: 85, decentralization: 78, security: 85, stability: 88, dataQuality: 85 },
-  { date: '2024-06', overall: 84, decentralization: 78, security: 85, stability: 88, dataQuality: 86 },
+  {
+    date: '2024-01',
+    overall: 80,
+    decentralization: 75,
+    security: 82,
+    stability: 85,
+    dataQuality: 82,
+  },
+  {
+    date: '2024-02',
+    overall: 82,
+    decentralization: 76,
+    security: 83,
+    stability: 86,
+    dataQuality: 83,
+  },
+  {
+    date: '2024-03',
+    overall: 83,
+    decentralization: 77,
+    security: 84,
+    stability: 87,
+    dataQuality: 84,
+  },
+  {
+    date: '2024-04',
+    overall: 84,
+    decentralization: 77,
+    security: 84,
+    stability: 87,
+    dataQuality: 85,
+  },
+  {
+    date: '2024-05',
+    overall: 85,
+    decentralization: 78,
+    security: 85,
+    stability: 88,
+    dataQuality: 85,
+  },
+  {
+    date: '2024-06',
+    overall: 84,
+    decentralization: 78,
+    security: 85,
+    stability: 88,
+    dataQuality: 86,
+  },
 ];
 
 // 跨链覆盖风险数据
 const crossChainRiskData = [
-  { chain: 'Ethereum', availability: 99.95, latency: 1200, riskLevel: 'low' as const, coverage: 100 },
-  { chain: 'Polygon', availability: 99.90, latency: 2000, riskLevel: 'low' as const, coverage: 95 },
-  { chain: 'Arbitrum', availability: 99.85, latency: 1500, riskLevel: 'low' as const, coverage: 90 },
-  { chain: 'Optimism', availability: 99.80, latency: 1800, riskLevel: 'low' as const, coverage: 88 },
+  {
+    chain: 'Ethereum',
+    availability: 99.95,
+    latency: 1200,
+    riskLevel: 'low' as const,
+    coverage: 100,
+  },
+  { chain: 'Polygon', availability: 99.9, latency: 2000, riskLevel: 'low' as const, coverage: 95 },
+  {
+    chain: 'Arbitrum',
+    availability: 99.85,
+    latency: 1500,
+    riskLevel: 'low' as const,
+    coverage: 90,
+  },
+  { chain: 'Optimism', availability: 99.8, latency: 1800, riskLevel: 'low' as const, coverage: 88 },
   { chain: 'BSC', availability: 99.75, latency: 3000, riskLevel: 'low' as const, coverage: 85 },
-  { chain: 'Avalanche', availability: 99.70, latency: 2500, riskLevel: 'low' as const, coverage: 82 },
+  {
+    chain: 'Avalanche',
+    availability: 99.7,
+    latency: 2500,
+    riskLevel: 'low' as const,
+    coverage: 82,
+  },
 ];
 
 interface CustomTooltipProps {
@@ -165,7 +225,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             <p key={index} className="text-sm flex items-center gap-2">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600 capitalize">{entry.dataKey}:</span>
-              <span className="font-bold" style={{ color: entry.color }}>{entry.value}</span>
+              <span className="font-bold" style={{ color: entry.color }}>
+                {entry.value}
+              </span>
             </p>
           ))}
         </div>
@@ -204,11 +266,15 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('dia.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
-            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>
+              {overallScore}
+            </div>
             <div className="text-sm text-gray-500 mt-2">
               {t('dia.riskAssessment.comprehensiveAssessment')}
             </div>
-            <div className={`mt-4 inline-flex items-center px-3 py-1 text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
+            <div
+              className={`mt-4 inline-flex items-center px-3 py-1 text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+            >
               {t(`dia.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
@@ -279,11 +345,15 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
             <div className="flex items-center justify-between p-4 bg-gray-50">
               <div>
                 <p className="text-sm text-gray-600">{t('dia.riskAssessment.avgCredibility')}</p>
-                <p className={`text-3xl font-bold ${getScoreColor(avgCredibility)}`}>{avgCredibility}</p>
+                <p className={`text-3xl font-bold ${getScoreColor(avgCredibility)}`}>
+                  {avgCredibility}
+                </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">{t('dia.riskAssessment.totalSources')}</p>
-                <p className="text-2xl font-semibold text-gray-900">{dataSourceCredibility.length}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dataSourceCredibility.length}
+                </p>
               </div>
             </div>
             {/* 各数据源评分 */}
@@ -303,7 +373,9 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
                         style={{ width: `${source.score}%` }}
                       />
                     </div>
-                    <span className={`text-sm font-bold w-10 text-right ${getScoreColor(source.score)}`}>
+                    <span
+                      className={`text-sm font-bold w-10 text-right ${getScoreColor(source.score)}`}
+                    >
                       {source.score}
                     </span>
                   </div>
@@ -332,7 +404,10 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value, name) => [`${value}%`, t(`dia.dataSourceType.${String(name)}`)]}
+                  formatter={(value, name) => [
+                    `${value}%`,
+                    t(`dia.dataSourceType.${String(name)}`),
+                  ]}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -341,7 +416,9 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
             {sourceTypeDistribution.map((item) => (
               <div key={item.name} className="flex items-center gap-2">
                 <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                <span className="text-xs text-gray-600">{t(`dia.dataSourceType.${item.name}`)} ({item.value}%)</span>
+                <span className="text-xs text-gray-600">
+                  {t(`dia.dataSourceType.${item.name}`)} ({item.value}%)
+                </span>
               </div>
             ))}
           </div>
@@ -531,7 +608,9 @@ export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPane
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.warning }} />
-            <span className="text-xs text-gray-600">{t('dia.riskAssessment.decentralization')}</span>
+            <span className="text-xs text-gray-600">
+              {t('dia.riskAssessment.decentralization')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.cyan }} />

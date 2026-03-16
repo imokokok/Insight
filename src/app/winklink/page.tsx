@@ -117,7 +117,12 @@ export default function WINkLinkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
           </svg>
         ),
       },
@@ -128,7 +133,12 @@ export default function WINkLinkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -139,7 +149,12 @@ export default function WINkLinkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
           </svg>
         ),
       },
@@ -150,7 +165,12 @@ export default function WINkLinkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+            />
           </svg>
         ),
       },
@@ -161,8 +181,18 @@ export default function WINkLinkPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -246,13 +276,17 @@ export default function WINkLinkPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('winklink.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('winklink.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e9).toFixed(1)}B WIN
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('winklink.stats.stakingApr')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('winklink.stats.stakingApr')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">
                         {staking?.averageApr ?? 15.5}%
                       </span>
@@ -273,17 +307,11 @@ export default function WINkLinkPage() {
             <WINkLinkTRONIntegrationPanel data={tronIntegration} />
           )}
 
-          {activeTab === 'staking' && staking && (
-            <WINkLinkStakingPanel data={staking} />
-          )}
+          {activeTab === 'staking' && staking && <WINkLinkStakingPanel data={staking} />}
 
-          {activeTab === 'gaming' && gaming && (
-            <WINkLinkGamingPanel data={gaming} />
-          )}
+          {activeTab === 'gaming' && gaming && <WINkLinkGamingPanel data={gaming} />}
 
-          {activeTab === 'risk' && riskMetrics && (
-            <WINkLinkRiskPanel data={riskMetrics} />
-          )}
+          {activeTab === 'risk' && riskMetrics && <WINkLinkRiskPanel data={riskMetrics} />}
 
           {activeTab === 'cross-oracle' && (
             <DashboardCard title={t('winklink.tabs.crossOracle')}>

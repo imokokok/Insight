@@ -6,13 +6,13 @@ The Insight Oracle Data Analytics Platform integrates with multiple leading bloc
 
 ### Supported Providers
 
-| Provider | Symbol | Default Chain | Description |
-|----------|--------|---------------|-------------|
-| Chainlink | LINK | Ethereum | Decentralized oracle network |
-| Band Protocol | BAND | Cosmos | Cross-chain data oracle platform |
-| UMA | UMA | Ethereum | Optimistic oracle and dispute arbitration |
-| Pyth | PYTH | Solana | Low-latency high-frequency price oracle |
-| API3 | API3 | Ethereum | First-party oracle infrastructure |
+| Provider      | Symbol | Default Chain | Description                               |
+| ------------- | ------ | ------------- | ----------------------------------------- |
+| Chainlink     | LINK   | Ethereum      | Decentralized oracle network              |
+| Band Protocol | BAND   | Cosmos        | Cross-chain data oracle platform          |
+| UMA           | UMA    | Ethereum      | Optimistic oracle and dispute arbitration |
+| Pyth          | PYTH   | Solana        | Low-latency high-frequency price oracle   |
+| API3          | API3   | Ethereum      | First-party oracle infrastructure         |
 
 ### Architecture
 
@@ -62,8 +62,8 @@ export abstract class BaseOracleClient {
 
 ```typescript
 interface OracleClientConfig {
-  useDatabase?: boolean;      // Enable database caching (default: true)
-  fallbackToMock?: boolean;   // Fallback to mock data (default: true)
+  useDatabase?: boolean; // Enable database caching (default: true)
+  fallbackToMock?: boolean; // Fallback to mock data (default: true)
 }
 ```
 
@@ -74,7 +74,7 @@ The storage layer provides database caching with TTL support via [storage.ts](sr
 ```typescript
 interface OracleStorageConfig {
   enabled: boolean;
-  defaultExpirationHours: number;  // Default: 24 hours
+  defaultExpirationHours: number; // Default: 24 hours
 }
 ```
 
@@ -88,16 +88,16 @@ interface OracleStorageConfig {
 
 ### Supported Chains
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Ethereum | 1 | Active |
-| Arbitrum | 42161 | Active |
-| Optimism | 10 | Active |
-| Polygon | 137 | Active |
-| Avalanche | 43114 | Active |
-| Base | 8453 | Active |
-| BNB Chain | 56 | Active |
-| Fantom | 250 | Active |
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Optimism  | 10       | Active |
+| Polygon   | 137      | Active |
+| Avalanche | 43114    | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Fantom    | 250      | Active |
 
 ### Features
 
@@ -118,24 +118,24 @@ const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24
 
 ### Network Metrics
 
-| Metric | Value |
-|--------|-------|
-| Active Nodes | 1,847 |
-| Node Uptime | 99.9% |
-| Avg Response Time | 245ms |
-| Update Frequency | 60s |
-| Data Feeds | 1,243 |
-| Total Staked | 45,000,000 LINK |
+| Metric            | Value           |
+| ----------------- | --------------- |
+| Active Nodes      | 1,847           |
+| Node Uptime       | 99.9%           |
+| Avg Response Time | 245ms           |
+| Update Frequency  | 60s             |
+| Data Feeds        | 1,243           |
+| Total Staked      | 45,000,000 LINK |
 
 ### Market Data
 
-| Metric | Value |
-|--------|-------|
-| Market Cap | $13.85B |
-| 24h Volume | $485M |
-| Circulating Supply | 608.1M |
-| Total Supply | 1B |
-| Market Cap Rank | #12 |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Market Cap         | $13.85B |
+| 24h Volume         | $485M   |
+| Circulating Supply | 608.1M  |
+| Total Supply       | 1B      |
+| Market Cap Rank    | #12     |
 
 ---
 
@@ -147,16 +147,16 @@ const history = await client.getHistoricalPrices('LINK', Blockchain.ETHEREUM, 24
 
 ### Supported Chains
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Cosmos | cosmoshub-4 | Active |
-| Osmosis | osmosis-1 | Active |
-| Juno | juno-1 | Active |
-| Ethereum | 1 | Active |
-| Polygon | 137 | Active |
-| Avalanche | 43114 | Active |
-| Fantom | 250 | Active |
-| Cronos | 25 | Active |
+| Chain     | Chain ID    | Status |
+| --------- | ----------- | ------ |
+| Cosmos    | cosmoshub-4 | Active |
+| Osmosis   | osmosis-1   | Active |
+| Juno      | juno-1      | Active |
+| Ethereum  | 1           | Active |
+| Polygon   | 137         | Active |
+| Avalanche | 43114       | Active |
+| Fantom    | 250         | Active |
+| Cronos    | 25          | Active |
 
 ### Features
 
@@ -221,14 +221,14 @@ interface BandNetworkStats {
 
 ### Network Metrics
 
-| Metric | Value |
-|--------|-------|
-| Active Validators | 65-75 |
-| Total Validators | 72-87 |
-| Bonded Tokens | 85M BAND |
-| Staking Ratio | ~51.5% |
-| Block Time | 2.8s |
-| Inflation Rate | 7-10% |
+| Metric            | Value    |
+| ----------------- | -------- |
+| Active Validators | 65-75    |
+| Total Validators  | 72-87    |
+| Bonded Tokens     | 85M BAND |
+| Staking Ratio     | ~51.5%   |
+| Block Time        | 2.8s     |
+| Inflation Rate    | 7-10%    |
 
 ---
 
@@ -240,13 +240,13 @@ interface BandNetworkStats {
 
 ### Supported Chains
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Ethereum | 1 | Active |
-| Arbitrum | 42161 | Active |
-| Optimism | 10 | Active |
-| Polygon | 137 | Active |
-| Base | 8453 | Active |
+| Chain    | Chain ID | Status |
+| -------- | -------- | ------ |
+| Ethereum | 1        | Active |
+| Arbitrum | 42161    | Active |
+| Optimism | 10       | Active |
+| Polygon  | 137      | Active |
+| Base     | 8453     | Active |
 
 ### Features
 
@@ -267,21 +267,17 @@ const validators = await client.getValidators();
 const disputes = await client.getDisputes();
 const networkStats = await client.getNetworkStats();
 const qualityScore = await client.getDataQualityScore();
-const stakingRewards = await client.calculateStakingRewards(
-  10000,
-  'institution',
-  'medium'
-);
+const stakingRewards = await client.calculateStakingRewards(10000, 'institution', 'medium');
 ```
 
 ### Dispute Types
 
-| Type | Description | Color Code |
-|------|-------------|------------|
-| Price | Price verification disputes | Blue (#3b82f6) |
-| State | State assertion disputes | Emerald (#10b981) |
-| Liquidation | Liquidation verification | Amber (#f59e0b) |
-| Other | General disputes | Slate (#64748b) |
+| Type        | Description                 | Color Code        |
+| ----------- | --------------------------- | ----------------- |
+| Price       | Price verification disputes | Blue (#3b82f6)    |
+| State       | State assertion disputes    | Emerald (#10b981) |
+| Liquidation | Liquidation verification    | Amber (#f59e0b)   |
+| Other       | General disputes            | Slate (#64748b)   |
 
 ### Extended Types
 
@@ -322,15 +318,15 @@ interface DataQualityScore {
 
 ### Network Metrics
 
-| Metric | Value |
-|--------|-------|
-| Active Validators | 850 |
-| Validator Uptime | 99.5% |
-| Total Staked | 25M UMA |
-| Total Disputes | 1,250 |
-| Dispute Success Rate | 78% |
-| Avg Resolution Time | 4.2h |
-| Active Disputes | 23 |
+| Metric               | Value   |
+| -------------------- | ------- |
+| Active Validators    | 850     |
+| Validator Uptime     | 99.5%   |
+| Total Staked         | 25M UMA |
+| Total Disputes       | 1,250   |
+| Dispute Success Rate | 78%     |
+| Avg Resolution Time  | 4.2h    |
+| Active Disputes      | 23      |
 
 ---
 
@@ -342,15 +338,15 @@ interface DataQualityScore {
 
 ### Supported Chains
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Solana | mainnet-beta | Active |
-| Ethereum | 1 | Active |
-| Arbitrum | 42161 | Active |
-| Polygon | 137 | Active |
-| Optimism | 10 | Active |
-| Avalanche | 43114 | Active |
-| Base | 8453 | Active |
+| Chain     | Chain ID     | Status |
+| --------- | ------------ | ------ |
+| Solana    | mainnet-beta | Active |
+| Ethereum  | 1            | Active |
+| Arbitrum  | 42161        | Active |
+| Polygon   | 137          | Active |
+| Optimism  | 10           | Active |
+| Avalanche | 43114        | Active |
+| Base      | 8453         | Active |
 
 ### Features
 
@@ -379,21 +375,21 @@ const unsubscribe = hermesClient.subscribeToPriceUpdates('BTC/USD', (update) => 
 
 ```typescript
 interface ConfidenceInterval {
-  bid: number;              // Lower bound price
-  ask: number;              // Upper bound price
-  widthPercentage: number;  // Spread as percentage
+  bid: number; // Lower bound price
+  ask: number; // Upper bound price
+  widthPercentage: number; // Spread as percentage
 }
 ```
 
 ### Spread Percentages by Asset
 
 | Asset | Spread % |
-|-------|----------|
-| BTC | 0.02% |
-| ETH | 0.03% |
-| SOL | 0.05% |
-| PYTH | 0.10% |
-| USDC | 0.01% |
+| ----- | -------- |
+| BTC   | 0.02%    |
+| ETH   | 0.03%    |
+| SOL   | 0.05%    |
+| PYTH  | 0.10%    |
+| USDC  | 0.01%    |
 
 ### Pyth Hermes Client
 
@@ -417,23 +413,23 @@ client.subscribeToPriceUpdates('ETH/USD', (update) => {
 
 ### Price Feed IDs
 
-| Symbol | Price Feed ID |
-|--------|---------------|
-| BTC/USD | `0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43` |
-| ETH/USD | `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace` |
-| SOL/USD | `0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d` |
+| Symbol   | Price Feed ID                                                        |
+| -------- | -------------------------------------------------------------------- |
+| BTC/USD  | `0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43` |
+| ETH/USD  | `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace` |
+| SOL/USD  | `0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d` |
 | PYTH/USD | `0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996` |
 
 ### Network Metrics
 
-| Metric | Value |
-|--------|-------|
-| Active Nodes | 100 |
-| Node Uptime | 99.9% |
+| Metric            | Value |
+| ----------------- | ----- |
+| Active Nodes      | 100   |
+| Node Uptime       | 99.9% |
 | Avg Response Time | 100ms |
-| Update Frequency | 1s |
-| Data Feeds | 500 |
-| Latency | 50ms |
+| Update Frequency  | 1s    |
+| Data Feeds        | 500   |
+| Latency           | 50ms  |
 
 ---
 
@@ -445,15 +441,15 @@ client.subscribeToPriceUpdates('ETH/USD', (update) => {
 
 ### Supported Chains
 
-| Chain | Chain ID | Status |
-|-------|----------|--------|
-| Ethereum | 1 | Active |
-| Arbitrum | 42161 | Active |
-| Polygon | 137 | Active |
-| Avalanche | 43114 | Active |
-| Base | 8453 | Active |
-| BNB Chain | 56 | Active |
-| Optimism | 10 | Active |
+| Chain     | Chain ID | Status |
+| --------- | -------- | ------ |
+| Ethereum  | 1        | Active |
+| Arbitrum  | 42161    | Active |
+| Polygon   | 137      | Active |
+| Avalanche | 43114    | Active |
+| Base      | 8453     | Active |
+| BNB Chain | 56       | Active |
+| Optimism  | 10       | Active |
 
 ### Features
 
@@ -534,32 +530,32 @@ interface DataSourceInfo {
 
 ### dAPI Price Deviation Tracking
 
-| Symbol | dAPI Price | Market Price | Deviation | Status |
-|--------|------------|--------------|-----------|--------|
-| BTC/USD | $68,050.25 | $68,120.50 | 0.10% | Normal |
-| ETH/USD | $3,505.80 | $3,498.20 | 0.22% | Normal |
-| SOL/USD | $180.45 | $182.30 | 1.02% | Warning |
-| UNI/USD | $9.45 | $9.12 | 3.62% | Critical |
+| Symbol  | dAPI Price | Market Price | Deviation | Status   |
+| ------- | ---------- | ------------ | --------- | -------- |
+| BTC/USD | $68,050.25 | $68,120.50   | 0.10%     | Normal   |
+| ETH/USD | $3,505.80  | $3,498.20    | 0.22%     | Normal   |
+| SOL/USD | $180.45    | $182.30      | 1.02%     | Warning  |
+| UNI/USD | $9.45      | $9.12        | 3.62%     | Critical |
 
 ### Network Metrics
 
-| Metric | Value |
-|--------|-------|
-| Active Airnodes | 156 |
-| Node Uptime | 99.7% |
-| Avg Response Time | 180ms |
-| Data Feeds | 168 |
-| Total Staked | 25M API3 |
-| Staking APR | 12.5% |
-| Coverage Pool | $8.5M |
+| Metric            | Value    |
+| ----------------- | -------- |
+| Active Airnodes   | 156      |
+| Node Uptime       | 99.7%    |
+| Avg Response Time | 180ms    |
+| Data Feeds        | 168      |
+| Total Staked      | 25M API3 |
+| Staking APR       | 12.5%    |
+| Coverage Pool     | $8.5M    |
 
 ### Data Source Categories
 
-| Type | Count | Avg Credibility |
-|------|-------|-----------------|
-| Exchanges | 68 | 95% |
-| Traditional Finance | 52 | 98% |
-| Others | 36 | 92% |
+| Type                | Count | Avg Credibility |
+| ------------------- | ----- | --------------- |
+| Exchanges           | 68    | 95%             |
+| Traditional Finance | 52    | 98%             |
+| Others              | 36    | 92%             |
 
 ---
 
@@ -676,12 +672,7 @@ history.forEach((point) => {
 ### Multi-Provider Comparison
 
 ```typescript
-import {
-  ChainlinkClient,
-  BandProtocolClient,
-  PythClient,
-  OracleProvider
-} from '@/lib/oracles';
+import { ChainlinkClient, BandProtocolClient, PythClient, OracleProvider } from '@/lib/oracles';
 
 const clients = {
   [OracleProvider.CHAINLINK]: new ChainlinkClient(),
@@ -715,21 +706,21 @@ setTimeout(() => unsubscribe(), 60000);
 
 ## Oracle Comparison Table
 
-| Feature | Chainlink | Band Protocol | UMA | Pyth | API3 |
-|---------|-----------|---------------|-----|------|------|
-| **Update Frequency** | 60s | 30s | 120s | 1s | 10s |
-| **Avg Response Time** | 245ms | 150ms | 300ms | 100ms | 180ms |
-| **Node Uptime** | 99.9% | 99.85% | 99.7% | 99.9% | 99.7% |
-| **Supported Chains** | 8 | 8 | 5 | 7 | 7 |
-| **Data Feeds** | 1,243 | 180 | 50 | 500 | 168 |
-| **Node Analytics** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Validator Analytics** | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **Publisher Analytics** | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Dispute Resolution** | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **First-Party Oracle** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Confidence Intervals** | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Cross-Chain Stats** | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **Coverage Pools** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Feature                  | Chainlink | Band Protocol | UMA   | Pyth  | API3  |
+| ------------------------ | --------- | ------------- | ----- | ----- | ----- |
+| **Update Frequency**     | 60s       | 30s           | 120s  | 1s    | 10s   |
+| **Avg Response Time**    | 245ms     | 150ms         | 300ms | 100ms | 180ms |
+| **Node Uptime**          | 99.9%     | 99.85%        | 99.7% | 99.9% | 99.7% |
+| **Supported Chains**     | 8         | 8             | 5     | 7     | 7     |
+| **Data Feeds**           | 1,243     | 180           | 50    | 500   | 168   |
+| **Node Analytics**       | ✅        | ❌            | ❌    | ❌    | ❌    |
+| **Validator Analytics**  | ❌        | ✅            | ✅    | ❌    | ❌    |
+| **Publisher Analytics**  | ❌        | ❌            | ❌    | ✅    | ❌    |
+| **Dispute Resolution**   | ❌        | ❌            | ✅    | ❌    | ❌    |
+| **First-Party Oracle**   | ❌        | ❌            | ❌    | ❌    | ✅    |
+| **Confidence Intervals** | ❌        | ❌            | ❌    | ✅    | ❌    |
+| **Cross-Chain Stats**    | ❌        | ✅            | ❌    | ❌    | ❌    |
+| **Coverage Pools**       | ❌        | ❌            | ❌    | ❌    | ✅    |
 
 ---
 
@@ -747,16 +738,16 @@ interface OracleError {
 
 ### Error Codes
 
-| Code | Description |
-|------|-------------|
-| `CHAINLINK_ERROR` | Chainlink price fetch failed |
+| Code                  | Description                      |
+| --------------------- | -------------------------------- |
+| `CHAINLINK_ERROR`     | Chainlink price fetch failed     |
 | `BAND_PROTOCOL_ERROR` | Band Protocol price fetch failed |
-| `UMA_ERROR` | UMA price fetch failed |
-| `PYTH_ERROR` | Pyth price fetch failed |
-| `API3_ERROR` | API3 price fetch failed |
-| `*_HISTORICAL_ERROR` | Historical data fetch failed |
-| `NETWORK_STATS_ERROR` | Network statistics fetch failed |
-| `VALIDATORS_ERROR` | Validator data fetch failed |
+| `UMA_ERROR`           | UMA price fetch failed           |
+| `PYTH_ERROR`          | Pyth price fetch failed          |
+| `API3_ERROR`          | API3 price fetch failed          |
+| `*_HISTORICAL_ERROR`  | Historical data fetch failed     |
+| `NETWORK_STATS_ERROR` | Network statistics fetch failed  |
+| `VALIDATORS_ERROR`    | Validator data fetch failed      |
 
 ---
 

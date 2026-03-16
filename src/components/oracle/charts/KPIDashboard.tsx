@@ -409,7 +409,14 @@ function DataQualityGauge({
           <div className="flex items-center gap-3">
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-16 h-16 transform -rotate-90">
-                <circle cx="32" cy="32" r={radius} stroke={baseColors.gray[200]} strokeWidth="5" fill="none" />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r={radius}
+                  stroke={baseColors.gray[200]}
+                  strokeWidth="5"
+                  fill="none"
+                />
                 <circle
                   cx="32"
                   cy="32"

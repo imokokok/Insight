@@ -425,10 +425,7 @@ export function PriceDeviationHistoryChart({
             return (
               <div key={provider} className="bg-gray-50 p-4 border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <div
-                className="w-3 h-3"
-                style={{ backgroundColor: oracleColors[provider] }}
-              />
+                  <div className="w-3 h-3" style={{ backgroundColor: oracleColors[provider] }} />
                   <span className="font-medium text-gray-900">{oracleNames[provider]}</span>
                 </div>
                 <div className="space-y-2">

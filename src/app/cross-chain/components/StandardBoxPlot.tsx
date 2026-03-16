@@ -57,35 +57,66 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const data = payload[0].payload;
 
   return (
-    <div className="bg-white border p-4 min-w-[200px]" style={{ borderColor: baseColors.gray[200] }}>
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b" style={{ borderColor: baseColors.gray[100] }}>
+    <div
+      className="bg-white border p-4 min-w-[200px]"
+      style={{ borderColor: baseColors.gray[200] }}
+    >
+      <div
+        className="flex items-center gap-2 mb-3 pb-2 border-b"
+        style={{ borderColor: baseColors.gray[100] }}
+      >
         <div className="w-3 h-3" style={{ backgroundColor: data.color }} />
-        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>{data.chainName}</span>
+        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
+          {data.chainName}
+        </span>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.max')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.max.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${data.max.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.q3')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.q3.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${data.q3.toFixed(4)}
+          </span>
         </div>
-        <div className="flex justify-between gap-4 border -mx-2 px-2 py-1" style={{ backgroundColor: semanticColors.info.light, borderColor: semanticColors.info.light }}>
-          <span className="font-medium" style={{ color: semanticColors.info.text }}>{t('crossChain.boxPlot.median')}:</span>
-          <span className="font-mono font-semibold" style={{ color: semanticColors.info.text }}>${data.median.toFixed(4)}</span>
+        <div
+          className="flex justify-between gap-4 border -mx-2 px-2 py-1"
+          style={{
+            backgroundColor: semanticColors.info.light,
+            borderColor: semanticColors.info.light,
+          }}
+        >
+          <span className="font-medium" style={{ color: semanticColors.info.text }}>
+            {t('crossChain.boxPlot.median')}:
+          </span>
+          <span className="font-mono font-semibold" style={{ color: semanticColors.info.text }}>
+            ${data.median.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.q1')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.q1.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${data.q1.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.min')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.min.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${data.min.toFixed(4)}
+          </span>
         </div>
-        <div className="flex justify-between gap-4 pt-2 border-t" style={{ borderColor: baseColors.gray[100] }}>
+        <div
+          className="flex justify-between gap-4 pt-2 border-t"
+          style={{ borderColor: baseColors.gray[100] }}
+        >
           <span style={{ color: baseColors.gray[500] }}>{t('crossChain.boxPlot.iqr')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${data.iqr.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${data.iqr.toFixed(4)}
+          </span>
         </div>
         {data.outliers.length > 0 && (
           <div className="pt-2 border-t" style={{ borderColor: baseColors.gray[100] }}>
@@ -93,9 +124,14 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
               <span className="font-medium" style={{ color: semanticColors.warning.dark }}>
                 {t('crossChain.boxPlot.outliers')}:
               </span>
-              <span className="font-mono" style={{ color: semanticColors.warning.dark }}>{data.outliers.length}</span>
+              <span className="font-mono" style={{ color: semanticColors.warning.dark }}>
+                {data.outliers.length}
+              </span>
             </div>
-            <div className="text-xs max-h-20 overflow-y-auto" style={{ color: baseColors.gray[500] }}>
+            <div
+              className="text-xs max-h-20 overflow-y-auto"
+              style={{ color: baseColors.gray[500] }}
+            >
               {data.outliers.slice(0, 3).map((v, i) => (
                 <span key={i} className="inline-block mr-2">
                   ${v.toFixed(2)}
@@ -291,20 +327,32 @@ export function StandardBoxPlot({ data, className = '' }: StandardBoxPlotProps) 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-4 border-2" style={{ borderColor: baseColors.gray[400], backgroundColor: baseColors.gray[100] }} />
+          <div
+            className="w-6 h-4 border-2"
+            style={{ borderColor: baseColors.gray[400], backgroundColor: baseColors.gray[100] }}
+          />
           <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.box')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-0.5" style={{ backgroundColor: baseColors.gray[400], height: '3px' }} />
-          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.median')}</span>
+          <div
+            className="w-6 h-0.5"
+            style={{ backgroundColor: baseColors.gray[400], height: '3px' }}
+          />
+          <span style={{ color: baseColors.gray[600] }}>
+            {t('crossChain.boxPlot.legend.median')}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-0.5 h-4" style={{ backgroundColor: baseColors.gray[400] }} />
-          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.whisker')}</span>
+          <span style={{ color: baseColors.gray[600] }}>
+            {t('crossChain.boxPlot.legend.whisker')}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2" style={{ backgroundColor: semanticColors.warning.main }} />
-          <span style={{ color: baseColors.gray[600] }}>{t('crossChain.boxPlot.legend.outlier')}</span>
+          <span style={{ color: baseColors.gray[600] }}>
+            {t('crossChain.boxPlot.legend.outlier')}
+          </span>
         </div>
       </div>
     </div>

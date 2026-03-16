@@ -47,17 +47,18 @@ npm install
 
 Create a `.env.local` file in the root directory with the following variables:
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `NEXT_PUBLIC_APP_URL` | Application base URL | No |
-| `NEXT_PUBLIC_WS_URL` | WebSocket server URL | No |
-| `NEXT_PUBLIC_ENABLE_REALTIME` | Enable real-time features (default: true) | No |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable Vercel Analytics | No |
-| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | No |
+| Variable                                    | Description                               | Required |
+| ------------------------------------------- | ----------------------------------------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                      | Yes      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Supabase anonymous key                    | Yes      |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL                      | No       |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL                      | No       |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features (default: true) | No       |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics                   | No       |
+| `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring             | No       |
 
 Example `.env.local`:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -175,6 +176,7 @@ The project uses ESLint with the following configuration:
 - `eslint-plugin-prettier`
 
 Run linting:
+
 ```bash
 npm run lint
 ```
@@ -182,6 +184,7 @@ npm run lint
 ### Prettier Formatting
 
 Configuration (`.prettierrc`):
+
 ```json
 {
   "semi": true,
@@ -194,6 +197,7 @@ Configuration (`.prettierrc`):
 ```
 
 Format your code before committing:
+
 ```bash
 npx prettier --write .
 ```
@@ -234,6 +238,7 @@ export function PriceChart({ symbol, data, isLoading = false }: PriceChartProps)
 ### Follow Existing Component Patterns
 
 Refer to existing components for patterns:
+
 - [PriceChart.tsx](src/components/oracle/PriceChart.tsx) for chart components
 - [AlertConfig.tsx](src/components/alerts/AlertConfig.tsx) for form components
 - [DashboardCard.tsx](src/components/oracle/DashboardCard.tsx) for card components
@@ -254,7 +259,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 <ErrorBoundary fallback={<ErrorFallback />}>
   <ChartComponent />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ### Add Loading States
@@ -278,6 +283,7 @@ return <Chart data={data} />;
 ### Jest Configuration
 
 The project uses Jest with the following setup:
+
 - Test environment: `jsdom`
 - Module mapper: `@/*` maps to `src/*`
 - Coverage threshold: 50% for all metrics
@@ -298,6 +304,7 @@ npm run test:coverage
 ### Test File Location
 
 Place test files in one of these locations:
+
 1. `__tests__` directories: `src/hooks/__tests__/useOracleData.test.ts`
 2. Alongside source files: `src/lib/utils/format.test.ts`
 
@@ -344,6 +351,7 @@ git checkout -b feature/amazing-feature upstream/main
 ```
 
 Branch naming conventions:
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `refactor/` - Code refactoring
@@ -363,6 +371,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -372,6 +381,7 @@ Types:
 - `chore`: Maintenance tasks
 
 Examples:
+
 ```
 feat(oracles): add support for new price feed
 fix(alerts): resolve duplicate alert notification issue
@@ -398,24 +408,30 @@ git push origin feature/amazing-feature
 
 ```markdown
 ## Description
+
 [Describe the changes made in this PR]
 
 ## Related Issues
+
 Closes #[issue number]
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
 
 ## How Has This Been Tested?
+
 [Describe the tests you ran]
 
 ## Screenshots (if applicable)
+
 [Add screenshots for UI changes]
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -428,6 +444,7 @@ Closes #[issue number]
 ### Link Related Issues
 
 Reference issues in your PR:
+
 - `Closes #123` - Will close the issue when merged
 - `Fixes #123` - Will close the issue when merged
 - `Related to #123` - Links but doesn't close
@@ -435,6 +452,7 @@ Reference issues in your PR:
 ### Add Screenshots for UI Changes
 
 Include before/after screenshots for any visual changes:
+
 - Use consistent browser window size
 - Capture both desktop and mobile views if responsive
 - Highlight the changed areas
@@ -442,6 +460,7 @@ Include before/after screenshots for any visual changes:
 ### Ensure Tests Pass
 
 Before submitting:
+
 ```bash
 # Run linting
 npm run lint
@@ -482,30 +501,37 @@ Before requesting review, ensure:
 
 ```markdown
 ## Description
+
 [Clear and concise description of the bug]
 
 ## Steps to Reproduce
+
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
 4. See error
 
 ## Expected Behavior
+
 [What you expected to happen]
 
 ## Actual Behavior
+
 [What actually happened]
 
 ## Screenshots
+
 [If applicable, add screenshots]
 
 ## Environment
+
 - OS: [e.g., macOS, Windows, Linux]
 - Browser: [e.g., Chrome, Firefox, Safari]
 - Node.js version: [e.g., 18.17.0]
 - npm version: [e.g., 9.6.7]
 
 ## Additional Context
+
 [Any other context about the problem]
 ```
 
@@ -513,18 +539,23 @@ Before requesting review, ensure:
 
 ```markdown
 ## Problem Statement
+
 [Clear description of the problem or limitation]
 
 ## Proposed Solution
+
 [Description of the proposed feature]
 
 ## Alternatives Considered
+
 [Description of alternative solutions]
 
 ## Additional Context
+
 [Any other context, screenshots, or examples]
 
 ## Would you be willing to submit a PR?
+
 [Yes/No]
 ```
 

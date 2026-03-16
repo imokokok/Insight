@@ -116,8 +116,12 @@ export default function ScheduledExportConfig({
                 className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="daily">{t('marketOverview.scheduledExport.frequency.daily')}</option>
-                <option value="weekly">{t('marketOverview.scheduledExport.frequency.weekly')}</option>
-                <option value="monthly">{t('marketOverview.scheduledExport.frequency.monthly')}</option>
+                <option value="weekly">
+                  {t('marketOverview.scheduledExport.frequency.weekly')}
+                </option>
+                <option value="monthly">
+                  {t('marketOverview.scheduledExport.frequency.monthly')}
+                </option>
               </select>
               <input
                 type="time"
@@ -236,9 +240,7 @@ export default function ScheduledExportConfig({
       {schedules.length === 0 && !showAddForm && (
         <div className="text-center py-6">
           <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">
-            {t('marketOverview.scheduledExport.noSchedules')}
-          </p>
+          <p className="text-gray-500 text-sm">{t('marketOverview.scheduledExport.noSchedules')}</p>
           <p className="text-xs text-gray-400 mt-1">
             {t('marketOverview.scheduledExport.createSchedule')}
           </p>

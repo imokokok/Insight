@@ -32,19 +32,12 @@ export default function ChainlinkPage() {
   const config = getOracleConfig(OracleProvider.CHAINLINK);
   const client = useMemo(() => new ChainlinkClient(), []);
 
-  const {
-    price,
-    historicalData,
-    networkStats,
-    isLoading,
-    isError,
-    errors,
-    refetchAll,
-  } = useChainlinkAllData({
-    symbol: config.symbol,
-    chain: config.defaultChain,
-    enabled: true,
-  });
+  const { price, historicalData, networkStats, isLoading, isError, errors, refetchAll } =
+    useChainlinkAllData({
+      symbol: config.symbol,
+      chain: config.defaultChain,
+      enabled: true,
+    });
 
   const { exportData } = useExport({
     data: {
@@ -202,25 +195,33 @@ export default function ChainlinkPage() {
                 <DashboardCard title={t('chainlink.quickStats')}>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chainlink.stats.volume24h')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.stats.volume24h')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chainlink.stats.marketCap')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.stats.marketCap')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('chainlink.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M LINK
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('chainlink.stats.stakingApr')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('chainlink.stats.stakingApr')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">4.32%</span>
                     </div>
                   </div>

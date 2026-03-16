@@ -192,12 +192,19 @@ export function MovingAverageChart({
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-      <div className="bg-white p-4 border min-w-[220px]" style={{ borderColor: baseColors.gray[200] }}>
-        <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
+      <div
+        className="bg-white p-4 border min-w-[220px]"
+        style={{ borderColor: baseColors.gray[200] }}
+      >
+        <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
+          {label}
+        </p>
         <div className="space-y-1.5">
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex justify-between items-center">
-              <span className="text-xs" style={{ color: baseColors.gray[600] }}>{entry.name}</span>
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+                {entry.name}
+              </span>
               <span className="text-sm font-medium font-mono" style={{ color: entry.color }}>
                 {typeof entry.value === 'number' ? `$${entry.value.toFixed(2)}` : entry.value}
               </span>
@@ -222,7 +229,9 @@ export function MovingAverageChart({
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm" style={{ color: baseColors.gray[600] }}>预言机:</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                预言机:
+              </span>
               <select
                 value={selectedOracle}
                 onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
@@ -238,7 +247,9 @@ export function MovingAverageChart({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm" style={{ color: baseColors.gray[600] }}>均线:</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                均线:
+              </span>
               <div className="flex gap-1">
                 {[5, 10, 20].map((window) => (
                   <button
@@ -249,11 +260,13 @@ export function MovingAverageChart({
                       );
                     }}
                     className={`px-2 py-1 text-xs rounded transition-colors ${
-                      selectedMA.includes(window)
-                        ? 'bg-blue-600 text-white'
-                        : ''
+                      selectedMA.includes(window) ? 'bg-blue-600 text-white' : ''
                     }`}
-                    style={!selectedMA.includes(window) ? { backgroundColor: baseColors.gray[100], color: baseColors.gray[600] } : {}}
+                    style={
+                      !selectedMA.includes(window)
+                        ? { backgroundColor: baseColors.gray[100], color: baseColors.gray[600] }
+                        : {}
+                    }
                   >
                     MA{window}
                   </button>
@@ -268,7 +281,9 @@ export function MovingAverageChart({
                 onChange={(e) => setShowEMA(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm" style={{ color: baseColors.gray[600] }}>显示EMA</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                显示EMA
+              </span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -278,27 +293,57 @@ export function MovingAverageChart({
                 onChange={(e) => setShowBollingerBands(e.target.checked)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm" style={{ color: baseColors.gray[600] }}>布林带</span>
+              <span className="text-sm" style={{ color: baseColors.gray[600] }}>
+                布林带
+              </span>
             </label>
           </div>
 
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>当前价格</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.info.DEFAULT }}>${stats.currentPrice.toFixed(2)}</p>
+              <div
+                className="border p-4"
+                style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
+              >
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+                  当前价格
+                </p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.info.DEFAULT }}>
+                  ${stats.currentPrice.toFixed(2)}
+                </p>
               </div>
-              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA5</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.warning.DEFAULT }}>${stats.sma5.toFixed(2)}</p>
+              <div
+                className="border p-4"
+                style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
+              >
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+                  MA5
+                </p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.warning.DEFAULT }}>
+                  ${stats.sma5.toFixed(2)}
+                </p>
               </div>
-              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA10</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.success.DEFAULT }}>${stats.sma10.toFixed(2)}</p>
+              <div
+                className="border p-4"
+                style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
+              >
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+                  MA10
+                </p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.success.DEFAULT }}>
+                  ${stats.sma10.toFixed(2)}
+                </p>
               </div>
-              <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA20</p>
-                <p className="text-xl font-bold" style={{ color: baseColors.primary[600] }}>${stats.sma20.toFixed(2)}</p>
+              <div
+                className="border p-4"
+                style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
+              >
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+                  MA20
+                </p>
+                <p className="text-xl font-bold" style={{ color: baseColors.primary[600] }}>
+                  ${stats.sma20.toFixed(2)}
+                </p>
               </div>
             </div>
           )}
@@ -309,9 +354,15 @@ export function MovingAverageChart({
                 className="px-4 py-2 text-sm font-medium"
                 style={
                   stats.trend === 'bullish'
-                    ? { backgroundColor: semanticColors.success.light, color: semanticColors.success.DEFAULT }
+                    ? {
+                        backgroundColor: semanticColors.success.light,
+                        color: semanticColors.success.DEFAULT,
+                      }
                     : stats.trend === 'bearish'
-                      ? { backgroundColor: semanticColors.danger.light, color: semanticColors.danger.DEFAULT }
+                      ? {
+                          backgroundColor: semanticColors.danger.light,
+                          color: semanticColors.danger.DEFAULT,
+                        }
                       : { backgroundColor: baseColors.gray[100], color: baseColors.gray[700] }
                 }
               >
@@ -457,7 +508,9 @@ export function MovingAverageChart({
           )}
 
           <div className="p-4" style={{ backgroundColor: semanticColors.info.light }}>
-            <h4 className="text-sm font-medium mb-2" style={{ color: semanticColors.info.DEFAULT }}>指标说明</h4>
+            <h4 className="text-sm font-medium mb-2" style={{ color: semanticColors.info.DEFAULT }}>
+              指标说明
+            </h4>
             <ul className="text-sm space-y-1" style={{ color: semanticColors.info.DEFAULT }}>
               <li>
                 • <strong>SMA (简单移动平均线)</strong>: n周期内价格的算术平均值，用于平滑价格波动

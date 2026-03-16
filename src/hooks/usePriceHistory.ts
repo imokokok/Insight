@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 export interface PriceHistoryPoint {
   timestamp: number;
@@ -202,22 +202,36 @@ export function usePriceHistory(options: UsePriceHistoryOptions = {}): UsePriceH
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
+  const loadTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const loadData = useCallback(() => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      setTimeout(() => {
+    if (loadTimerRef.current) {
+      clearTimeout(loadTimerRef.current);
+    }
+
+    loadTimerRef.current = setTimeout(() => {
+      try {
         const data = generatePriceHistory(maxDataPoints);
         setPriceHistory(data);
         setLastUpdated(Date.now());
         setIsLoading(false);
-      }, 300);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load price history'));
-      setIsLoading(false);
-    }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load price history'));
+        setIsLoading(false);
+      }
+    }, 300);
   }, [maxDataPoints]);
+
+  useEffect(() => {
+    return () => {
+      if (loadTimerRef.current) {
+        clearTimeout(loadTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!autoRefresh) return;

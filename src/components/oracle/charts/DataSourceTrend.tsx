@@ -40,18 +40,31 @@ const mockTrendData: TrendDataPoint[] = [
 const CustomTooltip = ({ active, payload, label }: TooltipProps<TrendDataPoint>) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3" style={{ backgroundColor: 'white', border: `1px solid ${baseColors.gray[200]}` }}>
-        <p className="text-sm font-medium mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
+      <div
+        className="p-3"
+        style={{ backgroundColor: 'white', border: `1px solid ${baseColors.gray[200]}` }}
+      >
+        <p className="text-sm font-medium mb-2" style={{ color: baseColors.gray[900] }}>
+          {label}
+        </p>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.purple }} />
-            <span className="text-xs" style={{ color: baseColors.gray[600] }}>新增数据源:</span>
-            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>{payload[0].value}</span>
+            <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+              新增数据源:
+            </span>
+            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>
+              {payload[0].value}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.primary }} />
-            <span className="text-xs" style={{ color: baseColors.gray[600] }}>累计数据源:</span>
-            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>{payload[1].value}</span>
+            <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+              累计数据源:
+            </span>
+            <span className="text-xs font-semibold" style={{ color: baseColors.gray[900] }}>
+              {payload[1].value}
+            </span>
           </div>
         </div>
       </div>
@@ -83,23 +96,57 @@ export function DataSourceTrend() {
     <DashboardCard title="数据源增长趋势">
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
-          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
-            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>本年新增</p>
-            <p className="text-xl font-bold" style={{ color: chartColors.recharts.purpleDark }}>{stats.totalNew}</p>
-            <p className="text-xs mt-0.5" style={{ color: chartColors.recharts.purple }}>数据源</p>
+          <div
+            className="p-3"
+            style={{
+              backgroundColor: baseColors.gray[100],
+              border: `1px solid ${baseColors.gray[200]}`,
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+              本年新增
+            </p>
+            <p className="text-xl font-bold" style={{ color: chartColors.recharts.purpleDark }}>
+              {stats.totalNew}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: chartColors.recharts.purple }}>
+              数据源
+            </p>
           </div>
-          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
-            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>月均新增</p>
-            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>{stats.avgMonthly}</p>
-            <p className="text-xs mt-0.5" style={{ color: baseColors.primary[600] }}>数据源</p>
+          <div
+            className="p-3"
+            style={{
+              backgroundColor: baseColors.gray[100],
+              border: `1px solid ${baseColors.gray[200]}`,
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+              月均新增
+            </p>
+            <p className="text-xl font-bold" style={{ color: baseColors.primary[700] }}>
+              {stats.avgMonthly}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: baseColors.primary[600] }}>
+              数据源
+            </p>
           </div>
-          <div className="p-3" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
-            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>环比增长</p>
+          <div
+            className="p-3"
+            style={{
+              backgroundColor: baseColors.gray[100],
+              border: `1px solid ${baseColors.gray[200]}`,
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
+              环比增长
+            </p>
             <p className="text-xl font-bold" style={{ color: semanticColors.success.dark }}>
               {stats.growth >= 0 ? '+' : ''}
               {stats.growth}%
             </p>
-            <p className="text-xs mt-0.5" style={{ color: semanticColors.success.DEFAULT }}>较上月</p>
+            <p className="text-xs mt-0.5" style={{ color: semanticColors.success.DEFAULT }}>
+              较上月
+            </p>
           </div>
         </div>
 
@@ -144,7 +191,9 @@ export function DataSourceTrend() {
                 height={36}
                 iconType="circle"
                 formatter={(value: string) => (
-                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>{value}</span>
+                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+                    {value}
+                  </span>
                 )}
               />
               <Area
@@ -171,20 +220,31 @@ export function DataSourceTrend() {
           </ResponsiveContainer>
         </div>
 
-        <div className="flex items-center justify-between pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+        <div
+          className="flex items-center justify-between pt-2"
+          style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}
+        >
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.purple }} />
-              <span className="text-xs" style={{ color: baseColors.gray[600] }}>新增数据源</span>
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+                新增数据源
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3" style={{ backgroundColor: chartColors.recharts.primary }} />
-              <span className="text-xs" style={{ color: baseColors.gray[600] }}>累计数据源</span>
+              <span className="text-xs" style={{ color: baseColors.gray[600] }}>
+                累计数据源
+              </span>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs" style={{ color: baseColors.gray[500] }}>当前总计</p>
-            <p className="text-sm font-bold" style={{ color: baseColors.gray[900] }}>{stats.currentTotal} 数据源</p>
+            <p className="text-xs" style={{ color: baseColors.gray[500] }}>
+              当前总计
+            </p>
+            <p className="text-sm font-bold" style={{ color: baseColors.gray[900] }}>
+              {stats.currentTotal} 数据源
+            </p>
           </div>
         </div>
       </div>

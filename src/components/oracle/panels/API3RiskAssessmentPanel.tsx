@@ -89,7 +89,12 @@ const api3SecurityEvents: RiskEvent[] = [
 ];
 
 const api3MitigationMeasures: MitigationMeasure[] = [
-  { name: 'First-Party Oracle Architecture', type: 'technical', status: 'active', effectiveness: 95 },
+  {
+    name: 'First-Party Oracle Architecture',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 95,
+  },
   { name: 'Coverage Pool Staking', type: 'technical', status: 'active', effectiveness: 90 },
   { name: 'DAO Governance', type: 'governance', status: 'active', effectiveness: 85 },
   { name: 'Service Coverage', type: 'operational', status: 'active', effectiveness: 88 },
@@ -306,7 +311,12 @@ export function API3RiskAssessmentPanel({
       <div className="bg-gray-100 border border-gray-200 p-4">
         <div className="flex items-start gap-3">
           <div className="p-2 bg-blue-100 flex-shrink-0">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

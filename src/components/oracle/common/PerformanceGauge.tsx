@@ -55,7 +55,10 @@ const LEVEL_CONFIGS: Record<GaugeLevel, Omit<GaugeConfig, 'label'>> = {
   },
 };
 
-function getLevelLabel(level: GaugeLevel, t: (key: string, params?: Record<string, string | number>) => string): string {
+function getLevelLabel(
+  level: GaugeLevel,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   switch (level) {
     case 'excellent':
       return t('oracleCommon.performanceGauge.levels.excellent');

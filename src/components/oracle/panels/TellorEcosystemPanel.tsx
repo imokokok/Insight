@@ -48,9 +48,7 @@ export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
 
         <DashboardCard title={t('tellor.ecosystem.totalTvl')}>
           <div className="py-2">
-            <p className="text-3xl font-bold text-cyan-600">
-              ${(data.totalTvl / 1e9).toFixed(2)}B
-            </p>
+            <p className="text-3xl font-bold text-cyan-600">${(data.totalTvl / 1e9).toFixed(2)}B</p>
             <p className="text-xs text-gray-500 mt-1">{t('tellor.ecosystem.tvl')}</p>
           </div>
         </DashboardCard>
@@ -88,7 +86,7 @@ export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
                     <div
                       className="bg-cyan-500 h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${(category.count / Math.max(...data.protocolsByCategory.map(c => c.count))) * 100}%`,
+                        width: `${(category.count / Math.max(...data.protocolsByCategory.map((c) => c.count))) * 100}%`,
                       }}
                     />
                   </div>
@@ -108,18 +106,21 @@ export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
           <div className="py-4">
             <div className="space-y-3">
               {data.topProtocols.map((protocol, index) => (
-                <div key={protocol.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={protocol.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-400 w-6">#{index + 1}</span>
                     <div>
                       <p className="font-medium text-gray-900">{protocol.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {protocol.dataFeeds.join(', ')}
-                      </p>
+                      <p className="text-xs text-gray-500">{protocol.dataFeeds.join(', ')}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${getCategoryColor(protocol.category)}`}>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs rounded-full ${getCategoryColor(protocol.category)}`}
+                    >
                       {getCategoryLabel(protocol.category)}
                     </span>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
@@ -138,14 +139,12 @@ export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
         <div className="py-4">
           <div className="h-48 flex items-end gap-2">
             {data.monthlyGrowth.map((point, index) => {
-              const maxTvl = Math.max(...data.monthlyGrowth.map(m => m.totalTvl));
+              const maxTvl = Math.max(...data.monthlyGrowth.map((m) => m.totalTvl));
               const height = maxTvl > 0 ? (point.totalTvl / maxTvl) * 100 : 0;
               return (
-                <div
-                  key={index}
-                  className="flex-1 flex flex-col items-center gap-1"
-                >
-                  <div className="w-full bg-cyan-500/20 hover:bg-cyan-500/40 rounded-t transition-all duration-200 relative group"
+                <div key={index} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className="w-full bg-cyan-500/20 hover:bg-cyan-500/40 rounded-t transition-all duration-200 relative group"
                     style={{ height: `${height}%` }}
                   >
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">

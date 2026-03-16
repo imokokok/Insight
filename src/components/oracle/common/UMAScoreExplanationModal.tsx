@@ -13,6 +13,7 @@ import {
   ReferenceLine,
   Area,
 } from 'recharts';
+import type { TooltipPayloadEntry } from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { UMAClient } from '@/lib/oracles/uma';
@@ -39,6 +40,12 @@ interface HistoryDataPoint {
   validatorActivity: number;
 }
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
 interface UMAScoreExplanationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -61,8 +68,14 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
       'S_network = (Uptime/100) × 50 + (ActiveValidators/1000) × 25 + (DisputeSuccessRate/100) × 25',
     variables: [
       { name: 'Uptime', descriptionKey: 'uma.scoreExplanation.variables.uptime' },
-      { name: 'ActiveValidators', descriptionKey: 'uma.scoreExplanation.variables.activeValidators' },
-      { name: 'DisputeSuccessRate', descriptionKey: 'uma.scoreExplanation.variables.disputeSuccessRate' },
+      {
+        name: 'ActiveValidators',
+        descriptionKey: 'uma.scoreExplanation.variables.activeValidators',
+      },
+      {
+        name: 'DisputeSuccessRate',
+        descriptionKey: 'uma.scoreExplanation.variables.disputeSuccessRate',
+      },
     ],
     color: semanticColors.success.DEFAULT,
   },
@@ -73,7 +86,10 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
     descriptionKey: 'uma.scoreExplanation.dataIntegrityDesc',
     formula: 'S_integrity = 85 + Random(0, 10) × DataSourceDiversityFactor',
     variables: [
-      { name: 'DataSourceDiversityFactor', descriptionKey: 'uma.scoreExplanation.variables.dataSourceDiversity' },
+      {
+        name: 'DataSourceDiversityFactor',
+        descriptionKey: 'uma.scoreExplanation.variables.dataSourceDiversity',
+      },
       { name: 'Random(0, 10)', descriptionKey: 'uma.scoreExplanation.variables.randomFactor' },
     ],
     color: chartColors.recharts.primary,
@@ -97,7 +113,10 @@ const SCORE_DIMENSIONS: ScoreDimension[] = [
     descriptionKey: 'uma.scoreExplanation.validatorActivityDesc',
     formula: 'S_activity = min(100, (ActiveValidators/850) × 70 + (TotalStaked/30M) × 30)',
     variables: [
-      { name: 'ActiveValidators', descriptionKey: 'uma.scoreExplanation.variables.activeValidators' },
+      {
+        name: 'ActiveValidators',
+        descriptionKey: 'uma.scoreExplanation.variables.activeValidators',
+      },
       { name: '850', descriptionKey: 'uma.scoreExplanation.variables.targetActiveValidators' },
       { name: 'TotalStaked', descriptionKey: 'uma.scoreExplanation.variables.totalStaked' },
       { name: '30M', descriptionKey: 'uma.scoreExplanation.variables.targetTotalStaked' },
@@ -126,18 +145,37 @@ function WeightBar({ weight, color }: { weight: number; color: string }) {
 
 function FormulaBlock({ formula }: { formula: string }) {
   return (
-    <div className="rounded-lg p-4 overflow-x-auto" style={{ backgroundColor: baseColors.gray[900] }}>
-      <code className="text-sm font-mono whitespace-pre-wrap" style={{ color: semanticColors.success.DEFAULT }}>{formula}</code>
+    <div
+      className="rounded-lg p-4 overflow-x-auto"
+      style={{ backgroundColor: baseColors.gray[900] }}
+    >
+      <code
+        className="text-sm font-mono whitespace-pre-wrap"
+        style={{ color: semanticColors.success.DEFAULT }}
+      >
+        {formula}
+      </code>
     </div>
   );
 }
 
-function VariableList({ variables, t }: { variables: { name: string; descriptionKey: string }[]; t: (key: string) => string }) {
+function VariableList({
+  variables,
+  t,
+}: {
+  variables: { name: string; descriptionKey: string }[];
+  t: (key: string) => string;
+}) {
   return (
     <div className="space-y-2">
       {variables.map((v) => (
         <div key={v.name} className="flex items-start gap-2 text-sm">
-          <span className="font-mono font-medium min-w-[120px]" style={{ color: baseColors.primary[600] }}>{v.name}</span>
+          <span
+            className="font-mono font-medium min-w-[120px]"
+            style={{ color: baseColors.primary[600] }}
+          >
+            {v.name}
+          </span>
           <span className="text-gray-600">{t(v.descriptionKey)}</span>
         </div>
       ))}
@@ -202,27 +240,36 @@ export function UMAScoreExplanationModal({
     }
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: CustomTooltipProps) => {
     if (!active || !payload || payload.length === 0) return null;
 
     return (
-    <div className="p-4 rounded-lg border min-w-[200px] shadow-lg" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
-      <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
-      <div className="space-y-1">
-        {payload.map((entry: any) => (
-          <div key={entry.dataKey} className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span style={{ color: baseColors.gray[600] }}>{entry.name}</span>
-            </span>
-            <span className="font-mono font-medium" style={{ color: entry.color }}>
-              {entry.value?.toFixed(1)}
-            </span>
-          </div>
-        ))}
+      <div
+        className="p-4 rounded-lg border min-w-[200px] shadow-lg"
+        style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
+      >
+        <p className="text-sm font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
+          {label}
+        </p>
+        <div className="space-y-1">
+          {payload.map((entry: TooltipPayloadEntry) => (
+            <div key={String(entry.dataKey)} className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span style={{ color: baseColors.gray[600] }}>{entry.name}</span>
+              </span>
+              <span className="font-mono font-medium" style={{ color: entry.color }}>
+                {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
   };
 
   if (!isOpen) return null;
@@ -264,7 +311,7 @@ export function UMAScoreExplanationModal({
                 ].map((tab) => (
                   <button
                     key={tab.key}
-                    onClick={() => setActiveTab(tab.key as any)}
+                    onClick={() => setActiveTab(tab.key as 'overview' | 'dimensions' | 'history')}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === tab.key
                         ? 'border-blue-600 text-blue-600'
@@ -294,7 +341,10 @@ export function UMAScoreExplanationModal({
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: dim.color }} />
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: dim.color }}
+                            />
                             <span className="font-medium text-gray-900">{t(dim.nameKey)}</span>
                           </div>
                           <span className="text-sm font-mono font-medium text-gray-600">
@@ -344,7 +394,10 @@ export function UMAScoreExplanationModal({
                       className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: dim.color }} />
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: dim.color }}
+                        />
                         <h4 className="text-lg font-semibold text-gray-900">{t(dim.nameKey)}</h4>
                         <span className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
                           权重 {(dim.weight * 100).toFixed(0)}%
@@ -437,7 +490,10 @@ export function UMAScoreExplanationModal({
                                 domain={[60, 100]}
                                 tickFormatter={(value) => `${value}`}
                               />
-                              <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+                              <Tooltip
+                                content={<CustomTooltip />}
+                                cursor={{ fill: animationColors.fade.cursor }}
+                              />
                               <Legend />
                               <ReferenceLine
                                 y={90}
@@ -491,9 +547,15 @@ export function UMAScoreExplanationModal({
                           const trend = last - first;
 
                           return (
-                            <div key={dim.key} className="bg-white border border-gray-200 rounded-lg p-4">
+                            <div
+                              key={dim.key}
+                              className="bg-white border border-gray-200 rounded-lg p-4"
+                            >
                               <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: dim.color }} />
+                                <div
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: dim.color }}
+                                />
                                 <span className="text-xs text-gray-500">{t(dim.nameKey)}</span>
                               </div>
                               <p className="text-lg font-bold text-gray-900">{avg.toFixed(1)}</p>

@@ -119,17 +119,43 @@ type TimeScale = 'short' | 'mid' | 'long';
 
 type VolatilityLevelKey = 'extremelyLow' | 'low' | 'medium' | 'high' | 'extremelyHigh';
 
-function getVolatilityLevel(cv: number, t: (key: string) => string): {
+function getVolatilityLevel(
+  cv: number,
+  t: (key: string) => string
+): {
   levelKey: VolatilityLevelKey;
   color: string;
   label: string;
 } {
   if (cv < 0.5)
-    return { levelKey: 'extremelyLow', color: semanticColors.success.DEFAULT, label: t('priceVolatility.level.extremelyLow') };
-  if (cv < 1.0) return { levelKey: 'low', color: chartColors.sequence[0], label: t('priceVolatility.level.low') };
-  if (cv < 2.0) return { levelKey: 'medium', color: semanticColors.warning.DEFAULT, label: t('priceVolatility.level.medium') };
-  if (cv < 5.0) return { levelKey: 'high', color: semanticColors.danger.DEFAULT, label: t('priceVolatility.level.high') };
-  return { levelKey: 'extremelyHigh', color: semanticColors.danger.dark, label: t('priceVolatility.level.extremelyHigh') };
+    return {
+      levelKey: 'extremelyLow',
+      color: semanticColors.success.DEFAULT,
+      label: t('priceVolatility.level.extremelyLow'),
+    };
+  if (cv < 1.0)
+    return {
+      levelKey: 'low',
+      color: chartColors.sequence[0],
+      label: t('priceVolatility.level.low'),
+    };
+  if (cv < 2.0)
+    return {
+      levelKey: 'medium',
+      color: semanticColors.warning.DEFAULT,
+      label: t('priceVolatility.level.medium'),
+    };
+  if (cv < 5.0)
+    return {
+      levelKey: 'high',
+      color: semanticColors.danger.DEFAULT,
+      label: t('priceVolatility.level.high'),
+    };
+  return {
+    levelKey: 'extremelyHigh',
+    color: semanticColors.danger.dark,
+    label: t('priceVolatility.level.extremelyHigh'),
+  };
 }
 
 function calculateStandardDeviation(prices: number[]): number {
@@ -515,7 +541,9 @@ export function PriceVolatilityChart({
               ))}
             </div>
             <div className="text-xs text-gray-500">
-              {t('priceVolatility.windowSize', { window: timeScaleConfig[selectedTimeScale].window })}
+              {t('priceVolatility.windowSize', {
+                window: timeScaleConfig[selectedTimeScale].window,
+              })}
             </div>
           </div>
 
@@ -544,7 +572,9 @@ export function PriceVolatilityChart({
 
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {t('priceVolatility.volatilityComparison', { label: timeScaleConfig[selectedTimeScale].label })}
+              {t('priceVolatility.volatilityComparison', {
+                label: timeScaleConfig[selectedTimeScale].label,
+              })}
             </h4>
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -580,7 +610,9 @@ export function PriceVolatilityChart({
 
           {showTrend && trendData.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceVolatility.rollingVolatilityTrend')}</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                {t('priceVolatility.rollingVolatilityTrend')}
+              </h4>
               <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart
@@ -622,7 +654,9 @@ export function PriceVolatilityChart({
 
           {decompositionData.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('priceVolatility.volatilityDecomposition')}</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                {t('priceVolatility.volatilityDecomposition')}
+              </h4>
               <div style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
@@ -676,7 +710,9 @@ export function PriceVolatilityChart({
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center p-3 rounded bg-blue-50">
-                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.shortTermProportion')}</p>
+                  <p className="text-xs text-gray-600 mb-1">
+                    {t('priceVolatility.shortTermProportion')}
+                  </p>
                   <p className="text-lg font-bold text-blue-600">
                     {decompositionData.length > 0
                       ? (
@@ -688,7 +724,9 @@ export function PriceVolatilityChart({
                   </p>
                 </div>
                 <div className="text-center p-3 rounded bg-green-50">
-                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.midTermProportion')}</p>
+                  <p className="text-xs text-gray-600 mb-1">
+                    {t('priceVolatility.midTermProportion')}
+                  </p>
                   <p className="text-lg font-bold text-green-600">
                     {decompositionData.length > 0
                       ? (
@@ -700,7 +738,9 @@ export function PriceVolatilityChart({
                   </p>
                 </div>
                 <div className="text-center p-3 rounded bg-purple-50">
-                  <p className="text-xs text-gray-600 mb-1">{t('priceVolatility.longTermProportion')}</p>
+                  <p className="text-xs text-gray-600 mb-1">
+                    {t('priceVolatility.longTermProportion')}
+                  </p>
                   <p className="text-lg font-bold text-purple-600">
                     {decompositionData.length > 0
                       ? (
@@ -786,13 +826,17 @@ export function PriceVolatilityChart({
           </div>
 
           <div className="bg-blue-50 rounded p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">{t('priceVolatility.explanation.title')}</h4>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">
+              {t('priceVolatility.explanation.title')}
+            </h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>
-                • <strong>{t('priceVolatility.tooltip.stdDev')}</strong>: {t('priceVolatility.explanation.stdDevDesc')}
+                • <strong>{t('priceVolatility.tooltip.stdDev')}</strong>:{' '}
+                {t('priceVolatility.explanation.stdDevDesc')}
               </li>
               <li>
-                • <strong>{t('priceVolatility.tooltip.cv')}</strong>: {t('priceVolatility.explanation.cvDesc')}
+                • <strong>{t('priceVolatility.tooltip.cv')}</strong>:{' '}
+                {t('priceVolatility.explanation.cvDesc')}
               </li>
               <li>• {t('priceVolatility.explanation.cvInterpretation')}</li>
               <li>• {t('priceVolatility.explanation.rollingWindowDesc')}</li>

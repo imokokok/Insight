@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -36,10 +37,11 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
     const fetchValidators = async () => {
       try {
         const validatorData = await client.getValidators(50);
-        
-        const activeCount = validatorData.filter(v => !v.jailed).length;
-        const jailedCount = validatorData.filter(v => v.jailed).length;
-        const avgComm = validatorData.reduce((sum, v) => sum + v.commissionRate, 0) / validatorData.length;
+
+        const activeCount = validatorData.filter((v) => !v.jailed).length;
+        const jailedCount = validatorData.filter((v) => v.jailed).length;
+        const avgComm =
+          validatorData.reduce((sum, v) => sum + v.commissionRate, 0) / validatorData.length;
         const avgUp = validatorData.reduce((sum, v) => sum + v.uptime, 0) / validatorData.length;
 
         const mockStats: ValidatorStats = {
@@ -62,7 +64,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
         setStats(mockStats);
         setRegions(regionData);
       } catch (error) {
-        console.error('Failed to fetch validators:', error);
+        logger.error('Failed to fetch validators:', error instanceof Error ? error : new Error(String(error)));
       } finally {
         setLoading(false);
       }
@@ -131,23 +133,15 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.validators.avgCommission')}
           </p>
-          <p className="text-2xl font-bold text-purple-600">
-            {stats.avgCommission.toFixed(2)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.validators.networkAverage')}
-          </p>
+          <p className="text-2xl font-bold text-purple-600">{stats.avgCommission.toFixed(2)}%</p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.validators.networkAverage')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
             {t('band.validators.avgUptime')}
           </p>
-          <p className="text-2xl font-bold text-green-600">
-            {stats.avgUptime.toFixed(2)}%
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.validators.last30Days')}
-          </p>
+          <p className="text-2xl font-bold text-green-600">{stats.avgUptime.toFixed(2)}%</p>
+          <p className="text-xs text-gray-500 mt-1">{t('band.validators.last30Days')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
@@ -203,7 +197,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
               <span className="text-sm text-gray-500">{t('band.validators.sortBy')}:</span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as 'rank' | 'stake' | 'uptime' | 'commission')}
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="rank">{t('band.validators.rank')}</option>
@@ -269,7 +263,11 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                         {formatNumber(validator.tokens)} BAND
                       </p>
                       <p className="text-xs text-gray-500">
-                        {((validator.tokens / validators.reduce((sum, v) => sum + v.tokens, 0)) * 100).toFixed(2)}%
+                        {(
+                          (validator.tokens / validators.reduce((sum, v) => sum + v.tokens, 0)) *
+                          100
+                        ).toFixed(2)}
+                        %
                       </p>
                     </td>
                     <td className="text-center py-3 px-4">
@@ -283,8 +281,8 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                           validator.uptime >= 99
                             ? 'text-green-600'
                             : validator.uptime >= 95
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
                         }`}
                       >
                         {validator.uptime.toFixed(2)}%
@@ -298,7 +296,9 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                             : 'bg-green-100 text-green-700'
                         }`}
                       >
-                        {validator.jailed ? t('band.validators.jailed') : t('band.validators.active')}
+                        {validator.jailed
+                          ? t('band.validators.jailed')
+                          : t('band.validators.active')}
                       </span>
                     </td>
                   </tr>
@@ -319,22 +319,14 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-medium text-purple-900 mb-2">
-                {t('band.validators.minStake')}
-              </h4>
+              <h4 className="font-medium text-purple-900 mb-2">{t('band.validators.minStake')}</h4>
               <p className="text-2xl font-bold text-purple-700">1 BAND</p>
-              <p className="text-sm text-purple-600 mt-1">
-                {t('band.validators.minStakeDesc')}
-              </p>
+              <p className="text-sm text-purple-600 mt-1">{t('band.validators.minStakeDesc')}</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">
-                {t('band.validators.slashing')}
-              </h4>
+              <h4 className="font-medium text-blue-900 mb-2">{t('band.validators.slashing')}</h4>
               <p className="text-2xl font-bold text-blue-700">5%</p>
-              <p className="text-sm text-blue-600 mt-1">
-                {t('band.validators.slashingDesc')}
-              </p>
+              <p className="text-sm text-blue-600 mt-1">{t('band.validators.slashingDesc')}</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">

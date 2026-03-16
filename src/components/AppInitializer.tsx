@@ -17,7 +17,7 @@ export function AppInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setUser(user);
-    
+
     if (!user) {
       useRealtimeStore.getState().reset();
     }

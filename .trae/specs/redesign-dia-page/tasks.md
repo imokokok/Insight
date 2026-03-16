@@ -1,6 +1,7 @@
 # Tasks - DIA页面改造
 
 ## Phase 1: 数据层扩展
+
 - [x] Task 1: 扩展DIAClient数据接口
   - [x] SubTask 1.1: 在dia.ts中添加NFT数据类型定义
   - [x] SubTask 1.2: 在dia.ts中添加getNFTData方法
@@ -16,6 +17,7 @@
   - [x] SubTask 2.5: 更新useDIAAllData整合新hooks
 
 ## Phase 2: Panel组件开发
+
 - [x] Task 3: 创建DIANFTDataPanel组件
   - [x] SubTask 3.1: 创建基础组件结构和props定义
   - [x] SubTask 3.2: 实现NFT集合列表展示
@@ -46,6 +48,7 @@
   - [x] SubTask 6.5: 添加国际化支持
 
 ## Phase 3: 主页面重构
+
 - [x] Task 7: 重构DIA主页面
   - [x] SubTask 7.1: 更新Tab结构（7个tabs）
   - [x] SubTask 7.2: 集成新的Panel组件
@@ -54,6 +57,7 @@
   - [x] SubTask 7.5: 测试所有tab切换功能
 
 ## Phase 4: 配置与国际化
+
 - [x] Task 8: 更新配置文件
   - [x] SubTask 8.1: 更新oracles.tsx中的DIA tabs配置
   - [x] SubTask 8.2: 验证themeColor和icon配置
@@ -67,6 +71,7 @@
   - [x] SubTask 9.6: 同步更新en.json
 
 ## Phase 5: 清理与优化
+
 - [x] Task 10: 清理旧组件
   - [x] SubTask 10.1: 标记旧data-sources panel为废弃
   - [x] SubTask 10.2: 标记旧cross-chain panel为废弃
@@ -78,6 +83,7 @@
   - [x] SubTask 11.3: 优化数据缓存策略
 
 ## Phase 6: 验证与测试
+
 - [x] Task 12: 功能验证
   - [x] SubTask 12.1: 验证所有7个tab正常显示
   - [x] SubTask 12.2: 验证NFT数据展示正确
@@ -91,6 +97,7 @@
   - [x] SubTask 13.3: 验证切换语言时内容正确更新
 
 # Task Dependencies
+
 - Task 2 依赖 Task 1
 - Task 3,4,5,6 依赖 Task 2
 - Task 7 依赖 Task 3,4,5,6

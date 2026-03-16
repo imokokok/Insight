@@ -6,7 +6,11 @@ import { chainColors, SparklineProps, ProgressBarProps, JumpIndicatorProps } fro
 
 export function Sparkline({ data, color, width = 80, height = 20 }: SparklineProps) {
   if (!data || data.length < 2) {
-    return <span className="text-gray-400 text-xs" style={{ color: baseColors.gray[400] }}>-</span>;
+    return (
+      <span className="text-gray-400 text-xs" style={{ color: baseColors.gray[400] }}>
+        -
+      </span>
+    );
   }
 
   const recentData = data.slice(-20);
@@ -46,7 +50,10 @@ export function ProgressBar({
   const percentage = Math.min((value / max) * 100, 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 overflow-hidden min-w-[60px]" style={{ backgroundColor: baseColors.gray[200] }}>
+      <div
+        className="flex-1 h-2 overflow-hidden min-w-[60px]"
+        style={{ backgroundColor: baseColors.gray[200] }}
+      >
         <div
           className="h-full transition-all duration-300"
           style={{
@@ -56,7 +63,10 @@ export function ProgressBar({
         />
       </div>
       {showValue && (
-        <span className="text-xs font-mono min-w-[45px] text-right" style={{ color: baseColors.gray[600] }}>
+        <span
+          className="text-xs font-mono min-w-[45px] text-right"
+          style={{ color: baseColors.gray[600] }}
+        >
           {value.toFixed(1)}
           {suffix}
         </span>
@@ -87,7 +97,9 @@ export function JumpIndicator({ count }: JumpIndicatorProps) {
           />
         ))}
       </div>
-      <span className="text-xs font-mono" style={{ color: baseColors.gray[600] }}>{count}</span>
+      <span className="text-xs font-mono" style={{ color: baseColors.gray[600] }}>
+        {count}
+      </span>
     </div>
   );
 }

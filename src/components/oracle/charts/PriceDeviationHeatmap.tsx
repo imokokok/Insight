@@ -72,15 +72,51 @@ const formatFullTimestamp = (timestamp: number): string => {
 };
 
 const getColorLegend = (t: (key: string) => string) => [
-  { color: heatmapColors.deviation.extremelyLow, label: '< 0.1%', range: t('priceDeviationHeatmap.range.extremelyLow') },
-  { color: heatmapColors.deviation.low, label: '0.1-0.25%', range: t('priceDeviationHeatmap.range.low') },
-  { color: heatmapColors.deviation.lower, label: '0.25-0.5%', range: t('priceDeviationHeatmap.range.lower') },
-  { color: heatmapColors.deviation.medium, label: '0.5-0.75%', range: t('priceDeviationHeatmap.range.medium') },
-  { color: heatmapColors.deviation.higher, label: '0.75-1%', range: t('priceDeviationHeatmap.range.higher') },
-  { color: heatmapColors.deviation.high, label: '1-1.5%', range: t('priceDeviationHeatmap.range.high') },
-  { color: heatmapColors.deviation.veryHigh, label: '1.5-2%', range: t('priceDeviationHeatmap.range.veryHigh') },
-  { color: heatmapColors.deviation.extremelyHigh, label: '2-3%', range: t('priceDeviationHeatmap.range.extremelyHigh') },
-  { color: heatmapColors.deviation.anomaly, label: '> 3%', range: t('priceDeviationHeatmap.range.anomaly') },
+  {
+    color: heatmapColors.deviation.extremelyLow,
+    label: '< 0.1%',
+    range: t('priceDeviationHeatmap.range.extremelyLow'),
+  },
+  {
+    color: heatmapColors.deviation.low,
+    label: '0.1-0.25%',
+    range: t('priceDeviationHeatmap.range.low'),
+  },
+  {
+    color: heatmapColors.deviation.lower,
+    label: '0.25-0.5%',
+    range: t('priceDeviationHeatmap.range.lower'),
+  },
+  {
+    color: heatmapColors.deviation.medium,
+    label: '0.5-0.75%',
+    range: t('priceDeviationHeatmap.range.medium'),
+  },
+  {
+    color: heatmapColors.deviation.higher,
+    label: '0.75-1%',
+    range: t('priceDeviationHeatmap.range.higher'),
+  },
+  {
+    color: heatmapColors.deviation.high,
+    label: '1-1.5%',
+    range: t('priceDeviationHeatmap.range.high'),
+  },
+  {
+    color: heatmapColors.deviation.veryHigh,
+    label: '1.5-2%',
+    range: t('priceDeviationHeatmap.range.veryHigh'),
+  },
+  {
+    color: heatmapColors.deviation.extremelyHigh,
+    label: '2-3%',
+    range: t('priceDeviationHeatmap.range.extremelyHigh'),
+  },
+  {
+    color: heatmapColors.deviation.anomaly,
+    label: '> 3%',
+    range: t('priceDeviationHeatmap.range.anomaly'),
+  },
 ];
 
 export function PriceDeviationHeatmap({
@@ -167,8 +203,12 @@ export function PriceDeviationHeatmap({
       className={className}
       headerAction={
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>{t('priceDeviationHeatmap.timePoints')}: {timestamps.length}</span>
-          <span>{t('priceDeviationHeatmap.oracles')}: {oracles.length}</span>
+          <span>
+            {t('priceDeviationHeatmap.timePoints')}: {timestamps.length}
+          </span>
+          <span>
+            {t('priceDeviationHeatmap.oracles')}: {oracles.length}
+          </span>
         </div>
       }
     >
@@ -187,7 +227,9 @@ export function PriceDeviationHeatmap({
             <p className="text-xl font-bold text-green-700">{stats.minDeviation.toFixed(3)}%</p>
           </div>
           <div className="bg-yellow-50  p-3 text-center">
-            <p className="text-xs text-yellow-600 mb-1">{t('priceDeviationHeatmap.anomalyDataPoints')}</p>
+            <p className="text-xs text-yellow-600 mb-1">
+              {t('priceDeviationHeatmap.anomalyDataPoints')}
+            </p>
             <p className="text-xl font-bold text-yellow-700">{stats.anomalyCount}</p>
           </div>
         </div>
@@ -235,7 +277,9 @@ export function PriceDeviationHeatmap({
                             hasData ? getDeviationTextColor(deviation) : 'bg-gray-100'
                           }`}
                           style={{
-                            backgroundColor: hasData ? getDeviationColor(deviation) : heatmapColors.deviation.noData,
+                            backgroundColor: hasData
+                              ? getDeviationColor(deviation)
+                              : heatmapColors.deviation.noData,
                           }}
                           onMouseEnter={() =>
                             hasData &&
@@ -300,7 +344,9 @@ export function PriceDeviationHeatmap({
         </div>
 
         <div className="bg-gray-50  p-4">
-          <div className="text-xs text-gray-600 mb-2 font-medium">{t('priceDeviationHeatmap.legend')}</div>
+          <div className="text-xs text-gray-600 mb-2 font-medium">
+            {t('priceDeviationHeatmap.legend')}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {colorLegend.map((item) => (
               <div key={item.label} className="flex items-center gap-1">
@@ -313,7 +359,9 @@ export function PriceDeviationHeatmap({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50  p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceDeviationHeatmap.deviationDistribution')}</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('priceDeviationHeatmap.deviationDistribution')}
+            </h4>
             <div className="space-y-2">
               {colorLegend.map((item) => {
                 const count = Array.from(heatmapData.values()).filter((d) => {
@@ -351,7 +399,9 @@ export function PriceDeviationHeatmap({
           </div>
 
           <div className="bg-gray-50  p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('priceDeviationHeatmap.oracleDeviationRanking')}</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {t('priceDeviationHeatmap.oracleDeviationRanking')}
+            </h4>
             <div className="space-y-2">
               {oracles
                 .map((oracle) => {
@@ -406,7 +456,9 @@ export function PriceDeviationHeatmap({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-semibold text-red-800 mb-1">{t('priceDeviationHeatmap.highDeviationDetected')}</h4>
+                <h4 className="text-sm font-semibold text-red-800 mb-1">
+                  {t('priceDeviationHeatmap.highDeviationDetected')}
+                </h4>
                 <p className="text-xs text-red-700">
                   {t('priceDeviationHeatmap.anomalyWarning', { count: stats.anomalyCount })}
                 </p>

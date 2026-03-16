@@ -234,19 +234,23 @@ export function PairSelector({
                 borderTopColor: baseColors.primary[600],
               }}
             />
-            <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>加载中...</span>
+            <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
+              加载中...
+            </span>
           </div>
         ) : (
           <>
             <CryptoIcon symbol={selectedSymbol} />
             <div className="flex items-baseline gap-1">
-              <span className="text-base font-semibold" style={{ color: baseColors.gray[900] }}>{baseAsset}</span>
-              <span className="text-sm" style={{ color: baseColors.gray[400] }}>/{quoteAsset}</span>
+              <span className="text-base font-semibold" style={{ color: baseColors.gray[900] }}>
+                {baseAsset}
+              </span>
+              <span className="text-sm" style={{ color: baseColors.gray[400] }}>
+                /{quoteAsset}
+              </span>
             </div>
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${
-                isOpen ? 'rotate-180' : ''
-              }`}
+              className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
               style={{ color: baseColors.gray[400] }}
             />
           </>
@@ -270,7 +274,10 @@ export function PairSelector({
           {/* 搜索框 */}
           <div className="p-2" style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: baseColors.gray[400] }} />
+              <Search
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4"
+                style={{ color: baseColors.gray[400] }}
+              />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -300,9 +307,16 @@ export function PairSelector({
                   onClick={() => setSelectedCategory(category)}
                   className="flex-1 px-3 py-2 text-xs font-medium transition-colors duration-150"
                   style={{
-                    color: selectedCategory === category ? baseColors.primary[600] : baseColors.gray[600],
-                    borderBottom: selectedCategory === category ? `2px solid ${baseColors.primary[600]}` : 'none',
-                    backgroundColor: selectedCategory === category ? baseColors.primary[50] : 'transparent',
+                    color:
+                      selectedCategory === category
+                        ? baseColors.primary[600]
+                        : baseColors.gray[600],
+                    borderBottom:
+                      selectedCategory === category
+                        ? `2px solid ${baseColors.primary[600]}`
+                        : 'none',
+                    backgroundColor:
+                      selectedCategory === category ? baseColors.primary[50] : 'transparent',
                   }}
                   onMouseEnter={(e) => {
                     if (selectedCategory !== category) {
@@ -326,7 +340,12 @@ export function PairSelector({
           {/* 选项列表 */}
           <div className="max-h-64 overflow-y-auto py-1">
             {filteredPairs.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-center" style={{ color: baseColors.gray[500] }}>未找到匹配的交易对</div>
+              <div
+                className="px-3 py-4 text-sm text-center"
+                style={{ color: baseColors.gray[500] }}
+              >
+                未找到匹配的交易对
+              </div>
             ) : (
               filteredPairs.map((pair, index) => {
                 const isSelected = pair.symbol === selectedSymbol;
@@ -361,13 +380,19 @@ export function PairSelector({
                       <div className="flex items-baseline gap-1">
                         <span
                           className="text-sm font-medium"
-                          style={{ color: isSelected ? baseColors.primary[700] : baseColors.gray[900] }}
+                          style={{
+                            color: isSelected ? baseColors.primary[700] : baseColors.gray[900],
+                          }}
                         >
                           {base}
                         </span>
-                        <span className="text-xs" style={{ color: baseColors.gray[400] }}>/{quote}</span>
+                        <span className="text-xs" style={{ color: baseColors.gray[400] }}>
+                          /{quote}
+                        </span>
                       </div>
-                      <span className="text-xs" style={{ color: baseColors.gray[400] }}>{pair.name}</span>
+                      <span className="text-xs" style={{ color: baseColors.gray[400] }}>
+                        {pair.name}
+                      </span>
                     </div>
                     {isSelected && (
                       <svg

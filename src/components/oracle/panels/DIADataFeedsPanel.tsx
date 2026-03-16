@@ -92,14 +92,14 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.98) return 'text-green-600';
     if (confidence >= 0.95) return 'text-blue-600';
-    if (confidence >= 0.90) return 'text-yellow-600';
+    if (confidence >= 0.9) return 'text-yellow-600';
     return 'text-orange-600';
   };
 
   const getConfidenceBgColor = (confidence: number) => {
     if (confidence >= 0.98) return 'bg-green-50';
     if (confidence >= 0.95) return 'bg-blue-50';
-    if (confidence >= 0.90) return 'bg-yellow-50';
+    if (confidence >= 0.9) return 'bg-yellow-50';
     return 'bg-orange-50';
   };
 
@@ -156,7 +156,9 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         {/* Asset Type Filters */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">{t('dia.dataFeeds.filterByAssetType')}</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            {t('dia.dataFeeds.filterByAssetType')}
+          </p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedAssetType('all')}
@@ -213,7 +215,9 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
 
         {/* Chain Filters */}
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">{t('dia.dataFeeds.filterByChain')}</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            {t('dia.dataFeeds.filterByChain')}
+          </p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedChain('all')}
@@ -300,9 +304,7 @@ export function DIADataFeedsPanel({ feeds, dataSources }: DIADataFeedsPanelProps
                     {formatUpdateFrequency(feed.updateFrequency)}
                   </div>
 
-                  <div
-                    className={`px-3 py-1 rounded-lg ${getConfidenceBgColor(feed.confidence)}`}
-                  >
+                  <div className={`px-3 py-1 rounded-lg ${getConfidenceBgColor(feed.confidence)}`}>
                     <span className={`font-semibold ${getConfidenceColor(feed.confidence)}`}>
                       {(feed.confidence * 100).toFixed(0)}%
                     </span>

@@ -46,10 +46,26 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
         <div className="py-6">
           <div className="flex items-center justify-between">
             {[
-              { step: 1, label: t('tellor.disputes.flow.submit'), desc: t('tellor.disputes.flow.submitDesc') },
-              { step: 2, label: t('tellor.disputes.flow.challenge'), desc: t('tellor.disputes.flow.challengeDesc') },
-              { step: 3, label: t('tellor.disputes.flow.vote'), desc: t('tellor.disputes.flow.voteDesc') },
-              { step: 4, label: t('tellor.disputes.flow.resolve'), desc: t('tellor.disputes.flow.resolveDesc') },
+              {
+                step: 1,
+                label: t('tellor.disputes.flow.submit'),
+                desc: t('tellor.disputes.flow.submitDesc'),
+              },
+              {
+                step: 2,
+                label: t('tellor.disputes.flow.challenge'),
+                desc: t('tellor.disputes.flow.challengeDesc'),
+              },
+              {
+                step: 3,
+                label: t('tellor.disputes.flow.vote'),
+                desc: t('tellor.disputes.flow.voteDesc'),
+              },
+              {
+                step: 4,
+                label: t('tellor.disputes.flow.resolve'),
+                desc: t('tellor.disputes.flow.resolveDesc'),
+              },
             ].map((item, index) => (
               <div key={item.step} className="flex items-center">
                 <div className="flex flex-col items-center">
@@ -59,9 +75,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                   <p className="mt-2 text-sm font-medium text-gray-900">{item.label}</p>
                   <p className="text-xs text-gray-500 text-center max-w-[100px]">{item.desc}</p>
                 </div>
-                {index < 3 && (
-                  <div className="w-16 h-0.5 bg-gray-300 mx-2" />
-                )}
+                {index < 3 && <div className="w-16 h-0.5 bg-gray-300 mx-2" />}
               </div>
             ))}
           </div>

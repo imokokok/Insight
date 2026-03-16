@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser, useAuthActions } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase/client';
 import { queries } from '@/lib/supabase/client';
@@ -28,6 +28,24 @@ export function DataManagementPanel() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
+
+  const showSuccess = (message: string) => {
+    setSuccess(message);
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+    }
+    successTimerRef.current = setTimeout(() => setSuccess(null), 3000);
+  };
 
   const exportUserData = async () => {
     if (!user) return;
@@ -65,8 +83,7 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess(t('settings.data.exportSuccess'));
-      setTimeout(() => setSuccess(null), 3000);
+      showSuccess(t('settings.data.exportSuccess'));
     } catch (err) {
       setError(t('settings.data.exportError'));
     } finally {
@@ -103,8 +120,7 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess(t('settings.data.priceHistoryExportSuccess'));
-      setTimeout(() => setSuccess(null), 3000);
+      showSuccess(t('settings.data.priceHistoryExportSuccess'));
     } catch (err) {
       setError(t('settings.data.exportError'));
     } finally {
@@ -137,8 +153,7 @@ export function DataManagementPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setSuccess(t('settings.data.snapshotsExportSuccess'));
-      setTimeout(() => setSuccess(null), 3000);
+      showSuccess(t('settings.data.snapshotsExportSuccess'));
     } catch (err) {
       setError(t('settings.data.exportError'));
     } finally {
@@ -163,8 +178,7 @@ export function DataManagementPanel() {
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
-      setSuccess(t('settings.data.clearLocalDataSuccess'));
-      setTimeout(() => setSuccess(null), 3000);
+      showSuccess(t('settings.data.clearLocalDataSuccess'));
     } catch (err) {
       setError(t('settings.data.clearLocalDataError'));
     } finally {

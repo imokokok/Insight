@@ -19,16 +19,86 @@ interface RegionData {
 }
 
 const mockNodes: NodeData[] = [
-  { name: 'LinkPool', region: 'North America', responseTime: 120, successRate: 99.9, reputation: 98.5, stakedAmount: 2500000 },
-  { name: 'Certus One', region: 'Europe', responseTime: 135, successRate: 99.8, reputation: 97.2, stakedAmount: 1800000 },
-  { name: 'Fiews', region: 'North America', responseTime: 110, successRate: 99.9, reputation: 96.8, stakedAmount: 2200000 },
-  { name: 'Everstake', region: 'Europe', responseTime: 145, successRate: 99.7, reputation: 95.5, stakedAmount: 1500000 },
-  { name: 'Figment', region: 'North America', responseTime: 125, successRate: 99.8, reputation: 94.9, stakedAmount: 1900000 },
-  { name: 'Staked', region: 'Asia', responseTime: 155, successRate: 99.6, reputation: 93.8, stakedAmount: 1200000 },
-  { name: 'Blockdaemon', region: 'Europe', responseTime: 140, successRate: 99.7, reputation: 93.2, stakedAmount: 1600000 },
-  { name: 'Chorus One', region: 'Europe', responseTime: 130, successRate: 99.8, reputation: 92.5, stakedAmount: 1400000 },
-  { name: 'P2P Validator', region: 'Asia', responseTime: 165, successRate: 99.5, reputation: 91.8, stakedAmount: 1100000 },
-  { name: 'Stakefish', region: 'North America', responseTime: 115, successRate: 99.9, reputation: 91.2, stakedAmount: 1700000 },
+  {
+    name: 'LinkPool',
+    region: 'North America',
+    responseTime: 120,
+    successRate: 99.9,
+    reputation: 98.5,
+    stakedAmount: 2500000,
+  },
+  {
+    name: 'Certus One',
+    region: 'Europe',
+    responseTime: 135,
+    successRate: 99.8,
+    reputation: 97.2,
+    stakedAmount: 1800000,
+  },
+  {
+    name: 'Fiews',
+    region: 'North America',
+    responseTime: 110,
+    successRate: 99.9,
+    reputation: 96.8,
+    stakedAmount: 2200000,
+  },
+  {
+    name: 'Everstake',
+    region: 'Europe',
+    responseTime: 145,
+    successRate: 99.7,
+    reputation: 95.5,
+    stakedAmount: 1500000,
+  },
+  {
+    name: 'Figment',
+    region: 'North America',
+    responseTime: 125,
+    successRate: 99.8,
+    reputation: 94.9,
+    stakedAmount: 1900000,
+  },
+  {
+    name: 'Staked',
+    region: 'Asia',
+    responseTime: 155,
+    successRate: 99.6,
+    reputation: 93.8,
+    stakedAmount: 1200000,
+  },
+  {
+    name: 'Blockdaemon',
+    region: 'Europe',
+    responseTime: 140,
+    successRate: 99.7,
+    reputation: 93.2,
+    stakedAmount: 1600000,
+  },
+  {
+    name: 'Chorus One',
+    region: 'Europe',
+    responseTime: 130,
+    successRate: 99.8,
+    reputation: 92.5,
+    stakedAmount: 1400000,
+  },
+  {
+    name: 'P2P Validator',
+    region: 'Asia',
+    responseTime: 165,
+    successRate: 99.5,
+    reputation: 91.8,
+    stakedAmount: 1100000,
+  },
+  {
+    name: 'Stakefish',
+    region: 'North America',
+    responseTime: 115,
+    successRate: 99.9,
+    reputation: 91.2,
+    stakedAmount: 1700000,
+  },
 ];
 
 const regionData: RegionData[] = [
@@ -43,8 +113,10 @@ export function ChainlinkNodesPanel() {
   const { t } = useI18n();
 
   const totalStaked = mockNodes.reduce((sum, node) => sum + node.stakedAmount, 0);
-  const avgResponseTime = mockNodes.reduce((sum, node) => sum + node.responseTime, 0) / mockNodes.length;
-  const avgSuccessRate = mockNodes.reduce((sum, node) => sum + node.successRate, 0) / mockNodes.length;
+  const avgResponseTime =
+    mockNodes.reduce((sum, node) => sum + node.responseTime, 0) / mockNodes.length;
+  const avgSuccessRate =
+    mockNodes.reduce((sum, node) => sum + node.successRate, 0) / mockNodes.length;
 
   return (
     <div className="space-y-6">
@@ -58,9 +130,7 @@ export function ChainlinkNodesPanel() {
         </DashboardCard>
 
         <DashboardCard title={t('chainlink.nodeAnalytics.totalStaked')}>
-          <div className="text-3xl font-bold text-gray-900">
-            ${(totalStaked / 1e6).toFixed(1)}M
-          </div>
+          <div className="text-3xl font-bold text-gray-900">${(totalStaked / 1e6).toFixed(1)}M</div>
           <div className="text-sm text-gray-500 mt-1">LINK</div>
         </DashboardCard>
 
@@ -177,8 +247,12 @@ export function ChainlinkNodesPanel() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="text-sm text-gray-500">{t('chainlink.staking.migrationStatus')}</div>
-                <div className="text-lg font-semibold text-green-600">{t('chainlink.staking.completed')}</div>
+                <div className="text-sm text-gray-500">
+                  {t('chainlink.staking.migrationStatus')}
+                </div>
+                <div className="text-lg font-semibold text-green-600">
+                  {t('chainlink.staking.completed')}
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-500">{t('chainlink.staking.v0_2Staked')}</div>
@@ -202,7 +276,9 @@ export function ChainlinkNodesPanel() {
           </div>
 
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.staking.aprHistory')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('chainlink.staking.aprHistory')}
+            </h4>
             <div className="space-y-2">
               {[
                 { period: 'v0.1', apr: '4.75%', status: 'deprecated' },
@@ -219,8 +295,8 @@ export function ChainlinkNodesPanel() {
                         item.status === 'active'
                           ? 'bg-green-100 text-green-700'
                           : item.status === 'deprecated'
-                          ? 'bg-gray-100 text-gray-600'
-                          : 'bg-blue-100 text-blue-700'
+                            ? 'bg-gray-100 text-gray-600'
+                            : 'bg-blue-100 text-blue-700'
                       }`}
                     >
                       {t(`chainlink.staking.${item.status}`)}
@@ -233,18 +309,28 @@ export function ChainlinkNodesPanel() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.staking.slashingConditions')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('chainlink.staking.slashingConditions')}
+          </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.downtime')}</div>
+              <div className="text-xs text-red-600 font-medium mb-1">
+                {t('chainlink.staking.downtime')}
+              </div>
               <div className="text-sm text-gray-700">{t('chainlink.staking.downtimeDesc')}</div>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.incorrectData')}</div>
-              <div className="text-sm text-gray-700">{t('chainlink.staking.incorrectDataDesc')}</div>
+              <div className="text-xs text-red-600 font-medium mb-1">
+                {t('chainlink.staking.incorrectData')}
+              </div>
+              <div className="text-sm text-gray-700">
+                {t('chainlink.staking.incorrectDataDesc')}
+              </div>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.malicious')}</div>
+              <div className="text-xs text-red-600 font-medium mb-1">
+                {t('chainlink.staking.malicious')}
+              </div>
               <div className="text-sm text-gray-700">{t('chainlink.staking.maliciousDesc')}</div>
             </div>
           </div>

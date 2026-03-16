@@ -821,8 +821,8 @@
       "title": "预言机性能排名",
       "subtitle": "综合性能评估排名",
       "accuracyFactor": "准确度因子",
-    "accuracyFactorDesc": "价格准确度评分",
-    "rank": "排名",
+      "accuracyFactorDesc": "价格准确度评分",
+      "rank": "排名",
       "oracle": "预言机",
       "score": "评分",
       "metrics": {

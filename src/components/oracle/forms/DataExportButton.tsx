@@ -93,6 +93,7 @@ export function DataExportButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const exportTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -102,7 +103,12 @@ export function DataExportButton({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (exportTimerRef.current) {
+        clearTimeout(exportTimerRef.current);
+      }
+    };
   }, []);
 
   const handleExport = useCallback(
@@ -126,7 +132,7 @@ export function DataExportButton({
       } catch (error) {
         logger.error('Export failed', error instanceof Error ? error : new Error(String(error)));
       } finally {
-        setTimeout(() => {
+        exportTimerRef.current = setTimeout(() => {
           setIsExporting(false);
         }, 500);
       }

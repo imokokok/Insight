@@ -3,6 +3,7 @@
 ## Why
 
 根据评估报告，Tellor 页面虽然核心功能完整，但缺少 Ecosystem Tab、Network Tab 使用通用面板、缺少争议机制展示。本次改造旨在：
+
 1. 添加 Ecosystem Tab 展示 Tellor 集成的协议和生态系统
 2. 创建 Tellor 定制化的 Network 面板替换通用面板
 3. 添加争议机制展示到 Reporters Tab
@@ -12,17 +13,20 @@
 ## What Changes
 
 ### 新增功能
+
 - **Ecosystem Tab**: 展示 Tellor 集成的 DeFi 协议、合作伙伴、数据使用统计
 - **TellorNetworkPanel**: 替换通用 NetworkHealthPanel，展示 Tellor 特定的网络统计
 - **争议机制展示**: 在 Reporters Tab 添加争议流程说明和统计数据
 - **质押计算器**: 让用户计算质押收益和 ROI
 
 ### 优化改进
+
 - **Tab 顺序调整**: market → network → reporters → disputes → staking → price-stream → market-depth → multi-chain → risk → ecosystem
 - **Reporters Panel 增强**: 添加争议统计、Reporter 详情弹窗
 - **Risk Panel 增强**: 添加争议风险评估
 
 ### 数据层扩展
+
 - **TellorClient 扩展**: 添加生态系统数据、争议数据、质押计算 API
 - **useTellorData Hook 扩展**: 新增生态系统、争议、质押计算等数据获取
 
@@ -45,6 +49,7 @@
 ### Requirement: Ecosystem Tab
 
 **Scenario: 展示 Tellor 生态系统**
+
 - **GIVEN** 用户访问 Tellor 页面并切换到 Ecosystem Tab
 - **WHEN** 数据加载完成
 - **THEN** 应该展示：
@@ -56,6 +61,7 @@
 ### Requirement: Tellor 定制化 Network Panel
 
 **Scenario: 展示 Tellor 网络统计**
+
 - **GIVEN** 用户访问 Network Tab
 - **WHEN** 页面加载完成
 - **THEN** 应该展示 Tellor 特定的网络数据：
@@ -67,6 +73,7 @@
 ### Requirement: 争议机制展示
 
 **Scenario: 展示争议流程和统计**
+
 - **GIVEN** 用户访问 Reporters Tab 或 Disputes Tab
 - **WHEN** 页面加载完成
 - **THEN** 应该展示：
@@ -78,6 +85,7 @@
 ### Requirement: 质押计算器
 
 **Scenario: 计算质押收益**
+
 - **GIVEN** 用户在 Staking Tab 输入质押参数
 - **WHEN** 用户修改参数
 - **THEN** 应该实时计算并展示：
@@ -94,7 +102,8 @@
 
 **Modified**: market → network → reporters → disputes → staking → price-stream → market-depth → multi-chain → risk → ecosystem
 
-**Reason**: 
+**Reason**:
+
 - 基础数据（market + network）放前面
 - Tellor 核心特性（reporters + disputes + staking）紧随其后
 - 高级功能（price-stream + market-depth + multi-chain）随后
@@ -105,6 +114,7 @@
 **Current**: 展示 Reporter 列表、质押分布、活动趋势
 
 **Modified**:
+
 - 添加争议统计卡片（参与争议次数、成功率）
 - 添加 Reporter 详情弹窗（点击 Reporter 查看详细历史）
 - 添加 Reporter 收益归因（报告收益 vs 争议收益）

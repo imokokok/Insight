@@ -158,7 +158,10 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             {segments.map((segment, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: segment.color }} />
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: segment.color }}
+                  />
                   <span className="text-sm text-gray-600">{segment.label}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -422,7 +425,10 @@ function ValidatorVoteList({
             const count = validatorVotes.filter((v) => v.position === pos).length;
             const config = positionConfig[pos];
             return (
-              <div key={pos} className={`p-3 rounded-lg border ${config.borderColor} ${config.bgColor}`}>
+              <div
+                key={pos}
+                className={`p-3 rounded-lg border ${config.borderColor} ${config.bgColor}`}
+              >
                 <div className="flex items-center gap-2">
                   <span className={config.color}>{config.icon}</span>
                   <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>

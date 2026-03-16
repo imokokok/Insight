@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   DashboardCard,
@@ -154,9 +154,19 @@ export function PythRiskAssessmentPanel() {
   const riskLevel = getRiskLevel(overallScore);
   const firstPartySources = useMemo(() => generateFirstPartySources(), []);
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsLoading(false);
     }, 1000);
@@ -175,7 +185,9 @@ export function PythRiskAssessmentPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('pyth.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
-            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>
+              {overallScore}
+            </div>
             <div className="text-sm text-gray-500 mt-2">
               {t('pyth.riskAssessment.comprehensiveAssessment')}
             </div>
@@ -213,10 +225,7 @@ export function PythRiskAssessmentPanel() {
       </div>
 
       {/* 第一方数据源可信度评分卡片 */}
-      <DataSourceCredibility
-        sources={firstPartySources}
-        className="w-full"
-      />
+      <DataSourceCredibility sources={firstPartySources} className="w-full" />
 
       <DashboardCard title={t('pyth.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -230,7 +239,9 @@ export function PythRiskAssessmentPanel() {
                 <span className="font-medium text-gray-900">15.2%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('pyth.riskAssessment.top10PublishersShare')}</span>
+                <span className="text-gray-600">
+                  {t('pyth.riskAssessment.top10PublishersShare')}
+                </span>
                 <span className="font-medium text-gray-900">42.8%</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -265,7 +276,10 @@ export function PythRiskAssessmentPanel() {
       <DashboardCard title={t('pyth.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
-            <div key={index} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
+            <div
+              key={index}
+              className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+            >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
@@ -296,7 +310,10 @@ export function PythRiskAssessmentPanel() {
             { chain: 'Arbitrum', availability: 99.92, latency: 2000, riskLevel: 'low' as const },
             { chain: 'Base', availability: 99.88, latency: 1500, riskLevel: 'low' as const },
           ].map((chain) => (
-            <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              key={chain.chain}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-900 w-24">{chain.chain}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -324,7 +341,9 @@ export function PythRiskAssessmentPanel() {
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}
+                >
                   {t(`pyth.riskAssessment.${measure.status}`)}
                 </span>
               </div>

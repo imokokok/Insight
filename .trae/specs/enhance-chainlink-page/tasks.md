@@ -22,6 +22,7 @@
 - [x] Task 7: Enhance ChainlinkRiskPanel - Add service-level risk assessment section with availability metrics by service.
 
 # Task Dependencies
+
 - Task 2 depends on Task 1 (needs services tab id defined)
 - Task 3 depends on Task 2 (needs services tab to exist)
 - Task 4 depends on Task 1, Task 2, Task 3

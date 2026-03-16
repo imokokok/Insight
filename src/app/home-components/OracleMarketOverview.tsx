@@ -156,8 +156,13 @@ export default function OracleMarketOverview() {
   const CustomTooltip = ({ active, payload, label }: TooltipProps<MarketShareDataItem>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border" style={{ borderColor: baseColors.gray[200], padding: '0.75rem' }}>
-          <p className="font-semibold mb-2" style={{ color: baseColors.gray[900] }}>{label}</p>
+        <div
+          className="bg-white border"
+          style={{ borderColor: baseColors.gray[200], padding: '0.75rem' }}
+        >
+          <p className="font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
+            {label}
+          </p>
           {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
               <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
@@ -354,10 +359,16 @@ export default function OracleMarketOverview() {
         <table className="w-full">
           <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: baseColors.gray[600] }}>
+              <th
+                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: baseColors.gray[600] }}
+              >
                 {locale === 'zh-CN' ? '预言机' : 'Oracle'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider" style={{ color: baseColors.gray[600] }}>
+              <th
+                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                style={{ color: baseColors.gray[600] }}
+              >
                 {activeChart === 'pie'
                   ? locale === 'zh-CN'
                     ? '市场份额'
@@ -371,12 +382,18 @@ export default function OracleMarketOverview() {
                       : 'TVS'}
               </th>
               {activeChart === 'bar' && (
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider" style={{ color: baseColors.gray[600] }}>
+                <th
+                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: baseColors.gray[600] }}
+                >
                   {locale === 'zh-CN' ? '协议数' : 'Protocols'}
                 </th>
               )}
               {activeChart === 'pie' && (
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider" style={{ color: baseColors.gray[600] }}>
+                <th
+                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: baseColors.gray[600] }}
+                >
                   {locale === 'zh-CN' ? 'TVS' : 'TVS'}
                 </th>
               )}
@@ -389,7 +406,9 @@ export default function OracleMarketOverview() {
                 className={`transition-colors cursor-pointer ${
                   selectedItem === item.name ? '' : ''
                 }`}
-                style={{ backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent' }}
+                style={{
+                  backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
+                }}
                 onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
                 onMouseEnter={() => setHoveredItem(item.name)}
                 onMouseLeave={() => setHoveredItem(null)}
@@ -397,7 +416,9 @@ export default function OracleMarketOverview() {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>{item.name}</span>
+                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      {item.name}
+                    </span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -414,7 +435,9 @@ export default function OracleMarketOverview() {
                 )}
                 {activeChart === 'pie' && (
                   <td className="px-4 py-3 text-right">
-                    <span style={{ color: baseColors.gray[600] }}>{'tvs' in item ? item.tvs : ''}</span>
+                    <span style={{ color: baseColors.gray[600] }}>
+                      {'tvs' in item ? item.tvs : ''}
+                    </span>
                   </td>
                 )}
               </tr>
@@ -443,13 +466,22 @@ export default function OracleMarketOverview() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4" style={{ backgroundColor: baseColors.gray[100], border: `1px solid ${baseColors.gray[200]}` }}>
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 mb-4"
+              style={{
+                backgroundColor: baseColors.gray[100],
+                border: `1px solid ${baseColors.gray[200]}`,
+              }}
+            >
               <PieChartIcon className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               <span className="text-sm font-medium" style={{ color: baseColors.gray[600] }}>
                 {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: baseColors.gray[900] }}>
+            <h2
+              className="text-3xl md:text-4xl font-bold mb-4"
+              style={{ color: baseColors.gray[900] }}
+            >
               {locale === 'zh-CN' ? '预言机市场分析' : 'Oracle Market Analysis'}
             </h2>
             <p className="text-lg max-w-2xl" style={{ color: baseColors.gray[600] }}>
@@ -459,19 +491,20 @@ export default function OracleMarketOverview() {
             </p>
           </div>
 
-          <div className="flex items-center gap-1 p-1 overflow-x-auto max-w-full" style={{ backgroundColor: baseColors.gray[100] }}>
+          <div
+            className="flex items-center gap-1 p-1 overflow-x-auto max-w-full"
+            style={{ backgroundColor: baseColors.gray[100] }}
+          >
             {timeRanges.map((range) => (
               <button
                 key={range.key}
                 onClick={() => setSelectedRange(range.key)}
                 className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-                  selectedRange === range.key
-                    ? 'bg-white border'
-                    : ''
+                  selectedRange === range.key ? 'bg-white border' : ''
                 }`}
                 style={{
                   color: selectedRange === range.key ? baseColors.gray[900] : baseColors.gray[600],
-                  borderColor: selectedRange === range.key ? baseColors.gray[200] : 'transparent'
+                  borderColor: selectedRange === range.key ? baseColors.gray[200] : 'transparent',
                 }}
               >
                 {range.label}
@@ -481,7 +514,10 @@ export default function OracleMarketOverview() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white border p-4 transition-colors" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="bg-white border p-4 transition-colors"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
                 <DollarSign className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
@@ -490,14 +526,22 @@ export default function OracleMarketOverview() {
                 {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>{stats.totalTVS}</div>
-            <div className="text-xs mt-1 flex items-center gap-1" style={{ color: semanticColors.success.main }}>
+            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+              {stats.totalTVS}
+            </div>
+            <div
+              className="text-xs mt-1 flex items-center gap-1"
+              style={{ color: semanticColors.success.main }}
+            >
               <TrendingUp className="w-3 h-3" />
               +12.5%
             </div>
           </div>
 
-          <div className="bg-white border p-4 transition-colors" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="bg-white border p-4 transition-colors"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
                 <Globe className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
@@ -506,13 +550,18 @@ export default function OracleMarketOverview() {
                 {locale === 'zh-CN' ? '支持链数' : 'Total Chains'}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>{stats.totalChains}</div>
+            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+              {stats.totalChains}
+            </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
               {locale === 'zh-CN' ? '跨链覆盖' : 'Cross-chain'}
             </div>
           </div>
 
-          <div className="bg-white border p-4 transition-colors" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="bg-white border p-4 transition-colors"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
                 <Layers className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
@@ -521,13 +570,18 @@ export default function OracleMarketOverview() {
                 {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>{stats.totalProtocols}+</div>
+            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+              {stats.totalProtocols}+
+            </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
               {locale === 'zh-CN' ? '集成项目' : 'Integrations'}
             </div>
           </div>
 
-          <div className="bg-white border p-4 transition-colors" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="bg-white border p-4 transition-colors"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
                 <Activity className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
@@ -536,7 +590,9 @@ export default function OracleMarketOverview() {
                 {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
               </span>
             </div>
-            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>{stats.avgDominance}</div>
+            <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+              {stats.avgDominance}
+            </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
               {locale === 'zh-CN' ? 'Chainlink 份额' : 'Chainlink Share'}
             </div>
@@ -554,7 +610,7 @@ export default function OracleMarketOverview() {
               }`}
               style={{
                 color: activeChart === 'pie' ? baseColors.gray[50] : baseColors.gray[600],
-                borderColor: activeChart === 'pie' ? baseColors.gray[900] : baseColors.gray[200]
+                borderColor: activeChart === 'pie' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
               <PieChartIcon className="w-4 h-4" />
@@ -569,7 +625,7 @@ export default function OracleMarketOverview() {
               }`}
               style={{
                 color: activeChart === 'trend' ? baseColors.gray[50] : baseColors.gray[600],
-                borderColor: activeChart === 'trend' ? baseColors.gray[900] : baseColors.gray[200]
+                borderColor: activeChart === 'trend' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
               <TrendingUp className="w-4 h-4" />
@@ -584,7 +640,7 @@ export default function OracleMarketOverview() {
               }`}
               style={{
                 color: activeChart === 'bar' ? baseColors.gray[50] : baseColors.gray[600],
-                borderColor: activeChart === 'bar' ? baseColors.gray[900] : baseColors.gray[200]
+                borderColor: activeChart === 'bar' ? baseColors.gray[900] : baseColors.gray[200],
               }}
             >
               <BarChart3 className="w-4 h-4" />
@@ -592,17 +648,18 @@ export default function OracleMarketOverview() {
             </button>
           </div>
 
-          <div className="flex items-center gap-1 p-1" style={{ backgroundColor: baseColors.gray[100] }}>
+          <div
+            className="flex items-center gap-1 p-1"
+            style={{ backgroundColor: baseColors.gray[100] }}
+          >
             <button
               onClick={() => setViewType('chart')}
               className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
-                viewType === 'chart'
-                  ? 'bg-white border'
-                  : ''
+                viewType === 'chart' ? 'bg-white border' : ''
               }`}
               style={{
                 color: viewType === 'chart' ? baseColors.gray[900] : baseColors.gray[600],
-                borderColor: viewType === 'chart' ? baseColors.gray[200] : 'transparent'
+                borderColor: viewType === 'chart' ? baseColors.gray[200] : 'transparent',
               }}
             >
               <PieChartIcon className="w-4 h-4" />
@@ -611,13 +668,11 @@ export default function OracleMarketOverview() {
             <button
               onClick={() => setViewType('table')}
               className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
-                viewType === 'table'
-                  ? 'bg-white border'
-                  : ''
+                viewType === 'table' ? 'bg-white border' : ''
               }`}
               style={{
                 color: viewType === 'table' ? baseColors.gray[900] : baseColors.gray[600],
-                borderColor: viewType === 'table' ? baseColors.gray[200] : 'transparent'
+                borderColor: viewType === 'table' ? baseColors.gray[200] : 'transparent',
               }}
             >
               <TableIcon className="w-4 h-4" />
@@ -627,9 +682,14 @@ export default function OracleMarketOverview() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white border p-6" style={{ borderColor: baseColors.gray[200] }}>
+          <div
+            className="lg:col-span-2 bg-white border p-6"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>{getChartTitle()}</h3>
+              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
+                {getChartTitle()}
+              </h3>
               {selectedItem && !isLoading && (
                 <button
                   onClick={() => setSelectedItem(null)}
@@ -655,7 +715,10 @@ export default function OracleMarketOverview() {
               )}
             </div>
             {!isLoading && viewType === 'chart' && (
-              <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: baseColors.gray[500] }}>
+              <div
+                className="mt-4 flex items-center gap-2 text-xs"
+                style={{ color: baseColors.gray[500] }}
+              >
                 <Info className="w-4 h-4" />
                 {locale === 'zh-CN'
                   ? '悬停查看详情，点击选中项目'
@@ -665,7 +728,10 @@ export default function OracleMarketOverview() {
           </div>
 
           <div className="space-y-4">
-            <div className="p-4" style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}>
+            <div
+              className="p-4"
+              style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}
+            >
               <div className="text-sm mb-1" style={{ color: baseColors.gray[300] }}>
                 {locale === 'zh-CN' ? '选中时间范围' : 'Selected Time Range'}
               </div>
@@ -679,11 +745,12 @@ export default function OracleMarketOverview() {
               <div
                 key={item.name}
                 className={`bg-white border p-4 transition-colors cursor-pointer ${
-                  selectedItem === item.name
-                    ? ''
-                    : 'hover:border-gray-400'
+                  selectedItem === item.name ? '' : 'hover:border-gray-400'
                 } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
-                style={{ borderColor: selectedItem === item.name ? baseColors.gray[900] : baseColors.gray[200] }}
+                style={{
+                  borderColor:
+                    selectedItem === item.name ? baseColors.gray[900] : baseColors.gray[200],
+                }}
                 onMouseEnter={() => setHoveredItem(item.name)}
                 onMouseLeave={() => setHoveredItem(null)}
                 onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
@@ -691,11 +758,18 @@ export default function OracleMarketOverview() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>{item.name}</span>
+                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      {item.name}
+                    </span>
                   </div>
-                  <span className="text-lg font-bold" style={{ color: baseColors.gray[900] }}>{item.value}%</span>
+                  <span className="text-lg font-bold" style={{ color: baseColors.gray[900] }}>
+                    {item.value}%
+                  </span>
                 </div>
-                <div className="h-2 overflow-hidden mb-2" style={{ backgroundColor: baseColors.gray[100] }}>
+                <div
+                  className="h-2 overflow-hidden mb-2"
+                  style={{ backgroundColor: baseColors.gray[100] }}
+                >
                   <div
                     className="h-full transition-all duration-500"
                     style={{
@@ -704,18 +778,26 @@ export default function OracleMarketOverview() {
                     }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-xs" style={{ color: baseColors.gray[500] }}>
+                <div
+                  className="flex items-center justify-between text-xs"
+                  style={{ color: baseColors.gray[500] }}
+                >
                   <span>TVS: {item.tvs}</span>
                   <span>{item.chains} chains</span>
                 </div>
               </div>
             ))}
 
-            <div className="border p-4" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
+            <div
+              className="border p-4"
+              style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
+            >
               <div className="text-sm mb-1" style={{ color: baseColors.gray[600] }}>
                 {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
               </div>
-              <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>100%</div>
+              <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
+                100%
+              </div>
               <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
                 {locale === 'zh-CN'
                   ? `覆盖 ${stats.oracleCount} 个主要预言机`

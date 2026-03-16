@@ -40,7 +40,8 @@ export default function HeroBackground() {
         <div
           className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full animate-pulse-slow"
           style={{
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%)',
+            background:
+              'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%)',
             filter: 'blur(60px)',
             willChange: 'transform, opacity',
           }}
@@ -50,7 +51,8 @@ export default function HeroBackground() {
         <div
           className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full animate-pulse-slow-reverse"
           style={{
-            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%)',
+            background:
+              'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%)',
             filter: 'blur(50px)',
             willChange: 'transform, opacity',
             animationDelay: '-4s',

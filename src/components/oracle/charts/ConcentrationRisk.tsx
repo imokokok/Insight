@@ -58,7 +58,14 @@ function calculateConcentrationMetrics(publishers: PublisherData[]): Concentrati
   };
 }
 
-const COLORS = [chartColors.recharts.purple, chartColors.recharts.primary, chartColors.recharts.success, chartColors.recharts.warning, chartColors.recharts.danger, chartColors.recharts.tick];
+const COLORS = [
+  chartColors.recharts.purple,
+  chartColors.recharts.primary,
+  chartColors.recharts.success,
+  chartColors.recharts.warning,
+  chartColors.recharts.danger,
+  chartColors.recharts.tick,
+];
 
 export function ConcentrationRisk() {
   const { t } = useI18n();

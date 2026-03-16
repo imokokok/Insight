@@ -240,10 +240,7 @@ export default function MarketOverviewPage() {
               onAutoRefreshChange={(interval) => setRefreshInterval(interval as RefreshInterval)}
             />
 
-            <RealtimeIndicator
-              isConnected={wsStatus === 'connected'}
-              onReconnect={wsReconnect}
-            />
+            <RealtimeIndicator isConnected={wsStatus === 'connected'} onReconnect={wsReconnect} />
           </div>
         </div>
 
@@ -300,7 +297,9 @@ export default function MarketOverviewPage() {
               {locale === 'zh-CN' ? '平均延迟' : 'latency'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-3xl font-semibold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+              <p className="text-3xl font-semibold text-gray-900">
+                {marketStats.avgUpdateLatency}ms
+              </p>
               <span className="text-sm font-medium text-green-600">-5.2%</span>
             </div>
           </div>

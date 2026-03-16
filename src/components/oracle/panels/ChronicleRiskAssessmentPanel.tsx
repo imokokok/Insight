@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import {
   DashboardCard,
@@ -71,10 +71,19 @@ export function ChronicleRiskAssessmentPanel({
   const verificationStatus = scuttlebuttData?.verificationStatus ?? 'verified';
   const lastAuditTimestamp = scuttlebuttData?.lastAuditTimestamp;
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = () => {
     setIsLoading(true);
-    // 模拟刷新数据
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsLoading(false);
     }, 1000);
@@ -97,15 +106,11 @@ export function ChronicleRiskAssessmentPanel({
             <h3 className="text-lg font-semibold text-gray-900">
               {t('chronicle.risk.overviewTitle')}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('chronicle.risk.overviewDescription')}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{t('chronicle.risk.overviewDescription')}</p>
           </div>
           <div className="text-right">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                {t('chronicle.risk.overallRiskScore')}
-              </span>
+              <span className="text-sm text-gray-600">{t('chronicle.risk.overallRiskScore')}</span>
               <span
                 className={`px-3 py-1 text-sm font-medium ${
                   riskData.overallRiskScore >= 90
@@ -200,29 +205,29 @@ export function ChronicleRiskAssessmentPanel({
       <DashboardCard title={t('chronicle.risk.scuttlebuttIntegration')}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-green-100' : securityLevel === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}>
-              <Shield className={`w-6 h-6 ${securityLevel === 'high' ? 'text-green-600' : securityLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`} />
+            <div
+              className={`p-3 rounded-full ${securityLevel === 'high' ? 'bg-green-100' : securityLevel === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}
+            >
+              <Shield
+                className={`w-6 h-6 ${securityLevel === 'high' ? 'text-green-600' : securityLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}
+              />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.risk.securityLevel')}
-              </p>
-              <p className="text-xl font-bold text-gray-900 capitalize">
-                {securityLevel}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.risk.securityLevel')}</p>
+              <p className="text-xl font-bold text-gray-900 capitalize">{securityLevel}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-green-100' : verificationStatus === 'pending' ? 'bg-yellow-100' : 'bg-red-100'}`}>
-              <FileCheck className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-green-600' : verificationStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'}`} />
+            <div
+              className={`p-3 rounded-full ${verificationStatus === 'verified' ? 'bg-green-100' : verificationStatus === 'pending' ? 'bg-yellow-100' : 'bg-red-100'}`}
+            >
+              <FileCheck
+                className={`w-6 h-6 ${verificationStatus === 'verified' ? 'text-green-600' : verificationStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'}`}
+              />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.risk.verificationStatus')}
-              </p>
-              <p className="text-xl font-bold text-gray-900 capitalize">
-                {verificationStatus}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.risk.verificationStatus')}</p>
+              <p className="text-xl font-bold text-gray-900 capitalize">{verificationStatus}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -230,11 +235,11 @@ export function ChronicleRiskAssessmentPanel({
               <Clock className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">
-                {t('chronicle.risk.lastAudit')}
-              </p>
+              <p className="text-sm text-gray-500">{t('chronicle.risk.lastAudit')}</p>
               <p className="text-xl font-bold text-gray-900">
-                {lastAuditTimestamp ? new Date(lastAuditTimestamp).toLocaleDateString() : '7 days ago'}
+                {lastAuditTimestamp
+                  ? new Date(lastAuditTimestamp).toLocaleDateString()
+                  : '7 days ago'}
               </p>
             </div>
           </div>
@@ -263,12 +268,8 @@ export function ChronicleRiskAssessmentPanel({
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">
-                  {t('chronicle.risk.incidents30d')}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {riskData.incidentCount30d}
-                </p>
+                <p className="text-sm text-gray-500">{t('chronicle.risk.incidents30d')}</p>
+                <p className="text-2xl font-bold text-gray-900">{riskData.incidentCount30d}</p>
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -276,12 +277,8 @@ export function ChronicleRiskAssessmentPanel({
                 <Activity className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">
-                  {t('chronicle.risk.lastIncident')}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {riskData.lastIncident}
-                </p>
+                <p className="text-sm text-gray-500">{t('chronicle.risk.lastIncident')}</p>
+                <p className="text-2xl font-bold text-gray-900">{riskData.lastIncident}</p>
               </div>
             </div>
           </div>
@@ -297,9 +294,7 @@ export function ChronicleRiskAssessmentPanel({
               <p className="text-sm font-medium text-green-800">
                 {t('chronicle.risk.factor1Title')}
               </p>
-              <p className="text-xs text-green-600 mt-1">
-                {t('chronicle.risk.factor1Desc')}
-              </p>
+              <p className="text-xs text-green-600 mt-1">{t('chronicle.risk.factor1Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200">
@@ -308,9 +303,7 @@ export function ChronicleRiskAssessmentPanel({
               <p className="text-sm font-medium text-green-800">
                 {t('chronicle.risk.factor2Title')}
               </p>
-              <p className="text-xs text-green-600 mt-1">
-                {t('chronicle.risk.factor2Desc')}
-              </p>
+              <p className="text-xs text-green-600 mt-1">{t('chronicle.risk.factor2Desc')}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200">
@@ -319,9 +312,7 @@ export function ChronicleRiskAssessmentPanel({
               <p className="text-sm font-medium text-yellow-800">
                 {t('chronicle.risk.factor3Title')}
               </p>
-              <p className="text-xs text-yellow-600 mt-1">
-                {t('chronicle.risk.factor3Desc')}
-              </p>
+              <p className="text-xs text-yellow-600 mt-1">{t('chronicle.risk.factor3Desc')}</p>
             </div>
           </div>
         </div>

@@ -34,6 +34,7 @@ const result = await signIn(email, password);
 ```
 
 **Security Features:**
+
 - Passwords are hashed using bcrypt by Supabase
 - Email verification is required for new accounts
 - Rate limiting on authentication attempts (handled by Supabase)
@@ -52,11 +53,13 @@ await signInWithOAuth('github' as Provider);
 ```
 
 **Supported OAuth Providers:**
+
 - Google
 - GitHub
 - Additional providers can be configured in Supabase dashboard
 
 **OAuth Flow:**
+
 1. User initiates OAuth login
 2. Redirected to provider's authorization page
 3. Provider redirects to `/auth/callback` with authorization code
@@ -78,6 +81,7 @@ response.cookies.set('sb-access-token', session.access_token, {
 ```
 
 **Session Security:**
+
 - HTTP-only cookies prevent XSS access
 - Secure flag enforced in production (HTTPS only)
 - SameSite=Lax prevents CSRF attacks
@@ -94,6 +98,7 @@ await updatePassword(newPassword);
 ```
 
 **Reset Flow:**
+
 1. User requests password reset with email
 2. Supabase sends secure reset link (time-limited)
 3. User clicks link and is redirected to reset page
@@ -115,6 +120,7 @@ await updatePassword(newPassword);
 Row Level Security is the primary authorization mechanism, enforced at the database level. This ensures data access control regardless of the client (web, API, direct database connection).
 
 **Key Principles:**
+
 - All tables have RLS enabled
 - Policies use `auth.uid()` to identify the current user
 - Service role bypasses RLS for administrative operations
@@ -132,14 +138,14 @@ CREATE POLICY "Users can view own profile"
 
 ### Public vs Private Data
 
-| Table | Access Level | RLS Policy |
-|-------|-------------|------------|
-| `user_profiles` | Private | Users own their profile |
-| `price_records` | Public Read | Anyone can read; service role writes |
-| `user_snapshots` | Mixed | Users own snapshots; public snapshots viewable |
-| `user_favorites` | Private | Users own their favorites |
-| `price_alerts` | Private | Users own their alerts |
-| `alert_events` | Private | Users can view/update own events |
+| Table            | Access Level | RLS Policy                                     |
+| ---------------- | ------------ | ---------------------------------------------- |
+| `user_profiles`  | Private      | Users own their profile                        |
+| `price_records`  | Public Read  | Anyone can read; service role writes           |
+| `user_snapshots` | Mixed        | Users own snapshots; public snapshots viewable |
+| `user_favorites` | Private      | Users own their favorites                      |
+| `price_alerts`   | Private      | Users own their alerts                         |
+| `alert_events`   | Private      | Users can view/update own events               |
 
 ### Service Role for Admin Operations
 
@@ -152,6 +158,7 @@ const client = createServerClient();
 ```
 
 **Service Role Usage:**
+
 - Writing price records from oracle data collectors
 - Batch operations and data migrations
 - System-level cleanup tasks
@@ -295,26 +302,26 @@ CREATE POLICY "Users can update own alert events"
 
 ### Required Variables
 
-| Variable | Description | Exposure |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Public (client-safe) |
+| Variable                        | Description            | Exposure             |
+| ------------------------------- | ---------------------- | -------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL   | Public (client-safe) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Public (client-safe) |
 
 ### Sensitive Variables (Server-Only)
 
-| Variable | Description | Exposure |
-|----------|-------------|----------|
+| Variable                    | Description                     | Exposure        |
+| --------------------------- | ------------------------------- | --------------- |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (bypasses RLS) | **Server-only** |
-| `SUPABASE_URL` | Server-side Supabase URL | Server-only |
+| `SUPABASE_URL`              | Server-side Supabase URL        | Server-only     |
 
 ### Public Variables (Client-Safe)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_APP_URL` | Application base URL | - |
-| `NEXT_PUBLIC_WS_URL` | WebSocket server URL | - |
-| `NEXT_PUBLIC_ENABLE_REALTIME` | Enable real-time features | `true` |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable Vercel Analytics | `false` |
+| Variable                                    | Description                   | Default |
+| ------------------------------------------- | ----------------------------- | ------- |
+| `NEXT_PUBLIC_APP_URL`                       | Application base URL          | -       |
+| `NEXT_PUBLIC_WS_URL`                        | WebSocket server URL          | -       |
+| `NEXT_PUBLIC_ENABLE_REALTIME`               | Enable real-time features     | `true`  |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS`              | Enable Vercel Analytics       | `false` |
 | `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | `false` |
 
 ### Configuration Validation
@@ -335,12 +342,14 @@ function validateEnvVar(name: string, value: string | undefined): string {
 ### Production vs Development
 
 **Production Requirements:**
+
 - All required variables must be set
 - `NEXT_PUBLIC_SUPABASE_URL` must use HTTPS
 - `SUPABASE_SERVICE_ROLE_KEY` must be securely stored
 - Cookie secure flag is enforced
 
 **Development Considerations:**
+
 - Missing variables trigger warnings, not errors
 - Fallback values may be used for local development
 - HTTP allowed for local development
@@ -348,6 +357,7 @@ function validateEnvVar(name: string, value: string | undefined): string {
 ### Never Commit Secrets
 
 **Best Practices:**
+
 - Use `.env.local` for local development (gitignored)
 - Use `.env.example` as a template (committed)
 - Store production secrets in secure vault (Vercel, AWS Secrets Manager, etc.)
@@ -383,7 +393,10 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
     },
   });
 
-  const { data: { user }, error } = await client.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser(token);
   if (error || !user) {
     return null;
   }
@@ -393,6 +406,7 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
 ```
 
 **Protected Endpoints:**
+
 - `/api/alerts/*` - User alerts management
 - `/api/favorites/*` - User favorites management
 - `/api/snapshots/*` - User snapshots management
@@ -408,6 +422,7 @@ While Supabase provides built-in rate limiting for authentication, consider impl
 - API endpoints with heavy computation
 
 **Recommended Implementation:**
+
 - Use Vercel Edge Middleware for rate limiting
 - Implement per-user and per-IP limits
 - Return appropriate 429 responses with retry headers
@@ -467,6 +482,7 @@ export function createErrorResponse(options: ApiErrorOptions): NextResponse<ApiE
 ```
 
 **Error Response Structure:**
+
 - Generic error codes (not implementation details)
 - User-friendly messages
 - Retryable flag for client handling
@@ -493,11 +509,13 @@ Passwords are hashed by Supabase using bcrypt with appropriate work factors. The
 ### Secure Data Transmission
 
 **HTTPS Enforcement:**
+
 - Production requires HTTPS for all connections
 - Secure cookie flag enforces HTTPS-only transmission
 - API endpoints only accessible over HTTPS in production
 
 **WebSocket Security:**
+
 - WebSocket connections use WSS (WebSocket Secure) in production
 - Authentication tokens validated on connection
 - Real-time subscriptions respect RLS policies
@@ -505,6 +523,7 @@ Passwords are hashed by Supabase using bcrypt with appropriate work factors. The
 ### Data Retention Policies
 
 **Price Records:**
+
 - TTL-based expiration for price records
 - Automatic cleanup via `cleanup_expired_price_records()` function
 - Expired records automatically deleted
@@ -519,6 +538,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
 **User Data:**
+
 - User data retained while account is active
 - Cascade deletion on user account deletion
 - No soft delete implemented (permanent removal)
@@ -546,6 +566,7 @@ npm outdated
 ### Regular Security Audits
 
 **Recommended Audit Schedule:**
+
 - Monthly dependency vulnerability scans
 - Quarterly code security reviews
 - Annual penetration testing
@@ -554,6 +575,7 @@ npm outdated
 ### Monitor for Vulnerabilities
 
 **Monitoring Tools:**
+
 - GitHub Dependabot for dependency alerts
 - npm audit in CI/CD pipeline
 - Vercel security headers and logging
@@ -562,12 +584,12 @@ npm outdated
 ### Secure WebSocket Connections
 
 ```typescript
-const wsUrl = process.env.NODE_ENV === 'production'
-  ? `wss://${domain}/ws`
-  : `ws://localhost:3001/ws`;
+const wsUrl =
+  process.env.NODE_ENV === 'production' ? `wss://${domain}/ws` : `ws://localhost:3001/ws`;
 ```
 
 **WebSocket Security Measures:**
+
 - Use WSS in production
 - Validate authentication on connection
 - Implement connection rate limiting
@@ -614,29 +636,32 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 ### How to Report
 
 **DO:**
+
 - Report via email to: security@example.com
 - Include detailed description of the vulnerability
 - Provide steps to reproduce
 - Allow reasonable time for response and fix
 
 **DO NOT:**
+
 - Publicly disclose the vulnerability before it's fixed
 - Access or modify other users' data
 - Perform actions that could harm the system or users
 
 ### Response Timeline
 
-| Stage | Timeline |
-|-------|----------|
-| Initial Response | Within 48 hours |
-| Vulnerability Confirmation | Within 5 business days |
-| Fix Development | Depends on severity |
-| Fix Deployment | Within 7 days of fix completion |
-| Public Disclosure | After fix is deployed |
+| Stage                      | Timeline                        |
+| -------------------------- | ------------------------------- |
+| Initial Response           | Within 48 hours                 |
+| Vulnerability Confirmation | Within 5 business days          |
+| Fix Development            | Depends on severity             |
+| Fix Deployment             | Within 7 days of fix completion |
+| Public Disclosure          | After fix is deployed           |
 
 ### Scope
 
 **In Scope:**
+
 - Authentication bypasses
 - Authorization flaws
 - SQL injection
@@ -646,6 +671,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 - API security issues
 
 **Out of Scope:**
+
 - Rate limiting issues (unless severe)
 - Social engineering attacks
 - Physical security

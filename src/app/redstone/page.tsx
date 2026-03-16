@@ -168,7 +168,12 @@ export default function RedStonePage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
           </svg>
         ),
       },
@@ -179,7 +184,12 @@ export default function RedStonePage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -191,9 +201,9 @@ export default function RedStonePage() {
     let filtered = [...providers];
 
     if (filterBy === 'highReputation') {
-      filtered = filtered.filter(p => p.reputation >= 0.9);
+      filtered = filtered.filter((p) => p.reputation >= 0.9);
     } else if (filterBy === 'mostData') {
-      filtered = filtered.filter(p => p.dataPoints >= 500000);
+      filtered = filtered.filter((p) => p.dataPoints >= 500000);
     }
 
     return filtered.sort((a, b) => {
@@ -212,7 +222,7 @@ export default function RedStonePage() {
 
   const ecosystemByCategory = useMemo(() => {
     const categories: Record<string, typeof ECOSYSTEM_INTEGRATIONS> = {};
-    ECOSYSTEM_INTEGRATIONS.forEach(item => {
+    ECOSYSTEM_INTEGRATIONS.forEach((item) => {
       if (!categories[item.category]) {
         categories[item.category] = [];
       }
@@ -304,7 +314,9 @@ export default function RedStonePage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">{t('redstone.stats.avgResponse')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('redstone.stats.avgResponse')}
+                      </span>
                       <span className="text-sm font-semibold text-green-600">
                         {networkStats?.avgResponseTime ?? 200}ms
                       </span>
@@ -326,24 +338,41 @@ export default function RedStonePage() {
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.providers.dataSources')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.providers.dataSources')}
+                  </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">{providers?.length || 4}</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.providers.activeSources')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.providers.activeSources')}
+                  </p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.providers.updateFrequency')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.providers.updateFrequency')}
+                  </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">~60s</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.providers.avgUpdateTime')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.providers.avgUpdateTime')}
+                  </p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.providers.dataQuality')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.providers.dataQuality')}
+                  </h4>
                   <p className="text-2xl font-bold text-green-600 mt-2">99.8%</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.providers.accuracyRate')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.providers.accuracyRate')}
+                  </p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.dataStreams.avgReputation')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.dataStreams.avgReputation')}
+                  </h4>
                   <p className="text-2xl font-bold text-blue-600 mt-2">
-                    {metrics?.avgProviderReputation ? (metrics.avgProviderReputation * 100).toFixed(1) : '93.5'}%
+                    {metrics?.avgProviderReputation
+                      ? (metrics.avgProviderReputation * 100).toFixed(1)
+                      : '93.5'}
+                    %
                   </p>
                   <p className="text-xs text-gray-600 mt-1">{t('redstone.providers.reputation')}</p>
                 </div>
@@ -372,7 +401,9 @@ export default function RedStonePage() {
                       className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
                       <option value="all">{t('redstone.providers.all')}</option>
-                      <option value="highReputation">{t('redstone.providers.highReputation')}</option>
+                      <option value="highReputation">
+                        {t('redstone.providers.highReputation')}
+                      </option>
                       <option value="mostData">{t('redstone.providers.mostData')}</option>
                     </select>
                   </div>
@@ -390,11 +421,14 @@ export default function RedStonePage() {
                         onClick={() => setSelectedProvider(provider)}
                       >
                         <div className="flex items-center gap-4">
-                          <span className="text-sm font-medium text-gray-400 w-6">#{index + 1}</span>
+                          <span className="text-sm font-medium text-gray-400 w-6">
+                            #{index + 1}
+                          </span>
                           <div>
                             <h4 className="font-semibold text-gray-900">{provider.name}</h4>
                             <p className="text-xs text-gray-500">
-                              {t('redstone.providers.dataPoints')}: {provider.dataPoints.toLocaleString()}
+                              {t('redstone.providers.dataPoints')}:{' '}
+                              {provider.dataPoints.toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -404,14 +438,26 @@ export default function RedStonePage() {
                               <span className="text-sm font-medium text-gray-900">
                                 {(provider.reputation * 100).toFixed(1)}%
                               </span>
-                              <span className="text-xs text-gray-500">{t('redstone.providers.reputation')}</span>
+                              <span className="text-xs text-gray-500">
+                                {t('redstone.providers.reputation')}
+                              </span>
                             </div>
                             <p className="text-xs text-gray-400">
                               {new Date(provider.lastUpdate).toLocaleTimeString()}
                             </p>
                           </div>
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -430,23 +476,39 @@ export default function RedStonePage() {
                         onClick={() => setSelectedProvider(null)}
                         className="text-gray-400 hover:text-gray-600"
                       >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-6 h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
                     <div className="space-y-4">
                       <div className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600">{t('redstone.providers.reputation')}</span>
-                        <span className="font-semibold">{(selectedProvider.reputation * 100).toFixed(1)}%</span>
+                        <span className="font-semibold">
+                          {(selectedProvider.reputation * 100).toFixed(1)}%
+                        </span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600">{t('redstone.providers.dataPoints')}</span>
-                        <span className="font-semibold">{selectedProvider.dataPoints.toLocaleString()}</span>
+                        <span className="font-semibold">
+                          {selectedProvider.dataPoints.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600">{t('redstone.providers.lastUpdate')}</span>
-                        <span className="font-semibold">{new Date(selectedProvider.lastUpdate).toLocaleString()}</span>
+                        <span className="font-semibold">
+                          {new Date(selectedProvider.lastUpdate).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between py-2">
                         <span className="text-gray-600">ID</span>
@@ -464,26 +526,34 @@ export default function RedStonePage() {
               {/* Data Stream Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.dataStreams.streamCount')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.dataStreams.streamCount')}
+                  </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">1,250+</p>
                   <p className="text-xs text-gray-600 mt-1">Active data streams</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.dataStreams.freshnessScore')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.dataStreams.freshnessScore')}
+                  </h4>
                   <p className="text-2xl font-bold text-green-600 mt-2">
                     {metrics?.dataFreshnessScore ? metrics.dataFreshnessScore.toFixed(1) : '98.5'}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">Out of 100</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.dataStreams.modularFee')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.dataStreams.modularFee')}
+                  </h4>
                   <p className="text-2xl font-bold text-blue-600 mt-2">
                     {metrics?.modularFee ? (metrics.modularFee * 100).toFixed(3) : '0.015'}%
                   </p>
                   <p className="text-xs text-gray-600 mt-1">Per update</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.dataStreams.providerCount')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.dataStreams.providerCount')}
+                  </h4>
                   <p className="text-2xl font-bold text-purple-600 mt-2">
                     {metrics?.providerCount || 18}
                   </p>
@@ -540,12 +610,16 @@ export default function RedStonePage() {
               {/* Cross Chain Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.crossChain.supportedChains')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.crossChain.supportedChains')}
+                  </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">{SUPPORTED_CHAINS.length}</p>
                   <p className="text-xs text-gray-600 mt-1">Active networks</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.stats.avgResponse')}</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.stats.avgResponse')}
+                  </h4>
                   <p className="text-2xl font-bold text-green-600 mt-2">75ms</p>
                   <p className="text-xs text-gray-600 mt-1">Average across chains</p>
                 </div>
@@ -565,7 +639,10 @@ export default function RedStonePage() {
               <DashboardCard title={t('redstone.crossChain.chainList')}>
                 <div className="space-y-3">
                   {SUPPORTED_CHAINS.map((chain, index) => (
-                    <div key={chain.chain} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div
+                      key={chain.chain}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex items-center gap-4">
                         <span className="text-sm font-medium text-gray-400 w-6">#{index + 1}</span>
                         <div>
@@ -578,19 +655,24 @@ export default function RedStonePage() {
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <div className="flex items-center gap-1">
-                            <span className="text-sm font-medium text-gray-900">{chain.latency}ms</span>
-                            <span className="text-xs text-gray-500">{t('redstone.crossChain.latency')}</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {chain.latency}ms
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {t('redstone.crossChain.latency')}
+                            </span>
                           </div>
                         </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          chain.status === 'active' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {chain.status === 'active' 
-                            ? t('redstone.crossChain.active') 
-                            : t('redstone.crossChain.inactive')
-                          }
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            chain.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {chain.status === 'active'
+                            ? t('redstone.crossChain.active')
+                            : t('redstone.crossChain.inactive')}
                         </span>
                       </div>
                     </div>
@@ -605,8 +687,12 @@ export default function RedStonePage() {
               {/* Ecosystem Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.integrations')}</h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">{ECOSYSTEM_INTEGRATIONS.length}+</p>
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {t('redstone.ecosystem.integrations')}
+                  </h4>
+                  <p className="text-2xl font-bold text-red-600 mt-2">
+                    {ECOSYSTEM_INTEGRATIONS.length}+
+                  </p>
                   <p className="text-xs text-gray-600 mt-1">Projects integrated</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
@@ -626,7 +712,8 @@ export default function RedStonePage() {
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">NFT & Gaming</h4>
                   <p className="text-2xl font-bold text-purple-600 mt-2">
-                    {(ecosystemByCategory.nft?.length || 2) + (ecosystemByCategory.gaming?.length || 0)}
+                    {(ecosystemByCategory.nft?.length || 2) +
+                      (ecosystemByCategory.gaming?.length || 0)}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">Projects</p>
                 </div>
@@ -634,13 +721,16 @@ export default function RedStonePage() {
 
               {/* Categorized Integrations */}
               {Object.entries(ecosystemByCategory).map(([category, items]) => (
-                <DashboardCard 
-                  key={category} 
+                <DashboardCard
+                  key={category}
                   title={t(`redstone.ecosystem.categories.${category}`)}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {items.map((integration, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div
+                        key={index}
+                        className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
                         <h4 className="font-semibold text-gray-900">{integration.name}</h4>
                         <p className="text-sm text-gray-600 mt-1">{integration.description}</p>
                         <span className="inline-block mt-2 text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded">

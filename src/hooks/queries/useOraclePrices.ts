@@ -26,13 +26,13 @@ export function useOraclePrices(params: OraclePricesParams = {}) {
       if (params.provider) searchParams.set('provider', params.provider);
       if (params.symbols) searchParams.set('symbols', params.symbols.join(','));
       if (params.chain) searchParams.set('chain', params.chain);
-      
+
       const response = await fetch(`/api/oracles?${searchParams.toString()}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch oracle prices');
       }
-      
+
       const data = await response.json();
       return data.prices || [];
     },

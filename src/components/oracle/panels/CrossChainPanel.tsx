@@ -18,7 +18,13 @@ import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton } from '../forms/DataExportButton';
 import { useI18n } from '@/lib/i18n/provider';
-import { chainColors, chartColors, baseColors, semanticColors, animationColors } from '@/lib/config/colors';
+import {
+  chainColors,
+  chartColors,
+  baseColors,
+  semanticColors,
+  animationColors,
+} from '@/lib/config/colors';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -533,7 +539,10 @@ export function CrossChainPanel({
                 tickFormatter={(value) => formatNumber(value)}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip t={t} />} cursor={{ fill: animationColors.fade.cursor }} />
+              <Tooltip
+                content={<CustomTooltip t={t} />}
+                cursor={{ fill: animationColors.fade.cursor }}
+              />
               <Bar
                 dataKey="value"
                 onClick={(data) => {

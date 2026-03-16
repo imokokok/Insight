@@ -360,9 +360,7 @@ function DimensionRadarChart({ dimensions }: { dimensions: DimensionScore[] }) {
         <h3 className="text-sm font-semibold text-gray-900">
           {t('confidenceScore.radarChart.title')}
         </h3>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {t('confidenceScore.radarChart.subtitle')}
-        </p>
+        <p className="text-xs text-gray-500 mt-0.5">{t('confidenceScore.radarChart.subtitle')}</p>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
@@ -404,9 +402,7 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
         <h3 className="text-sm font-semibold text-gray-900">
           {t('confidenceScore.details.title')}
         </h3>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {t('confidenceScore.details.subtitle')}
-        </p>
+        <p className="text-xs text-gray-500 mt-0.5">{t('confidenceScore.details.subtitle')}</p>
       </div>
 
       <div className="space-y-4">
@@ -450,8 +446,7 @@ function DimensionDetails({ dimensions }: { dimensions: DimensionScore[] }) {
                 {dim.details.unit}
               </span>
               <span>
-                {t('confidenceScore.details.benchmark')}: {dim.details.benchmark}{' '}
-                {dim.details.unit}
+                {t('confidenceScore.details.benchmark')}: {dim.details.benchmark} {dim.details.unit}
               </span>
             </div>
           </div>
@@ -465,7 +460,10 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
   const { t, locale } = useI18n();
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   return (
@@ -475,9 +473,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
           <h3 className="text-sm font-semibold text-gray-900">
             {t('confidenceScore.trend.title')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t('confidenceScore.trend.subtitle')}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('confidenceScore.trend.subtitle')}</p>
         </div>
       </div>
 
@@ -510,39 +506,27 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
                   </p>
                   <div className="space-y-1">
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.overall')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.overall')}:</span>
                       <span className="text-gray-900 font-semibold">{data.score.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.nodes')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.nodes')}:</span>
                       <span className="text-gray-900">{data.nodeScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.consensus')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.consensus')}:</span>
                       <span className="text-gray-900">{data.consensusScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.diversity')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.diversity')}:</span>
                       <span className="text-gray-900">{data.diversityScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.freshness')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.freshness')}:</span>
                       <span className="text-gray-900">{data.freshnessScore.toFixed(1)}</span>
                     </div>
                     <div className="flex justify-between gap-4 text-xs">
-                      <span className="text-gray-500">
-                        {t('confidenceScore.trend.accuracy')}:
-                      </span>
+                      <span className="text-gray-500">{t('confidenceScore.trend.accuracy')}:</span>
                       <span className="text-gray-900">{data.accuracyScore.toFixed(1)}</span>
                     </div>
                   </div>
@@ -582,21 +566,15 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
       <div className="flex items-center justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-blue-500" />
-          <span className="text-xs text-gray-500">
-            {t('confidenceScore.trend.overall')}
-          </span>
+          <span className="text-xs text-gray-500">{t('confidenceScore.trend.overall')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-purple-500" style={{ borderStyle: 'dashed' }} />
-          <span className="text-xs text-gray-500">
-            {t('confidenceScore.trend.consensus')}
-          </span>
+          <span className="text-xs text-gray-500">{t('confidenceScore.trend.consensus')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 bg-green-500" style={{ borderStyle: 'dashed' }} />
-          <span className="text-xs text-gray-500">
-            {t('confidenceScore.trend.accuracy')}
-          </span>
+          <span className="text-xs text-gray-500">{t('confidenceScore.trend.accuracy')}</span>
         </div>
       </div>
     </div>
@@ -687,9 +665,7 @@ export function ConfidenceScore({
   if (!data) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">
-          {t('confidenceScore.loading')}
-        </div>
+        <div className="text-gray-500">{t('confidenceScore.loading')}</div>
       </div>
     );
   }
@@ -698,12 +674,8 @@ export function ConfidenceScore({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            {t('confidenceScore.title')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('confidenceScore.subtitle')}
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900">{t('confidenceScore.title')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('confidenceScore.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">

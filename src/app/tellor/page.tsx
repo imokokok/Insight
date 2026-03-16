@@ -123,7 +123,12 @@ export default function TellorPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
           </svg>
         ),
       },
@@ -134,7 +139,12 @@ export default function TellorPage() {
         changeType: 'positive' as const,
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
       },
@@ -218,7 +228,9 @@ export default function TellorPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                      <span className="text-sm text-gray-600">{t('tellor.stats.circulatingSupply')}</span>
+                      <span className="text-sm text-gray-600">
+                        {t('tellor.stats.circulatingSupply')}
+                      </span>
                       <span className="text-sm font-semibold text-gray-900">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M TRB
                       </span>
@@ -235,21 +247,13 @@ export default function TellorPage() {
             </>
           )}
 
-          {activeTab === 'network' && networkHealth && (
-            <TellorNetworkPanel data={networkHealth} />
-          )}
+          {activeTab === 'network' && networkHealth && <TellorNetworkPanel data={networkHealth} />}
 
-          {activeTab === 'reporters' && reporters && (
-            <TellorReportersPanel data={reporters} />
-          )}
+          {activeTab === 'reporters' && reporters && <TellorReportersPanel data={reporters} />}
 
-          {activeTab === 'disputes' && disputes && (
-            <TellorDisputesPanel data={disputes} />
-          )}
+          {activeTab === 'disputes' && disputes && <TellorDisputesPanel data={disputes} />}
 
-          {activeTab === 'staking' && (
-            <TellorStakingCalculator />
-          )}
+          {activeTab === 'staking' && <TellorStakingCalculator />}
 
           {activeTab === 'price-stream' && priceStream.length > 0 && (
             <TellorPriceStreamPanel data={priceStream} />
@@ -263,13 +267,9 @@ export default function TellorPage() {
             <TellorMultiChainAggregationPanel data={multiChainAggregation} />
           )}
 
-          {activeTab === 'risk' && risk && (
-            <TellorRiskPanel data={risk} />
-          )}
+          {activeTab === 'risk' && risk && <TellorRiskPanel data={risk} />}
 
-          {activeTab === 'ecosystem' && ecosystem && (
-            <TellorEcosystemPanel data={ecosystem} />
-          )}
+          {activeTab === 'ecosystem' && ecosystem && <TellorEcosystemPanel data={ecosystem} />}
         </div>
       </main>
     </div>

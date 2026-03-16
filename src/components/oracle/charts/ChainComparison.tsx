@@ -583,7 +583,10 @@ export function ChainComparison({
                     tickFormatter={(value) => formatNumber(value)}
                     width={50}
                   />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={{ fill: animationColors.fade.cursor }}
+                  />
                   <Bar dataKey="value">
                     {requestChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -626,7 +629,10 @@ export function ChainComparison({
                       tickFormatter={(value) => value.toFixed(4)}
                       width={60}
                     />
-                    <Tooltip content={<GasTooltip />} cursor={{ fill: animationColors.fade.cursor }} />
+                    <Tooltip
+                      content={<GasTooltip />}
+                      cursor={{ fill: animationColors.fade.cursor }}
+                    />
                     <Bar dataKey="gasCost">
                       {gasChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -737,7 +743,10 @@ export function ChainComparison({
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
                     <PolarGrid stroke={chartColors.recharts.grid} />
-                    <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: chartColors.recharts.tick }} />
+                    <PolarAngleAxis
+                      dataKey="metric"
+                      tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                    />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
                     {extendedSelectedChains.map((chain, index) => (
                       <Radar

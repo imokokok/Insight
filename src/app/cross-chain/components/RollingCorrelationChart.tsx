@@ -140,8 +140,14 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     if (validPayload.length === 0) return null;
 
     return (
-      <div className="bg-white border p-3 min-w-[200px]" style={{ borderColor: baseColors.gray[200] }}>
-        <p className="text-xs mb-2 font-medium border-b pb-1" style={{ color: baseColors.gray[600], borderColor: baseColors.gray[100] }}>
+      <div
+        className="bg-white border p-3 min-w-[200px]"
+        style={{ borderColor: baseColors.gray[200] }}
+      >
+        <p
+          className="text-xs mb-2 font-medium border-b pb-1"
+          style={{ color: baseColors.gray[600], borderColor: baseColors.gray[100] }}
+        >
           {t('crossChain.dataPoint')} #{label}
         </p>
         {validPayload.map((entry, index: number) => {
@@ -151,7 +157,11 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
           const { width } = getStrokeStyle(entry.value);
           const isHighlighted = width > 2;
           return (
-            <div key={index} className="mb-1.5 pb-1.5 border-b last:border-0" style={{ borderColor: baseColors.gray[100] }}>
+            <div
+              key={index}
+              className="mb-1.5 pb-1.5 border-b last:border-0"
+              style={{ borderColor: baseColors.gray[100] }}
+            >
               <div className="flex items-center gap-2">
                 <span
                   className="w-3 h-0.5"
@@ -166,7 +176,10 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
               </div>
               <div
                 className="text-xs pl-5 font-mono"
-                style={{ color: isHighlighted ? baseColors.gray[900] : baseColors.gray[600], fontWeight: isHighlighted ? 600 : 400 }}
+                style={{
+                  color: isHighlighted ? baseColors.gray[900] : baseColors.gray[600],
+                  fontWeight: isHighlighted ? 600 : 400,
+                }}
               >
                 r = {Number(entry.value).toFixed(4)}
                 {isHighlighted && (
@@ -192,7 +205,10 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
     <div id="rolling" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-medium uppercase tracking-wide" style={{ color: baseColors.gray[900] }}>
+          <h3
+            className="text-sm font-medium uppercase tracking-wide"
+            style={{ color: baseColors.gray[900] }}
+          >
             {t('crossChain.rollingCorrelationChart')}
           </h3>
           <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
@@ -200,21 +216,25 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.windowSize')}:</span>
-          <div className="flex items-center gap-1 border" style={{ borderColor: baseColors.gray[200] }}>
+          <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+            {t('crossChain.windowSize')}:
+          </span>
+          <div
+            className="flex items-center gap-1 border"
+            style={{ borderColor: baseColors.gray[200] }}
+          >
             {WINDOW_SIZES.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setWindowSize(option.value)}
                 className={`px-3 py-1 text-xs transition-colors ${
-                  windowSize === option.value
-                    ? 'text-white'
-                    : 'border border-transparent'
+                  windowSize === option.value ? 'text-white' : 'border border-transparent'
                 }`}
                 style={{
-                  backgroundColor: windowSize === option.value ? baseColors.gray[900] : 'transparent',
+                  backgroundColor:
+                    windowSize === option.value ? baseColors.gray[900] : 'transparent',
                   color: windowSize === option.value ? baseColors.gray[50] : baseColors.gray[600],
-                  borderColor: windowSize === option.value ? baseColors.gray[900] : 'transparent'
+                  borderColor: windowSize === option.value ? baseColors.gray[900] : 'transparent',
                 }}
               >
                 {option.label}
@@ -224,7 +244,10 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         </div>
       </div>
 
-      <div className="p-4 border" style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}>
+      <div
+        className="p-4 border"
+        style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
+      >
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -242,7 +265,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                   position: 'insideBottom',
                   offset: -5,
                   fontSize: 12,
-                  fill: chartColors.recharts.tick
+                  fill: chartColors.recharts.tick,
                 }}
               />
               <YAxis
@@ -256,7 +279,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
                   angle: -90,
                   position: 'insideLeft',
                   fontSize: 12,
-                  fill: chartColors.recharts.tick
+                  fill: chartColors.recharts.tick,
                 }}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -314,18 +337,29 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
         {/* Legend for thresholds */}
         <div className="mt-4 flex items-center justify-center gap-6 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5" style={{ backgroundColor: semanticColors.success.main, height: '3px' }} />
+            <div
+              className="w-6 h-0.5"
+              style={{ backgroundColor: semanticColors.success.main, height: '3px' }}
+            />
             <span style={{ color: baseColors.gray[600] }}>
               |r| &gt; 0.8 ({t('crossChain.strongCorrelation')})
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5" style={{ backgroundColor: baseColors.gray[400], height: '1.5px' }} />
+            <div
+              className="w-6 h-0.5"
+              style={{ backgroundColor: baseColors.gray[400], height: '1.5px' }}
+            />
             <span style={{ color: baseColors.gray[600] }}>0.2 ≤ |r| ≤ 0.8</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5" style={{ backgroundColor: semanticColors.warning.main, height: '3px' }} />
-            <span style={{ color: baseColors.gray[600] }}>|r| &lt; 0.2 ({t('crossChain.weakCorrelation')})</span>
+            <div
+              className="w-6 h-0.5"
+              style={{ backgroundColor: semanticColors.warning.main, height: '3px' }}
+            />
+            <span style={{ color: baseColors.gray[600] }}>
+              |r| &lt; 0.2 ({t('crossChain.weakCorrelation')})
+            </span>
           </div>
         </div>
       </div>

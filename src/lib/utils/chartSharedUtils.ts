@@ -322,7 +322,7 @@ export const exportChartAsImage = async (
   const html2canvas = (await import('html2canvas')).default;
 
   const canvas = await html2canvas(chartRef.current, {
-    backgroundColor: configChartColors.recharts.white as any,
+    backgroundColor: configChartColors.recharts.white as string | null,
   });
 
   const link = document.createElement('a');

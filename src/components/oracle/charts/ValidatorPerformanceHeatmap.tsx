@@ -119,7 +119,10 @@ export function ValidatorPerformanceHeatmap() {
     return (
       <DashboardCard title={t('uma.validatorAnalytics.performanceHeatmap')}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin h-8 w-8 border-b-2" style={{ borderColor: baseColors.primary[600] }} />
+          <div
+            className="animate-spin h-8 w-8 border-b-2"
+            style={{ borderColor: baseColors.primary[600] }}
+          />
         </div>
       </DashboardCard>
     );
@@ -136,13 +139,12 @@ export function ValidatorPerformanceHeatmap() {
             <button
               onClick={() => setTimeRange('24H')}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                timeRange === '24H'
-                  ? 'text-white'
-                  : 'hover:bg-gray-200'
+                timeRange === '24H' ? 'text-white' : 'hover:bg-gray-200'
               }`}
               style={{
-                backgroundColor: timeRange === '24H' ? baseColors.primary[600] : baseColors.gray[100],
-                color: timeRange === '24H' ? 'white' : baseColors.gray[700]
+                backgroundColor:
+                  timeRange === '24H' ? baseColors.primary[600] : baseColors.gray[100],
+                color: timeRange === '24H' ? 'white' : baseColors.gray[700],
               }}
             >
               24H
@@ -150,13 +152,12 @@ export function ValidatorPerformanceHeatmap() {
             <button
               onClick={() => setTimeRange('7D')}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                timeRange === '7D'
-                  ? 'text-white'
-                  : 'hover:bg-gray-200'
+                timeRange === '7D' ? 'text-white' : 'hover:bg-gray-200'
               }`}
               style={{
-                backgroundColor: timeRange === '7D' ? baseColors.primary[600] : baseColors.gray[100],
-                color: timeRange === '7D' ? 'white' : baseColors.gray[700]
+                backgroundColor:
+                  timeRange === '7D' ? baseColors.primary[600] : baseColors.gray[100],
+                color: timeRange === '7D' ? 'white' : baseColors.gray[700],
               }}
             >
               7D
@@ -165,13 +166,12 @@ export function ValidatorPerformanceHeatmap() {
             <button
               onClick={() => setViewMode('responseTime')}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                viewMode === 'responseTime'
-                  ? 'text-white'
-                  : 'hover:bg-gray-200'
+                viewMode === 'responseTime' ? 'text-white' : 'hover:bg-gray-200'
               }`}
               style={{
-                backgroundColor: viewMode === 'responseTime' ? baseColors.primary[600] : baseColors.gray[100],
-                color: viewMode === 'responseTime' ? 'white' : baseColors.gray[700]
+                backgroundColor:
+                  viewMode === 'responseTime' ? baseColors.primary[600] : baseColors.gray[100],
+                color: viewMode === 'responseTime' ? 'white' : baseColors.gray[700],
               }}
             >
               {t('uma.validatorAnalytics.responseTime')}
@@ -179,13 +179,12 @@ export function ValidatorPerformanceHeatmap() {
             <button
               onClick={() => setViewMode('successRate')}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                viewMode === 'successRate'
-                  ? 'text-white'
-                  : 'hover:bg-gray-200'
+                viewMode === 'successRate' ? 'text-white' : 'hover:bg-gray-200'
               }`}
               style={{
-                backgroundColor: viewMode === 'successRate' ? baseColors.primary[600] : baseColors.gray[100],
-                color: viewMode === 'successRate' ? 'white' : baseColors.gray[700]
+                backgroundColor:
+                  viewMode === 'successRate' ? baseColors.primary[600] : baseColors.gray[100],
+                color: viewMode === 'successRate' ? 'white' : baseColors.gray[700],
               }}
             >
               {t('uma.validatorAnalytics.successRate')}
@@ -194,7 +193,10 @@ export function ValidatorPerformanceHeatmap() {
 
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.success.DEFAULT }} />
+              <div
+                className="w-3 h-3 rounded"
+                style={{ backgroundColor: semanticColors.success.DEFAULT }}
+              />
               <span style={{ color: baseColors.gray[600] }}>
                 {viewMode === 'responseTime'
                   ? t('uma.validatorAnalytics.legend.responseTimeExcellent')
@@ -202,7 +204,10 @@ export function ValidatorPerformanceHeatmap() {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
+              <div
+                className="w-3 h-3 rounded"
+                style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+              />
               <span style={{ color: baseColors.gray[600] }}>
                 {viewMode === 'responseTime'
                   ? t('uma.validatorAnalytics.legend.responseTimeGood')
@@ -210,7 +215,10 @@ export function ValidatorPerformanceHeatmap() {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
+              <div
+                className="w-3 h-3 rounded"
+                style={{ backgroundColor: semanticColors.danger.DEFAULT }}
+              />
               <span style={{ color: baseColors.gray[600] }}>
                 {viewMode === 'responseTime'
                   ? t('uma.validatorAnalytics.legend.responseTimePoor')
@@ -248,7 +256,10 @@ export function ValidatorPerformanceHeatmap() {
               {timeRange === '24H'
                 ? data.map((validator) => (
                     <div key={validator.validatorId} className="flex items-center gap-2">
-                      <div className="w-32 text-sm truncate" style={{ color: baseColors.gray[700] }}>
+                      <div
+                        className="w-32 text-sm truncate"
+                        style={{ color: baseColors.gray[700] }}
+                      >
                         {validator.validatorName}
                       </div>
                       <div className="flex-1 flex gap-0.5">
@@ -281,7 +292,10 @@ export function ValidatorPerformanceHeatmap() {
                   ))
                 : dataByDay.map((validator) => (
                     <div key={validator.validatorId} className="flex items-center gap-2">
-                      <div className="w-32 text-sm truncate" style={{ color: baseColors.gray[700] }}>
+                      <div
+                        className="w-32 text-sm truncate"
+                        style={{ color: baseColors.gray[700] }}
+                      >
                         {validator.validatorName}
                       </div>
                       <div className="flex-1 flex gap-0.5">

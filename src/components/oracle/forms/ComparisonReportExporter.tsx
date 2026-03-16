@@ -293,9 +293,17 @@ export function ComparisonReportExporter({
       {/* 导出选项模态框 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full mx-4" style={{ boxShadow: shadowColors.medium }}>
-            <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: baseColors.gray[100] }}>
-              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>导出对比报告</h3>
+          <div
+            className="bg-white rounded-lg max-w-md w-full mx-4"
+            style={{ boxShadow: shadowColors.medium }}
+          >
+            <div
+              className="flex items-center justify-between px-6 py-4 border-b"
+              style={{ borderColor: baseColors.gray[100] }}
+            >
+              <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
+                导出对比报告
+              </h3>
               <button
                 onClick={() => setShowModal(false)}
                 style={{ color: baseColors.gray[400] }}
@@ -329,7 +337,10 @@ export function ComparisonReportExporter({
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <div className="p-2 rounded" style={{ backgroundColor: semanticColors.success.light }}>
+                  <div
+                    className="p-2 rounded"
+                    style={{ backgroundColor: semanticColors.success.light }}
+                  >
                     <svg
                       className="w-6 h-6"
                       fill="none"
@@ -345,8 +356,12 @@ export function ComparisonReportExporter({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>导出为 CSV</p>
-                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>适用于 Excel 或数据分析</p>
+                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      导出为 CSV
+                    </p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>
+                      适用于 Excel 或数据分析
+                    </p>
                   </div>
                 </button>
 
@@ -388,7 +403,9 @@ export function ComparisonReportExporter({
                     <p className="font-medium" style={{ color: baseColors.gray[900] }}>
                       {isExporting ? '导出中...' : '导出为 PNG'}
                     </p>
-                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>保存为图片格式</p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>
+                      保存为图片格式
+                    </p>
                   </div>
                 </button>
 
@@ -424,14 +441,21 @@ export function ComparisonReportExporter({
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>导出为 JSON</p>
-                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>适用于程序处理</p>
+                    <p className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      导出为 JSON
+                    </p>
+                    <p className="text-sm" style={{ color: baseColors.gray[500] }}>
+                      适用于程序处理
+                    </p>
                   </div>
                 </button>
               </div>
             </div>
 
-            <div className="px-6 py-4 rounded-b-lg" style={{ backgroundColor: baseColors.gray[50] }}>
+            <div
+              className="px-6 py-4 rounded-b-lg"
+              style={{ backgroundColor: baseColors.gray[50] }}
+            >
               <button
                 onClick={() => setShowModal(false)}
                 className="w-full px-4 py-2 rounded-lg transition-colors"

@@ -135,15 +135,21 @@ export function BollingerBands({
             <span className="text-sm font-mono font-medium">${data.price.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm" style={{ color: semanticColors.danger.DEFAULT }}>上轨:</span>
+            <span className="text-sm" style={{ color: semanticColors.danger.DEFAULT }}>
+              上轨:
+            </span>
             <span className="text-sm font-mono">${data.upper.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm" style={{ color: chartColors.recharts.tick }}>中轨:</span>
+            <span className="text-sm" style={{ color: chartColors.recharts.tick }}>
+              中轨:
+            </span>
             <span className="text-sm font-mono">${data.middle.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm" style={{ color: semanticColors.success.DEFAULT }}>下轨:</span>
+            <span className="text-sm" style={{ color: semanticColors.success.DEFAULT }}>
+              下轨:
+            </span>
             <span className="text-sm font-mono">${data.lower.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -187,10 +193,14 @@ export function BollingerBands({
               {statistics.currentBandwidth.toFixed(2)}%
             </p>
             {statistics.squeeze && (
-              <p className="text-xs" style={{ color: semanticColors.warning.DEFAULT }}>挤压</p>
+              <p className="text-xs" style={{ color: semanticColors.warning.DEFAULT }}>
+                挤压
+              </p>
             )}
             {statistics.expansion && (
-              <p className="text-xs" style={{ color: semanticColors.danger.DEFAULT }}>扩张</p>
+              <p className="text-xs" style={{ color: semanticColors.danger.DEFAULT }}>
+                扩张
+              </p>
             )}
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -228,7 +238,11 @@ export function BollingerBands({
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.recharts.grid}
+              strokeOpacity={0.5}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={formatTime}
@@ -349,8 +363,15 @@ export function BollingerBands({
           <p className="text-sm font-medium text-gray-700 mb-2">带宽指标 (Bandwidth)</p>
           <div style={{ height: 100 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={processedData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.3} />
+              <ComposedChart
+                data={processedData}
+                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={chartColors.recharts.grid}
+                  strokeOpacity={0.3}
+                />
                 <XAxis
                   dataKey="timestamp"
                   tickFormatter={formatTime}

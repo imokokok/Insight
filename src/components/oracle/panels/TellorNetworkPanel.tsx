@@ -34,7 +34,9 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
   return (
     <div className="space-y-6">
       {/* Overall Health */}
-      <div className={`p-6 rounded-lg border-2 ${data.overallHealth >= 90 ? 'border-green-200 bg-green-50' : data.overallHealth >= 70 ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}`}>
+      <div
+        className={`p-6 rounded-lg border-2 ${data.overallHealth >= 90 ? 'border-green-200 bg-green-50' : data.overallHealth >= 70 ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}`}
+      >
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">{t('tellor.network.overallHealth')}</h3>
@@ -81,14 +83,19 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
         <DashboardCard title={t('tellor.network.chainActivity')}>
           <div className="py-4 space-y-3">
             {data.chainActivity.map((chain) => (
-              <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={chain.chain}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <span className="font-medium text-gray-900">{getChainLabel(chain.chain)}</span>
                 </div>
                 <div className="flex items-center gap-6 text-sm">
                   <div className="text-right">
                     <p className="text-gray-500">{t('tellor.network.updates24h')}</p>
-                    <p className="font-semibold text-gray-900">{chain.updates24h.toLocaleString()}</p>
+                    <p className="font-semibold text-gray-900">
+                      {chain.updates24h.toLocaleString()}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-gray-500">{t('tellor.network.avgLatency')}</p>
@@ -124,7 +131,13 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
               <div className="grid grid-cols-24 gap-1">
                 {data.updateFrequencyHeatmap.map((point, index) => {
                   const intensity = Math.floor(point.intensity * 4);
-                  const colors = ['bg-gray-100', 'bg-cyan-200', 'bg-cyan-400', 'bg-cyan-600', 'bg-cyan-800'];
+                  const colors = [
+                    'bg-gray-100',
+                    'bg-cyan-200',
+                    'bg-cyan-400',
+                    'bg-cyan-600',
+                    'bg-cyan-800',
+                  ];
                   return (
                     <div
                       key={index}
@@ -148,9 +161,11 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
           <div className="flex items-center justify-end gap-2 mt-4">
             <span className="text-xs text-gray-500">{t('tellor.network.low')}</span>
             <div className="flex gap-1">
-              {['bg-gray-100', 'bg-cyan-200', 'bg-cyan-400', 'bg-cyan-600', 'bg-cyan-800'].map((color, i) => (
-                <div key={i} className={`w-4 h-4 rounded ${color}`} />
-              ))}
+              {['bg-gray-100', 'bg-cyan-200', 'bg-cyan-400', 'bg-cyan-600', 'bg-cyan-800'].map(
+                (color, i) => (
+                  <div key={i} className={`w-4 h-4 rounded ${color}`} />
+                )
+              )}
             </div>
             <span className="text-xs text-gray-500">{t('tellor.network.high')}</span>
           </div>

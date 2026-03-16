@@ -1,5 +1,11 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { WINkLinkClient, TRONEcosystem, NodeStakingData, GamingData, WINkLinkRiskMetrics } from '@/lib/oracles';
+import {
+  WINkLinkClient,
+  TRONEcosystem,
+  NodeStakingData,
+  GamingData,
+  WINkLinkRiskMetrics,
+} from '@/lib/oracles';
 import { Blockchain } from '@/types/oracle';
 import { useMemo } from 'react';
 
@@ -115,8 +121,15 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
     ],
   });
 
-  const [priceResult, historicalResult, tronResult, stakingResult, gamingResult, networkResult, riskResult] =
-    results;
+  const [
+    priceResult,
+    historicalResult,
+    tronResult,
+    stakingResult,
+    gamingResult,
+    networkResult,
+    riskResult,
+  ] = results;
 
   const isLoading = results.some((r) => r.isLoading);
   const isError = results.some((r) => r.isError);

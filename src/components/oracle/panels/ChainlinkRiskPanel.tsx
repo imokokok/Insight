@@ -1,12 +1,8 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import {
-  DashboardCard,
-  DataFreshnessIndicator,
-  RiskScoreCard,
-} from '@/components/oracle/common';
+import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
   getScoreColor,
@@ -132,10 +128,19 @@ export function ChainlinkRiskPanel() {
   const riskLevel = getRiskLevel(overallScore);
   const scoreTrendData = useMemo(() => generateScoreTrendData(), []);
 
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
-    // 模拟数据刷新
-    setTimeout(() => {
+    refreshTimerRef.current = setTimeout(() => {
       setLastUpdated(new Date());
       setIsLoading(false);
     }, 1000);
@@ -152,9 +157,14 @@ export function ChainlinkRiskPanel() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DashboardCard title={t('chainlink.riskAssessment.overallRiskScore')} className="lg:col-span-1">
+        <DashboardCard
+          title={t('chainlink.riskAssessment.overallRiskScore')}
+          className="lg:col-span-1"
+        >
           <div className="text-center py-6">
-            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+            <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>
+              {overallScore}
+            </div>
             <div className="text-sm text-gray-500 mt-2">
               {t('chainlink.riskAssessment.comprehensiveAssessment')}
             </div>
@@ -166,7 +176,10 @@ export function ChainlinkRiskPanel() {
           </div>
         </DashboardCard>
 
-        <DashboardCard title={t('chainlink.riskAssessment.dimensionScores')} className="lg:col-span-2">
+        <DashboardCard
+          title={t('chainlink.riskAssessment.dimensionScores')}
+          className="lg:col-span-2"
+        >
           <div className="space-y-4">
             {riskMetrics.map((metric) => (
               <div key={metric.name}>
@@ -200,7 +213,11 @@ export function ChainlinkRiskPanel() {
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis domain={[85, 100]} tick={{ fontSize: 12 }} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                }}
                 formatter={(value: number) => [value.toFixed(1), '']}
               />
               <Line
@@ -235,11 +252,15 @@ export function ChainlinkRiskPanel() {
         <div className="flex justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-blue-500"></span>
-            <span className="text-sm text-gray-600">{t('chainlink.riskAssessment.overallScore')}</span>
+            <span className="text-sm text-gray-600">
+              {t('chainlink.riskAssessment.overallScore')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-green-500 border-dashed"></span>
-            <span className="text-sm text-gray-600">{t('chainlink.riskAssessment.decentralization')}</span>
+            <span className="text-sm text-gray-600">
+              {t('chainlink.riskAssessment.decentralization')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-yellow-500 border-dashed"></span>
@@ -260,11 +281,15 @@ export function ChainlinkRiskPanel() {
                 <span className="font-medium text-gray-900">12.5%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.top50NodesShare')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.top50NodesShare')}
+                </span>
                 <span className="font-medium text-gray-900">38.2%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.giniCoefficient')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.giniCoefficient')}
+                </span>
                 <span className="font-medium text-green-600">0.42</span>
               </div>
             </div>
@@ -276,11 +301,15 @@ export function ChainlinkRiskPanel() {
             </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.criticalNodeRedundancy')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.criticalNodeRedundancy')}
+                </span>
                 <span className="font-medium text-green-600">3x</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.dataSourceDiversity')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.dataSourceDiversity')}
+                </span>
                 <span className="font-medium text-green-600">15+ sources</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -295,7 +324,10 @@ export function ChainlinkRiskPanel() {
       <DashboardCard title={t('chainlink.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
-            <div key={index} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
+            <div
+              key={index}
+              className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+            >
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
@@ -326,9 +358,17 @@ export function ChainlinkRiskPanel() {
             { service: 'Functions', availability: 99.95, incidents: 0, riskLevel: 'low' as const },
             { service: 'Automation', availability: 99.98, incidents: 0, riskLevel: 'low' as const },
             { service: 'VRF', availability: 99.96, incidents: 0, riskLevel: 'low' as const },
-            { service: 'Proof of Reserve', availability: 99.99, incidents: 0, riskLevel: 'low' as const },
+            {
+              service: 'Proof of Reserve',
+              availability: 99.99,
+              incidents: 0,
+              riskLevel: 'low' as const,
+            },
           ].map((service) => (
-            <div key={service.service} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              key={service.service}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium text-gray-900 w-32">{service.service}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -343,7 +383,9 @@ export function ChainlinkRiskPanel() {
                 <span className="text-sm text-gray-600">
                   {service.incidents > 0 ? `${service.incidents} incidents` : 'No incidents'}
                 </span>
-                <span className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(service.riskLevel)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(service.riskLevel)}`}
+                >
                   {t(`chainlink.riskAssessment.riskLevel.${service.riskLevel}`)}
                 </span>
               </div>
@@ -355,7 +397,9 @@ export function ChainlinkRiskPanel() {
       <DashboardCard title={t('chainlink.riskAssessment.serviceRiskFactors')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.riskAssessment.ccipRisks')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('chainlink.riskAssessment.ccipRisks')}
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{t('chainlink.riskAssessment.rmnCoverage')}</span>
@@ -366,25 +410,35 @@ export function ChainlinkRiskPanel() {
                 <span className="font-medium text-green-600">Enabled</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.circuitBreakers')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.circuitBreakers')}
+                </span>
                 <span className="font-medium text-green-600">Active</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.riskAssessment.vrfRisks')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('chainlink.riskAssessment.vrfRisks')}
+            </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.cryptographicSecurity')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.cryptographicSecurity')}
+                </span>
                 <span className="font-medium text-green-600">256-bit</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.onChainVerification')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.onChainVerification')}
+                </span>
                 <span className="font-medium text-green-600">100%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('chainlink.riskAssessment.blockHashDependency')}</span>
+                <span className="text-gray-600">
+                  {t('chainlink.riskAssessment.blockHashDependency')}
+                </span>
                 <span className="font-medium text-yellow-600">Medium</span>
               </div>
             </div>
@@ -398,7 +452,9 @@ export function ChainlinkRiskPanel() {
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}
+                >
                   {t(`chainlink.riskAssessment.${measure.status}`)}
                 </span>
               </div>

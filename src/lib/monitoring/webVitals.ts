@@ -25,7 +25,7 @@ const sendToAnalytics = (metric: WebVitalMetric) => {
   if (process.env.NODE_ENV === 'development') {
     console.log('[WebVital]', metric.name, metric.value, metric.rating);
   }
-  
+
   Sentry.metrics.distribution(metric.name, metric.value);
 };
 
@@ -37,7 +37,7 @@ const handleMetric = (metric: Metric) => {
     delta: metric.delta,
     id: metric.id,
   };
-  
+
   handlers.forEach((handler) => handler(webVitalMetric));
   sendToAnalytics(webVitalMetric);
 };
@@ -49,7 +49,7 @@ export const reportMetric = (metric: WebVitalMetric) => {
 
 export const initWebVitals = () => {
   if (typeof window === 'undefined') return;
-  
+
   onCLS(handleMetric);
   onINP(handleMetric);
   onLCP(handleMetric);

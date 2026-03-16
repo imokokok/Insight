@@ -66,8 +66,7 @@ export function ATRIndicator({
         atrSum += atrData[i].tr;
         atrData[i].atrValue = atrSum / (i + 1);
       } else {
-        atrData[i].atrValue =
-          (atrData[i - 1].atrValue * (period - 1) + atrData[i].tr) / period;
+        atrData[i].atrValue = (atrData[i - 1].atrValue * (period - 1) + atrData[i].tr) / period;
       }
     }
 
@@ -112,7 +111,10 @@ export function ATRIndicator({
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-4">
             <span className="text-sm text-gray-600">ATR:</span>
-            <span className="text-sm font-mono font-medium" style={{ color: chartColors.recharts.chainlink }}>
+            <span
+              className="text-sm font-mono font-medium"
+              style={{ color: chartColors.recharts.chainlink }}
+            >
               {data.atrValue.toFixed(4)}
             </span>
           </div>
@@ -183,7 +185,11 @@ export function ATRIndicator({
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={processedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} strokeOpacity={0.5} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartColors.recharts.grid}
+              strokeOpacity={0.5}
+            />
             <XAxis
               dataKey="timestamp"
               tickFormatter={formatTime}
@@ -240,12 +246,7 @@ export function ATRIndicator({
             )}
 
             {/* True Range bars */}
-            <Bar
-              dataKey="tr"
-              fill={baseColors.gray[200]}
-              opacity={0.3}
-              name="True Range"
-            />
+            <Bar dataKey="tr" fill={baseColors.gray[200]} opacity={0.3} name="True Range" />
 
             {/* ATR line */}
             <Line
@@ -263,10 +264,7 @@ export function ATRIndicator({
       {/* Legend */}
       <div className="flex items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <div
-            className="w-4 h-0.5"
-            style={{ backgroundColor: chartColors.recharts.chainlink }}
-          />
+          <div className="w-4 h-0.5" style={{ backgroundColor: chartColors.recharts.chainlink }} />
           <span className="text-gray-600">ATR ({period})</span>
         </div>
         <div className="flex items-center gap-2">

@@ -206,45 +206,79 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
   const { name, stats, color } = payload[0].payload;
 
   return (
-    <div className="bg-white border border-gray-200 p-4 max-w-xs" style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}>
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b" style={{ borderColor: baseColors.gray[100] }}>
+    <div
+      className="bg-white border border-gray-200 p-4 max-w-xs"
+      style={{ boxShadow: `0 4px 6px -1px ${baseColors.gray[900]}1A` }}
+    >
+      <div
+        className="flex items-center gap-2 mb-3 pb-2 border-b"
+        style={{ borderColor: baseColors.gray[100] }}
+      >
         <div className="w-3 h-3" style={{ backgroundColor: color }} />
-        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>{name}</span>
+        <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
+          {name}
+        </span>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.max')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.max.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.max.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.upperWhisker')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.whiskerMax.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>
+            {t('priceDistribution.tooltip.upperWhisker')}:
+          </span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.whiskerMax.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.q3')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.q3.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.q3.toFixed(4)}
+          </span>
         </div>
-        <div className="flex justify-between gap-4 -mx-2 px-2 py-1 rounded" style={{ backgroundColor: baseColors.primary[50] }}>
+        <div
+          className="flex justify-between gap-4 -mx-2 px-2 py-1 rounded"
+          style={{ backgroundColor: baseColors.primary[50] }}
+        >
           <span className="font-medium" style={{ color: baseColors.primary[700] }}>
             {t('priceDistribution.tooltip.median')}:
           </span>
-          <span className="font-mono font-semibold" style={{ color: baseColors.primary[700] }}>${stats.median.toFixed(4)}</span>
+          <span className="font-mono font-semibold" style={{ color: baseColors.primary[700] }}>
+            ${stats.median.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.q1')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.q1.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.q1.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
-          <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.lowerWhisker')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.whiskerMin.toFixed(4)}</span>
+          <span style={{ color: baseColors.gray[500] }}>
+            {t('priceDistribution.tooltip.lowerWhisker')}:
+          </span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.whiskerMin.toFixed(4)}
+          </span>
         </div>
         <div className="flex justify-between gap-4">
           <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.min')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.min.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.min.toFixed(4)}
+          </span>
         </div>
-        <div className="flex justify-between gap-4 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+        <div
+          className="flex justify-between gap-4 pt-2"
+          style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}
+        >
           <span style={{ color: baseColors.gray[500] }}>{t('priceDistribution.tooltip.iqr')}:</span>
-          <span className="font-mono" style={{ color: baseColors.gray[900] }}>${stats.iqr.toFixed(4)}</span>
+          <span className="font-mono" style={{ color: baseColors.gray[900] }}>
+            ${stats.iqr.toFixed(4)}
+          </span>
         </div>
         {stats.outliers.length > 0 && (
           <div className="pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
@@ -256,13 +290,18 @@ function CustomTooltip({ active, payload, t }: CustomTooltipProps) {
                 {stats.outliers.length} {t('priceDistribution.tooltip.outlierCount')}
               </span>
             </div>
-            <div className="text-xs max-h-20 overflow-y-auto" style={{ color: baseColors.gray[500] }}>
+            <div
+              className="text-xs max-h-20 overflow-y-auto"
+              style={{ color: baseColors.gray[500] }}
+            >
               {stats.outliers.slice(0, 5).map((v, i) => (
                 <span key={i} className="inline-block mr-2">
                   ${v.toFixed(2)}
                 </span>
               ))}
-              {stats.outliers.length > 5 && <span style={{ color: baseColors.gray[400] }}>...</span>}
+              {stats.outliers.length > 5 && (
+                <span style={{ color: baseColors.gray[400] }}>...</span>
+              )}
             </div>
           </div>
         )}
@@ -362,7 +401,11 @@ export function PriceDistributionBoxPlot({
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartColors.recharts.grid}
+                vertical={false}
+              />
               <XAxis
                 dataKey="x"
                 type="number"
@@ -421,20 +464,40 @@ export function PriceDistributionBoxPlot({
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 border-2 rounded-sm" style={{ borderColor: baseColors.primary[500], backgroundColor: baseColors.primary[100] }} />
-              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.box')}</span>
+              <div
+                className="w-6 h-4 border-2 rounded-sm"
+                style={{
+                  borderColor: baseColors.primary[500],
+                  backgroundColor: baseColors.primary[100],
+                }}
+              />
+              <span style={{ color: baseColors.gray[600] }}>
+                {t('priceDistribution.legend.box')}
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-0.5" style={{ height: '3px', backgroundColor: baseColors.primary[500] }} />
-              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.median')}</span>
+              <div
+                className="w-6 h-0.5"
+                style={{ height: '3px', backgroundColor: baseColors.primary[500] }}
+              />
+              <span style={{ color: baseColors.gray[600] }}>
+                {t('priceDistribution.legend.median')}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-0.5 h-4" style={{ backgroundColor: baseColors.primary[500] }} />
-              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.whisker')}</span>
+              <span style={{ color: baseColors.gray[600] }}>
+                {t('priceDistribution.legend.whisker')}
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2" style={{ backgroundColor: semanticColors.warning.DEFAULT }} />
-              <span style={{ color: baseColors.gray[600] }}>{t('priceDistribution.legend.outlier')}</span>
+              <div
+                className="w-2 h-2"
+                style={{ backgroundColor: semanticColors.warning.DEFAULT }}
+              />
+              <span style={{ color: baseColors.gray[600] }}>
+                {t('priceDistribution.legend.outlier')}
+              </span>
             </div>
           </div>
         </div>

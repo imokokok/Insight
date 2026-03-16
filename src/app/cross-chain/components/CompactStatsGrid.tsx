@@ -32,23 +32,25 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
           className="text-xs px-3 py-1.5 border transition-colors hover:bg-gray-50"
           style={{ borderColor: baseColors.gray[300], color: baseColors.gray[600] }}
         >
-          {showAll ? (t('crossChain.collapse') || '收起') : (t('crossChain.viewAll') || '查看全部')}
+          {showAll ? t('crossChain.collapse') || '收起' : t('crossChain.viewAll') || '查看全部'}
           <span className="ml-1" style={{ color: baseColors.gray[400] }}>
             ({coreStats.length}/{statsData.length})
           </span>
         </button>
       </div>
 
-      <div className={`grid gap-3 transition-all duration-300 ${
-        showAll 
-          ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6' 
-          : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
-      }`}>
+      <div
+        className={`grid gap-3 transition-all duration-300 ${
+          showAll
+            ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
+            : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
+        }`}
+      >
         {displayStats.map((stat, index) => (
           <div
             key={index}
             className="px-3 py-3 border"
-            style={{ 
+            style={{
               borderColor: baseColors.gray[200],
               backgroundColor: 'white',
             }}
@@ -72,10 +74,7 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
               {stat.value}
             </div>
             {stat.subValue && (
-              <div
-                className="text-[10px] mt-0.5 truncate"
-                style={{ color: baseColors.gray[400] }}
-              >
+              <div className="text-[10px] mt-0.5 truncate" style={{ color: baseColors.gray[400] }}>
                 {stat.subValue}
               </div>
             )}

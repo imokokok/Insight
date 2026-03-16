@@ -393,7 +393,12 @@ export function useStakingCalculator(options: UseStakingCalculatorOptions) {
       isActiveReporter: options.isActiveReporter,
       disputeParticipation: options.disputeParticipation,
     });
-  }, [options.stakeAmount, options.duration, options.isActiveReporter, options.disputeParticipation]);
+  }, [
+    options.stakeAmount,
+    options.duration,
+    options.isActiveReporter,
+    options.disputeParticipation,
+  ]);
 
   return calculation;
 }

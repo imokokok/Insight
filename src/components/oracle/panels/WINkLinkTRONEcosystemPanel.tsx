@@ -2,7 +2,18 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { TRONEcosystem, TRONDApp, TRONNetworkGrowth } from '@/lib/oracles/winklink';
-import { Globe, Zap, Users, Activity, Gamepad2, Coins, Image, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  Globe,
+  Zap,
+  Users,
+  Activity,
+  Gamepad2,
+  Coins,
+  Image,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+} from 'lucide-react';
 
 interface WINkLinkTRONEcosystemPanelProps {
   data: TRONEcosystem & {
@@ -184,29 +195,54 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.month')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.transactions')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.accounts')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.tvl')}</th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.growth')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('winklink.tron.month')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('winklink.tron.transactions')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('winklink.tron.accounts')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('winklink.tron.tvl')}
+                  </th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('winklink.tron.growth')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {data.networkGrowth.map((month, index) => {
                   const prevMonth = index > 0 ? data.networkGrowth![index - 1] : null;
-                  const tvlGrowth = prevMonth ? ((month.tvl - prevMonth.tvl) / prevMonth.tvl * 100).toFixed(1) : '0';
+                  const tvlGrowth = prevMonth
+                    ? (((month.tvl - prevMonth.tvl) / prevMonth.tvl) * 100).toFixed(1)
+                    : '0';
                   const isPositive = parseFloat(tvlGrowth) >= 0;
                   return (
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-2 px-3 text-sm text-gray-900">{month.month}</td>
-                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatNumber(month.transactions)}</td>
-                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatNumber(month.accounts)}</td>
-                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatCurrency(month.tvl)}</td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">
+                        {formatNumber(month.transactions)}
+                      </td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">
+                        {formatNumber(month.accounts)}
+                      </td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">
+                        {formatCurrency(month.tvl)}
+                      </td>
                       <td className="py-2 px-3 text-center">
                         {index > 0 && (
-                          <span className={`inline-flex items-center gap-1 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                            {isPositive ? '+' : ''}{tvlGrowth}%
+                          <span
+                            className={`inline-flex items-center gap-1 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}
+                          >
+                            {isPositive ? (
+                              <TrendingUp className="w-3 h-3" />
+                            ) : (
+                              <TrendingDown className="w-3 h-3" />
+                            )}
+                            {isPositive ? '+' : ''}
+                            {tvlGrowth}%
                           </span>
                         )}
                       </td>
@@ -232,7 +268,9 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             <div className="text-center py-4">
               <p className="text-3xl font-bold text-blue-600">{data.marketShare.integratedDapps}</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integratedDapps')}</p>
-              <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.outOf')} {data.marketShare.totalDapps}</p>
+              <p className="text-sm text-gray-600 mt-2">
+                {t('winklink.tron.outOf')} {data.marketShare.totalDapps}
+              </p>
             </div>
             <div className="text-center py-4">
               <p className="text-3xl font-bold text-green-600">{data.integrationCoverage}%</p>

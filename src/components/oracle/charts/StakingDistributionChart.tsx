@@ -52,8 +52,17 @@ const CustomTooltip = ({ active, payload, t }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded p-3" style={{ backgroundColor: baseColors.gray[50], border: `1px solid ${baseColors.gray[200]}`, boxShadow: shadowColors.tooltip }}>
-        <p className="font-medium" style={{ color: baseColors.gray[900] }}>{data.name}</p>
+      <div
+        className="rounded p-3"
+        style={{
+          backgroundColor: baseColors.gray[50],
+          border: `1px solid ${baseColors.gray[200]}`,
+          boxShadow: shadowColors.tooltip,
+        }}
+      >
+        <p className="font-medium" style={{ color: baseColors.gray[900] }}>
+          {data.name}
+        </p>
         <p className="text-sm mt-1" style={{ color: baseColors.gray[600] }}>
           {t('stakingDistribution.stakeAmount')}: {formatNumber(data.value, true)} BAND
         </p>
@@ -61,7 +70,9 @@ const CustomTooltip = ({ active, payload, t }: CustomTooltipProps) => {
           {t('stakingDistribution.ratio')}: {data.percentage.toFixed(2)}%
         </p>
         {data.validator && (
-          <p className="text-xs mt-1" style={{ color: baseColors.gray[400] }}>{t('stakingDistribution.clickForDetails')}</p>
+          <p className="text-xs mt-1" style={{ color: baseColors.gray[400] }}>
+            {t('stakingDistribution.clickForDetails')}
+          </p>
         )}
       </div>
     );
@@ -242,7 +253,14 @@ export function StakingDistributionChart({
           </div>
 
           <div className="space-y-4">
-            <div className="rounded p-4" style={{ borderWidth: 2, borderColor: riskConfig.borderColor, backgroundColor: riskConfig.bgColor }}>
+            <div
+              className="rounded p-4"
+              style={{
+                borderWidth: 2,
+                borderColor: riskConfig.borderColor,
+                backgroundColor: riskConfig.bgColor,
+              }}
+            >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
                   {t('stakingDistribution.nakamotoCoefficient')}
@@ -269,39 +287,51 @@ export function StakingDistributionChart({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded p-3" style={{ backgroundColor: baseColors.gray[50] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>{t('stakingDistribution.top3Ratio')}</p>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
+                  {t('stakingDistribution.top3Ratio')}
+                </p>
                 <p className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                   {metrics.top3Percentage.toFixed(1)}%
                 </p>
-                <div className="w-full rounded h-1.5 mt-2" style={{ backgroundColor: baseColors.gray[200] }}>
+                <div
+                  className="w-full rounded h-1.5 mt-2"
+                  style={{ backgroundColor: baseColors.gray[200] }}
+                >
                   <div
                     className="h-1.5 rounded"
                     style={{
                       width: `${Math.min(metrics.top3Percentage, 100)}%`,
-                      backgroundColor: metrics.top3Percentage >= 50
-                        ? semanticColors.danger.DEFAULT
-                        : metrics.top3Percentage >= 33
-                          ? semanticColors.warning.DEFAULT
-                          : semanticColors.success.DEFAULT
+                      backgroundColor:
+                        metrics.top3Percentage >= 50
+                          ? semanticColors.danger.DEFAULT
+                          : metrics.top3Percentage >= 33
+                            ? semanticColors.warning.DEFAULT
+                            : semanticColors.success.DEFAULT,
                     }}
                   />
                 </div>
               </div>
               <div className="rounded p-3" style={{ backgroundColor: baseColors.gray[50] }}>
-                <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>{t('stakingDistribution.top5Ratio')}</p>
+                <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
+                  {t('stakingDistribution.top5Ratio')}
+                </p>
                 <p className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                   {metrics.top5Percentage.toFixed(1)}%
                 </p>
-                <div className="w-full rounded h-1.5 mt-2" style={{ backgroundColor: baseColors.gray[200] }}>
+                <div
+                  className="w-full rounded h-1.5 mt-2"
+                  style={{ backgroundColor: baseColors.gray[200] }}
+                >
                   <div
                     className="h-1.5 rounded"
                     style={{
                       width: `${Math.min(metrics.top5Percentage, 100)}%`,
-                      backgroundColor: metrics.top5Percentage >= 60
-                        ? semanticColors.danger.DEFAULT
-                        : metrics.top5Percentage >= 45
-                          ? semanticColors.warning.DEFAULT
-                          : semanticColors.success.DEFAULT
+                      backgroundColor:
+                        metrics.top5Percentage >= 60
+                          ? semanticColors.danger.DEFAULT
+                          : metrics.top5Percentage >= 45
+                            ? semanticColors.warning.DEFAULT
+                            : semanticColors.success.DEFAULT,
                     }}
                   />
                 </div>
@@ -327,7 +357,9 @@ export function StakingDistributionChart({
                   </p>
                 </div>
               </div>
-              <p className="text-xs mt-2" style={{ color: baseColors.gray[400] }}>{t('stakingDistribution.hhiDesc')}</p>
+              <p className="text-xs mt-2" style={{ color: baseColors.gray[400] }}>
+                {t('stakingDistribution.hhiDesc')}
+              </p>
             </div>
           </div>
         </div>
@@ -411,7 +443,10 @@ export function StakingDistributionChart({
                     </td>
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded" style={{ backgroundColor: OTHERS_COLOR }} />
+                        <div
+                          className="w-3 h-3 rounded"
+                          style={{ backgroundColor: OTHERS_COLOR }}
+                        />
                         <span className="text-sm text-gray-500">{othersData.name}</span>
                       </div>
                     </td>

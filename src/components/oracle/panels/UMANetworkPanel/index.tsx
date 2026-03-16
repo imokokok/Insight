@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
+import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { UMAMetworkStats, VerificationActivity } from '@/lib/oracles/uma/types';
 import { DashboardCard, StatCard } from '../../common/DashboardCard';
@@ -26,9 +27,15 @@ interface UMANetworkPanelProps {
 
 export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) {
   const { t } = useI18n();
-  const [verificationActivity, setVerificationActivity] = useState<VerificationActivity | null>(null);
-  const [disputeTrends, setDisputeTrends] = useState<{ date: string; filed: number; resolved: number }[]>([]);
-  const [earningsTrends, setEarningsTrends] = useState<{ day: string; daily: number; cumulative: number }[]>([]);
+  const [verificationActivity, setVerificationActivity] = useState<VerificationActivity | null>(
+    null
+  );
+  const [disputeTrends, setDisputeTrends] = useState<
+    { date: string; filed: number; resolved: number }[]
+  >([]);
+  const [earningsTrends, setEarningsTrends] = useState<
+    { day: string; daily: number; cumulative: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +49,7 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
         setDisputeTrends(disputes);
         setEarningsTrends(earnings);
       } catch (error) {
-        console.error('Failed to fetch UMA network data:', error);
+        logger.error('Failed to fetch UMA network data:', error instanceof Error ? error : new Error(String(error)));
       }
     };
 
@@ -57,7 +64,12 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
       changeType: 'positive' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
         </svg>
       ),
     },
@@ -68,7 +80,12 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
       changeType: 'positive' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -79,7 +96,12 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
       changeType: 'positive' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
         </svg>
       ),
     },
@@ -90,7 +112,12 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
       changeType: 'positive' as const,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -123,10 +150,11 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
     },
   ];
 
-  const hourlyData = verificationActivity?.hourly.map((count, hour) => ({
-    hour: `${hour}:00`,
-    count,
-  })) ?? [];
+  const hourlyData =
+    verificationActivity?.hourly.map((count, hour) => ({
+      hour: `${hour}:00`,
+      count,
+    })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -144,7 +172,9 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
             <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500 mb-1">{stat.title}</p>
               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              <p className={`text-xs mt-1 ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
+              <p
+                className={`text-xs mt-1 ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {stat.changeType === 'positive' ? '↑' : '↓'} {stat.change}
               </p>
             </div>
@@ -160,16 +190,23 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
               <AreaChart data={hourlyData}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="hour" tick={{ fontSize: 12 }} interval={3} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                  formatter={(value) => [String(value).toLocaleString(), t('uma.network.verifications')]}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
+                  formatter={(value) => [
+                    String(value).toLocaleString(),
+                    t('uma.network.verifications'),
+                  ]}
                 />
                 <Area
                   type="monotone"
@@ -185,7 +222,9 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
           <div className="mt-4 grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500">{t('uma.network.total24h')}</p>
-              <p className="text-lg font-semibold">{verificationActivity?.total.toLocaleString() ?? '145,200'}</p>
+              <p className="text-lg font-semibold">
+                {verificationActivity?.total.toLocaleString() ?? '145,200'}
+              </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('uma.network.peakHour')}</p>
@@ -193,7 +232,9 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('uma.network.avgPerHour')}</p>
-              <p className="text-lg font-semibold">{verificationActivity?.avgPerHour.toLocaleString() ?? '6,050'}</p>
+              <p className="text-lg font-semibold">
+                {verificationActivity?.avgPerHour.toLocaleString() ?? '6,050'}
+              </p>
             </div>
           </div>
         </DashboardCard>
@@ -206,7 +247,11 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
                 />
                 <Line
                   type="monotone"
@@ -237,12 +282,12 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
             <AreaChart data={earningsTrends}>
               <defs>
                 <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -250,7 +295,11 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
               <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                }}
                 formatter={(value, name) => [`$${String(value).toLocaleString()}`, name]}
               />
               <Area
