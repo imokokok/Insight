@@ -29,6 +29,7 @@ import {
   ComparisonData,
   BenchmarkData,
   CorrelationData,
+  ChainSupportData,
 } from '../types';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import ChainBreakdownChart from './ChainBreakdownChart';
@@ -435,19 +436,76 @@ export default function ChartRenderer({
     );
   };
 
+  const ChainSupportTooltip = ({ active, payload }: TooltipProps<ChainSupportData>) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload as ChainSupportData;
+      const oracleData = sortedOracleData.find((o) => o.name === item.name);
+      return (
+        <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg min-w-[180px]">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+            <span className="font-semibold text-gray-900">{item.name}</span>
+          </div>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500">{locale === 'zh-CN' ? '支持链数' : 'Chains'}:</span>
+              <span className="font-medium text-gray-900">{item.chains}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">{locale === 'zh-CN' ? '协议数量' : 'Protocols'}:</span>
+              <span className="font-medium text-gray-900">{item.protocols}</span>
+            </div>
+            {oracleData && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{locale === 'zh-CN' ? '市场份额' : 'Share'}:</span>
+                  <span className="font-medium text-gray-900">{oracleData.share}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">TVS:</span>
+                  <span className="font-medium text-gray-900">{oracleData.tvs}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">24h:</span>
+                  <span
+                    className={`font-medium ${
+                      oracleData.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {oracleData.change24h >= 0 ? '+' : ''}
+                    {oracleData.change24h.toFixed(1)}%
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const renderBarChart = () => (
-    <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical">
+    <BarChart data={CHAIN_SUPPORT_DATA} layout="vertical" margin={{ left: 20, right: 30, top: 10, bottom: 10 }}>
       <CartesianGrid strokeDasharray="3 3" stroke={chartColors.lineChart.grid} horizontal={false} />
-      <XAxis type="number" stroke={chartColors.lineChart.axis} fontSize={12} />
+      <XAxis
+        type="number"
+        stroke={chartColors.lineChart.axis}
+        fontSize={12}
+        tickLine={false}
+        axisLine={{ stroke: chartColors.lineChart.axis, strokeWidth: 1 }}
+      />
       <YAxis
         dataKey="name"
         type="category"
         stroke={chartColors.lineChart.axis}
-        fontSize={12}
-        width={100}
+        fontSize={11}
+        width={90}
+        tickLine={false}
+        axisLine={false}
       />
-      <Tooltip content={<CustomTooltip />} />
-      <Bar dataKey="chains" name="Supported Chains">
+      <Tooltip content={<ChainSupportTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+      <Bar dataKey="chains" name="Supported Chains" radius={[0, 4, 4, 0]} barSize={24}>
         {CHAIN_SUPPORT_DATA.map((entry, index) => {
           const isHighlighted = isCellHighlighted(entry.name);
           return (
@@ -455,6 +513,7 @@ export default function ChartRenderer({
               key={`cell-${index}`}
               fill={entry.color}
               opacity={!linkedOracle ? 1 : isHighlighted ? 1 : 0.3}
+              style={{ cursor: 'pointer', transition: 'opacity 0.2s ease' }}
             />
           );
         })}
@@ -470,6 +529,75 @@ export default function ChartRenderer({
           ? CHAIN_SUPPORT_DATA
           : sortedOracleData;
 
+    // 链支持表格 - 合并显示完整信息
+    if (activeChart === 'bar') {
+      return (
+        <div className="h-full overflow-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? '协议数' : 'Protocols'}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  {locale === 'zh-CN' ? '市场份额' : 'Share'}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  TVS
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((item: any, index: number) => {
+                const oracleData = sortedOracleData.find((o) => o.name === item.name);
+                return (
+                  <tr
+                    key={item.name}
+                    className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                      selectedItem === item.name ? 'bg-blue-50' : ''
+                    }`}
+                    onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                    onMouseEnter={() => setHoveredItem(item.name)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="font-medium text-gray-900">{item.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="font-semibold text-gray-900">{item.chains}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-gray-600">{item.protocols}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="font-medium text-gray-900">
+                        {oracleData?.share ?? '-'}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-gray-600">{oracleData?.tvs ?? '-'}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
     return (
       <div className="h-full overflow-auto">
         <table className="w-full">
@@ -483,23 +611,17 @@ export default function ChartRenderer({
                   ? locale === 'zh-CN'
                     ? '市场份额'
                     : 'Market Share'
-                  : activeChart === 'bar'
-                    ? locale === 'zh-CN'
-                      ? '支持链数'
-                      : 'Chains'
-                    : locale === 'zh-CN'
-                      ? 'TVS'
-                      : 'TVS'}
+                  : locale === 'zh-CN'
+                    ? 'TVS'
+                    : 'TVS'}
               </th>
-              {activeChart === 'bar' && (
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '协议数' : 'Protocols'}
-                </th>
-              )}
               {activeChart === 'pie' && (
                 <>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     TVS
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {locale === 'zh-CN' ? '支持链数' : 'Chains'}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     {locale === 'zh-CN' ? '24h变化' : '24h Change'}
@@ -509,7 +631,7 @@ export default function ChartRenderer({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((item, index: number) => (
+            {data.map((item: any, index: number) => (
               <tr
                 key={item.name}
                 className={`hover:bg-gray-50 transition-colors cursor-pointer ${
@@ -521,24 +643,22 @@ export default function ChartRenderer({
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
                     <span className="font-medium text-gray-900">{item.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="font-semibold text-gray-900">
-                    {activeChart === 'pie' ? `${item.share}%` : item.chains}
+                    {activeChart === 'pie' ? `${item.share}%` : item.tvs}
                   </span>
                 </td>
-                {activeChart === 'bar' && (
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-gray-600">{item.protocols}</span>
-                  </td>
-                )}
                 {activeChart === 'pie' && (
                   <>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-gray-600">{item.tvs ?? 0}</span>
+                      <span className="text-gray-600">{item.tvs}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-gray-600">{item.chains}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span

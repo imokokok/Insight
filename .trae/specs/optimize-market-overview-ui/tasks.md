@@ -1,31 +1,28 @@
 # Tasks
 
-- [ ] Task 1: 优化图表类型切换控件
-  - [ ] SubTask 1.1: 重新设计切换按钮组的布局和样式，使用更清晰的视觉层次
-  - [ ] SubTask 1.2: 添加选中状态的动画过渡效果
-  - [ ] SubTask 1.3: 优化下拉选择器和快捷按钮的联动逻辑
+- [x] Task 1: 优化统计卡片展示
+  - [x] SubTask 1.1: 重新设计统计卡片样式，增加图标背景和颜色区分
+  - [x] SubTask 1.2: 调整数值字体大小和粗细，优化标签字体
+  - [x] SubTask 1.3: 将变化趋势移至卡片右上角，使用颜色编码
+  - [x] SubTask 1.4: 优化卡片间距和边框样式
 
-- [ ] Task 2: 优化市场份额饼图显示
-  - [ ] SubTask 2.1: 改进饼图标签显示，添加百分比和预言机名称
-  - [ ] SubTask 2.2: 优化悬停交互效果，高亮当前扇区
-  - [ ] SubTask 2.3: 调整颜色对比度，提升可读性
+- [x] Task 2: 优化图表类型切换器
+  - [x] SubTask 2.1: 移除重复的下拉选择器
+  - [x] SubTask 2.2: 将图标按钮组改为标签页样式，添加文字标签
+  - [x] SubTask 2.3: 优化选中状态的视觉反馈
+  - [x] SubTask 2.4: 添加切换动画效果
 
-- [ ] Task 3: 优化链支持柱状图显示
-  - [ ] SubTask 3.1: 改进柱状图布局，添加数值标签
-  - [ ] SubTask 3.2: 优化 Y 轴标签显示，避免文字截断
-  - [ ] SubTask 3.3: 添加悬停提示，显示详细信息
+- [x] Task 3: 优化链支持图表展示
+  - [x] SubTask 3.1: 改进柱状图Tooltip，显示更多详细信息
+  - [x] SubTask 3.2: 优化表格视图的数据对齐和样式
+  - [x] SubTask 3.3: 确保链支持数据和市场份额数据的一致性
 
-- [ ] Task 4: 统一视图切换样式
-  - [ ] SubTask 4.1: 统一图表/表格切换按钮的样式
-  - [ ] SubTask 4.2: 确保切换动画流畅
-
-- [ ] Task 5: 验证和测试
-  - [ ] SubTask 5.1: 运行 TypeScript 类型检查
-  - [ ] SubTask 5.2: 验证各图表类型的显示效果
-  - [ ] SubTask 5.3: 测试响应式布局
+- [x] Task 4: 整体样式协调
+  - [x] SubTask 4.1: 统一各组件的颜色使用
+  - [x] SubTask 4.2: 优化响应式布局
+  - [x] SubTask 4.3: 检查并修复潜在的样式冲突
 
 # Task Dependencies
-- Task 1 不依赖其他任务，可以首先执行
-- Task 2 和 Task 3 可以并行执行
-- Task 4 可以在 Task 1 完成后执行
-- Task 5 必须在所有其他任务完成后执行
+- Task 2 depends on Task 1 (先确定整体风格)
+- Task 3 can be done in parallel with Task 2
+- Task 4 should be done after Task 1, 2, 3
