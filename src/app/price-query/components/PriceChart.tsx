@@ -593,6 +593,8 @@ export function PriceChart({
                 tickLine={false}
                 axisLine={false}
                 dy={10}
+                minTickGap={40}
+                interval="preserveStartEnd"
               />
               {/* 主Y轴 */}
               <YAxis
