@@ -1586,6 +1586,24 @@
       "crossChainRedundancy": "跨链冗余部署",
       "securityAudit": "定期安全审计",
       "decentralizedGovernance": "去中心化治理",
+      "cryptographicVerification": "加密验证",
+      "permanentStorage": "永久存储",
+      "multiProviderAggregation": "多提供者聚合",
+      "modularArchitecture": "模块化架构",
+      "realTimeMonitoring": "实时监控",
+      "publisherStaking": "发布者质押",
+      "confidenceIntervals": "置信区间",
+      "multiSourceAggregation": "多源聚合",
+      "slashingConditions": "罚没条件",
+      "tendermintConsensus": "Tendermint 共识",
+      "validatorSlashing": "验证者罚没",
+      "ibcSecurity": "IBC 安全",
+      "continuousMonitoring": "持续监控",
+      "firstPartyOracle": "第一方预言机",
+      "coveragePoolStaking": "覆盖池质押",
+      "serviceCoverage": "服务覆盖",
+      "oevProtection": "OEV 保护",
+      "multiChainDeployment": "多链部署",
       "eventTypes": {
         "upgrade": "升级",
         "vulnerability": "漏洞",
@@ -1747,7 +1765,25 @@
       "description": "描述",
       "createdAt": "创建时间",
       "dataSourcesUsed": "使用的数据源",
-      "noData": "暂无数据馈送信息"
+      "noData": "暂无数据馈送信息",
+      "filterByAssetType": "按资产类型筛选",
+      "filterByChain": "按链筛选",
+      "allChains": "全部链",
+      "showingCount": "显示 {count} / {total} 条",
+      "dataSources": "数据源",
+      "supportedChains": "支持的链",
+      "noFeeds": "暂无数据馈送",
+      "assetType": {
+        "crypto": "加密货币",
+        "fiat": "法币",
+        "nft": "NFT",
+        "commodity": "商品"
+      },
+      "status": {
+        "active": "活跃",
+        "paused": "暂停",
+        "deprecated": "废弃"
+      }
     },
     "nftData": {
       "title": "NFT 地板价数据",
@@ -1787,7 +1823,22 @@
       "monthly": "每月",
       "yearly": "每年",
       "days": "天",
-      "noData": "暂无质押数据"
+      "noData": "暂无质押数据",
+      "month": "个月",
+      "year": "年",
+      "apr": "年化收益率",
+      "day": "天",
+      "totalValueLocked": "总锁定价值",
+      "baseRate": "基础利率",
+      "activeStakers": "活跃质押者",
+      "availableRewards": "可用奖励",
+      "totalDistributed": "累计分发",
+      "selectedApr": "选定 APR",
+      "enterAmount": "输入数量",
+      "min": "最小",
+      "avgApr": "平均 APR",
+      "maxApr": "最高 APR",
+      "minApr": "最低 APR"
     },
     "ecosystem": {
       "title": "生态系统",
@@ -1807,7 +1858,23 @@
       "experimental": "实验性",
       "dataFeedsUsed": "使用的数据馈送",
       "visitWebsite": "访问官网",
-      "noData": "暂无生态系统数据"
+      "noData": "暂无生态系统数据",
+      "category": {
+        "all": "全部",
+        "dex": "DEX",
+        "lending": "借贷",
+        "derivatives": "衍生品",
+        "yield": "收益",
+        "insurance": "保险"
+      },
+      "depth": {
+        "full": "完整",
+        "partial": "部分",
+        "experimental": "实验性",
+        "unknown": "未知"
+      },
+      "dataFeeds": "数据馈送",
+      "noProtocols": "暂无协议数据"
     },
     "risk": {
       "dataSourceConcentration": "数据源集中度",
@@ -1817,7 +1884,47 @@
       "oracleManipulation": "预言机操纵风险",
       "oracleManipulationDesc": "多数据源验证机制有效防止价格操纵",
       "networkDowntime": "网络停机风险",
-      "networkDowntimeDesc": "高可用架构，99.8% 在线率"
+      "networkDowntimeDesc": "高可用架构，99.8% 在线率",
+      "securityEvents": {
+        "stakingV2Upgrade": {
+          "title": "质押 v0.2 升级",
+          "description": "成功迁移至新质押合约，增强安全特性"
+        },
+        "nodeSoftwareUpdate": {
+          "title": "节点软件更新",
+          "description": "例行维护以提升节点性能和可靠性"
+        },
+        "priceDeviationResponse": {
+          "title": "价格偏差响应",
+          "description": "快速响应市场波动，确保价格馈送准确"
+        },
+        "ccipLaunch": {
+          "title": "CCIP 上线",
+          "description": "跨链互操作性协议成功部署"
+        }
+      }
+    },
+    "riskAssessment": {
+      "overallRiskScore": "整体风险评分",
+      "comprehensiveAssessment": "综合安全评估",
+      "dimensionScores": "维度评分",
+      "riskLevel": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      },
+      "decentralization": "去中心化",
+      "security": "安全性",
+      "stability": "稳定性",
+      "dataQuality": "数据质量",
+      "decentralizationDesc": "多源数据聚合，覆盖中心化交易所和DeFi协议",
+      "securityDesc": "多层数据验证机制，开源透明代码库",
+      "stabilityDesc": "99.2%正常运行时间，自动故障转移",
+      "dataQualityDesc": "实时数据更新，异常检测和清洗机制",
+      "dataSourceCredibility": "数据源可信度",
+      "sourceTypeDistribution": "数据源类型分布",
+      "avgCredibility": "平均可信度",
+      "totalSources": "数据源总数"
     }
   },
   "tellor": {
@@ -1932,7 +2039,33 @@
       "uptimeRisk": "在线率风险",
       "latencyRisk": "延迟风险",
       "updateFrequencyRisk": "更新频率风险",
-      "alerts": "风险预警"
+      "alerts": "风险预警",
+      "securityEvents": {
+        "tellorLayerLaunch": {
+          "title": "Tellor Layer 上线",
+          "description": "迁移至专用 Tellor Layer 区块链以提升可扩展性"
+        },
+        "disputeResolutionOptimization": {
+          "title": "争议解决机制优化",
+          "description": "优化争议机制，缩短解决时间"
+        },
+        "stakingContractV2": {
+          "title": "质押合约 V2",
+          "description": "升级质押合约，优化奖励分配机制"
+        },
+        "reporterNodeUpgrade": {
+          "title": "报告者节点升级",
+          "description": "报告者节点基础设施例行维护"
+        }
+      },
+      "mitigationMeasures": {
+        "disputeMechanism": "争议机制",
+        "stakingSlashing": "质押罚没",
+        "multiSourceData": "多源数据",
+        "decentralizedGovernance": "去中心化治理",
+        "reporterIncentives": "报告者激励",
+        "transparencyReports": "透明度报告"
+      }
     },
     "network": {
       "overallHealth": "整体网络健康度",
@@ -2735,7 +2868,25 @@
       "centralization": "中心化风险",
       "liquidity": "流动性风险",
       "technical": "技术风险",
-      "overall": "综合风险"
+      "overall": "综合风险",
+      "securityEvents": {
+        "dataStreamsV2": {
+          "title": "数据流 V2 上线",
+          "description": "增强数据流协议，提升效率"
+        },
+        "providerNetworkExpansion": {
+          "title": "提供者网络扩展",
+          "description": "新增数据提供者以提升去中心化程度"
+        },
+        "marketVolatilityHandling": {
+          "title": "市场波动处理",
+          "description": "成功应对高市场波动，提供准确价格"
+        },
+        "arweaveIntegration": {
+          "title": "Arweave 集成",
+          "description": "集成 Arweave 永久数据存储"
+        }
+      }
     },
     "ecosystem": {
       "title": "生态系统",
@@ -5276,7 +5427,10 @@
       "seconds": "秒",
       "minutes": "分",
       "hours": "时"
-    }
+    },
+    "retry": "重试",
+    "favorite": "收藏",
+    "favorited": "已收藏"
   },
   "annotation": {
     "priority": "优先级",
@@ -5739,13 +5893,6 @@
       }
     }
   },
-  "common": {
-    "retry": "重试",
-    "favorite": "收藏",
-    "favorited": "已收藏",
-    "export": "导出",
-    "refresh": "刷新"
-  },
   "validator": {
     "earningsAttribution": "收益归因分析",
     "validatorEarningsAttribution": "验证者收益归因分析",
@@ -5846,6 +5993,12 @@
     "oraclePageTemplate": {
       "ecosystemOverview": "生态系统概览",
       "ecosystemDescription": "{name} 支持多个区块链网络，提供跨链数据传输和价格预言机服务。目前已集成 {count} 条主流区块链。"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "refresh": "刷新",
+      "lastUpdated": "最后更新",
+      "stale": "已过期"
     }
   },
   "gasFeeComparison": {
@@ -6058,6 +6211,13 @@
       "lastUpdated": "最后更新",
       "refresh": "刷新",
       "stale": "数据可能已过期"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      }
     },
     "riskScoreCard": {
       "low": "低风险",
@@ -6697,17 +6857,6 @@
     "new": "(新增)",
     "snapshotId": "快照ID",
     "tradingPair": "交易对"
-  },
-  "common": {
-    "stable": "稳定",
-    "daily": "日",
-    "weekly": "周",
-    "monthly": "月",
-    "yearly": "年",
-    "loading": "加载中...",
-    "noData": "暂无数据",
-    "current": "当前",
-    "unit": "单位"
   },
   "validator": {
     "earningsAttribution": "收益归因",

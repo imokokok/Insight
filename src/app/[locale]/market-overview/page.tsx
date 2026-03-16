@@ -179,6 +179,11 @@ export default function MarketOverviewPage() {
         band: item.band * (1 + (Math.random() - 0.5) * variance),
         api3: item.api3 * (1 + (Math.random() - 0.5) * variance),
         uma: item.uma * (1 + (Math.random() - 0.5) * variance),
+        redstone: item.redstone * (1 + (Math.random() - 0.5) * variance),
+        dia: item.dia * (1 + (Math.random() - 0.5) * variance),
+        tellor: item.tellor * (1 + (Math.random() - 0.5) * variance),
+        chronicle: item.chronicle * (1 + (Math.random() - 0.5) * variance),
+        winklink: item.winklink * (1 + (Math.random() - 0.5) * variance),
       }));
       setTrendComparisonData(newComparisonData);
     }
@@ -189,7 +194,7 @@ export default function MarketOverviewPage() {
       const compareItem = compareData[index];
       const result: any = { ...item };
 
-      ['chainlink', 'pyth', 'band', 'api3', 'uma'].forEach((key) => {
+      ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'].forEach((key) => {
         const currentValue = item[key] as number;
         const compareValue = compareItem?.[key] as number;
         result[`${key}Compare`] = compareValue || 0;
@@ -532,7 +537,7 @@ export default function MarketOverviewPage() {
                           const latestData = prepareComparisonData(trendData, trendComparisonData)[
                             trendData.length - 1
                           ];
-                          const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma'];
+                          const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'];
                           const avgDiff =
                             oracleKeys.reduce((sum, key) => {
                               return sum + (latestData[`${key}DiffPercent`] || 0);

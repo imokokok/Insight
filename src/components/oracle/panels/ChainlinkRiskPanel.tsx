@@ -44,33 +44,33 @@ const generateScoreTrendData = () => {
   return data;
 };
 
-const riskEvents: RiskEvent[] = [
+const getRiskEvents = (t: ReturnType<typeof useTranslations>): RiskEvent[] => [
   {
     date: '2024-03-15',
     type: 'upgrade',
-    title: 'Staking v0.2 Upgrade',
-    description: 'Successfully migrated to new staking contract with enhanced security features',
+    title: t('chainlink.risk.securityEvents.stakingV2Upgrade.title'),
+    description: t('chainlink.risk.securityEvents.stakingV2Upgrade.description'),
     status: 'resolved',
   },
   {
     date: '2024-02-28',
     type: 'maintenance',
-    title: 'Node Software Update',
-    description: 'Routine maintenance to improve node performance and reliability',
+    title: t('chainlink.risk.securityEvents.nodeSoftwareUpdate.title'),
+    description: t('chainlink.risk.securityEvents.nodeSoftwareUpdate.description'),
     status: 'resolved',
   },
   {
     date: '2024-01-20',
     type: 'response',
-    title: 'Price Deviation Response',
-    description: 'Rapid response to market volatility ensuring accurate price feeds',
+    title: t('chainlink.risk.securityEvents.priceDeviationResponse.title'),
+    description: t('chainlink.risk.securityEvents.priceDeviationResponse.description'),
     status: 'resolved',
   },
   {
     date: '2023-12-10',
     type: 'upgrade',
-    title: 'CCIP Launch',
-    description: 'Cross-Chain Interoperability Protocol successfully deployed',
+    title: t('chainlink.risk.securityEvents.ccipLaunch.title'),
+    description: t('chainlink.risk.securityEvents.ccipLaunch.description'),
     status: 'resolved',
   },
 ];
@@ -88,6 +88,7 @@ export function ChainlinkRiskPanel() {
   const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const riskEvents = getRiskEvents(t);
 
   // 动态生成风险指标数据
   const riskMetrics: RiskMetric[] = useMemo(

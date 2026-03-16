@@ -38,6 +38,11 @@ export function generateTVSTrendData(
     band: 4.1,
     api3: 3.5,
     uma: 2.5,
+    redstone: 2.1,
+    dia: 1.6,
+    tellor: 1.3,
+    chronicle: 1.0,
+    winklink: 0.7,
   };
 
   for (let i = points; i >= 0; i--) {
@@ -56,6 +61,11 @@ export function generateTVSTrendData(
     const band = (baseValues.band || defaults.band) * (1 + (Math.random() - 0.5) * volatility);
     const api3 = (baseValues.api3 || defaults.api3) * (1 + (Math.random() - 0.5) * volatility);
     const uma = (baseValues.uma || defaults.uma) * (1 + (Math.random() - 0.5) * volatility);
+    const redstone = (baseValues.redstone || defaults.redstone) * (1 + (Math.random() - 0.5) * volatility);
+    const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
+    const tellor = (baseValues.tellor || defaults.tellor) * (1 + (Math.random() - 0.5) * volatility);
+    const chronicle = (baseValues.chronicle || defaults.chronicle) * (1 + (Math.random() - 0.5) * volatility);
+    const winklink = (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
 
     data.push({
       timestamp,
@@ -75,7 +85,22 @@ export function generateTVSTrendData(
       uma: Number(uma.toFixed(2)),
       umaUpper: Number((uma * 1.02).toFixed(2)),
       umaLower: Number((uma * 0.98).toFixed(2)),
-      total: Number((chainlink + pyth + band + api3 + uma).toFixed(2)),
+      redstone: Number(redstone.toFixed(2)),
+      redstoneUpper: Number((redstone * 1.02).toFixed(2)),
+      redstoneLower: Number((redstone * 0.98).toFixed(2)),
+      dia: Number(dia.toFixed(2)),
+      diaUpper: Number((dia * 1.02).toFixed(2)),
+      diaLower: Number((dia * 0.98).toFixed(2)),
+      tellor: Number(tellor.toFixed(2)),
+      tellorUpper: Number((tellor * 1.02).toFixed(2)),
+      tellorLower: Number((tellor * 0.98).toFixed(2)),
+      chronicle: Number(chronicle.toFixed(2)),
+      chronicleUpper: Number((chronicle * 1.02).toFixed(2)),
+      chronicleLower: Number((chronicle * 0.98).toFixed(2)),
+      winklink: Number(winklink.toFixed(2)),
+      winklinkUpper: Number((winklink * 1.02).toFixed(2)),
+      winklinkLower: Number((winklink * 0.98).toFixed(2)),
+      total: Number((chainlink + pyth + band + api3 + uma + redstone + dia + tellor + chronicle + winklink).toFixed(2)),
     });
   }
 

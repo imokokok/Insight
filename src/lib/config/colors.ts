@@ -367,15 +367,15 @@ export const chartColors = {
 // ============================================
 
 export const shadowColors = {
-  soft: '0 4px 20px -2px rgba(30, 64, 175, 0.1)',
-  medium: '0 8px 30px -4px rgba(30, 64, 175, 0.15)',
-  strong: '0 12px 40px -6px rgba(30, 64, 175, 0.2)',
-  tooltip: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-  card: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  cardHover: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  inputFocus: '0 0 0 2px rgba(59, 130, 246, 0.5)',
-  glow: '0 0 20px rgba(30, 64, 175, 0.4)',
-  pulse: '0 0 0 0 rgba(251, 191, 36, 0.7)',
+  soft: 'none',
+  medium: 'none',
+  strong: 'none',
+  tooltip: 'none',
+  card: 'none',
+  cardHover: 'none',
+  inputFocus: 'none',
+  glow: 'none',
+  pulse: 'none',
 } as const;
 
 // ============================================
@@ -487,8 +487,8 @@ export const uiColors = {
     bg: '#ffffff',
     border: '#e5e7eb',
     borderHover: '#d1d5db',
-    shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    shadowHover: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    shadow: 'none',
+    shadowHover: 'none',
   },
   input: {
     bg: '#ffffff',
@@ -496,7 +496,7 @@ export const uiColors = {
     text: '#111827',
     placeholder: '#9ca3af',
     focusBorder: '#3b82f6',
-    focusShadow: '0 0 0 2px #3b82f6',
+    focusShadow: 'none',
   },
   table: {
     headerBg: '#f9fafb',

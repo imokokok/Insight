@@ -55,13 +55,13 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
 
         <div
           ref={scrollRef}
-          className="bg-gray-900 rounded-md p-4 h-96 overflow-y-auto font-mono text-sm"
+          className="bg-gray-50 border border-gray-200 rounded-md p-4 h-96 overflow-y-auto font-mono text-sm"
         >
           <div className="space-y-1">
             {data.map((point, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between py-1 px-2 rounded hover:bg-gray-800"
+                className="flex items-center justify-between py-1 px-2 rounded hover:bg-gray-200"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-gray-500 text-xs">
@@ -71,17 +71,17 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
                       second: '2-digit',
                     })}
                   </span>
-                  <span className="text-cyan-400 font-semibold">${point.price.toFixed(4)}</span>
+                  <span className="text-cyan-600 font-semibold">${point.price.toFixed(4)}</span>
                   <span className={`${getChangeColor(point.change)}`}>
                     {getChangeIcon(point.change)}
                     {Math.abs(point.changePercent).toFixed(4)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-gray-400">
+                  <span className="text-gray-500">
                     {t('tellor.priceStream.volume')}: {point.volume}
                   </span>
-                  <span className="text-gray-500">{point.source}</span>
+                  <span className="text-gray-400">{point.source}</span>
                 </div>
               </div>
             ))}

@@ -76,7 +76,9 @@ export function MitigationMeasuresGrid({ measures, className = '' }: MitigationM
               className="border border-gray-200 p-4 hover:border-gray-300 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-900 flex-1 pr-2">{measure.name}</h4>
+                <h4 className="text-sm font-medium text-gray-900 flex-1 pr-2">
+                  {t(`oracleCommon.mitigationMeasures.${measure.name}` as any, measure.name)}
+                </h4>
                 <span
                   className={`px-2 py-0.5 text-xs font-medium ${getMeasureStatusColor(measure.status)}`}
                 >

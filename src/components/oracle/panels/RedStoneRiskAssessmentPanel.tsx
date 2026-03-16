@@ -58,33 +58,33 @@ const riskMetrics: RiskMetric[] = [
   },
 ];
 
-const riskEvents: RiskEvent[] = [
+const getRiskEvents = (t: ReturnType<typeof useTranslations>): RiskEvent[] => [
   {
     date: '2024-03-20',
     type: 'upgrade',
-    title: 'Data Streams V2 Launch',
-    description: 'Enhanced data stream protocol with improved efficiency',
+    title: t('redstone.risk.securityEvents.dataStreamsV2.title'),
+    description: t('redstone.risk.securityEvents.dataStreamsV2.description'),
     status: 'resolved',
   },
   {
     date: '2024-02-10',
     type: 'maintenance',
-    title: 'Provider Network Expansion',
-    description: 'Added new data providers to increase decentralization',
+    title: t('redstone.risk.securityEvents.providerNetworkExpansion.title'),
+    description: t('redstone.risk.securityEvents.providerNetworkExpansion.description'),
     status: 'resolved',
   },
   {
     date: '2024-01-15',
     type: 'response',
-    title: 'Market Volatility Handling',
-    description: 'Successfully handled high market volatility with accurate price delivery',
+    title: t('redstone.risk.securityEvents.marketVolatilityHandling.title'),
+    description: t('redstone.risk.securityEvents.marketVolatilityHandling.description'),
     status: 'resolved',
   },
   {
     date: '2023-11-20',
     type: 'upgrade',
-    title: 'Arweave Integration',
-    description: 'Integrated permanent data storage on Arweave',
+    title: t('redstone.risk.securityEvents.arweaveIntegration.title'),
+    description: t('redstone.risk.securityEvents.arweaveIntegration.description'),
     status: 'resolved',
   },
 ];
@@ -112,6 +112,7 @@ export function RedStoneRiskAssessmentPanel() {
   const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const riskEvents = getRiskEvents(t);
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
 

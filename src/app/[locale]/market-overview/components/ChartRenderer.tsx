@@ -168,7 +168,7 @@ export default function ChartRenderer({
       const compareItem = compareData[index];
       const result: any = { ...item };
 
-      ['chainlink', 'pyth', 'band', 'api3', 'uma'].forEach((key) => {
+      ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'].forEach((key) => {
         const currentValue = item[key as keyof TVSTrendData] as number;
         const compareValue = compareItem?.[key as keyof TVSTrendData] as number;
         result[`${key}Compare`] = compareValue || 0;
@@ -242,13 +242,18 @@ export default function ChartRenderer({
   );
 
   const renderTrendChart = () => {
-    const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma'];
+    const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'];
     const oracleColors: Record<string, string> = {
       chainlink: chartColors.marketOverview.chainlink,
       pyth: chartColors.marketOverview.pyth,
       band: chartColors.marketOverview.band,
       api3: chartColors.marketOverview.api3,
       uma: chartColors.marketOverview.uma,
+      redstone: chartColors.oracle.redstone,
+      dia: chartColors.oracle.dia,
+      tellor: chartColors.oracle.tellor,
+      chronicle: chartColors.oracle.chronicle,
+      winklink: chartColors.oracle.winklink,
     };
     const oracleNames: Record<string, string> = {
       chainlink: 'Chainlink',
@@ -256,6 +261,11 @@ export default function ChartRenderer({
       band: 'Band Protocol',
       api3: 'API3',
       uma: 'UMA',
+      redstone: 'RedStone',
+      dia: 'DIA',
+      tellor: 'Tellor',
+      chronicle: 'Chronicle',
+      winklink: 'WINkLink',
     };
 
     const chartData =
