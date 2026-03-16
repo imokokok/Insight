@@ -1,0 +1,12 @@
+- [x] TellorClient API 扩展完成（生态系统、争议、质押计算）
+- [x] useTellorData Hook 扩展完成
+- [x] TellorNetworkPanel 组件创建完成
+- [x] TellorEcosystemPanel 组件创建完成
+- [x] TellorStakingCalculator 组件创建完成
+- [x] TellorReportersPanel 增强完成（争议统计、详情弹窗）
+- [x] TellorDisputesPanel 组件创建完成
+- [x] Tab 配置更新完成（新增 disputes、staking、ecosystem，调整顺序）
+- [x] Tellor 主页面更新完成
+- [x] 国际化翻译添加完成
+- [x] 所有新 Tab 功能正常工作
+- [x] 页面无 TypeScript 错误

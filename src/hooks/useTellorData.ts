@@ -10,6 +10,10 @@ import type {
   TellorNetworkStats,
   ReporterStats,
   RiskMetrics,
+  EcosystemStats,
+  DisputeStats,
+  StakingCalculation,
+  TellorNetworkHealth,
 } from '@/lib/oracles/tellor';
 import { PriceData, Blockchain } from '@/types/oracle';
 
@@ -25,7 +29,10 @@ type TellorDataType =
   | 'liquidity'
   | 'staking'
   | 'reporters'
-  | 'risk';
+  | 'risk'
+  | 'ecosystem'
+  | 'disputes'
+  | 'networkHealth';
 
 const getTellorKey = (type: TellorDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['tellor', type];
@@ -305,6 +312,92 @@ export function useTellorRisk(enabled = true) {
   };
 }
 
+export function useTellorEcosystem(enabled = true) {
+  const queryKey = getTellorKey('ecosystem');
+
+  const { data, error, isLoading, refetch } = useQuery<EcosystemStats, Error>({
+    queryKey,
+    queryFn: () => tellorClient.getEcosystemStats(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ecosystem: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useTellorDisputes(enabled = true) {
+  const queryKey = getTellorKey('disputes');
+
+  const { data, error, isLoading, refetch } = useQuery<DisputeStats, Error>({
+    queryKey,
+    queryFn: () => tellorClient.getDisputeStats(),
+    enabled,
+    staleTime: 60000,
+    gcTime: 120000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    disputes: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useTellorNetworkHealth(enabled = true) {
+  const queryKey = getTellorKey('networkHealth');
+
+  const { data, error, isLoading, refetch } = useQuery<TellorNetworkHealth, Error>({
+    queryKey,
+    queryFn: () => tellorClient.getNetworkHealth(),
+    enabled,
+    staleTime: 60000,
+    gcTime: 120000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    networkHealth: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+interface UseStakingCalculatorOptions {
+  stakeAmount: number;
+  duration: number;
+  isActiveReporter: boolean;
+  disputeParticipation: number;
+}
+
+export function useStakingCalculator(options: UseStakingCalculatorOptions) {
+  const calculation = useMemo<StakingCalculation>(() => {
+    return tellorClient.calculateStaking({
+      stakeAmount: options.stakeAmount,
+      duration: options.duration,
+      isActiveReporter: options.isActiveReporter,
+      disputeParticipation: options.disputeParticipation,
+    });
+  }, [options.stakeAmount, options.duration, options.isActiveReporter, options.disputeParticipation]);
+
+  return calculation;
+}
+
 interface UseTellorAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -318,6 +411,7 @@ interface UseTellorAllDataReturn {
   marketDepth: MarketDepth | undefined;
   multiChainAggregation: MultiChainAggregation | undefined;
   networkStats: TellorNetworkStats | undefined;
+  networkHealth: TellorNetworkHealth | undefined;
   liquidity:
     | {
         totalLiquidity: number;
@@ -335,6 +429,8 @@ interface UseTellorAllDataReturn {
     | undefined;
   reporters: ReporterStats | undefined;
   risk: RiskMetrics | undefined;
+  ecosystem: EcosystemStats | undefined;
+  disputes: DisputeStats | undefined;
   isLoading: boolean;
   isError: boolean;
   errors: Error[];
@@ -350,10 +446,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
   const marketDepthQuery = useTellorMarketDepth({ symbol, enabled });
   const multiChainAggregationQuery = useTellorMultiChainAggregation({ symbol, enabled });
   const networkStatsQuery = useTellorNetworkStats(enabled);
+  const networkHealthQuery = useTellorNetworkHealth(enabled);
   const liquidityQuery = useTellorLiquidity(enabled);
   const stakingQuery = useTellorStaking(enabled);
   const reportersQuery = useTellorReporters(enabled);
   const riskQuery = useTellorRisk(enabled);
+  const ecosystemQuery = useTellorEcosystem(enabled);
+  const disputesQuery = useTellorDisputes(enabled);
 
   const isLoading = useMemo(() => {
     if (!enabled) return false;
@@ -364,10 +463,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
       marketDepthQuery.isLoading ||
       multiChainAggregationQuery.isLoading ||
       networkStatsQuery.isLoading ||
+      networkHealthQuery.isLoading ||
       liquidityQuery.isLoading ||
       stakingQuery.isLoading ||
       reportersQuery.isLoading ||
-      riskQuery.isLoading
+      riskQuery.isLoading ||
+      ecosystemQuery.isLoading ||
+      disputesQuery.isLoading
     );
   }, [
     enabled,
@@ -377,10 +479,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     marketDepthQuery.isLoading,
     multiChainAggregationQuery.isLoading,
     networkStatsQuery.isLoading,
+    networkHealthQuery.isLoading,
     liquidityQuery.isLoading,
     stakingQuery.isLoading,
     reportersQuery.isLoading,
     riskQuery.isLoading,
+    ecosystemQuery.isLoading,
+    disputesQuery.isLoading,
   ]);
 
   const errors = useMemo(() => {
@@ -391,10 +496,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     if (marketDepthQuery.error) errs.push(marketDepthQuery.error);
     if (multiChainAggregationQuery.error) errs.push(multiChainAggregationQuery.error);
     if (networkStatsQuery.error) errs.push(networkStatsQuery.error);
+    if (networkHealthQuery.error) errs.push(networkHealthQuery.error);
     if (liquidityQuery.error) errs.push(liquidityQuery.error);
     if (stakingQuery.error) errs.push(stakingQuery.error);
     if (reportersQuery.error) errs.push(reportersQuery.error);
     if (riskQuery.error) errs.push(riskQuery.error);
+    if (ecosystemQuery.error) errs.push(ecosystemQuery.error);
+    if (disputesQuery.error) errs.push(disputesQuery.error);
     return errs;
   }, [
     priceQuery.error,
@@ -403,10 +511,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     marketDepthQuery.error,
     multiChainAggregationQuery.error,
     networkStatsQuery.error,
+    networkHealthQuery.error,
     liquidityQuery.error,
     stakingQuery.error,
     reportersQuery.error,
     riskQuery.error,
+    ecosystemQuery.error,
+    disputesQuery.error,
   ]);
 
   const isError = errors.length > 0;
@@ -419,10 +530,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
       marketDepthQuery.refetch(),
       multiChainAggregationQuery.refetch(),
       networkStatsQuery.refetch(),
+      networkHealthQuery.refetch(),
       liquidityQuery.refetch(),
       stakingQuery.refetch(),
       reportersQuery.refetch(),
       riskQuery.refetch(),
+      ecosystemQuery.refetch(),
+      disputesQuery.refetch(),
     ]);
   }, [
     priceQuery.refetch,
@@ -431,10 +545,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     marketDepthQuery.refetch,
     multiChainAggregationQuery.refetch,
     networkStatsQuery.refetch,
+    networkHealthQuery.refetch,
     liquidityQuery.refetch,
     stakingQuery.refetch,
     reportersQuery.refetch,
     riskQuery.refetch,
+    ecosystemQuery.refetch,
+    disputesQuery.refetch,
   ]);
 
   return {
@@ -444,10 +561,13 @@ export function useTellorAllData(options: UseTellorAllDataOptions): UseTellorAll
     marketDepth: marketDepthQuery.marketDepth,
     multiChainAggregation: multiChainAggregationQuery.multiChainAggregation,
     networkStats: networkStatsQuery.networkStats,
+    networkHealth: networkHealthQuery.networkHealth,
     liquidity: liquidityQuery.liquidity,
     staking: stakingQuery.staking,
     reporters: reportersQuery.reporters,
     risk: riskQuery.risk,
+    ecosystem: ecosystemQuery.ecosystem,
+    disputes: disputesQuery.disputes,
     isLoading,
     isError,
     errors,

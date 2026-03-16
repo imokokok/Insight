@@ -170,6 +170,86 @@ export function ChainlinkNodesPanel() {
           </div>
         </div>
       </DashboardCard>
+
+      {/* Staking v0.2 Upgrade */}
+      <DashboardCard title={t('chainlink.staking.upgradeTitle')}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-sm text-gray-500">{t('chainlink.staking.migrationStatus')}</div>
+                <div className="text-lg font-semibold text-green-600">{t('chainlink.staking.completed')}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">{t('chainlink.staking.v0_2Staked')}</div>
+                <div className="text-lg font-semibold text-gray-900">38.5M LINK</div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.staking.participationRate')}</span>
+                <span className="font-medium text-gray-900">85.2%</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.staking.communityPool')}</span>
+                <span className="font-medium text-gray-900">2.1M LINK</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('chainlink.staking.lockupPeriod')}</span>
+                <span className="font-medium text-gray-900">28 days</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.staking.aprHistory')}</h4>
+            <div className="space-y-2">
+              {[
+                { period: 'v0.1', apr: '4.75%', status: 'deprecated' },
+                { period: 'v0.2 Early', apr: '4.32%', status: 'active' },
+                { period: 'v0.2 Current', apr: '4.15%', status: 'active' },
+                { period: 'Projected v1.0', apr: '5.2%', status: 'upcoming' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <span className="text-sm text-gray-700">{item.period}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-900">{item.apr}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs ${
+                        item.status === 'active'
+                          ? 'bg-green-100 text-green-700'
+                          : item.status === 'deprecated'
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {t(`chainlink.staking.${item.status}`)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.staking.slashingConditions')}</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-3 bg-red-50 rounded-lg">
+              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.downtime')}</div>
+              <div className="text-sm text-gray-700">{t('chainlink.staking.downtimeDesc')}</div>
+            </div>
+            <div className="p-3 bg-red-50 rounded-lg">
+              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.incorrectData')}</div>
+              <div className="text-sm text-gray-700">{t('chainlink.staking.incorrectDataDesc')}</div>
+            </div>
+            <div className="p-3 bg-red-50 rounded-lg">
+              <div className="text-xs text-red-600 font-medium mb-1">{t('chainlink.staking.malicious')}</div>
+              <div className="text-sm text-gray-700">{t('chainlink.staking.maliciousDesc')}</div>
+            </div>
+          </div>
+        </div>
+      </DashboardCard>
     </div>
   );
 }

@@ -1629,8 +1629,9 @@
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",
-      "dataSources": "数据源",
-      "crossChain": "跨链覆盖",
+      "dataFeeds": "数据馈送",
+      "nftData": "NFT 数据",
+      "staking": "质押详情",
       "ecosystem": "生态系统",
       "risk": "风险评估"
     },
@@ -1641,7 +1642,27 @@
       "networkUptime": "网络在线率",
       "volume24h": "24小时交易量",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "activeDataSources": "活跃数据源",
+      "dataFeeds": "数据馈送",
+      "avgResponseTime": "平均响应时间",
+      "totalFeeds": "总馈送数",
+      "activeFeeds": "活跃馈送",
+      "avgConfidence": "平均置信度",
+      "dataSources": "数据源",
+      "totalCollections": "总集合数",
+      "trendingCollections": "热门集合",
+      "avgFloorPrice": "平均地板价",
+      "nftChains": "NFT 链数",
+      "totalStaked": "总质押量",
+      "stakerCount": "质押者数",
+      "rewardsDistributed": "已分发奖励",
+      "totalProtocols": "总协议数",
+      "totalTvl": "总 TVL",
+      "dexIntegrations": "DEX 集成",
+      "lendingIntegrations": "借贷集成",
+      "dataQuality": "数据质量",
+      "oracleDiversity": "预言机多样性"
     },
     "error": {
       "loadingFailed": "加载失败"
@@ -1691,9 +1712,87 @@
     "dataSources": {
       "title": "数据源管理"
     },
+    "dataFeeds": {
+      "title": "数据馈送",
+      "totalFeeds": "总馈送数",
+      "activeFeeds": "活跃馈送",
+      "assetType": "资产类型",
+      "all": "全部",
+      "crypto": "加密货币",
+      "fiat": "法币",
+      "nft": "NFT",
+      "commodity": "商品",
+      "chains": "链",
+      "updateFrequency": "更新频率",
+      "confidence": "置信度",
+      "status": "状态",
+      "active": "活跃",
+      "paused": "暂停",
+      "deprecated": "废弃",
+      "description": "描述",
+      "createdAt": "创建时间",
+      "dataSourcesUsed": "使用的数据源",
+      "noData": "暂无数据馈送信息"
+    },
+    "nftData": {
+      "title": "NFT 地板价数据",
+      "totalCollections": "总集合数",
+      "trendingCount": "热门趋势",
+      "chainsSupported": "支持的链",
+      "avgConfidence": "平均置信度",
+      "byChain": "按链分布",
+      "trendingTitle": "热门趋势",
+      "floorPrice": "地板价",
+      "change24h": "24小时变化",
+      "allCollections": "所有集合",
+      "24h": "24小时",
+      "volume24h": "24小时交易量",
+      "totalSupply": "总供应量",
+      "confidence": "置信度",
+      "updateFrequency": "更新频率",
+      "noData": "暂无 NFT 数据"
+    },
+    "staking": {
+      "title": "质押详情",
+      "totalStaked": "总质押量",
+      "currentApr": "当前 APR",
+      "stakerCount": "质押者数量",
+      "rewardPool": "奖励池",
+      "rewardsDistributed": "已分发奖励",
+      "minStakeAmount": "最小质押量",
+      "lockPeriods": "锁定期限",
+      "aprByPeriod": "期限 APR",
+      "historicalApr": "历史 APR 趋势",
+      "calculator": "收益计算器",
+      "stakeAmount": "质押数量",
+      "lockPeriod": "锁定周期",
+      "estimatedRewards": "预估收益",
+      "daily": "每日",
+      "weekly": "每周",
+      "monthly": "每月",
+      "yearly": "每年",
+      "days": "天",
+      "noData": "暂无质押数据"
+    },
     "ecosystem": {
       "title": "生态系统",
-      "description": "DIA 与主流 DeFi 协议的集成情况"
+      "description": "DIA 与主流 DeFi 协议的集成情况",
+      "totalProtocols": "总协议数",
+      "totalTvl": "总 TVL",
+      "allCategories": "全部分类",
+      "dex": "DEX",
+      "lending": "借贷",
+      "derivatives": "衍生品",
+      "yield": "收益",
+      "insurance": "保险",
+      "other": "其他",
+      "integrationDepth": "集成深度",
+      "full": "完整",
+      "partial": "部分",
+      "experimental": "实验性",
+      "dataFeedsUsed": "使用的数据馈送",
+      "visitWebsite": "访问官网",
+      "noData": "暂无生态系统数据"
     },
     "risk": {
       "dataSourceConcentration": "数据源集中度",
@@ -1720,7 +1819,10 @@
       "marketDepth": "市场深度",
       "multiChain": "多链聚合",
       "reporters": "报告者",
-      "risk": "风险评估"
+      "risk": "风险评估",
+      "disputes": "争议",
+      "staking": "质押",
+      "ecosystem": "生态系统"
     },
     "stats": {
       "activeNodes": "活跃节点",
@@ -1782,7 +1884,21 @@
       "successRate": "成功率",
       "rewards": "奖励",
       "status": "状态",
-      "lastReport": "最后报告"
+      "lastReport": "最后报告",
+      "avgDisputes": "平均争议数",
+      "perReporter": "每报告者",
+      "disputeSuccessRate": "争议成功率",
+      "won": "获胜",
+      "totalDisputeRewards": "总争议奖励",
+      "distributed": "已分配",
+      "reporterDetails": "报告者详情",
+      "disputeStats": "争议统计",
+      "participated": "参与",
+      "earned": "赚取",
+      "revenueAttribution": "收益归因",
+      "reportingRevenue": "报告收益",
+      "disputeRevenue": "争议收益",
+      "totalRevenue": "总收益"
     },
     "risk": {
       "overallLevel": "整体风险等级",
@@ -1802,6 +1918,99 @@
       "latencyRisk": "延迟风险",
       "updateFrequencyRisk": "更新频率风险",
       "alerts": "风险预警"
+    },
+    "network": {
+      "overallHealth": "整体网络健康度",
+      "basedOnMetrics": "基于网络性能指标",
+      "healthScore": "健康评分",
+      "reporterDistribution": "报告者分布",
+      "chainActivity": "链上活动",
+      "updates24h": "24小时更新",
+      "avgLatency": "平均延迟",
+      "health": "健康度",
+      "updateFrequencyHeatmap": "更新频率热力图",
+      "low": "低",
+      "high": "高"
+    },
+    "ecosystem": {
+      "totalProtocols": "总协议数",
+      "integrated": "已集成",
+      "totalTvl": "总锁仓价值",
+      "tvl": "TVL",
+      "dataFeeds": "数据馈送",
+      "totalUsage": "总使用次数",
+      "avgTvlPerProtocol": "每协议平均TVL",
+      "avgTvl": "平均TVL",
+      "protocolsByCategory": "按类别分类的协议",
+      "topProtocols": "顶级协议",
+      "growthTrend": "生态系统增长趋势",
+      "dataFeedUsage": "数据馈送使用",
+      "uses": "次使用",
+      "lending": "借贷",
+      "dex": "DEX",
+      "derivatives": "衍生品",
+      "yield": "收益",
+      "insurance": "保险",
+      "other": "其他"
+    },
+    "staking": {
+      "calculator": {
+        "title": "质押计算器",
+        "stakeAmount": "质押数量",
+        "duration": "质押期限",
+        "activeReporter": "活跃报告者",
+        "activeReporterDesc": "通过积极报告数据获得额外奖励",
+        "disputeParticipation": "争议参与",
+        "disputeParticipationDesc": "预计每月参与的争议数量",
+        "estimatedApr": "预估 APR",
+        "apr": "年化收益率",
+        "estimatedReward": "预估奖励",
+        "totalReward": "总奖励",
+        "disputeBonus": "争议奖励",
+        "extra": "额外",
+        "roi": "投资回报率",
+        "returnOnInvestment": "投资回报",
+        "breakdown": "奖励分解",
+        "baseApr": "基础 APR",
+        "reporterBonus": "报告者奖励",
+        "disputeBonusLabel": "争议奖励",
+        "totalApr": "总 APR"
+      }
+    },
+    "disputes": {
+      "flow": {
+        "title": "争议解决流程",
+        "submit": "提交数据",
+        "submitDesc": "报告者提交价格数据",
+        "challenge": "发起挑战",
+        "challengeDesc": "争议者对数据提出质疑",
+        "vote": "投票",
+        "voteDesc": "社区对数据有效性进行投票",
+        "resolve": "解决",
+        "resolveDesc": "争议得到解决"
+      },
+      "totalDisputes": "总争议数",
+      "open": "进行中",
+      "successRate": "成功率",
+      "disputerWins": "争议者获胜",
+      "avgResolutionTime": "平均解决时间",
+      "average": "平均",
+      "totalRewards": "总奖励",
+      "distributed": "已分配",
+      "trend": "争议趋势",
+      "daysAgo": "天前",
+      "today": "今天",
+      "opened": "已开启",
+      "resolved": "已解决",
+      "recentDisputes": "最近争议",
+      "reporter": "报告者",
+      "stake": "质押",
+      "status": "状态",
+      "outcome": "结果",
+      "votes": "投票",
+      "reward": "奖励",
+      "reporterWon": "报告者获胜",
+      "disputerWon": "争议者获胜"
     }
   },
   "bandProtocol": {
@@ -1820,7 +2029,10 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
+      "validators": "验证者",
       "crossChain": "跨链数据",
+      "dataFeeds": "数据喂价",
+      "staking": "质押",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估",
       "crossOracle": "跨预言机对比"
@@ -1828,7 +2040,10 @@
     "pageTitles": {
       "market": "市场数据概览",
       "network": "网络健康监控",
+      "validators": "验证者分析",
       "crossChain": "跨链数据分析",
+      "dataFeeds": "数据喂价面板",
+      "staking": "质押数据面板",
       "ecosystem": "生态系统集成",
       "risk": "风险评估面板",
       "crossOracle": "跨预言机对比分析"
@@ -1968,6 +2183,94 @@
       "ibcTransfers": "IBC 转账",
       "ibcChannels": "IBC 通道",
       "avgLatency": "平均延迟"
+    },
+    "staking": {
+      "totalStaked": "质押总量",
+      "stakingApr": "质押年化收益率",
+      "ofTotalSupply": "占总供应量",
+      "annualReturn": "年收益率",
+      "activeValidators": "活跃验证者",
+      "outOf": "共",
+      "total": "总计",
+      "inflationRate": "通胀率",
+      "annual": "年化",
+      "stakingDistribution": "质押分布",
+      "tier": {
+        "whale": "巨鲸",
+        "large": "大型",
+        "medium": "中型",
+        "small": "小型"
+      },
+      "validators": "验证者",
+      "ofNetwork": "占网络比例",
+      "topValidators": "验证者排名",
+      "rank": "排名",
+      "validator": "验证者",
+      "stakedAmount": "质押数量",
+      "commission": "佣金率",
+      "uptime": "在线率",
+      "stakingInfo": "质押信息",
+      "unbondingPeriod": "解绑期",
+      "days": "天",
+      "unbondingDesc": "解除质押后需要等待的时间",
+      "minStake": "最小质押",
+      "minStakeDesc": "成为验证者所需的最小质押量",
+      "communityPool": "社区池",
+      "communityPoolDesc": "用于生态发展的社区资金池"
+    },
+    "validators": {
+      "totalValidators": "验证者总数",
+      "active": "活跃",
+      "avgCommission": "平均佣金率",
+      "networkAverage": "网络平均",
+      "avgUptime": "平均在线率",
+      "last30Days": "过去30天",
+      "topRegion": "主要地区",
+      "ofNetwork": "占网络比例",
+      "geographicDistribution": "地理分布",
+      "validatorList": "验证者列表",
+      "sortBy": "排序方式",
+      "rank": "排名",
+      "stake": "质押量",
+      "validator": "验证者",
+      "stakedTokens": "质押代币",
+      "status": "状态",
+      "jailed": "被监禁",
+      "validatorInfo": "验证者信息",
+      "slashing": "惩罚比例",
+      "slashingDesc": "双重签名惩罚比例",
+      "maxValidators": "最大验证者数",
+      "maxValidatorsDesc": "活跃验证者集合最大数量"
+    },
+    "dataFeeds": {
+      "totalFeeds": "数据喂价总数",
+      "dataSources": "数据源",
+      "totalSources": "总数据源数",
+      "avgConfidence": "平均置信度",
+      "acrossAllFeeds": "所有喂价平均",
+      "avgUpdateFreq": "平均更新频率",
+      "updateInterval": "更新间隔",
+      "priceFeeds": "价格喂价",
+      "allCategories": "所有类别",
+      "crypto": "加密货币",
+      "stablecoin": "稳定币",
+      "symbol": "交易对",
+      "price": "价格",
+      "change24h": "24小时涨跌",
+      "updateFreq": "更新频率",
+      "confidence": "置信度",
+      "sources": "数据源数",
+      "status": "状态",
+      "feeds": "喂价",
+      "reliability": "可靠性",
+      "latency": "延迟",
+      "dataQuality": "数据质量",
+      "multiSource": "多源聚合",
+      "multiSourceDesc": "从多个独立数据源聚合价格，确保数据准确性",
+      "realTime": "实时更新",
+      "realTimeDesc": "秒级价格更新，紧跟市场变化",
+      "decentralized": "去中心化",
+      "decentralizedDesc": "由70+去中心化验证者共同维护网络安全"
     },
     "refresh": "刷新",
     "export": "导出",
@@ -2331,6 +2634,8 @@
       "market": "市场数据",
       "network": "网络健康",
       "providers": "数据提供者",
+      "dataStreams": "数据流",
+      "crossChain": "跨链支持",
       "ecosystem": "生态系统",
       "risk": "风险评估"
     },
@@ -2350,7 +2655,36 @@
       "avgUpdateTime": "平均更新时间",
       "dataQuality": "数据质量",
       "accuracyRate": "准确率",
-      "sourceList": "数据源列表"
+      "sourceList": "数据源列表",
+      "reputation": "声誉",
+      "dataPoints": "数据点数",
+      "lastUpdate": "最后更新",
+      "sortBy": "排序方式",
+      "filter": "筛选",
+      "all": "全部",
+      "highReputation": "高声誉",
+      "mostData": "最多数据"
+    },
+    "dataStreams": {
+      "title": "数据流",
+      "updateFrequency": "更新频率",
+      "dataFreshness": "数据新鲜度",
+      "streamCount": "活跃流数",
+      "avgLatency": "平均延迟",
+      "modularFee": "模块化费用",
+      "freshnessScore": "新鲜度评分",
+      "providerCount": "提供者数量",
+      "avgReputation": "平均声誉"
+    },
+    "crossChain": {
+      "title": "跨链支持",
+      "supportedChains": "支持的链",
+      "chainList": "链列表",
+      "updateFrequency": "更新频率",
+      "latency": "延迟",
+      "status": "状态",
+      "active": "活跃",
+      "inactive": "非活跃"
     },
     "risk": {
       "title": "风险评估",
@@ -2360,7 +2694,15 @@
       "overall": "综合风险"
     },
     "ecosystem": {
-      "title": "生态系统"
+      "title": "生态系统",
+      "categories": {
+        "defi": "DeFi",
+        "nft": "NFT",
+        "gaming": "游戏",
+        "infrastructure": "基础设施"
+      },
+      "integrations": "集成项目",
+      "partners": "合作伙伴"
     }
   },
   "pythNetwork": {
@@ -2617,7 +2959,9 @@
       "marketData": "市场数据",
       "networkHealth": "网络健康",
       "publishers": "数据发布者",
-      "priceFeeds": "价格源"
+      "priceFeeds": "价格源",
+      "validators": "验证者",
+      "crossChain": "跨链支持"
     },
     "stats": {
       "updateFrequency": "更新频率",
@@ -2668,7 +3012,10 @@
       "dapi": "dAPI服务",
       "staking": "质押与覆盖",
       "advantages": "核心优势",
-      "advanced": "技术分析",
+      "analytics": "技术分析",
+      "gas": "Gas对比",
+      "risk": "风险评估",
+      "crossOracle": "跨预言机",
       "ecosystem": "生态系统"
     },
     "firstPartyOracle": {
@@ -2694,6 +3041,84 @@
       "noInsurance": "✗ 无",
       "advantagesTitle": "第一方预言机优势",
       "advantagesDesc": "API3 作为第一方预言机,直接从数据源获取数据,无需经过中间商,提供更高的透明度、更快的响应速度和更可靠的数据质量。"
+    },
+    "risk": {
+      "overview": {
+        "title": "风险评估概览",
+        "description": "API3 网络的综合风险分析，包括覆盖池抵押率、数据源集中度、网络健康和质押风险。"
+      },
+      "coveragePool": {
+        "title": "覆盖池风险",
+        "collateralization": "抵押率",
+        "ratio": "覆盖比率",
+        "totalStaked": "总质押量",
+        "lowRisk": "覆盖池健康，抵押充足",
+        "mediumRisk": "中等风险，覆盖比率低于最优水平",
+        "criticalRisk": "严重风险，覆盖抵押不足"
+      },
+      "concentration": {
+        "title": "数据源集中度",
+        "diversificationScore": "多元化评分",
+        "cryptoAssets": "加密资产",
+        "totalDapis": "总 dAPI 数",
+        "concentration": "集中度",
+        "diversified": "资产类型分布良好",
+        "mediumConcentration": "加密资产集中度中等",
+        "highConcentration": "集中度高，过度依赖加密资产"
+      },
+      "network": {
+        "title": "网络健康风险",
+        "healthScore": "网络健康评分",
+        "uptime": "节点在线率",
+        "responseTime": "平均响应时间",
+        "excellent": "网络健康和性能优秀",
+        "fair": "网络健康一般，检测到轻微问题",
+        "poor": "网络健康较差，存在重大风险"
+      },
+      "staking": {
+        "title": "质押风险",
+        "riskScore": "质押风险评分",
+        "apr": "质押 APR",
+        "lockup": "锁定期",
+        "moderate": "风险适中，收益可持续",
+        "elevatedRisk": "APR 过高，风险升高",
+        "highYieldRisk": "高收益风险，收益水平不可持续"
+      }
+    },
+    "crossOracle": {
+      "overview": {
+        "title": "跨预言机对比",
+        "description": "将 API3 性能指标与其他领先预言机提供商进行对比，包括 Chainlink、Pyth、Band Protocol 和 DIA。"
+      },
+      "responseTime": {
+        "title": "响应时间对比",
+        "description": "响应时间越短表示数据传输越快"
+      },
+      "accuracy": {
+        "title": "数据准确性对比",
+        "description": "准确性越高表示价格数据越可靠"
+      },
+      "availability": {
+        "title": "网络可用性",
+        "description": "过去 30 天的在线率百分比"
+      },
+      "costEfficiency": {
+        "title": "成本效率",
+        "description": "基于 Gas 费用和更新频率的成本效益评分"
+      },
+      "updateFrequency": {
+        "title": "更新频率",
+        "description": "价格更新之间的平均时间（秒）"
+      },
+      "advantages": {
+        "title": "API3 竞争优势",
+        "firstParty": "第一方架构",
+        "firstPartyValue": "直接连接 API 提供商，消除中间商",
+        "quantifiableSecurity": "可量化安全",
+        "quantifiableSecurityValue": "链上覆盖池提供透明的安全保障",
+        "dapi": "dAPI 服务",
+        "dapiValue": "来自多个来源的去中心化聚合数据"
+      }
     },
     "pageTitles": {
       "market": "市场数据概览",
@@ -5139,7 +5564,9 @@
       "network": "网络健康",
       "tron": "TRON 生态",
       "staking": "节点质押",
-      "gaming": "游戏数据"
+      "gaming": "游戏数据",
+      "risk": "风险评估",
+      "crossOracle": "跨预言机对比"
     },
     "loading": "加载 WINkLink 数据中...",
     "error": {
@@ -5152,7 +5579,10 @@
       "networkUptime": "网络在线率",
       "volume24h": "24h 交易量",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "vrfDailyRequests": "VRF 日请求",
+      "gamingVolume": "游戏交易量",
+      "activeGames": "活跃游戏"
     },
     "tron": {
       "title": "TRON 生态集成",

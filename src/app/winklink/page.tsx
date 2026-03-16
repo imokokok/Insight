@@ -17,6 +17,8 @@ import {
 import { WINkLinkTRONEcosystemPanel as WINkLinkTRONIntegrationPanel } from '@/components/oracle/panels/WINkLinkTRONEcosystemPanel';
 import { WINkLinkStakingPanel } from '@/components/oracle/panels/WINkLinkStakingPanel';
 import { WINkLinkGamingDataPanel as WINkLinkGamingPanel } from '@/components/oracle/panels/WINkLinkGamingDataPanel';
+import { WINkLinkRiskPanel } from '@/components/oracle/panels/WINkLinkRiskPanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -36,6 +38,7 @@ export default function WINkLinkPage() {
     staking,
     gaming,
     networkStats,
+    riskMetrics,
     isLoading,
     isError,
     errors,
@@ -70,6 +73,9 @@ export default function WINkLinkPage() {
     const tronIntegrationCount = tronIntegration?.integratedDApps?.length ?? 0;
     const stakingApr = staking?.averageApr ?? 15.5;
     const nodeUptime = networkStats?.nodeUptime ?? 99.9;
+    const dailyRandomRequests = gaming?.dailyRandomRequests ?? 0;
+    const totalGamingVolume = gaming?.totalGamingVolume ?? 0;
+    const activeGames = gaming?.activeGames ?? 0;
 
     return [
       {
@@ -126,8 +132,42 @@ export default function WINkLinkPage() {
           </svg>
         ),
       },
+      {
+        title: t('winklink.stats.vrfDailyRequests'),
+        value: dailyRandomRequests > 0 ? `${dailyRandomRequests.toLocaleString()}` : '-',
+        change: '+12%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        ),
+      },
+      {
+        title: t('winklink.stats.gamingVolume'),
+        value: totalGamingVolume > 0 ? `$${(totalGamingVolume / 1e6).toFixed(1)}M` : '-',
+        change: '+8.5%',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+          </svg>
+        ),
+      },
+      {
+        title: t('winklink.stats.activeGames'),
+        value: activeGames > 0 ? `${activeGames}` : '-',
+        change: '+3',
+        changeType: 'positive' as const,
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+      },
     ];
-  }, [networkStats, tronIntegration, staking, t]);
+  }, [networkStats, tronIntegration, staking, gaming, t]);
 
   if (isLoading) {
     return <LoadingState themeColor={config.themeColor} />;
@@ -161,7 +201,7 @@ export default function WINkLinkPage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
             {stats.map((stat, index) => (
               <StatCard key={index} {...stat} />
             ))}
@@ -239,6 +279,16 @@ export default function WINkLinkPage() {
 
           {activeTab === 'gaming' && gaming && (
             <WINkLinkGamingPanel data={gaming} />
+          )}
+
+          {activeTab === 'risk' && riskMetrics && (
+            <WINkLinkRiskPanel data={riskMetrics} />
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <DashboardCard title={t('winklink.tabs.crossOracle')}>
+              <CrossOracleComparison />
+            </DashboardCard>
           )}
         </div>
       </main>

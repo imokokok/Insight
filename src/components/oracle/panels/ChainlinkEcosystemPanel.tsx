@@ -146,6 +146,61 @@ export function ChainlinkEcosystemPanel() {
         </DashboardCard>
       </div>
 
+      {/* CCIP Cross-Chain Bridge */}
+      <DashboardCard title={t('chainlink.ecosystem.ccipIntegration')}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-3xl font-bold text-gray-900">$12.8B+</div>
+                <div className="text-sm text-gray-500">{t('chainlink.ecosystem.ccipValueTransferred')}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-gray-900">2.4M+</div>
+                <div className="text-sm text-gray-500">{t('chainlink.ecosystem.ccipMessages')}</div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {[
+                { chain: 'Ethereum ↔ Arbitrum', volume: '$5.2B', messages: '980K' },
+                { chain: 'Ethereum ↔ Optimism', volume: '$3.1B', messages: '620K' },
+                { chain: 'Ethereum ↔ Base', volume: '$2.8B', messages: '450K' },
+                { chain: 'Ethereum ↔ Polygon', volume: '$1.7B', messages: '350K' },
+              ].map((route, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <span className="text-sm text-gray-700">{route.chain}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium text-gray-900">{route.volume}</span>
+                    <span className="text-xs text-gray-500">{route.messages} msgs</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('chainlink.ecosystem.ccipProtocols')}</h4>
+            <div className="space-y-2">
+              {[
+                { name: 'Synthetix', useCase: 'Cross-chain synths', tvs: '$450M' },
+                { name: 'Aave', useCase: 'Cross-chain governance', tvs: '$280M' },
+                { name: 'GMX', useCase: 'Multi-chain liquidity', tvs: '$195M' },
+                { name: 'Radiant Capital', useCase: 'Omnichain lending', tvs: '$165M' },
+                { name: 'Stargate', useCase: 'Cross-chain transfers', tvs: '$420M' },
+              ].map((protocol, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{protocol.name}</div>
+                    <div className="text-xs text-gray-500">{protocol.useCase}</div>
+                  </div>
+                  <span className="text-sm font-medium text-blue-600">{protocol.tvs}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DashboardCard>
+
       {/* Chainlink Features */}
       <DashboardCard title={t('chainlink.ecosystem.chainlinkFeatures')}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

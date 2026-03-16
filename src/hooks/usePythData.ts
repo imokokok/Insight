@@ -7,7 +7,7 @@ import { PriceData, Blockchain } from '@/types/oracle';
 
 const pythClient = new PythClient();
 
-type PythDataType = 'price' | 'historical' | 'network' | 'publishers';
+type PythDataType = 'price' | 'historical' | 'network' | 'publishers' | 'validators';
 
 const getPythKey = (type: PythDataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['pyth', type];
@@ -31,6 +31,15 @@ interface PublisherData {
   name: string;
   stake: number;
   accuracy: number;
+}
+
+interface ValidatorData {
+  id: string;
+  name: string;
+  stake: number;
+  uptime: number;
+  rewards: number;
+  status: 'active' | 'inactive' | 'jailed';
 }
 
 interface UsePythPriceOptions {
@@ -126,6 +135,9 @@ export function usePythAllData(options: UsePythAllDataOptions) {
         { id: '1', name: 'Publisher A', stake: 1000000, accuracy: 98 },
         { id: '2', name: 'Publisher B', stake: 800000, accuracy: 97 },
         { id: '3', name: 'Publisher C', stake: 600000, accuracy: 96 },
+        { id: '4', name: 'Publisher D', stake: 450000, accuracy: 95 },
+        { id: '5', name: 'Publisher E', stake: 300000, accuracy: 94 },
+        { id: '6', name: 'Publisher F', stake: 250000, accuracy: 93 },
       ];
     },
     enabled,
@@ -133,22 +145,99 @@ export function usePythAllData(options: UsePythAllDataOptions) {
     gcTime: 600000,
   });
 
-  const isLoading = priceQuery.isLoading || historicalQuery.isLoading || networkQuery.isLoading || publishersQuery.isLoading;
-  const isError = priceQuery.error !== null || historicalQuery.error !== null || networkQuery.error !== null || publishersQuery.error !== null;
-  const errors = [priceQuery.error, historicalQuery.error, networkQuery.error, publishersQuery.error].filter(Boolean) as Error[];
+  const validatorsQuery = useQuery<ValidatorData[], Error>({
+    queryKey: getPythKey('validators', { symbol, chain }),
+    queryFn: async () => {
+      return [
+        {
+          id: '1',
+          name: 'Validator A',
+          stake: 5000000,
+          uptime: 99.9,
+          rewards: 125000,
+          status: 'active',
+        },
+        {
+          id: '2',
+          name: 'Validator B',
+          stake: 4200000,
+          uptime: 99.8,
+          rewards: 105000,
+          status: 'active',
+        },
+        {
+          id: '3',
+          name: 'Validator C',
+          stake: 3800000,
+          uptime: 99.7,
+          rewards: 95000,
+          status: 'active',
+        },
+        {
+          id: '4',
+          name: 'Validator D',
+          stake: 2900000,
+          uptime: 98.5,
+          rewards: 72500,
+          status: 'active',
+        },
+        {
+          id: '5',
+          name: 'Validator E',
+          stake: 2100000,
+          uptime: 97.2,
+          rewards: 52500,
+          status: 'inactive',
+        },
+        {
+          id: '6',
+          name: 'Validator F',
+          stake: 1500000,
+          uptime: 95.0,
+          rewards: 37500,
+          status: 'jailed',
+        },
+      ];
+    },
+    enabled,
+    staleTime: 300000,
+    gcTime: 600000,
+  });
+
+  const isLoading =
+    priceQuery.isLoading ||
+    historicalQuery.isLoading ||
+    networkQuery.isLoading ||
+    publishersQuery.isLoading ||
+    validatorsQuery.isLoading;
+  const isError =
+    priceQuery.error !== null ||
+    historicalQuery.error !== null ||
+    networkQuery.error !== null ||
+    publishersQuery.error !== null ||
+    validatorsQuery.error !== null;
+  const errors = [
+    priceQuery.error,
+    historicalQuery.error,
+    networkQuery.error,
+    publishersQuery.error,
+    validatorsQuery.error,
+  ].filter(Boolean) as Error[];
 
   const refetchAll = useCallback(() => {
     priceQuery.refetch();
     historicalQuery.refetch();
     networkQuery.refetch();
     publishersQuery.refetch();
-  }, [priceQuery, historicalQuery, networkQuery, publishersQuery]);
+    validatorsQuery.refetch();
+  }, [priceQuery, historicalQuery, networkQuery, publishersQuery, validatorsQuery]);
 
   return {
     price: priceQuery.price,
     historicalData: historicalQuery.historicalData,
     networkStats: networkQuery.data,
     publishers: publishersQuery.data ?? [],
+    validators: validatorsQuery.data ?? [],
     isLoading,
     isError,
     errors,

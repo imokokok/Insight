@@ -31,6 +31,8 @@ import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { EcosystemPanel } from '@/components/oracle/panels/EcosystemPanel';
 import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
+import { API3RiskAssessmentPanel } from '@/components/oracle/panels/API3RiskAssessmentPanel';
+import { API3CrossOraclePanel } from '@/components/oracle/panels/API3CrossOraclePanel';
 
 export default function API3Page() {
   const { t } = useI18n();
@@ -327,10 +329,8 @@ export default function API3Page() {
             <FirstPartyOracleAdvantages data={firstParty.advantages} />
           )}
 
-          {activeTab === 'advanced' && (
+          {activeTab === 'analytics' && (
             <div className="space-y-6">
-              {gasFees.length > 0 && <GasFeeComparison data={gasFees} />}
-
               {ohlc && ohlc.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <BollingerBands data={ohlc.filter(d => d.timestamp && d.high && d.low && d.close).map(d => ({ 
@@ -345,6 +345,24 @@ export default function API3Page() {
 
               {qualityHistoryData.length > 0 && <DataQualityTrend data={qualityHistoryData} />}
             </div>
+          )}
+
+          {activeTab === 'gas' && gasFees.length > 0 && (
+            <div className="space-y-6">
+              <GasFeeComparison data={gasFees} />
+            </div>
+          )}
+
+          {activeTab === 'risk' && (
+            <API3RiskAssessmentPanel 
+              staking={staking} 
+              airnodeStats={airnodeStats}
+              dapiCoverage={dapiCoverage}
+            />
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <API3CrossOraclePanel />
           )}
 
           {activeTab === 'ecosystem' && (

@@ -18,6 +18,7 @@ import { ChronicleScuttlebuttPanel } from '@/components/oracle/panels/ChronicleS
 import { ChronicleMakerDAOIntegrationPanel as ChronicleMakerDAOPanel } from '@/components/oracle/panels/ChronicleMakerDAOIntegrationPanel';
 import { ChronicleValidatorPanel as ChronicleValidatorMetricsPanel } from '@/components/oracle/panels/ChronicleValidatorPanel';
 import { ChronicleRiskAssessmentPanel } from '@/components/oracle/panels/ChronicleRiskAssessmentPanel';
+import { ChronicleNetworkPanel } from '@/components/oracle/panels/ChronicleNetworkPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -224,10 +225,11 @@ export default function ChroniclePage() {
             </>
           )}
 
-          {activeTab === 'network' && (
-            <div className="space-y-6">
-              <NetworkHealthPanel config={config.networkData} />
-            </div>
+          {activeTab === 'network' && networkStats && validatorMetrics && (
+            <ChronicleNetworkPanel
+              networkStats={networkStats}
+              validatorMetrics={validatorMetrics}
+            />
           )}
 
           {activeTab === 'scuttlebutt' && scuttlebutt && (
@@ -243,7 +245,7 @@ export default function ChroniclePage() {
           )}
 
           {activeTab === 'risk' && (
-            <ChronicleRiskAssessmentPanel />
+            <ChronicleRiskAssessmentPanel scuttlebuttData={scuttlebutt || undefined} />
           )}
         </div>
       </main>

@@ -48,6 +48,9 @@ import {
   WINkLinkTRONEcosystemPanel,
   WINkLinkStakingPanel,
   WINkLinkRiskPanel,
+  BandStakingPanel,
+  BandDataFeedsPanel,
+  BandValidatorsPanel,
 } from '@/components/oracle/panels';
 import { RSIIndicator } from '../indicators/RSIIndicator';
 import { MACDIndicator } from '../indicators/MACDIndicator';
@@ -63,6 +66,8 @@ import { DataSourceCredibility } from './DataSourceCredibility';
 import { StakingPanel } from '../panels/StakingPanel';
 import { UMADashboardPanel } from '../panels/UMADashboardPanel';
 import { UMAEcosystemPanel } from '../panels/UMAEcosystemPanel';
+import { UMANetworkPanel } from '../panels/UMANetworkPanel';
+import { UMARiskPanel } from '../panels/UMARiskPanel';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('OraclePageTemplate');
@@ -795,6 +800,17 @@ export function OraclePageTemplate({
             </>
           )}
 
+          {activeTab === 'network' && config.provider === OracleProvider.UMA && (
+            <>
+              <div className="mb-6">
+                <UMANetworkPanel
+                  networkStats={umaNetworkStats}
+                  client={config.client as UMAClient}
+                />
+              </div>
+            </>
+          )}
+
           {activeTab === 'validators' && config.provider === OracleProvider.UMA && (
             <>
               <div className="mb-6">
@@ -883,7 +899,11 @@ export function OraclePageTemplate({
                   }} />
                 </div>
               )}
-              {config.provider === OracleProvider.BAND_PROTOCOL &&
+              {config.provider === OracleProvider.UMA && config.client instanceof UMAClient ? (
+                <div className="mb-6">
+                  <UMARiskPanel client={config.client} />
+                </div>
+              ) : config.provider === OracleProvider.BAND_PROTOCOL &&
               config.client instanceof BandProtocolClient ? (
                 <div className="mb-6">
                   <BandRiskAssessmentPanel client={config.client} />
@@ -1038,6 +1058,27 @@ export function OraclePageTemplate({
               }} />
             </div>
           )}
+
+          {activeTab === 'validators' && config.provider === OracleProvider.BAND_PROTOCOL &&
+            config.client instanceof BandProtocolClient && (
+              <div className="mb-6">
+                <BandValidatorsPanel client={config.client} />
+              </div>
+            )}
+
+          {activeTab === 'data-feeds' && config.provider === OracleProvider.BAND_PROTOCOL &&
+            config.client instanceof BandProtocolClient && (
+              <div className="mb-6">
+                <BandDataFeedsPanel client={config.client} />
+              </div>
+            )}
+
+          {activeTab === 'staking' && config.provider === OracleProvider.BAND_PROTOCOL &&
+            config.client instanceof BandProtocolClient && (
+              <div className="mb-6">
+                <BandStakingPanel client={config.client} />
+              </div>
+            )}
 
           {activeTab === 'cross-chain' && config.provider === OracleProvider.BAND_PROTOCOL &&
             config.client instanceof BandProtocolClient && (

@@ -1,6 +1,7 @@
 'use client';
 
-import { ReporterStats } from '@/lib/oracles/tellor';
+import { useState } from 'react';
+import { ReporterStats, Reporter } from '@/lib/oracles/tellor';
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle';
 
@@ -10,6 +11,7 @@ interface TellorReportersPanelProps {
 
 export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
   const { t } = useI18n();
+  const [selectedReporter, setSelectedReporter] = useState<Reporter | null>(null);
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -23,6 +25,15 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
+  };
+
+  // Mock dispute stats for reporters
+  const getReporterDisputeStats = (reporterId: string) => {
+    return {
+      disputesParticipated: Math.floor(Math.random() * 20),
+      disputesWon: Math.floor(Math.random() * 15),
+      disputeRewards: Math.floor(Math.random() * 50000) + 5000,
+    };
   };
 
   return (
@@ -65,6 +76,36 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
             </p>
             <p className="text-xs text-gray-500 mt-1">
               {data.activeReporters} / {data.totalReporters}
+            </p>
+          </div>
+        </DashboardCard>
+      </div>
+
+      {/* Dispute Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <DashboardCard title={t('tellor.reporters.avgDisputes')}>
+          <div className="py-2">
+            <p className="text-2xl font-bold text-purple-600">12.5</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t('tellor.reporters.perReporter')}
+            </p>
+          </div>
+        </DashboardCard>
+
+        <DashboardCard title={t('tellor.reporters.disputeSuccessRate')}>
+          <div className="py-2">
+            <p className="text-2xl font-bold text-green-600">68.4%</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t('tellor.reporters.won')}
+            </p>
+          </div>
+        </DashboardCard>
+
+        <DashboardCard title={t('tellor.reporters.totalDisputeRewards')}>
+          <div className="py-2">
+            <p className="text-2xl font-bold text-yellow-600">450K TRB</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t('tellor.reporters.distributed')}
             </p>
           </div>
         </DashboardCard>
@@ -137,7 +178,11 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
             </thead>
             <tbody>
               {data.reporters.map((reporter, index) => (
-                <tr key={reporter.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr 
+                  key={reporter.id} 
+                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedReporter(reporter)}
+                >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-400 w-6">#{index + 1}</span>
@@ -176,6 +221,134 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
           </table>
         </div>
       </DashboardCard>
+
+      {/* Reporter Detail Modal */}
+      {selectedReporter && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {t('tellor.reporters.reporterDetails')}
+                </h3>
+                <button
+                  onClick={() => setSelectedReporter(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Reporter Address */}
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-500 mb-1">{t('tellor.reporters.address')}</p>
+                <p className="text-sm font-mono text-gray-900">{selectedReporter.address}</p>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-cyan-50 rounded-lg">
+                  <p className="text-sm text-gray-600">{t('tellor.reporters.staked')}</p>
+                  <p className="text-xl font-bold text-cyan-600">
+                    {(selectedReporter.stakedAmount / 1000).toFixed(1)}K TRB
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <p className="text-sm text-gray-600">{t('tellor.reporters.rewards')}</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {(selectedReporter.rewardsEarned / 1000).toFixed(1)}K TRB
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-gray-600">{t('tellor.reporters.reports')}</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    {selectedReporter.totalReports.toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm text-gray-600">{t('tellor.reporters.successRate')}</p>
+                  <p className="text-xl font-bold text-purple-600">
+                    {(selectedReporter.successRate * 100).toFixed(2)}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Dispute Stats */}
+              {(() => {
+                const disputeStats = getReporterDisputeStats(selectedReporter.id);
+                return (
+                  <div className="border-t border-gray-200 pt-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                      {t('tellor.reporters.disputeStats')}
+                    </h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                        <p className="text-2xl font-bold text-yellow-600">
+                          {disputeStats.disputesParticipated}
+                        </p>
+                        <p className="text-sm text-gray-600">{t('tellor.reporters.participated')}</p>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <p className="text-2xl font-bold text-green-600">
+                          {disputeStats.disputesWon}
+                        </p>
+                        <p className="text-sm text-gray-600">{t('tellor.reporters.won')}</p>
+                      </div>
+                      <div className="text-center p-4 bg-purple-50 rounded-lg">
+                        <p className="text-2xl font-bold text-purple-600">
+                          {(disputeStats.disputeRewards / 1000).toFixed(1)}K
+                        </p>
+                        <p className="text-sm text-gray-600">TRB {t('tellor.reporters.earned')}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Revenue Attribution */}
+              <div className="border-t border-gray-200 pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('tellor.reporters.revenueAttribution')}
+                </h4>
+                {(() => {
+                  const disputeStats = getReporterDisputeStats(selectedReporter.id);
+                  const reportingRevenue = selectedReporter.rewardsEarned - disputeStats.disputeRewards;
+                  const totalRevenue = selectedReporter.rewardsEarned;
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600">{t('tellor.reporters.reportingRevenue')}</span>
+                        <div className="text-right">
+                          <span className="font-medium">{(reportingRevenue / 1000).toFixed(1)}K TRB</span>
+                          <span className="text-sm text-gray-500 ml-2">
+                            ({((reportingRevenue / totalRevenue) * 100).toFixed(1)}%)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600">{t('tellor.reporters.disputeRevenue')}</span>
+                        <div className="text-right">
+                          <span className="font-medium">{(disputeStats.disputeRewards / 1000).toFixed(1)}K TRB</span>
+                          <span className="text-sm text-gray-500 ml-2">
+                            ({((disputeStats.disputeRewards / totalRevenue) * 100).toFixed(1)}%)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-cyan-50 rounded-lg">
+                        <span className="font-medium text-gray-900">{t('tellor.reporters.totalRevenue')}</span>
+                        <span className="font-bold text-cyan-600">{(totalRevenue / 1000).toFixed(1)}K TRB</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

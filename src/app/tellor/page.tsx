@@ -7,7 +7,6 @@ import {
   PageHeader,
   PriceChart,
   MarketDataPanel,
-  NetworkHealthPanel,
   DashboardCard,
   StatCard,
   TabNavigation,
@@ -19,6 +18,10 @@ import { TellorMarketDepthPanel } from '@/components/oracle/panels/TellorMarketD
 import { TellorMultiChainAggregationPanel } from '@/components/oracle/panels/TellorMultiChainAggregationPanel';
 import { TellorReportersPanel } from '@/components/oracle/panels/TellorReportersPanel';
 import { TellorRiskPanel } from '@/components/oracle/panels/TellorRiskPanel';
+import { TellorNetworkPanel } from '@/components/oracle/panels/TellorNetworkPanel';
+import { TellorEcosystemPanel } from '@/components/oracle/panels/TellorEcosystemPanel';
+import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
+import { TellorDisputesPanel } from '@/components/oracle/panels/TellorDisputesPanel';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -38,10 +41,13 @@ export default function TellorPage() {
     marketDepth,
     multiChainAggregation,
     networkStats,
+    networkHealth,
     liquidity,
     staking,
     reporters,
     risk,
+    ecosystem,
+    disputes,
     isLoading,
     isError,
     errors,
@@ -229,18 +235,28 @@ export default function TellorPage() {
             </>
           )}
 
-          {activeTab === 'network' && (
-            <div className="space-y-6">
-              <NetworkHealthPanel config={config.networkData} />
-            </div>
+          {activeTab === 'network' && networkHealth && (
+            <TellorNetworkPanel data={networkHealth} />
+          )}
+
+          {activeTab === 'reporters' && reporters && (
+            <TellorReportersPanel data={reporters} />
+          )}
+
+          {activeTab === 'disputes' && disputes && (
+            <TellorDisputesPanel data={disputes} />
+          )}
+
+          {activeTab === 'staking' && (
+            <TellorStakingCalculator />
           )}
 
           {activeTab === 'price-stream' && priceStream.length > 0 && (
             <TellorPriceStreamPanel data={priceStream} />
           )}
 
-          {activeTab === 'reporters' && reporters && (
-            <TellorReportersPanel data={reporters} />
+          {activeTab === 'market-depth' && marketDepth && (
+            <TellorMarketDepthPanel data={marketDepth} />
           )}
 
           {activeTab === 'multi-chain' && multiChainAggregation && (
@@ -251,8 +267,8 @@ export default function TellorPage() {
             <TellorRiskPanel data={risk} />
           )}
 
-          {activeTab === 'market-depth' && marketDepth && (
-            <TellorMarketDepthPanel data={marketDepth} />
+          {activeTab === 'ecosystem' && ecosystem && (
+            <TellorEcosystemPanel data={ecosystem} />
           )}
         </div>
       </main>

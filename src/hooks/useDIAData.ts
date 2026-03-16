@@ -8,6 +8,10 @@ import type {
   CrossChainCoverage,
   DataSourceVerification,
   DIANetworkStats,
+  NFTData,
+  StakingDetails,
+  CustomFeed,
+  EcosystemIntegration,
 } from '@/lib/oracles/dia';
 import { PriceData, Blockchain } from '@/types/oracle';
 
@@ -20,7 +24,11 @@ type DIADataType =
   | 'crossChainCoverage'
   | 'dataSourceVerification'
   | 'networkStats'
-  | 'staking';
+  | 'staking'
+  | 'nftData'
+  | 'stakingDetails'
+  | 'customFeeds'
+  | 'ecosystem';
 
 const getDIAKey = (type: DIADataType, params?: Record<string, unknown>): string[] => {
   const baseKey = ['dia', type];
@@ -208,6 +216,94 @@ export function useDIAStaking(enabled = true) {
   };
 }
 
+export function useDIANFTData(enabled = true) {
+  const queryKey = getDIAKey('nftData');
+
+  const { data, error, isLoading, refetch } = useQuery<NFTData, Error>({
+    queryKey,
+    queryFn: () => diaClient.getNFTData(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    nftData: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useDIAStakingDetails(enabled = true) {
+  const queryKey = getDIAKey('stakingDetails');
+
+  const { data, error, isLoading, refetch } = useQuery<StakingDetails, Error>({
+    queryKey,
+    queryFn: () => diaClient.getStakingDetails(),
+    enabled,
+    staleTime: 60000,
+    gcTime: 120000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    stakingDetails: data,
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useDIACustomFeeds(enabled = true) {
+  const queryKey = getDIAKey('customFeeds');
+
+  const { data, error, isLoading, refetch } = useQuery<CustomFeed[], Error>({
+    queryKey,
+    queryFn: () => diaClient.getCustomFeeds(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    customFeeds: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
+export function useDIAEcosystem(enabled = true) {
+  const queryKey = getDIAKey('ecosystem');
+
+  const { data, error, isLoading, refetch } = useQuery<EcosystemIntegration[], Error>({
+    queryKey,
+    queryFn: () => diaClient.getEcosystemIntegrations(),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 3,
+  });
+
+  return {
+    ecosystem: data ?? [],
+    error,
+    isLoading,
+    refetch,
+  };
+}
+
 interface UseDIAAllDataOptions {
   symbol: string;
   chain?: Blockchain;
@@ -229,6 +325,10 @@ interface UseDIAAllDataReturn {
         rewardPool: number;
       }
     | undefined;
+  nftData: NFTData | undefined;
+  stakingDetails: StakingDetails | undefined;
+  customFeeds: CustomFeed[];
+  ecosystem: EcosystemIntegration[];
   isLoading: boolean;
   isError: boolean;
   errors: Error[];
@@ -245,6 +345,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
   const dataSourceVerificationQuery = useDIADataSourceVerification(enabled);
   const networkStatsQuery = useDIANetworkStats(enabled);
   const stakingQuery = useDIAStaking(enabled);
+  const nftDataQuery = useDIANFTData(enabled);
+  const stakingDetailsQuery = useDIAStakingDetails(enabled);
+  const customFeedsQuery = useDIACustomFeeds(enabled);
+  const ecosystemQuery = useDIAEcosystem(enabled);
 
   const isLoading = useMemo(() => {
     if (!enabled) return false;
@@ -255,7 +359,11 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
       crossChainCoverageQuery.isLoading ||
       dataSourceVerificationQuery.isLoading ||
       networkStatsQuery.isLoading ||
-      stakingQuery.isLoading
+      stakingQuery.isLoading ||
+      nftDataQuery.isLoading ||
+      stakingDetailsQuery.isLoading ||
+      customFeedsQuery.isLoading ||
+      ecosystemQuery.isLoading
     );
   }, [
     enabled,
@@ -266,6 +374,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
     dataSourceVerificationQuery.isLoading,
     networkStatsQuery.isLoading,
     stakingQuery.isLoading,
+    nftDataQuery.isLoading,
+    stakingDetailsQuery.isLoading,
+    customFeedsQuery.isLoading,
+    ecosystemQuery.isLoading,
   ]);
 
   const errors = useMemo(() => {
@@ -277,6 +389,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
     if (dataSourceVerificationQuery.error) errs.push(dataSourceVerificationQuery.error);
     if (networkStatsQuery.error) errs.push(networkStatsQuery.error);
     if (stakingQuery.error) errs.push(stakingQuery.error);
+    if (nftDataQuery.error) errs.push(nftDataQuery.error);
+    if (stakingDetailsQuery.error) errs.push(stakingDetailsQuery.error);
+    if (customFeedsQuery.error) errs.push(customFeedsQuery.error);
+    if (ecosystemQuery.error) errs.push(ecosystemQuery.error);
     return errs;
   }, [
     priceQuery.error,
@@ -286,6 +402,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
     dataSourceVerificationQuery.error,
     networkStatsQuery.error,
     stakingQuery.error,
+    nftDataQuery.error,
+    stakingDetailsQuery.error,
+    customFeedsQuery.error,
+    ecosystemQuery.error,
   ]);
 
   const isError = errors.length > 0;
@@ -299,6 +419,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
       dataSourceVerificationQuery.refetch(),
       networkStatsQuery.refetch(),
       stakingQuery.refetch(),
+      nftDataQuery.refetch(),
+      stakingDetailsQuery.refetch(),
+      customFeedsQuery.refetch(),
+      ecosystemQuery.refetch(),
     ]);
   }, [
     priceQuery.refetch,
@@ -308,6 +432,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
     dataSourceVerificationQuery.refetch,
     networkStatsQuery.refetch,
     stakingQuery.refetch,
+    nftDataQuery.refetch,
+    stakingDetailsQuery.refetch,
+    customFeedsQuery.refetch,
+    ecosystemQuery.refetch,
   ]);
 
   return {
@@ -318,6 +446,10 @@ export function useDIAAllData(options: UseDIAAllDataOptions): UseDIAAllDataRetur
     dataSourceVerification: dataSourceVerificationQuery.dataSourceVerification,
     networkStats: networkStatsQuery.networkStats,
     staking: stakingQuery.staking,
+    nftData: nftDataQuery.nftData,
+    stakingDetails: stakingDetailsQuery.stakingDetails,
+    customFeeds: customFeedsQuery.customFeeds,
+    ecosystem: ecosystemQuery.ecosystem,
     isLoading,
     isError,
     errors,
