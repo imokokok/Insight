@@ -572,50 +572,172 @@ export const animationColors = {
 // Tailwind 类名映射
 // ============================================
 
+// ============================================
+// Tailwind 主题配置映射
+// ============================================
+
+// 颜色名称映射 - 将配置的颜色映射到 Tailwind 类名
+const colorNames = {
+  // 主色调
+  primary: {
+    50: 'blue-50',
+    100: 'blue-100',
+    200: 'blue-200',
+    300: 'blue-300',
+    400: 'blue-400',
+    500: 'blue-500',
+    600: 'blue-600',
+    700: 'blue-700',
+    800: 'blue-800',
+    900: 'blue-900',
+  },
+  // 灰度
+  gray: {
+    50: 'gray-50',
+    100: 'gray-100',
+    200: 'gray-200',
+    300: 'gray-300',
+    400: 'gray-400',
+    500: 'gray-500',
+    600: 'gray-600',
+    700: 'gray-700',
+    800: 'gray-800',
+    900: 'gray-900',
+  },
+  // Slate
+  slate: {
+    50: 'slate-50',
+    100: 'slate-100',
+    200: 'slate-200',
+    300: 'slate-300',
+    400: 'slate-400',
+    500: 'slate-500',
+    600: 'slate-600',
+    700: 'slate-700',
+    800: 'slate-800',
+    900: 'slate-900',
+  },
+  // 语义色
+  emerald: {
+    50: 'emerald-50',
+    500: 'emerald-500',
+    600: 'emerald-600',
+    700: 'emerald-700',
+  },
+  amber: {
+    50: 'amber-50',
+    500: 'amber-500',
+    600: 'amber-600',
+    700: 'amber-700',
+  },
+  red: {
+    50: 'red-50',
+    500: 'red-500',
+    600: 'red-600',
+    700: 'red-700',
+  },
+} as const;
+
+// ============================================
+// Tailwind 类名构建器
+// ============================================
+
+const createBgClass = (color: string) => `bg-${color}`;
+const createTextClass = (color: string) => `text-${color}`;
+const createBorderClass = (color: string) => `border-${color}`;
+const createHoverBorderClass = (color: string) => `hover:border-${color}`;
+
+// ============================================
+// 基础 Tailwind 类名
+// ============================================
+
+const baseBgClasses = {
+  primary: createBgClass(colorNames.primary[800]),
+  secondary: createBgClass(colorNames.primary[500]),
+  accent: createBgClass(colorNames.primary[400]),
+  success: createBgClass(colorNames.emerald[500]),
+  warning: createBgClass(colorNames.amber[500]),
+  danger: createBgClass(colorNames.red[500]),
+  neutral: createBgClass(colorNames.slate[500]),
+  white: 'bg-white',
+} as const;
+
+const baseTextClasses = {
+  primary: createTextClass(colorNames.gray[900]),
+  secondary: createTextClass(colorNames.gray[700]),
+  tertiary: createTextClass(colorNames.gray[600]),
+  muted: createTextClass(colorNames.gray[500]),
+  success: createTextClass(colorNames.emerald[600]),
+  warning: createTextClass(colorNames.amber[600]),
+  danger: createTextClass(colorNames.red[600]),
+} as const;
+
+const baseBorderClasses = {
+  light: createBorderClass(colorNames.gray[200]),
+  DEFAULT: createBorderClass(colorNames.gray[300]),
+  dark: createBorderClass(colorNames.gray[400]),
+} as const;
+
+// ============================================
+// 组合 Tailwind 类名
+// ============================================
+
 export const tailwindClasses = {
   // 背景色
-  bg: {
-    primary: 'bg-blue-800',
-    secondary: 'bg-blue-500',
-    accent: 'bg-blue-400',
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    danger: 'bg-red-500',
-    neutral: 'bg-slate-500',
-  },
+  bg: baseBgClasses,
 
   // 文本色
-  text: {
-    primary: 'text-gray-900',
-    secondary: 'text-gray-700',
-    tertiary: 'text-gray-600',
-    muted: 'text-gray-500',
-    success: 'text-emerald-600',
-    warning: 'text-amber-600',
-    danger: 'text-red-600',
-  },
+  text: baseTextClasses,
 
   // 边框色
-  border: {
-    light: 'border-gray-200',
-    DEFAULT: 'border-gray-300',
-    dark: 'border-gray-400',
-  },
+  border: baseBorderClasses,
 
   // 状态背景色（light 版本）
   statusBg: {
-    success: 'bg-emerald-50',
-    warning: 'bg-amber-50',
-    danger: 'bg-red-50',
-    info: 'bg-blue-50',
+    success: createBgClass(colorNames.emerald[50]),
+    warning: createBgClass(colorNames.amber[50]),
+    danger: createBgClass(colorNames.red[50]),
+    info: createBgClass(colorNames.primary[50]),
   },
 
   // 状态文本色
   statusText: {
-    success: 'text-emerald-700',
-    warning: 'text-amber-700',
-    danger: 'text-red-700',
-    info: 'text-blue-700',
+    success: createTextClass(colorNames.emerald[700]),
+    warning: createTextClass(colorNames.amber[700]),
+    danger: createTextClass(colorNames.red[700]),
+    info: createTextClass(colorNames.primary[700]),
+  },
+
+  // 过渡动画
+  transition: {
+    colors: 'transition-colors duration-200',
+    all: 'transition-all duration-200',
+  },
+
+  // 边框基础类
+  borderBase: {
+    DEFAULT: 'border',
+    bottom: 'border-b',
+  },
+
+  // 悬停效果 - 使用基础类名组合
+  hover: {
+    borderDark: createHoverBorderClass(colorNames.gray[400]),
+  },
+
+  // 鼠标样式
+  cursor: {
+    pointer: 'cursor-pointer',
+  },
+
+  // 间距
+  spacing: {
+    cardPadding: 'px-6 py-4',
+  },
+
+  // 字体
+  font: {
+    title: 'text-lg font-semibold',
   },
 } as const;
 

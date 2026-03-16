@@ -25,7 +25,12 @@ import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
+import {
+  useSelectedTimeRange,
+  useTimeRangeCallback,
+  useSyncEnabled,
+  SelectedTimeRange,
+} from '@/stores/uiStore';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('DataQualityTrend');
@@ -148,8 +153,9 @@ export function DataQualityTrend({
   const [showRadarChart, setShowRadarChart] = useState(true);
   const [showRanking, setShowRanking] = useState(true);
 
-  const { selectedTimeRange, registerTimeRangeCallback, unregisterTimeRangeCallback, syncEnabled } =
-    useTimeRange();
+  const selectedTimeRange = useSelectedTimeRange();
+  const { registerTimeRangeCallback, unregisterTimeRangeCallback } = useTimeRangeCallback();
+  const syncEnabled = useSyncEnabled();
   const [brushStartIndex, setBrushStartIndex] = useState<number | undefined>(undefined);
   const [brushEndIndex, setBrushEndIndex] = useState<number | undefined>(undefined);
   const [isSyncing, setIsSyncing] = useState(false);

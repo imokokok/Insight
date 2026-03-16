@@ -25,7 +25,13 @@ import { TimeRange } from '../../common/TabNavigation';
 import { AnomalyMarker, AnomalyPoint } from '../../common/AnomalyMarker';
 import { ChartExportButton } from '../../forms/ChartExportButton';
 import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
-import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
+import {
+  useGlobalTimeRange,
+  useSelectedTimeRange,
+  useTimeRangeCallback,
+  useSyncEnabled,
+  SelectedTimeRange,
+} from '@/stores/uiStore';
 import { ChartExportData } from '@/utils/chartExport';
 import { downsampleData } from '@/utils/downsampling';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
@@ -73,13 +79,10 @@ export function PriceChart({
   const { t } = useI18n();
   const screenSize = useScreenSize();
   const GRANULARITY_CONFIG = useMemo(() => getGranularityConfig(t), [t]);
-  const {
-    globalTimeRange,
-    selectedTimeRange,
-    registerTimeRangeCallback,
-    unregisterTimeRangeCallback,
-    syncEnabled,
-  } = useTimeRange();
+  const globalTimeRange = useGlobalTimeRange();
+  const selectedTimeRange = useSelectedTimeRange();
+  const { registerTimeRangeCallback, unregisterTimeRangeCallback } = useTimeRangeCallback();
+  const syncEnabled = useSyncEnabled();
   const {
     settings: chartSettings,
     updateSettings: updateChartSettings,

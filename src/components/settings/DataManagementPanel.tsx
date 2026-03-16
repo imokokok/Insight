@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthActions } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase/client';
 import { queries } from '@/lib/supabase/client';
 import {
@@ -19,7 +19,8 @@ import { useI18n } from '@/lib/i18n/provider';
 
 export function DataManagementPanel() {
   const { t } = useI18n();
-  const { user, signOut } = useAuth();
+  const user = useUser();
+  const { signOut } = useAuthActions();
   const [isExporting, setIsExporting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);

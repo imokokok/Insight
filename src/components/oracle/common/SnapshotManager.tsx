@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 import { OracleSnapshot } from '@/types/oracle';
 import { formatTimestamp, getTimeAgo } from '@/types/common/timestamps';
 import {
@@ -52,7 +52,7 @@ export function SnapshotManager({
   onSelectSnapshot,
   selectedSnapshotId,
 }: SnapshotManagerProps) {
-  const { user } = useAuth();
+  const user = useUser();
   const { t } = useI18n();
   const [snapshots, setSnapshots] = useState<OracleSnapshot[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);

@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, queries, PriceAlert, AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import type { OracleProvider, Blockchain } from '@/types/oracle';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 
 export interface CreateAlertInput {
   name: string;
@@ -69,7 +69,7 @@ const ALERTS_KEY = 'user-alerts';
 const ALERT_EVENTS_KEY = 'user-alert-events';
 
 export function useAlerts(): UseAlertsReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const userId = user?.id;
 
   const { data, error, isLoading, refetch } = useQuery<PriceAlert[], Error>({
@@ -96,7 +96,7 @@ export function useAlerts(): UseAlertsReturn {
 }
 
 export function useCreateAlert(): UseCreateAlertReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const [isCreating, setIsCreating] = useState(false);
   const queryClient = useQueryClient();
 
@@ -138,7 +138,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
 }
 
 export function useUpdateAlert(): UseUpdateAlertReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
 
@@ -176,7 +176,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
 }
 
 export function useDeleteAlert(): UseDeleteAlertReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -210,7 +210,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
 }
 
 export function useAlertEvents(): UseAlertEventsReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const userId = user?.id;
 
   const { data, error, isLoading, refetch } = useQuery<AlertEvent[], Error>({
@@ -237,7 +237,7 @@ export function useAlertEvents(): UseAlertEventsReturn {
 }
 
 export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
-  const { user } = useAuth();
+  const user = useUser();
   const [isAcknowledging, setIsAcknowledging] = useState(false);
   const queryClient = useQueryClient();
 
@@ -271,7 +271,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
 }
 
 export function useActiveAlertsRealtime() {
-  const { user } = useAuth();
+  const user = useUser();
   const { alerts, refetch } = useAlerts();
 
   useEffect(() => {
@@ -302,7 +302,7 @@ export function useActiveAlertsRealtime() {
 }
 
 export function useAlertEventsRealtime() {
-  const { user } = useAuth();
+  const user = useUser();
   const { events, refetch } = useAlertEvents();
 
   useEffect(() => {

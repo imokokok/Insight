@@ -1,1 +1,10 @@
-export { LazyAreaChart, LazyBarChart } from './LazyCharts';
+export {
+  LazyAreaChart,
+  LazyLineChart,
+  LazyComposedChart,
+  LazyBarChart,
+  SuspenseAreaChart,
+  SuspenseLineChart,
+  SuspenseComposedChart,
+  SuspenseBarChart,
+} from './LazyCharts';

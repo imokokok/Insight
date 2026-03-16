@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 import { useFavorites, FavoriteConfig, mapConfigTypeFromDB } from '@/hooks/useFavorites';
 import { FavoriteCard } from './FavoriteCard';
 import type { ConfigType } from '@/lib/supabase/database.types';
@@ -22,7 +22,7 @@ export function FavoritesManager({
   showGroupByType = true,
   className = '',
 }: FavoritesManagerProps) {
-  const { user } = useAuth();
+  const user = useUser();
   const { favorites, isLoading, error } = useFavorites();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ConfigType | 'all'>('all');

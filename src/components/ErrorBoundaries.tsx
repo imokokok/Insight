@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Component, ReactNode } from 'react';
+import React, { Component, ReactNode, useEffect } from 'react';
 import { createLogger } from '@/lib/utils/logger';
 import { useI18n } from '@/lib/i18n/provider';
 import {
@@ -10,6 +10,8 @@ import {
   PriceFetchError,
   RateLimitError,
 } from '@/lib/errors';
+import { captureException, setUser } from '@/lib/monitoring';
+import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundaries');
 
@@ -57,22 +59,27 @@ export class BaseErrorBoundary extends Component<ErrorBoundaryProps, ErrorBounda
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const { onError, level = 'component' } = this.props;
 
+    const errorContext = {
+      level,
+      componentStack: errorInfo.componentStack,
+      ...(isAppError(error) && {
+        statusCode: error.statusCode,
+        isOperational: error.isOperational,
+        details: error.details,
+      }),
+    };
+
     if (isAppError(error)) {
       logger.error(
         `[${level.toUpperCase()}] Error caught an AppError: ${error.code} - ${error.message}`,
         error,
-        {
-          statusCode: error.statusCode,
-          isOperational: error.isOperational,
-          details: error.details,
-          componentStack: errorInfo.componentStack,
-        }
+        errorContext
       );
     } else {
-      logger.error(`[${level.toUpperCase()}] Error caught:`, error, {
-        componentStack: errorInfo.componentStack,
-      });
+      logger.error(`[${level.toUpperCase()}] Error caught:`, error, errorContext);
     }
+
+    captureException(error, errorContext);
 
     if (onError) {
       onError(error, errorInfo);
@@ -320,8 +327,26 @@ export function SectionErrorFallback({ error, onReset, translations }: ErrorFall
   );
 }
 
+function useSentryUserContext() {
+  const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
+
+  useEffect(() => {
+    if (user) {
+      setUser({
+        id: user.id,
+        email: user.email,
+        username: profile?.display_name || user.user_metadata?.display_name,
+      });
+    } else {
+      setUser(null);
+    }
+  }, [user, profile]);
+}
+
 function useErrorTranslations() {
   const { t } = useI18n();
+  useSentryUserContext();
   return {
     somethingWrong: t('error.boundary.somethingWrong'),
     tryAgain: t('error.boundary.tryAgain'),

@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 import { useI18n } from '@/lib/i18n/provider';
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signInWithOAuth, loading, error, user } = useAuth();
+  const user = useUser();
+  const loading = useAuthLoading();
+  const error = useAuthError();
+  const { signIn, signInWithOAuth } = useAuthActions();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

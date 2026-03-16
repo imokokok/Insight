@@ -24,6 +24,7 @@ export interface OracleTab {
 export interface OracleConfig {
   provider: OracleProvider;
   name: string;
+  description: string;
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
@@ -53,6 +54,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: {
     provider: OracleProvider.CHAINLINK,
     name: 'Chainlink',
+    description: '行业领先的去中心化预言机网络，为智能合约提供安全可靠的链下数据连接',
     symbol: 'LINK',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -123,6 +125,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.BAND_PROTOCOL]: {
     provider: OracleProvider.BAND_PROTOCOL,
     name: 'Band Protocol',
+    description: '基于 Cosmos SDK 构建的跨链数据预言机平台，实现快速最终性和原生互操作性',
     symbol: 'BAND',
     defaultChain: Blockchain.COSMOS,
     supportedChains: [
@@ -191,20 +194,21 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: false,
     },
     tabs: [
-      { id: 'market', labelKey: 'band.menu.marketData' },
-      { id: 'network', labelKey: 'band.menu.networkHealth' },
-      { id: 'validators', labelKey: 'band.menu.validators' },
-      { id: 'cross-chain', labelKey: 'band.menu.crossChain' },
-      { id: 'data-feeds', labelKey: 'band.menu.dataFeeds' },
-      { id: 'staking', labelKey: 'band.menu.staking' },
-      { id: 'ecosystem', labelKey: 'band.menu.ecosystem' },
-      { id: 'risk', labelKey: 'band.menu.riskAssessment' },
-      { id: 'cross-oracle', labelKey: 'band.menu.crossOracle' },
+      { id: 'market', labelKey: 'bandProtocol.menu.marketData' },
+      { id: 'network', labelKey: 'bandProtocol.menu.networkHealth' },
+      { id: 'validators', labelKey: 'bandProtocol.menu.validators' },
+      { id: 'cross-chain', labelKey: 'bandProtocol.menu.crossChain' },
+      { id: 'data-feeds', labelKey: 'bandProtocol.menu.dataFeeds' },
+      { id: 'staking', labelKey: 'bandProtocol.menu.staking' },
+      { id: 'ecosystem', labelKey: 'bandProtocol.menu.ecosystem' },
+      { id: 'risk', labelKey: 'bandProtocol.menu.riskAssessment' },
+      { id: 'cross-oracle', labelKey: 'bandProtocol.menu.crossOracle' },
     ],
   },
   [OracleProvider.UMA]: {
     provider: OracleProvider.UMA,
     name: 'UMA',
+    description: '乐观预言机协议，通过争议解决机制构建无价的合成资产和金融合约',
     symbol: 'UMA',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -272,6 +276,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.PYTH]: {
     provider: OracleProvider.PYTH,
     name: 'Pyth',
+    description: '高频金融数据预言机，具有第一方交易所数据和亚秒级延迟',
     symbol: 'PYTH',
     defaultChain: Blockchain.SOLANA,
     supportedChains: [
@@ -341,6 +346,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.API3]: {
     provider: OracleProvider.API3,
     name: 'API3',
+    description: '第一方预言机网络，实现去中心化 API 连接',
     symbol: 'API3',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -414,6 +420,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.REDSTONE]: {
     provider: OracleProvider.REDSTONE,
     name: 'RedStone',
+    description: '模块化预言机解决方案，支持高效的数据流和灵活的集成选项',
     symbol: 'REDSTONE',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -490,6 +497,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.DIA]: {
     provider: OracleProvider.DIA,
     name: 'DIA',
+    description: '开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送',
     symbol: 'DIA',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -557,6 +565,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.TELLOR]: {
     provider: OracleProvider.TELLOR,
     name: 'Tellor',
+    description: '去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性',
     symbol: 'TRB',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -627,6 +636,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHRONICLE]: {
     provider: OracleProvider.CHRONICLE,
     name: 'Chronicle',
+    description: 'MakerDAO 原生预言机，采用 Scuttlebutt 安全协议',
     symbol: 'CHRONICLE',
     defaultChain: Blockchain.ETHEREUM,
     supportedChains: [
@@ -692,6 +702,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.WINKLINK]: {
     provider: OracleProvider.WINKLINK,
     name: 'WINkLink',
+    description: 'TRON 生态预言机，专注游戏和 DeFi',
     symbol: 'WINKLINK',
     defaultChain: Blockchain.BNB_CHAIN,
     supportedChains: [Blockchain.BNB_CHAIN],

@@ -2,22 +2,18 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-
-interface RiskMetric {
-  name: string;
-  value: number;
-  maxValue: number;
-  status: 'good' | 'warning' | 'critical';
-  description: string;
-}
-
-interface RiskEvent {
-  date: string;
-  type: 'upgrade' | 'vulnerability' | 'response' | 'maintenance';
-  title: string;
-  description: string;
-  status: 'resolved' | 'monitoring';
-}
+import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import {
+  getScoreColor,
+  getScoreBg,
+  getScoreBarColor,
+  getEventTypeColor,
+  getRiskLevel,
+  getRiskLevelColor,
+  calculateOverallScore,
+  getStatusColor,
+  getMeasureStatusColor,
+} from '@/lib/utils/riskUtils';
 
 const riskMetrics: RiskMetric[] = [
   {
@@ -81,7 +77,7 @@ const riskEvents: RiskEvent[] = [
   },
 ];
 
-const mitigationMeasures = [
+const mitigationMeasures: MitigationMeasure[] = [
   { name: 'multiNodeConsensus', type: 'technical', status: 'active', effectiveness: 95 },
   { name: 'anomalyDetection', type: 'technical', status: 'active', effectiveness: 92 },
   { name: 'nodeStaking', type: 'operational', status: 'active', effectiveness: 88 },
@@ -92,41 +88,11 @@ const mitigationMeasures = [
 
 export function ChainlinkRiskPanel() {
   const { t } = useI18n();
-
-  const overallScore = Math.round(
-    riskMetrics.reduce((sum, metric) => sum + metric.value, 0) / riskMetrics.length
-  );
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getScoreBg = (score: number) => {
-    if (score >= 90) return 'bg-green-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
-  };
-
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'upgrade':
-        return 'bg-blue-100 text-blue-700';
-      case 'vulnerability':
-        return 'bg-red-100 text-red-700';
-      case 'response':
-        return 'bg-green-100 text-green-700';
-      case 'maintenance':
-        return 'bg-gray-100 text-gray-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+  const overallScore = calculateOverallScore(riskMetrics);
+  const riskLevel = getRiskLevel(overallScore);
 
   return (
     <div className="space-y-6">
-      {/* Overall Risk Score */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('chainlink.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -135,7 +101,7 @@ export function ChainlinkRiskPanel() {
               {t('chainlink.riskAssessment.comprehensiveAssessment')}
             </div>
             <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
-              {overallScore >= 90 ? t('chainlink.riskAssessment.riskLevel.low') : overallScore >= 70 ? t('chainlink.riskAssessment.riskLevel.medium') : t('chainlink.riskAssessment.riskLevel.high')}
+              {t(`chainlink.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
         </DashboardCard>
@@ -154,9 +120,7 @@ export function ChainlinkRiskPanel() {
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${
-                      metric.value >= 90 ? 'bg-green-500' : metric.value >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
+                    className={`h-full rounded-full ${getScoreBarColor(metric.value)}`}
                     style={{ width: `${metric.value}%` }}
                   ></div>
                 </div>
@@ -167,7 +131,6 @@ export function ChainlinkRiskPanel() {
         </DashboardCard>
       </div>
 
-      {/* Risk Metrics Detail */}
       <DashboardCard title={t('chainlink.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -212,7 +175,6 @@ export function ChainlinkRiskPanel() {
         </div>
       </DashboardCard>
 
-      {/* Security Timeline */}
       <DashboardCard title={t('chainlink.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
@@ -228,9 +190,7 @@ export function ChainlinkRiskPanel() {
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${
-                  event.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
+                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
                   {event.status === 'resolved' ? t('chainlink.riskAssessment.resolved') : t('chainlink.riskAssessment.monitoring')}
                 </span>
               </div>
@@ -239,52 +199,15 @@ export function ChainlinkRiskPanel() {
         </div>
       </DashboardCard>
 
-      {/* Service-Level Risk Assessment */}
       <DashboardCard title={t('chainlink.riskAssessment.serviceLevelRisk')}>
         <div className="space-y-4">
           {[
-            {
-              service: 'CCIP',
-              availability: 99.97,
-              incidents: 0,
-              riskLevel: 'low',
-              lastIncident: 'N/A',
-            },
-            {
-              service: 'Data Feeds',
-              availability: 99.99,
-              incidents: 1,
-              riskLevel: 'low',
-              lastIncident: '2024-01-20',
-            },
-            {
-              service: 'Functions',
-              availability: 99.95,
-              incidents: 0,
-              riskLevel: 'low',
-              lastIncident: 'N/A',
-            },
-            {
-              service: 'Automation',
-              availability: 99.98,
-              incidents: 0,
-              riskLevel: 'low',
-              lastIncident: 'N/A',
-            },
-            {
-              service: 'VRF',
-              availability: 99.96,
-              incidents: 0,
-              riskLevel: 'low',
-              lastIncident: 'N/A',
-            },
-            {
-              service: 'Proof of Reserve',
-              availability: 99.99,
-              incidents: 0,
-              riskLevel: 'low',
-              lastIncident: 'N/A',
-            },
+            { service: 'CCIP', availability: 99.97, incidents: 0, riskLevel: 'low' as const },
+            { service: 'Data Feeds', availability: 99.99, incidents: 1, riskLevel: 'low' as const },
+            { service: 'Functions', availability: 99.95, incidents: 0, riskLevel: 'low' as const },
+            { service: 'Automation', availability: 99.98, incidents: 0, riskLevel: 'low' as const },
+            { service: 'VRF', availability: 99.96, incidents: 0, riskLevel: 'low' as const },
+            { service: 'Proof of Reserve', availability: 99.99, incidents: 0, riskLevel: 'low' as const },
           ].map((service) => (
             <div key={service.service} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
@@ -301,15 +224,7 @@ export function ChainlinkRiskPanel() {
                 <span className="text-sm text-gray-600">
                   {service.incidents > 0 ? `${service.incidents} incidents` : 'No incidents'}
                 </span>
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    service.riskLevel === 'low'
-                      ? 'bg-green-100 text-green-700'
-                      : service.riskLevel === 'medium'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
+                <span className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(service.riskLevel)}`}>
                   {t(`chainlink.riskAssessment.riskLevel.${service.riskLevel}`)}
                 </span>
               </div>
@@ -318,7 +233,6 @@ export function ChainlinkRiskPanel() {
         </div>
       </DashboardCard>
 
-      {/* Service-Specific Risk Factors */}
       <DashboardCard title={t('chainlink.riskAssessment.serviceRiskFactors')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -359,16 +273,13 @@ export function ChainlinkRiskPanel() {
         </div>
       </DashboardCard>
 
-      {/* Mitigation Measures */}
       <DashboardCard title={t('chainlink.riskAssessment.mitigationMeasures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {mitigationMeasures.map((measure) => (
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${
-                  measure.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
                   {t(`chainlink.riskAssessment.${measure.status}`)}
                 </span>
               </div>

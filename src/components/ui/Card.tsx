@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { tailwindClasses } from '@/lib/config/colors';
 
 interface CardProps {
   children: ReactNode;
@@ -15,14 +16,14 @@ export function Card({
   hoverable = false,
   style,
 }: CardProps) {
-  const baseClasses = 'bg-white transition-colors duration-200';
+  const baseClasses = `${tailwindClasses.bg.white} ${tailwindClasses.transition.colors}`;
 
   const variantClasses = {
-    default: 'border border-gray-200',
-    outlined: 'border border-gray-300',
+    default: `${tailwindClasses.borderBase.DEFAULT} ${tailwindClasses.border.light}`,
+    outlined: `${tailwindClasses.borderBase.DEFAULT} ${tailwindClasses.border.DEFAULT}`,
   };
 
-  const hoverClasses = hoverable ? 'hover:border-gray-400 cursor-pointer' : '';
+  const hoverClasses = hoverable ? `${tailwindClasses.hover.borderDark} ${tailwindClasses.cursor.pointer}` : '';
 
   return (
     <div
@@ -40,7 +41,7 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>{children}</div>;
+  return <div className={`${tailwindClasses.spacing.cardPadding} ${tailwindClasses.borderBase.bottom} ${tailwindClasses.border.light} ${className}`}>{children}</div>;
 }
 
 interface CardTitleProps {
@@ -49,7 +50,7 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>{children}</h3>;
+  return <h3 className={`${tailwindClasses.font.title} ${tailwindClasses.text.primary} ${className}`}>{children}</h3>;
 }
 
 interface CardContentProps {
@@ -58,7 +59,7 @@ interface CardContentProps {
 }
 
 export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
+  return <div className={`${tailwindClasses.spacing.cardPadding} ${className}`}>{children}</div>;
 }
 
 export default Card;

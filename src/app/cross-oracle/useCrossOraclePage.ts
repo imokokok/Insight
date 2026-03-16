@@ -23,7 +23,7 @@ import {
   updateHistoryMinMax,
 } from './constants';
 import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 import { createLogger } from '@/lib/utils/logger';
 import { lttbDownsample } from '@/lib/utils/lttb';
 import {
@@ -89,7 +89,7 @@ export interface UseCrossOraclePageReturn {
   getOracleLatencyData: (oracle: OracleProvider | null) => number[];
   t: (key: string) => string;
   router: ReturnType<typeof useRouter>;
-  user: ReturnType<typeof useAuth>['user'];
+  user: ReturnType<typeof useUser>;
   oracleFavorites: ReturnType<typeof useFavorites>['favorites'];
   currentFavoriteConfig: FavoriteConfig;
   validPrices: number[];
@@ -168,7 +168,7 @@ export interface UseCrossOraclePageReturn {
 export function useCrossOraclePage(): UseCrossOraclePageReturn {
   const { t } = useI18n();
   const router = useRouter();
-  const { user } = useAuth();
+  const user = useUser();
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,

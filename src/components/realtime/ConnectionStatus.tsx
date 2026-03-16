@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRealtime } from '@/contexts/RealtimeContext';
+import { useConnectionStatus, useRealtimeActions } from '@/stores/realtimeStore';
 import { ConnectionStatus } from '@/lib/supabase/realtime';
 import { useI18n } from '@/lib/i18n/provider';
 
@@ -39,7 +39,8 @@ export function ConnectionStatusIndicator({
   showReconnectButton = true,
   className = '',
 }: ConnectionStatusIndicatorProps) {
-  const { connectionStatus, reconnect } = useRealtime();
+  const connectionStatus = useConnectionStatus();
+  const { reconnect } = useRealtimeActions();
   const [isReconnecting, setIsReconnecting] = useState(false);
   const { t } = useI18n();
 
@@ -78,7 +79,7 @@ export function ConnectionStatusIndicator({
 }
 
 export function ConnectionStatusBadge({ className = '' }: { className?: string }) {
-  const { connectionStatus } = useRealtime();
+  const connectionStatus = useConnectionStatus();
   const { t } = useI18n();
   const config = statusConfig[connectionStatus];
 
@@ -102,7 +103,7 @@ export function ConnectionStatusBadge({ className = '' }: { className?: string }
 }
 
 export function ConnectionStatusDot({ className = '' }: { className?: string }) {
-  const { connectionStatus } = useRealtime();
+  const connectionStatus = useConnectionStatus();
   const { t } = useI18n();
 
   return (
