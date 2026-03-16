@@ -1,7 +1,12 @@
 'use client';
 
+import { useState, useMemo, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import {
+  DashboardCard,
+  DataFreshnessIndicator,
+  DataSourceCredibility,
+} from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
   getScoreColor,
@@ -16,34 +21,52 @@ import {
   formatLatency,
 } from '@/lib/utils/riskUtils';
 
-const riskMetrics: RiskMetric[] = [
+// 模拟第一方数据源
+const generateFirstPartySources = () => [
   {
-    name: 'decentralization',
-    value: 88,
-    maxValue: 100,
-    status: 'good',
-    description: '90+ publishers across multiple institutions with distributed stake',
+    id: '1',
+    name: 'Jane Street',
+    accuracy: 98,
+    responseSpeed: 95,
+    consistency: 97,
+    availability: 99,
+    contribution: 15.2,
   },
   {
-    name: 'security',
-    value: 92,
-    maxValue: 100,
-    status: 'good',
-    description: 'Cryptographic verification with staking slashing conditions',
+    id: '2',
+    name: 'Jump Crypto',
+    accuracy: 97,
+    responseSpeed: 96,
+    consistency: 96,
+    availability: 98,
+    contribution: 12.8,
   },
   {
-    name: 'stability',
-    value: 96,
-    maxValue: 100,
-    status: 'good',
-    description: '99.9% uptime with sub-second price updates',
+    id: '3',
+    name: 'Wintermute',
+    accuracy: 96,
+    responseSpeed: 94,
+    consistency: 95,
+    availability: 97,
+    contribution: 10.5,
   },
   {
-    name: 'dataQuality',
-    value: 94,
-    maxValue: 100,
-    status: 'good',
-    description: 'High-frequency updates with confidence intervals',
+    id: '4',
+    name: 'Cumberland',
+    accuracy: 95,
+    responseSpeed: 93,
+    consistency: 96,
+    availability: 98,
+    contribution: 8.3,
+  },
+  {
+    id: '5',
+    name: 'Alameda Research',
+    accuracy: 94,
+    responseSpeed: 92,
+    consistency: 94,
+    availability: 96,
+    contribution: 6.7,
   },
 ];
 
@@ -89,11 +112,66 @@ const mitigationMeasures: MitigationMeasure[] = [
 
 export function PythRiskAssessmentPanel() {
   const { t } = useI18n();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 动态生成风险指标数据
+  const riskMetrics: RiskMetric[] = useMemo(
+    () => [
+      {
+        name: 'decentralization',
+        value: Math.round(86 + Math.random() * 4),
+        maxValue: 100,
+        status: 'good',
+        description: '90+ publishers across multiple institutions with distributed stake',
+      },
+      {
+        name: 'security',
+        value: Math.round(90 + Math.random() * 4),
+        maxValue: 100,
+        status: 'good',
+        description: 'Cryptographic verification with staking slashing conditions',
+      },
+      {
+        name: 'stability',
+        value: Math.round(94 + Math.random() * 4),
+        maxValue: 100,
+        status: 'good',
+        description: '99.9% uptime with sub-second price updates',
+      },
+      {
+        name: 'dataQuality',
+        value: Math.round(92 + Math.random() * 4),
+        maxValue: 100,
+        status: 'good',
+        description: 'High-frequency updates with confidence intervals',
+      },
+    ],
+    [lastUpdated]
+  );
+
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
+  const firstPartySources = useMemo(() => generateFirstPartySources(), []);
+
+  const handleRefresh = useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setLastUpdated(new Date());
+      setIsLoading(false);
+    }, 1000);
+  }, []);
 
   return (
     <div className="space-y-6">
+      {/* 数据新鲜度指示器 */}
+      <DataFreshnessIndicator
+        lastUpdated={lastUpdated}
+        thresholdMinutes={5}
+        onRefresh={handleRefresh}
+        isLoading={isLoading}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('pyth.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -101,7 +179,9 @@ export function PythRiskAssessmentPanel() {
             <div className="text-sm text-gray-500 mt-2">
               {t('pyth.riskAssessment.comprehensiveAssessment')}
             </div>
-            <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
+            <div
+              className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}
+            >
               {t(`pyth.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
@@ -131,6 +211,12 @@ export function PythRiskAssessmentPanel() {
           </div>
         </DashboardCard>
       </div>
+
+      {/* 第一方数据源可信度评分卡片 */}
+      <DataSourceCredibility
+        sources={firstPartySources}
+        className="w-full"
+      />
 
       <DashboardCard title={t('pyth.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,7 +278,9 @@ export function PythRiskAssessmentPanel() {
               </div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
-                  {event.status === 'resolved' ? t('pyth.riskAssessment.resolved') : t('pyth.riskAssessment.monitoring')}
+                  {event.status === 'resolved'
+                    ? t('pyth.riskAssessment.resolved')
+                    : t('pyth.riskAssessment.monitoring')}
                 </span>
               </div>
             </div>
@@ -204,7 +292,7 @@ export function PythRiskAssessmentPanel() {
         <div className="space-y-4">
           {[
             { chain: 'Solana', availability: 99.95, latency: 400, riskLevel: 'low' as const },
-            { chain: 'Ethereum', availability: 99.90, latency: 12000, riskLevel: 'low' as const },
+            { chain: 'Ethereum', availability: 99.9, latency: 12000, riskLevel: 'low' as const },
             { chain: 'Arbitrum', availability: 99.92, latency: 2000, riskLevel: 'low' as const },
             { chain: 'Base', availability: 99.88, latency: 1500, riskLevel: 'low' as const },
           ].map((chain) => (

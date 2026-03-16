@@ -63,6 +63,7 @@ export { DIANFTDataPanel } from './DIANFTDataPanel';
 export { DIAStakingPanel } from './DIAStakingPanel';
 export { DIADataFeedsPanel } from './DIADataFeedsPanel';
 export { DIAEcosystemPanel } from './DIAEcosystemPanel';
+export { DIARiskAssessmentPanel } from './DIARiskAssessmentPanel';
 export { ChainlinkNodesPanel } from './ChainlinkNodesPanel';
 export { ChainlinkDataFeedsPanel } from './ChainlinkDataFeedsPanel';
 export { ChainlinkRiskPanel } from './ChainlinkRiskPanel';

@@ -5628,6 +5628,70 @@
       "requests": "请求",
       "avgResponse": "平均响应",
       "security": "安全"
+    },
+    "risk": {
+      "title": "风险评估",
+      "dataQuality": "数据质量",
+      "priceDeviation": "价格偏差",
+      "nodeConcentration": "节点集中度",
+      "uptime": "正常运行时间",
+      "details": "风险详情",
+      "dataQualityDescription": "数据质量评估",
+      "priceStability": "价格稳定性",
+      "nodeDistribution": "节点分布",
+      "serviceReliability": "服务可靠性",
+      "excellent": "优秀",
+      "stable": "稳定",
+      "moderate": "中等",
+      "high": "高",
+      "lowRisk": "低风险",
+      "mediumRisk": "中风险",
+      "fourDimensions": "四维度风险评估",
+      "decentralization": "去中心化程度",
+      "decentralizationDesc": "基于节点地理分布和质押分散度评估",
+      "security": "安全性",
+      "securityDesc": "TRON 生态安全性和智能合约审计状态",
+      "stability": "稳定性",
+      "stabilityDesc": "网络正常运行时间 99.92%",
+      "dataQualityDesc": "游戏数据准确性和价格喂送质量",
+      "trendTitle": "风险趋势分析",
+      "trend": {
+        "overall": "整体评分",
+        "decentralization": "去中心化",
+        "security": "安全性",
+        "stability": "稳定性",
+        "dataQuality": "数据质量"
+      },
+      "events": {
+        "nodeUpgrade": "节点软件升级",
+        "nodeUpgradeDesc": "完成节点软件版本升级，提升网络性能",
+        "vrfPatch": "VRF 安全补丁",
+        "vrfPatchDesc": "修复 VRF 随机数生成潜在漏洞",
+        "ddosResponse": "DDoS 攻击响应",
+        "ddosResponseDesc": "成功缓解分布式拒绝服务攻击",
+        "consensusUpgrade": "共识机制升级",
+        "consensusUpgradeDesc": "优化共识算法，提升网络稳定性",
+        "multiChainSupport": "多链支持扩展",
+        "multiChainSupportDesc": "新增 BSC 链支持，扩展跨链能力"
+      },
+      "crossChainTitle": "跨链风险评估",
+      "chainLatency": "链延迟",
+      "availability": "可用性",
+      "gamingRiskTitle": "游戏数据专项风险",
+      "gamingLatency": "游戏数据延迟",
+      "gamingLatencyDesc": "游戏事件到链上确认平均时间",
+      "gamingAccuracy": "游戏数据准确性",
+      "gamingAccuracyDesc": "游戏结果数据准确性指标",
+      "tronDependency": "TRON 生态依赖度",
+      "tronDependencyDesc": "对 TRON 主网的依赖程度评估",
+      "measures": {
+        "multiNodeValidation": "多节点验证机制",
+        "slashingMechanism": "质押惩罚机制",
+        "emergencyPause": "紧急暂停功能",
+        "auditCycle": "定期安全审计",
+        "decentralizationIncentive": "去中心化激励",
+        "realTimeMonitoring": "实时风险监控"
+      }
     }
   },
   "common": {
@@ -5859,6 +5923,48 @@
         "1y": "1年",
         "all": "全部"
       }
+    },
+    "dataFreshness": {
+      "lastUpdated": "最后更新",
+      "refresh": "刷新",
+      "stale": "数据可能已过期"
+    },
+    "riskScoreCard": {
+      "low": "低风险",
+      "medium": "中风险",
+      "high": "高风险",
+      "critical": "严重风险",
+      "trend": {
+        "up": "上升",
+        "down": "下降",
+        "stable": "稳定"
+      }
+    },
+    "securityTimeline": {
+      "title": "安全时间线",
+      "eventTypes": {
+        "upgrade": "升级",
+        "vulnerability": "漏洞",
+        "response": "响应",
+        "maintenance": "维护"
+      },
+      "status": {
+        "resolved": "已解决",
+        "monitoring": "监控中"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "缓解措施",
+      "type": {
+        "technical": "技术",
+        "governance": "治理",
+        "operational": "运营"
+      },
+      "status": {
+        "active": "活跃",
+        "inactive": "未激活"
+      },
+      "effectiveness": "有效性"
     }
   },
   "priceChart": {

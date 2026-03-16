@@ -4,6 +4,9 @@ export interface RiskMetric {
   maxValue: number;
   status: 'good' | 'warning' | 'critical';
   description: string;
+  trend?: 'up' | 'down' | 'stable';
+  trendValue?: number;
+  weight?: number;
 }
 
 export interface RiskEvent {
@@ -29,3 +32,19 @@ export interface CrossChainRisk {
 }
 
 export type RiskLevel = 'low' | 'medium' | 'high';
+
+export interface RiskAssessmentData {
+  overallScore: number;
+  overallLevel: RiskLevel;
+  dimensions: {
+    decentralization: RiskMetric;
+    security: RiskMetric;
+    stability: RiskMetric;
+    dataQuality: RiskMetric;
+  };
+  metrics: Record<string, number | string>;
+  events: RiskEvent[];
+  crossChainRisks: CrossChainRisk[];
+  mitigationMeasures: MitigationMeasure[];
+  lastUpdated: Date;
+}

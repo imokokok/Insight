@@ -1,5 +1,17 @@
 'use client';
 
+import { useState, useMemo } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from 'recharts';
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
@@ -16,6 +28,12 @@ import {
   getMeasureStatusColor,
   formatLatency,
 } from '@/lib/utils/riskUtils';
+import {
+  DataFreshnessIndicator,
+  SecurityTimeline,
+  MitigationMeasuresGrid,
+} from '@/components/oracle/common';
+import { chartColors } from '@/lib/config/colors';
 
 interface BandRiskAssessmentPanelProps {
   client?: BandProtocolClient;
@@ -92,13 +110,63 @@ const mitigationMeasures: MitigationMeasure[] = [
   { name: 'continuousMonitoring', type: 'operational', status: 'active', effectiveness: 90 },
 ];
 
+// Score trend data for the chart
+const scoreTrendData = [
+  { date: '2024-01', overall: 82, decentralization: 80, security: 85, stability: 88, dataQuality: 84 },
+  { date: '2024-02', overall: 84, decentralization: 81, security: 86, stability: 89, dataQuality: 85 },
+  { date: '2024-03', overall: 85, decentralization: 81, security: 87, stability: 90, dataQuality: 86 },
+  { date: '2024-04', overall: 86, decentralization: 82, security: 87, stability: 90, dataQuality: 87 },
+  { date: '2024-05', overall: 87, decentralization: 82, security: 88, stability: 91, dataQuality: 88 },
+  { date: '2024-06', overall: 87, decentralization: 82, security: 88, stability: 91, dataQuality: 89 },
+];
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ dataKey: string; value: number; color: string }>;
+  label?: string;
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 rounded border border-gray-200 shadow-lg">
+        <p className="text-sm font-medium text-gray-900 mb-2">{label}</p>
+        <div className="space-y-1">
+          {payload.map((entry, index) => (
+            <p key={index} className="text-sm flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-gray-600 capitalize">{entry.dataKey}:</span>
+              <span className="font-bold" style={{ color: entry.color }}>{entry.value}</span>
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps) {
   const { t } = useI18n();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
 
+  const handleRefresh = () => {
+    setLastUpdated(new Date());
+  };
+
+  const chartData = useMemo(() => scoreTrendData, []);
+
   return (
     <div className="space-y-6">
+      {/* Data Freshness Indicator */}
+      <DataFreshnessIndicator
+        lastUpdated={lastUpdated}
+        onRefresh={handleRefresh}
+        thresholdMinutes={5}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('band.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -136,6 +204,103 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
           </div>
         </DashboardCard>
       </div>
+
+      {/* Score Trend Chart */}
+      <DashboardCard title={t('band.riskAssessment.scoreTrend')}>
+        <div style={{ height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <defs>
+                <linearGradient id="colorOverall" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.recharts.primary} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColors.recharts.primary} stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorSecurity" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors.recharts.success} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColors.recharts.success} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+              <XAxis
+                dataKey="date"
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              />
+              <YAxis
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                domain={[70, 100]}
+                tickFormatter={(value) => `${value}`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="overall"
+                stroke={chartColors.recharts.primary}
+                fillOpacity={1}
+                fill="url(#colorOverall)"
+                strokeWidth={2}
+                name={t('band.riskAssessment.overall')}
+              />
+              <Area
+                type="monotone"
+                dataKey="security"
+                stroke={chartColors.recharts.success}
+                fillOpacity={1}
+                fill="url(#colorSecurity)"
+                strokeWidth={2}
+                name={t('band.riskAssessment.security')}
+              />
+              <Line
+                type="monotone"
+                dataKey="decentralization"
+                stroke={chartColors.recharts.warning}
+                strokeWidth={2}
+                dot={false}
+                name={t('band.riskAssessment.decentralization')}
+              />
+              <Line
+                type="monotone"
+                dataKey="stability"
+                stroke={chartColors.recharts.cyan}
+                strokeWidth={2}
+                dot={false}
+                name={t('band.riskAssessment.stability')}
+              />
+              <Line
+                type="monotone"
+                dataKey="dataQuality"
+                stroke={chartColors.recharts.purple}
+                strokeWidth={2}
+                dot={false}
+                name={t('band.riskAssessment.dataQuality')}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-center gap-6 mt-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.primary }} />
+            <span className="text-xs text-gray-600">{t('band.riskAssessment.overall')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.success }} />
+            <span className="text-xs text-gray-600">{t('band.riskAssessment.security')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.warning }} />
+            <span className="text-xs text-gray-600">{t('band.riskAssessment.decentralization')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.cyan }} />
+            <span className="text-xs text-gray-600">{t('band.riskAssessment.stability')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: chartColors.recharts.purple }} />
+            <span className="text-xs text-gray-600">{t('band.riskAssessment.dataQuality')}</span>
+          </div>
+        </div>
+      </DashboardCard>
 
       <DashboardCard title={t('band.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,29 +346,8 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      <DashboardCard title={t('band.riskAssessment.securityTimeline')}>
-        <div className="space-y-4">
-          {riskEvents.map((event, index) => (
-            <div key={index} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
-              <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
-              <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
-                  {t(`band.riskAssessment.eventTypes.${event.type}`)}
-                </span>
-              </div>
-              <div className="flex-grow">
-                <h4 className="text-sm font-medium text-gray-900">{event.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{event.description}</p>
-              </div>
-              <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
-                  {event.status === 'resolved' ? t('band.riskAssessment.resolved') : t('band.riskAssessment.monitoring')}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </DashboardCard>
+      {/* Security Timeline */}
+      <SecurityTimeline events={riskEvents} />
 
       <DashboardCard title={t('band.riskAssessment.crossChainRisk')}>
         <div className="space-y-4">
@@ -235,32 +379,8 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      <DashboardCard title={t('band.riskAssessment.mitigationMeasures')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mitigationMeasures.map((measure) => (
-            <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
-                  {t(`band.riskAssessment.${measure.status}`)}
-                </span>
-              </div>
-              <h4 className="text-sm font-medium text-gray-900">
-                {t(`band.riskAssessment.${measure.name}`)}
-              </h4>
-              <div className="mt-2 flex items-center gap-2">
-                <div className="flex-grow h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${measure.effectiveness}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-600">{measure.effectiveness}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </DashboardCard>
+      {/* Mitigation Measures Grid */}
+      <MitigationMeasuresGrid measures={mitigationMeasures} />
     </div>
   );
 }

@@ -1,15 +1,63 @@
 'use client';
 
+import { useState } from 'react';
 import { RiskMetrics } from '@/lib/oracles/tellor';
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle';
+import {
+  DataFreshnessIndicator,
+  SecurityTimeline,
+  MitigationMeasuresGrid,
+} from '@/components/oracle/common';
+import type { RiskEvent, MitigationMeasure } from '@/types/risk';
 
 interface TellorRiskPanelProps {
   data: RiskMetrics;
 }
 
+const tellorSecurityEvents: RiskEvent[] = [
+  {
+    date: '2024-02-15',
+    type: 'upgrade',
+    title: 'Tellor Layer Launch',
+    description: 'Migration to dedicated Tellor Layer blockchain for improved scalability',
+    status: 'resolved',
+  },
+  {
+    date: '2024-01-20',
+    type: 'response',
+    title: 'Dispute Resolution Optimization',
+    description: 'Enhanced dispute mechanism with faster resolution times',
+    status: 'resolved',
+  },
+  {
+    date: '2023-12-10',
+    type: 'upgrade',
+    title: 'Staking Contract V2',
+    description: 'Upgraded staking contracts with improved reward distribution',
+    status: 'resolved',
+  },
+  {
+    date: '2023-11-05',
+    type: 'maintenance',
+    title: 'Reporter Node Upgrade',
+    description: 'Routine maintenance for reporter node infrastructure',
+    status: 'resolved',
+  },
+];
+
+const tellorMitigationMeasures: MitigationMeasure[] = [
+  { name: 'Dispute Mechanism', type: 'technical', status: 'active', effectiveness: 92 },
+  { name: 'Staking Slashing', type: 'technical', status: 'active', effectiveness: 88 },
+  { name: 'Multi-Source Data', type: 'technical', status: 'active', effectiveness: 85 },
+  { name: 'Decentralized Governance', type: 'governance', status: 'active', effectiveness: 82 },
+  { name: 'Reporter Incentives', type: 'operational', status: 'active', effectiveness: 90 },
+  { name: 'Transparency Reports', type: 'operational', status: 'active', effectiveness: 78 },
+];
+
 export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const { t } = useI18n();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {
@@ -37,8 +85,19 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
     return 'bg-red-500';
   };
 
+  const handleRefresh = () => {
+    setLastUpdated(new Date());
+  };
+
   return (
     <div className="space-y-6">
+      {/* Data Freshness Indicator */}
+      <DataFreshnessIndicator
+        lastUpdated={lastUpdated}
+        onRefresh={handleRefresh}
+        thresholdMinutes={5}
+      />
+
       {/* Overall Risk Level */}
       <div className={`p-6 rounded-lg border-2 ${getRiskLevelColor(data.overallRiskLevel)}`}>
         <div className="flex items-center justify-between">
@@ -199,6 +258,12 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
           </div>
         </DashboardCard>
       </div>
+
+      {/* Security Timeline */}
+      <SecurityTimeline events={tellorSecurityEvents} />
+
+      {/* Mitigation Measures Grid */}
+      <MitigationMeasuresGrid measures={tellorMitigationMeasures} />
 
       {/* Alerts */}
       <DashboardCard title={t('tellor.risk.alerts')}>
