@@ -2637,7 +2637,8 @@
       "dataStreams": "数据流",
       "crossChain": "跨链支持",
       "ecosystem": "生态系统",
-      "risk": "风险评估"
+      "risk": "风险评估",
+      "crossOracle": "跨预言机"
     },
     "priceChart": "价格图表",
     "quickStats": "快速统计",
@@ -2961,7 +2962,9 @@
       "publishers": "数据发布者",
       "priceFeeds": "价格源",
       "validators": "验证者",
-      "crossChain": "跨链支持"
+      "crossChain": "跨链支持",
+      "riskAssessment": "风险评估",
+      "crossOracleComparison": "跨预言机对比"
     },
     "stats": {
       "updateFrequency": "更新频率",

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import { RefreshInterval } from '@/app/cross-chain/constants';
 import { ThresholdConfig, defaultThresholdConfig } from '@/app/cross-chain/utils';
@@ -121,82 +121,85 @@ const initialState: SelectorState & UIState & DataState & ConfigState = {
 };
 
 export const useCrossChainStore = create<CrossChainStore>()(
-  persist(
-    (set, get) => ({
-      ...initialState,
+  devtools(
+    persist(
+      (set, get) => ({
+        ...initialState,
 
-      setSelectedProvider: (provider) => set({ selectedProvider: provider }),
-      setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
-      setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
-      setSelectedBaseChain: (chain) => set({ selectedBaseChain: chain }),
+        setSelectedProvider: (provider) => set({ selectedProvider: provider }),
+        setSelectedSymbol: (symbol) => set({ selectedSymbol: symbol }),
+        setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
+        setSelectedBaseChain: (chain) => set({ selectedBaseChain: chain }),
 
-      setVisibleChains: (chains) => set({ visibleChains: chains }),
-      setShowMA: (show) => set({ showMA: show }),
-      setMaPeriod: (period) => set({ maPeriod: period }),
-      setChartKey: (key) => set({ chartKey: key }),
-      setHiddenLines: (lines) => set({ hiddenLines: lines }),
-      setFocusedChain: (chain) => set({ focusedChain: chain }),
-      setTableFilter: (filter) => set({ tableFilter: filter }),
-      setHoveredCell: (cell) => set({ hoveredCell: cell }),
-      setSelectedCell: (cell) => set({ selectedCell: cell }),
-      setTooltipPosition: (position) => set({ tooltipPosition: position }),
-      setSortColumn: (column) => set({ sortColumn: column }),
-      setSortDirection: (direction) => set({ sortDirection: direction }),
+        setVisibleChains: (chains) => set({ visibleChains: chains }),
+        setShowMA: (show) => set({ showMA: show }),
+        setMaPeriod: (period) => set({ maPeriod: period }),
+        setChartKey: (key) => set({ chartKey: key }),
+        setHiddenLines: (lines) => set({ hiddenLines: lines }),
+        setFocusedChain: (chain) => set({ focusedChain: chain }),
+        setTableFilter: (filter) => set({ tableFilter: filter }),
+        setHoveredCell: (cell) => set({ hoveredCell: cell }),
+        setSelectedCell: (cell) => set({ selectedCell: cell }),
+        setTooltipPosition: (position) => set({ tooltipPosition: position }),
+        setSortColumn: (column) => set({ sortColumn: column }),
+        setSortDirection: (direction) => set({ sortDirection: direction }),
 
-      setCurrentPrices: (prices) => set({ currentPrices: prices }),
-      setHistoricalPrices: (prices) => set({ historicalPrices: prices }),
-      setLoading: (loading) => set({ loading }),
-      setRefreshStatus: (status) => set({ refreshStatus: status }),
-      setShowRefreshSuccess: (show) => set({ showRefreshSuccess: show }),
-      setLastUpdated: (date) => set({ lastUpdated: date }),
-      setPrevStats: (stats) => set({ prevStats: stats }),
-      setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
+        setCurrentPrices: (prices) => set({ currentPrices: prices }),
+        setHistoricalPrices: (prices) => set({ historicalPrices: prices }),
+        setLoading: (loading) => set({ loading }),
+        setRefreshStatus: (status) => set({ refreshStatus: status }),
+        setShowRefreshSuccess: (show) => set({ showRefreshSuccess: show }),
+        setLastUpdated: (date) => set({ lastUpdated: date }),
+        setPrevStats: (stats) => set({ prevStats: stats }),
+        setRecommendedBaseChain: (chain) => set({ recommendedBaseChain: chain }),
 
-      setRefreshInterval: (interval) => set({ refreshInterval: interval }),
-      setThresholdConfig: (config) => set({ thresholdConfig: config }),
-      setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
+        setRefreshInterval: (interval) => set({ refreshInterval: interval }),
+        setThresholdConfig: (config) => set({ thresholdConfig: config }),
+        setColorblindMode: (enabled) => set({ colorblindMode: enabled }),
 
-      toggleChain: (chain) => {
-        const { visibleChains } = get();
-        if (visibleChains.includes(chain)) {
-          set({ visibleChains: visibleChains.filter((c) => c !== chain) });
-        } else {
-          set({ visibleChains: [...visibleChains, chain] });
-        }
-      },
+        toggleChain: (chain) => {
+          const { visibleChains } = get();
+          if (visibleChains.includes(chain)) {
+            set({ visibleChains: visibleChains.filter((c) => c !== chain) });
+          } else {
+            set({ visibleChains: [...visibleChains, chain] });
+          }
+        },
 
-      handleSort: (column) => {
-        const { sortColumn, sortDirection } = get();
-        if (sortColumn === column) {
-          set({ sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' });
-        } else {
-          set({ sortColumn: column, sortDirection: 'asc' });
-        }
-      },
-    }),
-    {
-      name: 'cross-chain-store',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        selectedProvider: state.selectedProvider,
-        selectedSymbol: state.selectedSymbol,
-        selectedTimeRange: state.selectedTimeRange,
-        refreshInterval: state.refreshInterval,
-        thresholdConfig: state.thresholdConfig,
-        colorblindMode: state.colorblindMode,
-        showMA: state.showMA,
-        maPeriod: state.maPeriod,
-        tableFilter: state.tableFilter,
-        sortColumn: state.sortColumn,
-        sortDirection: state.sortDirection,
+        handleSort: (column) => {
+          const { sortColumn, sortDirection } = get();
+          if (sortColumn === column) {
+            set({ sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' });
+          } else {
+            set({ sortColumn: column, sortDirection: 'asc' });
+          }
+        },
       }),
-    }
+      {
+        name: 'cross-chain-store',
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state) => ({
+          selectedProvider: state.selectedProvider,
+          selectedSymbol: state.selectedSymbol,
+          selectedTimeRange: state.selectedTimeRange,
+          refreshInterval: state.refreshInterval,
+          thresholdConfig: state.thresholdConfig,
+          colorblindMode: state.colorblindMode,
+          showMA: state.showMA,
+          maPeriod: state.maPeriod,
+          tableFilter: state.tableFilter,
+          sortColumn: state.sortColumn,
+          sortDirection: state.sortDirection,
+        }),
+      }
+    ),
+    { name: 'CrossChainStore' }
   )
 );
 
 export const useSelectedProvider = () => useCrossChainStore((state) => state.selectedProvider);
 export const useSelectedSymbol = () => useCrossChainStore((state) => state.selectedSymbol);
-export const useSelectedTimeRange = () => useCrossChainStore((state) => state.selectedTimeRange);
+export const useCrossChainTimeRange = () => useCrossChainStore((state) => state.selectedTimeRange);
 export const useSelectedBaseChain = () => useCrossChainStore((state) => state.selectedBaseChain);
 
 export const useVisibleChains = () => useCrossChainStore((state) => state.visibleChains);

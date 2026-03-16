@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRealtime } from '@/contexts/RealtimeContext';
+import { useConnectionStatus } from '@/stores/realtimeStore';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import type { RealtimePriceData } from '@/hooks/useRealtimePrice';
 
@@ -32,7 +32,7 @@ export function RealtimeNotifications({
   showConnectionStatus = true,
   position = 'top-right',
 }: RealtimeNotificationsProps) {
-  const { connectionStatus } = useRealtime();
+  const connectionStatus = useConnectionStatus();
   const { alerts } = useRealtimeAlerts({ enabled: showAlerts });
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
 

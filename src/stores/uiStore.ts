@@ -1,5 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
+import { TimeRange } from '@/components/oracle/common/TabNavigation';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('uiStore');
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -24,12 +28,44 @@ interface Notification {
   createdAt: Date;
 }
 
-interface UIStore {
+export interface CustomDateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface BrushRange {
+  startIndex: number;
+  endIndex: number;
+  startTime: number;
+  endTime: number;
+}
+
+export interface SelectedTimeRange {
+  startTime: number;
+  endTime: number;
+  startHour: number;
+  endHour: number;
+  label: string;
+}
+
+type TimeRangeCallback = (range: SelectedTimeRange) => void;
+
+interface TimeRangeState {
+  globalTimeRange: TimeRange;
+  syncEnabled: boolean;
+  customDateRange: CustomDateRange | null;
+  brushRange: BrushRange | null;
+  selectedHour: number | null;
+  selectedTimeRange: SelectedTimeRange | null;
+}
+
+interface UIStore extends TimeRangeState {
   sidebar: SidebarState;
   modal: ModalState;
   notifications: Notification[];
   theme: Theme;
   isMobile: boolean;
+  _timeRangeCallbacks: Set<TimeRangeCallback>;
 
   openSidebar: () => void;
   closeSidebar: () => void;
@@ -46,111 +82,223 @@ interface UIStore {
 
   setTheme: (theme: Theme) => void;
   setIsMobile: (isMobile: boolean) => void;
+
+  setGlobalTimeRange: (range: TimeRange) => void;
+  setSyncEnabled: (enabled: boolean) => void;
+  setCustomDateRange: (range: CustomDateRange | null) => void;
+  setBrushRange: (range: BrushRange | null) => void;
+  setSelectedHour: (hour: number | null) => void;
+  setSelectedTimeRange: (range: SelectedTimeRange | null) => void;
+  registerTimeRangeCallback: (callback: TimeRangeCallback) => void;
+  unregisterTimeRangeCallback: (callback: TimeRangeCallback) => void;
 }
 
 const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
+const STORAGE_KEYS = {
+  TIME_RANGE: 'insight_timeRange',
+  SYNC_ENABLED: 'insight_syncEnabled',
+  CUSTOM_DATE_RANGE: 'insight_customDateRange',
+  SELECTED_HOUR: 'insight_selectedHour',
+} as const;
+
+const isValidTimeRange = (value: unknown): value is TimeRange => {
+  const validRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
+  return typeof value === 'string' && validRanges.includes(value as TimeRange);
+};
+
+const parseCustomDateRange = (value: unknown): CustomDateRange | null => {
+  if (!value || typeof value !== 'object') return null;
+  const parsed = value as { startDate?: string; endDate?: string };
+  if (parsed.startDate && parsed.endDate) {
+    return {
+      startDate: new Date(parsed.startDate),
+      endDate: new Date(parsed.endDate),
+    };
+  }
+  return null;
+};
+
 export const useUIStore = create<UIStore>()(
-  persist(
-    (set, get) => ({
-      sidebar: {
-        isOpen: true,
-        isCollapsed: false,
-        activeItem: null,
-      },
-      modal: {
-        isOpen: false,
-        modalId: null,
-        modalData: null,
-      },
-      notifications: [],
-      theme: 'system',
-      isMobile: false,
-
-      openSidebar: () =>
-        set((state) => ({
-          sidebar: { ...state.sidebar, isOpen: true },
-        })),
-
-      closeSidebar: () =>
-        set((state) => ({
-          sidebar: { ...state.sidebar, isOpen: false },
-        })),
-
-      toggleSidebar: () =>
-        set((state) => ({
-          sidebar: { ...state.sidebar, isOpen: !state.sidebar.isOpen },
-        })),
-
-      toggleSidebarCollapse: () =>
-        set((state) => ({
-          sidebar: { ...state.sidebar, isCollapsed: !state.sidebar.isCollapsed },
-        })),
-
-      setActiveSidebarItem: (item) =>
-        set((state) => ({
-          sidebar: { ...state.sidebar, activeItem: item },
-        })),
-
-      openModal: (modalId, data) =>
-        set({
-          modal: {
-            isOpen: true,
-            modalId,
-            modalData: data || null,
-          },
-        }),
-
-      closeModal: () =>
-        set({
-          modal: {
-            isOpen: false,
-            modalId: null,
-            modalData: null,
-          },
-        }),
-
-      addNotification: (notification) => {
-        const newNotification: Notification = {
-          ...notification,
-          id: generateId(),
-          createdAt: new Date(),
-        };
-        set((state) => ({
-          notifications: [...state.notifications, newNotification],
-        }));
-
-        if (notification.duration !== 0) {
-          const duration = notification.duration || 5000;
-          setTimeout(() => {
-            get().removeNotification(newNotification.id);
-          }, duration);
-        }
-      },
-
-      removeNotification: (id) =>
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
-        })),
-
-      clearNotifications: () => set({ notifications: [] }),
-
-      setTheme: (theme) => set({ theme }),
-
-      setIsMobile: (isMobile) => set({ isMobile }),
-    }),
-    {
-      name: 'ui-store',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
+  devtools(
+    persist(
+      (set, get) => ({
         sidebar: {
-          isCollapsed: state.sidebar.isCollapsed,
+          isOpen: true,
+          isCollapsed: false,
+          activeItem: null,
         },
-        theme: state.theme,
+        modal: {
+          isOpen: false,
+          modalId: null,
+          modalData: null,
+        },
+        notifications: [],
+        theme: 'system',
+        isMobile: false,
+        _timeRangeCallbacks: new Set<TimeRangeCallback>(),
+
+        globalTimeRange: '24H',
+        syncEnabled: true,
+        customDateRange: null,
+        brushRange: null,
+        selectedHour: null,
+        selectedTimeRange: null,
+
+        openSidebar: () =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, isOpen: true },
+          })),
+
+        closeSidebar: () =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, isOpen: false },
+          })),
+
+        toggleSidebar: () =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, isOpen: !state.sidebar.isOpen },
+          })),
+
+        toggleSidebarCollapse: () =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, isCollapsed: !state.sidebar.isCollapsed },
+          })),
+
+        setActiveSidebarItem: (item) =>
+          set((state) => ({
+            sidebar: { ...state.sidebar, activeItem: item },
+          })),
+
+        openModal: (modalId, data) =>
+          set({
+            modal: {
+              isOpen: true,
+              modalId,
+              modalData: data || null,
+            },
+          }),
+
+        closeModal: () =>
+          set({
+            modal: {
+              isOpen: false,
+              modalId: null,
+              modalData: null,
+            },
+          }),
+
+        addNotification: (notification) => {
+          const newNotification: Notification = {
+            ...notification,
+            id: generateId(),
+            createdAt: new Date(),
+          };
+          set((state) => ({
+            notifications: [...state.notifications, newNotification],
+          }));
+
+          if (notification.duration !== 0) {
+            const duration = notification.duration || 5000;
+            setTimeout(() => {
+              useUIStore.getState().removeNotification(newNotification.id);
+            }, duration);
+          }
+        },
+
+        removeNotification: (id) =>
+          set((state) => ({
+            notifications: state.notifications.filter((n) => n.id !== id),
+          })),
+
+        clearNotifications: () => set({ notifications: [] }),
+
+        setTheme: (theme) => set({ theme }),
+
+        setIsMobile: (isMobile) => set({ isMobile }),
+
+        setGlobalTimeRange: (range) =>
+          set({
+            globalTimeRange: range,
+            customDateRange: null,
+            brushRange: null,
+          }),
+
+        setSyncEnabled: (enabled) => set({ syncEnabled: enabled }),
+
+        setCustomDateRange: (range) =>
+          set({
+            customDateRange: range,
+            globalTimeRange: range ? 'ALL' : '24H',
+          }),
+
+        setBrushRange: (range) => set({ brushRange: range }),
+
+        setSelectedHour: (hour) => set({ selectedHour: hour }),
+
+        setSelectedTimeRange: (range) => {
+          set({ selectedTimeRange: range });
+          if (range) {
+            const callbacks = get()._timeRangeCallbacks;
+            callbacks.forEach((callback) => {
+              try {
+                callback(range);
+              } catch (error) {
+                logger.error(
+                  'Error in time range callback',
+                  error instanceof Error ? error : new Error(String(error))
+                );
+              }
+            });
+          }
+        },
+
+        registerTimeRangeCallback: (callback) => {
+          get()._timeRangeCallbacks.add(callback);
+        },
+
+        unregisterTimeRangeCallback: (callback) => {
+          get()._timeRangeCallbacks.delete(callback);
+        },
       }),
-    }
+      {
+        name: 'ui-store',
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state) => ({
+          sidebar: {
+            isCollapsed: state.sidebar.isCollapsed,
+          },
+          theme: state.theme,
+          globalTimeRange: state.globalTimeRange,
+          syncEnabled: state.syncEnabled,
+          customDateRange: state.customDateRange
+            ? {
+                startDate: state.customDateRange.startDate.toISOString(),
+                endDate: state.customDateRange.endDate.toISOString(),
+              }
+            : null,
+          selectedHour: state.selectedHour,
+        }),
+        onRehydrateStorage: () => (state) => {
+          if (!state) return;
+          if (state.customDateRange) {
+            const parsed = parseCustomDateRange({
+              startDate: (state.customDateRange as unknown as { startDate: string }).startDate,
+              endDate: (state.customDateRange as unknown as { endDate: string }).endDate,
+            });
+            if (parsed) {
+              state.customDateRange = parsed;
+            }
+          }
+          if (!isValidTimeRange(state.globalTimeRange)) {
+            state.globalTimeRange = '24H';
+          }
+        },
+      }
+    ),
+    { name: 'UIStore' }
   )
 );
 
@@ -187,3 +335,48 @@ export const useThemeActions = () =>
 
 export const useIsMobile = () => useUIStore((state) => state.isMobile);
 export const useSetIsMobile = () => useUIStore((state) => state.setIsMobile);
+
+export const useGlobalTimeRange = () => useUIStore((state) => state.globalTimeRange);
+export const useSetGlobalTimeRange = () => useUIStore((state) => state.setGlobalTimeRange);
+
+export const useSyncEnabled = () => useUIStore((state) => state.syncEnabled);
+export const useSetSyncEnabled = () => useUIStore((state) => state.setSyncEnabled);
+
+export const useCustomDateRange = () => useUIStore((state) => state.customDateRange);
+export const useSetCustomDateRange = () => useUIStore((state) => state.setCustomDateRange);
+
+export const useBrushRange = () => useUIStore((state) => state.brushRange);
+export const useSetBrushRange = () => useUIStore((state) => state.setBrushRange);
+
+export const useSelectedHour = () => useUIStore((state) => state.selectedHour);
+export const useSetSelectedHour = () => useUIStore((state) => state.setSelectedHour);
+
+export const useSelectedTimeRange = () => useUIStore((state) => state.selectedTimeRange);
+export const useSetSelectedTimeRange = () => useUIStore((state) => state.setSelectedTimeRange);
+
+export const useTimeRangeActions = () =>
+  useUIStore((state) => ({
+    setGlobalTimeRange: state.setGlobalTimeRange,
+    setSyncEnabled: state.setSyncEnabled,
+    setCustomDateRange: state.setCustomDateRange,
+    setBrushRange: state.setBrushRange,
+    setSelectedHour: state.setSelectedHour,
+    setSelectedTimeRange: state.setSelectedTimeRange,
+  }));
+
+export const useSyncControl = () => {
+  const syncEnabled = useUIStore((state) => state.syncEnabled);
+  const setSyncEnabled = useUIStore((state) => state.setSyncEnabled);
+  return {
+    syncEnabled,
+    toggleSync: () => setSyncEnabled(!syncEnabled),
+    enableSync: () => setSyncEnabled(true),
+    disableSync: () => setSyncEnabled(false),
+  };
+};
+
+export const useTimeRangeCallback = () => {
+  const registerTimeRangeCallback = useUIStore((state) => state.registerTimeRangeCallback);
+  const unregisterTimeRangeCallback = useUIStore((state) => state.unregisterTimeRangeCallback);
+  return { registerTimeRangeCallback, unregisterTimeRangeCallback };
+};

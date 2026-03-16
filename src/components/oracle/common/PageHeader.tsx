@@ -5,7 +5,7 @@ import { useI18n } from '@/lib/i18n/provider';
 import { TimeRange } from './TabNavigation';
 import { ExportModal } from '../forms/ExportModal';
 import { ExportOptions } from '@/hooks';
-import { useTimeRange } from '@/contexts/TimeRangeContext';
+import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
 
 interface PageHeaderProps {
   title: string;
@@ -56,7 +56,8 @@ export function PageHeader({
   const [showExportModal, setShowExportModal] = useState(false);
   const [displayTime, setDisplayTime] = useState(formatLastUpdate(lastUpdateTime, t));
   const [showJustUpdated, setShowJustUpdated] = useState(false);
-  const { globalTimeRange, setGlobalTimeRange } = useTimeRange();
+  const globalTimeRange = useGlobalTimeRange();
+  const setGlobalTimeRange = useSetGlobalTimeRange();
 
   useEffect(() => {
     if (lastUpdateTime) {

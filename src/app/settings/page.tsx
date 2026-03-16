@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthLoading } from '@/stores/authStore';
 import {
   SettingsLayout,
   ProfilePanel,
@@ -13,7 +13,8 @@ import {
 import type { SettingsTab } from '@/components/settings';
 
 export default function SettingsPage() {
-  const { user, loading } = useAuth();
+  const user = useUser();
+  const loading = useAuthLoading();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 

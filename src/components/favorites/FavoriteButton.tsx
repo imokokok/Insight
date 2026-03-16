@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 import { useToggleFavorite, useIsFavorited, FavoriteConfig } from '@/hooks/useFavorites';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
@@ -29,7 +29,7 @@ export function FavoriteButton({
   className = '',
   onFavoriteChange,
 }: FavoriteButtonProps) {
-  const { user } = useAuth();
+  const user = useUser();
   const { isFavorited, favorite } = useIsFavorited(configType, configData);
   const { toggleFavorite, isToggling } = useToggleFavorite();
   const [showTooltip, setShowTooltip] = useState(false);

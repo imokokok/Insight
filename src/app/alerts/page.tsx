@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthLoading } from '@/stores/authStore';
 import { useAlerts, useAlertEvents, useAlertEventsRealtime } from '@/hooks/useAlerts';
 import { AlertConfig } from '@/components/alerts/AlertConfig';
 import { AlertList } from '@/components/alerts/AlertList';
@@ -12,7 +12,8 @@ import { useI18n } from '@/lib/i18n/provider';
 
 export default function AlertsPage() {
   const { t } = useI18n();
-  const { user, loading: authLoading } = useAuth();
+  const user = useUser();
+  const authLoading = useAuthLoading();
   const { alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useAlerts();
   const { events, isLoading: eventsLoading, refetch: refetchEvents } = useAlertEvents();
   useAlertEventsRealtime();

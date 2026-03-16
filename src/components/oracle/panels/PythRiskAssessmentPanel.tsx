@@ -2,22 +2,19 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-
-interface RiskMetric {
-  name: string;
-  value: number;
-  maxValue: number;
-  status: 'good' | 'warning' | 'critical';
-  description: string;
-}
-
-interface RiskEvent {
-  date: string;
-  type: 'upgrade' | 'vulnerability' | 'response' | 'maintenance';
-  title: string;
-  description: string;
-  status: 'resolved' | 'monitoring';
-}
+import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import {
+  getScoreColor,
+  getScoreBg,
+  getScoreBarColor,
+  getEventTypeColor,
+  getRiskLevel,
+  getRiskLevelColor,
+  calculateOverallScore,
+  getStatusColor,
+  getMeasureStatusColor,
+  formatLatency,
+} from '@/lib/utils/riskUtils';
 
 const riskMetrics: RiskMetric[] = [
   {
@@ -81,7 +78,7 @@ const riskEvents: RiskEvent[] = [
   },
 ];
 
-const mitigationMeasures = [
+const mitigationMeasures: MitigationMeasure[] = [
   { name: 'publisherStaking', type: 'technical', status: 'active', effectiveness: 94 },
   { name: 'confidenceIntervals', type: 'technical', status: 'active', effectiveness: 92 },
   { name: 'multiSourceAggregation', type: 'technical', status: 'active', effectiveness: 90 },
@@ -92,41 +89,11 @@ const mitigationMeasures = [
 
 export function PythRiskAssessmentPanel() {
   const { t } = useI18n();
-
-  const overallScore = Math.round(
-    riskMetrics.reduce((sum, metric) => sum + metric.value, 0) / riskMetrics.length
-  );
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getScoreBg = (score: number) => {
-    if (score >= 90) return 'bg-green-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
-  };
-
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'upgrade':
-        return 'bg-blue-100 text-blue-700';
-      case 'vulnerability':
-        return 'bg-red-100 text-red-700';
-      case 'response':
-        return 'bg-green-100 text-green-700';
-      case 'maintenance':
-        return 'bg-gray-100 text-gray-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+  const overallScore = calculateOverallScore(riskMetrics);
+  const riskLevel = getRiskLevel(overallScore);
 
   return (
     <div className="space-y-6">
-      {/* Overall Risk Score */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('pyth.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -135,7 +102,7 @@ export function PythRiskAssessmentPanel() {
               {t('pyth.riskAssessment.comprehensiveAssessment')}
             </div>
             <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
-              {overallScore >= 90 ? t('pyth.riskAssessment.riskLevel.low') : overallScore >= 70 ? t('pyth.riskAssessment.riskLevel.medium') : t('pyth.riskAssessment.riskLevel.high')}
+              {t(`pyth.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
         </DashboardCard>
@@ -154,9 +121,7 @@ export function PythRiskAssessmentPanel() {
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${
-                      metric.value >= 90 ? 'bg-green-500' : metric.value >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
+                    className={`h-full rounded-full ${getScoreBarColor(metric.value)}`}
                     style={{ width: `${metric.value}%` }}
                   ></div>
                 </div>
@@ -167,7 +132,6 @@ export function PythRiskAssessmentPanel() {
         </DashboardCard>
       </div>
 
-      {/* Risk Metrics Detail */}
       <DashboardCard title={t('pyth.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -212,7 +176,6 @@ export function PythRiskAssessmentPanel() {
         </div>
       </DashboardCard>
 
-      {/* Security Timeline */}
       <DashboardCard title={t('pyth.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
@@ -228,9 +191,7 @@ export function PythRiskAssessmentPanel() {
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${
-                  event.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
+                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
                   {event.status === 'resolved' ? t('pyth.riskAssessment.resolved') : t('pyth.riskAssessment.monitoring')}
                 </span>
               </div>
@@ -239,34 +200,13 @@ export function PythRiskAssessmentPanel() {
         </div>
       </DashboardCard>
 
-      {/* Cross-Chain Risk Assessment */}
       <DashboardCard title={t('pyth.riskAssessment.crossChainRisk')}>
         <div className="space-y-4">
           {[
-            {
-              chain: 'Solana',
-              availability: 99.95,
-              latency: 400,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Ethereum',
-              availability: 99.90,
-              latency: 12000,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Arbitrum',
-              availability: 99.92,
-              latency: 2000,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Base',
-              availability: 99.88,
-              latency: 1500,
-              riskLevel: 'low',
-            },
+            { chain: 'Solana', availability: 99.95, latency: 400, riskLevel: 'low' as const },
+            { chain: 'Ethereum', availability: 99.90, latency: 12000, riskLevel: 'low' as const },
+            { chain: 'Arbitrum', availability: 99.92, latency: 2000, riskLevel: 'low' as const },
+            { chain: 'Base', availability: 99.88, latency: 1500, riskLevel: 'low' as const },
           ].map((chain) => (
             <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
@@ -280,18 +220,8 @@ export function PythRiskAssessmentPanel() {
                 <span className="text-sm text-gray-600">{chain.availability}%</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
-                  {chain.latency < 1000 ? `${chain.latency}ms` : `${(chain.latency / 1000).toFixed(1)}s`}
-                </span>
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    chain.riskLevel === 'low'
-                      ? 'bg-green-100 text-green-700'
-                      : chain.riskLevel === 'medium'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
+                <span className="text-sm text-gray-600">{formatLatency(chain.latency)}</span>
+                <span className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(chain.riskLevel)}`}>
                   {t(`pyth.riskAssessment.riskLevel.${chain.riskLevel}`)}
                 </span>
               </div>
@@ -300,16 +230,13 @@ export function PythRiskAssessmentPanel() {
         </div>
       </DashboardCard>
 
-      {/* Mitigation Measures */}
       <DashboardCard title={t('pyth.riskAssessment.mitigationMeasures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {mitigationMeasures.map((measure) => (
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${
-                  measure.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
                   {t(`pyth.riskAssessment.${measure.status}`)}
                 </span>
               </div>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/stores/authStore';
 import { queries } from '@/lib/supabase/client';
 import type { ConfigType } from '@/lib/supabase/database.types';
 import type { UserFavorite } from '@/lib/supabase/queries';
@@ -20,7 +20,7 @@ export interface UseFavoritesOptions {
 }
 
 export function useFavorites(options: UseFavoritesOptions = {}) {
-  const { user } = useAuth();
+  const user = useUser();
   const { configType } = options;
 
   const queryKey = configType ? ['favorites', user?.id, configType] : ['favorites', user?.id];
@@ -60,7 +60,7 @@ export function useFavorites(options: UseFavoritesOptions = {}) {
 }
 
 export function useAddFavorite() {
-  const { user } = useAuth();
+  const user = useUser();
   const [isAdding, setIsAdding] = useState(false);
   const queryClient = useQueryClient();
 
@@ -98,7 +98,7 @@ export function useAddFavorite() {
 }
 
 export function useRemoveFavorite() {
-  const { user } = useAuth();
+  const user = useUser();
   const [isRemoving, setIsRemoving] = useState(false);
   const queryClient = useQueryClient();
 
@@ -134,7 +134,7 @@ export function useRemoveFavorite() {
 }
 
 export function useToggleFavorite() {
-  const { user } = useAuth();
+  const user = useUser();
   const { favorites, refetch } = useFavorites();
   const { addFavorite, isAdding } = useAddFavorite();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
@@ -175,7 +175,7 @@ export function useToggleFavorite() {
 }
 
 export function useIsFavorited(configType: ConfigType, configData: FavoriteConfig) {
-  const { user } = useAuth();
+  const user = useUser();
   const { favorites } = useFavorites({ configType });
 
   const isFavorited =
@@ -192,7 +192,7 @@ export function useIsFavorited(configType: ConfigType, configData: FavoriteConfi
 }
 
 export function useUpdateFavorite() {
-  const { user } = useAuth();
+  const user = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
 

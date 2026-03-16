@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthLoading } from '@/stores/authStore';
 import { FavoritesManager } from '@/components/favorites';
 import { FavoriteConfig } from '@/hooks/useFavorites';
 import type { ConfigType } from '@/lib/supabase/database.types';
@@ -10,7 +10,8 @@ import { useI18n } from '@/lib/i18n/provider';
 
 export default function FavoritesPage() {
   const { t } = useI18n();
-  const { user, loading } = useAuth();
+  const user = useUser();
+  const loading = useAuthLoading();
   const router = useRouter();
 
   useEffect(() => {

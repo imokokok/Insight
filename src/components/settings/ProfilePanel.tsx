@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase/client';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Camera, Save, Key, Loader2, CheckCircle } from 'lucide-react';
@@ -9,7 +9,9 @@ import { useI18n } from '@/lib/i18n/provider';
 
 export function ProfilePanel() {
   const { t } = useI18n();
-  const { user, profile, refreshProfile } = useAuth();
+  const user = useUser();
+  const profile = useProfile();
+  const { refreshProfile } = useAuthActions();
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [isSaving, setIsSaving] = useState(false);

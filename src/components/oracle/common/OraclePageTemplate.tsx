@@ -56,7 +56,7 @@ import { RSIIndicator } from '../indicators/RSIIndicator';
 import { MACDIndicator } from '../indicators/MACDIndicator';
 import { GasFeeTrendChart } from '../charts/GasFeeTrendChart';
 import { useRefresh, useExport, ExportOptions } from '@/hooks';
-import { useGlobalTimeRange } from '@/contexts/TimeRangeContext';
+import { useGlobalTimeRange, useSetGlobalTimeRange } from '@/stores/uiStore';
 import { UMAClient } from '@/lib/oracles/uma';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMADataQualityScoreCard } from './UMADataQualityScoreCard';
@@ -93,7 +93,8 @@ export function OraclePageTemplate({
   customLayout,
 }: OraclePageTemplateProps) {
   const { t } = useI18n();
-  const { timeRange, setTimeRange } = useGlobalTimeRange();
+  const timeRange = useGlobalTimeRange();
+  const setTimeRange = useSetGlobalTimeRange();
   const [activeTab, setActiveTab] = useState('market');
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [historicalData, setHistoricalData] = useState<PriceData[]>([]);

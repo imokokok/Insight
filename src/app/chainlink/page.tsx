@@ -148,8 +148,8 @@ export default function ChainlinkPage() {
   return (
     <div className="min-h-screen bg-dune">
       <PageHeader
-        title={t('chainlink.title')}
-        subtitle={t('chainlink.subtitle')}
+        title={config.name}
+        subtitle={config.description}
         icon={config.icon}
         onRefresh={refresh}
         onExport={exportData}

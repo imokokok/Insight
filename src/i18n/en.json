@@ -2570,7 +2570,8 @@
       "dataStreams": "Data Streams",
       "crossChain": "Cross Chain",
       "ecosystem": "Ecosystem",
-      "risk": "Risk Assessment"
+      "risk": "Risk Assessment",
+      "crossOracle": "Cross-Oracle"
     },
     "priceChart": "Price Chart",
     "quickStats": "Quick Stats",
@@ -2809,7 +2810,9 @@
       "publishers": "Publishers",
       "priceFeeds": "Price Feeds",
       "validators": "Validators",
-      "crossChain": "Cross-chain"
+      "crossChain": "Cross-chain",
+      "riskAssessment": "Risk Assessment",
+      "crossOracleComparison": "Cross-Oracle Comparison"
     },
     "stats": {
       "updateFrequency": "Update Frequency",

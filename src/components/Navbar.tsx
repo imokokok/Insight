@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/provider';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig, userNavigationConfig } from './navigation';
 import { NavGroup } from './navigation/types';
@@ -13,7 +13,10 @@ import { NavGroup } from './navigation/types';
 export default function Navbar() {
   const pathname = usePathname();
   const { t } = useI18n();
-  const { user, profile, signOut, loading } = useAuth();
+  const user = useUser();
+  const profile = useProfile();
+  const loading = useAuthLoading();
+  const { signOut } = useAuthActions();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 

@@ -3,7 +3,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
-import { useTimeRange, SelectedTimeRange } from '@/contexts/TimeRangeContext';
+import {
+  useSelectedTimeRange,
+  useSetSelectedTimeRange,
+  useSelectedHour,
+  useSetSelectedHour,
+  useSyncEnabled,
+  SelectedTimeRange,
+} from '@/stores/uiStore';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('UpdateFrequencyHeatmap');
@@ -27,7 +34,10 @@ export function UpdateFrequencyHeatmap({
   date = new Date(),
 }: UpdateFrequencyHeatmapProps) {
   const { t } = useI18n();
-  const { selectedHour, setSelectedHour, setSelectedTimeRange, syncEnabled } = useTimeRange();
+  const selectedHour = useSelectedHour();
+  const setSelectedHour = useSetSelectedHour();
+  const setSelectedTimeRange = useSetSelectedTimeRange();
+  const syncEnabled = useSyncEnabled();
   const [hoveredCell, setHoveredCell] = useState<{ hour: number; count: number } | null>(null);
 
   const hourlyData: HourlyData[] = useMemo(() => {

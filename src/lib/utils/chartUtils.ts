@@ -146,18 +146,7 @@ export function calculateTrend(current: number, previous: number): 'up' | 'down'
   return change > 0 ? 'up' : 'down';
 }
 
-export function formatLargeNumber(num: number): string {
-  if (num >= 1e9) {
-    return `${(num / 1e9).toFixed(2)}B`;
-  }
-  if (num >= 1e6) {
-    return `${(num / 1e6).toFixed(2)}M`;
-  }
-  if (num >= 1e3) {
-    return `${(num / 1e3).toFixed(2)}K`;
-  }
-  return num.toLocaleString();
-}
+export { formatCompactNumber as formatLargeNumber } from './format';
 
 export function getResponsiveChartHeight(containerWidth: number): number {
   if (containerWidth < 640) return 200;

@@ -3,25 +3,22 @@
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
+import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
+import {
+  getScoreColor,
+  getScoreBg,
+  getScoreBarColor,
+  getEventTypeColor,
+  getRiskLevel,
+  getRiskLevelColor,
+  calculateOverallScore,
+  getStatusColor,
+  getMeasureStatusColor,
+  formatLatency,
+} from '@/lib/utils/riskUtils';
 
 interface BandRiskAssessmentPanelProps {
   client?: BandProtocolClient;
-}
-
-interface RiskMetric {
-  name: string;
-  value: number;
-  maxValue: number;
-  status: 'good' | 'warning' | 'critical';
-  description: string;
-}
-
-interface RiskEvent {
-  date: string;
-  type: 'upgrade' | 'vulnerability' | 'response' | 'maintenance';
-  title: string;
-  description: string;
-  status: 'resolved' | 'monitoring';
 }
 
 const riskMetrics: RiskMetric[] = [
@@ -86,7 +83,7 @@ const riskEvents: RiskEvent[] = [
   },
 ];
 
-const mitigationMeasures = [
+const mitigationMeasures: MitigationMeasure[] = [
   { name: 'tendermintConsensus', type: 'technical', status: 'active', effectiveness: 92 },
   { name: 'validatorSlashing', type: 'technical', status: 'active', effectiveness: 88 },
   { name: 'multiSourceAggregation', type: 'technical', status: 'active', effectiveness: 87 },
@@ -97,41 +94,11 @@ const mitigationMeasures = [
 
 export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps) {
   const { t } = useI18n();
-
-  const overallScore = Math.round(
-    riskMetrics.reduce((sum, metric) => sum + metric.value, 0) / riskMetrics.length
-  );
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getScoreBg = (score: number) => {
-    if (score >= 90) return 'bg-green-100';
-    if (score >= 70) return 'bg-yellow-100';
-    return 'bg-red-100';
-  };
-
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case 'upgrade':
-        return 'bg-blue-100 text-blue-700';
-      case 'vulnerability':
-        return 'bg-red-100 text-red-700';
-      case 'response':
-        return 'bg-green-100 text-green-700';
-      case 'maintenance':
-        return 'bg-gray-100 text-gray-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+  const overallScore = calculateOverallScore(riskMetrics);
+  const riskLevel = getRiskLevel(overallScore);
 
   return (
     <div className="space-y-6">
-      {/* Overall Risk Score */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('band.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -140,7 +107,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
               {t('band.riskAssessment.comprehensiveAssessment')}
             </div>
             <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
-              {overallScore >= 90 ? t('band.riskAssessment.riskLevel.low') : overallScore >= 70 ? t('band.riskAssessment.riskLevel.medium') : t('band.riskAssessment.riskLevel.high')}
+              {t(`band.riskAssessment.riskLevel.${riskLevel}`)}
             </div>
           </div>
         </DashboardCard>
@@ -159,9 +126,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${
-                      metric.value >= 90 ? 'bg-green-500' : metric.value >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}
+                    className={`h-full rounded-full ${getScoreBarColor(metric.value)}`}
                     style={{ width: `${metric.value}%` }}
                   ></div>
                 </div>
@@ -172,7 +137,6 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </DashboardCard>
       </div>
 
-      {/* Risk Metrics Detail */}
       <DashboardCard title={t('band.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -217,7 +181,6 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      {/* Security Timeline */}
       <DashboardCard title={t('band.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
@@ -233,9 +196,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <p className="text-xs text-gray-500 mt-1">{event.description}</p>
               </div>
               <div className="flex-shrink-0">
-                <span className={`px-2 py-1 rounded text-xs ${
-                  event.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                }`}>
+                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(event.status)}`}>
                   {event.status === 'resolved' ? t('band.riskAssessment.resolved') : t('band.riskAssessment.monitoring')}
                 </span>
               </div>
@@ -244,34 +205,13 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      {/* Cross-Chain Risk Assessment */}
       <DashboardCard title={t('band.riskAssessment.crossChainRisk')}>
         <div className="space-y-4">
           {[
-            {
-              chain: 'Cosmos Hub',
-              availability: 99.90,
-              latency: 3000,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Osmosis',
-              availability: 99.85,
-              latency: 2500,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Juno',
-              availability: 99.80,
-              latency: 4000,
-              riskLevel: 'low',
-            },
-            {
-              chain: 'Evmos',
-              availability: 99.75,
-              latency: 5000,
-              riskLevel: 'low',
-            },
+            { chain: 'Cosmos Hub', availability: 99.90, latency: 3000, riskLevel: 'low' as const },
+            { chain: 'Osmosis', availability: 99.85, latency: 2500, riskLevel: 'low' as const },
+            { chain: 'Juno', availability: 99.80, latency: 4000, riskLevel: 'low' as const },
+            { chain: 'Evmos', availability: 99.75, latency: 5000, riskLevel: 'low' as const },
           ].map((chain) => (
             <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
@@ -285,18 +225,8 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <span className="text-sm text-gray-600">{chain.availability}%</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
-                  {chain.latency < 1000 ? `${chain.latency}ms` : `${(chain.latency / 1000).toFixed(1)}s`}
-                </span>
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    chain.riskLevel === 'low'
-                      ? 'bg-green-100 text-green-700'
-                      : chain.riskLevel === 'medium'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
+                <span className="text-sm text-gray-600">{formatLatency(chain.latency)}</span>
+                <span className={`px-2 py-1 rounded text-xs ${getRiskLevelColor(chain.riskLevel)}`}>
                   {t(`band.riskAssessment.riskLevel.${chain.riskLevel}`)}
                 </span>
               </div>
@@ -305,16 +235,13 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      {/* Mitigation Measures */}
       <DashboardCard title={t('band.riskAssessment.mitigationMeasures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {mitigationMeasures.map((measure) => (
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-gray-500 uppercase">{measure.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${
-                  measure.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span className={`px-2 py-0.5 rounded text-xs ${getMeasureStatusColor(measure.status)}`}>
                   {t(`band.riskAssessment.${measure.status}`)}
                 </span>
               </div>

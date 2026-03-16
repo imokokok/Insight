@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
 import { useI18n } from '@/lib/i18n/provider';
 import { Mail, Lock, Eye, EyeOff, User, UserPlus, Loader2, CheckCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { signUp, loading, error, user } = useAuth();
+  const user = useUser();
+  const loading = useAuthLoading();
+  const error = useAuthError();
+  const { signUp } = useAuthActions();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
