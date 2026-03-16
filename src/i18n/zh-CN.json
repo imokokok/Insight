@@ -2295,11 +2295,13 @@
     "platform": "乐观预言机数据平台",
     "menu": {
       "marketData": "市场数据",
+      "networkHealth": "网络健康度",
       "disputeResolution": "争议解决",
       "validatorAnalytics": "验证者分析",
       "staking": "质押",
       "riskAssessment": "风险评估",
-      "ecosystem": "生态系统"
+      "ecosystem": "生态系统",
+      "crossOracleComparison": "跨预言机对比"
     },
     "pageTitles": {
       "market": "市场数据概览",
