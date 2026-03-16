@@ -35,6 +35,11 @@ export enum Blockchain {
   CELESTIA = 'celestia',
   INJECTIVE = 'injective',
   SEI = 'sei',
+  TRON = 'tron',
+  TON = 'ton',
+  NEAR = 'near',
+  AURORA = 'aurora',
+  CELO = 'celo',
 }
 
 export const BINANCE = Blockchain.BNB_CHAIN;

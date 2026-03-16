@@ -79,6 +79,11 @@ export abstract class BaseOracleClient {
       [Blockchain.CELESTIA]: 0.028,
       [Blockchain.INJECTIVE]: 0.035,
       [Blockchain.SEI]: 0.04,
+      [Blockchain.TRON]: 0.025,
+      [Blockchain.TON]: 0.028,
+      [Blockchain.NEAR]: 0.026,
+      [Blockchain.AURORA]: 0.024,
+      [Blockchain.CELO]: 0.022,
     };
     const volatility = chain ? chainVolatility[chain] : 0.02;
     const randomChange = (Math.random() - 0.5) * 2 * volatility;
@@ -136,6 +141,11 @@ export abstract class BaseOracleClient {
       [Blockchain.CELESTIA]: 0.0028,
       [Blockchain.INJECTIVE]: 0.0035,
       [Blockchain.SEI]: 0.004,
+      [Blockchain.TRON]: 0.0025,
+      [Blockchain.TON]: 0.0028,
+      [Blockchain.NEAR]: 0.0026,
+      [Blockchain.AURORA]: 0.0024,
+      [Blockchain.CELO]: 0.0022,
     };
     const volatility = chain ? chainVolatility[chain] : 0.002;
 

@@ -86,23 +86,12 @@ export { ChainEventMonitor } from './ChainEventMonitor';
 export type { ChainEventMonitorProps } from './ChainEventMonitor';
 export {
   ChartAnnotations,
-  ChartAnnotationOverlay,
-  chainlinkMilestones,
-  chainlinkMilestonesData,
-  getAnnotationColor,
-  getAnnotationIcon,
-  getImportanceLabel,
-  getTypeLabel,
-  formatDate,
-  getChainlinkMilestonesWithTranslation,
 } from './ChartAnnotations';
 export type {
   ChartAnnotation,
   AnnotationType,
   ImportanceLevel,
   ChartAnnotationsProps,
-  ChartAnnotationOverlayProps,
-  ChainlinkMilestoneData,
 } from './ChartAnnotations';
 export { LoadingState } from './LoadingState';
 export { ErrorFallback } from './ErrorFallback';

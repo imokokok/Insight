@@ -111,7 +111,14 @@ export interface FirstPartyOracleData {
 
 export class API3Client extends BaseOracleClient {
   name = OracleProvider.API3;
-  supportedChains = [Blockchain.ETHEREUM, Blockchain.ARBITRUM, Blockchain.POLYGON];
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.ARBITRUM,
+    Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.BASE,
+  ];
 
   constructor(config?: OracleClientConfig) {
     super(config);

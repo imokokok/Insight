@@ -47,19 +47,19 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       {chartType === 'candlestick' && data.open !== undefined ? (
         <div className="space-y-1">
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('oracle.chart.tooltip.open')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.open')}</span>
             <span className="text-gray-900 font-mono">${data.open.toFixed(4)}</span>
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('oracle.chart.tooltip.high')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.high')}</span>
             <span className="text-green-600 font-mono">${data.high?.toFixed(4)}</span>
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('oracle.chart.tooltip.low')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.low')}</span>
             <span className="text-red-600 font-mono">${data.low?.toFixed(4)}</span>
           </div>
           <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-            <span className="text-gray-500">{t('oracle.chart.tooltip.close')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.close')}</span>
             <span className={`font-mono ${isUp ? 'text-green-600' : 'text-red-600'}`}>
               ${data.close?.toFixed(4)}
             </span>
@@ -67,28 +67,28 @@ export const MainChartTooltip = memo(function MainChartTooltip({
         </div>
       ) : (
         <div className={`flex justify-between gap-4 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">{t('oracle.chart.tooltip.price')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.price')}</span>
           <span className="text-blue-600 font-mono">${data.price.toFixed(4)}</span>
         </div>
       )}
 
       {data.ma7 !== undefined && chartType === 'line' && (
         <div className={`flex justify-between gap-4 mt-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-          <span className="text-gray-500">{t('oracle.chart.tooltip.ma7')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma7')}</span>
           <span className="text-amber-600 font-mono">${data.ma7.toFixed(4)}</span>
         </div>
       )}
 
       {!isMobile && data.ma14 !== undefined && chartType === 'line' && (
         <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.ma14')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma14')}</span>
           <span className="text-blue-600 font-mono">${data.ma14.toFixed(4)}</span>
         </div>
       )}
 
       {!isMobile && data.ma30 !== undefined && chartType === 'line' && (
         <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.ma30')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.ma30')}</span>
           <span className="text-purple-600 font-mono">${data.ma30.toFixed(4)}</span>
         </div>
       )}
@@ -96,18 +96,18 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       {showBollingerBands && !isMobile && data.bbUpper !== undefined && (
         <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
           <p className="text-xs text-gray-400 font-medium">
-            {t('oracle.chart.tooltip.bollingerBands')}
+            {t('priceQuery.chart.tooltip.bollingerBands')}
           </p>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.upperBand')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.upperBand')}</span>
             <span className="text-purple-500 font-mono">${data.bbUpper.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.middleBand')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.middleBand')}</span>
             <span className="text-purple-400 font-mono">${data.bbMiddle?.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.lowerBand')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.lowerBand')}</span>
             <span className="text-purple-500 font-mono">${data.bbLower?.toFixed(4)}</span>
           </div>
         </div>
@@ -121,13 +121,13 @@ export const MainChartTooltip = memo(function MainChartTooltip({
             className={`space-y-1 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
           >
             <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('oracle.chart.tooltip.predictionUpper')}</span>
+              <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionUpper')}</span>
               <span className="text-blue-600 font-mono">
                 ${Number(data.predictionUpper).toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('oracle.chart.tooltip.predictionLower')}</span>
+              <span className="text-gray-500">{t('priceQuery.chart.tooltip.predictionLower')}</span>
               <span className="text-blue-600 font-mono">
                 ${Number(data.predictionLower).toFixed(4)}
               </span>
@@ -138,13 +138,13 @@ export const MainChartTooltip = memo(function MainChartTooltip({
       <div
         className={`flex justify-between gap-4 mt-2 pt-2 border-t border-gray-200 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
       >
-        <span className="text-gray-500">{t('oracle.chart.tooltip.volume')}</span>
+        <span className="text-gray-500">{t('priceQuery.chart.tooltip.volume')}</span>
         <span className="text-gray-700 font-mono">{(data.volume / 1000000).toFixed(2)}M</span>
       </div>
 
       {showRSI && !isMobile && data.rsi !== undefined && (
         <div className="flex justify-between gap-4 text-xs mt-1">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.rsi')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
           <span
             className={`font-mono ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-700'}`}
           >
@@ -155,17 +155,17 @@ export const MainChartTooltip = memo(function MainChartTooltip({
 
       {showMACD && !isMobile && data.macd !== undefined && (
         <div className="space-y-1 mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-400 font-medium">{t('oracle.chart.tooltip.macd')}</p>
+          <p className="text-xs text-gray-400 font-medium">{t('priceQuery.chart.tooltip.macd')}</p>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.macdValue')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
             <span className="text-blue-600 font-mono">{data.macd.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.signal')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
             <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('oracle.chart.tooltip.histogram')}</span>
+            <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
             <span
               className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
             >
@@ -196,7 +196,7 @@ export const RSITooltip = memo(function RSITooltip({ active, payload, label }: R
     <div className="bg-white border border-gray-200  p-2 ">
       <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
       <div className="flex justify-between gap-4 text-xs">
-        <span className="text-gray-500">{t('oracle.chart.tooltip.rsi')}</span>
+        <span className="text-gray-500">{t('priceQuery.chart.tooltip.rsi')}</span>
         <span
           className={`font-mono font-medium ${data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-gray-900'}`}
         >
@@ -226,15 +226,15 @@ export const MACDTooltip = memo(function MACDTooltip({ active, payload, label }:
       <p className="text-gray-600 text-xs mb-1 font-medium">{label}</p>
       <div className="space-y-1">
         <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.macdValue')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.macdValue')}</span>
           <span className="text-blue-600 font-mono">{data.macd?.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.signal')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.signal')}</span>
           <span className="text-orange-600 font-mono">{data.macdSignal?.toFixed(4)}</span>
         </div>
         <div className="flex justify-between gap-4 text-xs">
-          <span className="text-gray-500">{t('oracle.chart.tooltip.histogram')}</span>
+          <span className="text-gray-500">{t('priceQuery.chart.tooltip.histogram')}</span>
           <span
             className={`font-mono ${(data.macdHistogram || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
           >

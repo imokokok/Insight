@@ -23,14 +23,11 @@ export {
   useTellorAllData,
 } from './useTellorData';
 
-export { usePriceData, useHistoricalPrices, useMultiplePrices } from './useOracleData';
-export { useOracleDataQuery, useOraclePrefetch, useOracleDataSWR } from './useOracleDataQuery';
+export { usePriceData, useHistoricalPrices } from './useOracleData';
+export { useOracleDataQuery } from './useOracleDataQuery';
 export type {
   UseOracleDataQueryOptions,
   UseOracleDataQueryReturn,
-  UseOraclePrefetchOptions,
-  UseOracleDataSWROptions,
-  UseOracleDataSWRReturn,
 } from './useOracleDataQuery';
 export { useRefresh, useExport, useLocalStorage } from './useUtils';
 export type { ExportOptions, ExportFormat, DataType } from './useUtils';
@@ -116,14 +113,12 @@ export type {
 } from './useUMARealtime';
 
 // Chart Hooks
-export { useChartData, useBatchChartData, useAutoRefresh } from './useChartData';
+export { useChartData, useBatchChartData } from './useChartData';
 export type {
   UseChartDataOptions,
   UseChartDataReturn,
   UseBatchChartDataOptions,
   UseBatchChartDataReturn,
-  UseAutoRefreshOptions,
-  UseAutoRefreshReturn,
 } from './useChartData';
 
 export { useChartZoom, useBrushZoom } from './useChartZoom';
@@ -163,18 +158,3 @@ export type {
   UseTechnicalIndicatorsReturn,
   BatchIndicatorOptions,
 } from './useTechnicalIndicators';
-
-export {
-  useAPI3Price as useAPI3WebSocketPrice,
-  useAPI3Prices as useAPI3WebSocketPrices,
-  useAPI3Realtime as useAPI3WebSocketRealtime,
-} from './useAPI3WebSocket';
-export type {
-  API3ConnectionStatus,
-  UseAPI3PriceOptions as UseAPI3WebSocketPriceOptions,
-  UseAPI3PriceReturn as UseAPI3WebSocketPriceReturn,
-  UseAPI3PricesOptions as UseAPI3WebSocketPricesOptions,
-  UseAPI3PricesReturn as UseAPI3WebSocketPricesReturn,
-  UseAPI3RealtimeOptions as UseAPI3WebSocketRealtimeOptions,
-  UseAPI3RealtimeReturn as UseAPI3WebSocketRealtimeReturn,
-} from './useAPI3WebSocket';

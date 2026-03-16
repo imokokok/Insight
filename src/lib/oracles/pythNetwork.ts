@@ -18,6 +18,10 @@ export class PythClient extends BaseOracleClient {
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
     Blockchain.SOLANA,
+    Blockchain.AVALANCHE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.APTOS,
+    Blockchain.SUI,
   ];
 
   constructor(config?: OracleClientConfig) {
