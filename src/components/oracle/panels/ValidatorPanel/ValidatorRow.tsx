@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { formatNumber } from '@/lib/utils/format';
 import { SortField, SortDirection, FilterStatus, statusConfig } from './config';
@@ -89,7 +89,7 @@ export function ValidatorRow({
   isSelected: boolean;
   onToggleSelect: (e: React.MouseEvent) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const status = validator.jailed ? 'jailed' : 'active';
   const config = statusConfig[status];
 
@@ -207,7 +207,7 @@ export function ValidatorCard({
   isSelected: boolean;
   onToggleSelect: (e: React.MouseEvent) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const status = validator.jailed ? 'jailed' : 'active';
   const config = statusConfig[status];
 

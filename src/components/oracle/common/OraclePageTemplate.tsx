@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, ReactNode } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { OracleConfig } from '@/lib/config/oracles';
 import { PriceData, OracleProvider } from '@/types/oracle';
 import { UMAMetworkStats } from '@/lib/oracles/uma/types';
@@ -92,7 +92,7 @@ export function OraclePageTemplate({
   errorComponent,
   customLayout,
 }: OraclePageTemplateProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const timeRange = useGlobalTimeRange();
   const setTimeRange = useSetGlobalTimeRange();
   const [activeTab, setActiveTab] = useState('market');

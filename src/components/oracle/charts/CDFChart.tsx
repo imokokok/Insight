@@ -13,7 +13,7 @@ import {
   ReferenceDot,
   Area,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { calculateCDF, CDFResult } from '@/lib/utils/statistics';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
@@ -47,7 +47,7 @@ export function CDFChart({
   showGrid = true,
   color = chartColors.recharts.primaryLight,
 }: CDFChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const cdfResult: CDFResult = useMemo(() => calculateCDF(data, 100), [data]);
 

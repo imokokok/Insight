@@ -14,7 +14,7 @@ import {
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 
@@ -100,7 +100,7 @@ export function RequestTrendChart({
   autoUpdate = false,
   updateInterval = 30000,
 }: RequestTrendChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [data, setData] = useState<TrendDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);

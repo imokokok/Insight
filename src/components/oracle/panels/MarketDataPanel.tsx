@@ -6,7 +6,7 @@ import { Blockchain, OracleProvider, ConfidenceInterval } from '@/types/oracle';
 import { MetricCard } from '../common/DashboardCard';
 import { formatCurrency, formatNumber } from '@/lib/utils/format';
 import { ConfidenceIntervalDisplay } from '../common/ConfidenceIntervalDisplay';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketDataPanel');
@@ -98,7 +98,7 @@ function PriceChangeIndicator({
   high24h: number;
   low24h: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const isPositive = change >= 0;
 
   return (
@@ -149,7 +149,7 @@ function EMADisplay({
   selectedPeriod: EMAPeriod;
   onPeriodChange: (period: EMAPeriod) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const selectedEMA = emaData.find((ema) => ema.period === selectedPeriod);
 
   const trendColors = {
@@ -239,7 +239,7 @@ export function MarketDataPanel({
   iconBgColor = 'bg-blue-600',
   icon,
 }: MarketDataPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [price, setPrice] = useState<number>(config.change24hValue);
   const [confidenceInterval, setConfidenceInterval] = useState<ConfidenceInterval | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());

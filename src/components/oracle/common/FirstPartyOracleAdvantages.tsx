@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardCard } from './DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface FirstPartyAdvantages {
   noMiddlemen: boolean;
@@ -21,7 +21,7 @@ interface ComparisonRow {
 }
 
 export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const comparisonData: ComparisonRow[] = [
     {

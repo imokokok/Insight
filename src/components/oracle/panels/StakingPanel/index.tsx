@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from '../../common/DashboardCard';
 import { StakingCalculator } from '../../common/StakingCalculator';
@@ -60,7 +60,7 @@ function StatCard({
 }
 
 function StakingHistoryChart({ data }: { data: StakingHistory[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxValue = Math.max(...data.map((d) => d.totalStaked));
 
   return (
@@ -102,7 +102,7 @@ function StakingHistoryChart({ data }: { data: StakingHistory[] }) {
 }
 
 function StakingGuide() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const steps = [
     {
@@ -185,7 +185,7 @@ function StakingGuide() {
 }
 
 function RiskWarning() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const risks = [
     {
@@ -233,7 +233,7 @@ function RiskWarning() {
 }
 
 export function StakingPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stats, setStats] = useState<StakingStats | null>(null);
   const [history, setHistory] = useState<StakingHistory[]>([]);
   const [loading, setLoading] = useState(true);

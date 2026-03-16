@@ -12,7 +12,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 
 type QualityStatus = 'excellent' | 'good' | 'warning' | 'critical';
@@ -288,7 +288,7 @@ function PriceDeviationCard({
   data: PriceDeviationData[];
   basePrice: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const STATUS_CONFIG = getStatusConfig(t);
   const avgDeviation = data.reduce((sum, d) => sum + Math.abs(d.deviationPercent), 0) / data.length;
   const maxDeviation = Math.max(...data.map((d) => Math.abs(d.deviationPercent)));
@@ -390,7 +390,7 @@ function PriceDeviationCard({
 }
 
 function PriceDeviationChart({ data }: { data: PriceDeviationData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200  p-5">
@@ -504,7 +504,7 @@ function LatencyDistributionChart({
   data: LatencyDistributionData[];
   metrics: LatencyMetrics;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200  p-5">
@@ -628,7 +628,7 @@ function LatencyDistributionChart({
 }
 
 function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const STATUS_CONFIG = getStatusConfig(t);
 
   const avgAvailability = sources.reduce((sum, s) => sum + s.availability, 0) / sources.length;
@@ -685,7 +685,7 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
           <p className="text-lg font-bold text-gray-900">
             {avgUpdateFrequency.toFixed(0)}
             <span className="text-sm text-gray-500 ml-1">
-              {t('dataQuality.secondsAgo').replace('前', '')}
+              {t('dataQuality.secondsSuffix')}
             </span>
           </p>
         </div>
@@ -748,7 +748,7 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
 }
 
 function QualityScoreCard({ score }: { score: QualityScore }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const STATUS_CONFIG = getStatusConfig(t);
 
   const overallStatus = getStatusFromScore(score.overall);
@@ -877,7 +877,7 @@ export function DataQualityPanel({
   autoUpdate = true,
   updateInterval = 30000,
 }: DataQualityPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [config, setConfig] = useState<DataQualityConfig>({
     symbol,
     basePrice,

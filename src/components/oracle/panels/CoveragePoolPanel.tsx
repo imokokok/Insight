@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../common/DashboardCard';
 
 export interface CoveragePoolData {
@@ -24,7 +24,7 @@ function formatCurrency(value: number): string {
 }
 
 export function CoveragePoolPanel({ data }: CoveragePoolPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getCoverageStatus = (ratio: number) => {
     if (ratio >= 50)

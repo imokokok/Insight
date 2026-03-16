@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ReporterStats, Reporter } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 
 interface TellorReportersPanelProps {
@@ -10,7 +10,7 @@ interface TellorReportersPanelProps {
 }
 
 export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedReporter, setSelectedReporter] = useState<Reporter | null>(null);
 
   const formatAddress = (address: string) => {

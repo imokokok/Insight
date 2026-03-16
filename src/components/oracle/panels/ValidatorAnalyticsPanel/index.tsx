@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { DashboardCard } from '../../common/DashboardCard';
 import { UMAClient, ValidatorData, ValidatorHistoryData } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ValidatorPerformanceHeatmap } from '../../charts/ValidatorPerformanceHeatmap';
 import { ValidatorComparison } from '../../charts/ValidatorComparison';
 import { StakingCalculator } from '../../common/StakingCalculator';
@@ -22,19 +22,19 @@ import {
 
 const logger = createLogger('ValidatorAnalyticsPanel');
 
-function formatRelativeTime(timestamp: number | null): string {
+function formatRelativeTime(timestamp: number | null, t: (key: string, params?: Record<string, string | number>) => string): string {
   if (!timestamp) return '';
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp) / 1000);
 
   if (diffInSeconds < 60) {
-    return `${diffInSeconds}秒前`;
+    return t('panels.validatorAnalytics.secondsAgo', { seconds: diffInSeconds });
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}分钟前`;
+    return t('panels.validatorAnalytics.minutesAgo', { minutes });
   } else {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}小时前`;
+    return t('panels.validatorAnalytics.hoursAgo', { hours });
   }
 }
 
@@ -180,7 +180,7 @@ function ValidatorTable({
   onSort: (field: SortField) => void;
   onViewHistory: (validator: ValidatorData) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) {
@@ -415,7 +415,7 @@ function ValidatorTable({
 }
 
 export function ValidatorAnalyticsPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [validators, setValidators] = useState<ValidatorData[]>([]);
   const [earningsTrends, setEarningsTrends] = useState<EarningsTrend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -468,14 +468,14 @@ export function ValidatorAnalyticsPanel() {
     if (!lastUpdateTime) return;
 
     const updateTime = () => {
-      setRelativeTime(formatRelativeTime(lastUpdateTime));
+      setRelativeTime(formatRelativeTime(lastUpdateTime, t));
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, [lastUpdateTime]);
+  }, [lastUpdateTime, t]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -625,9 +625,9 @@ export function ValidatorAnalyticsPanel() {
   };
 
   const typeLabels: Record<string, string> = {
-    institution: '机构验证者',
-    independent: '独立验证者',
-    community: '社区验证者',
+    institution: t('panels.validatorAnalytics.institutionValidator'),
+    independent: t('panels.validatorAnalytics.independentValidator'),
+    community: t('panels.validatorAnalytics.communityValidator'),
   };
 
   const typeChartData = Object.entries(typeDistribution).map(([name, value]) => ({
@@ -652,13 +652,13 @@ export function ValidatorAnalyticsPanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {lastUpdateTime && (
-            <span className="text-sm text-gray-500">最后更新: {relativeTime}</span>
+            <span className="text-sm text-gray-500">{t('panels.validatorAnalytics.lastUpdated')}: {relativeTime}</span>
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
               <span className="text-sm" style={{ color: baseColors.primary[600] }}>
-                刷新中...
+                {t('panels.validatorAnalytics.refreshing')}
               </span>
             </div>
           )}
@@ -680,7 +680,7 @@ export function ValidatorAnalyticsPanel() {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          刷新数据
+          {t('panels.validatorAnalytics.refreshData')}
         </button>
       </div>
 
@@ -756,7 +756,7 @@ export function ValidatorAnalyticsPanel() {
             </svg>
             <input
               type="text"
-              placeholder="搜索验证者名称..."
+              placeholder={t('panels.validatorAnalytics.searchValidator')}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -784,7 +784,7 @@ export function ValidatorAnalyticsPanel() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>每页显示</span>
+            <span>{t('panels.validatorAnalytics.itemsPerPage')}</span>
             <select
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
@@ -794,8 +794,8 @@ export function ValidatorAnalyticsPanel() {
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-            <span>条</span>
-            <span className="ml-4 text-gray-400">共 {filteredValidators.length} 条记录</span>
+            <span>{t('panels.validatorAnalytics.items')}</span>
+            <span className="ml-4 text-gray-400">{t('panels.validatorAnalytics.totalRecords', { count: filteredValidators.length })}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -804,7 +804,7 @@ export function ValidatorAnalyticsPanel() {
               disabled={currentPage === 1}
               className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              上一页
+              {t('panels.validatorAnalytics.prevPage')}
             </button>
 
             <div className="flex items-center gap-1">
@@ -840,7 +840,7 @@ export function ValidatorAnalyticsPanel() {
               disabled={currentPage === totalPages || totalPages === 0}
               className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              下一页
+              {t('panels.validatorAnalytics.nextPage')}
             </button>
           </div>
         </div>
@@ -903,10 +903,10 @@ export function ValidatorAnalyticsPanel() {
                     }`}
                   >
                     {selectedValidator.type === 'institution'
-                      ? '机构'
+                      ? t('panels.validatorAnalytics.institution')
                       : selectedValidator.type === 'independent'
-                        ? '独立'
-                        : '社区'}
+                        ? t('panels.validatorAnalytics.independent')
+                        : t('panels.validatorAnalytics.community')}
                   </span>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">

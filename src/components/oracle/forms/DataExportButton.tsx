@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('DataExportButton');
@@ -89,7 +89,7 @@ export function DataExportButton({
   disabled = false,
   compact = false,
 }: DataExportButtonProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -153,7 +153,7 @@ export function DataExportButton({
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          title={hasData ? '导出数据' : '无数据可导出'}
+          title={hasData ? t('forms.exportData') : t('forms.noDataToExport')}
         >
           {isExporting ? (
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@ export function DataExportButton({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span>导出中...</span>
+            <span>{t('forms.exporting')}</span>
           </>
         ) : (
           <>
@@ -255,7 +255,7 @@ export function DataExportButton({
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
               />
             </svg>
-            <span>导出</span>
+            <span>{t('forms.export')}</span>
             <svg
               className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               fill="none"
@@ -271,7 +271,7 @@ export function DataExportButton({
       {isOpen && hasData && (
         <div className="absolute right-0 top-full mt-2 w-48 bg-white   border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">选择导出格式</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t('forms.selectExportFormat')}</h3>
           </div>
           <button
             onClick={() => handleExport('csv')}
@@ -281,8 +281,8 @@ export function DataExportButton({
               <span className="text-xs font-bold text-green-600">CSV</span>
             </div>
             <div>
-              <span className="font-medium text-gray-900">CSV 文件</span>
-              <p className="text-xs text-gray-500">逗号分隔值格式</p>
+              <span className="font-medium text-gray-900">{t('forms.csvFile')}</span>
+              <p className="text-xs text-gray-500">{t('forms.csvFormat')}</p>
             </div>
           </button>
           <button
@@ -293,8 +293,8 @@ export function DataExportButton({
               <span className="text-xs font-bold text-blue-600">JSON</span>
             </div>
             <div>
-              <span className="font-medium text-gray-900">JSON 文件</span>
-              <p className="text-xs text-gray-500">结构化数据格式</p>
+              <span className="font-medium text-gray-900">{t('forms.jsonFile')}</span>
+              <p className="text-xs text-gray-500">{t('forms.jsonFormat')}</p>
             </div>
           </button>
         </div>

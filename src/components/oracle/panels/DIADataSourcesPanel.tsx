@@ -1,7 +1,7 @@
 'use client';
 
 import { DataSourceTransparency, DataSourceVerification } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -14,7 +14,7 @@ export function DIADataSourcesPanel({
   transparencyData,
   verificationData,
 }: DIADataSourcesPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getTypeLabel = (type: string) => {
     switch (type) {

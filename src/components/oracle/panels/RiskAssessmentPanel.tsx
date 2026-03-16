@@ -6,7 +6,7 @@ import { PriceDeviationRisk } from '../charts/PriceDeviationRisk';
 import { ConcentrationRisk } from '../charts/ConcentrationRisk';
 import { CrossChainRisk } from '../charts/CrossChainRisk';
 import { OracleProvider } from '@/types/oracle';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface RiskScore {
   overall: number;
@@ -95,7 +95,7 @@ function RiskScoreCard({
 }
 
 export function RiskAssessmentPanel({ provider }: RiskAssessmentPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const riskScores: RiskScore = useMemo(() => {
     return {

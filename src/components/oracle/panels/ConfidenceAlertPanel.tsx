@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export type AlertType = 'sudden_expansion' | 'sustained_high';
 export type AlertSeverity = 'warning' | 'critical';
@@ -156,7 +156,7 @@ export function ConfidenceAlertPanel({
   checkInterval = 60000,
   onAlert,
 }: ConfidenceAlertPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [alerts, setAlerts] = useState<ConfidenceAlert[]>([]);
   const [data, setData] = useState<ConfidenceDataPoint[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);

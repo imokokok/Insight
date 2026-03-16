@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Publisher, PublisherStats } from '@/types/oracle';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface PublisherReliabilityScoreProps {
@@ -135,7 +135,7 @@ export function PublisherReliabilityScore({
   publisher,
   stats = mockStats[publisher.id] || mockStats['pub-1'],
 }: PublisherReliabilityScoreProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const avgAccuracy = useMemo(() => {
     if (stats.historicalAccuracy.length === 0) return 0;

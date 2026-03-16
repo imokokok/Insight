@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { UserFavorite } from '@/lib/supabase/queries';
 import { mapConfigTypeFromDB, FavoriteConfig, useRemoveFavorite } from '@/hooks/useFavorites';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface FavoriteCardProps {
   favorite: UserFavorite;
@@ -15,7 +15,7 @@ interface FavoriteCardProps {
 
 export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCardProps) {
   const router = useRouter();
-  const { t } = useI18n();
+  const t = useTranslations();
   const { removeFavorite, isRemoving } = useRemoveFavorite();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 

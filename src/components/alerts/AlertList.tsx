@@ -5,7 +5,7 @@ import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AlertListProps {
   alerts: PriceAlert[];
@@ -26,7 +26,7 @@ function getAlertStatus(alert: PriceAlert): AlertStatus {
 }
 
 export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);

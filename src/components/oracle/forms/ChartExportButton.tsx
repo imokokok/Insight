@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, RefObject } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   exportChart,
   exportMultipleCharts,
@@ -62,7 +62,7 @@ export function ChartExportButton({
   dateRange,
   onDateRangeChange,
 }: ChartExportButtonProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showResolutionPicker, setShowResolutionPicker] = useState(false);

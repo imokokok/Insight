@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface StakingData {
   totalStaked: number;
@@ -24,7 +24,7 @@ function formatNumber(num: number): string {
 }
 
 export function StakingMetricsPanel({ data }: StakingMetricsPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <DashboardCard title={t('stakingMetrics.title')}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 
 export type UpdateInterval = 5000 | 10000 | 30000 | 60000;
@@ -36,7 +36,7 @@ export function RealtimeUpdateControl({
   connectionStatus = 'connected',
   className = '',
 }: RealtimeUpdateControlProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isAutoUpdateEnabled, setIsAutoUpdateEnabled] = useState(autoUpdate);
   const [currentInterval, setCurrentInterval] = useState<UpdateInterval>(updateInterval);
   const [countdown, setCountdown] = useState(() => (autoUpdate ? updateInterval / 1000 : 0));

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -10,7 +10,7 @@ interface BandCrossChainPanelProps {
 }
 
 export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stats, setStats] = useState<CrossChainStats | null>(null);
   const [loading, setLoading] = useState(true);
 

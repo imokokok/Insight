@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import GaugeChart from '@/components/GaugeChart';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { AccuracyStats } from '@/hooks/usePriceHistory';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
@@ -12,7 +12,7 @@ interface PriceAccuracyStatsProps {
 }
 
 export function PriceAccuracyStats({ stats, recentTrend }: PriceAccuracyStatsProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const trendData = useMemo(() => {
     switch (recentTrend) {

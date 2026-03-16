@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
@@ -26,7 +26,7 @@ interface UMARiskPanelProps {
 }
 
 export function UMARiskPanel({ client }: UMARiskPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [validators, setValidators] = useState<ValidatorData[]>([]);
   const [disputeStats, setDisputeStats] = useState<DisputeEfficiencyStats | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());

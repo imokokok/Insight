@@ -68,6 +68,15 @@ export interface UseAcknowledgeAlertReturn {
 const ALERTS_KEY = 'user-alerts';
 const ALERT_EVENTS_KEY = 'user-alert-events';
 
+// Alert error message keys for i18n
+export const alertErrorKeys = {
+  userNotLoggedIn: 'hooks.alerts.userNotLoggedIn',
+  createFailed: 'hooks.alerts.createFailed',
+  updateFailed: 'hooks.alerts.updateFailed',
+  deleteFailed: 'hooks.alerts.deleteFailed',
+  acknowledgeFailed: 'hooks.alerts.acknowledgeFailed',
+};
+
 export function useAlerts(): UseAlertsReturn {
   const user = useUser();
   const userId = user?.id;
@@ -103,7 +112,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
   const createAlert = useCallback(
     async (input: CreateAlertInput) => {
       if (!user?.id) {
-        return { alert: null, error: new Error('用户未登录') };
+        return { alert: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
       }
 
       setIsCreating(true);
@@ -119,7 +128,7 @@ export function useCreateAlert(): UseCreateAlertReturn {
         });
 
         if (!alert) {
-          return { alert: null, error: new Error('创建告警失败') };
+          return { alert: null, error: new Error(alertErrorKeys.createFailed) };
         }
 
         await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
@@ -145,7 +154,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
   const updateAlert = useCallback(
     async (id: string, input: UpdateAlertInput) => {
       if (!user?.id) {
-        return { alert: null, error: new Error('用户未登录') };
+        return { alert: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
       }
 
       setIsUpdating(true);
@@ -157,7 +166,7 @@ export function useUpdateAlert(): UseUpdateAlertReturn {
         });
 
         if (!alert) {
-          return { alert: null, error: new Error('更新告警失败') };
+          return { alert: null, error: new Error(alertErrorKeys.updateFailed) };
         }
 
         await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
@@ -183,7 +192,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
   const deleteAlert = useCallback(
     async (id: string) => {
       if (!user?.id) {
-        return { success: false, error: new Error('用户未登录') };
+        return { success: false, error: new Error(alertErrorKeys.userNotLoggedIn) };
       }
 
       setIsDeleting(true);
@@ -191,7 +200,7 @@ export function useDeleteAlert(): UseDeleteAlertReturn {
         const success = await queries.deleteAlert(id);
 
         if (!success) {
-          return { success: false, error: new Error('删除告警失败') };
+          return { success: false, error: new Error(alertErrorKeys.deleteFailed) };
         }
 
         await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
@@ -244,7 +253,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
   const acknowledge = useCallback(
     async (eventId: string) => {
       if (!user?.id) {
-        return { event: null, error: new Error('用户未登录') };
+        return { event: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
       }
 
       setIsAcknowledging(true);
@@ -252,7 +261,7 @@ export function useAcknowledgeAlert(): UseAcknowledgeAlertReturn {
         const event = await queries.acknowledgeAlertEvent(eventId);
 
         if (!event) {
-          return { event: null, error: new Error('确认告警失败') };
+          return { event: null, error: new Error(alertErrorKeys.acknowledgeFailed) };
         }
 
         await queryClient.invalidateQueries({ queryKey: [ALERT_EVENTS_KEY, user.id] });

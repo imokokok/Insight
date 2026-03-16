@@ -1,7 +1,7 @@
 'use client';
 
 import { EcosystemStats, EcosystemProtocol } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 
 interface TellorEcosystemPanelProps {
@@ -9,7 +9,7 @@ interface TellorEcosystemPanelProps {
 }
 
 export function TellorEcosystemPanel({ data }: TellorEcosystemPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {

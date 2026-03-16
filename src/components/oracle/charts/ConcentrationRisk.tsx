@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface PublisherData {
@@ -68,7 +68,7 @@ const COLORS = [
 ];
 
 export function ConcentrationRisk() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const publishers = useMemo(() => generateMockPublishers(), []);
   const metrics = useMemo(() => calculateConcentrationMetrics(publishers), [publishers]);
 

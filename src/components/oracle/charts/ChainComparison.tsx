@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -161,7 +161,7 @@ export function ChainComparison({
   selectedChains: externalSelectedChains,
   onSelectionChange,
 }: ChainComparisonProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const TIME_RANGE_CONFIG = useMemo(() => getTimeRangeConfig(t), [t]);
   const [internalSelectedChains, setInternalSelectedChains] = useState<ChainDataRequest[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('24h');

@@ -15,7 +15,7 @@ import {
   Area,
   Line,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, chainColors } from '@/lib/config/colors';
 
 interface LatencyDataPoint {
@@ -280,7 +280,7 @@ function calculateStats(distribution: LatencyDataPoint[]): LatencyStats {
 }
 
 function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200 rounded p-5">
@@ -368,7 +368,7 @@ function LatencyDistributionChart({ data }: { data: LatencyDataPoint[] }) {
 }
 
 function PercentileCards({ stats }: { stats: LatencyStats }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const percentiles = [
     {
@@ -416,7 +416,7 @@ function PercentileCards({ stats }: { stats: LatencyStats }) {
 }
 
 function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200 rounded p-5">
@@ -520,7 +520,7 @@ function LatencyTrendChart({ data }: { data: TrendDataPoint[] }) {
 }
 
 function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200 rounded p-5">
@@ -608,7 +608,7 @@ function CrossChainLatencyComparison({ data }: { data: ChainLatencyData[] }) {
 }
 
 function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const severityConfig = {
     low: {
@@ -705,7 +705,7 @@ function AnomalyDetection({ anomalies }: { anomalies: AnomalyData[] }) {
 }
 
 function StatsOverview({ stats }: { stats: LatencyStats }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const statItems = [
     { label: t('latencyAnalysis.stats.avg'), value: `${stats.avg}ms`, icon: '📊' },
@@ -741,7 +741,7 @@ export function LatencyAnalysis({
   autoUpdate = true,
   updateInterval = 30000,
 }: LatencyAnalysisProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [distribution, setDistribution] = useState<LatencyDataPoint[]>([]);
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
   const [chainData, setChainData] = useState<ChainLatencyData[]>([]);

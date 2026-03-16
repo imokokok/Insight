@@ -12,7 +12,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
@@ -191,7 +191,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);

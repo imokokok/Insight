@@ -1,7 +1,7 @@
 'use client';
 
 import { TellorNetworkHealth } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 import { Blockchain } from '@/types/oracle';
 
@@ -10,7 +10,7 @@ interface TellorNetworkPanelProps {
 }
 
 export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getHealthColor = (score: number) => {
     if (score >= 90) return 'text-green-600';

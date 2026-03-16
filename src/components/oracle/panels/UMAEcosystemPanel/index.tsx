@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../../common/DashboardCard';
 import { Blockchain } from '@/types/oracle';
 
@@ -25,7 +25,7 @@ interface UMAEcosystemPanelProps {
 }
 
 export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   // 使用UMA的协议列表
   const protocols: Protocol[] = [

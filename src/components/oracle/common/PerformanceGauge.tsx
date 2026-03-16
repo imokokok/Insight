@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type GaugeType = 'percentage' | 'value';
@@ -93,7 +93,7 @@ function getLevelForValue(
   return 'danger';
 }
 
-function formatValue(value: number, unit?: string): string {
+function formatValue(value: number, unit?: string, t?: (key: string) => string): string {
   if (unit === 'ms') {
     if (value < 1000) return `${value.toFixed(0)}ms`;
     return `${(value / 1000).toFixed(2)}s`;
@@ -101,8 +101,8 @@ function formatValue(value: number, unit?: string): string {
   if (unit === '%') {
     return `${value.toFixed(1)}%`;
   }
-  if (unit === '次/分') {
-    return `${value.toFixed(1)}`;
+  if (unit === 'timesPerMinute' && t) {
+    return `${value.toFixed(1)}${t('oracleCommon.performanceGauge.timesPerMinute')}`;
   }
   return value.toFixed(2);
 }
@@ -339,7 +339,7 @@ function SingleGauge({
 
         <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-center">
           <div className="text-xl font-bold" style={{ color: levelConfig.color }}>
-            {formatValue(currentDisplayValue, unit)}
+            {formatValue(currentDisplayValue, unit, t)}
           </div>
           <div className="text-xs text-gray-500">{levelLabel}</div>
         </div>
@@ -349,7 +349,7 @@ function SingleGauge({
         <p className="text-sm font-medium text-gray-700">{label}</p>
         {type === 'value' && (
           <p className="text-xs text-gray-400 mt-0.5">
-            {t('oracleCommon.performanceGauge.range', { value: formatValue(max, unit) })}
+            {t('oracleCommon.performanceGauge.range', { value: formatValue(max, unit, t) })}
           </p>
         )}
       </div>
@@ -378,7 +378,7 @@ export function PerformanceGaugeGroup({
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeGroupProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {gauges.map((gauge, index) => (
@@ -414,7 +414,7 @@ export function PerformanceGauge({
   showAnimation = true,
   animationDuration = 1500,
 }: PerformanceGaugeProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   return (
     <div className="bg-white border border-gray-200  p-4  hover: transition-shadow">
       <SingleGauge

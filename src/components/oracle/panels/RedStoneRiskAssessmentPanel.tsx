@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard, DataFreshnessIndicator } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
@@ -109,7 +109,7 @@ const scoreTrendData = [
 ];
 
 export function RedStoneRiskAssessmentPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const overallScore = calculateOverallScore(riskMetrics);

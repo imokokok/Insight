@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 type TimeWindow = '1h' | '6h' | '24h' | '7d' | '30d';
@@ -140,7 +140,7 @@ interface CorrelationAnalysisProps {
 }
 
 export function CorrelationAnalysis({ data, className }: CorrelationAnalysisProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('24h');
   const [selectedPair, setSelectedPair] = useState<[OracleProvider, OracleProvider] | null>(null);
   const [showScatterPlot, setShowScatterPlot] = useState(true);

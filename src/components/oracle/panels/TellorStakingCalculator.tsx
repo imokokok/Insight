@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { StakingCalculation } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 import { useStakingCalculator } from '@/hooks/useTellorData';
 
 export function TellorStakingCalculator() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stakeAmount, setStakeAmount] = useState<number>(10000);
   const [duration, setDuration] = useState<number>(365);
   const [isActiveReporter, setIsActiveReporter] = useState<boolean>(true);

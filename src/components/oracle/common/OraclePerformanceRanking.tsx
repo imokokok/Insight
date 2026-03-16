@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from './DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 
 export interface OraclePerformanceData {
@@ -227,7 +227,7 @@ export function OraclePerformanceRanking({
   previousRankings = [],
   className = '',
 }: OraclePerformanceRankingProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const rankings = useMemo(() => {
     const allResponseTimes = performanceData.map((d) => d.responseTime);
     const allStability = performanceData.map((d) => d.stability);

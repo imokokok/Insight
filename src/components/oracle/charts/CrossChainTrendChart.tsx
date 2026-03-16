@@ -21,7 +21,7 @@ import {
   shadowColors,
 } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { formatCompactNumberWithDecimals } from '@/lib/utils/format';
 import { TrendingUp, TrendingDown, Minus, Activity, DollarSign, Fuel } from 'lucide-react';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 
 interface ServiceData {
@@ -301,7 +301,7 @@ const ccipChainData = [
 ];
 
 export function ChainlinkServicesPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {

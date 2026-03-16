@@ -6,14 +6,14 @@ import { providerNames, chainNames, symbols, oracleColors, chainColors } from '@
 import { useCreateAlert, CreateAlertInput } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
 }
 
 export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [alertName, setAlertName] = useState<string>('');
   const [symbol, setSymbol] = useState<string>('BTC');
   const [provider, setProvider] = useState<OracleProvider | ''>('');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 
 interface NodeData {
@@ -110,7 +110,7 @@ const regionData: RegionData[] = [
 ];
 
 export function ChainlinkNodesPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const totalStaked = mockNodes.reduce((sum, node) => sum + node.stakedAmount, 0);
   const avgResponseTime =

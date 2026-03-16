@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig, userNavigationConfig } from './navigation';
@@ -12,7 +12,7 @@ import { NavGroup } from './navigation/types';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const t = useTranslations();
   const user = useUser();
   const profile = useProfile();
   const loading = useAuthLoading();
@@ -71,9 +71,8 @@ export default function Navbar() {
 
               return (
                 <Link
-                  key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium  transition-all duration-200 relative ${
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                     active
                       ? 'text-blue-600 bg-blue-50'
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
@@ -82,7 +81,7 @@ export default function Navbar() {
                   {ItemIcon && <ItemIcon className="w-4 h-4" />}
                   <span>{t(item.label)}</span>
                   {active && (
-                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 " />
+                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600" />
                   )}
                 </Link>
               );
@@ -98,7 +97,7 @@ export default function Navbar() {
               <div className="hidden lg:flex items-center gap-1">
                 <Link
                   href="/favorites"
-                  className={`p-2  transition-colors ${
+                  className={`p-2 transition-colors ${
                     isActive('/favorites')
                       ? 'text-blue-600 bg-blue-50'
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
@@ -109,7 +108,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/alerts"
-                  className={`p-2  transition-colors ${
+                  className={`p-2 transition-colors ${
                     isActive('/alerts')
                       ? 'text-blue-600 bg-blue-50'
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
@@ -121,9 +120,9 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 p-1.5  hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-2 p-1.5 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="w-8 h-8  bg-gray-100 border border-gray-200 flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center text-white text-sm font-medium">
                       {profile?.display_name?.[0]?.toUpperCase() ||
                         user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
                     </div>
@@ -135,7 +134,7 @@ export default function Navbar() {
                         className="fixed inset-0 z-40"
                         onClick={() => setIsUserMenuOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-56 bg-white   border border-gray-200 py-2 z-50">
+                      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50">
                         <div className="px-4 py-2 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {profile?.display_name || '用户'}
@@ -176,7 +175,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600  hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                 >
                   {t('navbar.register')}
                 </Link>
@@ -185,7 +184,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100  transition-colors"
+              className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               aria-label={t('navbar.openMenu')}
             >
               <Menu className="w-6 h-6" />

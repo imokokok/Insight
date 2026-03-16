@@ -19,7 +19,7 @@ import {
   markMigrationComplete,
 } from '@/lib/snapshots';
 import { OracleProvider } from '@/types/oracle';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('SnapshotManager');
@@ -53,7 +53,7 @@ export function SnapshotManager({
   selectedSnapshotId,
 }: SnapshotManagerProps) {
   const user = useUser();
-  const { t } = useI18n();
+  const t = useTranslations();
   const [snapshots, setSnapshots] = useState<OracleSnapshot[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);

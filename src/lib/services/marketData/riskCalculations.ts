@@ -1,5 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
-import { OracleMarketData, RiskMetrics } from '@/app/market-overview/types';
+import { OracleMarketData, RiskMetrics } from '@/app/[locale]/market-overview/types';
 import {
   calculateRiskMetrics,
   calculateHHIFromOracles,

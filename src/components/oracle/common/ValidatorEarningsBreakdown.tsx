@@ -10,7 +10,7 @@ import {
   EarningsSourceLabels,
   ValidatorData,
 } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -105,7 +105,7 @@ function EarningsPieChart({
   data: { type: EarningsSourceType; value: number; percentage: number }[];
   size?: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   let currentAngle = 0;
@@ -315,7 +315,7 @@ export function ValidatorEarningsBreakdown({
   selectedValidatorId,
   onValidatorSelect,
 }: ValidatorEarningsBreakdownProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedValidator, setSelectedValidator] = useState<string>(
     selectedValidatorId || validators[0]?.id || ''
   );

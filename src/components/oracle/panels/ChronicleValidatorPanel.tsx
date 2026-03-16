@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
 import { Users, Activity, Award, Coins, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface ChronicleValidatorPanelProps {
 }
 
 export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getStatusIcon = (status: string) => {
     switch (status) {

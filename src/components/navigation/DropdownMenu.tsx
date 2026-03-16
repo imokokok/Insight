@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { NavGroup } from './types';
 import { oracleColors } from './config';
 
@@ -15,7 +15,7 @@ interface DropdownMenuProps {
 }
 
 export function DropdownMenu({ group, isActive, currentPath, onItemClick }: DropdownMenuProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);

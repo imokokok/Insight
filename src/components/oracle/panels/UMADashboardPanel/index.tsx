@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '../../common/DashboardCard';
 
 interface NetworkStatusItem {
@@ -33,7 +33,7 @@ export function UMADashboardPanel({
   networkStatus = [],
   dataSources = [],
 }: UMADashboardPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getStatusColor = (status: string) => {
     switch (status) {

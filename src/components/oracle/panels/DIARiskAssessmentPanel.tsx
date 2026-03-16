@@ -15,7 +15,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard, RiskScoreCard } from '@/components/oracle/common';
 import {
   DataFreshnessIndicator,
@@ -39,65 +39,65 @@ interface DIARiskAssessmentPanelProps {
 }
 
 // 四维度风险指标
-const riskMetrics: RiskMetric[] = [
+const getRiskMetrics = (t: (key: string) => string): RiskMetric[] => [
   {
     name: 'decentralization',
     value: 78,
     maxValue: 100,
     status: 'good',
-    description: '多源数据聚合，覆盖中心化交易所和DeFi协议',
+    description: t('panels.diaRiskAssessment.decentralizationMetricDesc'),
   },
   {
     name: 'security',
     value: 85,
     maxValue: 100,
     status: 'good',
-    description: '多层数据验证机制，开源透明代码库',
+    description: t('panels.diaRiskAssessment.securityMetricDesc'),
   },
   {
     name: 'stability',
     value: 88,
     maxValue: 100,
     status: 'good',
-    description: '99.2%正常运行时间，自动故障转移',
+    description: t('panels.diaRiskAssessment.stabilityMetricDesc'),
   },
   {
     name: 'dataQuality',
     value: 86,
     maxValue: 100,
     status: 'good',
-    description: '实时数据更新，异常检测和清洗机制',
+    description: t('panels.diaRiskAssessment.dataQualityMetricDesc'),
   },
 ];
 
 // 安全事件时间线
-const riskEvents: RiskEvent[] = [
+const getRiskEvents = (t: (key: string) => string): RiskEvent[] => [
   {
     date: '2024-03-20',
     type: 'upgrade',
-    title: 'DIA v2.0 协议升级',
-    description: '增强数据验证层，引入零知识证明验证机制',
+    title: t('panels.diaRiskAssessment.eventDIAUpgradeTitle'),
+    description: t('panels.diaRiskAssessment.eventDIAUpgradeDesc'),
     status: 'resolved',
   },
   {
     date: '2024-02-15',
     type: 'response',
-    title: '数据源异常响应',
-    description: '快速识别并隔离异常交易所数据源，确保数据准确性',
+    title: t('panels.diaRiskAssessment.eventAnomalyResponseTitle'),
+    description: t('panels.diaRiskAssessment.eventAnomalyResponseDesc'),
     status: 'resolved',
   },
   {
     date: '2024-01-10',
     type: 'maintenance',
-    title: '跨链桥接维护',
-    description: '定期安全审计和跨链消息传递优化',
+    title: t('panels.diaRiskAssessment.eventBridgeMaintenanceTitle'),
+    description: t('panels.diaRiskAssessment.eventBridgeMaintenanceDesc'),
     status: 'resolved',
   },
   {
     date: '2023-11-28',
     type: 'upgrade',
-    title: '数据透明度仪表板发布',
-    description: '推出实时数据源透明度监控面板',
+    title: t('panels.diaRiskAssessment.eventDashboardReleaseTitle'),
+    description: t('panels.diaRiskAssessment.eventDashboardReleaseDesc'),
     status: 'resolved',
   },
 ];
@@ -238,8 +238,10 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 export function DIARiskAssessmentPanel({ className = '' }: DIARiskAssessmentPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const riskMetrics = getRiskMetrics(t);
+  const riskEvents = getRiskEvents(t);
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
 

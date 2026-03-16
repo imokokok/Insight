@@ -47,6 +47,13 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   }, [handleKeyDown]);
 }
 
+// Shortcut description keys for i18n
+export const shortcutKeys = {
+  refresh: 'hooks.shortcuts.refresh',
+  search: 'hooks.shortcuts.search',
+  close: 'hooks.shortcuts.close',
+};
+
 // Predefined shortcuts for common actions
 export function useCommonShortcuts({
   onRefresh,
@@ -63,7 +70,7 @@ export function useCommonShortcuts({
     shortcuts.push({
       key: 'r',
       handler: onRefresh,
-      description: '刷新数据',
+      description: shortcutKeys.refresh,
     });
   }
 
@@ -71,7 +78,7 @@ export function useCommonShortcuts({
     shortcuts.push({
       key: '/',
       handler: onSearch,
-      description: '聚焦搜索',
+      description: shortcutKeys.search,
     });
   }
 
@@ -79,7 +86,7 @@ export function useCommonShortcuts({
     shortcuts.push({
       key: 'Escape',
       handler: onClose,
-      description: '关闭弹窗/面板',
+      description: shortcutKeys.close,
     });
   }
 

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface ChainPriceData {
   chain: string;
@@ -91,7 +91,7 @@ function findArbitrageOpportunities(chainData: ChainPriceData[]): ArbitrageOppor
 }
 
 export function CrossChainRisk() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const chainData = useMemo(() => generateMockChainData(), []);
   const arbitrageOpportunities = useMemo(() => findArbitrageOpportunities(chainData), [chainData]);
 

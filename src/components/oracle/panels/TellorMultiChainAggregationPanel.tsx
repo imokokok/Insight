@@ -1,7 +1,7 @@
 'use client';
 
 import { MultiChainAggregation, MultiChainPrice } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
 
 interface TellorMultiChainAggregationPanelProps {
@@ -9,7 +9,7 @@ interface TellorMultiChainAggregationPanelProps {
 }
 
 export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggregationPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getChainLabel = (chain: Blockchain) => {
     return chain.charAt(0).toUpperCase() + chain.slice(1);

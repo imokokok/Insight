@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { UMAClient, DisputeEfficiencyStats } from '@/lib/oracles/uma';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('DisputeEfficiencyAnalysis');
 
 export function DisputeEfficiencyAnalysis() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stats, setStats] = useState<DisputeEfficiencyStats | null>(null);
   const [loading, setLoading] = useState(true);
 

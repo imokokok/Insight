@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
 import { ChartType } from './priceChartConfig';
 import { semanticColors } from '@/lib/config/colors';
@@ -27,7 +27,7 @@ export const MainChartTooltip = memo(function MainChartTooltip({
   showMACD,
   isMobile,
 }: MainChartTooltipProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (!active || !payload || payload.length === 0) return null;
 
@@ -185,7 +185,7 @@ interface RSITooltipProps {
 }
 
 export const RSITooltip = memo(function RSITooltip({ active, payload, label }: RSITooltipProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (!active || !payload || payload.length === 0) return null;
 
@@ -214,7 +214,7 @@ interface MACDTooltipProps {
 }
 
 export const MACDTooltip = memo(function MACDTooltip({ active, payload, label }: MACDTooltipProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (!active || !payload || payload.length === 0) return null;
 

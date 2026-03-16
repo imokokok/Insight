@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -9,7 +9,7 @@ interface ErrorFallbackProps {
 }
 
 export function ErrorFallback({ error, onRetry, themeColor = 'blue' }: ErrorFallbackProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const bgColorClass = `bg-${themeColor}-100`;
   const textColorClass = `text-${themeColor}-600`;

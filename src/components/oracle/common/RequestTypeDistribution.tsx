@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 export interface RequestTypeData {
@@ -34,7 +34,7 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   if (!active || !payload || payload.length === 0) return null;
 
@@ -83,7 +83,7 @@ function CustomLegend({ payload }: CustomLegendProps) {
 }
 
 export function RequestTypeDistribution({ className = '' }: RequestTypeDistributionProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const requestTypes = useMemo(() => {
     return REQUEST_TYPE_KEYS.map((item) => ({

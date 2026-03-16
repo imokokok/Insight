@@ -1,7 +1,7 @@
 'use client';
 
 import { PriceStreamPoint } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 interface TellorPriceStreamPanelProps {
@@ -9,7 +9,7 @@ interface TellorPriceStreamPanelProps {
 }
 
 export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

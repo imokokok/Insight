@@ -16,7 +16,7 @@ import {
   CorrelationData,
   RiskMetrics,
   AnomalyData,
-} from '@/app/market-overview/types';
+} from '@/app/[locale]/market-overview/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ExportConfig');

@@ -11,8 +11,8 @@ import {
   CorrelationData,
   CorrelationPair,
   RadarDataPoint,
-} from '@/app/market-overview/types';
-import { ORACLE_COLORS } from '@/app/market-overview/constants';
+} from '@/app/[locale]/market-overview/types';
+import { ORACLE_COLORS } from '@/app/[locale]/market-overview/constants';
 import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('marketData:defiLlamaApi');

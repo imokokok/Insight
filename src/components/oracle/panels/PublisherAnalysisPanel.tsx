@@ -6,7 +6,7 @@ import { PublisherList } from '../common/PublisherList';
 import { PublisherReliabilityScore } from '../common/PublisherReliabilityScore';
 import { PublisherContributionPanel } from './PublisherContributionPanel';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;
@@ -319,7 +319,7 @@ export function PublisherAnalysisPanel({
   publishers = mockPublishers,
   publisherStats = mockPublisherStats,
 }: PublisherAnalysisPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedPublisherId, setSelectedPublisherId] = useState<string | undefined>(
     publishers[0]?.id
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { OracleProvider } from '@/types/oracle';
 import { chartColors } from '@/lib/config/colors';
 
@@ -102,7 +102,7 @@ function ComparisonBar({
 }
 
 function ResponseTimeComparison({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxTime = Math.max(...data.map((d) => d.responseTime));
 
   return (
@@ -125,7 +125,7 @@ function ResponseTimeComparison({ data }: { data: CrossOracleMetric[] }) {
 }
 
 function AccuracyComparison({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <DashboardCard title={t('api3.crossOracle.accuracy.title')}>
@@ -147,7 +147,7 @@ function AccuracyComparison({ data }: { data: CrossOracleMetric[] }) {
 }
 
 function AvailabilityComparison({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <DashboardCard title={t('api3.crossOracle.availability.title')}>
@@ -169,7 +169,7 @@ function AvailabilityComparison({ data }: { data: CrossOracleMetric[] }) {
 }
 
 function CostEfficiencyComparison({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <DashboardCard title={t('api3.crossOracle.costEfficiency.title')}>
@@ -193,7 +193,7 @@ function CostEfficiencyComparison({ data }: { data: CrossOracleMetric[] }) {
 }
 
 function UpdateFrequencyComparison({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const maxFreq = Math.max(...data.map((d) => d.updateFrequency));
 
   return (
@@ -218,7 +218,7 @@ function UpdateFrequencyComparison({ data }: { data: CrossOracleMetric[] }) {
 }
 
 function API3AdvantagesSummary({ data }: { data: CrossOracleMetric[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const api3Metric = data.find((d) => d.oracle === OracleProvider.API3);
 
   if (!api3Metric) return null;
@@ -289,7 +289,7 @@ function API3AdvantagesSummary({ data }: { data: CrossOracleMetric[] }) {
 }
 
 export function API3CrossOraclePanel({ data }: API3CrossOraclePanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const metrics = data ?? defaultMetrics;
 
   return (

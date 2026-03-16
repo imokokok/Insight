@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 interface DeviationDataPoint {
   timestamp: string;
@@ -30,7 +31,7 @@ interface DeviationStats {
 
 const DEVIATION_THRESHOLD = 1.0;
 
-function generateMockData(): DeviationDataPoint[] {
+function generateMockData(t: (key: string) => string): DeviationDataPoint[] {
   const data: DeviationDataPoint[] = [];
   const basePrice = 14.5;
   const now = Date.now();
@@ -42,7 +43,7 @@ function generateMockData(): DeviationDataPoint[] {
     const pythPrice = marketAvg * (1 + deviation / 100);
 
     data.push({
-      timestamp: timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: timestamp.toLocaleTimeString(t('common.locale') || 'zh-CN', { hour: '2-digit', minute: '2-digit' }),
       deviation: Number(deviation.toFixed(3)),
       pythPrice: Number(pythPrice.toFixed(4)),
       marketAvg: Number(marketAvg.toFixed(4)),
@@ -63,7 +64,8 @@ function calculateStats(data: DeviationDataPoint[]): DeviationStats {
 }
 
 export function PriceDeviationRisk() {
-  const deviationData = useMemo(() => generateMockData(), []);
+  const t = useTranslations();
+  const deviationData = useMemo(() => generateMockData(t), [t]);
   const stats = useMemo(() => calculateStats(deviationData), [deviationData]);
 
   const hasWarning = stats.current >= DEVIATION_THRESHOLD;
@@ -72,7 +74,7 @@ export function PriceDeviationRisk() {
   ).length;
 
   return (
-    <DashboardCard title="价格偏差风险分析">
+    <DashboardCard title={t('charts.priceDeviationRisk.title')}>
       <div className="space-y-6">
         {hasWarning && (
           <div className="bg-orange-50 border border-orange-200  p-4">
@@ -90,10 +92,9 @@ export function PriceDeviationRisk() {
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-orange-800">价格偏差警告</h4>
+                <h4 className="text-sm font-medium text-orange-800">{t('charts.priceDeviationRisk.warningTitle')}</h4>
                 <p className="text-sm text-orange-700 mt-1">
-                  当前价格偏差 {stats.current.toFixed(3)}% 超过阈值 {DEVIATION_THRESHOLD}%， 过去 24
-                  小时内共有 {warningCount} 次偏差超标事件。
+                  {t('charts.priceDeviationRisk.warningMessage', { current: stats.current.toFixed(3), threshold: DEVIATION_THRESHOLD, count: warningCount })}
                 </p>
               </div>
             </div>
@@ -102,7 +103,7 @@ export function PriceDeviationRisk() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">当前偏差</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.currentDeviation')}</p>
             <p
               className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}
             >
@@ -110,21 +111,21 @@ export function PriceDeviationRisk() {
             </p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">最大偏差</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.maxDeviation')}</p>
             <p className="text-xl font-bold text-gray-900">{stats.max.toFixed(3)}%</p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">最小偏差</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.minDeviation')}</p>
             <p className="text-xl font-bold text-gray-900">{stats.min.toFixed(3)}%</p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">平均偏差</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.avgDeviation')}</p>
             <p className="text-xl font-bold text-gray-900">{stats.avg.toFixed(3)}%</p>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">历史偏差趋势</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.priceDeviationRisk.historicalTrend')}</h4>
           <div style={{ height: 280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={deviationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -142,7 +143,7 @@ export function PriceDeviationRisk() {
                   width={50}
                 />
                 <Tooltip
-                  formatter={(value) => [`${Number(value).toFixed(3)}%`, '偏差']}
+                  formatter={(value) => [`${Number(value).toFixed(3)}%`, t('charts.priceDeviationRisk.deviation')]}
                   labelStyle={{ color: semanticColors.neutral.text }}
                   contentStyle={{
                     backgroundColor: 'white',
@@ -176,24 +177,24 @@ export function PriceDeviationRisk() {
         <div className="flex items-center justify-center gap-6 pt-2 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-0.5 bg-purple-500" />
-            <span className="text-xs text-gray-600">价格偏差</span>
+            <span className="text-xs text-gray-600">{t('charts.priceDeviationRisk.deviation')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-0.5 bg-orange-500 border-dashed"
               style={{ borderTop: `2px dashed ${semanticColors.warning.DEFAULT}` }}
             />
-            <span className="text-xs text-gray-600">警告阈值 (±{DEVIATION_THRESHOLD}%)</span>
+            <span className="text-xs text-gray-600">{t('charts.priceDeviationRisk.warningThreshold', { threshold: DEVIATION_THRESHOLD })}</span>
           </div>
         </div>
 
         <div className="bg-blue-50  p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">偏差分析说明</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('charts.priceDeviationRisk.analysisTitle')}</h4>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Pyth 价格通过聚合多个 Publisher 提交的价格计算得出</li>
-            <li>• 市场均价参考主要交易所的实时成交价格</li>
-            <li>• 偏差超过 {DEVIATION_THRESHOLD}% 可能表示数据源异常或市场剧烈波动</li>
-            <li>• 持续的高偏差可能影响依赖该价格数据的 DeFi 协议安全性</li>
+            <li>{t('charts.priceDeviationRisk.analysis1')}</li>
+            <li>{t('charts.priceDeviationRisk.analysis2')}</li>
+            <li>{t('charts.priceDeviationRisk.analysis3', { threshold: DEVIATION_THRESHOLD })}</li>
+            <li>{t('charts.priceDeviationRisk.analysis4')}</li>
           </ul>
         </div>
       </div>

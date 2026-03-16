@@ -30,6 +30,12 @@ export interface UseRealtimeAlertsReturn {
   clearAlerts: () => void;
 }
 
+// Alert notification keys for i18n
+export const alertNotificationKeys = {
+  priceAlertTriggered: 'hooks.alerts.priceAlertTriggered',
+  priceReached: 'hooks.alerts.priceReached',
+};
+
 export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRealtimeAlertsReturn {
   const { enabled = true, showAlertNotification = true, onAlertTriggered } = options;
   const connectionStatus = useConnectionStatus();
@@ -60,15 +66,15 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}): UseRe
 
       if (showAlertNotification && typeof window !== 'undefined' && 'Notification' in window) {
         if (Notification.permission === 'granted') {
-          new Notification('价格告警触发', {
-            body: `价格已达到 ${notification.price}`,
+          new Notification(alertNotificationKeys.priceAlertTriggered, {
+            body: `${alertNotificationKeys.priceReached} ${notification.price}`,
             icon: '/favicon.ico',
           });
         } else if (Notification.permission !== 'denied') {
           Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
-              new Notification('价格告警触发', {
-                body: `价格已达到 ${notification.price}`,
+              new Notification(alertNotificationKeys.priceAlertTriggered, {
+                body: `${alertNotificationKeys.priceReached} ${notification.price}`,
                 icon: '/favicon.ico',
               });
             }

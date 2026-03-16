@@ -5,10 +5,10 @@ import { useUser, useProfile, useAuthActions } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase/client';
 import { updateUserProfile } from '@/lib/supabase/auth';
 import { User, Mail, Camera, Save, Key, Loader2, CheckCircle } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 export function ProfilePanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const user = useUser();
   const profile = useProfile();
   const { refreshProfile } = useAuthActions();

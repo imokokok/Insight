@@ -13,6 +13,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 interface ATRDataPoint {
   timestamp: number;
@@ -36,6 +37,7 @@ export function ATRIndicator({
   height = 200,
   showThresholds = true,
 }: ATRIndicatorProps) {
+  const t = useTranslations();
   const processedData = useMemo(() => {
     if (data.length === 0) return [];
 
@@ -123,7 +125,7 @@ export function ATRIndicator({
             <span className="text-sm font-mono">{data.tr.toFixed(4)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-gray-600">价格区间:</span>
+            <span className="text-sm text-gray-600">{t('charts.atr.priceRange')}:</span>
             <span className="text-sm font-mono">
               {data.low.toFixed(2)} - {data.high.toFixed(2)}
             </span>
@@ -136,7 +138,7 @@ export function ATRIndicator({
   if (processedData.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-gray-400">
-        <p>暂无数据</p>
+        <p>{t('charts.atr.noData')}</p>
       </div>
     );
   }
@@ -147,7 +149,7 @@ export function ATRIndicator({
       {statistics && (
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">当前 ATR</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.atr.currentATR')}</p>
             <p
               className="text-lg font-bold"
               style={{
@@ -163,17 +165,17 @@ export function ATRIndicator({
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">平均 ATR</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.atr.avgATR')}</p>
             <p className="text-lg font-bold text-gray-900">{statistics.avgATR.toFixed(4)}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">最高 ATR</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.atr.maxATR')}</p>
             <p className="text-lg font-bold" style={{ color: semanticColors.danger.DEFAULT }}>
               {statistics.maxATR.toFixed(4)}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-500 mb-1">最低 ATR</p>
+            <p className="text-xs text-gray-500 mb-1">{t('charts.atr.minATR')}</p>
             <p className="text-lg font-bold" style={{ color: semanticColors.success.DEFAULT }}>
               {statistics.minATR.toFixed(4)}
             </p>
@@ -214,7 +216,7 @@ export function ATRIndicator({
                   stroke={semanticColors.danger.DEFAULT}
                   strokeDasharray="5 5"
                   label={{
-                    value: '高波动',
+                    value: t('charts.atr.highVolatility'),
                     position: 'right',
                     fill: semanticColors.danger.DEFAULT,
                     fontSize: 10,
@@ -225,7 +227,7 @@ export function ATRIndicator({
                   stroke={semanticColors.success.DEFAULT}
                   strokeDasharray="5 5"
                   label={{
-                    value: '低波动',
+                    value: t('charts.atr.lowVolatility'),
                     position: 'right',
                     fill: semanticColors.success.DEFAULT,
                     fontSize: 10,
@@ -236,7 +238,7 @@ export function ATRIndicator({
                   stroke={chartColors.recharts.tick}
                   strokeDasharray="3 3"
                   label={{
-                    value: '平均',
+                    value: t('charts.atr.average'),
                     position: 'right',
                     fill: chartColors.recharts.tick,
                     fontSize: 10,

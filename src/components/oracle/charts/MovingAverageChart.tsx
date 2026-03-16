@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import {
   calculateSMA,
@@ -92,7 +92,7 @@ export function MovingAverageChart({
   showBollingerBands: initialShowBollingerBands = true,
   showRollingStdDev = true,
 }: MovingAverageChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const oracleNames = { ...DEFAULT_ORACLE_NAMES, ...customOracleNames };
   const [selectedOracle, setSelectedOracle] = useState<OracleProvider>(
     data[0]?.oracle || OracleProvider.CHAINLINK
@@ -217,20 +217,20 @@ export function MovingAverageChart({
 
   if (!selectedOracleData) {
     return (
-      <DashboardCard title="滑动窗口统计分析" className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">暂无数据</div>
+      <DashboardCard title={t('charts.movingAverage.title')} className={className}>
+        <div className="h-80 flex items-center justify-center text-gray-400">{t('charts.movingAverage.noData')}</div>
       </DashboardCard>
     );
   }
 
   return (
     <div className="space-y-6">
-      <DashboardCard title="滑动窗口统计分析" className={className}>
+      <DashboardCard title={t('charts.movingAverage.title')} className={className}>
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
-                预言机:
+                {t('charts.movingAverage.oracle')}:
               </span>
               <select
                 value={selectedOracle}
@@ -248,7 +248,7 @@ export function MovingAverageChart({
 
             <div className="flex items-center gap-2">
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
-                均线:
+                {t('charts.movingAverage.ma')}:
               </span>
               <div className="flex gap-1">
                 {[5, 10, 20].map((window) => (
@@ -282,7 +282,7 @@ export function MovingAverageChart({
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
-                显示EMA
+                {t('charts.movingAverage.showEMA')}
               </span>
             </label>
 
@@ -294,7 +294,7 @@ export function MovingAverageChart({
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
-                布林带
+                {t('charts.movingAverage.bollingerBands')}
               </span>
             </label>
           </div>
@@ -306,7 +306,7 @@ export function MovingAverageChart({
                 style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}
               >
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>
-                  当前价格
+                  {t('charts.movingAverage.currentPrice')}
                 </p>
                 <p className="text-xl font-bold" style={{ color: semanticColors.info.DEFAULT }}>
                   ${stats.currentPrice.toFixed(2)}
@@ -366,20 +366,20 @@ export function MovingAverageChart({
                       : { backgroundColor: baseColors.gray[100], color: baseColors.gray[700] }
                 }
               >
-                趋势:{' '}
-                {stats.trend === 'bullish' ? '看涨' : stats.trend === 'bearish' ? '看跌' : '中性'}
+                {t('charts.movingAverage.trend')}:{' '}
+                {stats.trend === 'bullish' ? t('charts.movingAverage.bullish') : stats.trend === 'bearish' ? t('charts.movingAverage.bearish') : t('charts.movingAverage.neutral')}
               </div>
               <div className="text-sm" style={{ color: baseColors.gray[600] }}>
-                布林带位置: <span className="font-medium">{stats.bbPosition.toFixed(1)}%</span>
+                {t('charts.movingAverage.bbPosition')}: <span className="font-medium">{stats.bbPosition.toFixed(1)}%</span>
               </div>
               <div className="text-sm" style={{ color: baseColors.gray[600] }}>
-                滚动标准差: <span className="font-medium">${stats.volatility.toFixed(4)}</span>
+                {t('charts.movingAverage.rollingStdDev')}: <span className="font-medium">${stats.volatility.toFixed(4)}</span>
               </div>
             </div>
           )}
 
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">价格与移动平均线</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.movingAverage.priceAndMA')}</h4>
             <div style={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -407,7 +407,7 @@ export function MovingAverageChart({
                         stroke="none"
                         fill={chartColors.recharts.indigo}
                         fillOpacity={0.3}
-                        name="布林上轨"
+                        name={t('charts.movingAverage.bbUpper')}
                       />
                       <Area
                         type="monotone"
@@ -415,7 +415,7 @@ export function MovingAverageChart({
                         stroke="none"
                         fill={chartColors.recharts.white}
                         fillOpacity={1}
-                        name="布林下轨"
+                        name={t('charts.movingAverage.bbLower')}
                       />
                       <Line
                         type="monotone"
@@ -424,7 +424,7 @@ export function MovingAverageChart({
                         strokeWidth={1}
                         strokeDasharray="5 5"
                         dot={false}
-                        name="布林中轨 (MA20)"
+                        name={t('charts.movingAverage.bbMiddle')}
                       />
                     </>
                   )}
@@ -435,7 +435,7 @@ export function MovingAverageChart({
                     stroke={ORACLE_COLORS[selectedOracle]}
                     strokeWidth={2}
                     dot={false}
-                    name="价格"
+                    name={t('charts.movingAverage.price')}
                   />
 
                   {selectedMA.map((window) => {
@@ -473,7 +473,7 @@ export function MovingAverageChart({
 
           {showRollingStdDev && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">滚动标准差 (20周期)</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.movingAverage.rollingStdDevTitle')}</h4>
               <div style={{ height: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart
@@ -499,7 +499,7 @@ export function MovingAverageChart({
                       stroke={chartColors.recharts.warning}
                       fill={chartColors.recharts.warning}
                       fillOpacity={0.3}
-                      name="滚动标准差"
+                      name={t('charts.movingAverage.rollingStdDev')}
                     />
                   </ComposedChart>
                 </ResponsiveContainer>

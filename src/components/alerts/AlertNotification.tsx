@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface AlertNotificationProps {
   event: AlertEvent;
@@ -15,7 +15,7 @@ export function AlertNotification({ event, onDismiss, onViewDetails }: AlertNoti
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const { acknowledge, isAcknowledging } = useAcknowledgeAlert();
-  const { t } = useI18n();
+  const t = useTranslations();
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard, DataFreshnessIndicator, RiskScoreCard } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
@@ -85,7 +85,7 @@ const mitigationMeasures: MitigationMeasure[] = [
 ];
 
 export function ChainlinkRiskPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
 
@@ -218,7 +218,7 @@ export function ChainlinkRiskPanel() {
                   borderRadius: '8px',
                   border: '1px solid #e5e7eb',
                 }}
-                formatter={(value: number) => [value.toFixed(1), '']}
+                formatter={(value) => [typeof value === 'number' ? value.toFixed(1) : value, '']}
               />
               <Line
                 type="monotone"

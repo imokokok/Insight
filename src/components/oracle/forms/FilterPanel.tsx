@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, ReactNode, useRef, useEffect } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export function FilterPanel({
   searchPlaceholder = '搜索...',
   className = '',
 }: FilterPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [filters, setFilters] = useState<Record<string, string[]>>(defaultFilters);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(

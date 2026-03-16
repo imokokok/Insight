@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { Publisher } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 
 interface PublisherContributionPanelProps {
@@ -67,7 +67,7 @@ function formatTimeSince(timestamp: number): string {
 }
 
 export function PublisherContributionPanel({ publishers }: PublisherContributionPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const contributionData: ContributionData[] = useMemo(() => {
     const weights = publishers.map((p) => ({
       publisher: p,

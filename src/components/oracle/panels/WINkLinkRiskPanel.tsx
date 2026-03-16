@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { WINkLinkRiskMetrics } from '@/lib/oracles/winklink';
 import {
   Shield,
@@ -44,7 +44,7 @@ interface RiskTrendData {
 }
 
 export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date(data.lastUpdate));
   const [isRefreshing, setIsRefreshing] = useState(false);
 

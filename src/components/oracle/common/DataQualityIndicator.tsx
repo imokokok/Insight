@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 interface DataQualityIndicatorProps {
@@ -159,7 +159,7 @@ export default function DataQualityIndicator({
   sourceCount,
   className = '',
 }: DataQualityIndicatorProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const qualityScore = useMemo(
     () => calculateQualityScore(completeness, latency, sourceCount),
     [completeness, latency, sourceCount]

@@ -5,7 +5,7 @@
  */
 
 import { createLogger } from '@/lib/utils/logger';
-import { OracleMarketData } from '@/app/market-overview/types';
+import { OracleMarketData } from '@/app/[locale]/market-overview/types';
 import { semanticColors, chartColors } from '@/lib/config/colors';
 
 const logger = createLogger('riskMetrics');

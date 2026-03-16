@@ -17,7 +17,7 @@ import { ChainComparison } from '../charts/ChainComparison';
 import { RequestTypeDistribution } from '../common/RequestTypeDistribution';
 import { CrossChainTrendChart } from '../charts/CrossChainTrendChart';
 import { DataExportButton } from '../forms/DataExportButton';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import {
   chainColors,
   chartColors,
@@ -256,7 +256,7 @@ export function CrossChainPanel({
   autoUpdate = true,
   updateInterval = 60000,
 }: CrossChainPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [stats, setStats] = useState<CrossChainStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

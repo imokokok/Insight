@@ -1,7 +1,7 @@
 'use client';
 
 import { NFTData, NFTCollection } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
 
 interface DIANFTDataPanelProps {
@@ -9,7 +9,7 @@ interface DIANFTDataPanelProps {
 }
 
 export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getChainBadgeColor = (chain: Blockchain) => {
     switch (chain) {

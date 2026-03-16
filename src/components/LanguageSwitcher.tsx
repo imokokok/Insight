@@ -1,15 +1,39 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
-import { useState } from 'react';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { Locale, getValidLocale } from '@/i18n/routing';
 
 export default function LanguageSwitcher() {
-  const { locale, setLocale, t } = useI18n();
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams();
+  const [isPending, startTransition] = useTransition();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const switchLanguage = (newLocale: 'en' | 'zh-CN') => {
-    setLocale(newLocale);
+  const currentLocale = (params.locale as Locale) || 'en';
+
+  const switchLanguage = (newLocale: Locale) => {
+    // 获取当前路径，替换语言前缀
+    const currentPath = pathname;
+    const newPath = currentPath.replace(/^\/(en|zh-CN)/, `/${newLocale}`);
+    
+    startTransition(() => {
+      router.replace(newPath);
+    });
+    
     setIsDropdownOpen(false);
+  };
+
+  const getLanguageLabel = (locale: Locale) => {
+    switch (locale) {
+      case 'en':
+        return 'English';
+      case 'zh-CN':
+        return '中文';
+      default:
+        return 'English'; // 默认显示英文
+    }
   };
 
   return (
@@ -19,37 +43,38 @@ export default function LanguageSwitcher() {
           e.stopPropagation();
           setIsDropdownOpen(!isDropdownOpen);
         }}
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+        disabled={isPending}
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors disabled:opacity-50"
       >
         <span className="text-lg">🌐</span>
-        <span>{locale === 'en' ? t('language.en') : t('language.zh')}</span>
+        <span>{getLanguageLabel(currentLocale)}</span>
         <svg
           className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white   border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           <button
             onClick={() => switchLanguage('en')}
-            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
-              locale === 'en' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors first:rounded-t-lg ${
+              currentLocale === 'en' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
             }`}
           >
-            {t('language.english')}
+            English
           </button>
           <button
             onClick={() => switchLanguage('zh-CN')}
-            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
-              locale === 'zh-CN' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors last:rounded-b-lg ${
+              currentLocale === 'zh-CN' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
             }`}
           >
-            {t('language.chinese')}
+            中文
           </button>
         </div>
       )}

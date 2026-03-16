@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations, useLocale } from 'next-intl';
 import { DashboardCard } from './DashboardCard';
 import {
   ChainlinkClient,
@@ -153,7 +153,8 @@ function generateAnomalyId(): string {
 }
 
 export function AnomalyAlert() {
-  const { t, locale } = useI18n();
+  const t = useTranslations();
+  const locale = useLocale();
   const [anomalies, setAnomalies] = useState<AnomalyEvent[]>([]);
   const [stats, setStats] = useState<AnomalyStats>({
     totalAnomalies: 0,

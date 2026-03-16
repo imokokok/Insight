@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { X, ChevronDown } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { NavStructure, NavGroup } from './types';
 import { oracleColors } from './config';
 
@@ -15,7 +15,7 @@ interface MobileDrawerProps {
 }
 
 export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: MobileDrawerProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {

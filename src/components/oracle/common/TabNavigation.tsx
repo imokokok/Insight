@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useMemo, useRef, useState } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { OracleTab } from '@/lib/config/oracles';
 
 export type TimeRange = '1H' | '24H' | '7D' | '30D' | '90D' | '1Y' | 'ALL';
@@ -208,7 +208,7 @@ export function TabNavigation({
   oracleTabs,
   themeColor = 'blue',
 }: TabNavigationProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { DisputeStats, Dispute } from '@/lib/oracles/tellor';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle';
 
 interface TellorDisputesPanelProps {
@@ -9,7 +9,7 @@ interface TellorDisputesPanelProps {
 }
 
 export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { ChronicleNetworkStats, ValidatorNetwork } from '@/lib/oracles/chronicle';
 import { DashboardCard } from '../common/DashboardCard';
 import {
@@ -24,7 +24,7 @@ export function ChronicleNetworkPanel({
   networkStats,
   validatorMetrics,
 }: ChronicleNetworkPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getStatusColor = (status: string) => {
     switch (status) {

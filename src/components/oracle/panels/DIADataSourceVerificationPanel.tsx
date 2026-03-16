@@ -1,7 +1,7 @@
 'use client';
 
 import { DataSourceVerification } from '@/lib/oracles/dia';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -10,7 +10,7 @@ interface DIADataSourceVerificationPanelProps {
 }
 
 export function DIADataSourceVerificationPanel({ data }: DIADataSourceVerificationPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getStatusColor = (status: string) => {
     switch (status) {

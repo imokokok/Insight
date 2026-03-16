@@ -1,7 +1,7 @@
 'use client';
 
 import { ConfidenceInterval } from '@/types/oracle';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 
 interface ConfidenceIntervalDisplayProps {
   confidenceInterval: ConfidenceInterval;
@@ -14,7 +14,7 @@ export function ConfidenceIntervalDisplay({
   price,
   warningThreshold = 0.5,
 }: ConfidenceIntervalDisplayProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const { bid, ask, widthPercentage } = confidenceInterval;
   const spread = ask - bid;
   const midPrice = (bid + ask) / 2;

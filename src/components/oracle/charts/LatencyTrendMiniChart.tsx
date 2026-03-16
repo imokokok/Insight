@@ -12,7 +12,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 
 interface LatencyDataPoint {
@@ -139,17 +139,17 @@ export function LatencyTrendMiniChart({
   timeRange = '1h',
   onTimeRangeChange,
 }: LatencyTrendMiniChartProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [selectedRange, setSelectedRange] = useState(timeRange);
 
   const stats = useMemo(() => calculateTrendStats(data), [data]);
   const anomalyPeriods = useMemo(() => findAnomalyPeriods(data), [data]);
 
   const timeRangeOptions: { value: '1h' | '6h' | '24h' | '7d'; label: string }[] = [
-    { value: '1h', label: t('trendChart.timeRange1h') || '1小时' },
-    { value: '6h', label: t('trendChart.timeRange6h') || '6小时' },
-    { value: '24h', label: t('trendChart.timeRange24h') || '24小时' },
-    { value: '7d', label: t('trendChart.timeRange7d') || '7天' },
+    { value: '1h', label: t('charts.trend.timeRange1h') },
+    { value: '6h', label: t('charts.trend.timeRange6h') },
+    { value: '24h', label: t('charts.trend.timeRange24h') },
+    { value: '7d', label: t('charts.trend.timeRange7d') },
   ];
 
   const handleRangeChange = (range: '1h' | '6h' | '24h' | '7d') => {
@@ -178,7 +178,7 @@ export function LatencyTrendMiniChart({
         <p className="text-xs text-gray-500 font-medium mb-2">{label}</p>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">{t('trendChart.latency') || '延迟'}:</span>
+            <span className="text-xs text-gray-500">{t('charts.trend.latency')}:</span>
             <span
               className={`text-sm font-semibold ${
                 point.isAnomaly
@@ -190,7 +190,7 @@ export function LatencyTrendMiniChart({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">{t('trendChart.status') || '状态'}:</span>
+            <span className="text-xs text-gray-500">{t('charts.trend.status')}:</span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded ${
                 point.isAnomaly
@@ -199,8 +199,8 @@ export function LatencyTrendMiniChart({
               }`}
             >
               {point.isAnomaly
-                ? t('trendChart.anomaly') || '异常'
-                : t('trendChart.normal') || '正常'}
+                ? t('charts.trend.abnormal')
+                : t('charts.trend.normal')}
             </span>
           </div>
         </div>
@@ -226,7 +226,7 @@ export function LatencyTrendMiniChart({
     return (
       <div className={`bg-white border border-gray-200 p-5 ${className}`}>
         <div className="text-center py-10">
-          <p className="text-gray-500">{t('trendChart.noData') || '暂无数据'}</p>
+          <p className="text-gray-500">{t('charts.trend.noData')}</p>
         </div>
       </div>
     );
@@ -238,10 +238,10 @@ export function LatencyTrendMiniChart({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {t('trendChart.title') || '延迟趋势'} - {oracleName}
+              {t('charts.trend.title')} - {oracleName}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {t('trendChart.subtitle') || '显示延迟随时间的变化趋势'}
+              {t('charts.trend.subtitle')}
             </p>
           </div>
         </div>
@@ -249,7 +249,7 @@ export function LatencyTrendMiniChart({
 
       {/* Time Range Selector */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500">{t('trendChart.timeRange') || '时间范围'}:</span>
+        <span className="text-sm text-gray-500">{t('charts.trend.timeRange')}:</span>
         <div className="flex bg-gray-100 p-1">
           {timeRangeOptions.map((option) => (
             <button
@@ -270,14 +270,14 @@ export function LatencyTrendMiniChart({
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-blue-50 p-4">
-          <p className="text-xs text-blue-600 mb-1">{t('trendChart.avg') || '平均延迟'}</p>
+          <p className="text-xs text-blue-600 mb-1">{t('charts.trend.avgLatency')}</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-blue-700">{stats.avg}</span>
             <span className="text-sm text-blue-500">ms</span>
           </div>
         </div>
         <div className="bg-green-50 p-4">
-          <p className="text-xs text-green-600 mb-1">{t('trendChart.p95') || 'P95'}</p>
+          <p className="text-xs text-green-600 mb-1">P95</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-green-700">{stats.p95}</span>
             <span className="text-sm text-green-500">ms</span>
@@ -301,7 +301,7 @@ export function LatencyTrendMiniChart({
                   : 'text-gray-600'
             }`}
           >
-            {t('trendChart.trend') || '趋势'}
+            {t('charts.trend.trend')}
           </p>
           <div className="flex items-baseline gap-1">
             <span
@@ -319,7 +319,7 @@ export function LatencyTrendMiniChart({
           </div>
         </div>
         <div className="bg-red-50 p-4">
-          <p className="text-xs text-red-600 mb-1">{t('trendChart.anomalies') || '异常次数'}</p>
+          <p className="text-xs text-red-600 mb-1">{t('charts.trend.anomalies')}</p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-red-700">{stats.anomalyCount}</span>
             <span className="text-sm text-red-500">({stats.anomalyPercent}%)</span>
@@ -331,10 +331,10 @@ export function LatencyTrendMiniChart({
       <div className="bg-white border border-gray-200 p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
-            {t('trendChart.chartTitle') || '延迟时间序列'}
+            {t('charts.trend.chartTitle')}
           </h4>
           <p className="text-xs text-gray-500 mt-1">
-            {t('trendChart.chartDesc') || '红色区域表示异常时段'}
+            {t('charts.trend.chartDesc')}
           </p>
         </div>
 
@@ -368,7 +368,7 @@ export function LatencyTrendMiniChart({
               stroke={semanticColors.danger.DEFAULT}
               strokeDasharray="5 5"
               label={{
-                value: `${t('trendChart.threshold') || '阈值'} (${anomalyThreshold}ms)`,
+                value: `${t('charts.trend.threshold')} (${anomalyThreshold}ms)`,
                 position: 'right',
                 fill: semanticColors.danger.DEFAULT,
                 fontSize: 10,
@@ -381,7 +381,7 @@ export function LatencyTrendMiniChart({
               stroke={chartColors.recharts.primary}
               strokeDasharray="3 3"
               label={{
-                value: `${t('trendChart.avg') || '平均'} (${stats.avg}ms)`,
+                value: `${t('charts.trend.avg')} (${stats.avg}ms)`,
                 position: 'left',
                 fill: chartColors.recharts.primary,
                 fontSize: 10,
@@ -429,12 +429,12 @@ export function LatencyTrendMiniChart({
               className="w-4 h-0.5 rounded"
               style={{ backgroundColor: chartColors.recharts.primary }}
             />
-            <span className="text-xs text-gray-500">{t('trendChart.latencyLine') || '延迟'}</span>
+            <span className="text-xs text-gray-500">{t('charts.trend.latencyLine')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
             <span className="text-xs text-gray-500">
-              {t('trendChart.anomalyPoint') || '异常点'}
+              {t('charts.trend.anomalyPoint')}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -443,7 +443,7 @@ export function LatencyTrendMiniChart({
               style={{ backgroundColor: semanticColors.danger.light }}
             />
             <span className="text-xs text-gray-500">
-              {t('trendChart.anomalyArea') || '异常时段'}
+              {t('charts.trend.anomalyArea')}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -451,7 +451,7 @@ export function LatencyTrendMiniChart({
               className="w-4 h-0.5 rounded"
               style={{ borderTop: `2px dashed ${semanticColors.danger.DEFAULT}` }}
             />
-            <span className="text-xs text-gray-500">{t('trendChart.threshold') || '阈值'}</span>
+            <span className="text-xs text-gray-500">{t('charts.trend.threshold')}</span>
           </div>
         </div>
       </div>
@@ -473,15 +473,14 @@ export function LatencyTrendMiniChart({
             </svg>
             <div>
               <h4 className="text-sm font-semibold text-red-800 mb-1">
-                {t('trendChart.anomalyAlert') || '检测到延迟异常'}
+                {t('charts.trend.anomalyAlert')}
               </h4>
               <p className="text-xs text-red-700">
-                {t('trendChart.anomalyDesc', {
+                {t('charts.trend.anomalyDesc', {
                   count: stats.anomalyCount,
                   percent: stats.anomalyPercent,
                   threshold: anomalyThreshold,
-                }) ||
-                  `在选定时间范围内，有 ${stats.anomalyCount} 个数据点（${stats.anomalyPercent}%）的延迟超过了 ${anomalyThreshold}ms 阈值。建议关注这些异常时段并评估对应用的影响。`}
+                })}
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
 import { Landmark, DollarSign, TrendingUp, Shield, Database } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface ChronicleMakerDAOIntegrationPanelProps {
 export function ChronicleMakerDAOIntegrationPanel({
   data,
 }: ChronicleMakerDAOIntegrationPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getAssetTypeColor = (type: string) => {
     switch (type) {

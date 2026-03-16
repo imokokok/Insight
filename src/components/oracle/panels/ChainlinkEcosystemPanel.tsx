@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 
 interface Protocol {
@@ -41,7 +41,7 @@ const chainData: ChainData[] = [
 ];
 
 export function ChainlinkEcosystemPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const totalTVS = protocols.reduce((sum, p) => sum + p.tvs, 0);
   const totalProtocols = protocols.length;

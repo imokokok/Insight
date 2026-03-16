@@ -16,7 +16,7 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, shadowColors, baseColors } from '@/lib/config/colors';
 
 type NodeType = 'data_provider' | 'validator' | 'aggregator';
@@ -111,7 +111,7 @@ function generateMockNodes(): NodeReputationData[] {
 }
 
 function ReputationScoreGauge({ score }: { score: number }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return SCORE_COLORS.excellent;
@@ -230,7 +230,7 @@ function AccuracyStats({
   weekly: number;
   monthly: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const data = [
     { period: t('nodeReputation.accuracy.day'), accuracy: daily },
@@ -308,7 +308,7 @@ function ResponseTimeDistribution({
   data: { range: string; count: number }[];
   avgTime: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   return (
     <div className="bg-white border border-gray-200  p-6">
@@ -388,7 +388,7 @@ function ResponseTimeDistribution({
 }
 
 function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: number; apr: number }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
@@ -481,7 +481,7 @@ function StakingInfo({ staked, earnings, apr }: { staked: number; earnings: numb
 }
 
 function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const NODE_TYPE_LABELS: Record<NodeType, string> = {
     data_provider: t('nodeReputation.nodeTypes.dataProvider'),
@@ -573,7 +573,7 @@ function NodeTypeDistribution({ nodes }: { nodes: NodeReputationData[] }) {
 }
 
 function NodeRankingList({ nodes }: { nodes: NodeReputationData[] }) {
-  const { t } = useI18n();
+  const t = useTranslations();
 
   const NODE_TYPE_LABELS: Record<NodeType, string> = {
     data_provider: t('nodeReputation.nodeTypes.dataProvider'),
@@ -639,7 +639,7 @@ export function NodeReputationPanel({
   autoUpdate = true,
   updateInterval = 30000,
 }: NodeReputationPanelProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [nodes, setNodes] = useState<NodeReputationData[]>([]);
   const [selectedNode, setSelectedNode] = useState<NodeReputationData | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());

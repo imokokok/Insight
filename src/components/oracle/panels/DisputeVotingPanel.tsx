@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { DashboardCard } from '../common/DashboardCard';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { formatNumber } from '@/lib/utils/format';
 
 export type VotePosition = 'for' | 'against' | 'abstain';
@@ -47,10 +47,14 @@ function DonutChart({
   segments,
   size = 200,
   strokeWidth = 30,
+  supportLabel,
+  supportRateLabel,
 }: {
   segments: DonutSegment[];
   size?: number;
   strokeWidth?: number;
+  supportLabel: string;
+  supportRateLabel: string;
 }) {
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
@@ -99,16 +103,16 @@ function DonutChart({
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-gray-900">
-          {Math.round(segments.find((s) => s.label === '支持')?.percentage || 0)}%
+          {Math.round(segments.find((s) => s.label === supportLabel)?.percentage || 0)}%
         </span>
-        <span className="text-xs text-gray-500">支持率</span>
+        <span className="text-xs text-gray-500">{supportRateLabel}</span>
       </div>
     </div>
   );
 }
 
 function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const totalVotes = votingData.votesFor + votingData.votesAgainst + votingData.votesAbstain;
 
   const segments: DonutSegment[] = useMemo(() => {
@@ -116,28 +120,28 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
     return [
       {
-        label: '支持',
+        label: t('panels.disputeVoting.support'),
         value: votingData.votesFor,
         percentage: (votingData.votesFor / totalVotes) * 100,
         color: chartColors.semantic.success,
         lightColor: semanticColors.success.light,
       },
       {
-        label: '反对',
+        label: t('panels.disputeVoting.against'),
         value: votingData.votesAgainst,
         percentage: (votingData.votesAgainst / totalVotes) * 100,
         color: chartColors.semantic.danger,
         lightColor: semanticColors.danger.light,
       },
       {
-        label: '弃权',
+        label: t('panels.disputeVoting.abstain'),
         value: votingData.votesAbstain,
         percentage: (votingData.votesAbstain / totalVotes) * 100,
         color: chartColors.recharts.tick,
         lightColor: baseColors.gray[100],
       },
     ];
-  }, [votingData, totalVotes]);
+  }, [votingData, totalVotes, t]);
 
   const supportRate = totalVotes > 0 ? (votingData.votesFor / totalVotes) * 100 : 0;
   const quorumProgress = (totalVotes / votingData.quorum) * 100;
@@ -150,7 +154,13 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
         {/* Donut Chart */}
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="flex-shrink-0">
-            <DonutChart segments={segments} size={180} strokeWidth={24} />
+            <DonutChart
+              segments={segments}
+              size={180}
+              strokeWidth={24}
+              supportLabel={t('panels.disputeVoting.support')}
+              supportRateLabel={t('panels.disputeVoting.supportRate')}
+            />
           </div>
 
           {/* Legend and Stats */}
@@ -177,7 +187,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">总投票权</span>
+                <span className="text-sm text-gray-500">{t('panels.disputeVoting.totalVotingPower')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {formatNumber(totalVotes, true)}
                 </span>
@@ -191,7 +201,7 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
           {/* Quorum Progress */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">法定人数 (Quorum)</span>
+              <span className="text-sm text-gray-600">{t('panels.disputeVoting.quorum')}</span>
               <span
                 className={`text-sm font-medium ${
                   isQuorumReached ? 'text-green-600' : 'text-gray-600'
@@ -210,15 +220,15 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             </div>
             <p className="text-xs text-gray-400 mt-1">
               {isQuorumReached
-                ? '已达到法定投票人数'
-                : `还需 ${formatNumber(votingData.quorum - totalVotes, true)} 投票权达到法定人数`}
+                ? t('panels.disputeVoting.quorumReached')
+                : t('panels.disputeVoting.quorumNeeded', { amount: formatNumber(votingData.quorum - totalVotes, true) })}
             </p>
           </div>
 
           {/* Threshold Progress */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">通过阈值</span>
+              <span className="text-sm text-gray-600">{t('panels.disputeVoting.threshold')}</span>
               <span
                 className={`text-sm font-medium ${
                   isThresholdReached ? 'text-green-600' : 'text-gray-600'
@@ -285,10 +295,10 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
               }`}
             >
               {isQuorumReached && isThresholdReached
-                ? '投票通过 - 已达到通过条件'
+                ? t('panels.disputeVoting.statusPassed')
                 : isQuorumReached
-                  ? '投票进行中 - 已达到法定人数但未达支持阈值'
-                  : '投票进行中 - 等待更多验证者参与'}
+                  ? t('panels.disputeVoting.statusQuorumReached')
+                  : t('panels.disputeVoting.statusInProgress')}
             </span>
           </div>
         </div>
@@ -304,13 +314,13 @@ function ValidatorVoteList({
   validatorVotes: ValidatorVote[];
   totalVotingPower: number;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [sortBy, setSortBy] = useState<'power' | 'time' | 'reputation'>('power');
   const [filterPosition, setFilterPosition] = useState<VotePosition | 'all'>('all');
 
   const positionConfig = {
     for: {
-      label: '支持',
+      label: t('panels.disputeVoting.support'),
       color: 'text-green-600',
       bgColor: 'bg-green-100',
       borderColor: 'border-green-200',
@@ -321,7 +331,7 @@ function ValidatorVoteList({
       ),
     },
     against: {
-      label: '反对',
+      label: t('panels.disputeVoting.against'),
       color: 'text-red-600',
       bgColor: 'bg-red-100',
       borderColor: 'border-red-200',
@@ -332,7 +342,7 @@ function ValidatorVoteList({
       ),
     },
     abstain: {
-      label: '弃权',
+      label: t('panels.disputeVoting.abstain'),
       color: 'text-gray-600',
       bgColor: 'bg-gray-100',
       borderColor: 'border-gray-200',
@@ -387,7 +397,7 @@ function ValidatorVoteList({
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">立场:</span>
+            <span className="text-sm text-gray-500">{t('panels.disputeVoting.position')}:</span>
             <div className="flex items-center gap-1">
               {(['all', 'for', 'against', 'abstain'] as const).map((pos) => (
                 <button
@@ -399,22 +409,22 @@ function ValidatorVoteList({
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {pos === 'all' ? '全部' : positionConfig[pos as VotePosition].label}
+                  {pos === 'all' ? t('panels.disputeVoting.all') : positionConfig[pos as VotePosition].label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm text-gray-500">排序:</span>
+            <span className="text-sm text-gray-500">{t('panels.disputeVoting.sort')}:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="power">投票权</option>
-              <option value="time">时间</option>
-              <option value="reputation">声誉</option>
+              <option value="power">{t('panels.disputeVoting.votingPower')}</option>
+              <option value="time">{t('panels.disputeVoting.time')}</option>
+              <option value="reputation">{t('panels.disputeVoting.reputation')}</option>
             </select>
           </div>
         </div>
@@ -434,7 +444,7 @@ function ValidatorVoteList({
                   <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{count}</p>
-                <p className="text-xs text-gray-500">验证者</p>
+                <p className="text-xs text-gray-500">{t('panels.disputeVoting.validators')}</p>
               </div>
             );
           })}
@@ -446,22 +456,22 @@ function ValidatorVoteList({
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  验证者
+                  {t('panels.disputeVoting.validator')}
                 </th>
                 <th className="text-center py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  立场
+                  {t('panels.disputeVoting.position')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  投票权
+                  {t('panels.disputeVoting.votingPower')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  占比
+                  {t('panels.disputeVoting.percentage')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  声誉
+                  {t('panels.disputeVoting.reputation')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
-                  时间
+                  {t('panels.disputeVoting.time')}
                 </th>
               </tr>
             </thead>
@@ -541,7 +551,7 @@ function ValidatorVoteList({
                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p>没有找到匹配的投票记录</p>
+            <p>{t('panels.disputeVoting.noVotesFound')}</p>
           </div>
         )}
       </div>

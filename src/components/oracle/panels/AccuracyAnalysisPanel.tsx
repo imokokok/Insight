@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { usePriceHistory } from '@/hooks';
 import { PriceAccuracyStats } from '../common/PriceAccuracyStats';
 import { ExtremeMarketAnalysis } from '../common/ExtremeMarketAnalysis';
@@ -11,7 +11,7 @@ type ViewMode = 'stats' | 'extreme' | 'trend';
 type TrendType = 'improving' | 'stable' | 'declining';
 
 export function AccuracyAnalysisPanel() {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [activeView, setActiveView] = useState<ViewMode>('stats');
   const { stats, extremeEvents, accuracyTrend, recentTrend, isLoading } = usePriceHistory({
     maxDataPoints: 100,

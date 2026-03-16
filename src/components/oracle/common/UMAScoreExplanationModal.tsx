@@ -14,7 +14,7 @@ import {
   Area,
 } from 'recharts';
 import type { TooltipPayloadEntry } from 'recharts';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/config/colors';
 import { UMAClient } from '@/lib/oracles/uma';
 import { createLogger } from '@/lib/utils/logger';
@@ -188,7 +188,7 @@ export function UMAScoreExplanationModal({
   onClose,
   currentScores,
 }: UMAScoreExplanationModalProps) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const [activeTab, setActiveTab] = useState<'overview' | 'dimensions' | 'history'>('overview');
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -289,8 +289,8 @@ export function UMAScoreExplanationModal({
           <div className="bg-white">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">UMA 数据质量评分算法说明</h3>
-                <p className="text-sm text-gray-500 mt-1">了解评分如何计算及各维度权重配置</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('uma.scoreExplanation.title')}</h3>
+                <p className="text-sm text-gray-500 mt-1">{t('uma.scoreExplanation.subtitle')}</p>
               </div>
               <button
                 onClick={onClose}
@@ -305,9 +305,9 @@ export function UMAScoreExplanationModal({
             <div className="border-b border-gray-200">
               <nav className="flex px-6">
                 {[
-                  { key: 'overview', label: '评分概览', icon: '📊' },
-                  { key: 'dimensions', label: '维度详情', icon: '📐' },
-                  { key: 'history', label: '历史趋势', icon: '📈' },
+                  { key: 'overview', label: t('uma.scoreExplanation.tabs.overview'), icon: '📊' },
+                  { key: 'dimensions', label: t('uma.scoreExplanation.tabs.dimensions'), icon: '📐' },
+                  { key: 'history', label: t('uma.scoreExplanation.tabs.history'), icon: '📈' },
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -329,7 +329,7 @@ export function UMAScoreExplanationModal({
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   <div className="bg-blue-50 rounded-lg p-6">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">综合评分计算公式</h4>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">{t('uma.scoreExplanation.overallFormulaTitle')}</h4>
                     <FormulaBlock formula={OVERALL_FORMULA} />
                   </div>
 
@@ -358,10 +358,10 @@ export function UMAScoreExplanationModal({
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-4">当前评分状态</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('uma.scoreExplanation.currentScoreStatus')}</h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                        <p className="text-xs text-gray-500 mb-1">综合评分</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('uma.scoreExplanation.overallScore')}</p>
                         <p className="text-2xl font-bold text-blue-600">
                           {currentScores.overallScore.toFixed(1)}
                         </p>
@@ -400,7 +400,7 @@ export function UMAScoreExplanationModal({
                         />
                         <h4 className="text-lg font-semibold text-gray-900">{t(dim.nameKey)}</h4>
                         <span className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
-                          权重 {(dim.weight * 100).toFixed(0)}%
+                          {t('uma.scoreExplanation.weight')} {(dim.weight * 100).toFixed(0)}%
                         </span>
                       </div>
 
@@ -408,12 +408,12 @@ export function UMAScoreExplanationModal({
 
                       <div className="space-y-4">
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">计算公式</h5>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">{t('uma.scoreExplanation.formula')}</h5>
                           <FormulaBlock formula={dim.formula} />
                         </div>
 
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">变量说明</h5>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">{t('uma.scoreExplanation.variables')}</h5>
                           <VariableList variables={dim.variables} t={t} />
                         </div>
                       </div>
@@ -421,34 +421,34 @@ export function UMAScoreExplanationModal({
                   ))}
 
                   <div className="bg-amber-50 rounded-lg p-6 border border-amber-200">
-                    <h4 className="text-sm font-semibold text-amber-900 mb-2">评分等级说明</h4>
+                    <h4 className="text-sm font-semibold text-amber-900 mb-2">{t('uma.scoreExplanation.scoreLevelTitle')}</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-green-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">优秀</p>
-                          <p className="text-xs text-gray-500">90-100 分</p>
+                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.excellent')}</p>
+                          <p className="text-xs text-gray-500">90-100 {t('uma.scoreExplanation.points')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-yellow-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">良好</p>
-                          <p className="text-xs text-gray-500">70-89 分</p>
+                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.good')}</p>
+                          <p className="text-xs text-gray-500">70-89 {t('uma.scoreExplanation.points')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-orange-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">及格</p>
-                          <p className="text-xs text-gray-500">60-69 分</p>
+                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.pass')}</p>
+                          <p className="text-xs text-gray-500">60-69 {t('uma.scoreExplanation.points')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-red-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">需改进</p>
-                          <p className="text-xs text-gray-500">&lt;60 分</p>
+                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.needsImprovement')}</p>
+                          <p className="text-xs text-gray-500">&lt;60 {t('uma.scoreExplanation.points')}</p>
                         </div>
                       </div>
                     </div>
@@ -466,7 +466,7 @@ export function UMAScoreExplanationModal({
                     <>
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h4 className="text-sm font-semibold text-gray-900 mb-4">
-                          最近 30 天评分趋势
+                          {t('uma.scoreExplanation.last30DaysTrend')}
                         </h4>
                         <div style={{ height: 350 }}>
                           <ResponsiveContainer width="100%" height="100%">
@@ -499,19 +499,19 @@ export function UMAScoreExplanationModal({
                                 y={90}
                                 stroke={semanticColors.success.DEFAULT}
                                 strokeDasharray="3 3"
-                                label="优秀"
+                                label={t('uma.scoreExplanation.scoreLevels.excellent')}
                               />
                               <ReferenceLine
                                 y={70}
                                 stroke={semanticColors.warning.DEFAULT}
                                 strokeDasharray="3 3"
-                                label="良好"
+                                label={t('uma.scoreExplanation.scoreLevels.good')}
                               />
 
                               <Line
                                 type="monotone"
                                 dataKey="overallScore"
-                                name="综合评分"
+                                name={t('uma.scoreExplanation.overallScore')}
                                 stroke={chartColors.recharts.chainlink}
                                 strokeWidth={3}
                                 dot={false}
@@ -568,7 +568,7 @@ export function UMAScoreExplanationModal({
                                   {trend >= 0 ? '↑' : '↓'} {Math.abs(trend).toFixed(1)}
                                 </span>
                                 <span className="text-gray-400">
-                                  范围: {min.toFixed(0)}-{max.toFixed(0)}
+                                  {t('uma.scoreExplanation.range')}: {min.toFixed(0)}-{max.toFixed(0)}
                                 </span>
                               </div>
                             </div>
@@ -586,7 +586,7 @@ export function UMAScoreExplanationModal({
                 onClick={onClose}
                 className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                关闭
+                {t('uma.scoreExplanation.close')}
               </button>
             </div>
           </div>
