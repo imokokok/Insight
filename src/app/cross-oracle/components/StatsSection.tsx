@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, Shield, Activity, ChevronDown } from 'lucide-react';
 import { DataQualityScoreCard } from '@/components/oracle/common/DataQualityScoreCard';
 import { StatsCards, MobileStatsCards } from './StatsCards';
@@ -48,6 +48,14 @@ export function StatsSection({
   getConsistencyRating,
   t,
 }: StatsSectionProps) {
+  const [mounted, setMounted] = useState(false);
+  const [formattedTime, setFormattedTime] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+    setFormattedTime(qualityScoreData.freshness.lastUpdated.toLocaleTimeString());
+  }, [qualityScoreData.freshness.lastUpdated]);
+
   // 解析交易对
   const [baseAsset, quoteAsset] = selectedSymbol.split('/');
 
@@ -106,7 +114,7 @@ export function StatsSection({
               <div>
                 <p className="text-xs text-gray-500">{t('crossOracle.lastUpdated')}</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {qualityScoreData.freshness.lastUpdated.toLocaleTimeString()}
+                  {mounted ? formattedTime : ''}
                 </p>
               </div>
             </div>

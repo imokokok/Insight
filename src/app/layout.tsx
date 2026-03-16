@@ -47,7 +47,7 @@ export default function RootLayout({
                   <ToastProvider>
                     <ErrorBoundary>
                       <Navbar />
-                      <main className="flex-1 bg-gray-50">{children}</main>
+                      <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>{children}</main>
                       <Footer />
                       <ConnectionStatusIndicator
                         showLabel={false}

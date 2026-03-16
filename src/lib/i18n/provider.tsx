@@ -57,18 +57,17 @@ function translate(
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === 'undefined') return 'en';
+  const [locale, setLocaleState] = useState<Locale>('en');
+
+  React.useEffect(() => {
     setMounted(true);
     const savedLocale = localStorage.getItem('preferredLocale') as Locale;
     if (savedLocale && ['en', 'zh-CN'].includes(savedLocale)) {
-      return savedLocale;
+      setLocaleState(savedLocale);
+    } else if (navigator.language.startsWith('zh')) {
+      setLocaleState('zh-CN');
     }
-    if (typeof navigator !== 'undefined' && navigator.language.startsWith('zh')) {
-      return 'zh-CN';
-    }
-    return 'en';
-  });
+  }, []);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
