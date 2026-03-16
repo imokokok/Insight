@@ -165,7 +165,7 @@ export default function LivePriceTicker() {
   const duplicatedPairs = useMemo(() => [...TRADING_PAIRS, ...TRADING_PAIRS], []);
 
   return (
-    <div className="w-full bg-white border-y border-gray-200 py-4 overflow-hidden">
+    <div className="w-full bg-slate-50 border-y border-slate-200 py-4 overflow-hidden">
       <div className="px-6 lg:px-12 xl:px-20 mb-3">
         <div className="flex items-center gap-2">
           <div className="relative flex h-2 w-2">
