@@ -9,6 +9,10 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.ARBITRUM,
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.BASE,
+    Blockchain.SOLANA,
   ];
 
   constructor(config?: OracleClientConfig) {

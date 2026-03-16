@@ -86,6 +86,11 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     [Blockchain.CELESTIA]: configChainColors.celestia,
     [Blockchain.INJECTIVE]: configChainColors.injective,
     [Blockchain.SEI]: configChainColors.sei,
+    [Blockchain.TRON]: configChainColors.tron,
+    [Blockchain.TON]: configChainColors.ton,
+    [Blockchain.NEAR]: configChainColors.near,
+    [Blockchain.AURORA]: configChainColors.aurora,
+    [Blockchain.CELO]: configChainColors.celo,
   };
 
   return (

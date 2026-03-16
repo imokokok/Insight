@@ -121,13 +121,12 @@ export const chainColors = {
   fantom: '#1969FF',
   cronos: '#002D74',
   juno: '#5B6EE1',
-  // 扩展区块链颜色
-  arbitrum: '#06B6D4',
-  optimism: '#EF4444',
-  solana: '#10B981',
-  bnbChain: '#F3BA2F',
+  arbitrum: '#28A0F0',
+  optimism: '#FF0420',
+  solana: '#14F195',
+  bnbChain: '#F0B90B',
   base: '#0052FF',
-  scroll: '#EEDFF0',
+  scroll: '#FFEEDA',
   zkSync: '#8C8DFC',
   aptos: '#4CD7D0',
   sui: '#6FBCF0',
@@ -137,6 +136,11 @@ export const chainColors = {
   celestia: '#2B2B2B',
   injective: '#00F2FE',
   sei: '#B100CD',
+  tron: '#FF0013',
+  ton: '#0098EA',
+  near: '#00C08B',
+  aurora: '#6BBE47',
+  celo: '#FBCC5C',
 } as const;
 
 // ============================================

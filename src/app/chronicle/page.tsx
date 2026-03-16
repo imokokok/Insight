@@ -67,7 +67,7 @@ export default function ChroniclePage() {
 
   const stats = useMemo(() => {
     const activeValidators = validatorMetrics?.activeValidators ?? 45;
-    const makerDAOSupport = makerDAO?.supportedAssets ?? 0;
+    const makerDAOSupport = makerDAO?.supportedAssets?.length ?? 0;
     const stakingApr = staking?.stakingApr ?? 7.8;
     const nodeUptime = networkStats?.nodeUptime ?? 99.95;
 

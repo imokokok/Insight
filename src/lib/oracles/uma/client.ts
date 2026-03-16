@@ -21,7 +21,13 @@ import {
 
 export class UMAClient extends BaseOracleClient {
   name = OracleProvider.UMA;
-  supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.POLYGON,
+    Blockchain.ARBITRUM,
+    Blockchain.OPTIMISM,
+    Blockchain.BASE,
+  ];
 
   constructor(config?: OracleClientConfig) {
     super(config);

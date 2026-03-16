@@ -82,6 +82,7 @@ export class ChronicleClient extends BaseOracleClient {
     Blockchain.OPTIMISM,
     Blockchain.POLYGON,
     Blockchain.BASE,
+    Blockchain.AVALANCHE,
   ];
 
   constructor(config?: OracleClientConfig) {

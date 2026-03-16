@@ -103,6 +103,12 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
         enabled,
         refetchInterval: 60000,
       },
+      {
+        queryKey: ['chronicle', 'staking'],
+        queryFn: () => client.getStakingData(),
+        enabled,
+        refetchInterval: 60000,
+      },
     ],
   });
 
@@ -113,6 +119,7 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     makerDAOResult,
     validatorsResult,
     networkResult,
+    stakingResult,
   ] = results;
 
   const isLoading = results.some((r) => r.isLoading);
@@ -127,10 +134,11 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
     () => ({
       price: priceResult.data,
       historicalData: historicalResult.data,
-      scuttlebuttData: scuttlebuttResult.data,
-      makerDAOData: makerDAOResult.data,
-      validatorData: validatorsResult.data,
+      scuttlebutt: scuttlebuttResult.data,
+      makerDAO: makerDAOResult.data,
+      validatorMetrics: validatorsResult.data,
       networkStats: networkResult.data,
+      staking: stakingResult.data,
       isLoading,
       isError,
       errors,
@@ -143,6 +151,7 @@ export function useChronicleAllData({ symbol, chain, enabled = true }: UseChroni
       makerDAOResult.data,
       validatorsResult.data,
       networkResult.data,
+      stakingResult.data,
       isLoading,
       isError,
       errors,

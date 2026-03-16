@@ -196,7 +196,15 @@ export interface ChainEvent {
 
 export class BandProtocolClient extends BaseOracleClient {
   name = OracleProvider.BAND_PROTOCOL;
-  supportedChains = [Blockchain.ETHEREUM, Blockchain.POLYGON];
+  supportedChains = [
+    Blockchain.ETHEREUM,
+    Blockchain.POLYGON,
+    Blockchain.AVALANCHE,
+    Blockchain.BNB_CHAIN,
+    Blockchain.COSMOS,
+    Blockchain.OSMOSIS,
+    Blockchain.JUNO,
+  ];
 
   constructor(config?: OracleClientConfig) {
     super(config);

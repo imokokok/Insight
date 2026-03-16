@@ -116,9 +116,9 @@ export function useWINkLinkAllData({ symbol, chain, enabled = true }: UseWINkLin
     () => ({
       price: priceResult.data,
       historicalData: historicalResult.data,
-      tronData: tronResult.data,
-      stakingData: stakingResult.data,
-      gamingData: gamingResult.data,
+      tronIntegration: tronResult.data,
+      staking: stakingResult.data,
+      gaming: gamingResult.data,
       networkStats: networkResult.data,
       isLoading,
       isError,

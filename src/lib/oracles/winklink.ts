@@ -108,7 +108,8 @@ export interface WINkLinkNetworkStats {
 export class WINkLinkClient extends BaseOracleClient {
   name = OracleProvider.WINKLINK;
   supportedChains = [
-    Blockchain.BNB_CHAIN, // TRON equivalent for this system
+    Blockchain.TRON,
+    Blockchain.BNB_CHAIN,
   ];
 
   constructor(config?: OracleClientConfig) {

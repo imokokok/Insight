@@ -67,8 +67,8 @@ export default function WINkLinkPage() {
 
   const stats = useMemo(() => {
     const activeNodes = networkStats?.activeNodes ?? 120;
-    const tronIntegrationCount = tronIntegration?.integrations ?? 0;
-    const stakingApr = staking?.stakingApr ?? 15.5;
+    const tronIntegrationCount = tronIntegration?.integratedDApps?.length ?? 0;
+    const stakingApr = staking?.averageApr ?? 15.5;
     const nodeUptime = networkStats?.nodeUptime ?? 99.9;
 
     return [
@@ -214,7 +214,7 @@ export default function WINkLinkPage() {
                     <div className="flex items-center justify-between py-2">
                       <span className="text-sm text-gray-600">{t('winklink.stats.stakingApr')}</span>
                       <span className="text-sm font-semibold text-green-600">
-                        {staking?.stakingApr ?? 15.5}%
+                        {staking?.averageApr ?? 15.5}%
                       </span>
                     </div>
                   </div>
