@@ -118,8 +118,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'data-feeds', labelKey: 'chainlink.menu.dataFeeds' },
       { id: 'services', labelKey: 'chainlink.menu.services' },
       { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem' },
-      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
       { id: 'cross-oracle', labelKey: 'chainlink.menu.crossOracleComparison' },
+      { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
     ],
   },
   [OracleProvider.BAND_PROTOCOL]: {
@@ -201,8 +201,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'data-feeds', labelKey: 'bandProtocol.menu.dataFeeds' },
       { id: 'staking', labelKey: 'bandProtocol.menu.staking' },
       { id: 'ecosystem', labelKey: 'bandProtocol.menu.ecosystem' },
-      { id: 'risk', labelKey: 'bandProtocol.menu.riskAssessment' },
       { id: 'cross-oracle', labelKey: 'bandProtocol.menu.crossOracle' },
+      { id: 'risk', labelKey: 'bandProtocol.menu.riskAssessment' },
     ],
   },
   [OracleProvider.UMA]: {
@@ -268,9 +268,9 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'disputes', labelKey: 'uma.menu.disputeResolution' },
       { id: 'validators', labelKey: 'uma.menu.validatorAnalytics' },
       { id: 'staking', labelKey: 'uma.menu.staking' },
-      { id: 'risk', labelKey: 'uma.menu.riskAssessment' },
       { id: 'ecosystem', labelKey: 'uma.menu.ecosystem' },
       { id: 'cross-oracle', labelKey: 'uma.menu.crossOracleComparison' },
+      { id: 'risk', labelKey: 'uma.menu.riskAssessment' },
     ],
   },
   [OracleProvider.PYTH]: {
@@ -339,8 +339,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'network', labelKey: 'pyth.menu.networkHealth' },
       { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
       { id: 'cross-chain', labelKey: 'pyth.menu.crossChain' },
-      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
       { id: 'cross-oracle', labelKey: 'pyth.menu.crossOracleComparison' },
+      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
     ],
   },
   [OracleProvider.API3]: {
@@ -412,9 +412,9 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'advantages', labelKey: 'api3.tabs.advantages' },
       { id: 'analytics', labelKey: 'api3.tabs.analytics' },
       { id: 'gas', labelKey: 'api3.tabs.gas' },
-      { id: 'risk', labelKey: 'api3.tabs.risk' },
       { id: 'cross-oracle', labelKey: 'api3.tabs.crossOracle' },
       { id: 'ecosystem', labelKey: 'api3.tabs.ecosystem' },
+      { id: 'risk', labelKey: 'api3.tabs.risk' },
     ],
   },
   [OracleProvider.REDSTONE]: {
@@ -490,8 +490,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'data-streams', labelKey: 'redstone.tabs.dataStreams' },
       { id: 'cross-chain', labelKey: 'redstone.tabs.crossChain' },
       { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'redstone.tabs.risk' },
       { id: 'cross-oracle', labelKey: 'redstone.tabs.crossOracle' },
+      { id: 'risk', labelKey: 'redstone.tabs.risk' },
     ],
   },
   [OracleProvider.DIA]: {
@@ -629,8 +629,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'price-stream', labelKey: 'tellor.tabs.priceStream' },
       { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
       { id: 'multi-chain', labelKey: 'tellor.tabs.multiChain' },
-      { id: 'risk', labelKey: 'tellor.tabs.risk' },
       { id: 'ecosystem', labelKey: 'tellor.tabs.ecosystem' },
+      { id: 'risk', labelKey: 'tellor.tabs.risk' },
     ],
   },
   [OracleProvider.CHRONICLE]: {
@@ -756,8 +756,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'tron', labelKey: 'winklink.tabs.tron' },
       { id: 'staking', labelKey: 'winklink.tabs.staking' },
       { id: 'gaming', labelKey: 'winklink.tabs.gaming' },
-      { id: 'risk', labelKey: 'winklink.tabs.risk' },
       { id: 'cross-oracle', labelKey: 'winklink.tabs.crossOracle' },
+      { id: 'risk', labelKey: 'winklink.tabs.risk' },
     ],
   },
 };
