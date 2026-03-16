@@ -14,14 +14,9 @@ import {
   BarChart3,
   Table as TableIcon,
   Activity,
-  DollarSign,
-  Layers,
-  Globe,
   Info,
   RefreshCw,
   Clock,
-  Shield,
-  Zap,
   Network,
   Building2,
   PieChart as PieChartIcon2,
@@ -31,7 +26,6 @@ import {
   Link2,
   X,
   AlertTriangle,
-  ChevronDown,
 } from 'lucide-react';
 import Link from 'next/link';
 import ChartRenderer from './components/ChartRenderer';
@@ -253,12 +247,15 @@ export default function MarketOverviewPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 border border-gray-200 bg-white">
-          <div className="py-4 pl-4 border-b border-gray-100 md:border-b-0">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-4 h-4 text-blue-600" />
+        <div className="flex flex-wrap items-end gap-8 lg:gap-12 mb-8 pb-6 border-b border-gray-200">
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '总 tvs' : 'total tvs'}
+            </p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{totalTVS}</p>
               <span
-                className={`text-xs font-medium ${
+                className={`text-sm font-medium ${
                   marketStats.change24h >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
@@ -266,188 +263,197 @@ export default function MarketOverviewPage() {
                 {marketStats.change24h.toFixed(2)}%
               </span>
             </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
-            </p>
-            <p className="text-lg font-bold text-gray-900">{totalTVS}</p>
           </div>
 
-          <div className="py-4 border-b border-gray-100 md:border-b-0">
-            <div className="flex items-center justify-between mb-2">
-              <Globe className="w-4 h-4 text-purple-600" />
-            </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '支持链数' : 'chains'}
             </p>
-            <p className="text-lg font-bold text-gray-900">{totalChains}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{totalChains}</p>
+              <span className="text-sm font-medium text-green-600">+12.5%</span>
+            </div>
           </div>
 
-          <div className="py-4 border-b border-gray-100 md:border-b-0">
-            <div className="flex items-center justify-between mb-2">
-              <Layers className="w-4 h-4 text-cyan-600" />
-            </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '协议数量' : 'protocols'}
             </p>
-            <p className="text-lg font-bold text-gray-900">{totalProtocols}+</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{totalProtocols}+</p>
+              <span className="text-sm font-medium text-green-600">+8.3%</span>
+            </div>
           </div>
 
-          <div className="py-4 border-b border-gray-100 md:border-b-0">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="w-4 h-4 text-pink-600" />
-            </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '市场主导' : 'dominance'}
             </p>
-            <p className="text-lg font-bold text-gray-900">{marketStats.marketDominance}%</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{marketStats.marketDominance}%</p>
+              <span className="text-sm font-medium text-gray-500">-0.5%</span>
+            </div>
           </div>
 
-          <div className="py-4 border-b border-gray-100 md:border-b-0">
-            <div className="flex items-center justify-between mb-2">
-              <Zap className="w-4 h-4 text-amber-600" />
-            </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '平均延迟' : 'Latency'}
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '平均延迟' : 'latency'}
             </p>
-            <p className="text-lg font-bold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{marketStats.avgUpdateLatency}ms</p>
+              <span className="text-sm font-medium text-green-600">-5.2%</span>
+            </div>
           </div>
 
-          <div className="py-4">
-            <div className="flex items-center justify-between mb-2">
-              <Shield className="w-4 h-4 text-green-600" />
-            </div>
-            <p className="text-xs text-gray-500 mb-0.5">
-              {locale === 'zh-CN' ? '预言机数' : 'Oracles'}
+          <div>
+            <p className="text-xs text-gray-500 lowercase tracking-wide">
+              {locale === 'zh-CN' ? '预言机数' : 'oracles'}
             </p>
-            <p className="text-lg font-bold text-gray-900">{marketStats.oracleCount}</p>
+            <div className="flex items-baseline gap-2 mt-1">
+              <p className="text-3xl font-semibold text-gray-900">{marketStats.oracleCount}</p>
+              <span className="text-sm font-medium text-green-600">+2</span>
+            </div>
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="py-4 border-b border-gray-100">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="relative">
-                  <select
-                    value={activeChart}
-                    onChange={(e) => setActiveChart(e.target.value as ChartType)}
-                    className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm px-3 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer font-medium min-w-[140px]"
-                  >
-                    {chartTypes.map((type) => (
-                      <option key={type.key} value={type.key}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                </div>
-
-                <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
-                  {['pie', 'trend', 'bar', 'chain'].map((key) => {
-                    const type = chartTypes.find((t) => t.key === key);
+              <div className="flex items-center gap-6 flex-wrap">
+                <div className="flex items-center">
+                  {[
+                    { key: 'pie', label: locale === 'zh-CN' ? '市场份额' : 'Market Share' },
+                    { key: 'trend', label: locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend' },
+                    { key: 'bar', label: locale === 'zh-CN' ? '链支持' : 'Chain Support' },
+                    { key: 'chain', label: locale === 'zh-CN' ? '链分布' : 'Chain Breakdown' },
+                  ].map((item) => {
+                    const type = chartTypes.find((t) => t.key === item.key);
                     if (!type) return null;
                     const Icon = type.icon;
+                    const isActive = activeChart === item.key;
                     return (
                       <button
-                        key={key}
-                        onClick={() => setActiveChart(key as ChartType)}
-                        className={`flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-all ${
-                          activeChart === key
-                            ? 'bg-white text-blue-600 border border-gray-200'
-                            : 'text-gray-600 hover:text-gray-900'
+                        key={item.key}
+                        onClick={() => setActiveChart(item.key as ChartType)}
+                        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                          isActive
+                            ? 'text-blue-600 border-blue-600'
+                            : 'text-gray-500 border-transparent hover:text-gray-700'
                         }`}
                         title={type.label}
                       >
                         <Icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="h-4 w-px bg-gray-300 hidden md:block" />
+
+                <div className="flex items-center">
+                  {[
+                    { key: 'protocol', label: locale === 'zh-CN' ? '协议' : 'Protocols' },
+                    { key: 'asset', label: locale === 'zh-CN' ? '资产' : 'Assets' },
+                  ].map((item) => {
+                    const type = chartTypes.find((t) => t.key === item.key);
+                    if (!type) return null;
+                    const Icon = type.icon;
+                    const isActive = activeChart === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => setActiveChart(item.key as ChartType)}
+                        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                          isActive
+                            ? 'text-blue-600 border-blue-600'
+                            : 'text-gray-500 border-transparent hover:text-gray-700'
+                        }`}
+                        title={type.label}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{item.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500 uppercase">
-                    {locale === 'zh-CN' ? '时间' : 'Time'}
-                  </span>
-                  <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
-                    {TIME_RANGES.map((range) => (
-                      <button
-                        key={range.key}
-                        onClick={() => setSelectedTimeRange(range.key)}
-                        className={`px-2.5 py-1 text-sm font-medium transition-all ${
-                          selectedTimeRange === range.key
-                            ? 'bg-white text-blue-600 border border-gray-200'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        {range.label}
-                      </button>
-                    ))}
-                  </div>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-1">
+                  {TIME_RANGES.map((range) => (
+                    <button
+                      key={range.key}
+                      onClick={() => setSelectedTimeRange(range.key)}
+                      className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                        selectedTimeRange === range.key
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
                 </div>
 
                 {activeChart === 'trend' && (
                   <>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-500 uppercase">
-                        {locale === 'zh-CN' ? '对比' : 'Compare'}
-                      </span>
-                      <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
-                        <button
-                          onClick={() => toggleComparisonMode('yoy')}
-                          className={`px-2.5 py-1 text-sm font-medium transition-all ${
-                            comparisonMode === 'yoy'
-                              ? 'bg-white text-blue-600 border border-gray-200'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                          title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
-                        >
-                          {locale === 'zh-CN' ? '同比' : 'YoY'}
-                        </button>
-                        <button
-                          onClick={() => toggleComparisonMode('mom')}
-                          className={`px-2.5 py-1 text-sm font-medium transition-all ${
-                            comparisonMode === 'mom'
-                              ? 'bg-white text-blue-600 border border-gray-200'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
-                          title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
-                        >
-                          {locale === 'zh-CN' ? '环比' : 'MoM'}
-                        </button>
-                      </div>
+                    <div className="h-4 w-px bg-gray-300 hidden sm:block" />
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => toggleComparisonMode('yoy')}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                          comparisonMode === 'yoy'
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        }`}
+                        title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
+                      >
+                        {locale === 'zh-CN' ? '同比' : 'YoY'}
+                      </button>
+                      <button
+                        onClick={() => toggleComparisonMode('mom')}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                          comparisonMode === 'mom'
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        }`}
+                        title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
+                      >
+                        {locale === 'zh-CN' ? '环比' : 'MoM'}
+                      </button>
                     </div>
 
-                    <div className="flex items-center gap-2 px-2.5 py-1.5 bg-red-50 border border-red-200">
-                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                    <div className="flex items-center gap-2 px-2 py-1">
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
                       <input
                         type="range"
                         min="5"
                         max="50"
                         value={anomalyThreshold * 100}
                         onChange={(e) => setAnomalyThreshold(Number(e.target.value) / 100)}
-                        className="w-14 h-1 bg-red-200 appearance-none cursor-pointer accent-red-500"
+                        className="w-12 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer accent-red-500"
                       />
-                      <span className="text-xs font-medium text-red-600 min-w-[2rem]">
+                      <span className="text-xs font-medium text-gray-600 min-w-[1.5rem]">
                         {(anomalyThreshold * 100).toFixed(0)}%
                       </span>
                     </div>
 
                     {comparisonMode === 'none' && (
-                      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-purple-50 border border-purple-200">
+                      <div className="flex items-center gap-2 px-2 py-1">
                         <span className="text-xs font-medium text-purple-700">
                           {locale === 'zh-CN' ? '置信区间' : 'CI'}
                         </span>
                         <button
                           onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
-                          className={`relative inline-flex h-4 w-7 items-center transition-colors ${
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                             showConfidenceInterval ? 'bg-purple-500' : 'bg-gray-300'
                           }`}
                         >
                           <span
-                            className={`inline-block h-2.5 w-2.5 transform bg-white transition-transform ${
-                              showConfidenceInterval ? 'translate-x-4' : 'translate-x-0.5'
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                              showConfidenceInterval ? 'translate-x-5' : 'translate-x-1'
                             }`}
                           />
                         </button>
@@ -459,15 +465,15 @@ export default function MarketOverviewPage() {
                   </>
                 )}
 
-                <div className="w-px h-6 bg-gray-200 hidden lg:block" />
+                <div className="h-4 w-px bg-gray-300 hidden lg:block" />
 
-                <div className="flex items-center gap-1 p-1 bg-gray-100 border border-gray-200">
+                <div className="flex items-center">
                   <button
                     onClick={() => setViewType('chart')}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
                       viewType === 'chart'
-                        ? 'bg-white text-blue-600 border border-gray-200'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-blue-600 border-blue-600'
+                        : 'text-gray-500 border-transparent hover:text-gray-700'
                     }`}
                   >
                     <PieChartIcon className="w-4 h-4" />
@@ -475,10 +481,10 @@ export default function MarketOverviewPage() {
                   </button>
                   <button
                     onClick={() => setViewType('table')}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
                       viewType === 'table'
-                        ? 'bg-white text-blue-600 border border-gray-200'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-blue-600 border-blue-600'
+                        : 'text-gray-500 border-transparent hover:text-gray-700'
                     }`}
                   >
                     <TableIcon className="w-4 h-4" />
