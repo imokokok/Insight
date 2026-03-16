@@ -6,7 +6,7 @@ import { OracleProvider } from '@/types/oracle';
 export interface SymbolConfig {
   symbol: string;
   name: string;
-  category: 'layer1' | 'defi';
+  category: 'layer1' | 'defi' | 'stablecoin';
   iconColor: string;
 }
 
@@ -16,6 +16,14 @@ export const tradingPairs: SymbolConfig[] = [
   { symbol: 'ETH/USD', name: 'Ethereum', category: 'layer1', iconColor: chainColors.ethereum },
   { symbol: 'SOL/USD', name: 'Solana', category: 'layer1', iconColor: chainColors.solana },
   { symbol: 'AVAX/USD', name: 'Avalanche', category: 'layer1', iconColor: chainColors.avalanche },
+  { symbol: 'NEAR/USD', name: 'NEAR Protocol', category: 'layer1', iconColor: '#00C08B' },
+  { symbol: 'MATIC/USD', name: 'Polygon', category: 'layer1', iconColor: '#8247E5' },
+  { symbol: 'ARB/USD', name: 'Arbitrum', category: 'layer1', iconColor: '#28A0F0' },
+  { symbol: 'OP/USD', name: 'Optimism', category: 'layer1', iconColor: '#FF0420' },
+  { symbol: 'DOT/USD', name: 'Polkadot', category: 'layer1', iconColor: '#E6007A' },
+  { symbol: 'ADA/USD', name: 'Cardano', category: 'layer1', iconColor: '#0033AD' },
+  { symbol: 'ATOM/USD', name: 'Cosmos', category: 'layer1', iconColor: '#2E3148' },
+  { symbol: 'FTM/USD', name: 'Fantom', category: 'layer1', iconColor: '#1969FF' },
   // DeFi
   { symbol: 'LINK/USD', name: 'Chainlink', category: 'defi', iconColor: '#2A5ADA' },
   { symbol: 'UNI/USD', name: 'Uniswap', category: 'defi', iconColor: '#FF007A' },
@@ -25,6 +33,18 @@ export const tradingPairs: SymbolConfig[] = [
   { symbol: 'COMP/USD', name: 'Compound', category: 'defi', iconColor: '#00D395' },
   { symbol: 'YFI/USD', name: 'Yearn', category: 'defi', iconColor: '#006AE3' },
   { symbol: 'CRV/USD', name: 'Curve', category: 'defi', iconColor: '#FF5A00' },
+  { symbol: 'LDO/USD', name: 'Lido DAO', category: 'defi', iconColor: '#F69988' },
+  { symbol: 'SUSHI/USD', name: 'SushiSwap', category: 'defi', iconColor: '#FA52A0' },
+  { symbol: '1INCH/USD', name: '1inch', category: 'defi', iconColor: '#1B314F' },
+  { symbol: 'BAL/USD', name: 'Balancer', category: 'defi', iconColor: '#1E8E3E' },
+  { symbol: 'FXS/USD', name: 'Frax Share', category: 'defi', iconColor: '#000000' },
+  { symbol: 'RPL/USD', name: 'Rocket Pool', category: 'defi', iconColor: '#FFD700' },
+  { symbol: 'GMX/USD', name: 'GMX', category: 'defi', iconColor: '#2D42FC' },
+  { symbol: 'DYDX/USD', name: 'dYdX', category: 'defi', iconColor: '#6966FF' },
+  // Stablecoins
+  { symbol: 'USDC/USD', name: 'USD Coin', category: 'stablecoin', iconColor: '#2775CA' },
+  { symbol: 'USDT/USD', name: 'Tether', category: 'stablecoin', iconColor: '#26A17B' },
+  { symbol: 'DAI/USD', name: 'DAI', category: 'stablecoin', iconColor: '#F5AC37' },
 ];
 
 export const symbols = tradingPairs.map((pair) => pair.symbol);

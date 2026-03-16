@@ -106,7 +106,42 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.WINKLINK]: configChartColors.oracle.winklink,
 };
 
-export const symbols = ['BTC', 'ETH', 'SOL', 'USDC'];
+export const symbols = [
+  // Layer 1
+  'BTC',
+  'ETH',
+  'SOL',
+  'AVAX',
+  'NEAR',
+  'MATIC',
+  'ARB',
+  'OP',
+  'DOT',
+  'ADA',
+  'ATOM',
+  'FTM',
+  // DeFi
+  'LINK',
+  'UNI',
+  'AAVE',
+  'MKR',
+  'SNX',
+  'COMP',
+  'YFI',
+  'CRV',
+  'LDO',
+  'SUSHI',
+  '1INCH',
+  'BAL',
+  'FXS',
+  'RPL',
+  'GMX',
+  'DYDX',
+  // Stablecoins
+  'USDC',
+  'USDT',
+  'DAI',
+];
 
 export const TIME_RANGES = [
   { value: 1, key: 'timeRange1Hour', label: '1H' },

@@ -52,7 +52,7 @@ function RiskScoreCard({ title, score, description, color }: RiskScoreCardProps)
 function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
   const { t } = useI18n();
 
-  const coverageRatio = staking?.coveragePool?.collateralizationRatio ?? 1.5;
+  const coverageRatio = staking?.coveragePool?.coverageRatio ?? 1.5;
   const totalStaked = staking?.totalStaked ?? 0;
   const coverageScore = Math.min(100, Math.max(0, coverageRatio * 50));
 
@@ -189,7 +189,6 @@ function StakingRisk({ staking }: { staking?: StakingData }) {
   const { t } = useI18n();
 
   const stakingApr = staking?.stakingApr ?? 12.5;
-  const lockupPeriod = staking?.lockupPeriod ?? 7;
 
   let riskScore = 75;
   let riskLevel: 'green' | 'yellow' | 'red' = 'green';
@@ -221,7 +220,7 @@ function StakingRisk({ staking }: { staking?: StakingData }) {
           </div>
           <div className="p-3 bg-gray-50 border border-gray-200">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.staking.lockup')}</p>
-            <p className="text-lg font-semibold text-gray-900">{lockupPeriod} days</p>
+            <p className="text-lg font-semibold text-gray-900">7 days</p>
           </div>
         </div>
       </div>

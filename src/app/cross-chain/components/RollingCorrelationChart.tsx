@@ -189,7 +189,7 @@ export function RollingCorrelationChart({ data }: RollingCorrelationChartProps) 
   }
 
   return (
-    <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
+    <div id="rolling" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[200] }}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-medium uppercase tracking-wide" style={{ color: baseColors.gray[900] }}>

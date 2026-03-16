@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { useCrossChainData } from './useCrossChainData';
 import { CrossChainFilters } from './components/CrossChainFilters';
-import { PriceSpreadHeatmap } from './components/PriceSpreadHeatmap';
+import { PriceSpreadHeatmap, HeatmapDetailView } from './components/PriceSpreadHeatmap';
 import { PriceComparisonTable } from './components/PriceComparisonTable';
 import { CorrelationMatrix } from './components/CorrelationMatrix';
 import { RollingCorrelationChart } from './components/RollingCorrelationChart';
@@ -12,7 +12,10 @@ import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { VolatilitySurface } from './components/VolatilitySurface';
-import { ProgressBar, JumpIndicator, TrendIndicator } from './components/SmallComponents';
+import { ProgressBar, JumpIndicator } from './components/SmallComponents';
+import { CompactStatsGrid } from './components/CompactStatsGrid';
+import { TabNavigation, TabId } from './components/TabNavigation';
+import { CollapsibleSection } from './components/CollapsibleSection';
 import {
   BarChart,
   Bar,
@@ -38,14 +41,12 @@ import { ChainStats, RefreshInterval } from './constants';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 
-type ViewMode = 'price' | 'volatility';
-
 export default function CrossChainPage() {
   const { t } = useI18n();
   const data = useCrossChainData();
   const colorblindMode = useColorblindMode();
   const setColorblindMode = useSetColorblindMode();
-  const [viewMode] = useState<ViewMode>('price');
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const {
     loading,
@@ -124,12 +125,6 @@ export default function CrossChainPage() {
       tooltip: t('crossChain.tooltip.priceRange'),
     },
     {
-      label: t('crossChain.iqr'),
-      value: iqrValue > 0 ? `$${formatPrice(iqrValue)}` : '-',
-      trend: null,
-      tooltip: t('crossChain.tooltip.iqr'),
-    },
-    {
       label: t('crossChain.standardDeviation'),
       value: standardDeviation > 0 ? `${standardDeviationPercent.toFixed(4)}%` : '-',
       trend: calculateChangePercent(
@@ -138,6 +133,18 @@ export default function CrossChainPage() {
       ),
       subValue: standardDeviation > 0 ? `$${formatPrice(standardDeviation)}` : null,
       tooltip: t('crossChain.tooltip.standardDeviation'),
+    },
+    {
+      label: t('crossChain.dataPoints'),
+      value: totalDataPoints.toString(),
+      trend: null,
+      tooltip: t('crossChain.tooltip.dataPoints'),
+    },
+    {
+      label: t('crossChain.iqr'),
+      value: iqrValue > 0 ? `$${formatPrice(iqrValue)}` : '-',
+      trend: null,
+      tooltip: t('crossChain.tooltip.iqr'),
     },
     {
       label: t('crossChain.skewness'),
@@ -175,12 +182,6 @@ export default function CrossChainPage() {
       trend: null,
       tooltip: t('crossChain.tooltip.consistencyRating'),
     },
-    {
-      label: t('crossChain.dataPoints'),
-      value: totalDataPoints.toString(),
-      trend: null,
-      tooltip: t('crossChain.tooltip.dataPoints'),
-    },
   ];
 
   const handleLegendClick = (e: unknown) => {
@@ -206,6 +207,232 @@ export default function CrossChainPage() {
       setHiddenLines(newHidden);
     }
   };
+
+  // 渲染概览标签内容
+  const renderOverviewTab = () => (
+    <>
+      <CompactStatsGrid statsData={statsData} />
+
+      <div id="heatmap">
+        <HeatmapDetailView data={data} />
+      </div>
+
+      <div id="table">
+        <PriceComparisonTable data={data} />
+      </div>
+
+      {/* 稳定性分析表格 */}
+      <div id="stability" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
+          {t('crossChain.stabilityAnalysis')}
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
+                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.blockchain')}
+                </th>
+                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.dataIntegrity')}
+                </th>
+                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.priceVolatility')}
+                </th>
+                <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.priceJumpFrequency')}
+                </th>
+                <th className="px-3 py-2.5 text-xs font-medium text-right" style={{ color: baseColors.gray[500] }}>
+                  {t('crossChain.stabilityRating')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredChains.map((chain) => {
+                const volatility = chainVolatility[chain] ?? 0;
+                const stabilityRating = getStabilityRating(volatility);
+                const integrity = dataIntegrity[chain] ?? 0;
+                const jumpCount = priceJumpFrequency[chain] ?? 0;
+                return (
+                  <tr
+                    key={chain}
+                    className="hover:bg-gray-50"
+                    style={{ borderBottom: `1px solid ${baseColors.gray[100]}`, backgroundColor: 'transparent' }}
+                  >
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center">
+                        <div
+                          className="w-3 h-3 mr-2"
+                          style={{ backgroundColor: chainColors[chain] }}
+                        />
+                        <span className="text-sm font-medium">{chainNames[chain]}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <ProgressBar
+                        value={volatility}
+                        color={getVolatilityColor(volatility)}
+                        max={1}
+                        suffix="%"
+                      />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <JumpIndicator count={jumpCount} />
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span
+                        className="text-sm font-medium"
+                        style={{
+                          color: stabilityRating === 'stable' ? semanticColors.success.main : stabilityRating === 'moderate' ? semanticColors.warning.main : semanticColors.danger.main
+                        }}
+                      >
+                        {volatility > 0
+                          ? t(`crossChain.stability.${stabilityRating}`)
+                          : '-'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+
+  // 渲染相关性标签内容
+  const renderCorrelationTab = () => (
+    <>
+      <div id="correlation">
+        <CorrelationMatrix data={data} />
+      </div>
+      <RollingCorrelationChart data={data} />
+    </>
+  );
+
+  // 渲染高级分析标签内容
+  const renderAdvancedTab = () => (
+    <>
+      <CollapsibleSection
+        title={t('crossChain.cointegrationAnalysis') || '协整分析'}
+        description={t('crossChain.cointegrationDesc') || '检测链间价格序列的长期均衡关系'}
+        defaultExpanded={false}
+        storageKey="cointegrationExpanded"
+      >
+        <div className="p-4">
+          <CointegrationAnalysis data={data} />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title={t('crossChain.volatilityAnalysis') || '波动率分析'}
+        description={t('crossChain.volatilityAnalysisDesc') || '滚动波动率、相关性矩阵与波动率锥'}
+        defaultExpanded={false}
+        storageKey="volatilityExpanded"
+      >
+        <div className="p-4">
+          <VolatilitySurface data={data} />
+        </div>
+      </CollapsibleSection>
+    </>
+  );
+
+  // 渲染图表标签内容
+  const renderChartsTab = () => (
+    <>
+      {/* 价格分布分析 */}
+      <div id="distribution" className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
+          {t('crossChain.priceDistributionAnalysis')}
+        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
+              {t('crossChain.priceDistributionHistogram')}
+            </h4>
+            <div className="h-64 py-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={priceDistributionData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+                  <XAxis
+                    dataKey="range"
+                    tick={{ fontSize: 9, fill: chartColors.recharts.tick }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    stroke={chartColors.recharts.axis}
+                  />
+                  <YAxis tick={{ fontSize: 11, fill: chartColors.recharts.tick }} width={40} stroke={chartColors.recharts.axis} />
+                  <Tooltip formatter={(value) => [value, '频率']} />
+                  {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
+                    <ReferenceLine
+                      x={priceDistributionData[meanBinIndex].range}
+                      stroke={chartColors.recharts.primary}
+                      strokeDasharray="5 5"
+                    />
+                  )}
+                  {medianBinIndex >= 0 && priceDistributionData[medianBinIndex] && (
+                    <ReferenceLine
+                      x={priceDistributionData[medianBinIndex].range}
+                      stroke={chartColors.recharts.success}
+                      strokeDasharray="5 5"
+                    />
+                  )}
+                  <Bar dataKey="count" fill={chartColors.recharts.indigo} radius={[0, 0, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="py-3">
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.medianLine')}</div>
+                <div className="text-lg font-semibold" style={{ color: semanticColors.success.main }}>
+                  ${medianPrice.toFixed(4)}
+                </div>
+              </div>
+              <div className="py-3">
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.meanLine')}</div>
+                <div className="text-lg font-semibold" style={{ color: baseColors.primary[500] }}>
+                  ${avgPrice.toFixed(4)}
+                </div>
+              </div>
+              <div className="py-3">
+                <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.standardDeviation')}</div>
+                <div className="text-lg font-semibold" style={{ color: chartColors.recharts.purple }}>
+                  ${standardDeviation.toFixed(4)}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
+              {t('crossChain.chainPriceBoxPlot')}
+            </h4>
+            <div className="h-64 py-4">
+              <StandardBoxPlot data={boxPlotData} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chart">
+        <InteractivePriceChart
+          chartData={chartData}
+          chartDataWithMA={chartDataWithMA}
+          filteredChains={filteredChains}
+          hiddenLines={hiddenLines}
+          scatterData={scatterData}
+          avgPrice={avgPrice}
+          medianPrice={medianPrice}
+          onLegendClick={handleLegendClick}
+          onLegendDoubleClick={handleLegendDoubleClick}
+        />
+      </div>
+    </>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
@@ -315,6 +542,9 @@ export default function CrossChainPage() {
       <CrossChainFilters data={data} />
       <PriceSpreadHeatmap data={data} />
 
+      {/* 标签页导航 */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
       {loading ? (
         <div className="py-16 flex flex-col justify-center items-center gap-3">
           <div className="w-8 h-8 border-2 border-t-transparent animate-spin" style={{ borderColor: baseColors.gray[400] }} />
@@ -322,211 +552,10 @@ export default function CrossChainPage() {
         </div>
       ) : (
         <>
-          {/* Stats Grid - Responsive layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-0 mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
-            {statsData.map((stat, index) => (
-              <div
-                key={index}
-                className={`px-3 sm:px-4 py-3 sm:bg-transparent ${index > 0 ? 'sm:border-l' : ''}`}
-                style={{ borderColor: index > 0 ? baseColors.gray[100] : 'transparent' }}
-                title={stat.tooltip}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-[10px] sm:text-xs uppercase truncate" style={{ color: baseColors.gray[500] }}>
-                    {stat.label}
-                  </div>
-                  {stat.trend !== null && stat.trend !== undefined && (
-                    <TrendIndicator changePercent={stat.trend} />
-                  )}
-                </div>
-                <div className="text-base sm:text-lg font-semibold mt-1 truncate" style={{ color: baseColors.gray[900] }}>
-                  {stat.value}
-                </div>
-                {stat.subValue && (
-                  <div className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: baseColors.gray[400] }}>
-                    {stat.subValue}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
-              {t('crossChain.priceDistributionAnalysis')}
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
-                  {t('crossChain.priceDistributionHistogram')}
-                </h4>
-                <div className="h-64 py-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={priceDistributionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
-                      <XAxis
-                        dataKey="range"
-                        tick={{ fontSize: 9, fill: chartColors.recharts.tick }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                        stroke={chartColors.recharts.axis}
-                      />
-                      <YAxis tick={{ fontSize: 11, fill: chartColors.recharts.tick }} width={40} stroke={chartColors.recharts.axis} />
-                      <Tooltip formatter={(value) => [value, '频率']} />
-                      {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
-                        <ReferenceLine
-                          x={priceDistributionData[meanBinIndex].range}
-                          stroke={chartColors.recharts.primary}
-                          strokeDasharray="5 5"
-                        />
-                      )}
-                      {medianBinIndex >= 0 && priceDistributionData[medianBinIndex] && (
-                        <ReferenceLine
-                          x={priceDistributionData[medianBinIndex].range}
-                          stroke={chartColors.recharts.success}
-                          strokeDasharray="5 5"
-                        />
-                      )}
-                      <Bar dataKey="count" fill={chartColors.recharts.indigo} radius={[0, 0, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-3">
-                  <div className="py-3">
-                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.medianLine')}</div>
-                    <div className="text-lg font-semibold" style={{ color: semanticColors.success.main }}>
-                      ${medianPrice.toFixed(4)}
-                    </div>
-                  </div>
-                  <div className="py-3">
-                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.meanLine')}</div>
-                    <div className="text-lg font-semibold" style={{ color: baseColors.primary[500] }}>
-                      ${avgPrice.toFixed(4)}
-                    </div>
-                  </div>
-                  <div className="py-3">
-                    <div className="text-xs" style={{ color: baseColors.gray[500] }}>{t('crossChain.standardDeviation')}</div>
-                    <div className="text-lg font-semibold" style={{ color: chartColors.recharts.purple }}>
-                      ${standardDeviation.toFixed(4)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-xs font-medium mb-3" style={{ color: baseColors.gray[700] }}>
-                  {t('crossChain.chainPriceBoxPlot')}
-                </h4>
-                <div className="h-64 py-4">
-                  <StandardBoxPlot data={boxPlotData} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {viewMode === 'price' ? (
-            <>
-              <PriceComparisonTable data={data} />
-              <CorrelationMatrix data={data} />
-              <RollingCorrelationChart data={data} />
-              <CointegrationAnalysis data={data} />
-
-              <div className="mb-8 pb-8 border-b" style={{ borderColor: baseColors.gray[100] }}>
-                <h3 className="text-sm font-semibold mb-3" style={{ color: baseColors.gray[900] }}>
-                  {t('crossChain.stabilityAnalysis')}
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${baseColors.gray[100]}` }}>
-                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
-                          {t('crossChain.blockchain')}
-                        </th>
-                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
-                          {t('crossChain.dataIntegrity')}
-                        </th>
-                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
-                          {t('crossChain.priceVolatility')}
-                        </th>
-                        <th className="px-3 py-2.5 text-xs font-medium" style={{ color: baseColors.gray[500] }}>
-                          {t('crossChain.priceJumpFrequency')}
-                        </th>
-                        <th className="px-3 py-2.5 text-xs font-medium text-right" style={{ color: baseColors.gray[500] }}>
-                          {t('crossChain.stabilityRating')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredChains.map((chain) => {
-                        const volatility = chainVolatility[chain] ?? 0;
-                        const delay = updateDelays[chain];
-                        const stabilityRating = getStabilityRating(volatility);
-                        const integrity = dataIntegrity[chain] ?? 0;
-                        const jumpCount = priceJumpFrequency[chain] ?? 0;
-                        return (
-                          <tr
-                            key={chain}
-                            className="hover:bg-gray-50"
-                            style={{ borderBottom: `1px solid ${baseColors.gray[100]}`, backgroundColor: 'transparent' }}
-                          >
-                            <td className="px-3 py-2.5">
-                              <div className="flex items-center">
-                                <div
-                                  className="w-3 h-3 mr-2"
-                                  style={{ backgroundColor: chainColors[chain] }}
-                                />
-                                <span className="text-sm font-medium">{chainNames[chain]}</span>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2.5">
-                              <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
-                            </td>
-                            <td className="px-3 py-2.5">
-                              <ProgressBar
-                                value={volatility}
-                                color={getVolatilityColor(volatility)}
-                                max={1}
-                                suffix="%"
-                              />
-                            </td>
-                            <td className="px-3 py-2.5">
-                              <JumpIndicator count={jumpCount} />
-                            </td>
-                            <td className="px-3 py-2.5 text-right">
-                              <span
-                                className="text-sm font-medium"
-                                style={{
-                                  color: stabilityRating === 'stable' ? semanticColors.success.main : stabilityRating === 'moderate' ? semanticColors.warning.main : semanticColors.danger.main
-                                }}
-                              >
-                                {volatility > 0
-                                  ? t(`crossChain.stability.${stabilityRating}`)
-                                  : '-'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <InteractivePriceChart
-                chartData={chartData}
-                chartDataWithMA={chartDataWithMA}
-                filteredChains={filteredChains}
-                hiddenLines={hiddenLines}
-                scatterData={scatterData}
-                avgPrice={avgPrice}
-                medianPrice={medianPrice}
-                onLegendClick={handleLegendClick}
-                onLegendDoubleClick={handleLegendDoubleClick}
-              />
-            </>
-          ) : (
-            <VolatilitySurface data={data} />
-          )}
+          {activeTab === 'overview' && renderOverviewTab()}
+          {activeTab === 'correlation' && renderCorrelationTab()}
+          {activeTab === 'advanced' && renderAdvancedTab()}
+          {activeTab === 'charts' && renderChartsTab()}
         </>
       )}
     </div>

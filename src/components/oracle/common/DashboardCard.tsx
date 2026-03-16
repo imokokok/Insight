@@ -3,7 +3,7 @@
 import { memo, ReactNode } from 'react';
 
 interface DashboardCardProps {
-  title?: string;
+  title?: string | ReactNode;
   children: ReactNode;
   className?: string;
   headerAction?: ReactNode;

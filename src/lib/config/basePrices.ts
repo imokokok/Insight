@@ -30,6 +30,19 @@ export interface BasePrices {
   COMP: number;
   YFI: number;
   CRV: number;
+  NEAR: number;
+  ARB: number;
+  OP: number;
+  ADA: number;
+  LDO: number;
+  SUSHI: number;
+  '1INCH': number;
+  BAL: number;
+  FXS: number;
+  RPL: number;
+  GMX: number;
+  DYDX: number;
+  USDT: number;
   [key: string]: number;
 }
 
@@ -61,6 +74,19 @@ const DEFAULT_BASE_PRICES: BasePrices = {
   COMP: 65,
   YFI: 7500,
   CRV: 0.45,
+  NEAR: 5.5,
+  ARB: 1.2,
+  OP: 2.5,
+  ADA: 0.45,
+  LDO: 2.2,
+  SUSHI: 1.5,
+  '1INCH': 0.35,
+  BAL: 2.8,
+  FXS: 5.5,
+  RPL: 25,
+  GMX: 35,
+  DYDX: 1.8,
+  USDT: 1,
 };
 
 function getBasePrices(): BasePrices {

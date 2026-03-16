@@ -14,6 +14,8 @@ import {
   LoadingState,
   ErrorFallback,
 } from '@/components/oracle';
+import { RedStoneRiskAssessmentPanel } from '@/components/oracle/panels/RedStoneRiskAssessmentPanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -652,51 +654,16 @@ export default function RedStonePage() {
             </div>
           )}
 
-          {activeTab === 'risk' && riskMetrics && (
+          {activeTab === 'risk' && (
             <div className="space-y-6">
-              <DashboardCard title={t('redstone.risk.title')}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.centralization')}</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-red-500 h-2 rounded-full"
-                        style={{ width: `${riskMetrics.centralizationRisk}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.centralizationRisk}%</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.liquidity')}</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-yellow-500 h-2 rounded-full"
-                        style={{ width: `${riskMetrics.liquidityRisk}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.liquidityRisk}%</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.technical')}</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{ width: `${riskMetrics.technicalRisk}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.technicalRisk}%</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.risk.overall')}</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${riskMetrics.overallRisk}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{riskMetrics.overallRisk}%</p>
-                  </div>
-                </div>
+              <RedStoneRiskAssessmentPanel />
+            </div>
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('redstone.crossOracle.title')}>
+                <CrossOracleComparison />
               </DashboardCard>
             </div>
           )}
