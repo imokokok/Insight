@@ -141,28 +141,3 @@ export function downsampleDataForPerformance(data: DataPoint[]): DataPoint[] {
     performanceMode: true,
   });
 }
-
-export function adaptiveDownsample(
-  data: DataPoint[],
-  options: {
-    renderTime?: number;
-    targetRenderTime?: number;
-    chartWidth?: number;
-  } = {}
-): DataPoint[] {
-  const { renderTime = 16, targetRenderTime = 16, chartWidth = 800 } = options;
-
-  if (renderTime <= targetRenderTime) {
-    return data;
-  }
-
-  const performanceRatio = targetRenderTime / renderTime;
-  const targetPoints = Math.max(50, Math.floor(data.length * performanceRatio));
-
-  return downsampleData(data, {
-    targetPoints,
-    preservePeaks: true,
-    preserveTrends: false,
-    performanceMode: true,
-  });
-}

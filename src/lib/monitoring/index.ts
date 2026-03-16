@@ -56,15 +56,3 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
     Sentry.addBreadcrumb(breadcrumb);
   }
 };
-
-export const startSession = () => {
-  if (typeof window !== 'undefined') {
-    Sentry.startSession();
-  }
-};
-
-export const endSession = () => {
-  if (typeof window !== 'undefined') {
-    Sentry.endSession();
-  }
-};
