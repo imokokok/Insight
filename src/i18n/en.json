@@ -5438,6 +5438,70 @@
       "requests": "requests",
       "avgResponse": "avg response",
       "security": "security"
+    },
+    "risk": {
+      "title": "Risk Assessment",
+      "dataQuality": "Data Quality",
+      "priceDeviation": "Price Deviation",
+      "nodeConcentration": "Node Concentration",
+      "uptime": "Uptime",
+      "details": "Risk Details",
+      "dataQualityDescription": "Data Quality Assessment",
+      "priceStability": "Price Stability",
+      "nodeDistribution": "Node Distribution",
+      "serviceReliability": "Service Reliability",
+      "excellent": "Excellent",
+      "stable": "Stable",
+      "moderate": "Moderate",
+      "high": "High",
+      "lowRisk": "Low Risk",
+      "mediumRisk": "Medium Risk",
+      "fourDimensions": "Four-Dimension Risk Assessment",
+      "decentralization": "Decentralization",
+      "decentralizationDesc": "Based on node geographic distribution and staking dispersion",
+      "security": "Security",
+      "securityDesc": "TRON ecosystem security and smart contract audit status",
+      "stability": "Stability",
+      "stabilityDesc": "Network uptime 99.92%",
+      "dataQualityDesc": "Gaming data accuracy and price feed quality",
+      "trendTitle": "Risk Trend Analysis",
+      "trend": {
+        "overall": "Overall Score",
+        "decentralization": "Decentralization",
+        "security": "Security",
+        "stability": "Stability",
+        "dataQuality": "Data Quality"
+      },
+      "events": {
+        "nodeUpgrade": "Node Software Upgrade",
+        "nodeUpgradeDesc": "Completed node software version upgrade, improved network performance",
+        "vrfPatch": "VRF Security Patch",
+        "vrfPatchDesc": "Fixed potential vulnerabilities in VRF random number generation",
+        "ddosResponse": "DDoS Attack Response",
+        "ddosResponseDesc": "Successfully mitigated distributed denial of service attack",
+        "consensusUpgrade": "Consensus Mechanism Upgrade",
+        "consensusUpgradeDesc": "Optimized consensus algorithm, improved network stability",
+        "multiChainSupport": "Multi-Chain Support Expansion",
+        "multiChainSupportDesc": "Added BSC chain support, expanded cross-chain capabilities"
+      },
+      "crossChainTitle": "Cross-Chain Risk Assessment",
+      "chainLatency": "Chain Latency",
+      "availability": "Availability",
+      "gamingRiskTitle": "Gaming Data Specific Risk",
+      "gamingLatency": "Gaming Data Latency",
+      "gamingLatencyDesc": "Average time from game event to on-chain confirmation",
+      "gamingAccuracy": "Gaming Data Accuracy",
+      "gamingAccuracyDesc": "Gaming result data accuracy metrics",
+      "tronDependency": "TRON Ecosystem Dependency",
+      "tronDependencyDesc": "Assessment of dependency on TRON mainnet",
+      "measures": {
+        "multiNodeValidation": "Multi-Node Validation Mechanism",
+        "slashingMechanism": "Staking Slashing Mechanism",
+        "emergencyPause": "Emergency Pause Function",
+        "auditCycle": "Regular Security Audits",
+        "decentralizationIncentive": "Decentralization Incentives",
+        "realTimeMonitoring": "Real-Time Risk Monitoring"
+      }
     }
   },
   "common": {
@@ -5669,6 +5733,48 @@
         "1y": "1y",
         "all": "All"
       }
+    },
+    "dataFreshness": {
+      "lastUpdated": "Last Updated",
+      "refresh": "Refresh",
+      "stale": "Data may be stale"
+    },
+    "riskScoreCard": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk",
+      "critical": "Critical Risk",
+      "trend": {
+        "up": "Increasing",
+        "down": "Decreasing",
+        "stable": "Stable"
+      }
+    },
+    "securityTimeline": {
+      "title": "Security Timeline",
+      "eventTypes": {
+        "upgrade": "Upgrade",
+        "vulnerability": "Vulnerability",
+        "response": "Response",
+        "maintenance": "Maintenance"
+      },
+      "status": {
+        "resolved": "Resolved",
+        "monitoring": "Monitoring"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "Mitigation Measures",
+      "type": {
+        "technical": "Technical",
+        "governance": "Governance",
+        "operational": "Operational"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "effectiveness": "Effectiveness"
     }
   },
   "priceChart": {

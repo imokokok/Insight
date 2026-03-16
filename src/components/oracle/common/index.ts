@@ -94,3 +94,11 @@ export type {
 } from './ChartAnnotations';
 export { LoadingState } from './LoadingState';
 export { ErrorFallback } from './ErrorFallback';
+export { DataFreshnessIndicator } from './DataFreshnessIndicator';
+export type { DataFreshnessIndicatorProps } from './DataFreshnessIndicator';
+export { RiskScoreCard } from './RiskScoreCard';
+export type { RiskScoreCardProps } from './RiskScoreCard';
+export { SecurityTimeline } from './SecurityTimeline';
+export type { SecurityTimelineProps } from './SecurityTimeline';
+export { MitigationMeasuresGrid } from './MitigationMeasuresGrid';
+export type { MitigationMeasuresGridProps } from './MitigationMeasuresGrid';

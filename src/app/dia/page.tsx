@@ -20,6 +20,7 @@ import {
   DIAStakingPanel,
   DIADataFeedsPanel,
   DIAEcosystemPanel,
+  DIARiskAssessmentPanel,
 } from '@/components/oracle/panels';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
@@ -541,7 +542,11 @@ export default function DIAPage() {
 
           {activeTab === 'risk' && (
             <div className="space-y-6">
-              <RiskAssessmentPanel provider={OracleProvider.DIA} />
+              <DIARiskAssessmentPanel
+                dataSources={dataTransparency}
+                crossChainCoverage={crossChainCoverage}
+                networkStats={networkStats}
+              />
             </div>
           )}
         </div>

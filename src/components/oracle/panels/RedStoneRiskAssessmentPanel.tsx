@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
-import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { DashboardCard, DataFreshnessIndicator } from '@/components/oracle/common';
 import { RiskMetric, RiskEvent, MitigationMeasure } from '@/types/risk';
 import {
   getScoreColor,
@@ -14,6 +15,17 @@ import {
   getStatusColor,
   getMeasureStatusColor,
 } from '@/lib/utils/riskUtils';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
+import { chartColors } from '@/lib/config/colors';
 
 const riskMetrics: RiskMetric[] = [
   {
@@ -86,13 +98,42 @@ const mitigationMeasures: MitigationMeasure[] = [
   { name: 'realTimeMonitoring', type: 'operational', status: 'active', effectiveness: 91 },
 ];
 
+// 评分趋势数据
+const scoreTrendData = [
+  { date: '2024-01', score: 88 },
+  { date: '2024-02', score: 89 },
+  { date: '2024-03', score: 90 },
+  { date: '2024-04', score: 89 },
+  { date: '2024-05', score: 91 },
+  { date: '2024-06', score: 90 },
+];
+
 export function RedStoneRiskAssessmentPanel() {
   const { t } = useI18n();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(false);
   const overallScore = calculateOverallScore(riskMetrics);
   const riskLevel = getRiskLevel(overallScore);
 
+  const handleRefresh = () => {
+    setIsLoading(true);
+    // 模拟刷新数据
+    setTimeout(() => {
+      setLastUpdated(new Date());
+      setIsLoading(false);
+    }, 1000);
+  };
+
   return (
     <div className="space-y-6">
+      {/* 数据新鲜度指示器 */}
+      <DataFreshnessIndicator
+        lastUpdated={lastUpdated}
+        thresholdMinutes={5}
+        onRefresh={handleRefresh}
+        isLoading={isLoading}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DashboardCard title={t('redstone.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
@@ -130,6 +171,45 @@ export function RedStoneRiskAssessmentPanel() {
           </div>
         </DashboardCard>
       </div>
+
+      {/* 评分趋势图表 */}
+      <DashboardCard title={t('redstone.riskAssessment.scoreTrend')}>
+        <div style={{ height: 250 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={scoreTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.recharts.grid} />
+              <XAxis
+                dataKey="date"
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+              />
+              <YAxis
+                stroke={chartColors.recharts.axis}
+                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                domain={[80, 100]}
+                tickFormatter={(value) => `${value}`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: `1px solid ${chartColors.recharts.grid}`,
+                  borderRadius: '4px',
+                }}
+                formatter={(value) => [`${value}`, t('redstone.riskAssessment.score')]}
+              />
+              <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" label="Excellent" />
+              <Line
+                type="monotone"
+                dataKey="score"
+                stroke={chartColors.oracle.redstone}
+                strokeWidth={2}
+                dot={{ fill: chartColors.oracle.redstone, strokeWidth: 2 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </DashboardCard>
 
       <DashboardCard title={t('redstone.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

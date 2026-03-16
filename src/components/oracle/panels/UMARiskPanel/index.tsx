@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '@/lib/i18n/provider';
 import { UMAClient } from '@/lib/oracles/uma';
 import { ValidatorData, DisputeEfficiencyStats } from '@/lib/oracles/uma/types';
-import { DashboardCard } from '../../common/DashboardCard';
+import {
+  DashboardCard,
+  DataFreshnessIndicator,
+  RiskScoreCard,
+} from '@/components/oracle/common';
 import {
   PieChart,
   Pie,
@@ -28,6 +32,8 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
   const { t } = useI18n();
   const [validators, setValidators] = useState<ValidatorData[]>([]);
   const [disputeStats, setDisputeStats] = useState<DisputeEfficiencyStats | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +44,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
         ]);
         setValidators(validatorData);
         setDisputeStats(efficiencyStats);
+        setLastUpdated(new Date());
       } catch (error) {
         console.error('Failed to fetch UMA risk data:', error);
       }
@@ -78,10 +85,12 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
     },
     {
       name: t('uma.risk.remaining'),
-      value: totalStaked - validators
-        .sort((a, b) => b.staked - a.staked)
-        .slice(0, 10)
-        .reduce((sum, v) => sum + v.staked, 0),
+      value:
+        totalStaked -
+        validators
+          .sort((a, b) => b.staked - a.staked)
+          .slice(0, 10)
+          .reduce((sum, v) => sum + v.staked, 0),
       color: '#e5e7eb',
     },
   ];
@@ -91,23 +100,25 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
   const concentrationRisk = top10Percentage > 60 ? 'high' : top10Percentage > 40 ? 'medium' : 'low';
 
   // 争议解决时间分布
-  const resolutionTimeData = disputeStats?.resolutionTimeDistribution.map((item) => ({
-    range: item.range,
-    count: item.count,
-  })) ?? [
-    { range: '0-2h', count: 15 },
-    { range: '2-6h', count: 25 },
-    { range: '6-12h', count: 20 },
-    { range: '12-24h', count: 18 },
-    { range: '24-48h', count: 12 },
-    { range: '48h+', count: 5 },
-  ];
+  const resolutionTimeData =
+    disputeStats?.resolutionTimeDistribution.map((item) => ({
+      range: item.range,
+      count: item.count,
+    })) ?? [
+      { range: '0-2h', count: 15 },
+      { range: '2-6h', count: 25 },
+      { range: '6-12h', count: 20 },
+      { range: '12-24h', count: 18 },
+      { range: '24-48h', count: 12 },
+      { range: '48h+', count: 5 },
+    ];
 
   // 争议成功率趋势
-  const successRateData = disputeStats?.successRateTrend.map((item) => ({
-    date: item.date,
-    rate: item.rate,
-  })) ?? [];
+  const successRateData =
+    disputeStats?.successRateTrend.map((item) => ({
+      date: item.date,
+      rate: item.rate,
+    })) ?? [];
 
   // 经济安全指标
   const economicSecurityMetrics = [
@@ -126,19 +137,86 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
     {
       label: t('uma.risk.concentrationRisk'),
       value: `${top10Percentage.toFixed(1)}%`,
-      status: concentrationRisk === 'high' ? 'critical' : concentrationRisk === 'medium' ? 'warning' : 'healthy' as const,
+      status:
+        concentrationRisk === 'high'
+          ? 'critical'
+          : concentrationRisk === 'medium'
+            ? 'warning'
+            : ('healthy' as const),
       description: t('uma.risk.concentrationRiskDesc'),
     },
     {
       label: t('uma.risk.avgDisputeResolution'),
       value: `${disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h`,
-      status: (disputeStats?.avgResolutionTime ?? 4.2) < 6 ? 'healthy' : 'warning' as const,
+      status: (disputeStats?.avgResolutionTime ?? 4.2) < 6 ? 'healthy' : ('warning' as const),
       description: t('uma.risk.avgDisputeResolutionDesc'),
     },
   ];
 
+  // 四维度评分数据
+  const fourDimensionScores = [
+    {
+      title: t('uma.risk.economicSecurityScore'),
+      score: 85,
+      description: t('uma.risk.economicSecurityScoreDesc'),
+      trend: 'up' as const,
+      trendValue: '+3.2%',
+    },
+    {
+      title: t('uma.risk.networkDecentralizationScore'),
+      score: concentrationRisk === 'high' ? 65 : concentrationRisk === 'medium' ? 78 : 88,
+      description: t('uma.risk.networkDecentralizationScoreDesc'),
+      trend: concentrationRisk === 'low' ? ('up' as const) : ('down' as const),
+      trendValue: concentrationRisk === 'low' ? '+2.1%' : '-1.5%',
+    },
+    {
+      title: t('uma.risk.disputeResolutionScore'),
+      score: Math.round(75 + (disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate ?? 78) * 0.25),
+      description: t('uma.risk.disputeResolutionScoreDesc'),
+      trend: 'up' as const,
+      trendValue: '+4.5%',
+    },
+    {
+      title: t('uma.risk.protocolSecurityScore'),
+      score: 92,
+      description: t('uma.risk.protocolSecurityScoreDesc'),
+      trend: 'neutral' as const,
+      trendValue: '0.0%',
+    },
+  ];
+
+  const handleRefresh = useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setLastUpdated(new Date());
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
   return (
     <div className="space-y-6">
+      {/* 数据新鲜度指示器 */}
+      <DataFreshnessIndicator
+        lastUpdated={lastUpdated}
+        thresholdMinutes={5}
+        onRefresh={handleRefresh}
+        isLoading={isLoading}
+      />
+
+      {/* 四维度评分卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {fourDimensionScores.map((dimension, index) => (
+          <RiskScoreCard
+            key={index}
+            title={dimension.title}
+            score={dimension.score}
+            description={dimension.description}
+            trend={dimension.trend}
+            trendValue={dimension.trendValue}
+          />
+        ))}
+      </div>
+
       {/* 经济安全指标 */}
       <DashboardCard title={t('uma.risk.economicSecurity')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -151,8 +229,8 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                     metric.status === 'healthy'
                       ? 'bg-green-500'
                       : metric.status === 'warning'
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
                   }`}
                 />
               </div>
@@ -234,15 +312,15 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 concentrationRisk === 'high'
                   ? 'text-red-600'
                   : concentrationRisk === 'medium'
-                  ? 'text-yellow-600'
-                  : 'text-green-600'
+                    ? 'text-yellow-600'
+                    : 'text-green-600'
               }`}
             >
               {concentrationRisk === 'high'
                 ? t('uma.risk.highConcentrationWarning')
                 : concentrationRisk === 'medium'
-                ? t('uma.risk.mediumConcentration')
-                : t('uma.risk.healthyDistribution')}
+                  ? t('uma.risk.mediumConcentration')
+                  : t('uma.risk.healthyDistribution')}
             </p>
           </div>
         </DashboardCard>
@@ -301,7 +379,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
               {t('uma.risk.disputeSuccessRateDescription', {
-                rate: disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate.toFixed(1) ?? 78,
+                rate:
+                  disputeStats?.successRateTrend[disputeStats.successRateTrend.length - 1]?.rate.toFixed(1) ??
+                  78,
               })}
             </p>
           </div>
@@ -312,8 +392,18 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
       <DashboardCard title={t('uma.risk.assessmentSummary')}>
         <div className="space-y-4">
           <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-            <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-green-600 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div>
               <p className="font-medium text-green-900">{t('uma.risk.networkHealth')}</p>
@@ -321,8 +411,18 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-blue-600 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div>
               <p className="font-medium text-blue-900">{t('uma.risk.economicSecurity')}</p>
@@ -331,8 +431,18 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
           </div>
           {concentrationRisk !== 'low' && (
             <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="w-5 h-5 text-yellow-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
               <div>
                 <p className="font-medium text-yellow-900">{t('uma.risk.concentrationRisk')}</p>
