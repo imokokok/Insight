@@ -761,7 +761,7 @@ export default function CrossOraclePage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
       <style jsx>{`
         @keyframes pulse-highlight {
           0%,

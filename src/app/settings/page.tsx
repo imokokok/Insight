@@ -25,7 +25,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="flex items-center gap-3 mb-8">
@@ -56,11 +56,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {activeTab === 'profile' && <ProfilePanel />}
-      {activeTab === 'preferences' && <PreferencesPanel />}
-      {activeTab === 'notifications' && <NotificationPanel />}
-      {activeTab === 'data' && <DataManagementPanel />}
-    </SettingsLayout>
+    <div className="bg-dune min-h-screen">
+      <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        {activeTab === 'profile' && <ProfilePanel />}
+        {activeTab === 'preferences' && <PreferencesPanel />}
+        {activeTab === 'notifications' && <NotificationPanel />}
+        {activeTab === 'data' && <DataManagementPanel />}
+      </SettingsLayout>
+    </div>
   );
 }

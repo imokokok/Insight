@@ -26,6 +26,10 @@
   --background: #ffffff;
   --foreground: #171717;
 
+  /* Dune Style - Flat Design */
+  --bg-dune: #FAFAFA;
+  --border-dune-separator: #E5E7EB;
+
   /* Primary Brand Colors */
   --finance-primary: #1e40af;
   --finance-secondary: #3b82f6;
@@ -159,25 +163,52 @@ body {
   cursor: not-allowed;
 }
 
-/* Card Base Styles */
+/* Card Base Styles - Dune Style Flat Design */
 .card {
   background-color: var(--background);
-  border-radius: 0.75rem;
-  border: 1px solid var(--finance-neutral-light);
-  box-shadow: var(--shadow-finance-soft);
+  border-radius: 0;
+  border: 1px solid var(--border-dune-separator);
+  box-shadow: none;
 }
 
 .card-hover {
   background-color: var(--background);
-  border-radius: 0.75rem;
-  border: 1px solid var(--finance-neutral-light);
-  box-shadow: var(--shadow-finance-soft);
+  border-radius: 0;
+  border: 1px solid var(--border-dune-separator);
+  box-shadow: none;
   transition: all 0.3s;
 }
 
 .card-hover:hover {
-  box-shadow: var(--shadow-finance-medium);
   border-color: var(--finance-neutral);
+  background-color: var(--bg-dune);
+}
+
+/* Dune Style Utilities */
+.bg-dune {
+  background-color: var(--bg-dune);
+}
+
+.border-dune-separator {
+  border-color: var(--border-dune-separator);
+}
+
+/* Dune Style Stat Grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0;
+  border: 1px solid var(--border-dune-separator);
+}
+
+.stat-grid > * {
+  border-right: 1px solid var(--border-dune-separator);
+  border-bottom: 1px solid var(--border-dune-separator);
+  padding: 1.5rem;
+}
+
+.stat-grid > *:last-child {
+  border-right: none;
 }
 
 /* Form Input Styles */
