@@ -2,11 +2,6 @@
 
 import { useI18n } from '@/lib/i18n/provider';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
-import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
-
-interface BandRiskAssessmentPanelProps {
-  client?: BandProtocolClient;
-}
 
 interface RiskMetric {
   name: string;
@@ -27,75 +22,75 @@ interface RiskEvent {
 const riskMetrics: RiskMetric[] = [
   {
     name: 'decentralization',
-    value: 82,
+    value: 85,
     maxValue: 100,
     status: 'good',
-    description: '90+ validators across Cosmos ecosystem with delegated proof-of-stake',
+    description: '25+ data providers with distributed data streams',
   },
   {
     name: 'security',
-    value: 88,
+    value: 90,
     maxValue: 100,
     status: 'good',
-    description: 'Tendermint consensus with cryptographic verification',
+    description: 'Cryptographic signatures with Arweave permanent storage',
   },
   {
     name: 'stability',
-    value: 91,
+    value: 94,
     maxValue: 100,
     status: 'good',
-    description: '99.5% uptime with reliable block production',
+    description: '99.9% uptime with modular data delivery',
   },
   {
     name: 'dataQuality',
-    value: 89,
+    value: 92,
     maxValue: 100,
     status: 'good',
-    description: 'Multi-source aggregation with IBC cross-chain support',
+    description: 'Multi-source aggregation with freshness scoring',
   },
 ];
 
 const riskEvents: RiskEvent[] = [
   {
-    date: '2024-03-15',
+    date: '2024-03-20',
     type: 'upgrade',
-    title: 'BandChain V2.5 Upgrade',
-    description: 'Enhanced oracle script execution and improved gas efficiency',
+    title: 'Data Streams V2 Launch',
+    description: 'Enhanced data stream protocol with improved efficiency',
     status: 'resolved',
   },
   {
-    date: '2024-02-01',
+    date: '2024-02-10',
     type: 'maintenance',
-    title: 'Validator Set Optimization',
-    description: 'Routine validator performance optimization',
+    title: 'Provider Network Expansion',
+    description: 'Added new data providers to increase decentralization',
     status: 'resolved',
   },
   {
-    date: '2024-01-10',
+    date: '2024-01-15',
     type: 'response',
-    title: 'IBC Channel Recovery',
-    description: 'Swift response to IBC channel temporary disruption',
+    title: 'Market Volatility Handling',
+    description: 'Successfully handled high market volatility with accurate price delivery',
     status: 'resolved',
   },
   {
-    date: '2023-12-20',
+    date: '2023-11-20',
     type: 'upgrade',
-    title: 'Oracle Script Expansion',
-    description: 'Added support for new data source types',
+    title: 'Arweave Integration',
+    description: 'Integrated permanent data storage on Arweave',
     status: 'resolved',
   },
 ];
 
 const mitigationMeasures = [
-  { name: 'tendermintConsensus', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'validatorSlashing', type: 'technical', status: 'active', effectiveness: 88 },
-  { name: 'multiSourceAggregation', type: 'technical', status: 'active', effectiveness: 87 },
-  { name: 'ibcSecurity', type: 'technical', status: 'active', effectiveness: 85 },
-  { name: 'decentralizedGovernance', type: 'governance', status: 'active', effectiveness: 84 },
-  { name: 'continuousMonitoring', type: 'operational', status: 'active', effectiveness: 90 },
+  { name: 'cryptographicVerification', type: 'technical', status: 'active', effectiveness: 95 },
+  { name: 'permanentStorage', type: 'technical', status: 'active', effectiveness: 92 },
+  { name: 'multiProviderAggregation', type: 'technical', status: 'active', effectiveness: 90 },
+  { name: 'modularArchitecture', type: 'technical', status: 'active', effectiveness: 88 },
+  { name: 'decentralizedGovernance', type: 'governance', status: 'active', effectiveness: 85 },
+  { name: 'realTimeMonitoring', type: 'operational', status: 'active', effectiveness: 91 },
 ];
 
-export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps) {
+export function RedStoneRiskAssessmentPanel() {
   const { t } = useI18n();
 
   const overallScore = Math.round(
@@ -133,25 +128,25 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
     <div className="space-y-6">
       {/* Overall Risk Score */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DashboardCard title={t('band.riskAssessment.overallRiskScore')} className="lg:col-span-1">
+        <DashboardCard title={t('redstone.riskAssessment.overallRiskScore')} className="lg:col-span-1">
           <div className="text-center py-6">
             <div className={`text-6xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
             <div className="text-sm text-gray-500 mt-2">
-              {t('band.riskAssessment.comprehensiveAssessment')}
+              {t('redstone.riskAssessment.comprehensiveAssessment')}
             </div>
             <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getScoreBg(overallScore)} ${getScoreColor(overallScore)}`}>
-              {overallScore >= 90 ? t('band.riskAssessment.riskLevel.low') : overallScore >= 70 ? t('band.riskAssessment.riskLevel.medium') : t('band.riskAssessment.riskLevel.high')}
+              {overallScore >= 90 ? t('redstone.riskAssessment.riskLevel.low') : overallScore >= 70 ? t('redstone.riskAssessment.riskLevel.medium') : t('redstone.riskAssessment.riskLevel.high')}
             </div>
           </div>
         </DashboardCard>
 
-        <DashboardCard title={t('band.riskAssessment.dimensionScores')} className="lg:col-span-2">
+        <DashboardCard title={t('redstone.riskAssessment.dimensionScores')} className="lg:col-span-2">
           <div className="space-y-4">
             {riskMetrics.map((metric) => (
               <div key={metric.name}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-gray-700 capitalize">
-                    {t(`band.riskAssessment.${metric.name}`)}
+                    {t(`redstone.riskAssessment.${metric.name}`)}
                   </span>
                   <span className={`text-sm font-bold ${getScoreColor(metric.value)}`}>
                     {metric.value}/100
@@ -173,44 +168,44 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
       </div>
 
       {/* Risk Metrics Detail */}
-      <DashboardCard title={t('band.riskAssessment.riskMetrics')}>
+      <DashboardCard title={t('redstone.riskAssessment.riskMetrics')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {t('band.riskAssessment.validatorConcentration')}
+              {t('redstone.riskAssessment.providerConcentration')}
             </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.topValidatorsShare')}</span>
-                <span className="font-medium text-gray-900">22.5%</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.topProvidersShare')}</span>
+                <span className="font-medium text-gray-900">18.5%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.top10ValidatorsShare')}</span>
-                <span className="font-medium text-gray-900">48.3%</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.top5ProvidersShare')}</span>
+                <span className="font-medium text-gray-900">45.2%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.giniCoefficient')}</span>
-                <span className="font-medium text-yellow-600">0.45</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.giniCoefficient')}</span>
+                <span className="font-medium text-green-600">0.41</span>
               </div>
             </div>
           </div>
 
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">
-              {t('band.riskAssessment.ibcMetrics')}
+              {t('redstone.riskAssessment.dataStreamMetrics')}
             </h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.connectedChains')}</span>
-                <span className="font-medium text-green-600">15+</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.activeStreams')}</span>
+                <span className="font-medium text-green-600">1,250+</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.ibcRelayers')}</span>
-                <span className="font-medium text-green-600">8</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.freshnessScore')}</span>
+                <span className="font-medium text-green-600">98.5/100</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('band.riskAssessment.oracleScripts')}</span>
-                <span className="font-medium text-green-600">200+</span>
+                <span className="text-gray-600">{t('redstone.riskAssessment.avgUpdateTime')}</span>
+                <span className="font-medium text-green-600">~60s</span>
               </div>
             </div>
           </div>
@@ -218,14 +213,14 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
       </DashboardCard>
 
       {/* Security Timeline */}
-      <DashboardCard title={t('band.riskAssessment.securityTimeline')}>
+      <DashboardCard title={t('redstone.riskAssessment.securityTimeline')}>
         <div className="space-y-4">
           {riskEvents.map((event, index) => (
             <div key={index} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0">
               <div className="flex-shrink-0 w-24 text-xs text-gray-500">{event.date}</div>
               <div className="flex-shrink-0">
                 <span className={`px-2 py-1 rounded text-xs ${getEventTypeColor(event.type)}`}>
-                  {t(`band.riskAssessment.eventTypes.${event.type}`)}
+                  {t(`redstone.riskAssessment.eventTypes.${event.type}`)}
                 </span>
               </div>
               <div className="flex-grow">
@@ -236,7 +231,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <span className={`px-2 py-1 rounded text-xs ${
                   event.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {event.status === 'resolved' ? t('band.riskAssessment.resolved') : t('band.riskAssessment.monitoring')}
+                  {event.status === 'resolved' ? t('redstone.riskAssessment.resolved') : t('redstone.riskAssessment.monitoring')}
                 </span>
               </div>
             </div>
@@ -244,60 +239,60 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
         </div>
       </DashboardCard>
 
-      {/* Cross-Chain Risk Assessment */}
-      <DashboardCard title={t('band.riskAssessment.crossChainRisk')}>
+      {/* Modular Architecture Risk Assessment */}
+      <DashboardCard title={t('redstone.riskAssessment.modularArchitecture')}>
         <div className="space-y-4">
           {[
             {
-              chain: 'Cosmos Hub',
+              component: 'Core Contracts',
+              availability: 99.95,
+              riskLevel: 'low',
+              lastAudit: '2024-02',
+            },
+            {
+              component: 'Data Provider Network',
               availability: 99.90,
-              latency: 3000,
               riskLevel: 'low',
+              lastAudit: '2024-01',
             },
             {
-              chain: 'Osmosis',
-              availability: 99.85,
-              latency: 2500,
+              component: 'Arweave Storage',
+              availability: 99.99,
               riskLevel: 'low',
+              lastAudit: '2023-12',
             },
             {
-              chain: 'Juno',
-              availability: 99.80,
-              latency: 4000,
+              component: 'Price Feeds',
+              availability: 99.92,
               riskLevel: 'low',
+              lastAudit: '2024-03',
             },
-            {
-              chain: 'Evmos',
-              availability: 99.75,
-              latency: 5000,
-              riskLevel: 'low',
-            },
-          ].map((chain) => (
-            <div key={chain.chain} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          ].map((item) => (
+            <div key={item.component} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-900 w-32">{chain.chain}</span>
+                <span className="text-sm font-medium text-gray-900 w-40">{item.component}</span>
                 <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-green-500 rounded-full"
-                    style={{ width: `${chain.availability}%` }}
+                    style={{ width: `${item.availability}%` }}
                   ></div>
                 </div>
-                <span className="text-sm text-gray-600">{chain.availability}%</span>
+                <span className="text-sm text-gray-600">{item.availability}%</span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-600">
-                  {chain.latency < 1000 ? `${chain.latency}ms` : `${(chain.latency / 1000).toFixed(1)}s`}
+                  {t('redstone.riskAssessment.lastAudit')}: {item.lastAudit}
                 </span>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    chain.riskLevel === 'low'
+                    item.riskLevel === 'low'
                       ? 'bg-green-100 text-green-700'
-                      : chain.riskLevel === 'medium'
+                      : item.riskLevel === 'medium'
                       ? 'bg-yellow-100 text-yellow-700'
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {t(`band.riskAssessment.riskLevel.${chain.riskLevel}`)}
+                  {t(`redstone.riskAssessment.riskLevel.${item.riskLevel}`)}
                 </span>
               </div>
             </div>
@@ -306,7 +301,7 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
       </DashboardCard>
 
       {/* Mitigation Measures */}
-      <DashboardCard title={t('band.riskAssessment.mitigationMeasures')}>
+      <DashboardCard title={t('redstone.riskAssessment.mitigationMeasures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {mitigationMeasures.map((measure) => (
             <div key={measure.name} className="p-4 bg-gray-50 rounded-lg">
@@ -315,16 +310,16 @@ export function BandRiskAssessmentPanel({ client }: BandRiskAssessmentPanelProps
                 <span className={`px-2 py-0.5 rounded text-xs ${
                   measure.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                 }`}>
-                  {t(`band.riskAssessment.${measure.status}`)}
+                  {t(`redstone.riskAssessment.${measure.status}`)}
                 </span>
               </div>
               <h4 className="text-sm font-medium text-gray-900">
-                {t(`band.riskAssessment.${measure.name}`)}
+                {t(`redstone.riskAssessment.${measure.name}`)}
               </h4>
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex-grow h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full"
+                    className="h-full bg-red-500 rounded-full"
                     style={{ width: `${measure.effectiveness}%` }}
                   ></div>
                 </div>

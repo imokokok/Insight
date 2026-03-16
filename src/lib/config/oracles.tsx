@@ -44,6 +44,7 @@ export interface OracleConfig {
     hasCoreFeatures: boolean;
     hasDataStreams?: boolean;
     hasCrossChain?: boolean;
+    hasRiskAssessment?: boolean;
   };
   tabs: OracleTab[];
 }
@@ -333,6 +334,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'network', labelKey: 'pyth.menu.networkHealth' },
       { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
       { id: 'cross-chain', labelKey: 'pyth.menu.crossChain' },
+      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
+      { id: 'cross-oracle', labelKey: 'pyth.menu.crossOracleComparison' },
     ],
   },
   [OracleProvider.API3]: {
@@ -481,6 +484,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'cross-chain', labelKey: 'redstone.tabs.crossChain' },
       { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
       { id: 'risk', labelKey: 'redstone.tabs.risk' },
+      { id: 'cross-oracle', labelKey: 'redstone.tabs.crossOracle' },
     ],
   },
   [OracleProvider.DIA]: {

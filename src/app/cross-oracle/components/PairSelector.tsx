@@ -13,13 +13,14 @@ interface PairSelectorProps {
   isLoading?: boolean;
 }
 
-type Category = 'all' | 'layer1' | 'defi';
+type Category = 'all' | 'layer1' | 'defi' | 'stablecoin';
 
 // 分类标签配置
 const categoryLabels: Record<Category, string> = {
   all: '全部',
   layer1: 'Layer 1',
   defi: 'DeFi',
+  stablecoin: '稳定币',
 };
 
 // 加密货币到logo文件的映射
@@ -28,6 +29,14 @@ const cryptoLogoMap: Record<string, string> = {
   ETH: '/logos/cryptos/eth.svg',
   SOL: '/logos/cryptos/sol.svg',
   AVAX: '/logos/cryptos/avax.svg',
+  NEAR: '/logos/cryptos/near.svg',
+  MATIC: '/logos/cryptos/matic.svg',
+  ARB: '/logos/cryptos/arb.svg',
+  OP: '/logos/cryptos/op.svg',
+  DOT: '/logos/cryptos/dot.svg',
+  ADA: '/logos/cryptos/ada.svg',
+  ATOM: '/logos/cryptos/atom.svg',
+  FTM: '/logos/cryptos/ftm.svg',
   LINK: '/logos/cryptos/link.svg',
   UNI: '/logos/cryptos/uni.svg',
   AAVE: '/logos/cryptos/aave.svg',
@@ -36,6 +45,17 @@ const cryptoLogoMap: Record<string, string> = {
   COMP: '/logos/cryptos/comp.svg',
   YFI: '/logos/cryptos/yfi.svg',
   CRV: '/logos/cryptos/crv.svg',
+  LDO: '/logos/cryptos/ldo.svg',
+  SUSHI: '/logos/cryptos/sushi.svg',
+  '1INCH': '/logos/cryptos/1inch.svg',
+  BAL: '/logos/cryptos/bal.svg',
+  FXS: '/logos/cryptos/fxs.svg',
+  RPL: '/logos/cryptos/rpl.svg',
+  GMX: '/logos/cryptos/gmx.svg',
+  DYDX: '/logos/cryptos/dydx.svg',
+  USDC: '/logos/cryptos/usdc.svg',
+  USDT: '/logos/cryptos/usdt.svg',
+  DAI: '/logos/cryptos/dai.svg',
 };
 
 // 加密货币图标组件

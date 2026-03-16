@@ -14,6 +14,8 @@ import {
   LoadingState,
   ErrorFallback,
 } from '@/components/oracle';
+import { PythRiskAssessmentPanel } from '@/components/oracle/panels/PythRiskAssessmentPanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -603,6 +605,20 @@ export default function PythNetworkPage() {
                     {t('pyth.priceFeeds.totalDescription', { count: 520 })}
                   </p>
                 </div>
+              </DashboardCard>
+            </div>
+          )}
+
+          {activeTab === 'risk' && (
+            <div className="space-y-6">
+              <PythRiskAssessmentPanel />
+            </div>
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('pyth.crossOracle.title')}>
+                <CrossOracleComparison />
               </DashboardCard>
             </div>
           )}
