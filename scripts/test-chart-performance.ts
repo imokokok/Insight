@@ -1,7 +1,6 @@
 import {
   downsampleData,
   downsampleDataForPerformance,
-  adaptiveDownsample,
 } from '../src/utils/downsampling';
 import type { DataPoint } from '../src/utils/downsampling';
 
@@ -114,46 +113,9 @@ export function runPerformanceModeTest(): PerformanceTestResult[] {
   return results;
 }
 
-export function runAdaptiveDownsampleTest(): PerformanceTestResult[] {
-  const results: PerformanceTestResult[] = [];
-  const data = generateTestData(5000);
-
-  console.log('\n=== Adaptive Downsampling Test ===\n');
-
-  const scenarios = [
-    { name: 'Normal render', renderTime: 200, targetRenderTime: 300 },
-    { name: 'Slow render', renderTime: 400, targetRenderTime: 300 },
-    { name: 'Very slow render', renderTime: 600, targetRenderTime: 300 },
-  ];
-
-  for (const scenario of scenarios) {
-    const { result: downsampled, time } = measureTime(`Adaptive ${scenario.name}`, () =>
-      adaptiveDownsample(data, {
-        renderTime: scenario.renderTime,
-        targetRenderTime: scenario.targetRenderTime,
-      })
-    );
-
-    const compressionRatio = ((1 - downsampled.length / data.length) * 100).toFixed(1);
-
-    results.push({
-      testName: `Adaptive ${scenario.name}`,
-      dataPoints: data.length,
-      downsamplingTime: time,
-      outputPoints: downsampled.length,
-      compressionRatio: `${compressionRatio}%`,
-      passed: time < 50,
-      targetTime: 50,
-    });
-  }
-
-  return results;
-}
-
 export function runAllPerformanceTests(): {
   downsampling: PerformanceTestResult[];
   performanceMode: PerformanceTestResult[];
-  adaptive: PerformanceTestResult[];
   summary: {
     totalTests: number;
     passedTests: number;
@@ -167,9 +129,8 @@ export function runAllPerformanceTests(): {
 
   const downsampling = runDownsamplingPerformanceTest();
   const performanceMode = runPerformanceModeTest();
-  const adaptive = runAdaptiveDownsampleTest();
 
-  const allResults = [...downsampling, ...performanceMode, ...adaptive];
+  const allResults = [...downsampling, ...performanceMode];
   const passedTests = allResults.filter((r) => r.passed).length;
   const averageTime =
     allResults.reduce((sum, r) => sum + r.downsamplingTime, 0) / allResults.length;
@@ -191,7 +152,6 @@ export function runAllPerformanceTests(): {
   return {
     downsampling,
     performanceMode,
-    adaptive,
     summary,
   };
 }

@@ -39,5 +39,3 @@ export function formatCompactNumberWithDecimals(value: number, decimals: number 
   if (value >= 1e3) return `${(value / 1e3).toFixed(decimals)}K`;
   return value.toString();
 }
-
-export { formatCompactNumberWithDecimals as formatCompactNumberV2 };

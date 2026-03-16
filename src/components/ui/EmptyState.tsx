@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Search, Database, AlertCircle, FileX, Inbox } from 'lucide-react';
-import { Button } from './Button';
 import { useI18n } from '@/lib/i18n/provider';
 
 export type EmptyStateType = 'search' | 'data' | 'error' | 'filter' | 'default';
@@ -54,14 +53,20 @@ export function EmptyState({
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col sm:flex-row gap-3">
           {actionLabel && onAction && (
-            <Button onClick={onAction} variant="primary">
+            <button
+              onClick={onAction}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
               {actionLabel}
-            </Button>
+            </button>
           )}
           {secondaryActionLabel && onSecondaryAction && (
-            <Button onClick={onSecondaryAction} variant="outline">
+            <button
+              onClick={onSecondaryAction}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
               {secondaryActionLabel}
-            </Button>
+            </button>
           )}
         </div>
       )}

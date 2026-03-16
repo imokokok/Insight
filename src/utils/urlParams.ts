@@ -92,19 +92,3 @@ export function updateUrlParams(config: QueryConfig): void {
 
   window.history.replaceState({}, '', newUrl);
 }
-
-export function isValidOracle(value: string): value is OracleProvider {
-  return VALID_ORACLES.includes(value as OracleProvider);
-}
-
-export function isValidChain(value: string): value is Blockchain {
-  return VALID_CHAINS.includes(value as Blockchain);
-}
-
-export function isValidSymbol(value: string): boolean {
-  return VALID_SYMBOLS.includes(value.toUpperCase());
-}
-
-export function isValidTimeRange(value: number): boolean {
-  return VALID_TIME_RANGES.includes(value);
-}

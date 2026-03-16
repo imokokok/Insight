@@ -24,11 +24,6 @@ export {
 } from './useTellorData';
 
 export { usePriceData, useHistoricalPrices } from './useOracleData';
-export { useOracleDataQuery } from './useOracleDataQuery';
-export type {
-  UseOracleDataQueryOptions,
-  UseOracleDataQueryReturn,
-} from './useOracleDataQuery';
 export { useRefresh, useExport, useLocalStorage } from './useUtils';
 export type { ExportOptions, ExportFormat, DataType } from './useUtils';
 export { useOraclePrices } from './useOraclePrices';
@@ -111,15 +106,6 @@ export type {
   UseUMARealtimeOptions,
   UseUMARealtimeReturn,
 } from './useUMARealtime';
-
-// Chart Hooks
-export { useChartData, useBatchChartData } from './useChartData';
-export type {
-  UseChartDataOptions,
-  UseChartDataReturn,
-  UseBatchChartDataOptions,
-  UseBatchChartDataReturn,
-} from './useChartData';
 
 export { useChartZoom, useBrushZoom } from './useChartZoom';
 export type {

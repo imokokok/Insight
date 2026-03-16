@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConnectionStatus } from '@/stores/realtimeStore';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
-import type { RealtimePriceData } from '@/hooks/useRealtimePrice';
+import type { RealtimePriceData } from '@/hooks/realtime/useRealtimePrice';
 
 export interface NotificationData {
   id: string;
