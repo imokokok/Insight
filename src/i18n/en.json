@@ -2281,11 +2281,13 @@
     "platform": "Optimistic Oracle Data Platform",
     "menu": {
       "marketData": "Market Data",
+      "networkHealth": "Network Health",
       "disputeResolution": "Dispute Resolution",
       "validatorAnalytics": "Validator Analytics",
       "staking": "Staking",
       "riskAssessment": "Risk Assessment",
-      "ecosystem": "Ecosystem"
+      "ecosystem": "Ecosystem",
+      "crossOracleComparison": "Cross-Oracle Comparison"
     },
     "pageTitles": {
       "market": "Market Data Overview",
