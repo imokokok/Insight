@@ -254,7 +254,7 @@ export default function MarketOverviewPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-8 border border-gray-200 bg-white">
-          <div className="py-4 border-b border-gray-100 md:border-b-0">
+          <div className="py-4 pl-4 border-b border-gray-100 md:border-b-0">
             <div className="flex items-center justify-between mb-2">
               <DollarSign className="w-4 h-4 text-blue-600" />
               <span
