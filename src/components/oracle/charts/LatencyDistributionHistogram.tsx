@@ -220,24 +220,24 @@ export function LatencyDistributionHistogram({
   }, []);
 
   const viewOptions: { value: ViewMode; label: string; icon: string }[] = [
-    { value: 'histogram', label: t('latencyDistribution.views.histogram') || '直方图', icon: '📊' },
-    { value: 'cdf', label: t('latencyDistribution.views.cdf') || 'CDF', icon: '📈' },
-    { value: 'trend', label: t('latencyDistribution.views.trend') || '趋势', icon: '📉' },
+    { value: 'histogram', label: '直方图', icon: '📊' },
+    { value: 'cdf', label: 'CDF', icon: '📈' },
+    { value: 'trend', label: '趋势', icon: '📉' },
   ];
 
   const formatTooltip = (bin: HistogramBin) => {
     return (
       <div className="bg-white border border-gray-200 p-3" style={{ boxShadow: shadowColors.tooltip }}>
         <p className="text-xs text-gray-600 font-medium mb-2">
-          {t('latencyDistribution.range')}: {bin.range}ms
+          范围: {bin.range}ms
         </p>
         <div className="space-y-1">
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('latencyDistribution.count')}:</span>
+            <span className="text-gray-500">数量:</span>
             <span className="text-gray-900 font-mono">{bin.count}</span>
           </div>
           <div className="flex justify-between gap-4 text-xs">
-            <span className="text-gray-500">{t('latencyDistribution.percentage')}:</span>
+            <span className="text-gray-500">百分比:</span>
             <span className="text-gray-900 font-mono">{bin.percentage.toFixed(2)}%</span>
           </div>
         </div>
@@ -246,19 +246,19 @@ export function LatencyDistributionHistogram({
   };
 
   const percentileItems = [
-    { label: 'P50', value: stats.p50, color: semanticColors.success.DEFAULT, desc: t('latencyDistribution.p50Desc') },
-    { label: 'P95', value: stats.p95, color: semanticColors.warning.DEFAULT, desc: t('latencyDistribution.p95Desc') },
-    { label: 'P99', value: stats.p99, color: semanticColors.danger.DEFAULT, desc: t('latencyDistribution.p99Desc') },
+    { label: 'P50', value: stats.p50, color: semanticColors.success.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p50Desc') },
+    { label: 'P95', value: stats.p95, color: semanticColors.warning.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p95Desc') },
+    { label: 'P99', value: stats.p99, color: semanticColors.danger.DEFAULT, desc: t('crossOracle.latencyDistribution.tooltip.p99Desc') },
   ];
 
   const statItems = [
-    { label: t('latencyDistribution.avg'), value: `${stats.avg}ms`, icon: '📊' },
-    { label: t('latencyDistribution.median'), value: `${stats.median}ms`, icon: '📍' },
-    { label: t('latencyDistribution.min'), value: `${stats.min}ms`, icon: '⬇️' },
-    { label: t('latencyDistribution.max'), value: `${stats.max}ms`, icon: '⬆️' },
-    { label: t('latencyDistribution.stdDev'), value: `${stats.stdDev}ms`, icon: '📐' },
+    { label: t('crossOracle.latencyDistribution.avgLatency'), value: `${stats.avg}ms`, icon: '📊' },
+    { label: t('crossOracle.latencyDistribution.p50'), value: `${stats.median}ms`, icon: '📍' },
+    { label: t('crossOracle.latencyDistribution.minLatency'), value: `${stats.min}ms`, icon: '⬇️' },
+    { label: t('crossOracle.latencyDistribution.maxLatency'), value: `${stats.max}ms`, icon: '⬆️' },
+    { label: t('crossOracle.latencyDistribution.stdDev'), value: `${stats.stdDev}ms`, icon: '📐' },
     {
-      label: t('latencyDistribution.samples'),
+      label: t('crossOracle.latencyDistribution.samples'),
       value: stats.totalSamples.toLocaleString(),
       icon: '🔢',
     },
@@ -268,7 +268,7 @@ export function LatencyDistributionHistogram({
     return (
       <div className={`bg-white border border-gray-200 p-5 ${className}`}>
         <div className="text-center py-10">
-          <p className="text-gray-500">{t('latencyDistribution.noData')}</p>
+          <p className="text-gray-500">暂无数据</p>
         </div>
       </div>
     );
@@ -279,9 +279,9 @@ export function LatencyDistributionHistogram({
       <div className="bg-white border border-gray-200 p-5">
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900">
-            {t('latencyDistribution.histogramTitle')}
+            {t('crossOracle.latencyDistribution.title')}
           </h4>
-          <p className="text-xs text-gray-500 mt-1">{t('latencyDistribution.histogramDesc')}</p>
+          <p className="text-xs text-gray-500 mt-1">{t('crossOracle.latencyDistribution.subtitle')}</p>
         </div>
 
         <ResponsiveContainer width="100%" height={300}>
@@ -387,9 +387,9 @@ export function LatencyDistributionHistogram({
         {oracleName && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {t('latencyDistribution.title')} - {oracleName}
+              {t('crossOracle.latencyDistribution.title')} - {oracleName}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">{t('latencyDistribution.subtitle')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('crossOracle.latencyDistribution.subtitle')}</p>
           </div>
         )}
 

@@ -286,19 +286,19 @@ export function MovingAverageChart({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>当前价格</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.info }}>${stats.currentPrice.toFixed(2)}</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.info.DEFAULT }}>${stats.currentPrice.toFixed(2)}</p>
               </div>
               <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA5</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.warning }}>${stats.sma5.toFixed(2)}</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.warning.DEFAULT }}>${stats.sma5.toFixed(2)}</p>
               </div>
               <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA10</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.success }}>${stats.sma10.toFixed(2)}</p>
+                <p className="text-xl font-bold" style={{ color: semanticColors.success.DEFAULT }}>${stats.sma10.toFixed(2)}</p>
               </div>
               <div className="border p-4" style={{ backgroundColor: baseColors.gray[100], borderColor: baseColors.gray[200] }}>
                 <p className="text-xs mb-1" style={{ color: baseColors.gray[600] }}>MA20</p>
-                <p className="text-xl font-bold" style={{ color: semanticColors.purple }}>${stats.sma20.toFixed(2)}</p>
+                <p className="text-xl font-bold" style={{ color: baseColors.primary[600] }}>${stats.sma20.toFixed(2)}</p>
               </div>
             </div>
           )}
@@ -309,9 +309,9 @@ export function MovingAverageChart({
                 className="px-4 py-2 text-sm font-medium"
                 style={
                   stats.trend === 'bullish'
-                    ? { backgroundColor: semanticColors.success + '20', color: semanticColors.success }
+                    ? { backgroundColor: semanticColors.success.light, color: semanticColors.success.DEFAULT }
                     : stats.trend === 'bearish'
-                      ? { backgroundColor: semanticColors.danger + '20', color: semanticColors.danger }
+                      ? { backgroundColor: semanticColors.danger.light, color: semanticColors.danger.DEFAULT }
                       : { backgroundColor: baseColors.gray[100], color: baseColors.gray[700] }
                 }
               >
@@ -456,9 +456,9 @@ export function MovingAverageChart({
             </div>
           )}
 
-          <div className="p-4" style={{ backgroundColor: semanticColors.info + '10' }}>
-            <h4 className="text-sm font-medium mb-2" style={{ color: semanticColors.info }}>指标说明</h4>
-            <ul className="text-sm space-y-1" style={{ color: semanticColors.info }}>
+          <div className="p-4" style={{ backgroundColor: semanticColors.info.light }}>
+            <h4 className="text-sm font-medium mb-2" style={{ color: semanticColors.info.DEFAULT }}>指标说明</h4>
+            <ul className="text-sm space-y-1" style={{ color: semanticColors.info.DEFAULT }}>
               <li>
                 • <strong>SMA (简单移动平均线)</strong>: n周期内价格的算术平均值，用于平滑价格波动
               </li>

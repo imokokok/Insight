@@ -24,7 +24,7 @@ interface BollingerDataPoint {
   percentB: number;
 }
 
-interface BollingerBandsProps {
+export interface BollingerBandsProps {
   data: Array<{
     timestamp: number;
     price: number;

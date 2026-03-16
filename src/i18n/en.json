@@ -1255,6 +1255,8 @@
     "menu": {
       "marketData": "Market Data",
       "networkHealth": "Network Health",
+      "nodes": "Nodes",
+      "dataFeeds": "Data Feeds",
       "nodeAnalytics": "Node Analytics",
       "crossOracleComparison": "Cross-Oracle Comparison",
       "ecosystem": "Ecosystem",
@@ -1404,7 +1406,43 @@
       "earningsDesc": "30-day earnings and APR trends",
       "avgDaily": "Avg Daily",
       "avgApr": "Avg APR",
-      "lastUpdated": "Last updated"
+      "lastUpdated": "Last updated",
+      "stakingAmount": "Staking Amount",
+      "totalStaked": "Total Staked",
+      "nodeOperators": "Node Operators",
+      "performance": "Performance"
+    },
+    "dataFeeds": {
+      "title": "Data Feeds",
+      "totalDataFeeds": "Total Data Feeds",
+      "activeFeeds": "Active Feeds",
+      "categories": "Categories",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gaming": "Gaming",
+      "derivatives": "Derivatives",
+      "synthetics": "Synthetics",
+      "commodities": "Commodities",
+      "forex": "Forex",
+      "crypto": "Crypto",
+      "indices": "Indices",
+      "recentlyAdded": "Recently Added",
+      "mostPopular": "Most Popular",
+      "feedName": "Feed Name",
+      "category": "Category",
+      "updateFrequency": "Update Frequency",
+      "deviationThreshold": "Deviation Threshold",
+      "status": "Status",
+      "active": "Active",
+      "paused": "Paused",
+      "deprecated": "Deprecated",
+      "usageStats": "Usage Statistics",
+      "totalRequests": "Total Requests",
+      "avgDailyRequests": "Avg Daily Requests",
+      "feedsByCategory": "Feeds by Category",
+      "feedPerformance": "Feed Performance",
+      "reliability": "Reliability",
+      "latency": "Latency"
     },
     "ecosystem": {
       "title": "Ecosystem",
@@ -1578,9 +1616,10 @@
     "tabs": {
       "market": "Market Data",
       "network": "Network Health",
-      "transparency": "Data Transparency",
-      "coverage": "Cross-Chain Coverage",
-      "verification": "Data Source Verification"
+      "dataSources": "Data Sources",
+      "crossChain": "Cross-Chain",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment"
     },
     "stats": {
       "activeSources": "Active Sources",
@@ -1635,6 +1674,23 @@
       "source": "Source",
       "method": "Method",
       "validators": "Validators"
+    },
+    "dataSources": {
+      "title": "Data Sources Management"
+    },
+    "ecosystem": {
+      "title": "Ecosystem",
+      "description": "DIA integrations with major DeFi protocols"
+    },
+    "risk": {
+      "dataSourceConcentration": "Data Source Concentration",
+      "dataSourceConcentrationDesc": "Data sources are well distributed, reducing single point of failure risk",
+      "smartContractRisk": "Smart Contract Risk",
+      "smartContractRiskDesc": "Contracts are audited, low risk",
+      "oracleManipulation": "Oracle Manipulation Risk",
+      "oracleManipulationDesc": "Multi-source verification mechanism effectively prevents price manipulation",
+      "networkDowntime": "Network Downtime Risk",
+      "networkDowntimeDesc": "High availability architecture with 99.8% uptime"
     }
   },
   "tellor": {
@@ -1648,7 +1704,9 @@
       "network": "Network Health",
       "priceStream": "Price Stream",
       "marketDepth": "Market Depth",
-      "multiChain": "Multi-Chain Aggregation"
+      "multiChain": "Multi-Chain Aggregation",
+      "reporters": "Reporters",
+      "risk": "Risk Assessment"
     },
     "stats": {
       "activeNodes": "Active Nodes",
@@ -1692,6 +1750,44 @@
       "price": "Price",
       "latency": "Latency",
       "lastUpdate": "Last Update"
+    },
+    "reporters": {
+      "totalReporters": "Total Reporters",
+      "active": "Active",
+      "totalStaked": "Total Staked",
+      "avg": "Avg",
+      "reports24h": "24h Reports",
+      "avgRewards": "Avg Rewards",
+      "activityRate": "Activity Rate",
+      "stakeDistribution": "Stake Distribution",
+      "activityTrend": "Activity Trend",
+      "topReporters": "Top Reporters",
+      "address": "Address",
+      "staked": "Staked",
+      "reports": "Reports",
+      "successRate": "Success Rate",
+      "rewards": "Rewards",
+      "status": "Status",
+      "lastReport": "Last Report"
+    },
+    "risk": {
+      "overallLevel": "Overall Risk Level",
+      "basedOnMetrics": "Based on multi-dimensional metrics",
+      "dataQualityScore": "Data Quality Score",
+      "priceDeviation": "Price Deviation",
+      "current": "Current",
+      "avg24h": "24h Average",
+      "max24h": "24h Max",
+      "riskTrend": "Risk Trend",
+      "stakingRisk": "Staking Risk",
+      "concentrationRisk": "Concentration Risk",
+      "slashRisk": "Slash Risk",
+      "rewardStability": "Reward Stability",
+      "networkRisk": "Network Risk",
+      "uptimeRisk": "Uptime Risk",
+      "latencyRisk": "Latency Risk",
+      "updateFrequencyRisk": "Update Frequency Risk",
+      "alerts": "Risk Alerts"
     }
   },
   "bandProtocol": {
@@ -1710,16 +1806,18 @@
     "menu": {
       "marketData": "Market Data",
       "networkHealth": "Network Health",
-      "validatorAnalytics": "Validator Analytics",
+      "crossChain": "Cross-Chain Data",
       "ecosystem": "Ecosystem",
-      "riskAssessment": "Risk Assessment"
+      "riskAssessment": "Risk Assessment",
+      "crossOracle": "Cross-Oracle Compare"
     },
     "pageTitles": {
       "market": "Market Data Overview",
       "network": "Network Health Monitor",
-      "validators": "Validator Analytics",
+      "crossChain": "Cross-Chain Data Analysis",
       "ecosystem": "Ecosystem Integrations",
-      "risk": "Risk Assessment Dashboard"
+      "risk": "Risk Assessment Dashboard",
+      "crossOracle": "Cross-Oracle Comparison"
     },
     "timeRange": {
       "1H": "1H",
@@ -1795,13 +1893,67 @@
     "ecosystem": {
       "title": "Ecosystem",
       "supportedBlockchains": "Supported Blockchains",
-      "defiIntegrations": "DeFi Protocol Integrations"
+      "defiIntegrations": "DeFi Protocol Integrations",
+      "cosmosSdkVersion": "Cosmos SDK Version",
+      "ibcConnections": "IBC Connections",
+      "totalIBCTVL": "IBC Total TVL",
+      "ibcVolume24h": "IBC 24h Volume",
+      "chainName": "Chain Name",
+      "chainId": "Chain ID",
+      "channelId": "Channel ID",
+      "tvl": "TVL",
+      "volume24h": "24h Volume",
+      "status": "Status",
+      "bandInCosmos": "Band in Cosmos Ecosystem",
+      "keyFeatures": "Key Features",
+      "feature1": "Built on Cosmos SDK for fast finality and high throughput",
+      "feature2": "Native IBC cross-chain communication protocol support",
+      "feature3": "Tendermint consensus with 2.8s block time",
+      "feature4": "70+ decentralized validators securing the network",
+      "integrations": "Integrations",
+      "dApps": "Integrated dApps",
+      "blockchains": "Blockchains",
+      "dataFeeds": "Data Feeds",
+      "tvlSecured": "TVL Secured"
     },
     "riskAssessment": {
       "title": "Risk Assessment",
       "validatorConcentration": "Validator Concentration",
       "singlePointOfFailure": "Single Point of Failure",
-      "dataManipulation": "Data Manipulation Risk"
+      "dataManipulation": "Data Manipulation Risk",
+      "stakingConcentration": "Staking Concentration",
+      "slashRisk": "Slash Risk",
+      "downtimeRisk": "Downtime Risk",
+      "crossChainRisk": "Cross-Chain Risk",
+      "overallRisk": "Overall Risk",
+      "riskDetails": "Risk Details",
+      "validatorConcentrationDetail": "Validator Concentration Risk",
+      "stakingConcentrationDetail": "Staking Concentration Risk",
+      "slashRiskDetail": "Slash Risk Details",
+      "crossChainRiskDetail": "Cross-Chain Risk Details",
+      "mitigationStrategies": "Mitigation Strategies",
+      "decentralization": "Decentralization",
+      "slashProtection": "Slash Protection",
+      "crossChainSecurity": "Cross-Chain Security",
+      "emergencyResponse": "Emergency Response"
+    },
+    "crossChain": {
+      "title": "Cross-Chain Data",
+      "totalRequests24h": "24h Total Requests",
+      "totalRequests7d": "7d Total Requests",
+      "totalRequests30d": "30d Total Requests",
+      "supportedChains": "Supported Chains",
+      "chainDataRequests": "Chain Data Request Stats",
+      "chainName": "Chain Name",
+      "requests24h": "24h Requests",
+      "requests7d": "7d Requests",
+      "requests30d": "30d Requests",
+      "avgGasCost": "Avg Gas Cost",
+      "supportedSymbols": "Supported Symbols",
+      "ibcInfo": "IBC Cross-Chain Info",
+      "ibcTransfers": "IBC Transfers",
+      "ibcChannels": "IBC Channels",
+      "avgLatency": "Avg Latency"
     },
     "refresh": "Refresh",
     "export": "Export",
@@ -1826,11 +1978,11 @@
     "platform": "Optimistic Oracle Data Platform",
     "menu": {
       "marketData": "Market Data",
-      "networkHealth": "Network Health",
       "disputeResolution": "Dispute Resolution",
       "validatorAnalytics": "Validator Analytics",
-      "ecosystem": "Ecosystem",
-      "riskAssessment": "Risk Assessment"
+      "staking": "Staking",
+      "riskAssessment": "Risk Assessment",
+      "ecosystem": "Ecosystem"
     },
     "pageTitles": {
       "market": "Market Data Overview",
@@ -2109,9 +2261,11 @@
       "networkUptime": "Network Uptime"
     },
     "tabs": {
-      "overview": "Overview",
+      "market": "Market Data",
+      "network": "Network Health",
       "providers": "Data Providers",
-      "feeds": "Data Feeds"
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment"
     },
     "priceChart": "Price Chart",
     "quickStats": "Quick Stats",
@@ -2120,7 +2274,27 @@
       "normal": "Normal",
       "warning": "Warning"
     },
-    "dataSources": "Data Sources"
+    "dataSources": "Data Sources",
+    "providers": {
+      "title": "Data Providers",
+      "dataSources": "Data Sources",
+      "activeSources": "Active Sources",
+      "updateFrequency": "Update Frequency",
+      "avgUpdateTime": "Average Update Time",
+      "dataQuality": "Data Quality",
+      "accuracyRate": "Accuracy Rate",
+      "sourceList": "Source List"
+    },
+    "risk": {
+      "title": "Risk Assessment",
+      "centralization": "Centralization Risk",
+      "liquidity": "Liquidity Risk",
+      "technical": "Technical Risk",
+      "overall": "Overall Risk"
+    },
+    "ecosystem": {
+      "title": "Ecosystem"
+    }
   },
   "pythNetwork": {
     "title": "Pyth",
@@ -2284,6 +2458,43 @@
       "documentation": "Documentation"
     }
   },
+  "pyth": {
+    "title": "Pyth Network",
+    "subtitle": "High-frequency financial data oracle",
+    "menu": {
+      "marketData": "Market Data",
+      "networkHealth": "Network Health",
+      "publishers": "Publishers",
+      "priceFeeds": "Price Feeds"
+    },
+    "stats": {
+      "updateFrequency": "Update Frequency",
+      "publisherCount": "Publishers",
+      "crossChainSupport": "Cross-chain Support",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
+    },
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "publishers": {
+      "title": "Data Publishers",
+      "stake": "Stake",
+      "accuracy": "Accuracy"
+    },
+    "priceFeeds": {
+      "title": "Price Feeds",
+      "priceFeeds": "price feeds",
+      "totalDescription": "Pyth provides {count}+ price feeds across crypto, equities, commodities, and forex markets, updated every second.",
+      "categories": {
+        "crypto": "Crypto",
+        "equities": "Equities",
+        "commodities": "Commodities",
+        "forex": "Forex"
+      }
+    }
+  },
   "api3": {
     "title": "API3",
     "subtitle": "First-party oracle network enabling decentralized API connectivity",
@@ -2296,6 +2507,16 @@
       "firstPartyOracles": "First-Party Oracles",
       "ecosystem": "Ecosystem",
       "riskAssessment": "Risk Assessment"
+    },
+    "tabs": {
+      "market": "Market Data",
+      "network": "Network Health",
+      "airnode": "Airnode Deployment",
+      "dapi": "dAPI Services",
+      "staking": "Staking & Coverage",
+      "advantages": "Core Advantages",
+      "advanced": "Technical Analysis",
+      "ecosystem": "Ecosystem"
     },
     "firstPartyOracle": {
       "title": "First-Party Oracle Advantages Comparison",
@@ -4645,7 +4866,8 @@
       "network": "Network Health",
       "scuttlebutt": "Scuttlebutt Security",
       "makerdao": "MakerDAO Integration",
-      "validators": "Validators"
+      "validators": "Validators",
+      "risk": "Risk Assessment"
     },
     "loading": "Loading Chronicle data...",
     "error": {
@@ -4691,6 +4913,31 @@
       "responseTime": "Response Time",
       "staked": "Staked",
       "status": "Status"
+    },
+    "risk": {
+      "overviewTitle": "Risk Assessment Overview",
+      "overviewDescription": "Comprehensive risk analysis for Chronicle oracle network",
+      "overallRiskScore": "Overall Risk Score",
+      "dataQuality": "Data Quality",
+      "dataQualityDesc": "Accuracy and reliability of price data feeds",
+      "validatorConcentration": "Validator Concentration",
+      "validatorConcentrationDesc": "Distribution of validation power across network",
+      "priceDeviation": "Price Deviation",
+      "priceDeviationDesc": "Price deviation from market reference",
+      "systemStability": "System Stability",
+      "systemStabilityDesc": "Network uptime and operational stability",
+      "auditScore": "Security Audit Score",
+      "auditScoreDesc": "Third-party security audit results",
+      "incidentSummary": "Incident Summary",
+      "incidents30d": "Incidents (30d)",
+      "lastIncident": "Last Incident",
+      "riskFactors": "Risk Factors",
+      "factor1Title": "Decentralized Validation",
+      "factor1Desc": "Multiple independent validators ensure no single point of failure",
+      "factor2Title": "Scuttlebutt Consensus",
+      "factor2Desc": "Proprietary consensus mechanism provides high security guarantees",
+      "factor3Title": "MakerDAO Dependency",
+      "factor3Desc": "Heavy reliance on MakerDAO ecosystem for demand"
     }
   },
   "winklink": {

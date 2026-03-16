@@ -28,10 +28,9 @@ import { DapiPriceDeviationMonitor } from '@/components/oracle/common/DapiPriceD
 import { DataSourceTraceabilityPanel } from '@/components/oracle/panels/DataSourceTraceabilityPanel';
 import { CoveragePoolTimeline } from '@/components/oracle/common/CoveragePoolTimeline';
 import { GasFeeComparison } from '@/components/oracle/common/GasFeeComparison';
-import { ATRIndicator } from '@/components/oracle/indicators/ATRIndicator';
-import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
 import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
+import { EcosystemPanel } from '@/components/oracle/panels/EcosystemPanel';
+import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
 
 export default function API3Page() {
   const { t } = useI18n();
@@ -172,11 +171,6 @@ export default function API3Page() {
     };
   }, [airnodeStats, firstParty]);
 
-  const ohlcPrices = useMemo(() => {
-    if (!ohlc || ohlc.length === 0) return [];
-    return [{ oracle: OracleProvider.API3, prices: ohlc }];
-  }, [ohlc]);
-
   const qualityHistoryData = useMemo(() => {
     if (!qualityHistory || qualityHistory.length === 0) return [];
     return [{ oracle: OracleProvider.API3, data: qualityHistory }];
@@ -308,7 +302,16 @@ export default function API3Page() {
             <AirnodeDeploymentPanel data={airnodeData.deployments} />
           )}
 
-          {activeTab === 'coverage' && staking && (
+          {activeTab === 'dapi' && dapiCoverage && (
+            <div className="space-y-6">
+              <DapiCoveragePanel data={dapiCoverage} />
+              {sourceTrace.length > 0 && (
+                <DataSourceTraceabilityPanel data={sourceTrace} />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'staking' && staking && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CoveragePoolPanel data={staking.coveragePool} />
               <StakingMetricsPanel data={staking} />
@@ -324,33 +327,28 @@ export default function API3Page() {
             <FirstPartyOracleAdvantages data={firstParty.advantages} />
           )}
 
-          {activeTab === 'airnode' && dapiCoverage && (
-            <div className="mt-6">
-              <DapiCoveragePanel data={dapiCoverage} />
-            </div>
-          )}
-
-          {activeTab === 'airnode' && sourceTrace.length > 0 && (
-            <div className="mt-6">
-              <DataSourceTraceabilityPanel data={sourceTrace} />
-            </div>
-          )}
-
           {activeTab === 'advanced' && (
             <div className="space-y-6">
               {gasFees.length > 0 && <GasFeeComparison data={gasFees} />}
 
-              {ohlcPrices.length > 0 && (
+              {ohlc && ohlc.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ATRIndicator data={ohlcPrices} />
-                  <BollingerBands data={ohlcPrices} />
+                  <BollingerBands data={ohlc.filter(d => d.timestamp && d.high && d.low && d.close).map(d => ({ 
+                    timestamp: d.timestamp!, 
+                    price: d.price, 
+                    high: d.high!, 
+                    low: d.low!, 
+                    close: d.close! 
+                  }))} />
                 </div>
               )}
 
               {qualityHistoryData.length > 0 && <DataQualityTrend data={qualityHistoryData} />}
-
-              <CrossOracleComparison />
             </div>
+          )}
+
+          {activeTab === 'ecosystem' && (
+            <EcosystemPanel />
           )}
         </div>
       </main>

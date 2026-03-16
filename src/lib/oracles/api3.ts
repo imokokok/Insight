@@ -1,7 +1,7 @@
 import { BaseOracleClient, OracleClientConfig } from './base';
 import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
-import { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
+import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
 import { PriceDataPoint } from '@/lib/indicators';
 
@@ -591,60 +591,46 @@ export class API3Client extends BaseOracleClient {
   async getGasFeeData(): Promise<GasFeeData[]> {
     return [
       {
-        oracle: OracleProvider.API3,
         chain: 'Ethereum',
-        updateCost: 0.85,
-        updateFrequency: 12,
-        avgGasPrice: 25.5,
-        lastUpdate: Date.now(),
+        chainId: 1,
+        updateFee: 0.85,
+        verificationFee: 0.12,
+        currency: 'USD',
       },
       {
-        oracle: OracleProvider.API3,
         chain: 'Arbitrum',
-        updateCost: 0.12,
-        updateFrequency: 12,
-        avgGasPrice: 0.15,
-        lastUpdate: Date.now(),
+        chainId: 42161,
+        updateFee: 0.12,
+        verificationFee: 0.02,
+        currency: 'USD',
       },
       {
-        oracle: OracleProvider.API3,
         chain: 'Polygon',
-        updateCost: 0.05,
-        updateFrequency: 12,
-        avgGasPrice: 85.2,
-        lastUpdate: Date.now(),
+        chainId: 137,
+        updateFee: 0.05,
+        verificationFee: 0.01,
+        currency: 'USD',
       },
       {
-        oracle: OracleProvider.CHAINLINK,
-        chain: 'Ethereum',
-        updateCost: 1.25,
-        updateFrequency: 24,
-        avgGasPrice: 25.5,
-        lastUpdate: Date.now(),
+        chain: 'Optimism',
+        chainId: 10,
+        updateFee: 0.08,
+        verificationFee: 0.015,
+        currency: 'USD',
       },
       {
-        oracle: OracleProvider.CHAINLINK,
-        chain: 'Arbitrum',
-        updateCost: 0.18,
-        updateFrequency: 24,
-        avgGasPrice: 0.15,
-        lastUpdate: Date.now(),
+        chain: 'Base',
+        chainId: 8453,
+        updateFee: 0.06,
+        verificationFee: 0.012,
+        currency: 'USD',
       },
       {
-        oracle: OracleProvider.PYTH,
-        chain: 'Ethereum',
-        updateCost: 0.45,
-        updateFrequency: 60,
-        avgGasPrice: 25.5,
-        lastUpdate: Date.now(),
-      },
-      {
-        oracle: OracleProvider.PYTH,
-        chain: 'Arbitrum',
-        updateCost: 0.08,
-        updateFrequency: 60,
-        avgGasPrice: 0.15,
-        lastUpdate: Date.now(),
+        chain: 'Avalanche',
+        chainId: 43114,
+        updateFee: 0.04,
+        verificationFee: 0.008,
+        currency: 'USD',
       },
     ];
   }

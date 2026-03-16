@@ -15,7 +15,7 @@ import { chainColors, chartColors, semanticColors, baseColors, animationColors }
 import { DashboardCard } from './DashboardCard';
 import { useI18n } from '@/lib/i18n/provider';
 
-interface GasFeeData {
+export interface GasFeeData {
   chain: string;
   chainId: number;
   updateFee: number; // USD

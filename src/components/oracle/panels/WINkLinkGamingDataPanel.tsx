@@ -1,11 +1,14 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n/provider';
-import { GamingData, GamingDataSource, RandomNumberService } from '@/lib/oracles/winklink';
+import { GamingData, GamingDataSource, RandomNumberService, VRFUseCase, GamingCategoryDistribution } from '@/lib/oracles/winklink';
 import { Gamepad2, Dices, Shield, Clock, Users, DollarSign, Zap } from 'lucide-react';
 
 interface WINkLinkGamingDataPanelProps {
-  data: GamingData;
+  data: GamingData & {
+    vrfUseCases?: VRFUseCase[];
+    categoryDistribution?: GamingCategoryDistribution[];
+  };
 }
 
 export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) {
@@ -21,6 +24,8 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
         return 'bg-purple-100 text-purple-700';
       case 'lottery':
         return 'bg-green-100 text-green-700';
+      case 'defi':
+        return 'bg-indigo-100 text-indigo-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -205,6 +210,63 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
           ))}
         </div>
       </div>
+
+      {/* VRF Use Cases */}
+      {data.vrfUseCases && (
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.vrfUseCases')}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.vrfUseCases.map((useCase, index) => (
+              <div key={index} className="py-4 border-b border-gray-100 last:border-0">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-gray-900">{useCase.name}</h4>
+                  <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getCategoryColor(useCase.category)}`}>
+                    {useCase.category}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mb-3">{useCase.description}</p>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">{t('winklink.gaming.usageCount')}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {useCase.usageCount >= 1e6 ? `${(useCase.usageCount / 1e6).toFixed(1)}M` : useCase.usageCount.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-sm text-gray-600">{t('winklink.gaming.reliability')}</span>
+                  <span className="text-sm font-medium text-green-600">{useCase.reliability}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Category Distribution */}
+      {data.categoryDistribution && (
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.categoryDistribution')}</h3>
+          <div className="space-y-3">
+            {data.categoryDistribution.map((category, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="w-24 text-sm text-gray-600 capitalize">{category.category}</div>
+                <div className="flex-1">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${getCategoryColor(category.category).replace('text-', 'bg-').replace('100', '500')}`}
+                      style={{ width: `${category.percentage}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="w-20 text-right text-sm font-medium text-gray-900">{category.percentage}%</div>
+                <div className="w-24 text-right text-sm text-gray-500">{category.count} games</div>
+                <div className="w-28 text-right text-sm font-medium text-gray-900">
+                  ${(category.volume24h / 1e6).toFixed(1)}M
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

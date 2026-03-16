@@ -55,8 +55,7 @@ export { PriceAccuracyStats } from './PriceAccuracyStats';
 export { PriceDeviationMonitor } from './PriceDeviationMonitor';
 export { ExtremeMarketAnalysis } from './ExtremeMarketAnalysis';
 export { StakingCalculator } from './StakingCalculator';
-export { GasFeeComparison } from './GasFeeComparison';
-export type { GasFeeComparisonProps, GasFeeData } from './GasFeeComparison';
+export { GasFeeComparison, type GasFeeData } from './GasFeeComparison';
 export { LatencyAnalysis } from './LatencyAnalysis';
 export type {
   LatencyDataPoint,

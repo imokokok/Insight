@@ -1,11 +1,18 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n/provider';
-import { TRONEcosystem, TRONDApp } from '@/lib/oracles/winklink';
-import { Globe, Zap, Users, Activity, Gamepad2, Coins, Image, MessageSquare } from 'lucide-react';
+import { TRONEcosystem, TRONDApp, TRONNetworkGrowth } from '@/lib/oracles/winklink';
+import { Globe, Zap, Users, Activity, Gamepad2, Coins, Image, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface WINkLinkTRONEcosystemPanelProps {
-  data: TRONEcosystem;
+  data: TRONEcosystem & {
+    networkGrowth?: TRONNetworkGrowth[];
+    marketShare?: {
+      oracleUsage: number;
+      totalDapps: number;
+      integratedDapps: number;
+    };
+  };
 }
 
 export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelProps) {
@@ -168,6 +175,73 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
           ))}
         </div>
       </div>
+
+      {/* Network Growth */}
+      {data.networkGrowth && (
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.networkGrowth')}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.month')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.transactions')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.accounts')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.tvl')}</th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('winklink.tron.growth')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.networkGrowth.map((month, index) => {
+                  const prevMonth = index > 0 ? data.networkGrowth![index - 1] : null;
+                  const tvlGrowth = prevMonth ? ((month.tvl - prevMonth.tvl) / prevMonth.tvl * 100).toFixed(1) : '0';
+                  const isPositive = parseFloat(tvlGrowth) >= 0;
+                  return (
+                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-2 px-3 text-sm text-gray-900">{month.month}</td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatNumber(month.transactions)}</td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatNumber(month.accounts)}</td>
+                      <td className="py-2 px-3 text-sm text-right text-gray-900">{formatCurrency(month.tvl)}</td>
+                      <td className="py-2 px-3 text-center">
+                        {index > 0 && (
+                          <span className={`inline-flex items-center gap-1 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {isPositive ? '+' : ''}{tvlGrowth}%
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Market Share */}
+      {data.marketShare && (
+        <div className="py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.marketShare')}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center py-4">
+              <p className="text-3xl font-bold text-pink-600">{data.marketShare.oracleUsage}%</p>
+              <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.oracleUsage')}</p>
+              <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.ofTRONDApps')}</p>
+            </div>
+            <div className="text-center py-4">
+              <p className="text-3xl font-bold text-blue-600">{data.marketShare.integratedDapps}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integratedDapps')}</p>
+              <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.outOf')} {data.marketShare.totalDapps}</p>
+            </div>
+            <div className="text-center py-4">
+              <p className="text-3xl font-bold text-green-600">{data.integrationCoverage}%</p>
+              <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integrationCoverage')}</p>
+              <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.dataCoverage')}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

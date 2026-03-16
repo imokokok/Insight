@@ -1267,6 +1267,8 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
+      "nodes": "节点",
+      "dataFeeds": "数据流",
       "nodeAnalytics": "节点分析",
       "crossOracleComparison": "跨预言机对比",
       "ecosystem": "生态系统",
@@ -1416,7 +1418,43 @@
       "earningsDesc": "30天收益和 APR 趋势",
       "avgDaily": "日均收益",
       "avgApr": "平均 APR",
-      "lastUpdated": "最后更新"
+      "lastUpdated": "最后更新",
+      "stakingAmount": "质押数量",
+      "totalStaked": "总质押量",
+      "nodeOperators": "节点运营者",
+      "performance": "性能"
+    },
+    "dataFeeds": {
+      "title": "数据流",
+      "totalDataFeeds": "数据流总数",
+      "activeFeeds": "活跃数据流",
+      "categories": "分类",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gaming": "游戏",
+      "derivatives": "衍生品",
+      "synthetics": "合成资产",
+      "commodities": "大宗商品",
+      "forex": "外汇",
+      "crypto": "加密货币",
+      "indices": "指数",
+      "recentlyAdded": "最近添加",
+      "mostPopular": "最受欢迎",
+      "feedName": "数据流名称",
+      "category": "分类",
+      "updateFrequency": "更新频率",
+      "deviationThreshold": "偏差阈值",
+      "status": "状态",
+      "active": "活跃",
+      "paused": "暂停",
+      "deprecated": "已弃用",
+      "usageStats": "使用统计",
+      "totalRequests": "总请求数",
+      "avgDailyRequests": "日均请求数",
+      "feedsByCategory": "按分类数据流",
+      "feedPerformance": "数据流性能",
+      "reliability": "可靠性",
+      "latency": "延迟"
     },
     "ecosystem": {
       "title": "生态系统",
@@ -1591,9 +1629,10 @@
     "tabs": {
       "market": "市场数据",
       "network": "网络健康",
-      "transparency": "数据透明度",
-      "coverage": "跨链覆盖",
-      "verification": "数据源验证"
+      "dataSources": "数据源",
+      "crossChain": "跨链覆盖",
+      "ecosystem": "生态系统",
+      "risk": "风险评估"
     },
     "stats": {
       "activeSources": "活跃数据源",
@@ -1648,6 +1687,23 @@
       "source": "数据源",
       "method": "验证方法",
       "validators": "验证节点数"
+    },
+    "dataSources": {
+      "title": "数据源管理"
+    },
+    "ecosystem": {
+      "title": "生态系统",
+      "description": "DIA 与主流 DeFi 协议的集成情况"
+    },
+    "risk": {
+      "dataSourceConcentration": "数据源集中度",
+      "dataSourceConcentrationDesc": "数据源分布相对分散，降低单点故障风险",
+      "smartContractRisk": "智能合约风险",
+      "smartContractRiskDesc": "合约经过审计，风险较低",
+      "oracleManipulation": "预言机操纵风险",
+      "oracleManipulationDesc": "多数据源验证机制有效防止价格操纵",
+      "networkDowntime": "网络停机风险",
+      "networkDowntimeDesc": "高可用架构，99.8% 在线率"
     }
   },
   "tellor": {
@@ -1662,7 +1718,9 @@
       "network": "网络健康",
       "priceStream": "实时价格流",
       "marketDepth": "市场深度",
-      "multiChain": "多链聚合"
+      "multiChain": "多链聚合",
+      "reporters": "报告者",
+      "risk": "风险评估"
     },
     "stats": {
       "activeNodes": "活跃节点",
@@ -1706,6 +1764,44 @@
       "price": "价格",
       "latency": "延迟",
       "lastUpdate": "最后更新"
+    },
+    "reporters": {
+      "totalReporters": "总报告者数",
+      "active": "活跃",
+      "totalStaked": "总质押量",
+      "avg": "平均",
+      "reports24h": "24小时报告数",
+      "avgRewards": "平均奖励",
+      "activityRate": "活跃率",
+      "stakeDistribution": "质押分布",
+      "activityTrend": "活动趋势",
+      "topReporters": "顶级报告者",
+      "address": "地址",
+      "staked": "质押量",
+      "reports": "报告数",
+      "successRate": "成功率",
+      "rewards": "奖励",
+      "status": "状态",
+      "lastReport": "最后报告"
+    },
+    "risk": {
+      "overallLevel": "整体风险等级",
+      "basedOnMetrics": "基于多维度指标评估",
+      "dataQualityScore": "数据质量评分",
+      "priceDeviation": "价格偏差",
+      "current": "当前",
+      "avg24h": "24小时平均",
+      "max24h": "24小时最大",
+      "riskTrend": "风险趋势",
+      "stakingRisk": "质押风险",
+      "concentrationRisk": "集中度风险",
+      "slashRisk": "罚没风险",
+      "rewardStability": "奖励稳定性",
+      "networkRisk": "网络风险",
+      "uptimeRisk": "在线率风险",
+      "latencyRisk": "延迟风险",
+      "updateFrequencyRisk": "更新频率风险",
+      "alerts": "风险预警"
     }
   },
   "bandProtocol": {
@@ -1724,16 +1820,18 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
-      "validatorAnalytics": "验证者分析",
+      "crossChain": "跨链数据",
       "ecosystem": "生态系统",
-      "riskAssessment": "风险评估"
+      "riskAssessment": "风险评估",
+      "crossOracle": "跨预言机对比"
     },
     "pageTitles": {
       "market": "市场数据概览",
       "network": "网络健康监控",
-      "validators": "验证者分析",
+      "crossChain": "跨链数据分析",
       "ecosystem": "生态系统集成",
-      "risk": "风险评估面板"
+      "risk": "风险评估面板",
+      "crossOracle": "跨预言机对比分析"
     },
     "timeRange": {
       "1H": "1小时",
@@ -1809,13 +1907,67 @@
     "ecosystem": {
       "title": "生态系统",
       "supportedBlockchains": "支持的区块链",
-      "defiIntegrations": "DeFi 协议集成"
+      "defiIntegrations": "DeFi 协议集成",
+      "cosmosSdkVersion": "Cosmos SDK 版本",
+      "ibcConnections": "IBC 连接",
+      "totalIBCTVL": "IBC 总锁仓价值",
+      "ibcVolume24h": "IBC 24小时交易量",
+      "chainName": "链名称",
+      "chainId": "链 ID",
+      "channelId": "通道 ID",
+      "tvl": "锁仓价值",
+      "volume24h": "24小时交易量",
+      "status": "状态",
+      "bandInCosmos": "Band 在 Cosmos 生态",
+      "keyFeatures": "核心特性",
+      "feature1": "基于 Cosmos SDK 构建，实现快速最终性和高吞吐量",
+      "feature2": "支持 IBC 跨链通信协议，原生互操作性",
+      "feature3": "Tendermint 共识机制，2.8秒区块时间",
+      "feature4": "70+ 去中心化验证者保障网络安全",
+      "integrations": "生态集成",
+      "dApps": "集成 dApps",
+      "blockchains": "支持区块链",
+      "dataFeeds": "数据喂价",
+      "tvlSecured": "保障 TVL"
     },
     "riskAssessment": {
       "title": "风险评估",
       "validatorConcentration": "验证者集中度",
       "singlePointOfFailure": "单点故障风险",
-      "dataManipulation": "数据操纵风险"
+      "dataManipulation": "数据操纵风险",
+      "stakingConcentration": "质押集中度",
+      "slashRisk": "惩罚风险",
+      "downtimeRisk": "宕机风险",
+      "crossChainRisk": "跨链风险",
+      "overallRisk": "总体风险",
+      "riskDetails": "风险详情",
+      "validatorConcentrationDetail": "验证者集中度风险",
+      "stakingConcentrationDetail": "质押集中度风险",
+      "slashRiskDetail": "惩罚风险详情",
+      "crossChainRiskDetail": "跨链风险详情",
+      "mitigationStrategies": "风险缓解策略",
+      "decentralization": "去中心化",
+      "slashProtection": "惩罚保护",
+      "crossChainSecurity": "跨链安全",
+      "emergencyResponse": "应急响应"
+    },
+    "crossChain": {
+      "title": "跨链数据",
+      "totalRequests24h": "24小时总请求",
+      "totalRequests7d": "7天总请求",
+      "totalRequests30d": "30天总请求",
+      "supportedChains": "支持链数量",
+      "chainDataRequests": "链数据请求统计",
+      "chainName": "链名称",
+      "requests24h": "24小时请求",
+      "requests7d": "7天请求",
+      "requests30d": "30天请求",
+      "avgGasCost": "平均 Gas 成本",
+      "supportedSymbols": "支持代币",
+      "ibcInfo": "IBC 跨链信息",
+      "ibcTransfers": "IBC 转账",
+      "ibcChannels": "IBC 通道",
+      "avgLatency": "平均延迟"
     },
     "refresh": "刷新",
     "export": "导出",
@@ -1840,11 +1992,11 @@
     "platform": "乐观预言机数据平台",
     "menu": {
       "marketData": "市场数据",
-      "networkHealth": "网络健康度",
       "disputeResolution": "争议解决",
       "validatorAnalytics": "验证者分析",
-      "ecosystem": "生态系统",
-      "riskAssessment": "风险评估"
+      "staking": "质押",
+      "riskAssessment": "风险评估",
+      "ecosystem": "生态系统"
     },
     "pageTitles": {
       "market": "市场数据概览",
@@ -2176,14 +2328,11 @@
       "networkUptime": "网络正常运行"
     },
     "tabs": {
-      "overview": "概览",
-      "providers": "数据提供者",
-      "feeds": "数据源",
       "market": "市场数据",
       "network": "网络健康",
+      "providers": "数据提供者",
       "ecosystem": "生态系统",
-      "risk": "风险评估",
-      "crossOracle": "跨预言机对比"
+      "risk": "风险评估"
     },
     "priceChart": "价格图表",
     "quickStats": "快速统计",
@@ -2192,7 +2341,27 @@
       "normal": "正常",
       "warning": "警告"
     },
-    "dataSources": "数据源"
+    "dataSources": "数据源",
+    "providers": {
+      "title": "数据提供者",
+      "dataSources": "数据源",
+      "activeSources": "活跃数据源",
+      "updateFrequency": "更新频率",
+      "avgUpdateTime": "平均更新时间",
+      "dataQuality": "数据质量",
+      "accuracyRate": "准确率",
+      "sourceList": "数据源列表"
+    },
+    "risk": {
+      "title": "风险评估",
+      "centralization": "中心化风险",
+      "liquidity": "流动性风险",
+      "technical": "技术风险",
+      "overall": "综合风险"
+    },
+    "ecosystem": {
+      "title": "生态系统"
+    }
   },
   "pythNetwork": {
     "title": "Pyth",
@@ -2441,6 +2610,43 @@
     "priceTrend": "价格趋势",
     "quickStats": "快速统计"
   },
+  "pyth": {
+    "title": "Pyth Network",
+    "subtitle": "高频金融数据预言机",
+    "menu": {
+      "marketData": "市场数据",
+      "networkHealth": "网络健康",
+      "publishers": "数据发布者",
+      "priceFeeds": "价格源"
+    },
+    "stats": {
+      "updateFrequency": "更新频率",
+      "publisherCount": "发布者数量",
+      "crossChainSupport": "跨链支持",
+      "networkUptime": "网络正常运行时间",
+      "volume24h": "24小时交易量",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
+    },
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "publishers": {
+      "title": "数据发布者",
+      "stake": "质押",
+      "accuracy": "准确率"
+    },
+    "priceFeeds": {
+      "title": "价格源",
+      "priceFeeds": "个价格源",
+      "totalDescription": "Pyth 提供 {count}+ 个价格源，涵盖加密货币、股票、商品和外汇市场，每秒更新。",
+      "categories": {
+        "crypto": "加密货币",
+        "equities": "股票",
+        "commodities": "商品",
+        "forex": "外汇"
+      }
+    }
+  },
   "api3": {
     "title": "API3",
     "subtitle": "第一方预言机网络，实现去中心化 API 连接",
@@ -2456,12 +2662,14 @@
       "riskAssessment": "风险评估"
     },
     "tabs": {
-      "overview": "市场数据",
-      "networkHealth": "网络健康度",
-      "airnodes": "Airnodes",
-      "coveragePool": "保险池",
-      "firstPartyOracles": "第一方预言机",
-      "advanced": "高级"
+      "market": "市场数据",
+      "network": "网络健康",
+      "airnode": "Airnode部署",
+      "dapi": "dAPI服务",
+      "staking": "质押与覆盖",
+      "advantages": "核心优势",
+      "advanced": "技术分析",
+      "ecosystem": "生态系统"
     },
     "firstPartyOracle": {
       "title": "第一方预言机优势对比",
@@ -4846,7 +5054,8 @@
       "network": "网络健康",
       "scuttlebutt": "Scuttlebutt 安全",
       "makerdao": "MakerDAO 集成",
-      "validators": "验证者"
+      "validators": "验证者",
+      "risk": "风险评估"
     },
     "loading": "加载 Chronicle 数据中...",
     "error": {
@@ -4892,6 +5101,31 @@
       "responseTime": "响应时间",
       "staked": "质押",
       "status": "状态"
+    },
+    "risk": {
+      "overviewTitle": "风险评估概览",
+      "overviewDescription": "Chronicle 预言机网络的综合风险分析",
+      "overallRiskScore": "整体风险评分",
+      "dataQuality": "数据质量",
+      "dataQualityDesc": "价格数据喂价的准确性和可靠性",
+      "validatorConcentration": "验证者集中度",
+      "validatorConcentrationDesc": "验证权力在网络中的分布情况",
+      "priceDeviation": "价格偏差",
+      "priceDeviationDesc": "与市场参考价格的偏差程度",
+      "systemStability": "系统稳定性",
+      "systemStabilityDesc": "网络在线时间和运营稳定性",
+      "auditScore": "安全审计评分",
+      "auditScoreDesc": "第三方安全审计结果",
+      "incidentSummary": "事件摘要",
+      "incidents30d": "事件数 (30天)",
+      "lastIncident": "最近事件",
+      "riskFactors": "风险因素",
+      "factor1Title": "去中心化验证",
+      "factor1Desc": "多个独立验证者确保无单点故障",
+      "factor2Title": "Scuttlebutt 共识",
+      "factor2Desc": "专有共识机制提供高安全性保障",
+      "factor3Title": "MakerDAO 依赖",
+      "factor3Desc": "对 MakerDAO 生态系统的需求依赖较高"
     }
   },
   "winklink": {

@@ -31,11 +31,11 @@ export default function ProfessionalCTA() {
             </p>
 
             <Link
-              href="/price-query"
+              href="/market-overview"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold hover:bg-gray-100 transition-colors duration-200 group"
             >
               <Zap className="w-5 h-5" />
-              {isZh ? '立即开始探索' : 'Start Exploring Now'}
+              {isZh ? '查看市场概览' : 'View Market Overview'}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

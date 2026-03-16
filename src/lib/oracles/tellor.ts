@@ -60,6 +60,67 @@ export interface TellorNetworkStats {
   stakingTokenSymbol: string;
 }
 
+export interface Reporter {
+  id: string;
+  address: string;
+  stakedAmount: number;
+  totalReports: number;
+  successfulReports: number;
+  successRate: number;
+  lastReportTime: number;
+  rewardsEarned: number;
+  status: 'active' | 'inactive' | 'slashed';
+}
+
+export interface ReporterStats {
+  totalReporters: number;
+  activeReporters: number;
+  totalStaked: number;
+  avgStakePerReporter: number;
+  totalReports24h: number;
+  avgRewardsPerReporter: number;
+  reporters: Reporter[];
+  stakeDistribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+  activityTrend: {
+    timestamp: number;
+    newReports: number;
+    activeReporters: number;
+  }[];
+}
+
+export interface RiskMetrics {
+  dataQualityScore: number;
+  priceDeviation: {
+    current: number;
+    avg24h: number;
+    max24h: number;
+  };
+  stakingRisk: {
+    concentrationRisk: number;
+    slashRisk: number;
+    rewardStability: number;
+  };
+  networkRisk: {
+    uptimeRisk: number;
+    latencyRisk: number;
+    updateFrequencyRisk: number;
+  };
+  overallRiskLevel: 'low' | 'medium' | 'high';
+  riskTrend: {
+    timestamp: number;
+    score: number;
+  }[];
+  alerts: {
+    type: 'info' | 'warning' | 'critical';
+    message: string;
+    timestamp: number;
+  }[];
+}
+
 export class TellorClient extends BaseOracleClient {
   name = OracleProvider.TELLOR;
   supportedChains = [
@@ -306,6 +367,111 @@ export class TellorClient extends BaseOracleClient {
       stakingApr: 10.2,
       stakerCount: 3200,
       rewardPool: 750000,
+    };
+  }
+
+  async getReporterStats(): Promise<ReporterStats> {
+    const reporters: Reporter[] = Array.from({ length: 20 }, (_, i) => {
+      const totalReports = Math.floor(Math.random() * 5000) + 100;
+      const successRate = Number((0.95 + Math.random() * 0.04).toFixed(4));
+      return {
+        id: `reporter-${i + 1}`,
+        address: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+        stakedAmount: Math.floor(Math.random() * 100000) + 10000,
+        totalReports,
+        successfulReports: Math.floor(totalReports * successRate),
+        successRate,
+        lastReportTime: Date.now() - Math.floor(Math.random() * 86400000),
+        rewardsEarned: Math.floor(Math.random() * 50000) + 1000,
+        status: (Math.random() > 0.9 ? 'inactive' : 'active') as 'active' | 'inactive' | 'slashed',
+      };
+    });
+
+    const totalStaked = reporters.reduce((sum, r) => sum + r.stakedAmount, 0);
+    const activeReporters = reporters.filter(r => r.status === 'active').length;
+    const totalReports24h = reporters.reduce((sum, r) => sum + Math.floor(r.totalReports * 0.1), 0);
+
+    const stakeRanges = [
+      { min: 0, max: 10000, label: '< 10K TRB' },
+      { min: 10000, max: 50000, label: '10K - 50K TRB' },
+      { min: 50000, max: 100000, label: '50K - 100K TRB' },
+      { min: 100000, max: Infinity, label: '> 100K TRB' },
+    ];
+
+    const stakeDistribution = stakeRanges.map(range => {
+      const count = reporters.filter(r => r.stakedAmount >= range.min && r.stakedAmount < range.max).length;
+      return {
+        range: range.label,
+        count,
+        percentage: Number(((count / reporters.length) * 100).toFixed(2)),
+      };
+    });
+
+    const activityTrend = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: Date.now() - (23 - i) * 3600000,
+      newReports: Math.floor(Math.random() * 100) + 50,
+      activeReporters: Math.floor(activeReporters * (0.8 + Math.random() * 0.2)),
+    }));
+
+    return {
+      totalReporters: reporters.length,
+      activeReporters,
+      totalStaked,
+      avgStakePerReporter: Math.floor(totalStaked / reporters.length),
+      totalReports24h,
+      avgRewardsPerReporter: Math.floor(reporters.reduce((sum, r) => sum + r.rewardsEarned, 0) / reporters.length),
+      reporters: reporters.sort((a, b) => b.stakedAmount - a.stakedAmount).slice(0, 10),
+      stakeDistribution,
+      activityTrend,
+    };
+  }
+
+  async getRiskMetrics(): Promise<RiskMetrics> {
+    const now = Date.now();
+    const riskTrend = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: now - (23 - i) * 3600000,
+      score: Number((75 + Math.random() * 20).toFixed(2)),
+    }));
+
+    const currentScore = riskTrend[riskTrend.length - 1].score;
+    const avg24h = riskTrend.reduce((sum, r) => sum + r.score, 0) / riskTrend.length;
+
+    return {
+      dataQualityScore: Number((85 + Math.random() * 10).toFixed(2)),
+      priceDeviation: {
+        current: Number((0.1 + Math.random() * 0.3).toFixed(4)),
+        avg24h: Number((0.15 + Math.random() * 0.2).toFixed(4)),
+        max24h: Number((0.5 + Math.random() * 0.5).toFixed(4)),
+      },
+      stakingRisk: {
+        concentrationRisk: Number((30 + Math.random() * 20).toFixed(2)),
+        slashRisk: Number((5 + Math.random() * 5).toFixed(2)),
+        rewardStability: Number((80 + Math.random() * 15).toFixed(2)),
+      },
+      networkRisk: {
+        uptimeRisk: Number((2 + Math.random() * 3).toFixed(2)),
+        latencyRisk: Number((10 + Math.random() * 10).toFixed(2)),
+        updateFrequencyRisk: Number((5 + Math.random() * 5).toFixed(2)),
+      },
+      overallRiskLevel: currentScore > 85 ? 'low' : currentScore > 70 ? 'medium' : 'high',
+      riskTrend,
+      alerts: [
+        {
+          type: 'info',
+          message: 'Network operating normally with 99.9% uptime',
+          timestamp: now - 3600000,
+        },
+        {
+          type: 'warning',
+          message: 'Price deviation slightly elevated on Polygon chain',
+          timestamp: now - 7200000,
+        },
+        {
+          type: 'info',
+          message: 'New reporter joined the network',
+          timestamp: now - 10800000,
+        },
+      ],
     };
   }
 }

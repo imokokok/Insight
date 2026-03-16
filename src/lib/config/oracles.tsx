@@ -115,6 +115,8 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     tabs: [
       { id: 'market', labelKey: 'chainlink.menu.marketData' },
       { id: 'network', labelKey: 'chainlink.menu.networkHealth' },
+      { id: 'nodes', labelKey: 'chainlink.menu.nodes' },
+      { id: 'data-feeds', labelKey: 'chainlink.menu.dataFeeds' },
       { id: 'ecosystem', labelKey: 'chainlink.menu.ecosystem' },
       { id: 'risk', labelKey: 'chainlink.menu.riskAssessment' },
       { id: 'cross-oracle', labelKey: 'chainlink.menu.crossOracleComparison' },
@@ -199,9 +201,10 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     tabs: [
       { id: 'market', labelKey: 'band.menu.marketData' },
       { id: 'network', labelKey: 'band.menu.networkHealth' },
-      { id: 'validators', labelKey: 'band.menu.validators' },
+      { id: 'cross-chain', labelKey: 'band.menu.crossChain' },
       { id: 'ecosystem', labelKey: 'band.menu.ecosystem' },
       { id: 'risk', labelKey: 'band.menu.riskAssessment' },
+      { id: 'cross-oracle', labelKey: 'band.menu.crossOracle' },
     ],
   },
   [OracleProvider.UMA]: {
@@ -262,11 +265,11 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     },
     tabs: [
       { id: 'market', labelKey: 'uma.menu.marketData' },
-      { id: 'network', labelKey: 'uma.menu.networkHealth' },
-      { id: 'validators', labelKey: 'uma.menu.validatorAnalytics' },
       { id: 'disputes', labelKey: 'uma.menu.disputeResolution' },
-      { id: 'ecosystem', labelKey: 'uma.menu.ecosystem' },
+      { id: 'validators', labelKey: 'uma.menu.validatorAnalytics' },
+      { id: 'staking', labelKey: 'uma.menu.staking' },
       { id: 'risk', labelKey: 'uma.menu.riskAssessment' },
+      { id: 'ecosystem', labelKey: 'uma.menu.ecosystem' },
     ],
   },
   [OracleProvider.PYTH]: {
@@ -331,11 +334,9 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     },
     tabs: [
       { id: 'market', labelKey: 'pyth.menu.marketData' },
-      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
       { id: 'publishers', labelKey: 'pyth.menu.publishers' },
-      { id: 'ecosystem', labelKey: 'pyth.menu.ecosystem' },
-      { id: 'risk', labelKey: 'pyth.menu.riskAssessment' },
-      { id: 'cross-oracle', labelKey: 'pyth.menu.crossOracleComparison' },
+      { id: 'network', labelKey: 'pyth.menu.networkHealth' },
+      { id: 'price-feeds', labelKey: 'pyth.menu.priceFeeds' },
     ],
   },
   [OracleProvider.API3]: {
@@ -399,12 +400,14 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       hasCoreFeatures: false,
     },
     tabs: [
-      { id: 'market', labelKey: 'api3.tabs.overview' },
-      { id: 'network', labelKey: 'api3.tabs.networkHealth' },
-      { id: 'airnode', labelKey: 'api3.tabs.airnodes' },
-      { id: 'coverage', labelKey: 'api3.tabs.coveragePool' },
-      { id: 'advantages', labelKey: 'api3.tabs.firstPartyOracles' },
+      { id: 'market', labelKey: 'api3.tabs.market' },
+      { id: 'network', labelKey: 'api3.tabs.network' },
+      { id: 'airnode', labelKey: 'api3.tabs.airnode' },
+      { id: 'dapi', labelKey: 'api3.tabs.dapi' },
+      { id: 'staking', labelKey: 'api3.tabs.staking' },
+      { id: 'advantages', labelKey: 'api3.tabs.advantages' },
       { id: 'advanced', labelKey: 'api3.tabs.advanced' },
+      { id: 'ecosystem', labelKey: 'api3.tabs.ecosystem' },
     ],
   },
   [OracleProvider.REDSTONE]: {
@@ -479,9 +482,9 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     tabs: [
       { id: 'market', labelKey: 'redstone.tabs.market' },
       { id: 'network', labelKey: 'redstone.tabs.network' },
+      { id: 'providers', labelKey: 'redstone.tabs.providers' },
       { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
       { id: 'risk', labelKey: 'redstone.tabs.risk' },
-      { id: 'cross-oracle', labelKey: 'redstone.tabs.crossOracle' },
     ],
   },
   [OracleProvider.DIA]: {
@@ -544,9 +547,10 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     tabs: [
       { id: 'market', labelKey: 'dia.tabs.market' },
       { id: 'network', labelKey: 'dia.tabs.network' },
-      { id: 'transparency', labelKey: 'dia.tabs.transparency' },
-      { id: 'coverage', labelKey: 'dia.tabs.coverage' },
-      { id: 'verification', labelKey: 'dia.tabs.verification' },
+      { id: 'data-sources', labelKey: 'dia.tabs.dataSources' },
+      { id: 'cross-chain', labelKey: 'dia.tabs.crossChain' },
+      { id: 'ecosystem', labelKey: 'dia.tabs.ecosystem' },
+      { id: 'risk', labelKey: 'dia.tabs.risk' },
     ],
   },
   [OracleProvider.TELLOR]: {
@@ -614,10 +618,12 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
     },
     tabs: [
       { id: 'market', labelKey: 'tellor.tabs.market' },
-      { id: 'network', labelKey: 'tellor.tabs.network' },
       { id: 'price-stream', labelKey: 'tellor.tabs.priceStream' },
-      { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
+      { id: 'reporters', labelKey: 'tellor.tabs.reporters' },
+      { id: 'network', labelKey: 'tellor.tabs.network' },
       { id: 'multi-chain', labelKey: 'tellor.tabs.multiChain' },
+      { id: 'risk', labelKey: 'tellor.tabs.risk' },
+      { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
     ],
   },
   [OracleProvider.CHRONICLE]: {
@@ -688,6 +694,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'scuttlebutt', labelKey: 'chronicle.tabs.scuttlebutt' },
       { id: 'makerdao', labelKey: 'chronicle.tabs.makerdao' },
       { id: 'validators', labelKey: 'chronicle.tabs.validators' },
+      { id: 'risk', labelKey: 'chronicle.tabs.risk' },
     ],
   },
   [OracleProvider.WINKLINK]: {
@@ -752,6 +759,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'tron', labelKey: 'winklink.tabs.tron' },
       { id: 'staking', labelKey: 'winklink.tabs.staking' },
       { id: 'gaming', labelKey: 'winklink.tabs.gaming' },
+      { id: 'risk', labelKey: 'winklink.tabs.risk' },
     ],
   },
 };
