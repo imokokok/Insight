@@ -13,7 +13,7 @@ export interface SegmentedControlProps<T = string> {
   onChange: (value: T | T[]) => void;
   multiple?: boolean;
   disabled?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   label?: string;
   showSelectAll?: boolean;
@@ -42,7 +42,7 @@ export interface MultiSelectProps<T = string> {
   value: T[];
   onChange: (value: T[]) => void;
   disabled?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   label?: string;
   showSelectAll?: boolean;

@@ -39,8 +39,7 @@ export function DropdownSelect<T = string>({
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (o) =>
-          o.label.toLowerCase().includes(query) ||
-          String(o.value).toLowerCase().includes(query)
+          o.label.toLowerCase().includes(query) || String(o.value).toLowerCase().includes(query)
       );
     }
 
@@ -90,9 +89,7 @@ export function DropdownSelect<T = string>({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setHighlightedIndex((prev) =>
-            prev < filteredOptions.length - 1 ? prev + 1 : prev
-          );
+          setHighlightedIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : prev));
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -125,12 +122,9 @@ export function DropdownSelect<T = string>({
     return (
       <div className="flex items-center gap-2">
         {option.icon && (
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: option.color }}
-          />
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: option.color }} />
         )}
-        <span className="font-medium">{option.label}</span>
+        <span className="font-medium text-gray-900">{option.label}</span>
       </div>
     );
   };
@@ -138,14 +132,9 @@ export function DropdownSelect<T = string>({
   const defaultRenderOption = (option: SelectorOption<T>, isSelected: boolean) => (
     <div className="flex items-center gap-2">
       {option.icon && (
-        <span
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: option.color }}
-        />
+        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: option.color }} />
       )}
-      <span className={isSelected ? 'text-blue-700 font-medium' : ''}>
-        {option.label}
-      </span>
+      <span className={isSelected ? 'font-medium' : ''}>{option.label}</span>
     </div>
   );
 
@@ -158,19 +147,18 @@ export function DropdownSelect<T = string>({
         disabled={disabled}
         className={`
           w-full flex items-center justify-between gap-2 px-3 py-2
-          bg-white border border-gray-200 text-sm
-          hover:border-gray-300 hover:bg-gray-50
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          transition-all duration-200
-          ${isOpen ? 'border-blue-500 ring-2 ring-blue-500' : ''}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+          bg-white border border-gray-200 text-sm rounded-lg
+          hover:border-gray-300 hover:bg-gray-50/50
+          focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+          transition-all duration-200 ease-out
+          active:scale-[0.98]
+          ${isOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : ''}
+          ${disabled ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}
         `}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        {renderValue
-          ? renderValue(selectedOption!)
-          : defaultRenderValue(selectedOption)}
+        {renderValue ? renderValue(selectedOption!) : defaultRenderValue(selectedOption)}
         <ChevronDown
           className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
@@ -180,13 +168,13 @@ export function DropdownSelect<T = string>({
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-1 w-full min-w-[200px] bg-white border border-gray-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-200"
+          className="absolute top-full left-0 mt-1.5 w-full min-w-[200px] bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-1 duration-200 overflow-hidden"
           role="listbox"
         >
           {searchable && (
             <div className="p-2 border-b border-gray-100">
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -194,31 +182,23 @@ export function DropdownSelect<T = string>({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={searchPlaceholder}
-                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                 />
               </div>
             </div>
           )}
 
           {categories && !searchQuery && (
-            <div className="flex border-b border-gray-100">
+            <div className="flex border-b border-gray-100 bg-gray-50/50">
               {categories.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setSelectedCategory(cat.value)}
-                  className="flex-1 px-3 py-2 text-xs font-medium transition-colors duration-150"
-                  style={{
-                    color:
-                      selectedCategory === cat.value
-                        ? '#2563eb'
-                        : '#4b5563',
-                    borderBottom:
-                      selectedCategory === cat.value
-                        ? '2px solid #2563eb'
-                        : 'none',
-                    backgroundColor:
-                      selectedCategory === cat.value ? '#eff6ff' : 'transparent',
-                  }}
+                  className={`flex-1 px-3 py-2.5 text-xs font-medium transition-all duration-200 border-b-2 ${
+                    selectedCategory === cat.value
+                      ? 'text-blue-600 border-blue-600 bg-white'
+                      : 'text-gray-600 border-transparent hover:text-gray-900 hover:bg-gray-100/50'
+                  }`}
                 >
                   {cat.label}
                 </button>
@@ -228,9 +208,7 @@ export function DropdownSelect<T = string>({
 
           <div className="max-h-64 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-center text-gray-500">
-                {noOptionsMessage}
-              </div>
+              <div className="px-3 py-4 text-sm text-center text-gray-500">{noOptionsMessage}</div>
             ) : (
               filteredOptions.map((option, index) => {
                 const isSelected = option.value === value;
@@ -245,29 +223,23 @@ export function DropdownSelect<T = string>({
                     disabled={option.disabled}
                     className={`
                       w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors duration-150
-                      ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                      ${option.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      ${isSelected ? 'bg-blue-50 text-blue-700' : isHighlighted ? 'bg-gray-50' : 'hover:bg-gray-50'}
                     `}
-                    style={{
-                      backgroundColor: isSelected
-                        ? '#eff6ff'
-                        : isHighlighted
-                          ? '#f3f4f6'
-                          : 'transparent',
-                    }}
                     role="option"
                     aria-selected={isSelected}
                   >
                     {renderOption
                       ? renderOption(option, isSelected)
                       : defaultRenderOption(option, isSelected)}
-                    {isSelected && <Check className="w-4 h-4 text-blue-600" />}
+                    {isSelected && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                   </button>
                 );
               })
             )}
           </div>
 
-          <div className="px-3 py-2 text-xs flex justify-between border-t border-gray-100 text-gray-400 bg-gray-50">
+          <div className="px-3 py-2 text-xs flex justify-between border-t border-gray-100 text-gray-400 bg-gray-50/50">
             <span>使用 ↑↓ 导航，Enter 选择</span>
             <span>共 {filteredOptions.length} 个</span>
           </div>

@@ -5,6 +5,7 @@ import { getDeviationColor as getDeviationColorUtil } from '@/lib/utils/chartSha
 import { BandProtocolClient, CrossChainPriceComparison } from '@/lib/oracles/bandProtocol';
 import { semanticColors, chainColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 export interface BandChainPriceData {
   chain: string;
@@ -577,21 +578,15 @@ export function BandCrossChainPriceConsistency({
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 bg-gray-100  p-1">
-              {SYMBOLS.map((symbol) => (
-                <button
-                  key={symbol}
-                  onClick={() => setSelectedSymbol(symbol)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    selectedSymbol === symbol
-                      ? 'bg-white text-gray-900 '
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {symbol}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              options={SYMBOLS.map((symbol) => ({
+                value: symbol,
+                label: symbol,
+              }))}
+              value={selectedSymbol}
+              onChange={(value) => setSelectedSymbol(value as string)}
+              size="sm"
+            />
 
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 cursor-pointer">

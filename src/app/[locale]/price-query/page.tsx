@@ -42,6 +42,7 @@ import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { createLogger } from '@/lib/utils/logger';
 import { Search, TrendingUp } from 'lucide-react';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 const logger = createLogger('price-query-page');
 
@@ -743,16 +744,16 @@ export default function PriceQueryPage() {
                   <TrendingUp className="w-3 h-3" />
                   {t('priceQuery.noResults.popularTokens')}
                 </p>
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  {['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI'].map((token) => (
-                    <button
-                      key={token}
-                      onClick={() => setSelectedSymbol(token)}
-                      className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-200 hover:border-emerald-200 transition-all duration-200"
-                    >
-                      {token}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-center">
+                  <SegmentedControl
+                    options={['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI'].map((token) => ({
+                      value: token,
+                      label: token,
+                    }))}
+                    value={selectedSymbol}
+                    onChange={(value) => setSelectedSymbol(value as string)}
+                    size="sm"
+                  />
                 </div>
               </div>
             </div>
