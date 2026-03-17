@@ -130,6 +130,10 @@ export function AvatarUploader({
     setUploadProgress(0);
 
     try {
+      console.log('Starting avatar upload...');
+      console.log('UserId:', userId);
+      console.log('PreviewUrl:', previewUrl);
+
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas context not available');
@@ -141,12 +145,20 @@ export function AvatarUploader({
       const img = new Image();
       img.crossOrigin = 'anonymous';
 
+      console.log('Loading image...');
       await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load image'));
+        img.onload = () => {
+          console.log('Image loaded successfully');
+          resolve();
+        };
+        img.onerror = (e) => {
+          console.error('Image load error:', e);
+          reject(new Error('Failed to load image'));
+        };
         img.src = previewUrl;
       });
 
+      console.log('Drawing to canvas...');
       ctx.save();
       ctx.translate(outputSize / 2, outputSize / 2);
       ctx.rotate((rotation * Math.PI) / 180);
@@ -171,10 +183,14 @@ export function AvatarUploader({
       );
       ctx.restore();
 
+      console.log('Creating blob...');
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => {
-            if (b) resolve(b);
+            if (b) {
+              console.log('Blob created:', b.size, 'bytes');
+              resolve(b);
+            }
             else reject(new Error('Failed to create blob'));
           },
           'image/jpeg',
@@ -183,15 +199,21 @@ export function AvatarUploader({
       });
 
       const fileName = `${userId}/avatar_${Date.now()}.jpg`;
+      console.log('Uploading file:', fileName);
 
       setUploadProgress(30);
 
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, blob, {
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('avatars').upload(fileName, blob, {
         upsert: true,
         contentType: 'image/jpeg',
       });
 
-      if (uploadError) throw uploadError;
+      console.log('Upload result:', { data: uploadData, error: uploadError });
+
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw uploadError;
+      }
 
       setUploadProgress(70);
 
@@ -199,18 +221,47 @@ export function AvatarUploader({
         data: { publicUrl },
       } = supabase.storage.from('avatars').getPublicUrl(fileName);
 
+      console.log('Public URL:', publicUrl);
+
       const { error: updateError } = await updateUserProfile(userId, {
         avatar_url: publicUrl,
       });
 
-      if (updateError) throw updateError;
+      console.log('Update profile result:', { updateError });
+
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw new Error(updateError.message || 'Failed to update profile');
+      }
 
       setUploadProgress(100);
       onAvatarUpdate(publicUrl + '?t=' + Date.now());
       onSuccess(t('settings.profile.avatar.uploadSuccess'));
       resetCropState();
-    } catch (error) {
-      onError(t('settings.profile.avatar.uploadFailed'));
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error keys:', Object.keys(error || {}));
+      
+      // 更详细的错误信息提取
+      let errorMessage = t('settings.profile.avatar.uploadFailed');
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.error?.message) {
+        errorMessage = error.error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else {
+        // 尝试提取 Supabase 存储错误
+        try {
+          errorMessage = JSON.stringify(error);
+        } catch {
+          errorMessage = 'Unknown error';
+        }
+      }
+      
+      onError(`${t('settings.profile.avatar.uploadFailed')}: ${errorMessage}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -273,12 +324,14 @@ export function AvatarUploader({
               </div>
             )}
 
-            <div
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
               className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
                 isDragOver ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              }`}
+              } disabled:opacity-0`}
             >
-              <div className="text-center text-white">
+              <div className="text-center text-white pointer-events-none">
                 <Upload className="w-8 h-8 mx-auto mb-1" />
                 <span className="text-xs font-medium">
                   {isDragOver
@@ -286,7 +339,7 @@ export function AvatarUploader({
                     : t('settings.profile.avatar.clickOrDrag')}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
 
           <button

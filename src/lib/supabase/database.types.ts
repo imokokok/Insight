@@ -364,8 +364,9 @@ export type UserPreferences = {
   default_oracle?: string;
   default_symbol?: string;
   default_chain?: string;
-  theme?: 'light' | 'dark' | 'system';
   language?: string;
+  default_currency?: string;
+  auto_refresh_interval?: number;
   chart_settings?: {
     show_confidence_interval?: boolean;
     auto_refresh?: boolean;
