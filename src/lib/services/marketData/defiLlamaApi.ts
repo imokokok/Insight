@@ -349,9 +349,19 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
       const oracleProtocols = protocols.filter(
         (p) =>
           p.category?.toLowerCase().includes('oracle') ||
-          ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'switchboard', 'dia', 'tellor', 'chronicle', 'winklink'].some((name) =>
-            p.name.toLowerCase().includes(name.toLowerCase())
-          )
+          [
+            'chainlink',
+            'pyth',
+            'band',
+            'api3',
+            'uma',
+            'redstone',
+            'switchboard',
+            'dia',
+            'tellor',
+            'chronicle',
+            'winklink',
+          ].some((name) => p.name.toLowerCase().includes(name.toLowerCase()))
       );
 
       return transformProtocolsToOracleData(oracleProtocols);

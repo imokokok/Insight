@@ -240,11 +240,7 @@ export function UMAScoreExplanationModal({
     }
   };
 
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: CustomTooltipProps) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (!active || !payload || payload.length === 0) return null;
 
     return (
@@ -289,7 +285,9 @@ export function UMAScoreExplanationModal({
           <div className="bg-white">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{t('uma.scoreExplanation.title')}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('uma.scoreExplanation.title')}
+                </h3>
                 <p className="text-sm text-gray-500 mt-1">{t('uma.scoreExplanation.subtitle')}</p>
               </div>
               <button
@@ -306,7 +304,11 @@ export function UMAScoreExplanationModal({
               <nav className="flex px-6">
                 {[
                   { key: 'overview', label: t('uma.scoreExplanation.tabs.overview'), icon: '📊' },
-                  { key: 'dimensions', label: t('uma.scoreExplanation.tabs.dimensions'), icon: '📐' },
+                  {
+                    key: 'dimensions',
+                    label: t('uma.scoreExplanation.tabs.dimensions'),
+                    icon: '📐',
+                  },
                   { key: 'history', label: t('uma.scoreExplanation.tabs.history'), icon: '📈' },
                 ].map((tab) => (
                   <button
@@ -329,7 +331,9 @@ export function UMAScoreExplanationModal({
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   <div className="bg-blue-50 rounded-lg p-6">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">{t('uma.scoreExplanation.overallFormulaTitle')}</h4>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">
+                      {t('uma.scoreExplanation.overallFormulaTitle')}
+                    </h4>
                     <FormulaBlock formula={OVERALL_FORMULA} />
                   </div>
 
@@ -358,10 +362,14 @@ export function UMAScoreExplanationModal({
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('uma.scoreExplanation.currentScoreStatus')}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                      {t('uma.scoreExplanation.currentScoreStatus')}
+                    </h4>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                        <p className="text-xs text-gray-500 mb-1">{t('uma.scoreExplanation.overallScore')}</p>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {t('uma.scoreExplanation.overallScore')}
+                        </p>
                         <p className="text-2xl font-bold text-blue-600">
                           {currentScores.overallScore.toFixed(1)}
                         </p>
@@ -408,12 +416,16 @@ export function UMAScoreExplanationModal({
 
                       <div className="space-y-4">
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">{t('uma.scoreExplanation.formula')}</h5>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            {t('uma.scoreExplanation.formula')}
+                          </h5>
                           <FormulaBlock formula={dim.formula} />
                         </div>
 
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">{t('uma.scoreExplanation.variables')}</h5>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            {t('uma.scoreExplanation.variables')}
+                          </h5>
                           <VariableList variables={dim.variables} t={t} />
                         </div>
                       </div>
@@ -421,34 +433,52 @@ export function UMAScoreExplanationModal({
                   ))}
 
                   <div className="bg-amber-50 rounded-lg p-6 border border-amber-200">
-                    <h4 className="text-sm font-semibold text-amber-900 mb-2">{t('uma.scoreExplanation.scoreLevelTitle')}</h4>
+                    <h4 className="text-sm font-semibold text-amber-900 mb-2">
+                      {t('uma.scoreExplanation.scoreLevelTitle')}
+                    </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-green-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.excellent')}</p>
-                          <p className="text-xs text-gray-500">90-100 {t('uma.scoreExplanation.points')}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {t('uma.scoreExplanation.scoreLevels.excellent')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            90-100 {t('uma.scoreExplanation.points')}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-yellow-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.good')}</p>
-                          <p className="text-xs text-gray-500">70-89 {t('uma.scoreExplanation.points')}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {t('uma.scoreExplanation.scoreLevels.good')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            70-89 {t('uma.scoreExplanation.points')}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-orange-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.pass')}</p>
-                          <p className="text-xs text-gray-500">60-69 {t('uma.scoreExplanation.points')}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {t('uma.scoreExplanation.scoreLevels.pass')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            60-69 {t('uma.scoreExplanation.points')}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-red-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{t('uma.scoreExplanation.scoreLevels.needsImprovement')}</p>
-                          <p className="text-xs text-gray-500">&lt;60 {t('uma.scoreExplanation.points')}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {t('uma.scoreExplanation.scoreLevels.needsImprovement')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            &lt;60 {t('uma.scoreExplanation.points')}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -568,7 +598,8 @@ export function UMAScoreExplanationModal({
                                   {trend >= 0 ? '↑' : '↓'} {Math.abs(trend).toFixed(1)}
                                 </span>
                                 <span className="text-gray-400">
-                                  {t('uma.scoreExplanation.range')}: {min.toFixed(0)}-{max.toFixed(0)}
+                                  {t('uma.scoreExplanation.range')}: {min.toFixed(0)}-
+                                  {max.toFixed(0)}
                                 </span>
                               </div>
                             </div>

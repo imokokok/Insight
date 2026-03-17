@@ -23,9 +23,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               <AlertOctagon className="w-12 h-12 text-red-500" />
             </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Something went wrong
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Something went wrong</h1>
 
             <p className="text-gray-600 mb-4">
               We apologize for the inconvenience. A critical error has occurred.
@@ -37,11 +35,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               </p>
             )}
 
-            {error.digest && (
-              <p className="text-xs text-gray-400 mb-6">
-                Error ID: {error.digest}
-              </p>
-            )}
+            {error.digest && <p className="text-xs text-gray-400 mb-6">Error ID: {error.digest}</p>}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button

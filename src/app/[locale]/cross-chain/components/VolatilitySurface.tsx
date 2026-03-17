@@ -199,7 +199,7 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
     return (
       <div className="bg-white border border-gray-200 p-3 min-w-[220px]">
         <p className="text-gray-600 text-xs mb-2 font-medium border-b border-gray-100 pb-1">
-          {typeof label === 'string' ? label : `数据点 #${label}`}
+          {typeof label === 'string' ? label : t('crossChain.dataPointLabel', { index: label })}
         </p>
         {sortedPayload.map((entry, index: number) => {
           const chain = entry.dataKey as Blockchain;

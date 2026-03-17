@@ -46,13 +46,45 @@ const getTellorSecurityEvents = (t: ReturnType<typeof useTranslations>): RiskEve
   },
 ];
 
-const getTellorMitigationMeasures = (t: ReturnType<typeof useTranslations>): MitigationMeasure[] => [
-  { name: t('tellor.risk.mitigationMeasures.disputeMechanism'), type: 'technical', status: 'active', effectiveness: 92 },
-  { name: t('tellor.risk.mitigationMeasures.stakingSlashing'), type: 'technical', status: 'active', effectiveness: 88 },
-  { name: t('tellor.risk.mitigationMeasures.multiSourceData'), type: 'technical', status: 'active', effectiveness: 85 },
-  { name: t('tellor.risk.mitigationMeasures.decentralizedGovernance'), type: 'governance', status: 'active', effectiveness: 82 },
-  { name: t('tellor.risk.mitigationMeasures.reporterIncentives'), type: 'operational', status: 'active', effectiveness: 90 },
-  { name: t('tellor.risk.mitigationMeasures.transparencyReports'), type: 'operational', status: 'active', effectiveness: 78 },
+const getTellorMitigationMeasures = (
+  t: ReturnType<typeof useTranslations>
+): MitigationMeasure[] => [
+  {
+    name: t('tellor.risk.mitigationMeasures.disputeMechanism'),
+    type: 'technical',
+    status: 'active',
+    effectiveness: 92,
+  },
+  {
+    name: t('tellor.risk.mitigationMeasures.stakingSlashing'),
+    type: 'technical',
+    status: 'active',
+    effectiveness: 88,
+  },
+  {
+    name: t('tellor.risk.mitigationMeasures.multiSourceData'),
+    type: 'technical',
+    status: 'active',
+    effectiveness: 85,
+  },
+  {
+    name: t('tellor.risk.mitigationMeasures.decentralizedGovernance'),
+    type: 'governance',
+    status: 'active',
+    effectiveness: 82,
+  },
+  {
+    name: t('tellor.risk.mitigationMeasures.reporterIncentives'),
+    type: 'operational',
+    status: 'active',
+    effectiveness: 90,
+  },
+  {
+    name: t('tellor.risk.mitigationMeasures.transparencyReports'),
+    type: 'operational',
+    status: 'active',
+    effectiveness: 78,
+  },
 ];
 
 export function TellorRiskPanel({ data }: TellorRiskPanelProps) {

@@ -735,7 +735,10 @@ export default function CrossOraclePage() {
                   title={`${data.name} - 响应时间: ${data.responseTime}ms, 准确率: ${data.accuracy.toFixed(1)}%, 稳定性: ${data.stability.toFixed(1)}%`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-3 h-3 flex-shrink-0" style={{ backgroundColor: data.color }} />
+                    <div
+                      className="w-3 h-3 flex-shrink-0"
+                      style={{ backgroundColor: data.color }}
+                    />
                     <span className="font-medium text-gray-900 truncate">{data.name}</span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">

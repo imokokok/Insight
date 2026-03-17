@@ -61,11 +61,15 @@ export function generateTVSTrendData(
     const band = (baseValues.band || defaults.band) * (1 + (Math.random() - 0.5) * volatility);
     const api3 = (baseValues.api3 || defaults.api3) * (1 + (Math.random() - 0.5) * volatility);
     const uma = (baseValues.uma || defaults.uma) * (1 + (Math.random() - 0.5) * volatility);
-    const redstone = (baseValues.redstone || defaults.redstone) * (1 + (Math.random() - 0.5) * volatility);
+    const redstone =
+      (baseValues.redstone || defaults.redstone) * (1 + (Math.random() - 0.5) * volatility);
     const dia = (baseValues.dia || defaults.dia) * (1 + (Math.random() - 0.5) * volatility);
-    const tellor = (baseValues.tellor || defaults.tellor) * (1 + (Math.random() - 0.5) * volatility);
-    const chronicle = (baseValues.chronicle || defaults.chronicle) * (1 + (Math.random() - 0.5) * volatility);
-    const winklink = (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
+    const tellor =
+      (baseValues.tellor || defaults.tellor) * (1 + (Math.random() - 0.5) * volatility);
+    const chronicle =
+      (baseValues.chronicle || defaults.chronicle) * (1 + (Math.random() - 0.5) * volatility);
+    const winklink =
+      (baseValues.winklink || defaults.winklink) * (1 + (Math.random() - 0.5) * volatility);
 
     data.push({
       timestamp,
@@ -100,7 +104,20 @@ export function generateTVSTrendData(
       winklink: Number(winklink.toFixed(2)),
       winklinkUpper: Number((winklink * 1.02).toFixed(2)),
       winklinkLower: Number((winklink * 0.98).toFixed(2)),
-      total: Number((chainlink + pyth + band + api3 + uma + redstone + dia + tellor + chronicle + winklink).toFixed(2)),
+      total: Number(
+        (
+          chainlink +
+          pyth +
+          band +
+          api3 +
+          uma +
+          redstone +
+          dia +
+          tellor +
+          chronicle +
+          winklink
+        ).toFixed(2)
+      ),
     });
   }
 

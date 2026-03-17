@@ -52,10 +52,7 @@ export function PriceSpreadHeatmap({ data }: PriceSpreadHeatmapProps) {
             />
           </svg>
           <span className="text-sm font-medium" style={{ color: semanticColors.warning.text }}>
-            {t('crossChain.deviationAlert').replace(
-              '{count}',
-              chainsWithHighDeviation.length.toString()
-            )}
+            {t('crossChain.deviationAlert', { count: chainsWithHighDeviation.length })}
           </span>
         </div>
       </div>
@@ -226,7 +223,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
             </div>
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                {colorblindMode ? colorblindLegendConfig.heatmap.lowLabel : t('crossOracle.low')}
+                {colorblindMode ? t('crossChain.lowDiff') : t('crossOracle.low')}
               </span>
               <div
                 className="w-32 h-2"
@@ -237,7 +234,7 @@ export function HeatmapDetailView({ data }: HeatmapDetailViewProps) {
                 }}
               />
               <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                {colorblindMode ? colorblindLegendConfig.heatmap.highLabel : t('crossOracle.high')}
+                {colorblindMode ? t('crossChain.highDiff') : t('crossOracle.high')}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs" style={{ color: baseColors.gray[600] }}>

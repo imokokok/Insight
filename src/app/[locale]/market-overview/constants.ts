@@ -266,7 +266,20 @@ export function generateTVSTrendData(hours: number): TVSTrendData[] {
       winklink: Number(winklinkBase.toFixed(2)),
       winklinkUpper: Number(winklinkUpper.toFixed(2)),
       winklinkLower: Number(winklinkLower.toFixed(2)),
-      total: Number((chainlinkBase + pythBase + bandBase + api3Base + umaBase + redstoneBase + diaBase + tellorBase + chronicleBase + winklinkBase).toFixed(2)),
+      total: Number(
+        (
+          chainlinkBase +
+          pythBase +
+          bandBase +
+          api3Base +
+          umaBase +
+          redstoneBase +
+          diaBase +
+          tellorBase +
+          chronicleBase +
+          winklinkBase
+        ).toFixed(2)
+      ),
     });
   }
 

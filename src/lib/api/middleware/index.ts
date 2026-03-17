@@ -23,7 +23,4 @@ export {
   type ErrorMiddlewareOptions,
 } from './errorMiddleware';
 
-export {
-  createRateLimitMiddleware,
-  type RateLimitMiddlewareOptions,
-} from './rateLimitMiddleware';
+export { createRateLimitMiddleware, type RateLimitMiddlewareOptions } from './rateLimitMiddleware';

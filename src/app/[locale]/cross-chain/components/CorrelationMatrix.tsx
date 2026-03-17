@@ -139,7 +139,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
             <div className="flex items-center gap-2">
               <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                 {colorblindMode
-                  ? colorblindLegendConfig.correlation.negativeLabel
+                  ? t('crossChain.negativeCorr')
                   : t('crossChain.negativeCorrelation')}
               </span>
               <div
@@ -152,7 +152,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
               />
               <span className="text-xs" style={{ color: baseColors.gray[500] }}>
                 {colorblindMode
-                  ? colorblindLegendConfig.correlation.positiveLabel
+                  ? t('crossChain.positiveCorr')
                   : t('crossChain.positiveCorrelation')}
               </span>
             </div>
@@ -179,7 +179,7 @@ export function CorrelationMatrix({ data }: CorrelationMatrixProps) {
             )}
             <div className="flex items-center gap-2 ml-4">
               <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                显著性:
+                {t('crossChain.significance')}:
               </span>
               <span className="text-[10px] font-bold" style={{ color: baseColors.gray[700] }}>
                 *** p&lt;0.001

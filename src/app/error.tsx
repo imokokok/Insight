@@ -25,13 +25,9 @@ export default function Error({ error, reset }: ErrorProps) {
           <AlertTriangle className="w-10 h-10 text-red-500" />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">
-          {t('title')}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('title')}</h1>
 
-        <p className="text-gray-600 mb-2">
-          {t('description')}
-        </p>
+        <p className="text-gray-600 mb-2">{t('description')}</p>
 
         {error.message && process.env.NODE_ENV === 'development' && (
           <p className="text-sm text-gray-500 mb-6 font-mono bg-gray-50 p-3 text-left overflow-auto max-h-32">

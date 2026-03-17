@@ -362,7 +362,9 @@ export function BollingerBands({
       {/* Bandwidth Chart */}
       {showBandwidth && (
         <div className="pt-4 border-t border-gray-200">
-          <p className="text-sm font-medium text-gray-700 mb-2">{t('charts.bollinger.bandwidthIndicator')}</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            {t('charts.bollinger.bandwidthIndicator')}
+          </p>
           <div style={{ height: 100 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
@@ -394,7 +396,9 @@ export function BollingerBands({
                     const data = payload[0].payload;
                     return (
                       <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-lg">
-                        <p className="text-xs text-gray-600">{t('charts.bollinger.bandwidth')}: {data.bandwidth.toFixed(2)}%</p>
+                        <p className="text-xs text-gray-600">
+                          {t('charts.bollinger.bandwidth')}: {data.bandwidth.toFixed(2)}%
+                        </p>
                       </div>
                     );
                   }}

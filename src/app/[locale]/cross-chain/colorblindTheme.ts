@@ -130,19 +130,20 @@ export const getColorblindDiffColor = (diffPercent: number): { bg: string; text:
 
 /**
  * 色盲友好模式的颜色图例配置
+ * 注意：label 需要在组件中使用翻译函数传入
  */
 export const colorblindLegendConfig = {
   heatmap: {
     lowColor: accessibleColors.priceChange.down.color,
     highColor: accessibleColors.priceChange.up.color,
-    lowLabel: '低差异',
-    highLabel: '高差异',
+    lowLabel: 'Low Diff',
+    highLabel: 'High Diff',
   },
   correlation: {
     negativeColor: accessibleColors.priceChange.down.color,
     positiveColor: accessibleColors.priceChange.up.color,
-    negativeLabel: '负相关',
-    positiveLabel: '正相关',
+    negativeLabel: 'Negative Corr',
+    positiveLabel: 'Positive Corr',
   },
 };
 

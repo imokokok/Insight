@@ -43,7 +43,10 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
         setDisputeStats(efficiencyStats);
         setLastUpdated(new Date());
       } catch (error) {
-        logger.error('Failed to fetch UMA risk data:', error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to fetch UMA risk data:',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     };
 

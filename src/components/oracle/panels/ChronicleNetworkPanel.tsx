@@ -131,7 +131,9 @@ export function ChronicleNetworkPanel({
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5" />
                 <div>
-                  <p className="font-semibold capitalize">{t(`chronicle.network.${validatorMetrics.networkHealth}`)}</p>
+                  <p className="font-semibold capitalize">
+                    {t(`chronicle.network.${validatorMetrics.networkHealth}`)}
+                  </p>
                   <p className="text-sm opacity-80">{t('chronicle.network.networkHealthStatus')}</p>
                 </div>
               </div>

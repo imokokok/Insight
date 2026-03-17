@@ -187,7 +187,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{t('panels.disputeVoting.totalVotingPower')}</span>
+                <span className="text-sm text-gray-500">
+                  {t('panels.disputeVoting.totalVotingPower')}
+                </span>
                 <span className="text-sm font-semibold text-gray-900">
                   {formatNumber(totalVotes, true)}
                 </span>
@@ -221,7 +223,9 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
             <p className="text-xs text-gray-400 mt-1">
               {isQuorumReached
                 ? t('panels.disputeVoting.quorumReached')
-                : t('panels.disputeVoting.quorumNeeded', { amount: formatNumber(votingData.quorum - totalVotes, true) })}
+                : t('panels.disputeVoting.quorumNeeded', {
+                    amount: formatNumber(votingData.quorum - totalVotes, true),
+                  })}
             </p>
           </div>
 
@@ -409,7 +413,9 @@ function ValidatorVoteList({
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {pos === 'all' ? t('panels.disputeVoting.all') : positionConfig[pos as VotePosition].label}
+                  {pos === 'all'
+                    ? t('panels.disputeVoting.all')
+                    : positionConfig[pos as VotePosition].label}
                 </button>
               ))}
             </div>

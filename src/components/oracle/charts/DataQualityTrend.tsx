@@ -389,13 +389,18 @@ export function DataQualityTrend({
         <div className="space-y-2">
           {selectedOracles.map((oracle) => {
             const scoreValue = payload.find((p) => p.dataKey === `score_${oracle}`)?.value;
-            const score = typeof scoreValue === 'number' ? scoreValue : parseFloat(String(scoreValue));
+            const score =
+              typeof scoreValue === 'number' ? scoreValue : parseFloat(String(scoreValue));
             if (isNaN(score)) return null;
 
             const latencyValue = payload.find((p) => p.dataKey === `latency_${oracle}`)?.value;
-            const latency = typeof latencyValue === 'number' ? latencyValue : parseFloat(String(latencyValue));
+            const latency =
+              typeof latencyValue === 'number' ? latencyValue : parseFloat(String(latencyValue));
             const deviationValue = payload.find((p) => p.dataKey === `deviation_${oracle}`)?.value;
-            const deviation = typeof deviationValue === 'number' ? deviationValue : parseFloat(String(deviationValue));
+            const deviation =
+              typeof deviationValue === 'number'
+                ? deviationValue
+                : parseFloat(String(deviationValue));
             const isOutlierValue = payload.find((p) => p.dataKey === `outlier_${oracle}`)?.value;
             const isOutlier = Boolean(isOutlierValue);
             const isStaleValue = payload.find((p) => p.dataKey === `stale_${oracle}`)?.value;
@@ -551,7 +556,9 @@ export function DataQualityTrend({
                   onChange={(e) => setShowRadarChart(e.target.checked)}
                   className="w-4 h-4 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{t('charts.dataQuality.showRadarChart')}</span>
+                <span className="text-sm text-gray-700">
+                  {t('charts.dataQuality.showRadarChart')}
+                </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -567,7 +574,9 @@ export function DataQualityTrend({
 
           {/* Quality Score Chart */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.dataQuality.qualityScoreTrend')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('charts.dataQuality.qualityScoreTrend')}
+            </h4>
             <div style={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -658,7 +667,9 @@ export function DataQualityTrend({
 
                   <div className="space-y-2">
                     <div>
-                      <p className="text-xs text-gray-500">{t('charts.dataQuality.avgQualityScore')}</p>
+                      <p className="text-xs text-gray-500">
+                        {t('charts.dataQuality.avgQualityScore')}
+                      </p>
                       <p
                         className="text-2xl font-bold"
                         style={{ color: getQualityColor(qualityLevel) }}
@@ -720,7 +731,9 @@ export function DataQualityTrend({
                         </span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">{t('charts.dataQuality.heartbeatComplianceShort')}</span>
+                        <span className="text-gray-500">
+                          {t('charts.dataQuality.heartbeatComplianceShort')}
+                        </span>
                         <span className="font-medium">{stat.avgHeartbeat.toFixed(1)}%</span>
                       </div>
                     </div>
@@ -862,22 +875,28 @@ export function DataQualityTrend({
             <p className="font-medium mb-2">{t('charts.dataQuality.dimensionDescription')}:</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               <div>
-                • <strong>{t('charts.dataQuality.accuracy')}</strong>: {t('charts.dataQuality.accuracyDesc')}
+                • <strong>{t('charts.dataQuality.accuracy')}</strong>:{' '}
+                {t('charts.dataQuality.accuracyDesc')}
               </div>
               <div>
-                • <strong>{t('charts.dataQuality.availability')}</strong>: {t('charts.dataQuality.availabilityDesc')}
+                • <strong>{t('charts.dataQuality.availability')}</strong>:{' '}
+                {t('charts.dataQuality.availabilityDesc')}
               </div>
               <div>
-                • <strong>{t('charts.dataQuality.consistency')}</strong>: {t('charts.dataQuality.consistencyDesc')}
+                • <strong>{t('charts.dataQuality.consistency')}</strong>:{' '}
+                {t('charts.dataQuality.consistencyDesc')}
               </div>
               <div>
-                • <strong>{t('charts.dataQuality.responseSpeed')}</strong>: {t('charts.dataQuality.responseSpeedDesc')}
+                • <strong>{t('charts.dataQuality.responseSpeed')}</strong>:{' '}
+                {t('charts.dataQuality.responseSpeedDesc')}
               </div>
               <div>
-                • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>: {t('charts.dataQuality.heartbeatComplianceDesc')}
+                • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>:{' '}
+                {t('charts.dataQuality.heartbeatComplianceDesc')}
               </div>
               <div>
-                • <strong>{t('charts.dataQuality.baseQuality')}</strong>: {t('charts.dataQuality.baseQualityDesc')}
+                • <strong>{t('charts.dataQuality.baseQuality')}</strong>:{' '}
+                {t('charts.dataQuality.baseQualityDesc')}
               </div>
             </div>
           </div>
@@ -1022,19 +1041,24 @@ export function DataQualityTrend({
           <p>{t('charts.dataQuality.qualityScoreDescTitle')}</p>
           <ul className="space-y-1 ml-4">
             <li>
-              • <strong>{t('charts.dataQuality.updateLatency')}</strong>: {t('charts.dataQuality.updateLatencyDesc')}
+              • <strong>{t('charts.dataQuality.updateLatency')}</strong>:{' '}
+              {t('charts.dataQuality.updateLatencyDesc')}
             </li>
             <li>
-              • <strong>{t('charts.dataQuality.priceDeviation')}</strong>: {t('charts.dataQuality.priceDeviationDesc')}
+              • <strong>{t('charts.dataQuality.priceDeviation')}</strong>:{' '}
+              {t('charts.dataQuality.priceDeviationDesc')}
             </li>
             <li>
-              • <strong>{t('charts.dataQuality.outlierDetection')}</strong>: {t('charts.dataQuality.outlierDetectionDesc')}
+              • <strong>{t('charts.dataQuality.outlierDetection')}</strong>:{' '}
+              {t('charts.dataQuality.outlierDetectionDesc')}
             </li>
             <li>
-              • <strong>{t('charts.dataQuality.dataStale')}</strong>: {t('charts.dataQuality.dataStaleDesc')}
+              • <strong>{t('charts.dataQuality.dataStale')}</strong>:{' '}
+              {t('charts.dataQuality.dataStaleDesc')}
             </li>
             <li>
-              • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>: {t('charts.dataQuality.heartbeatComplianceDescLong')}
+              • <strong>{t('charts.dataQuality.heartbeatCompliance')}</strong>:{' '}
+              {t('charts.dataQuality.heartbeatComplianceDescLong')}
             </li>
           </ul>
           <div className="flex gap-4 mt-3 pt-3 border-t border-blue-200">

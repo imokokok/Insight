@@ -214,7 +214,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
           try {
             checkCancelled();
 
-            updateProgress({ status: 'generating', progress: 60, message: exportMessageKeys.generating });
+            updateProgress({
+              status: 'generating',
+              progress: 60,
+              message: exportMessageKeys.generating,
+            });
 
             const canvas = document.createElement('canvas');
             canvas.width = svgWidth * scale;
@@ -306,7 +310,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         checkCancelled();
 
-        updateProgress({ status: 'downloading', progress: 80, message: exportMessageKeys.downloading });
+        updateProgress({
+          status: 'downloading',
+          progress: 80,
+          message: exportMessageKeys.downloading,
+        });
 
         // Download file
         const link = document.createElement('a');
@@ -316,14 +324,23 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
         link.click();
         document.body.removeChild(link);
 
-        updateProgress({ status: 'completed', progress: 100, message: exportMessageKeys.completed });
+        updateProgress({
+          status: 'completed',
+          progress: 100,
+          message: exportMessageKeys.completed,
+        });
         onExportComplete?.(dataUrl);
 
         return dataUrl;
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         logger.error('Export failed', err);
-        updateProgress({ status: 'error', progress: 0, message: exportMessageKeys.failed, error: err });
+        updateProgress({
+          status: 'error',
+          progress: 0,
+          message: exportMessageKeys.failed,
+          error: err,
+        });
         onExportError?.(err);
         return null;
       }
@@ -425,7 +442,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         checkCancelled();
 
-        updateProgress({ status: 'generating', progress: 50, message: exportMessageKeys.generatingCsv });
+        updateProgress({
+          status: 'generating',
+          progress: 50,
+          message: exportMessageKeys.generatingCsv,
+        });
 
         const csv = convertToCSV(data, columns);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -433,7 +454,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         checkCancelled();
 
-        updateProgress({ status: 'downloading', progress: 80, message: exportMessageKeys.downloading });
+        updateProgress({
+          status: 'downloading',
+          progress: 80,
+          message: exportMessageKeys.downloading,
+        });
 
         const link = document.createElement('a');
         link.href = url;
@@ -444,14 +469,23 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         URL.revokeObjectURL(url);
 
-        updateProgress({ status: 'completed', progress: 100, message: exportMessageKeys.completed });
+        updateProgress({
+          status: 'completed',
+          progress: 100,
+          message: exportMessageKeys.completed,
+        });
         onExportComplete?.(url);
 
         return url;
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         logger.error('CSV export failed', err);
-        updateProgress({ status: 'error', progress: 0, message: exportMessageKeys.failed, error: err });
+        updateProgress({
+          status: 'error',
+          progress: 0,
+          message: exportMessageKeys.failed,
+          error: err,
+        });
         onExportError?.(err);
         return null;
       }
@@ -484,7 +518,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         checkCancelled();
 
-        updateProgress({ status: 'generating', progress: 50, message: exportMessageKeys.generatingJson });
+        updateProgress({
+          status: 'generating',
+          progress: 50,
+          message: exportMessageKeys.generatingJson,
+        });
 
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
@@ -492,7 +530,11 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         checkCancelled();
 
-        updateProgress({ status: 'downloading', progress: 80, message: exportMessageKeys.downloading });
+        updateProgress({
+          status: 'downloading',
+          progress: 80,
+          message: exportMessageKeys.downloading,
+        });
 
         const link = document.createElement('a');
         link.href = url;
@@ -503,14 +545,23 @@ export function useChartExport(options: UseChartExportOptions = {}): UseChartExp
 
         URL.revokeObjectURL(url);
 
-        updateProgress({ status: 'completed', progress: 100, message: exportMessageKeys.completed });
+        updateProgress({
+          status: 'completed',
+          progress: 100,
+          message: exportMessageKeys.completed,
+        });
         onExportComplete?.(url);
 
         return url;
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         logger.error('JSON export failed', err);
-        updateProgress({ status: 'error', progress: 0, message: exportMessageKeys.failed, error: err });
+        updateProgress({
+          status: 'error',
+          progress: 0,
+          message: exportMessageKeys.failed,
+          error: err,
+        });
         onExportError?.(err);
         return null;
       }

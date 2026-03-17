@@ -49,7 +49,10 @@ export function UMANetworkPanel({ networkStats, client }: UMANetworkPanelProps) 
         setDisputeTrends(disputes);
         setEarningsTrends(earnings);
       } catch (error) {
-        logger.error('Failed to fetch UMA network data:', error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to fetch UMA network data:',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     };
 

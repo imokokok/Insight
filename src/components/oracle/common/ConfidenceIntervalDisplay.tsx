@@ -94,9 +94,7 @@ export function ConfidenceIntervalDisplay({
             >
               <div className="flex flex-col items-center">
                 <div className="w-0.5 h-2 bg-blue-400" />
-                <span className="text-[9px] text-blue-600 font-medium">
-                  ${midPrice.toFixed(2)}
-                </span>
+                <span className="text-[9px] text-blue-600 font-medium">${midPrice.toFixed(2)}</span>
               </div>
             </div>
             <div

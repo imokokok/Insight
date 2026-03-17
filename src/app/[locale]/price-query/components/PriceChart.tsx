@@ -494,9 +494,7 @@ export function PriceChart({
             onChange={(e) => setShowBollingerBands(e.target.checked)}
             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
-          <span className="text-sm text-gray-600">
-            {t('priceQuery.chart.bollingerBands')}
-          </span>
+          <span className="text-sm text-gray-600">{t('priceQuery.chart.bollingerBands')}</span>
         </label>
         <label className="inline-flex items-center gap-2 cursor-pointer">
           <input
@@ -505,9 +503,7 @@ export function PriceChart({
             onChange={(e) => setShowConfidenceInterval(e.target.checked)}
             className="rounded border-gray-300 text-green-600 focus:ring-green-500"
           />
-          <span className="text-sm text-gray-600">
-            {t('priceQuery.chart.confidenceInterval')}
-          </span>
+          <span className="text-sm text-gray-600">{t('priceQuery.chart.confidenceInterval')}</span>
         </label>
       </div>
 
