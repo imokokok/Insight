@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { DatabaseQueries, createQueries } from './queries';
 
 export type {
@@ -22,7 +23,7 @@ export { DatabaseQueries, createQueries } from './queries';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase: SupabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
 let clientQueries: DatabaseQueries | null = null;
 

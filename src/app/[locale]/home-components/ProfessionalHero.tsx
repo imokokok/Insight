@@ -14,6 +14,9 @@ import {
   Clock,
   X,
   ChevronRight,
+  Coins,
+  Database,
+  Link2,
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { chartColors } from '@/lib/config/colors';
@@ -25,6 +28,7 @@ import {
   removeFromSearchHistory,
   SearchHistoryItem,
 } from '@/lib/utils/searchHistory';
+import { searchAll, getTokenSymbol, type SearchableItem, type SearchResult } from '@/lib/constants/searchConfig';
 import HeroBackground from './HeroBackground';
 
 interface TrendData {
@@ -105,66 +109,83 @@ export default function ProfessionalHero() {
     });
   }, []);
 
-  // 过滤后的币种列表
-  const filteredSymbols = useMemo(() => {
+  const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    const query = searchQuery.trim().toUpperCase();
-    return symbols.filter((symbol) => symbol.includes(query) && symbol !== query).slice(0, 5);
+    return searchAll(searchQuery);
   }, [searchQuery]);
 
-  // 下拉框显示的所有选项
   const dropdownItems = useMemo(() => {
-    const items: { type: 'history' | 'popular' | 'search'; symbol: string }[] = [];
+    const items: { type: 'history' | 'popular' | 'search'; item: SearchResult | { symbol: string }; resultType?: 'token' | 'oracle' | 'chain' | 'protocol' }[] = [];
 
-    // 搜索历史（最多3条）
     if (!searchQuery.trim() && searchHistory.length > 0) {
-      searchHistory.slice(0, 3).forEach((item) => {
-        items.push({ type: 'history', symbol: item.symbol });
+      searchHistory.slice(0, 3).forEach((historyItem) => {
+        items.push({ type: 'history', item: { symbol: historyItem.symbol } });
       });
     }
 
-    // 热门币种（如果没有输入）
     if (!searchQuery.trim()) {
       POPULAR_TOKENS.forEach((symbol) => {
-        if (!items.some((item) => item.symbol === symbol)) {
-          items.push({ type: 'popular', symbol });
+        if (!items.some((i) => 'symbol' in i.item && i.item.symbol === symbol)) {
+          items.push({ type: 'popular', item: { symbol } });
         }
       });
     }
 
-    // 搜索结果
-    filteredSymbols.forEach((symbol) => {
-      items.push({ type: 'search', symbol });
+    searchResults.forEach((result) => {
+      items.push({ type: 'search', item: result, resultType: result.item.type as 'token' | 'oracle' | 'chain' | 'protocol' });
     });
 
-    return items.slice(0, 8);
-  }, [searchHistory, filteredSymbols, searchQuery]);
+    return items.slice(0, 10);
+  }, [searchHistory, searchResults, searchQuery]);
 
-  // 处理搜索跳转
   const handleSearch = useCallback(
-    (symbol: string) => {
-      const normalizedSymbol = symbol.trim().toUpperCase();
-      if (!normalizedSymbol) return;
+    (searchItem: string | SearchResult) => {
+      let path: string;
+      let symbolToSave: string | null = null;
 
-      saveSearchHistory(normalizedSymbol);
-      setSearchHistory(getSearchHistory());
+      if (typeof searchItem === 'string') {
+        const normalizedSymbol = searchItem.trim().toUpperCase();
+        if (!normalizedSymbol) return;
+        symbolToSave = normalizedSymbol;
+        path = `/${locale}/price-query?symbol=${normalizedSymbol}`;
+      } else {
+        const result = searchItem as SearchResult;
+        path = `/${locale}${result.item.path}`;
+        if (result.item.type === 'token' && result.item.symbol) {
+          symbolToSave = result.item.symbol;
+        }
+      }
+
+      if (symbolToSave) {
+        saveSearchHistory(symbolToSave);
+        setSearchHistory(getSearchHistory());
+      }
+      
       setIsDropdownOpen(false);
-      router.push(`/${locale}/price-query?symbol=${normalizedSymbol}`);
+      router.push(path);
     },
     [locale, router]
   );
 
-  // 表单提交
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
-      handleSearch(dropdownItems[highlightedIndex].symbol);
+      const selectedItem = dropdownItems[highlightedIndex];
+      if (selectedItem.type === 'search' && 'item' in selectedItem.item && 'item' in selectedItem.item) {
+        handleSearch(selectedItem.item as SearchResult);
+      } else if ('symbol' in selectedItem.item) {
+        handleSearch(selectedItem.item.symbol);
+      }
     } else if (searchQuery.trim()) {
-      handleSearch(searchQuery);
+      const tokenSymbol = getTokenSymbol(searchQuery);
+      if (tokenSymbol) {
+        handleSearch(tokenSymbol);
+      } else {
+        handleSearch(searchQuery);
+      }
     }
   };
 
-  // 键盘导航
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isDropdownOpen) {
       if (e.key === 'ArrowDown' && dropdownItems.length > 0) {
@@ -187,9 +208,19 @@ export default function ProfessionalHero() {
       case 'Enter':
         e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
-          handleSearch(dropdownItems[highlightedIndex].symbol);
+          const selectedItem = dropdownItems[highlightedIndex];
+          if (selectedItem.type === 'search' && 'item' in selectedItem.item && 'item' in selectedItem.item) {
+            handleSearch(selectedItem.item as SearchResult);
+          } else if ('symbol' in selectedItem.item) {
+            handleSearch(selectedItem.item.symbol);
+          }
         } else if (searchQuery.trim()) {
-          handleSearch(searchQuery);
+          const tokenSymbol = getTokenSymbol(searchQuery);
+          if (tokenSymbol) {
+            handleSearch(tokenSymbol);
+          } else {
+            handleSearch(searchQuery);
+          }
         }
         break;
       case 'Escape':
@@ -348,10 +379,8 @@ export default function ProfessionalHero() {
                   {t('common.search')}
                 </button>
 
-                {/* 搜索建议下拉框 */}
                 {isDropdownOpen && dropdownItems.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {/* 搜索历史标题 */}
                     {!searchQuery.trim() && searchHistory.length > 0 && (
                       <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
                         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -368,53 +397,97 @@ export default function ProfessionalHero() {
                       </div>
                     )}
 
-                    {/* 建议列表 */}
-                    <div className="max-h-64 overflow-y-auto">
-                      {dropdownItems.map((item, index) => (
-                        <div
-                          key={`${item.type}-${item.symbol}`}
-                          onMouseEnter={() => setHighlightedIndex(index)}
-                          className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                            index === highlightedIndex ? 'bg-emerald-50' : 'hover:bg-gray-50'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSearch(item.symbol)}
-                            className="flex-1 flex items-center gap-3 text-left"
+                    <div className="max-h-80 overflow-y-auto">
+                      {dropdownItems.map((dropdownItem, index) => {
+                        const isSearchResult = dropdownItem.type === 'search' && 'item' in dropdownItem.item && 'item' in dropdownItem.item;
+                        const searchResult = isSearchResult ? (dropdownItem.item as SearchResult) : null;
+                        const searchableItem = searchResult?.item;
+                        const symbol = 'symbol' in dropdownItem.item ? dropdownItem.item.symbol : searchableItem?.symbol || '';
+                        const name = searchableItem?.name || symbol;
+                        
+                        const getTypeIcon = () => {
+                          if (dropdownItem.type === 'history') return <Clock className="w-4 h-4 text-gray-400" />;
+                          if (dropdownItem.type === 'popular') return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+                          if (searchableItem?.type === 'token') return <Coins className="w-4 h-4 text-amber-500" />;
+                          if (searchableItem?.type === 'oracle') return <Database className="w-4 h-4 text-blue-500" />;
+                          if (searchableItem?.type === 'chain') return <Link2 className="w-4 h-4 text-purple-500" />;
+                          return <Search className="w-4 h-4 text-gray-400" />;
+                        };
+
+                        const getTypeLabel = () => {
+                          if (dropdownItem.type === 'popular') return '热门';
+                          if (searchableItem?.type === 'token') return '代币';
+                          if (searchableItem?.type === 'oracle') return '预言机';
+                          if (searchableItem?.type === 'chain') return '区块链';
+                          return null;
+                        };
+
+                        const getTypeColor = () => {
+                          if (dropdownItem.type === 'popular') return 'text-emerald-600 bg-emerald-50';
+                          if (searchableItem?.type === 'token') return 'text-amber-600 bg-amber-50';
+                          if (searchableItem?.type === 'oracle') return 'text-blue-600 bg-blue-50';
+                          if (searchableItem?.type === 'chain') return 'text-purple-600 bg-purple-50';
+                          return 'text-gray-600 bg-gray-50';
+                        };
+
+                        return (
+                          <div
+                            key={`${dropdownItem.type}-${symbol}-${index}`}
+                            onMouseEnter={() => setHighlightedIndex(index)}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                              index === highlightedIndex ? 'bg-emerald-50' : 'hover:bg-gray-50'
+                            }`}
                           >
-                            {item.type === 'history' && <Clock className="w-4 h-4 text-gray-400" />}
-                            {item.type === 'popular' && (
-                              <TrendingUp className="w-4 h-4 text-emerald-500" />
-                            )}
-                            {item.type === 'search' && <Search className="w-4 h-4 text-gray-400" />}
-                            <span className="font-medium text-gray-900">
-                              {highlightMatch(item.symbol, searchQuery)}
-                            </span>
-                            {item.type === 'popular' && (
-                              <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                                热门
-                              </span>
-                            )}
-                          </button>
-                          <div className="flex items-center gap-2">
-                            {item.type === 'history' && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleRemoveHistoryItem(item.symbol, e)}
-                                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                                title="删除此记录"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            <ChevronRight className="w-4 h-4 text-gray-300" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isSearchResult && searchResult) {
+                                  handleSearch(searchResult);
+                                } else if (symbol) {
+                                  handleSearch(symbol);
+                                }
+                              }}
+                              className="flex-1 flex items-center gap-3 text-left"
+                            >
+                              {getTypeIcon()}
+                              <div className="flex flex-col">
+                                <span className="font-medium text-gray-900">
+                                  {symbol}
+                                  {searchableItem && symbol !== name && (
+                                    <span className="ml-2 text-sm text-gray-500 font-normal">
+                                      {name}
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              {getTypeLabel() && (
+                                <span className={`text-xs px-2 py-0.5 rounded ${getTypeColor()}`}>
+                                  {getTypeLabel()}
+                                </span>
+                              )}
+                            </button>
+                            <div className="flex items-center gap-2">
+                              {dropdownItem.type === 'history' && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    if ('symbol' in dropdownItem.item) {
+                                      handleRemoveHistoryItem(dropdownItem.item.symbol, e);
+                                    }
+                                  }}
+                                  className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                  title="删除此记录"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <ChevronRight className="w-4 h-4 text-gray-300" />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    {/* 底部提示 */}
                     <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
                       <span>使用 ↑↓ 选择，↵ 确认</span>
                       <span>ESC 关闭</span>
