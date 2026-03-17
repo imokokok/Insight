@@ -271,6 +271,7 @@ function HistoricalComparisonView({
   selectedSymbol,
   historicalDate,
 }: HistoricalComparisonViewProps) {
+  const t = useTranslations();
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {
       case 'up':

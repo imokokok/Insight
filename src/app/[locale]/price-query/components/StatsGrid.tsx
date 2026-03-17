@@ -123,9 +123,10 @@ export function StatsGrid({
   const priceRangeDiffStyle = getDiffStyle(priceRangeDiff);
 
   return (
-    <div className="border-b border-gray-200 mb-8">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* 主统计区域 - 紧凑布局 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-        <div className="px-4 py-4 border-r border-gray-200">
+        <div className="px-4 py-3 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.avgPrice')}
             value={
@@ -137,16 +138,17 @@ export function StatsGrid({
                 : '-'
             }
             prefix="$"
+            compact
           />
           {compareMode && avgPrice > 0 && compareAvgPrice > 0 && (
             <div
-              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
             >
               对比: {avgPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-4 border-r border-gray-200">
+        <div className="px-4 py-3 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.change24h')}
             value={
@@ -162,37 +164,38 @@ export function StatsGrid({
                   ? 'up'
                   : 'down'
             }
+            compact
           />
           {compareMode &&
             avgChange24hPercent !== undefined &&
             compareAvgChange24hPercent !== undefined && (
-              <div
-                className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block bg-gray-50 text-gray-600`}
-              >
+              <div className="mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block bg-gray-50 text-gray-600">
                 对比: {compareAvgChange24hPercent >= 0 ? '+' : ''}
                 {compareAvgChange24hPercent.toFixed(2)}%
               </div>
             )}
         </div>
-        <div className="px-4 py-4 border-r border-gray-200">
+        <div className="px-4 py-3 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.volatility')}
             value={volatility !== null ? volatility.toFixed(2) : '-'}
             suffix="%"
             subValue={volatility !== null ? t('priceQuery.stats.annualized') : undefined}
+            compact
           />
         </div>
-        <div className="px-4 py-4">
-          <StatItem label={t('priceQuery.stats.dataPoints')} value={dataPoints.toString()} />
+        <div className="px-4 py-3">
+          <StatItem label={t('priceQuery.stats.dataPoints')} value={dataPoints.toString()} compact />
         </div>
       </div>
 
+      {/* 展开的详细统计 */}
       <div
         className={`grid grid-cols-2 md:grid-cols-4 gap-0 overflow-hidden transition-all duration-300 ease-in-out ${
           isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-4 py-4 border-r border-gray-200 border-t border-gray-100">
+        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.maxPrice')}
             value={
@@ -204,16 +207,17 @@ export function StatsGrid({
                 : '-'
             }
             prefix="$"
+            compact
           />
           {compareMode && maxPrice > 0 && compareMaxPrice > 0 && (
             <div
-              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
             >
               对比: {maxPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-4 border-r border-gray-200 border-t border-gray-100">
+        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.minPrice')}
             value={
@@ -225,16 +229,17 @@ export function StatsGrid({
                 : '-'
             }
             prefix="$"
+            compact
           />
           {compareMode && minPrice > 0 && compareMinPrice > 0 && (
             <div
-              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
             >
               对比: {minPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-4 border-r border-gray-200 border-t border-gray-100">
+        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.priceRange')}
             value={
@@ -246,16 +251,17 @@ export function StatsGrid({
                 : '-'
             }
             prefix="$"
+            compact
           />
           {compareMode && priceRange > 0 && comparePriceRange > 0 && (
             <div
-              className={`mt-2 text-xs font-medium px-2 py-1 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
             >
               对比: {priceRangeDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-4 border-t border-gray-100">
+        <div className="px-4 py-3 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.standardDeviation')}
             value={standardDeviation > 0 ? standardDeviationPercent.toFixed(4) : '-'}
@@ -265,22 +271,24 @@ export function StatsGrid({
                 ? `${t('priceQuery.stats.absoluteValue')}: $${standardDeviation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : undefined
             }
+            compact
           />
         </div>
-        <div className="px-4 py-4 border-r border-gray-200 border-t border-gray-100">
+        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.queryDuration')}
             value={queryDuration !== null ? queryDuration.toString() : '-'}
             suffix=" ms"
+            compact
           />
         </div>
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="py-4">
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+        <div className="px-4 py-3 border-t border-gray-50">
+          <div className="py-2">
+            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
               {t('priceQuery.stats.consistencyRating')}
             </div>
             <div
-              className={`text-2xl font-bold ${
+              className={`text-lg font-bold ${
                 standardDeviationPercent > 0 ? consistencyRating?.color : 'text-gray-900'
               }`}
             >
@@ -290,20 +298,20 @@ export function StatsGrid({
         </div>
       </div>
 
+      {/* 展开/收起按钮 */}
       <button
         onClick={toggleExpanded}
-        className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-200"
+        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
         aria-expanded={isExpanded}
-        aria-label={isExpanded ? '收起更多指标' : '展开更多指标'}
       >
         {isExpanded ? (
           <>
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-3.5 h-3.5" />
             <span>{t('priceQuery.stats.collapse') || '收起'}</span>
           </>
         ) : (
           <>
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-3.5 h-3.5" />
             <span>{t('priceQuery.stats.expand') || '查看更多'}</span>
           </>
         )}

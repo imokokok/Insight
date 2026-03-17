@@ -62,14 +62,14 @@ function DataQualityBadge({ score }: { score: number }) {
   const config = SCORE_CONFIG[level];
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[40px]">
+    <div className="flex items-center gap-1.5">
+      <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden min-w-[24px]">
         <div
           className={`h-full rounded-full transition-all duration-300 ${config.bgColor}`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <span className={`text-xs font-semibold w-8 text-right`} style={{ color: config.color }}>
+      <span className="text-[10px] font-semibold w-6 text-right" style={{ color: config.color }}>
         {score}
       </span>
     </div>
@@ -168,183 +168,121 @@ export function PriceResultsTable({
   };
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.chart />
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* 表头 */}
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <Icons.chart className="w-4 h-4" />
           {t('priceQuery.results.title')}
+          <span className="text-xs font-normal text-gray-500">({filteredResults.length})</span>
         </h2>
         {results.length > 0 && (
           <div className="relative">
             <div
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
               aria-hidden="true"
             >
-              <Icons.search />
+              <Icons.search className="w-3.5 h-3.5" />
             </div>
             <input
               type="text"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
               placeholder={t('priceQuery.filter.placeholder')}
-              aria-label={t('priceQuery.filter.placeholder')}
-              className="w-full sm:w-64 pl-9 pr-4 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+              className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
             />
           </div>
         )}
       </div>
-      {results.length === 0 ? (
-        <div className="py-12 text-center text-gray-500 text-sm">
-          {t('priceQuery.results.empty')}
-        </div>
-      ) : filteredResults.length === 0 ? (
-        <div className="py-12 text-center text-gray-500 text-sm">
-          {t('priceQuery.filter.noResults')}
-        </div>
-      ) : (
-        <>
-          {filterText && (
-            <div className="mb-3 text-sm text-gray-500">
-              {t('priceQuery.filter.results')
-                .replace('{count}', filteredResults.length.toString())
-                .replace('{total}', results.length.toString())}
-            </div>
-          )}
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+
+      {/* 表格内容 */}
+      <div className="overflow-x-auto">
+        {results.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 text-sm">
+            {t('priceQuery.results.empty')}
+          </div>
+        ) : filteredResults.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 text-sm">
+            {t('priceQuery.filter.noResults')}
+          </div>
+        ) : (
+          <>
             <div
-              className="grid text-sm min-w-[900px]"
+              className="grid text-xs min-w-[700px]"
               style={{
                 gridTemplateColumns:
-                  'minmax(140px, 1.2fr) minmax(120px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(100px, 0.8fr) minmax(100px, 0.8fr) minmax(120px, 1fr) minmax(100px, 0.8fr)',
+                  'minmax(100px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr) minmax(80px, 0.8fr) minmax(70px, 0.7fr) minmax(80px, 0.8fr) minmax(70px, 0.7fr)',
               }}
               role="table"
-              aria-label={t('priceQuery.results.title')}
             >
+              {/* 表头 */}
               <div
-                className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                className={`text-left py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
                   sortField === 'oracle' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
                 }`}
                 onClick={() => onSort('oracle')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSort('oracle');
-                  }
-                }}
-                tabIndex={0}
-                role="columnheader"
-                aria-label={`${t('priceQuery.results.table.oracle')}, ${sortField === 'oracle' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
               >
                 <div className="flex items-center gap-1">
                   {t('priceQuery.results.table.oracle')}
                   {sortField === 'oracle' && (
-                    <span className="text-gray-900" aria-hidden="true">
-                      {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                    <span className="text-gray-900">
+                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
                     </span>
                   )}
                 </div>
               </div>
               <div
-                className={`text-left py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                  sortField === 'blockchain'
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'bg-gray-50 text-gray-700'
+                className={`text-left py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
+                  sortField === 'blockchain' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
                 }`}
                 onClick={() => onSort('blockchain')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSort('blockchain');
-                  }
-                }}
-                tabIndex={0}
-                role="columnheader"
-                aria-label={`${t('priceQuery.results.table.blockchain')}, ${sortField === 'blockchain' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
               >
                 <div className="flex items-center gap-1">
                   {t('priceQuery.results.table.blockchain')}
                   {sortField === 'blockchain' && (
-                    <span className="text-gray-900" aria-hidden="true">
-                      {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                    <span className="text-gray-900">
+                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
                     </span>
                   )}
                 </div>
               </div>
               <div
-                className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
+                className={`text-right py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
                   sortField === 'price' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
                 }`}
                 onClick={() => onSort('price')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSort('price');
-                  }
-                }}
-                tabIndex={0}
-                role="columnheader"
-                aria-label={`${t('priceQuery.results.table.price')}, ${sortField === 'price' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
               >
                 <div className="flex items-center justify-end gap-1">
                   {t('priceQuery.results.table.price')}
                   {sortField === 'price' && (
-                    <span className="text-gray-900" aria-hidden="true">
-                      {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
+                    <span className="text-gray-900">
+                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
                     </span>
                   )}
                 </div>
               </div>
               <div
-                className={`text-right py-3 px-4 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-900 ${
-                  sortField === 'timestamp'
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'bg-gray-50 text-gray-700'
-                }`}
-                onClick={() => onSort('timestamp')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSort('timestamp');
-                  }
-                }}
-                tabIndex={0}
-                role="columnheader"
-                aria-label={`${t('priceQuery.results.table.timestamp')}, ${sortField === 'timestamp' ? (sortDirection === 'asc' ? '升序排列' : '降序排列') : '点击排序'}`}
-              >
-                <div className="flex items-center justify-end gap-1">
-                  {t('priceQuery.results.table.timestamp')}
-                  {sortField === 'timestamp' && (
-                    <span className="text-gray-900" aria-hidden="true">
-                      {sortDirection === 'asc' ? <Icons.arrowUp /> : <Icons.arrowDown />}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div
-                className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
-                role="columnheader"
+                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
               >
                 {t('priceQuery.results.table.change24h')}
               </div>
               <div
-                className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
-                role="columnheader"
+                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
               >
                 {t('priceQuery.results.table.freshness')}
               </div>
               <div
-                className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
-                role="columnheader"
+                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
               >
-                {t('dataQuality.completenessScore') || '数据质量'}
+                {t('dataQuality.completenessScore') || '质量'}
               </div>
               <div
-                className="text-right py-3 px-4 font-semibold text-gray-700 bg-gray-50"
-                role="columnheader"
+                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
               >
                 {t('priceQuery.results.table.confidence')}
               </div>
 
+              {/* 数据行 */}
               {paginatedResults.map((result) => {
                 const deviation = calculateDeviation(result.priceData.price, avgPrice);
                 const isHighDeviation = Math.abs(deviation) > DEVIATION_THRESHOLD * 100;
@@ -361,70 +299,60 @@ export function PriceResultsTable({
                 return (
                   <div
                     key={rowKey}
-                    className={`contents cursor-pointer`}
+                    className="contents cursor-pointer"
                     onClick={() => handleRowClick(result)}
                     role="row"
                     aria-selected={isSelected}
                   >
                     <div
-                      className={`py-3 px-4 border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2.5 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
-                      title={
-                        isHighDeviation
-                          ? `偏差: ${deviation > 0 ? '+' : ''}${deviation.toFixed(2)}%`
-                          : undefined
-                      }
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: oracleColors[result.provider] }}
-                          aria-hidden="true"
                         />
-                        <span className="font-medium text-gray-900 truncate">
+                        <span className="font-medium text-gray-900 truncate text-xs">
                           {t(`navbar.${oracleI18nKeys[result.provider]}`)}
                         </span>
                       </div>
                     </div>
                     <div
-                      className={`py-3 px-4 border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2.5 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: chainColors[result.chain] }}
-                          aria-hidden="true"
                         />
-                        <span className="font-medium text-gray-900 truncate">
+                        <span className="font-medium text-gray-900 truncate text-xs">
                           {t(`blockchain.${result.chain.toLowerCase()}`)}
                         </span>
                       </div>
                     </div>
                     <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
+                      className={`py-2.5 px-3 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
                     >
-                      <div className="flex items-center justify-end gap-2">
-                        <span>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span className="text-xs">
                           $
                           {result.priceData.price.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
@@ -433,165 +361,136 @@ export function PriceResultsTable({
                         </span>
                         {isHighDeviation && (
                           <span
-                            className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${
+                            className={`text-[10px] px-1 py-0.5 rounded flex-shrink-0 ${
                               deviation > 0
                                 ? 'bg-red-100 text-red-700'
                                 : 'bg-green-100 text-green-700'
                             }`}
                           >
                             {deviation > 0 ? '+' : ''}
-                            {deviation.toFixed(2)}%
+                            {deviation.toFixed(1)}%
                           </span>
                         )}
                       </div>
                     </div>
                     <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2.5 px-3 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
-                    >
-                      <FreshnessIndicator timestamp={result.priceData.timestamp} />
-                    </div>
-                    <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-blue-100'
-                          : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
-                      }`}
-                      role="cell"
                     >
                       {result.priceData.change24hPercent !== undefined ? (
-                        <span className={change24hPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        <span className={change24hPercent >= 0 ? 'text-green-600 text-xs' : 'text-red-600 text-xs'}>
                           {change24hPercent >= 0 ? '+' : ''}
                           {change24hPercent.toFixed(2)}%
                         </span>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-400 text-xs">-</span>
                       )}
                     </div>
                     <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
+                    >
+                      <FreshnessIndicator timestamp={result.priceData.timestamp} />
+                    </div>
+                    <div
+                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-blue-100'
+                          : isHighDeviation
+                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
+                            : 'hover:bg-blue-50/60'
+                      }`}
                     >
                       <DataQualityBadge score={completenessScore} />
                     </div>
                     <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
                           ? 'bg-blue-100'
                           : isHighDeviation
                             ? 'bg-amber-50/50 hover:bg-blue-50/60'
                             : 'hover:bg-blue-50/60'
                       }`}
-                      role="cell"
                     >
                       <ConfidenceBadge score={result.priceData.confidence} />
-                    </div>
-                    <div
-                      className={`py-3 px-4 text-right border-b border-gray-100 transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-blue-100'
-                          : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
-                      }`}
-                      role="cell"
-                    >
-                      {result.priceData.source ? (
-                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 truncate max-w-full">
-                          {result.priceData.source}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="md:hidden mt-2 text-xs text-gray-400 text-center">
-              {t('priceQuery.scrollHint')}
-            </div>
+          </>
+        )}
+      </div>
+
+      {/* 分页 */}
+      {filteredResults.length > 10 && (
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <span>每页</span>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span>条</span>
+            <span className="ml-2 text-gray-500">
+              共 {filteredResults.length} 条
+            </span>
           </div>
 
-          {filteredResults.length > 10 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>每页显示</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-                  aria-label="每页显示数量"
-                >
-                  {pageSizeOptions.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-                <span>条</span>
-                <span className="ml-4">
-                  共 {filteredResults.length} 条，{totalPages} 页
-                </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+            >
+              上一页
+            </button>
+
+            {getPageNumbers().map((page, index) => (
+              <div key={index}>
+                {page === '...' ? (
+                  <span className="px-1.5 text-gray-400 text-xs">...</span>
+                ) : (
+                  <button
+                    onClick={() => handlePageChange(page as number)}
+                    className={`px-2.5 py-1 text-xs border rounded transition-colors ${
+                      currentPage === page
+                        ? 'bg-gray-900 text-white border-gray-900'
+                        : 'border-gray-300 hover:bg-white bg-white'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )}
               </div>
+            ))}
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  aria-label="上一页"
-                >
-                  上一页
-                </button>
-
-                {getPageNumbers().map((page, index) => (
-                  <div key={index}>
-                    {page === '...' ? (
-                      <span className="px-2 text-gray-400">...</span>
-                    ) : (
-                      <button
-                        onClick={() => handlePageChange(page as number)}
-                        className={`px-3 py-1.5 text-sm border rounded transition-colors ${
-                          currentPage === page
-                            ? 'bg-gray-900 text-white border-gray-900'
-                            : 'border-gray-300 hover:bg-gray-50'
-                        }`}
-                        aria-label={`第 ${page} 页`}
-                        aria-current={currentPage === page ? 'page' : undefined}
-                      >
-                        {page}
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  aria-label="下一页"
-                >
-                  下一页
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+            >
+              下一页
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

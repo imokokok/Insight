@@ -9,6 +9,7 @@ interface StatItemProps {
   suffix?: string;
   subValue?: string;
   trend?: 'up' | 'down' | 'neutral';
+  compact?: boolean;
 }
 
 export function StatItem({
@@ -18,9 +19,40 @@ export function StatItem({
   suffix = '',
   subValue,
   trend,
+  compact = false,
 }: StatItemProps) {
   const trendColor =
     trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-900';
+
+  if (compact) {
+    return (
+      <div className="py-1">
+        <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
+          {label}
+        </div>
+        <div className="flex items-baseline gap-0.5">
+          {prefix && <span className="text-xs text-gray-400">{prefix}</span>}
+          <span className={`text-lg font-bold ${trendColor}`}>
+            {trend === 'up' && (
+              <ArrowUpIcon
+                className="inline-block w-3.5 h-3.5 mr-0.5 align-text-bottom"
+                aria-hidden="true"
+              />
+            )}
+            {trend === 'down' && (
+              <ArrowDownIcon
+                className="inline-block w-3.5 h-3.5 mr-0.5 align-text-bottom"
+                aria-hidden="true"
+              />
+            )}
+            {value}
+          </span>
+          {suffix && <span className="text-xs text-gray-400">{suffix}</span>}
+        </div>
+        {subValue && <div className="text-[10px] text-gray-500 mt-0.5 truncate">{subValue}</div>}
+      </div>
+    );
+  }
 
   return (
     <div className="py-4 border-b border-gray-200 last:border-b-0">

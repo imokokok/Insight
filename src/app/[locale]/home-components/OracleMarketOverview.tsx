@@ -891,7 +891,7 @@ export default function OracleMarketOverview() {
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div
               className="p-4"
               style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}
@@ -905,67 +905,88 @@ export default function OracleMarketOverview() {
               </div>
             </div>
 
-            {marketShareData.map((item) => (
+            <div
+              className="bg-white border"
+              style={{ borderColor: baseColors.gray[200] }}
+            >
               <div
-                key={item.name}
-                className={`bg-white border p-4 transition-colors cursor-pointer ${
-                  selectedItem === item.name ? '' : 'hover:border-gray-400'
-                } ${hoveredItem && hoveredItem !== item.name ? 'opacity-60' : 'opacity-100'}`}
-                style={{
-                  borderColor:
-                    selectedItem === item.name ? baseColors.gray[900] : baseColors.gray[200],
-                }}
-                onMouseEnter={() => setHoveredItem(item.name)}
-                onMouseLeave={() => setHoveredItem(null)}
-                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                className="px-4 py-3 border-b flex items-center justify-between"
+                style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      {item.name}
-                    </span>
-                  </div>
-                  <span className="text-lg font-bold" style={{ color: baseColors.gray[900] }}>
-                    {item.value}%
-                  </span>
-                </div>
-                <div
-                  className="h-2 overflow-hidden mb-2"
-                  style={{ backgroundColor: baseColors.gray[100] }}
-                >
-                  <div
-                    className="h-full transition-all duration-500"
-                    style={{
-                      backgroundColor: item.color,
-                      width: `${item.value}%`,
-                    }}
-                  />
-                </div>
-                <div
-                  className="flex items-center justify-between text-xs"
-                  style={{ color: baseColors.gray[500] }}
-                >
-                  <span>TVS: {item.tvs}</span>
-                  <span>{item.chains} chains</span>
-                </div>
+                <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
+                  {locale === 'zh-CN' ? '预言机排名' : 'Oracle Rankings'}
+                </span>
+                <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                  {locale === 'zh-CN' ? 'TVS / 份额' : 'TVS / Share'}
+                </span>
               </div>
-            ))}
+              <div className="max-h-[320px] overflow-y-auto">
+                {marketShareData.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className={`px-4 py-2.5 border-b transition-colors cursor-pointer flex items-center justify-between ${
+                      selectedItem === item.name ? '' : 'hover:bg-gray-50'
+                    } ${hoveredItem && hoveredItem !== item.name ? 'opacity-50' : 'opacity-100'}`}
+                    style={{
+                      borderColor: baseColors.gray[100],
+                      backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
+                    }}
+                    onMouseEnter={() => setHoveredItem(item.name)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                  >
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <span
+                        className="text-xs font-medium w-5 text-center"
+                        style={{ color: baseColors.gray[400] }}
+                      >
+                        {index + 1}
+                      </span>
+                      <div className="w-2.5 h-2.5 flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span
+                        className="text-sm font-medium truncate"
+                        style={{ color: baseColors.gray[900] }}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-right">
+                      <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                        {item.tvs}
+                      </span>
+                      <span
+                        className="text-sm font-semibold w-12"
+                        style={{ color: item.color }}
+                      >
+                        {item.value}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <div
-              className="border p-4"
+              className="border p-3"
               style={{ backgroundColor: baseColors.gray[50], borderColor: baseColors.gray[200] }}
             >
-              <div className="text-sm mb-1" style={{ color: baseColors.gray[600] }}>
-                {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
-              </div>
-              <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
-                100%
-              </div>
-              <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                {locale === 'zh-CN'
-                  ? `覆盖 ${stats.oracleCount} 个主要预言机`
-                  : `Covering ${stats.oracleCount} major oracles`}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
+                    {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
+                  </div>
+                  <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
+                    100%
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
+                    {locale === 'zh-CN' ? '覆盖预言机' : 'Oracles Covered'}
+                  </div>
+                  <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
+                    {stats.oracleCount}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
