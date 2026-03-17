@@ -16,6 +16,7 @@ import {
   Radar,
 } from 'recharts';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { chartColors, semanticColors } from '@/lib/config/colors';
 
 type ConfidenceLevel = 'excellent' | 'good' | 'fair' | 'poor';
@@ -461,7 +462,7 @@ function TrendChart({ trend }: { trend: TrendDataPoint[] }) {
   const locale = useLocale();
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+    return date.toLocaleTimeString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -682,7 +683,7 @@ export function ConfidenceScore({
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500">
             {t('confidenceScore.lastUpdated')}:{' '}
-            {lastUpdated.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US')}
+            {lastUpdated.toLocaleTimeString(isChineseLocale(locale) ? 'zh-CN' : 'en-US')}
           </span>
           <button
             onClick={updateData}

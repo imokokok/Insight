@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
 
@@ -43,7 +44,7 @@ export function StakingCalculator() {
     fetchCalculation();
   }, [stakeAmount, validatorType, disputeFrequency]);
 
-  const isZh = locale === 'zh-CN';
+  const isZh = isChineseLocale(locale);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(isZh ? 'zh-CN' : 'en-US', {

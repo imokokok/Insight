@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { devtools, persist, createJSONStorage } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
 import { useMemo } from 'react';
-import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
+import type { User, Session, AuthError, Provider, Subscription } from '@supabase/supabase-js';
 import {
   signUp as authSignUp,
   signIn as authSignIn,
@@ -22,10 +22,12 @@ interface AuthState {
   loading: boolean;
   error: AuthError | Error | null;
   initialized: boolean;
+  subscription: Subscription | null;
 }
 
 interface AuthActions {
   initialize: () => Promise<void>;
+  cleanup: () => void;
   signUp: (
     email: string,
     password: string,
@@ -61,15 +63,14 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
 };
 
 export const useAuthStore = create<AuthStore>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        user: null,
-        session: null,
-        profile: null,
-        loading: true,
-        error: null,
-        initialized: false,
+  devtools((set, get) => ({
+    user: null,
+    session: null,
+    profile: null,
+    loading: true,
+    error: null,
+    initialized: false,
+    subscription: null,
 
         initialize: async () => {
           try {
@@ -87,7 +88,12 @@ export const useAuthStore = create<AuthStore>()(
               set({ profile });
             }
 
-            onAuthStateChange(async (event, newSession) => {
+            const existingSubscription = get().subscription;
+            if (existingSubscription) {
+              existingSubscription.unsubscribe();
+            }
+
+            const subscription = onAuthStateChange(async (event, newSession) => {
               set({
                 session: newSession,
                 user: newSession?.user ?? null,
@@ -101,9 +107,17 @@ export const useAuthStore = create<AuthStore>()(
               }
             });
 
-            set({ initialized: true, loading: false });
+            set({ subscription, initialized: true, loading: false });
           } catch (err) {
             set({ error: err as Error, loading: false, initialized: true });
+          }
+        },
+
+        cleanup: () => {
+          const { subscription } = get();
+          if (subscription) {
+            subscription.unsubscribe();
+            set({ subscription: null });
           }
         },
 
@@ -225,16 +239,8 @@ export const useAuthStore = create<AuthStore>()(
         setError: (error) => set({ error }),
         clearError: () => set({ error: null }),
       }),
-      {
-        name: 'auth-store',
-        storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({
-          session: state.session,
-        }),
-      }
-    ),
-    { name: 'AuthStore' }
-  )
+      { name: 'AuthStore' }
+    )
 );
 
 export const useUser = () => useAuthStore((state) => state.user);
@@ -247,6 +253,7 @@ export const useIsAuthenticated = () => useAuthStore((state) => !!state.user);
 
 export const useAuthActions = () => {
   const initialize = useAuthStore((state) => state.initialize);
+  const cleanup = useAuthStore((state) => state.cleanup);
   const signUp = useAuthStore((state) => state.signUp);
   const signIn = useAuthStore((state) => state.signIn);
   const signInWithOAuth = useAuthStore((state) => state.signInWithOAuth);
@@ -258,6 +265,7 @@ export const useAuthActions = () => {
   return useMemo(
     () => ({
       initialize,
+      cleanup,
       signUp,
       signIn,
       signInWithOAuth,
@@ -268,6 +276,7 @@ export const useAuthActions = () => {
     }),
     [
       initialize,
+      cleanup,
       signUp,
       signIn,
       signInWithOAuth,

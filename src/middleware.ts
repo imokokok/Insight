@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return intlResponse;
+  return supabaseResponse;
 }
 
 export const config = {

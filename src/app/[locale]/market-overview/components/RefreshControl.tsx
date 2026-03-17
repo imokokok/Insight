@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { RefreshCw, Clock, Check, AlertCircle } from 'lucide-react';
 
 interface RefreshControlProps {
@@ -58,8 +59,8 @@ export default function RefreshControl({
   };
 
   const formatTime = (date?: Date) => {
-    if (!date) return locale === 'zh-CN' ? '从未' : 'Never';
-    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+    if (!date) return isChineseLocale(locale) ? '从未' : 'Never';
+    return date.toLocaleTimeString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -83,10 +84,10 @@ export default function RefreshControl({
         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         <span className="hidden sm:inline">
           {isRefreshing
-            ? locale === 'zh-CN'
+            ? isChineseLocale(locale)
               ? '刷新中...'
               : 'Refreshing...'
-            : locale === 'zh-CN'
+            : isChineseLocale(locale)
               ? '刷新'
               : 'Refresh'}
         </span>
@@ -100,11 +101,11 @@ export default function RefreshControl({
           onChange={(e) => onAutoRefreshChange?.(parseInt(e.target.value))}
           className="px-2 py-1 text-sm border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value={0}>{locale === 'zh-CN' ? '手动' : 'Manual'}</option>
-          <option value={30}>{locale === 'zh-CN' ? '30秒' : '30s'}</option>
-          <option value={60}>{locale === 'zh-CN' ? '1分钟' : '1m'}</option>
-          <option value={300}>{locale === 'zh-CN' ? '5分钟' : '5m'}</option>
-          <option value={900}>{locale === 'zh-CN' ? '15分钟' : '15m'}</option>
+          <option value={0}>{isChineseLocale(locale) ? '手动' : 'Manual'}</option>
+          <option value={30}>{isChineseLocale(locale) ? '30秒' : '30s'}</option>
+          <option value={60}>{isChineseLocale(locale) ? '1分钟' : '1m'}</option>
+          <option value={300}>{isChineseLocale(locale) ? '5分钟' : '5m'}</option>
+          <option value={900}>{isChineseLocale(locale) ? '15分钟' : '15m'}</option>
         </select>
       </div>
 
@@ -118,11 +119,11 @@ export default function RefreshControl({
         {showSuccess ? (
           <>
             <Check className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-green-600">{locale === 'zh-CN' ? '已更新' : 'Updated'}</span>
+            <span className="text-green-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
           </>
         ) : (
           <>
-            <span>{locale === 'zh-CN' ? '更新于:' : 'Updated:'}</span>
+            <span>{isChineseLocale(locale) ? '更新于:' : 'Updated:'}</span>
             <span>{formatTime(lastUpdated)}</span>
           </>
         )}

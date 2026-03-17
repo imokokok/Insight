@@ -22,6 +22,7 @@ import {
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   PieChart as PieChartIcon,
   BarChart3,
@@ -59,29 +60,29 @@ export default function AssetCategoryChart({
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? 'TVS' : 'TVS'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? 'TVS' : 'TVS'}:</span>
               <span className="font-medium">${(item.value / 1e9).toFixed(1)}B</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '份额' : 'Share'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '份额' : 'Share'}:</span>
               <span className="font-medium">{item.share.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '资产数' : 'Assets'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '资产数' : 'Assets'}:</span>
               <span className="font-medium">{item.assets.length}</span>
             </div>
             <div className="pt-1 border-t border-gray-100 mt-1">
               <div className="flex justify-between text-xs">
                 <span className="text-gray-400 flex items-center gap-1">
                   <Activity className="w-3 h-3" />
-                  {locale === 'zh-CN' ? '波动率' : 'Volatility'}:
+                  {isChineseLocale(locale) ? '波动率' : 'Volatility'}:
                 </span>
                 <span className="font-medium text-gray-600">{item.avgVolatility.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-400 flex items-center gap-1">
                   <Droplets className="w-3 h-3" />
-                  {locale === 'zh-CN' ? '流动性' : 'Liquidity'}:
+                  {isChineseLocale(locale) ? '流动性' : 'Liquidity'}:
                 </span>
                 <span className="font-medium text-gray-600">{item.avgLiquidity.toFixed(1)}%</span>
               </div>
@@ -108,7 +109,7 @@ export default function AssetCategoryChart({
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -121,7 +122,7 @@ export default function AssetCategoryChart({
         <div className="text-center">
           <PieChartIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无资产类别数据' : 'No asset category data available'}
+            {isChineseLocale(locale) ? '暂无资产类别数据' : 'No asset category data available'}
           </p>
         </div>
       </div>
@@ -135,22 +136,22 @@ export default function AssetCategoryChart({
           <thead className="sticky top-0">
             <tr>
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '类别' : 'Category'}
+                {isChineseLocale(locale) ? '类别' : 'Category'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 TVS
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '份额' : 'Share'}
+                {isChineseLocale(locale) ? '份额' : 'Share'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '资产数' : 'Assets'}
+                {isChineseLocale(locale) ? '资产数' : 'Assets'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '波动率' : 'Volatility'}
+                {isChineseLocale(locale) ? '波动率' : 'Volatility'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '流动性' : 'Liquidity'}
+                {isChineseLocale(locale) ? '流动性' : 'Liquidity'}
               </th>
             </tr>
           </thead>
@@ -212,7 +213,7 @@ export default function AssetCategoryChart({
             }`}
           >
             <PieChartIcon className="w-3.5 h-3.5 inline mr-1" />
-            {locale === 'zh-CN' ? '饼图' : 'Pie'}
+            {isChineseLocale(locale) ? '饼图' : 'Pie'}
           </button>
           <button
             onClick={() => setChartType('bar')}
@@ -223,7 +224,7 @@ export default function AssetCategoryChart({
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 inline mr-1" />
-            {locale === 'zh-CN' ? '柱状图' : 'Bar'}
+            {isChineseLocale(locale) ? '柱状图' : 'Bar'}
           </button>
           <button
             onClick={() => setChartType('radar')}
@@ -234,7 +235,7 @@ export default function AssetCategoryChart({
             }`}
           >
             <Activity className="w-3.5 h-3.5 inline mr-1" />
-            {locale === 'zh-CN' ? '雷达图' : 'Radar'}
+            {isChineseLocale(locale) ? '雷达图' : 'Radar'}
           </button>
         </div>
       </div>
@@ -377,7 +378,7 @@ export default function AssetCategoryChart({
               <div className="text-xs font-medium text-gray-900 truncate">{item.label}</div>
               <div className="text-xs text-gray-500">
                 {item.share.toFixed(1)}% • {item.assets.length}{' '}
-                {locale === 'zh-CN' ? '资产' : 'assets'}
+                {isChineseLocale(locale) ? '资产' : 'assets'}
               </div>
             </div>
           </button>
@@ -389,7 +390,7 @@ export default function AssetCategoryChart({
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
             <TrendingUp className="w-3 h-3" />
-            {locale === 'zh-CN' ? '平均波动率' : 'Avg Volatility'}
+            {isChineseLocale(locale) ? '平均波动率' : 'Avg Volatility'}
           </div>
           <div className="font-semibold text-gray-900 text-sm">
             {(data.reduce((sum, d) => sum + d.avgVolatility, 0) / data.length).toFixed(1)}%
@@ -398,7 +399,7 @@ export default function AssetCategoryChart({
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
             <Droplets className="w-3 h-3" />
-            {locale === 'zh-CN' ? '平均流动性' : 'Avg Liquidity'}
+            {isChineseLocale(locale) ? '平均流动性' : 'Avg Liquidity'}
           </div>
           <div className="font-semibold text-gray-900 text-sm">
             {(data.reduce((sum, d) => sum + d.avgLiquidity, 0) / data.length).toFixed(1)}%
@@ -407,7 +408,7 @@ export default function AssetCategoryChart({
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
             <Zap className="w-3 h-3" />
-            {locale === 'zh-CN' ? '总类别' : 'Categories'}
+            {isChineseLocale(locale) ? '总类别' : 'Categories'}
           </div>
           <div className="font-semibold text-gray-900 text-sm">{data.length}</div>
         </div>

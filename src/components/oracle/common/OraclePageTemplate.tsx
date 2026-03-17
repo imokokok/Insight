@@ -69,6 +69,7 @@ import { UMAEcosystemPanel } from '../panels/UMAEcosystemPanel';
 import { UMANetworkPanel } from '../panels/UMANetworkPanel';
 import { UMARiskPanel } from '../panels/UMARiskPanel';
 import { createLogger } from '@/lib/utils/logger';
+import { getPanelConfig, PanelRenderContext } from './oraclePanels';
 
 const logger = createLogger('OraclePageTemplate');
 
@@ -102,6 +103,8 @@ export function OraclePageTemplate({
   const [error, setError] = useState<Error | null>(null);
   const [umaNetworkStats, setUmaNetworkStats] = useState<UMAMetworkStats | null>(null);
 
+  const panelConfig = useMemo(() => getPanelConfig(config.provider), [config.provider]);
+
   const fetchData = useCallback(async () => {
     setLoadingState({ show: true });
     setError(null);
@@ -111,7 +114,6 @@ export function OraclePageTemplate({
         config.client.getHistoricalPrices(config.symbol, config.defaultChain, 7),
       ];
 
-      // Fetch UMA network stats if using UMA client
       if (config.provider === OracleProvider.UMA && config.client instanceof UMAClient) {
         promises.push(config.client.getNetworkStats());
       }
@@ -120,7 +122,6 @@ export function OraclePageTemplate({
       setPriceData(results[0] as PriceData);
       setHistoricalData(results[1] as PriceData[]);
 
-      // Set UMA network stats if available
       if (results[2]) {
         setUmaNetworkStats(results[2] as UMAMetworkStats);
       }
@@ -159,138 +160,21 @@ export function OraclePageTemplate({
     [exportData]
   );
 
+  const panelContext: PanelRenderContext = useMemo(
+    () => ({
+      config,
+      activeTab,
+      priceData,
+      historicalData,
+      umaNetworkStats,
+      t,
+    }),
+    [config, activeTab, priceData, historicalData, umaNetworkStats, t]
+  );
+
   const stats = useMemo(() => {
-    if (config.provider === OracleProvider.UMA && config.client instanceof UMAClient) {
-      // Use fetched network stats or fallback to defaults
-      const activeValidators = umaNetworkStats?.activeValidators ?? 850;
-      const totalDisputes = umaNetworkStats?.totalDisputes ?? 1250;
-      const disputeSuccessRate = umaNetworkStats?.disputeSuccessRate ?? 78;
-
-      return [
-        {
-          title: t('uma.stats.activeValidators'),
-          value: `${activeValidators.toLocaleString()}+`,
-          change: '+3%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          title: t('uma.stats.totalDisputes'),
-          value: `${totalDisputes.toLocaleString()}+`,
-          change: '+15%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
-              />
-            </svg>
-          ),
-        },
-        {
-          title: t('uma.stats.disputeSuccessRate'),
-          value: `${disputeSuccessRate}%`,
-          change: '+5%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          title: t('uma.stats.supportedChains'),
-          value: `${config.supportedChains.length}+`,
-          change: '0%',
-          changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-              />
-            </svg>
-          ),
-        },
-      ];
-    }
-
-    if (config.provider === OracleProvider.PYTH) {
-      return [
-        {
-          title: t('pythNetwork.stats.updateFrequencyPerSecond'),
-          value: '2.5',
-          suffix: t('pythNetwork.stats.updatesPerSecond'),
-          change: '+12%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          ),
-        },
-        {
-          title: t('pythNetwork.stats.avgConfidenceWidth'),
-          value: '0.15',
-          suffix: '%',
-          change: '-5%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          ),
-        },
-        {
-          title: t('pythNetwork.stats.publisherCount'),
-          value: '90+',
-          change: '+8%',
-          changeType: 'positive' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          title: t('pythNetwork.stats.crossChainSupport'),
-          value: `${config.supportedChains.length}+`,
-          change: '0%',
-          changeType: 'neutral' as 'positive' | 'negative' | 'neutral',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-              />
-            </svg>
-          ),
-        },
-      ];
+    if (panelConfig.getStats) {
+      return panelConfig.getStats(panelContext);
     }
 
     return [
@@ -355,7 +239,7 @@ export function OraclePageTemplate({
         ),
       },
     ];
-  }, [config, t, umaNetworkStats]);
+  }, [panelConfig, panelContext, t, config]);
 
   const networkStatusData = useMemo(
     () => [
@@ -411,7 +295,6 @@ export function OraclePageTemplate({
   );
 
   const getPageTitle = useCallback(() => {
-    // 根据当前预言机类型获取对应的页面标题
     const getTitle = (key: string) => {
       switch (config.provider) {
         case OracleProvider.BAND_PROTOCOL:
@@ -450,113 +333,26 @@ export function OraclePageTemplate({
   }, [activeTab, t, config.provider]);
 
   const kpiData = useMemo(() => {
-    if (config.provider !== OracleProvider.CHAINLINK) {
-      return null;
+    if (panelConfig.getKPIData) {
+      return panelConfig.getKPIData(panelContext);
     }
-
-    const price = priceData?.price ?? config.marketData.change24hValue;
-    const priceChange24h = config.marketData.change24hValue;
-    const priceChangePercent = config.marketData.change24hPercent;
-    const updateFrequency = config.networkData.updateFrequency;
-
-    let networkHealth: 'healthy' | 'warning' | 'critical' = 'healthy';
-    if (config.networkData.nodeUptime < 95) {
-      networkHealth = 'critical';
-    } else if (config.networkData.avgResponseTime > 500 || config.networkData.nodeUptime < 99) {
-      networkHealth = 'warning';
-    }
-
-    const completeness = 95;
-    const latencyScore = Math.max(0, 100 - config.networkData.avgResponseTime / 10);
-    const sourceScore = Math.min(100, (8 / 10) * 100);
-    const dataQualityScore = completeness * 0.4 + latencyScore * 0.3 + sourceScore * 0.3;
-
-    return {
-      price,
-      priceChange24h,
-      priceChangePercent,
-      updateFrequency,
-      networkHealth,
-      dataQualityScore,
-    };
-  }, [config, priceData]);
+    return null;
+  }, [panelConfig, panelContext]);
 
   const dataQualityData = useMemo(() => {
-    if (config.provider !== OracleProvider.CHAINLINK) {
-      return null;
+    if (panelConfig.getDataQualityData) {
+      return panelConfig.getDataQualityData(panelContext);
     }
-
-    return {
-      completeness: 95,
-      latency: config.networkData.avgResponseTime,
-      sourceCount: 8,
-    };
-  }, [config]);
+    return null;
+  }, [panelConfig, panelContext]);
 
   const dataSourceCredibilityData = useMemo(() => {
-    if (config.provider !== OracleProvider.CHAINLINK) {
-      return [];
+    if (panelConfig.getDataSourceCredibilityData) {
+      return panelConfig.getDataSourceCredibilityData(panelContext);
     }
+    return [];
+  }, [panelConfig, panelContext]);
 
-    return [
-      {
-        id: '1',
-        name: 'Binance',
-        accuracy: 98,
-        responseSpeed: 95,
-        consistency: 97,
-        availability: 99,
-        contribution: 25,
-      },
-      {
-        id: '2',
-        name: 'Coinbase',
-        accuracy: 97,
-        responseSpeed: 94,
-        consistency: 96,
-        availability: 99,
-        contribution: 22,
-      },
-      {
-        id: '3',
-        name: 'Kraken',
-        accuracy: 96,
-        responseSpeed: 93,
-        consistency: 95,
-        availability: 98,
-        contribution: 18,
-      },
-      {
-        id: '4',
-        name: 'Huobi',
-        accuracy: 95,
-        responseSpeed: 92,
-        consistency: 94,
-        availability: 97,
-        contribution: 15,
-      },
-      {
-        id: '5',
-        name: 'OKX',
-        accuracy: 94,
-        responseSpeed: 91,
-        consistency: 93,
-        availability: 96,
-        contribution: 12,
-      },
-      {
-        id: '6',
-        name: 'KuCoin',
-        accuracy: 93,
-        responseSpeed: 90,
-        consistency: 92,
-        availability: 95,
-        contribution: 8,
-      },
-    ];
-  }, [config]);
-
-  // 根据 provider 获取对应的 i18n 键名
   const getProviderKey = useCallback(() => {
     switch (config.provider) {
       case OracleProvider.CHAINLINK:
@@ -585,6 +381,94 @@ export function OraclePageTemplate({
   }, [config.provider]);
 
   const providerKey = getProviderKey();
+
+  const renderProviderSpecificMarketContent = () => {
+    if (panelConfig.renderMarketTab) {
+      return panelConfig.renderMarketTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificNetworkContent = () => {
+    if (panelConfig.renderNetworkTab) {
+      return panelConfig.renderNetworkTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificValidatorsContent = () => {
+    if (panelConfig.renderValidatorsTab) {
+      return panelConfig.renderValidatorsTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificDisputesContent = () => {
+    if (panelConfig.renderDisputesTab) {
+      return panelConfig.renderDisputesTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificStakingContent = () => {
+    if (panelConfig.renderStakingTab) {
+      return panelConfig.renderStakingTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificRiskContent = () => {
+    if (panelConfig.renderRiskTab) {
+      return panelConfig.renderRiskTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificEcosystemContent = () => {
+    if (panelConfig.renderEcosystemTab) {
+      return panelConfig.renderEcosystemTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificCrossOracleContent = () => {
+    if (panelConfig.renderCrossOracleTab) {
+      return panelConfig.renderCrossOracleTab(panelContext);
+    }
+    return (
+      <div className="mb-6">
+        <CrossOracleComparison />
+      </div>
+    );
+  };
+
+  const renderProviderSpecificGamingContent = () => {
+    if (panelConfig.renderGamingTab) {
+      return panelConfig.renderGamingTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificTronContent = () => {
+    if (panelConfig.renderTronTab) {
+      return panelConfig.renderTronTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificDataFeedsContent = () => {
+    if (panelConfig.renderDataFeedsTab) {
+      return panelConfig.renderDataFeedsTab(panelContext);
+    }
+    return null;
+  };
+
+  const renderProviderSpecificCrossChainContent = () => {
+    if (panelConfig.renderCrossChainTab) {
+      return panelConfig.renderCrossChainTab(panelContext);
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-dune">
@@ -623,7 +507,6 @@ export function OraclePageTemplate({
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* 统计数据行 - 去中心化节点、支持的链等 */}
           {activeTab === 'market' && !config.features.hasPublisherAnalytics && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {stats.map((stat, index) => (
@@ -670,66 +553,7 @@ export function OraclePageTemplate({
             </div>
           )}
 
-          {/* RSI和MACD技术指标 - 仅Chainlink显示 */}
-          {activeTab === 'market' && config.provider === OracleProvider.CHAINLINK && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <RSIIndicator
-                data={historicalData.map((h) => ({
-                  time: new Date(h.timestamp).toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                  timestamp: h.timestamp,
-                  price: h.price,
-                  close: h.price,
-                }))}
-                period={14}
-                height={220}
-              />
-              <MACDIndicator
-                data={historicalData.map((h) => ({
-                  time: new Date(h.timestamp).toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                  timestamp: h.timestamp,
-                  price: h.price,
-                  close: h.price,
-                }))}
-                fastPeriod={12}
-                slowPeriod={26}
-                signalPeriod={9}
-                height={220}
-              />
-            </div>
-          )}
-
-          {activeTab === 'market' && config.provider === OracleProvider.PYTH && (
-            <>
-              <div className="mb-6">
-                <PriceStream
-                  symbol={config.symbol}
-                  initialPrice={config.marketData.change24hValue}
-                  updateInterval={100}
-                />
-              </div>
-              <div className="mb-6">
-                <DataQualityScorePanel symbol={config.symbol} />
-              </div>
-              <div className="mb-6">
-                <ConfidenceIntervalChart />
-              </div>
-              <div className="mb-6">
-                <ConfidenceAlertPanel symbol={config.symbol} />
-              </div>
-            </>
-          )}
-
-          {activeTab === 'market' && config.provider === OracleProvider.PYTH && (
-            <div className="mb-6">
-              <AccuracyAnalysisPanel />
-            </div>
-          )}
+          {activeTab === 'market' && renderProviderSpecificMarketContent()}
 
           {activeTab === 'market' && config.features.hasPublisherAnalytics && (
             <div className="mb-6">
@@ -742,201 +566,26 @@ export function OraclePageTemplate({
               <div className="mb-6">
                 <NetworkHealthPanel config={config.networkData} />
               </div>
-
-              {/* Gas费用趋势图 */}
-              {config.provider === OracleProvider.CHAINLINK && (
-                <div className="mb-6">
-                  <GasFeeTrendChart height={280} />
-                </div>
-              )}
-
-              {/* 链上延迟分布 */}
-              {config.provider === OracleProvider.CHAINLINK && (
-                <div className="mb-6">
-                  <LatencyDistributionHistogram
-                    data={Array.from({ length: 1000 }, () => Math.random() * 400 + 50)}
-                    oracleName={config.name}
-                  />
-                </div>
-              )}
-
+              {renderProviderSpecificNetworkContent()}
               {dataSourceCredibilityData.length > 0 && (
                 <div className="mb-6">
                   <DataSourceCredibility sources={dataSourceCredibilityData} />
                 </div>
               )}
-              {config.provider === OracleProvider.PYTH && (
-                <>
-                  <div className="mb-6">
-                    <UpdateFrequencyHeatmap
-                      hourlyActivity={config.networkData.hourlyActivity}
-                      updateFrequency={config.networkData.updateFrequency}
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <LatencyTrendChart symbol={config.symbol} />
-                  </div>
-                  <div className="mb-6">
-                    <CrossChainPriceConsistency symbol={config.symbol} />
-                  </div>
-                </>
-              )}
-              {config.provider === OracleProvider.BAND_PROTOCOL &&
-                config.client instanceof BandProtocolClient && (
-                  <>
-                    <div className="mb-6">
-                      <ValidatorGeographicMap validators={[]} />
-                    </div>
-                    <div className="mb-6">
-                      <ValidatorPanel client={config.client} />
-                    </div>
-                    <div className="mb-6">
-                      <ChainEventMonitor client={config.client} refreshInterval={30000} />
-                    </div>
-                    <div className="mb-6">
-                      <BandCrossChainPriceConsistency />
-                    </div>
-                  </>
-                )}
             </>
           )}
 
-          {activeTab === 'network' && config.provider === OracleProvider.UMA && (
-            <>
-              <div className="mb-6">
-                <UMANetworkPanel
-                  networkStats={umaNetworkStats}
-                  client={config.client as UMAClient}
-                />
-              </div>
-            </>
-          )}
+          {activeTab === 'validators' && renderProviderSpecificValidatorsContent()}
 
-          {activeTab === 'validators' && config.provider === OracleProvider.UMA && (
-            <>
-              <div className="mb-6">
-                <UMADashboardPanel
-                  activeValidators={umaNetworkStats?.activeValidators ?? 850}
-                  avgResponseTime={config.networkData.avgResponseTime}
-                  nodeUptime={config.networkData.nodeUptime}
-                  dataFeeds={config.networkData.dataFeeds}
-                  networkStatus={[
-                    {
-                      label: t('chainlink.networkHealth.activeNodes'),
-                      value: (umaNetworkStats?.activeValidators ?? 850).toLocaleString(),
-                      status: 'healthy',
-                    },
-                    {
-                      label: t('chainlink.stats.dataFeeds'),
-                      value: config.networkData.dataFeeds.toLocaleString(),
-                      status: 'healthy',
-                    },
-                    {
-                      label: t('chainlink.networkHealth.responseTime'),
-                      value: `${config.networkData.avgResponseTime}ms`,
-                      status: config.networkData.avgResponseTime < 300 ? 'healthy' : 'warning',
-                    },
-                    {
-                      label: t('chainlink.successRate'),
-                      value: `${config.networkData.nodeUptime}%`,
-                      status: 'healthy',
-                    },
-                  ]}
-                  dataSources={[
-                    {
-                      name: `${config.name} Market`,
-                      status: 'active',
-                      latency: `${config.networkData.latency}ms`,
-                    },
-                    {
-                      name: config.defaultChain,
-                      status: 'active',
-                      latency: `${config.networkData.avgResponseTime}ms`,
-                    },
-                    {
-                      name: 'Secondary Feed',
-                      status: 'active',
-                      latency: `${Math.round(config.networkData.avgResponseTime * 1.2)}ms`,
-                    },
-                    {
-                      name: 'Backup Node',
-                      status: 'syncing',
-                      latency: `${Math.round(config.networkData.avgResponseTime * 1.5)}ms`,
-                    },
-                  ]}
-                />
-              </div>
-              <div className="mb-6">
-                <UMADataQualityScoreCard />
-              </div>
-              <div className="mb-6">
-                <ValidatorAnalyticsPanel />
-              </div>
-            </>
-          )}
+          {activeTab === 'disputes' && renderProviderSpecificDisputesContent()}
 
-          {activeTab === 'disputes' && config.provider === OracleProvider.UMA && (
-            <div className="mb-6">
-              <DisputeResolutionPanel />
-            </div>
-          )}
+          {activeTab === 'staking' && renderProviderSpecificStakingContent()}
 
-          {activeTab === 'staking' && config.provider === OracleProvider.UMA && (
-            <div className="mb-6">
-              <StakingPanel />
-            </div>
-          )}
-
-          {activeTab === 'risk' && (
-            <>
-              {config.provider === OracleProvider.WINKLINK && (
-                <div className="mb-6">
-                  <WINkLinkRiskPanel
-                    data={{
-                      dataQualityScore: 96.5,
-                      priceDeviation: 0.12,
-                      nodeConcentrationRisk: 15.8,
-                      uptimeRisk: 0.08,
-                      lastUpdate: Date.now(),
-                    }}
-                  />
-                </div>
-              )}
-              {config.provider === OracleProvider.UMA && config.client instanceof UMAClient ? (
-                <div className="mb-6">
-                  <UMARiskPanel client={config.client} />
-                </div>
-              ) : config.provider === OracleProvider.BAND_PROTOCOL &&
-                config.client instanceof BandProtocolClient ? (
-                <div className="mb-6">
-                  <BandRiskAssessmentPanel client={config.client} />
-                </div>
-              ) : (
-                <>
-                  <div className="mb-6">
-                    <RiskAssessmentPanel provider={config.provider} />
-                  </div>
-                  <div className="mb-6">
-                    <DataQualityPanel
-                      symbol={config.symbol}
-                      basePrice={config.marketData.high24h}
-                    />
-                  </div>
-                </>
-              )}
-            </>
-          )}
+          {activeTab === 'risk' && renderProviderSpecificRiskContent()}
 
           {activeTab === 'ecosystem' && (
             <div className="mb-6">
-              {config.provider === OracleProvider.UMA ? (
-                <UMAEcosystemPanel supportedChains={config.supportedChains} />
-              ) : config.provider === OracleProvider.PYTH ? (
-                <EcosystemPanel />
-              ) : config.provider === OracleProvider.BAND_PROTOCOL &&
-                config.client instanceof BandProtocolClient ? (
-                <CosmosEcosystemPanel client={config.client} />
-              ) : (
+              {renderProviderSpecificEcosystemContent() || (
                 <div className="py-4 border-b border-gray-100">
                   <div className="text-center py-12">
                     <svg
@@ -976,267 +625,15 @@ export function OraclePageTemplate({
             </div>
           )}
 
-          {activeTab === 'cross-oracle' && (
-            <div className="mb-6">
-              <CrossOracleComparison />
-            </div>
-          )}
+          {activeTab === 'cross-oracle' && renderProviderSpecificCrossOracleContent()}
 
-          {activeTab === 'gaming' && config.provider === OracleProvider.WINKLINK && (
-            <div className="mb-6">
-              <WINkLinkGamingDataPanel
-                data={{
-                  totalGamingVolume: 850000000,
-                  activeGames: 45,
-                  dailyRandomRequests: 2500000,
-                  dataSources: [
-                    {
-                      id: 'game-001',
-                      name: 'WINk Casino',
-                      type: 'platform',
-                      category: 'casino',
-                      users: 650000,
-                      volume24h: 8500000,
-                      dataTypes: ['Random Numbers', 'Price Feeds'],
-                      reliability: 99.99,
-                      lastUpdate: Date.now(),
-                    },
-                    {
-                      id: 'game-002',
-                      name: 'TRONbet Dice',
-                      type: 'game',
-                      category: 'casino',
-                      users: 280000,
-                      volume24h: 3200000,
-                      dataTypes: ['Random Numbers'],
-                      reliability: 99.97,
-                      lastUpdate: Date.now() - 30000,
-                    },
-                    {
-                      id: 'game-003',
-                      name: 'SportX',
-                      type: 'platform',
-                      category: 'sports',
-                      users: 420000,
-                      volume24h: 5800000,
-                      dataTypes: ['Sports Results', 'Price Feeds'],
-                      reliability: 99.95,
-                      lastUpdate: Date.now() - 60000,
-                    },
-                  ],
-                  randomNumberServices: [
-                    {
-                      serviceId: 'rng-001',
-                      name: 'WINkLink VRF',
-                      requestCount: 15000000,
-                      averageResponseTime: 85,
-                      securityLevel: 'high',
-                      supportedChains: ['TRON', 'BTTC'],
-                    },
-                    {
-                      serviceId: 'rng-002',
-                      name: 'Gaming Random Oracle',
-                      requestCount: 8500000,
-                      averageResponseTime: 95,
-                      securityLevel: 'high',
-                      supportedChains: ['TRON'],
-                    },
-                  ],
-                  vrfUseCases: [
-                    {
-                      id: 'vrf-001',
-                      name: 'Random Number Generation',
-                      description: 'Secure random numbers for gaming',
-                      category: 'gaming',
-                      usageCount: 15000000,
-                      reliability: 99.99,
-                    },
-                    {
-                      id: 'vrf-002',
-                      name: 'Lottery Draw',
-                      description: 'Fair lottery drawing mechanism',
-                      category: 'lottery',
-                      usageCount: 5200000,
-                      reliability: 99.98,
-                    },
-                  ],
-                  categoryDistribution: [
-                    { category: 'casino', count: 18, percentage: 40, volume24h: 4200000 },
-                    { category: 'sports', count: 12, percentage: 26.7, volume24h: 3100000 },
-                  ],
-                }}
-              />
-            </div>
-          )}
+          {activeTab === 'gaming' && renderProviderSpecificGamingContent()}
 
-          {activeTab === 'tron' && config.provider === OracleProvider.WINKLINK && (
-            <div className="mb-6">
-              <WINkLinkTRONEcosystemPanel
-                data={{
-                  networkStats: {
-                    totalTransactions: 8500000000,
-                    tps: 65,
-                    blockHeight: 65000000,
-                    blockTime: 3,
-                    totalAccounts: 180000000,
-                    dailyActiveUsers: 2500000,
-                    energyConsumption: 4500000000,
-                    bandwidthConsumption: 2800000000,
-                  },
-                  integratedDApps: [
-                    {
-                      id: 'dapp-001',
-                      name: 'WINk',
-                      category: 'gaming',
-                      users: 850000,
-                      volume24h: 15000000,
-                      contractAddress: 'TND...abc',
-                      integrationDate: Date.now() - 86400000 * 365,
-                      status: 'active',
-                    },
-                    {
-                      id: 'dapp-002',
-                      name: 'JustSwap',
-                      category: 'defi',
-                      users: 420000,
-                      volume24h: 8500000,
-                      contractAddress: 'TND...def',
-                      integrationDate: Date.now() - 86400000 * 300,
-                      status: 'active',
-                    },
-                  ],
-                  totalValueLocked: 1200000000,
-                  dailyTransactions: 4500000,
-                  integrationCoverage: 85,
-                  networkGrowth: [
-                    {
-                      month: '2024-06',
-                      transactions: 7200000000,
-                      accounts: 165000000,
-                      tvl: 980000000,
-                    },
-                    {
-                      month: '2024-07',
-                      transactions: 7500000000,
-                      accounts: 168000000,
-                      tvl: 1050000000,
-                    },
-                    {
-                      month: '2024-08',
-                      transactions: 7800000000,
-                      accounts: 172000000,
-                      tvl: 1120000000,
-                    },
-                  ],
-                  marketShare: {
-                    oracleUsage: 78,
-                    totalDapps: 120,
-                    integratedDapps: 45,
-                  },
-                }}
-              />
-            </div>
-          )}
+          {activeTab === 'tron' && renderProviderSpecificTronContent()}
 
-          {activeTab === 'staking' && config.provider === OracleProvider.WINKLINK && (
-            <div className="mb-6">
-              <WINkLinkStakingPanel
-                data={{
-                  totalStaked: 45000000,
-                  totalNodes: 40,
-                  activeNodes: 35,
-                  averageApr: 12.5,
-                  rewardPool: 2500000,
-                  stakingTiers: [
-                    {
-                      tier: 'Bronze',
-                      minStake: 500000,
-                      maxStake: 1000000,
-                      apr: 10.5,
-                      nodeCount: 15,
-                    },
-                    {
-                      tier: 'Silver',
-                      minStake: 1000000,
-                      maxStake: 2000000,
-                      apr: 11.5,
-                      nodeCount: 12,
-                    },
-                    { tier: 'Gold', minStake: 2000000, maxStake: 4000000, apr: 12.5, nodeCount: 8 },
-                    {
-                      tier: 'Platinum',
-                      minStake: 4000000,
-                      maxStake: 10000000,
-                      apr: 14.0,
-                      nodeCount: 5,
-                    },
-                  ],
-                  nodes: [
-                    {
-                      id: 'node-001',
-                      address: 'TND...1a2b',
-                      name: 'WINkLink Guardian',
-                      region: 'Asia',
-                      stakedAmount: 5000000,
-                      rewardsEarned: 850000,
-                      uptime: 99.99,
-                      responseTime: 85,
-                      validatedRequests: 12500000,
-                      joinDate: Date.now() - 86400000 * 400,
-                      status: 'active',
-                      tier: 'platinum',
-                    },
-                    {
-                      id: 'node-002',
-                      address: 'TND...2c3d',
-                      name: 'TRON Oracle Node',
-                      region: 'Europe',
-                      stakedAmount: 3200000,
-                      rewardsEarned: 520000,
-                      uptime: 99.95,
-                      responseTime: 95,
-                      validatedRequests: 9800000,
-                      joinDate: Date.now() - 86400000 * 350,
-                      status: 'active',
-                      tier: 'gold',
-                    },
-                  ],
-                }}
-              />
-            </div>
-          )}
+          {activeTab === 'data-feeds' && renderProviderSpecificDataFeedsContent()}
 
-          {activeTab === 'validators' &&
-            config.provider === OracleProvider.BAND_PROTOCOL &&
-            config.client instanceof BandProtocolClient && (
-              <div className="mb-6">
-                <BandValidatorsPanel client={config.client} />
-              </div>
-            )}
-
-          {activeTab === 'data-feeds' &&
-            config.provider === OracleProvider.BAND_PROTOCOL &&
-            config.client instanceof BandProtocolClient && (
-              <div className="mb-6">
-                <BandDataFeedsPanel client={config.client} />
-              </div>
-            )}
-
-          {activeTab === 'staking' &&
-            config.provider === OracleProvider.BAND_PROTOCOL &&
-            config.client instanceof BandProtocolClient && (
-              <div className="mb-6">
-                <BandStakingPanel client={config.client} />
-              </div>
-            )}
-
-          {activeTab === 'cross-chain' &&
-            config.provider === OracleProvider.BAND_PROTOCOL &&
-            config.client instanceof BandProtocolClient && (
-              <div className="mb-6">
-                <BandCrossChainPanel client={config.client} />
-              </div>
-            )}
+          {activeTab === 'cross-chain' && renderProviderSpecificCrossChainContent()}
 
           {(activeTab === 'market' || activeTab === 'network') &&
             !config.features.hasPublisherAnalytics && (

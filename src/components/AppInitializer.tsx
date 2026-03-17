@@ -8,12 +8,17 @@ import { setUser } from '@/lib/monitoring';
 
 export function AppInitializer({ children }: { children: React.ReactNode }) {
   const initializeAuth = useAuthStore((state) => state.initialize);
+  const cleanupAuth = useAuthStore((state) => state.cleanup);
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     initializeAuth();
     initWebVitals();
-  }, [initializeAuth]);
+
+    return () => {
+      cleanupAuth();
+    };
+  }, [initializeAuth, cleanupAuth]);
 
   useEffect(() => {
     setUser(user);

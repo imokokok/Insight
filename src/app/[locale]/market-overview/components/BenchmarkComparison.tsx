@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   TrendingUp,
   TrendingDown,
@@ -84,7 +85,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? 'vs 行业平均' : 'vs Industry Avg'}:
+                {isChineseLocale(locale) ? 'vs 行业平均' : 'vs Industry Avg'}:
               </span>
               <span className={`font-medium ${getPerformanceClass(item.diffPercent)}`}>
                 {item.diffPercent > 0 ? '+' : ''}
@@ -93,7 +94,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '排名百分位' : 'Percentile'}:
+                {isChineseLocale(locale) ? '排名百分位' : 'Percentile'}:
               </span>
               <span className="font-medium text-blue-600">Top {item.percentile}%</span>
             </div>
@@ -110,7 +111,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -123,7 +124,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <div className="text-center">
           <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无基准数据' : 'No benchmark data available'}
+            {isChineseLocale(locale) ? '暂无基准数据' : 'No benchmark data available'}
           </p>
         </div>
       </div>
@@ -177,7 +178,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-xs">
-              {locale === 'zh-CN' ? '行业平均' : 'Industry Avg'}:
+              {isChineseLocale(locale) ? '行业平均' : 'Industry Avg'}:
             </span>
             <span className="font-medium text-gray-900 text-sm">
               {currentMetric.metric.industryAverage}
@@ -186,7 +187,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-xs">
-              {locale === 'zh-CN' ? '行业中位数' : 'Median'}:
+              {isChineseLocale(locale) ? '行业中位数' : 'Median'}:
             </span>
             <span className="font-medium text-gray-900 text-sm">
               {currentMetric.metric.industryMedian}
@@ -195,7 +196,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           </div>
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-xs">
-              {locale === 'zh-CN' ? '行业最佳' : 'Best'}:
+              {isChineseLocale(locale) ? '行业最佳' : 'Best'}:
             </span>
             <span className="font-medium text-green-600 text-sm">
               {currentMetric.metric.industryBest}
@@ -228,7 +229,7 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
               stroke={semanticColors.warning.main}
               strokeDasharray="5 5"
               label={{
-                value: locale === 'zh-CN' ? '平均' : 'Avg',
+                value: isChineseLocale(locale) ? '平均' : 'Avg',
                 position: 'top',
                 fill: semanticColors.warning.main,
                 fontSize: 10,
@@ -249,22 +250,22 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
           <thead>
             <tr>
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {currentMetric.metric.name}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? 'vs 行业平均' : 'vs Industry Avg'}
+                {isChineseLocale(locale) ? 'vs 行业平均' : 'vs Industry Avg'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '差异值' : 'Difference'}
+                {isChineseLocale(locale) ? '差异值' : 'Difference'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '排名百分位' : 'Percentile'}
+                {isChineseLocale(locale) ? '排名百分位' : 'Percentile'}
               </th>
               <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '表现' : 'Performance'}
+                {isChineseLocale(locale) ? '表现' : 'Performance'}
               </th>
             </tr>
           </thead>
@@ -329,11 +330,11 @@ export default function BenchmarkComparison({ data, loading = false }: Benchmark
         <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="font-medium text-gray-700 mb-0.5">
-            {locale === 'zh-CN' ? '关于行业基准' : 'About Industry Benchmarks'}
+            {isChineseLocale(locale) ? '关于行业基准' : 'About Industry Benchmarks'}
           </p>
           <p>{currentMetric.metric.description}</p>
           <p className="mt-0.5">
-            {locale === 'zh-CN'
+            {isChineseLocale(locale)
               ? '黄色虚线表示行业平均值。绿色表示高于平均，红色表示低于平均。'
               : 'Yellow dashed line indicates industry average. Green = above average, Red = below average.'}
           </p>

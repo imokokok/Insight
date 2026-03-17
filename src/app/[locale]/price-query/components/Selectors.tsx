@@ -76,7 +76,7 @@ export function Selectors({
       <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Icons.currency className="w-4 h-4 text-gray-600" />
-          {t('priceQuery.title') || '价格查询'}
+          {t('priceQuery.title')}
         </h2>
         <button
           onClick={onQuery}
@@ -128,13 +128,13 @@ export function Selectors({
                 onClick={() => setSelectedOracles(getOracleProvidersSortedByMarketCap())}
                 className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
               >
-                全选
+                {t('priceQuery.selectors.selectAll')}
               </button>
               <button
                 onClick={() => setSelectedOracles([])}
                 className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
               >
-                取消
+                {t('priceQuery.selectors.deselectAll')}
               </button>
             </div>
           </div>
@@ -181,13 +181,13 @@ export function Selectors({
                 }}
                 className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
               >
-                全选
+                {t('priceQuery.selectors.selectAll')}
               </button>
               <button
                 onClick={() => setSelectedChains([])}
                 className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
               >
-                取消
+                {t('priceQuery.selectors.deselectAll')}
               </button>
             </div>
           </div>
@@ -251,7 +251,7 @@ export function Selectors({
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-wider">高级选项</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider">{t('priceQuery.selectors.advancedOptions')}</span>
             <svg
               className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
               fill="none"
@@ -272,10 +272,9 @@ export function Selectors({
                   onChange={(e) => setCompareMode?.(e.target.checked)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
-                <span className="text-xs font-medium text-gray-700">对比模式</span>
+                <span className="text-xs font-medium text-gray-700">{t('priceQuery.selectors.compareMode')}</span>
               </label>
 
-              {/* 显示基准线 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
@@ -283,14 +282,14 @@ export function Selectors({
                   onChange={(e) => setShowBaseline?.(e.target.checked)}
                   className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
                 />
-                <span className="text-xs font-medium text-gray-700">显示基准线</span>
+                <span className="text-xs font-medium text-gray-700">{t('priceQuery.selectors.showBaseline')}</span>
               </label>
 
               {/* 对比时间范围 */}
               {compareMode && (
                 <div className="pt-2 border-t border-gray-200 mt-2">
                   <span className="text-[10px] font-medium text-gray-500 block mb-2">
-                    对比时间
+                    {t('priceQuery.selectors.compareTime')}
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {TIME_RANGES.map((range) => (

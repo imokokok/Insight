@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
@@ -69,7 +70,7 @@ interface TickerItemProps {
 
 function TickerItem({ pair, priceData }: TickerItemProps) {
   const locale = useLocale();
-  const isZh = locale === 'zh-CN';
+  const isZh = isChineseLocale(locale);
   const isPositive = priceData.change24h >= 0;
   const color = isPositive ? semanticColors.success.main : semanticColors.danger.main;
 
@@ -123,7 +124,7 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
 
 export default function LivePriceTicker() {
   const locale = useLocale();
-  const isZh = locale === 'zh-CN';
+  const isZh = isChineseLocale(locale);
   const [isPaused, setIsPaused] = useState(false);
   const [priceDataMap, setPriceDataMap] = useState<Map<string, PriceData>>(new Map());
 

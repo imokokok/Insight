@@ -158,8 +158,14 @@ export default function PriceQueryPage() {
 
   const handleExportCSV = useCallback(() => {
     const csvLines: string[] = [];
-    csvLines.push('=== 价格查询结果 ===');
-    const headers = ['预言机', '区块链', '价格', '时间戳', '来源'];
+    csvLines.push(`=== ${t('priceQuery.export.header')} ===`);
+    const headers = [
+      t('priceQuery.export.oracle'),
+      t('priceQuery.export.blockchain'),
+      t('priceQuery.export.price'),
+      t('priceQuery.export.timestamp'),
+      t('priceQuery.export.source'),
+    ];
     csvLines.push(headers.join(','));
 
     queryResults.forEach((result) => {
@@ -186,7 +192,7 @@ export default function PriceQueryPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [queryResults, generateFilename]);
+  }, [queryResults, generateFilename, t]);
 
   const handleExportJSON = useCallback(() => {
     const exportData = {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   TrendingUp,
   TrendingDown,
@@ -182,7 +183,7 @@ function LiveIndicator() {
         className="text-[10px] font-semibold uppercase tracking-wider"
         style={{ color: semanticColors.success.text }}
       >
-        {locale === 'zh-CN' ? '实时' : 'LIVE'}
+        {isChineseLocale(locale) ? '实时' : 'LIVE'}
       </span>
     </div>
   );
@@ -258,7 +259,7 @@ function MiniLiveTicker() {
       >
         <PulseIndicator size="sm" />
         <span className="text-xs font-semibold" style={{ color: baseColors.gray[700] }}>
-          {locale === 'zh-CN' ? '实时价格监控' : 'Live Price Monitor'}
+          {isChineseLocale(locale) ? '实时价格监控' : 'Live Price Monitor'}
         </span>
       </div>
       <div className="relative py-2">
@@ -373,7 +374,7 @@ export default function BentoMetricsGrid() {
     return () => clearInterval(interval);
   }, []);
 
-  const langCode = locale === 'zh-CN' ? 'zh-CN' : 'en-US';
+  const langCode = isChineseLocale(locale) ? 'zh-CN' : 'en-US';
 
   const renderChart = (card: MetricCard) => {
     if (!card.chart || !card.chartData) return null;
@@ -444,17 +445,17 @@ export default function BentoMetricsGrid() {
           >
             <BarChart3 className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
             <span className="text-sm font-semibold" style={{ color: baseColors.gray[700] }}>
-              {locale === 'zh-CN' ? '平台指标' : 'Platform Metrics'}
+              {isChineseLocale(locale) ? '平台指标' : 'Platform Metrics'}
             </span>
           </div>
           <h2
             className="text-3xl sm:text-4xl font-bold mb-3"
             style={{ color: baseColors.gray[900] }}
           >
-            {locale === 'zh-CN' ? '核心数据指标' : 'Key Metrics'}
+            {isChineseLocale(locale) ? '核心数据指标' : 'Key Metrics'}
           </h2>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: baseColors.gray[600] }}>
-            {locale === 'zh-CN'
+            {isChineseLocale(locale)
               ? '实时监控平台核心指标，全面了解预言机生态健康状况'
               : 'Real-time monitoring of core platform metrics for comprehensive oracle ecosystem health'}
           </p>
@@ -560,7 +561,7 @@ export default function BentoMetricsGrid() {
                     >
                       <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <span>
-                        {locale === 'zh-CN' ? '更新于' : 'Updated'}{' '}
+                        {isChineseLocale(locale) ? '更新于' : 'Updated'}{' '}
                         {currentTime.toLocaleTimeString(langCode, {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -591,10 +592,10 @@ export default function BentoMetricsGrid() {
 
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: locale === 'zh-CN' ? '支持网络' : 'Networks', value: '15+' },
-            { label: locale === 'zh-CN' ? '合作伙伴' : 'Partners', value: '200+' },
-            { label: locale === 'zh-CN' ? 'API 调用/天' : 'API Calls/Day', value: '50M+' },
-            { label: locale === 'zh-CN' ? '正常运行时间' : 'Uptime', value: '99.99%' },
+            { label: isChineseLocale(locale) ? '支持网络' : 'Networks', value: '15+' },
+            { label: isChineseLocale(locale) ? '合作伙伴' : 'Partners', value: '200+' },
+            { label: isChineseLocale(locale) ? 'API 调用/天' : 'API Calls/Day', value: '50M+' },
+            { label: isChineseLocale(locale) ? '正常运行时间' : 'Uptime', value: '99.99%' },
           ].map((stat) => (
             <div
               key={stat.label}

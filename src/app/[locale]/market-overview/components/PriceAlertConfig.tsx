@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PriceAlert } from '../types';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   Bell,
   Plus,
@@ -91,7 +92,7 @@ export default function PriceAlertConfig({
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-gray-500" />
           <span className="text-sm text-gray-700">
-            {locale === 'zh-CN' ? '价格警报' : 'Price Alerts'} ({alerts.length})
+            {isChineseLocale(locale) ? '价格警报' : 'Price Alerts'} ({alerts.length})
           </span>
         </div>
         <button
@@ -99,7 +100,7 @@ export default function PriceAlertConfig({
           className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
         >
           <Plus className="w-3.5 h-3.5" />
-          {locale === 'zh-CN' ? '添加' : 'Add'}
+          {isChineseLocale(locale) ? '添加' : 'Add'}
         </button>
       </div>
 
@@ -110,7 +111,7 @@ export default function PriceAlertConfig({
             <div className="grid grid-cols-3 gap-2">
               <input
                 type="text"
-                placeholder={locale === 'zh-CN' ? '资产 (如: BTC)' : 'Asset (e.g., BTC)'}
+                placeholder={isChineseLocale(locale) ? '资产 (如: BTC)' : 'Asset (e.g., BTC)'}
                 value={newAlert.asset}
                 onChange={(e) => setNewAlert({ ...newAlert, asset: e.target.value })}
                 className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -122,12 +123,12 @@ export default function PriceAlertConfig({
                 }
                 className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="above">{locale === 'zh-CN' ? '高于' : 'Above'}</option>
-                <option value="below">{locale === 'zh-CN' ? '低于' : 'Below'}</option>
+                <option value="above">{isChineseLocale(locale) ? '高于' : 'Above'}</option>
+                <option value="below">{isChineseLocale(locale) ? '低于' : 'Below'}</option>
               </select>
               <input
                 type="number"
-                placeholder={locale === 'zh-CN' ? '价格' : 'Price'}
+                placeholder={isChineseLocale(locale) ? '价格' : 'Price'}
                 value={newAlert.price}
                 onChange={(e) => setNewAlert({ ...newAlert, price: e.target.value })}
                 className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -137,7 +138,7 @@ export default function PriceAlertConfig({
             {/* 通知渠道 */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">
-                {locale === 'zh-CN' ? '通知方式:' : 'Notify via:'}
+                {isChineseLocale(locale) ? '通知方式:' : 'Notify via:'}
               </span>
               <div className="flex gap-1.5">
                 {(['email', 'push', 'webhook'] as const).map((channel) => (
@@ -151,8 +152,8 @@ export default function PriceAlertConfig({
                     }`}
                   >
                     {getChannelIcon(channel)}
-                    {channel === 'email' && (locale === 'zh-CN' ? '邮件' : 'Email')}
-                    {channel === 'push' && (locale === 'zh-CN' ? '推送' : 'Push')}
+                    {channel === 'email' && (isChineseLocale(locale) ? '邮件' : 'Email')}
+                    {channel === 'push' && (isChineseLocale(locale) ? '推送' : 'Push')}
                     {channel === 'webhook' && 'Webhook'}
                   </button>
                 ))}
@@ -165,13 +166,13 @@ export default function PriceAlertConfig({
                 disabled={!newAlert.asset || !newAlert.price}
                 className="flex-1 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {locale === 'zh-CN' ? '保存' : 'Save'}
+                {isChineseLocale(locale) ? '保存' : 'Save'}
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
                 className="px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors text-sm"
               >
-                {locale === 'zh-CN' ? '取消' : 'Cancel'}
+                {isChineseLocale(locale) ? '取消' : 'Cancel'}
               </button>
             </div>
           </div>
@@ -208,10 +209,10 @@ export default function PriceAlertConfig({
                   )}
                   <span className="text-sm text-gray-600">
                     {alert.type === 'above'
-                      ? locale === 'zh-CN'
+                      ? isChineseLocale(locale)
                         ? '高于'
                         : 'above'
-                      : locale === 'zh-CN'
+                      : isChineseLocale(locale)
                         ? '低于'
                         : 'below'}
                   </span>
@@ -245,10 +246,10 @@ export default function PriceAlertConfig({
         <div className="text-center py-6">
           <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无价格警报' : 'No price alerts'}
+            {isChineseLocale(locale) ? '暂无价格警报' : 'No price alerts'}
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            {locale === 'zh-CN' ? '点击添加按钮创建新警报' : 'Click add button to create one'}
+            {isChineseLocale(locale) ? '点击添加按钮创建新警报' : 'Click add button to create one'}
           </p>
         </div>
       )}

@@ -6,6 +6,7 @@ import { Download, ChevronDown, Table, FileJson, Image as ImageIcon } from 'luci
 import { ChartType } from '../types';
 import { createLogger } from '@/lib/utils/logger';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { exportColors } from '@/lib/config/colors';
 
 const logger = createLogger('ExportSection');
@@ -41,7 +42,7 @@ export default function ExportSection({
       });
 
       const title = getChartTitle();
-      const timestamp = new Date().toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US');
+      const timestamp = new Date().toLocaleString(isChineseLocale(locale) ? 'zh-CN' : 'en-US');
 
       const finalCanvas = document.createElement('canvas');
       const ctx = finalCanvas.getContext('2d');

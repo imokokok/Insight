@@ -22,9 +22,38 @@ import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { UMAClient } from '@/lib/oracles/uma';
 import { Blockchain } from '@/types/oracle';
 import { TimeRange } from '../../common/TabNavigation';
-import { AnomalyMarker, AnomalyPoint } from '../../common/AnomalyMarker';
-import { ChartExportButton } from '../../forms/ChartExportButton';
-import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
+import { AnomalyMarker } from '../../common/AnomalyMarker';
+import { ChartExportData } from '@/utils/chartExport';
+import { downsampleData } from '@/utils/downsampling';
+import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
+import { createLogger } from '@/lib/utils/logger';
+import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { useUMARealtimePrice, UMAPriceData } from '@/hooks/useUMARealtime';
+import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
+import { useBrushZoom } from '@/hooks/useChartZoom';
+import {
+  ChartType,
+  DataGranularity,
+  getGranularityConfig,
+  ConfidenceLevel,
+} from './priceChartConfig';
+import { useChartSettings, useScreenSize } from './usePriceChartSettings';
+import {
+  generateHistoricalData,
+  convertHistoricalPricePoints,
+  generateDataWithGranularity,
+  calculatePredictionIntervals,
+} from './priceChartUtils';
+import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
+import { ChartToolbar } from './ChartToolbar';
+import { useChartState, AnomalyPoint } from './useChartState';
+import {
+  calculatePriceRange,
+  calculateVolumeRange,
+  calculatePriceChange,
+  detectAnomalies,
+  calculateChartHeights,
+} from './chartUtils';
 import {
   useGlobalTimeRange,
   useSelectedTimeRange,
@@ -32,28 +61,6 @@ import {
   useSyncEnabled,
   SelectedTimeRange,
 } from '@/stores/uiStore';
-import { ChartExportData } from '@/utils/chartExport';
-import { downsampleData } from '@/utils/downsampling';
-import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
-import { createLogger } from '@/lib/utils/logger';
-import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
-import { useUMARealtimePrice, UMAPriceData } from '@/hooks/useUMARealtime';
-import { useTechnicalIndicators, IndicatorDataPoint } from '@/hooks/useTechnicalIndicators';
-import { useBrushZoom } from '@/hooks/useChartZoom';
-import {
-  ChartType,
-  DataGranularity,
-  ComparisonPeriod,
-  getGranularityConfig,
-} from './priceChartConfig';
-import { useChartSettings, useScreenSize } from './usePriceChartSettings';
-import {
-  calculatePredictionIntervals,
-  generateHistoricalData,
-  convertHistoricalPricePoints,
-  generateDataWithGranularity,
-} from './priceChartUtils';
-import { MainChartTooltip, RSITooltip, MACDTooltip, CandlestickShape } from './PriceChartTooltip';
 
 const logger = createLogger('PriceChart');
 
@@ -116,35 +123,50 @@ export function PriceChart({
     isLoaded: indicatorsLoaded,
   } = useTechnicalIndicators({ isMobile, persistSettings: true });
 
-  const [chartType] = useState<ChartType>('line');
-  const [rawData, setRawData] = useState<IndicatorDataPoint[]>([]);
-  const [data, setData] = useState<IndicatorDataPoint[]>([]);
-  const [comparisonData, setComparisonData] = useState<IndicatorDataPoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const chartState = useChartState();
+  const {
+    chartType,
+    rawData,
+    setRawData,
+    data,
+    setData,
+    comparisonData,
+    setComparisonData,
+    loading,
+    setLoading,
+    currentPrice,
+    setCurrentPrice,
+    granularity,
+    setGranularity,
+    comparison,
+    setComparison,
+    showComparisonPanel,
+    setShowComparisonPanel,
+    anomalies,
+    setAnomalies,
+    showAnomalyStats,
+    setShowAnomalyStats,
+    isRefreshing,
+    setIsRefreshing,
+    chartOpacity,
+    setChartOpacity,
+    brushRange,
+    setBrushRange,
+    brushStartIndex,
+    setBrushStartIndex,
+    brushEndIndex,
+    setBrushEndIndex,
+    isTransitioning,
+    setIsTransitioning,
+    abortControllerRef,
+    lastRealtimeUpdateRef,
+    handleBrushChange,
+    handleComparisonApply,
+    cancelComparison,
+  } = chartState;
+
   const realtimeEnabled = enableRealtime;
-  const abortControllerRef = useRef<AbortController | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const lastRealtimeUpdateRef = useRef<number>(Date.now());
-
-  const [brushRange, setBrushRange] = useState<{ startIndex?: number; endIndex?: number }>({});
-  const [brushStartIndex, setBrushStartIndex] = useState<number | undefined>(undefined);
-  const [brushEndIndex, setBrushEndIndex] = useState<number | undefined>(undefined);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const [granularity, setGranularity] = useState<DataGranularity>('hour');
-  const [comparison, setComparison] = useState<ComparisonPeriod>({
-    enabled: false,
-    period1Start: '',
-    period1End: '',
-    period2Start: '',
-    period2End: '',
-  });
-  const [showComparisonPanel, setShowComparisonPanel] = useState(false);
-  const [anomalies, setAnomalies] = useState<AnomalyPoint[]>([]);
-  const [showAnomalyStats, setShowAnomalyStats] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [chartOpacity, setChartOpacity] = useState(1);
 
   const { anomalyDetectionEnabled, showPredictionInterval, confidenceLevel } = chartSettings;
 
@@ -159,83 +181,62 @@ export function PriceChart({
     minVisiblePoints: isMobile ? 5 : 10,
   });
 
-  const chartHeights = useMemo(() => {
-    const minHeight = isMobile ? 300 : 400;
-    const availableHeight = Math.max(
-      minHeight,
-      height - (showToolbar ? (isMobile ? 140 : 180) : 0)
-    );
-    const gap = isMobile ? 4 : 8;
-
-    if (showRSI && showMACD) {
-      const mainHeight = Math.floor((availableHeight - gap * 2) * 0.6);
-      const subHeight = Math.floor((availableHeight - gap * 2) * 0.2);
-      return {
-        main: Math.max(mainHeight, isMobile ? 180 : 240),
-        rsi: Math.max(subHeight, isMobile ? 60 : 80),
-        macd: Math.max(subHeight, isMobile ? 60 : 80),
-      };
-    } else if (showRSI || showMACD) {
-      const mainHeight = Math.floor((availableHeight - gap) * 0.7);
-      const subHeight = Math.floor((availableHeight - gap) * 0.3);
-      return {
-        main: Math.max(mainHeight, isMobile ? 200 : 280),
-        rsi: showRSI ? Math.max(subHeight, isMobile ? 80 : 100) : 0,
-        macd: showMACD ? Math.max(subHeight, isMobile ? 80 : 100) : 0,
-      };
-    } else {
-      return { main: availableHeight, rsi: 0, macd: 0 };
-    }
-  }, [height, showToolbar, isMobile, showRSI, showMACD]);
+  const chartHeights = useMemo(
+    () => calculateChartHeights(height, showToolbar, isMobile, showRSI, showMACD),
+    [height, showToolbar, isMobile, showRSI, showMACD]
+  );
 
   useEffect(() => {
     if (rawData.length > 0) {
       const dataWithIndicators = calculateIndicatorsFn(rawData);
       setData(dataWithIndicators);
     }
-  }, [rawData, calculateIndicatorsFn]);
+  }, [rawData, calculateIndicatorsFn, setData]);
 
-  const handlePriceUpdate = useCallback((priceData: UMAPriceData) => {
-    const now = Date.now();
-    if (now - lastRealtimeUpdateRef.current < 1000) return;
-    lastRealtimeUpdateRef.current = now;
+  const handlePriceUpdate = useCallback(
+    (priceData: UMAPriceData) => {
+      const now = Date.now();
+      if (now - lastRealtimeUpdateRef.current < 1000) return;
+      lastRealtimeUpdateRef.current = now;
 
-    setCurrentPrice(priceData.price);
+      setCurrentPrice(priceData.price);
 
-    setRawData((prevData) => {
-      if (prevData.length === 0) return prevData;
+      setRawData((prevData) => {
+        if (prevData.length === 0) return prevData;
 
-      const lastPoint = prevData[prevData.length - 1];
-      const newTimestamp = now;
-      const newTime = new Date(newTimestamp).toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+        const lastPoint = prevData[prevData.length - 1];
+        const newTimestamp = now;
+        const newTime = new Date(newTimestamp).toLocaleTimeString(undefined, {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+
+        const newPrice = priceData.price;
+        const prices = prevData.slice(-59).map((d) => d.price);
+        prices.push(newPrice);
+
+        const newPoint: IndicatorDataPoint = {
+          time: newTime,
+          timestamp: newTimestamp,
+          price: newPrice,
+          volume: lastPoint.volume * (0.9 + Math.random() * 0.2),
+          open: lastPoint.close || lastPoint.price,
+          high: Math.max(lastPoint.close || lastPoint.price, newPrice) * (1 + Math.random() * 0.005),
+          low: Math.min(lastPoint.close || lastPoint.price, newPrice) * (1 - Math.random() * 0.005),
+          close: newPrice,
+        };
+
+        const maxDataPoints = 500;
+        const newData = [...prevData, newPoint];
+        if (newData.length > maxDataPoints) {
+          return newData.slice(newData.length - maxDataPoints);
+        }
+        return newData;
       });
-
-      const newPrice = priceData.price;
-      const prices = prevData.slice(-59).map((d) => d.price);
-      prices.push(newPrice);
-
-      const newPoint: IndicatorDataPoint = {
-        time: newTime,
-        timestamp: newTimestamp,
-        price: newPrice,
-        volume: lastPoint.volume * (0.9 + Math.random() * 0.2),
-        open: lastPoint.close || lastPoint.price,
-        high: Math.max(lastPoint.close || lastPoint.price, newPrice) * (1 + Math.random() * 0.005),
-        low: Math.min(lastPoint.close || lastPoint.price, newPrice) * (1 - Math.random() * 0.005),
-        close: newPrice,
-      };
-
-      const maxDataPoints = 500;
-      const newData = [...prevData, newPoint];
-      if (newData.length > maxDataPoints) {
-        return newData.slice(newData.length - maxDataPoints);
-      }
-      return newData;
-    });
-  }, []);
+    },
+    [lastRealtimeUpdateRef, setCurrentPrice, setRawData]
+  );
 
   const { priceData: umaRealtimePrice, connectionStatus: umaConnectionStatus } =
     useUMARealtimePrice({
@@ -306,7 +307,20 @@ export function PriceChart({
         setTimeout(() => setIsRefreshing(false), 300);
       }
     }
-  }, [chain, client, symbol, timeRange, defaultPrice, isBandClient]);
+  }, [
+    chain,
+    client,
+    symbol,
+    timeRange,
+    defaultPrice,
+    isBandClient,
+    abortControllerRef,
+    setIsRefreshing,
+    setChartOpacity,
+    setLoading,
+    setCurrentPrice,
+    setRawData,
+  ]);
 
   const fetchComparisonData = useCallback(async () => {
     if (
@@ -375,7 +389,18 @@ export function PriceChart({
     } finally {
       setLoading(false);
     }
-  }, [comparison, client, symbol, chain, granularity, isBandClient]);
+  }, [
+    comparison,
+    client,
+    symbol,
+    chain,
+    granularity,
+    isBandClient,
+    setLoading,
+    setCurrentPrice,
+    setRawData,
+    setComparisonData,
+  ]);
 
   useEffect(() => {
     if (comparison.enabled) {
@@ -389,104 +414,39 @@ export function PriceChart({
         abortControllerRef.current.abort();
       }
     };
-  }, [fetchData, fetchComparisonData, comparison.enabled]);
+  }, [fetchData, fetchComparisonData, comparison.enabled, abortControllerRef]);
 
-  const handleComparisonApply = useCallback(() => {
-    if (
-      comparison.period1Start &&
-      comparison.period1End &&
-      comparison.period2Start &&
-      comparison.period2End
-    ) {
-      setComparison((prev) => ({ ...prev, enabled: true }));
-    }
-  }, [
-    comparison.period1Start,
-    comparison.period1End,
-    comparison.period2Start,
-    comparison.period2End,
-  ]);
+  const priceRange = useMemo(
+    () => calculatePriceRange(data, comparisonData, comparison.enabled),
+    [data, comparisonData, comparison.enabled]
+  );
 
-  const priceRange = useMemo(() => {
-    if (data.length === 0) return { min: 0, max: 100 };
-    const allData = comparison.enabled ? [...data, ...comparisonData] : data;
-    const prices = allData.map((d) => d.price);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const padding = (max - min) * 0.1;
-    return { min: min - padding, max: max + padding };
-  }, [data, comparisonData, comparison.enabled]);
+  const volumeRange = useMemo(
+    () => calculateVolumeRange(data, comparisonData, comparison.enabled),
+    [data, comparisonData, comparison.enabled]
+  );
 
-  const volumeRange = useMemo(() => {
-    if (data.length === 0) return { min: 0, max: 1000000 };
-    const allData = comparison.enabled ? [...data, ...comparisonData] : data;
-    const volumes = allData.map((d) => d.volume);
-    const max = Math.max(...volumes);
-    return { min: 0, max: max * 3 };
-  }, [data, comparisonData, comparison.enabled]);
+  const priceChange = useMemo(() => calculatePriceChange(data), [data]);
 
-  const priceChange = useMemo(() => {
-    if (data.length < 2) return { value: 0, percent: 0 };
-    const first = data[0].price;
-    const last = data[data.length - 1].price;
-    const change = last - first;
-    const percent = (change / first) * 100;
-    return { value: change, percent };
-  }, [data]);
-
-  const detectedAnomalies = useMemo(() => {
-    if (!anomalyDetectionEnabled || data.length < 10) return [];
-
-    const prices = data.map((d) => d.price);
-    const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
-    const squaredDiffs = prices.map((p) => Math.pow(p - mean, 2));
-    const variance = squaredDiffs.reduce((sum, d) => sum + d, 0) / prices.length;
-    const stdDev = Math.sqrt(variance);
-
-    const anomalyThreshold = 2 * stdDev;
-
-    const detected: AnomalyPoint[] = [];
-
-    data.forEach((point) => {
-      const deviation = Math.abs(point.price - mean);
-      if (deviation > anomalyThreshold) {
-        const deviationInSigma = deviation / stdDev;
-        const deviationPercent = ((point.price - mean) / mean) * 100;
-
-        detected.push({
-          timestamp: point.timestamp,
-          price: point.price,
-          deviation: deviationInSigma,
-          type: point.price > mean ? 'spike' : 'drop',
-          time: point.time,
-          deviationPercent: Math.abs(deviationPercent),
-          absoluteDeviation: deviation,
-        });
-      }
-    });
-
-    return detected;
-  }, [data, anomalyDetectionEnabled]);
+  const detectedAnomalies = useMemo(
+    () => detectAnomalies(data, anomalyDetectionEnabled),
+    [data, anomalyDetectionEnabled]
+  );
 
   useEffect(() => {
     setAnomalies(detectedAnomalies);
-  }, [detectedAnomalies]);
+  }, [detectedAnomalies, setAnomalies]);
 
   const dataWithPrediction = useMemo(() => {
     if (!showPredictionInterval || data.length === 0) return data;
     return calculatePredictionIntervals(data, 20, confidenceLevel);
   }, [data, showPredictionInterval, confidenceLevel]);
 
-  const handleBrushChange = useCallback(
+  const onBrushChange = useCallback(
     (range: { startIndex?: number; endIndex?: number }) => {
-      setBrushRange(range);
-      brushZoom.handleBrushChange(range);
-      if (range.startIndex !== undefined && range.endIndex !== undefined) {
-        setBrushStartIndex(range.startIndex);
-        setBrushEndIndex(range.endIndex);
-      }
+      handleBrushChange(range, brushZoom);
     },
-    [brushZoom]
+    [handleBrushChange, brushZoom]
   );
 
   useEffect(() => {
@@ -518,7 +478,16 @@ export function PriceChart({
       setChartOpacity(1);
       setIsTransitioning(false);
     }
-  }, [selectedTimeRange, data, syncEnabled]);
+  }, [
+    selectedTimeRange,
+    data,
+    syncEnabled,
+    setIsTransitioning,
+    setChartOpacity,
+    setBrushStartIndex,
+    setBrushEndIndex,
+    setBrushRange,
+  ]);
 
   useEffect(() => {
     const handleTimeRangeChange = (range: SelectedTimeRange) => {
@@ -547,31 +516,6 @@ export function PriceChart({
     [data]
   );
 
-  const connectionStatusText = useMemo(() => {
-    switch (umaConnectionStatus) {
-      case 'connected':
-        return t('priceChart.status.realtime');
-      case 'connecting':
-        return t('priceChart.status.connecting');
-      case 'reconnecting':
-        return t('priceChart.status.reconnecting');
-      default:
-        return t('priceChart.status.disconnected');
-    }
-  }, [umaConnectionStatus, t]);
-
-  const connectionStatusClass = useMemo(() => {
-    switch (umaConnectionStatus) {
-      case 'connected':
-        return { backgroundColor: semanticColors.success.DEFAULT, animation: 'pulse' };
-      case 'connecting':
-      case 'reconnecting':
-        return { backgroundColor: semanticColors.warning.DEFAULT, animation: 'pulse' };
-      default:
-        return { backgroundColor: semanticColors.danger.DEFAULT };
-    }
-  }, [umaConnectionStatus]);
-
   if (loading || !indicatorsLoaded) {
     return <ChartSkeleton height={height} showToolbar={showToolbar} variant="price" />;
   }
@@ -579,423 +523,56 @@ export function PriceChart({
   return (
     <div className="h-full flex flex-col">
       {showToolbar && (
-        <div className={`flex flex-col gap-2 ${isMobile ? 'mb-2' : 'mb-3'}`}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div>
-                <span
-                  className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}
-                  style={{ color: baseColors.gray[900] }}
-                >
-                  ${currentPrice.toFixed(4)}
-                </span>
-                <span
-                  className="ml-2 text-sm font-medium"
-                  style={{
-                    color:
-                      priceChange.percent >= 0
-                        ? semanticColors.success.dark
-                        : semanticColors.danger.dark,
-                  }}
-                >
-                  {priceChange.percent >= 0 ? '+' : ''}
-                  {priceChange.percent.toFixed(2)}%
-                </span>
-              </div>
-              {isUMAClient && realtimeEnabled && (
-                <div
-                  className="flex items-center gap-1.5 px-2 py-1"
-                  style={{ backgroundColor: baseColors.gray[100] }}
-                >
-                  <span
-                    className={`w-2 h-2 ${connectionStatusClass.animation === 'pulse' ? 'animate-pulse' : ''}`}
-                    style={{ backgroundColor: connectionStatusClass.backgroundColor }}
-                  />
-                  <span className="text-xs" style={{ color: baseColors.gray[600] }}>
-                    {connectionStatusText}
-                  </span>
-                  {umaRealtimePrice && (
-                    <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                      {t('priceChart.confidence')}: {(umaRealtimePrice.confidence * 100).toFixed(1)}
-                      %
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <MoreOptionsDropdown
-                showComparisonPanel={showComparisonPanel}
-                comparisonEnabled={comparison.enabled}
-                anomalyDetectionEnabled={anomalyDetectionEnabled}
-                showPredictionInterval={showPredictionInterval}
-                confidenceLevel={confidenceLevel}
-                anomaliesCount={anomalies.length}
-                onToggleComparison={() => setShowComparisonPanel(!showComparisonPanel)}
-                onToggleAnomalyDetection={() =>
-                  updateChartSettings({ anomalyDetectionEnabled: !anomalyDetectionEnabled })
-                }
-                onTogglePredictionInterval={() =>
-                  updateChartSettings({ showPredictionInterval: !showPredictionInterval })
-                }
-                onConfidenceLevelChange={(level) => updateChartSettings({ confidenceLevel: level })}
-                onShowAnomalyStats={() => setShowAnomalyStats(!showAnomalyStats)}
-                compact={isMobile}
-              />
-
-              <ChartExportButton
-                chartRef={chartContainerRef}
-                data={exportData}
-                filename={`${symbol.toLowerCase()}-price-chart`}
-                compact={isMobile}
-              />
-            </div>
-          </div>
-
-          <div className={`flex flex-wrap items-center gap-2 ${isMobile ? 'gap-1' : ''}`}>
-            {!isMobile && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {t('priceChart.granularity')}:
-                </span>
-                <div
-                  className="flex items-center gap-1 p-1"
-                  style={{ backgroundColor: baseColors.gray[100] }}
-                >
-                  {(Object.keys(GRANULARITY_CONFIG) as DataGranularity[]).map((g) => (
-                    <button
-                      key={g}
-                      onClick={() => setGranularity(g)}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      style={{
-                        backgroundColor: granularity === g ? baseColors.gray[50] : 'transparent',
-                        color: granularity === g ? baseColors.primary[600] : baseColors.gray[600],
-                      }}
-                      onMouseEnter={(e) => {
-                        if (granularity !== g) {
-                          e.currentTarget.style.color = baseColors.gray[900];
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (granularity !== g) {
-                          e.currentTarget.style.color = baseColors.gray[600];
-                        }
-                      }}
-                    >
-                      {GRANULARITY_CONFIG[g].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}
-                style={{ color: baseColors.gray[500] }}
-              >
-                {t('priceChart.indicators')}:
-              </span>
-              <div
-                className={`flex items-center gap-1 p-1 flex-wrap ${isMobile ? 'max-w-[calc(100vw-80px)]' : ''}`}
-                style={{ backgroundColor: baseColors.gray[100] }}
-              >
-                {!isMobile && (
-                  <button
-                    onClick={toggleBollingerBands}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                    style={{
-                      backgroundColor: showBollingerBands ? baseColors.gray[50] : 'transparent',
-                      color: showBollingerBands
-                        ? chartColors.recharts.purple
-                        : baseColors.gray[600],
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showBollingerBands) e.currentTarget.style.color = baseColors.gray[900];
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showBollingerBands) e.currentTarget.style.color = baseColors.gray[600];
-                    }}
-                    title={t('priceChart.bollingerBands')}
-                  >
-                    <span
-                      className="w-2 h-2"
-                      style={{ backgroundColor: chartColors.recharts.purple }}
-                    />
-                    {t('priceChart.bollingerBands')}
-                  </button>
-                )}
-                <button
-                  onClick={toggleMA7}
-                  className={`font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px] ${isMobile ? 'text-[10px] px-2' : 'text-xs px-3 py-1.5'}`}
-                  style={{
-                    backgroundColor: showMA7 ? baseColors.gray[50] : 'transparent',
-                    color: showMA7 ? chartColors.recharts.warning : baseColors.gray[600],
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!showMA7) e.currentTarget.style.color = baseColors.gray[900];
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!showMA7) e.currentTarget.style.color = baseColors.gray[600];
-                  }}
-                  title={t('priceChart.ma7')}
-                >
-                  <span
-                    className="w-2 h-2"
-                    style={{ backgroundColor: chartColors.recharts.warning }}
-                  />
-                  {t('priceChart.ma7')}
-                </button>
-                {!isMobile && (
-                  <button
-                    onClick={toggleMA14}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                    style={{
-                      backgroundColor: showMA14 ? baseColors.gray[50] : 'transparent',
-                      color: showMA14 ? baseColors.primary[600] : baseColors.gray[600],
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[900];
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showMA14) e.currentTarget.style.color = baseColors.gray[600];
-                    }}
-                    title={t('priceChart.ma14')}
-                  >
-                    <span
-                      className="w-2 h-2"
-                      style={{ backgroundColor: baseColors.primary[500] }}
-                    />
-                    {t('priceChart.ma14')}
-                  </button>
-                )}
-                {!isMobile && (
-                  <button
-                    onClick={toggleMA30}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                    style={{
-                      backgroundColor: showMA30 ? baseColors.gray[50] : 'transparent',
-                      color: showMA30 ? chartColors.recharts.purple : baseColors.gray[600],
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[900];
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showMA30) e.currentTarget.style.color = baseColors.gray[600];
-                    }}
-                    title={t('priceChart.ma30')}
-                  >
-                    <span
-                      className="w-2 h-2"
-                      style={{ backgroundColor: chartColors.recharts.purple }}
-                    />
-                    {t('priceChart.ma30')}
-                  </button>
-                )}
-
-                {!isMobile && (
-                  <>
-                    <div
-                      className="w-px h-4 mx-1"
-                      style={{ backgroundColor: baseColors.gray[300] }}
-                    />
-                    <button
-                      onClick={toggleRSI}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                      style={{
-                        backgroundColor: showRSI ? baseColors.gray[50] : 'transparent',
-                        color: showRSI ? semanticColors.success.dark : baseColors.gray[600],
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!showRSI) e.currentTarget.style.color = baseColors.gray[900];
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!showRSI) e.currentTarget.style.color = baseColors.gray[600];
-                      }}
-                      title={t('priceChart.rsi')}
-                    >
-                      <span
-                        className="w-2 h-2"
-                        style={{ backgroundColor: semanticColors.success.DEFAULT }}
-                      />
-                      RSI
-                    </button>
-                    <button
-                      onClick={toggleMACD}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                      style={{
-                        backgroundColor: showMACD ? baseColors.gray[50] : 'transparent',
-                        color: showMACD ? semanticColors.danger.dark : baseColors.gray[600],
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!showMACD) e.currentTarget.style.color = baseColors.gray[900];
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!showMACD) e.currentTarget.style.color = baseColors.gray[600];
-                      }}
-                      title={t('priceChart.macd')}
-                    >
-                      <span
-                        className="w-2 h-2"
-                        style={{ backgroundColor: semanticColors.danger.DEFAULT }}
-                      />
-                      MACD
-                    </button>
-
-                    <div
-                      className="w-px h-4 mx-1"
-                      style={{ backgroundColor: baseColors.gray[300] }}
-                    />
-                    <button
-                      onClick={toggleVolume}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
-                      style={{
-                        backgroundColor: showVolume ? baseColors.gray[50] : 'transparent',
-                        color: showVolume ? chartColors.recharts.cyan : baseColors.gray[600],
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!showVolume) e.currentTarget.style.color = baseColors.gray[900];
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!showVolume) e.currentTarget.style.color = baseColors.gray[600];
-                      }}
-                      title={t('priceChart.volume')}
-                    >
-                      <span
-                        className="w-2 h-2"
-                        style={{ backgroundColor: chartColors.recharts.cyan }}
-                      />
-                      {t('priceChart.volume')}
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {showComparisonPanel && (
-            <div
-              className="p-4"
-              style={{
-                backgroundColor: baseColors.primary[50],
-                border: `1px solid ${baseColors.primary[100]}`,
-              }}
-            >
-              <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[700] }}>
-                {t('priceChart.timeComparison')}
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
-                    {t('priceChart.timePeriod1')}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={comparison.period1Start}
-                      onChange={(e) =>
-                        setComparison((prev) => ({ ...prev, period1Start: e.target.value }))
-                      }
-                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
-                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
-                    />
-                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-                      {t('priceChart.to')}
-                    </span>
-                    <input
-                      type="date"
-                      value={comparison.period1End}
-                      onChange={(e) =>
-                        setComparison((prev) => ({ ...prev, period1End: e.target.value }))
-                      }
-                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
-                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium" style={{ color: baseColors.gray[600] }}>
-                    {t('priceChart.timePeriod2')}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={comparison.period2Start}
-                      onChange={(e) =>
-                        setComparison((prev) => ({ ...prev, period2Start: e.target.value }))
-                      }
-                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
-                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
-                    />
-                    <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-                      {t('priceChart.to')}
-                    </span>
-                    <input
-                      type="date"
-                      value={comparison.period2End}
-                      onChange={(e) =>
-                        setComparison((prev) => ({ ...prev, period2End: e.target.value }))
-                      }
-                      className="px-2 py-1 text-xs rounded-md focus:outline-none"
-                      style={{ border: `1px solid ${baseColors.gray[200]}` }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mt-3">
-                <button
-                  onClick={handleComparisonApply}
-                  disabled={
-                    !comparison.period1Start ||
-                    !comparison.period1End ||
-                    !comparison.period2Start ||
-                    !comparison.period2End
-                  }
-                  className="px-3 py-1.5 text-xs font-medium text-white rounded-md min-h-[44px] min-w-[44px]"
-                  style={{
-                    backgroundColor:
-                      !comparison.period1Start ||
-                      !comparison.period1End ||
-                      !comparison.period2Start ||
-                      !comparison.period2End
-                        ? baseColors.gray[300]
-                        : baseColors.primary[600],
-                    cursor:
-                      !comparison.period1Start ||
-                      !comparison.period1End ||
-                      !comparison.period2Start ||
-                      !comparison.period2End
-                        ? 'not-allowed'
-                        : 'pointer',
-                  }}
-                >
-                  {t('priceChart.startComparison')}
-                </button>
-                <button
-                  onClick={() => {
-                    setComparison({
-                      enabled: false,
-                      period1Start: '',
-                      period1End: '',
-                      period2Start: '',
-                      period2End: '',
-                    });
-                    setShowComparisonPanel(false);
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-md min-h-[44px] min-w-[44px]"
-                  style={{
-                    backgroundColor: baseColors.gray[50],
-                    border: `1px solid ${baseColors.gray[200]}`,
-                    color: baseColors.gray[600],
-                  }}
-                >
-                  {t('priceChart.cancelComparison')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <ChartToolbar
+          symbol={symbol}
+          currentPrice={currentPrice}
+          priceChange={priceChange}
+          chartContainerRef={chartContainerRef as React.RefObject<HTMLDivElement>}
+          exportData={exportData}
+          granularity={granularity}
+          onGranularityChange={setGranularity}
+          showMA7={showMA7}
+          showMA14={showMA14}
+          showMA30={showMA30}
+          showMA60={showMA60}
+          showMA20={showMA20}
+          showBollingerBands={showBollingerBands}
+          showRSI={showRSI}
+          showMACD={showMACD}
+          showVolume={showVolume}
+          onToggleMA7={toggleMA7}
+          onToggleMA14={toggleMA14}
+          onToggleMA30={toggleMA30}
+          onToggleMA60={toggleMA60}
+          onToggleMA20={toggleMA20}
+          onToggleBollingerBands={toggleBollingerBands}
+          onToggleRSI={toggleRSI}
+          onToggleMACD={toggleMACD}
+          onToggleVolume={toggleVolume}
+          showComparisonPanel={showComparisonPanel}
+          onToggleComparisonPanel={() => setShowComparisonPanel(!showComparisonPanel)}
+          comparison={comparison}
+          onComparisonChange={setComparison}
+          onApplyComparison={handleComparisonApply}
+          onCancelComparison={cancelComparison}
+          anomalyDetectionEnabled={anomalyDetectionEnabled}
+          showPredictionInterval={showPredictionInterval}
+          confidenceLevel={confidenceLevel}
+          anomaliesCount={anomalies.length}
+          onToggleAnomalyDetection={() =>
+            updateChartSettings({ anomalyDetectionEnabled: !anomalyDetectionEnabled })
+          }
+          onTogglePredictionInterval={() =>
+            updateChartSettings({ showPredictionInterval: !showPredictionInterval })
+          }
+          onConfidenceLevelChange={(level) => updateChartSettings({ confidenceLevel: level as ConfidenceLevel })}
+          onShowAnomalyStats={() => setShowAnomalyStats(!showAnomalyStats)}
+          isMobile={isMobile}
+          isUMAClient={isUMAClient}
+          realtimeEnabled={realtimeEnabled}
+          umaConnectionStatus={umaConnectionStatus as 'connected' | 'connecting' | 'reconnecting' | 'disconnected'}
+          umaRealtimePrice={umaRealtimePrice}
+        />
       )}
 
       <div
@@ -1315,7 +892,7 @@ export function PriceChart({
                 stroke={chartColors.recharts.primaryLight}
                 fill={chartColors.recharts.backgroundLight}
                 tickFormatter={() => ''}
-                onChange={handleBrushChange}
+                onChange={onBrushChange}
                 startIndex={brushStartIndex}
                 endIndex={brushEndIndex}
               />
@@ -1401,7 +978,7 @@ export function PriceChart({
                     stroke={chartColors.recharts.primaryLight}
                     fill={chartColors.recharts.backgroundLight}
                     tickFormatter={() => ''}
-                    onChange={handleBrushChange}
+                    onChange={onBrushChange}
                     startIndex={brushStartIndex}
                     endIndex={brushEndIndex}
                   />
@@ -1495,7 +1072,7 @@ export function PriceChart({
                   stroke={chartColors.recharts.primaryLight}
                   fill={chartColors.recharts.backgroundLight}
                   tickFormatter={() => ''}
-                  onChange={handleBrushChange}
+                  onChange={onBrushChange}
                   startIndex={brushStartIndex}
                   endIndex={brushEndIndex}
                 />

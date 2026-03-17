@@ -184,10 +184,10 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.completenessScore') || '数据完整性评分'}
+            {t('dataQuality.completenessScore')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.completenessDesc') || '基于数据点数量、时间连续性和缺失值比例'}
+            {t('dataQuality.completenessDesc')}
           </p>
         </div>
         <svg
@@ -207,7 +207,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgScore') || '平均评分'}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgScore')}</p>
           <p
             className={`text-xl font-bold ${
               avgScore >= 90
@@ -223,11 +223,11 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           </p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.dataSources') || '数据源'}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.dataSources')}</p>
           <p className="text-xl font-bold text-gray-900">{metrics.length}</p>
         </div>
         <div className="py-2 text-center">
-          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.excellentRate') || '优秀率'}</p>
+          <p className="text-xs text-gray-500 mb-1">{t('dataQuality.excellentRate')}</p>
           <p className="text-xl font-bold text-green-600">
             {metrics.length > 0
               ? Math.round(
@@ -261,13 +261,13 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
             <ScoreBadge score={metric.completenessScore} />
             <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
               <span>
-                {t('dataQuality.dataPoints') || '数据点'}: {metric.dataPoints}
+                {t('dataQuality.dataPoints')}: {metric.dataPoints}
               </span>
               <span>
-                {t('dataQuality.continuity') || '连续性'}: {metric.timeContinuity}%
+                {t('dataQuality.continuity')}: {metric.timeContinuity}%
               </span>
               <span>
-                {t('dataQuality.missing') || '缺失'}: {metric.missingRatio}%
+                {t('dataQuality.missing')}: {metric.missingRatio}%
               </span>
             </div>
           </div>
@@ -317,10 +317,10 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.latencyDistribution') || '延迟分布可视化'}
+            {t('dataQuality.latencyDistribution')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.latencyDistributionDesc') || '各预言机更新延迟分布直方图'}
+            {t('dataQuality.latencyDistributionDesc')}
           </p>
         </div>
         <div className="p-2 bg-purple-50 border border-purple-100">
@@ -489,10 +489,10 @@ function FreshnessTrendChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.freshnessTrend') || '数据新鲜度趋势'}
+            {t('dataQuality.freshnessTrend')}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.freshnessTrendDesc') || '数据更新频率随时间变化趋势'}
+            {t('dataQuality.freshnessTrendDesc')}
           </p>
         </div>
         <div className="p-2 bg-green-50 border border-green-100">
@@ -628,17 +628,17 @@ function FreshnessTrendChart({
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-green-500" />
           <span className="text-xs text-gray-500">
-            {t('dataQuality.fresh') || '新鲜'} (&gt;80%)
+            {t('dataQuality.fresh')} (&gt;80%)
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-yellow-500" />
-          <span className="text-xs text-gray-500">{t('dataQuality.stale') || '滞后'} (50-80%)</span>
+          <span className="text-xs text-gray-500">{t('dataQuality.stale')} (50-80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-red-500" />
           <span className="text-xs text-gray-500">
-            {t('dataQuality.delayed') || '延迟'} (&lt;50%)
+            {t('dataQuality.delayed')} (&lt;50%)
           </span>
         </div>
       </div>

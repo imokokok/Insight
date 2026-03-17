@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   Check,
   ChevronDown,
@@ -73,7 +74,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
 
     return metrics.map((metricKey) => {
       const point: Record<string, string | number> = {
-        metric: METRIC_LABELS[metricKey]?.[locale === 'zh-CN' ? 'zh' : 'en'] || metricKey,
+        metric: METRIC_LABELS[metricKey]?.[isChineseLocale(locale) ? 'zh' : 'en'] || metricKey,
         fullMark: 100,
       };
 
@@ -125,7 +126,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -138,7 +139,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
         <div className="text-center">
           <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无对比数据' : 'No comparison data available'}
+            {isChineseLocale(locale) ? '暂无对比数据' : 'No comparison data available'}
           </p>
         </div>
       </div>
@@ -155,7 +156,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
             className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm text-gray-700">
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? `已选择 ${selectedOracles.length}/${MAX_SELECTION} 个预言机`
                 : `${selectedOracles.length}/${MAX_SELECTION} Oracles Selected`}
             </span>
@@ -170,7 +171,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
             <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded z-10">
               <div className="p-1.5">
                 <p className="text-xs text-gray-500 mb-1.5 px-2">
-                  {locale === 'zh-CN'
+                  {isChineseLocale(locale)
                     ? `选择 2-${MAX_SELECTION} 个预言机进行对比`
                     : `Select 2-${MAX_SELECTION} oracles to compare`}
                 </p>
@@ -241,7 +242,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
           <div className="text-center">
             <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
             <p className="text-gray-500 text-sm">
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? '请至少选择 2 个预言机进行对比'
                 : 'Please select at least 2 oracles to compare'}
             </p>
@@ -286,7 +287,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
               <thead>
                 <tr>
                   <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {locale === 'zh-CN' ? '指标' : 'Metric'}
+                    {isChineseLocale(locale) ? '指标' : 'Metric'}
                   </th>
                   {filteredData.map((oracle) => (
                     <th
@@ -305,7 +306,7 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
               <tbody className="divide-y divide-gray-100">
                 {Object.entries(filteredData[0]?.metrics || {}).map(([key, metric]) => {
                   const metricKey = key as keyof ComparisonData['metrics'];
-                  const label = METRIC_LABELS[metricKey]?.[locale === 'zh-CN' ? 'zh' : 'en'] || key;
+                  const label = METRIC_LABELS[metricKey]?.[isChineseLocale(locale) ? 'zh' : 'en'] || key;
                   const icon = METRIC_ICONS[metricKey];
 
                   return (
@@ -361,10 +362,10 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
                   {oracle.overallScore}
                 </div>
                 <div className="text-xs text-gray-600">
-                  {locale === 'zh-CN' ? '综合评分' : 'Overall Score'}
+                  {isChineseLocale(locale) ? '综合评分' : 'Overall Score'}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {locale === 'zh-CN' ? '排名 #' : 'Rank #'}
+                  {isChineseLocale(locale) ? '排名 #' : 'Rank #'}
                   {oracle.rank}
                 </div>
               </div>

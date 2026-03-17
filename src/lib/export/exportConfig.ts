@@ -4,6 +4,7 @@
  * 提供导出配置管理功能，包括字段选择、时间范围配置、格式选项等。
  */
 
+import { isChineseLocale } from '@/i18n/routing';
 import {
   OracleMarketData,
   AssetData,
@@ -630,14 +631,14 @@ export function createExportConfig(partial: Partial<ExportConfig>): ExportConfig
  * 获取字段标签
  */
 export function getFieldLabel(field: ExportField, locale: string = 'en'): string {
-  return locale === 'zh-CN' ? field.labelZh : field.label;
+  return isChineseLocale(locale) ? field.labelZh : field.label;
 }
 
 /**
  * 获取字段组标签
  */
 export function getFieldGroupLabel(group: FieldGroup, locale: string = 'en'): string {
-  return locale === 'zh-CN' ? group.labelZh : group.label;
+  return isChineseLocale(locale) ? group.labelZh : group.label;
 }
 
 /**
@@ -807,7 +808,7 @@ export function getTimeRangeLabel(timeRange: ExportTimeRange, locale: string = '
     ALL: { en: 'All Time', zh: '全部' },
     custom: { en: 'Custom Range', zh: '自定义范围' },
   };
-  return locale === 'zh-CN' ? labels[timeRange].zh : labels[timeRange].en;
+  return isChineseLocale(locale) ? labels[timeRange].zh : labels[timeRange].en;
 }
 
 /**
@@ -819,7 +820,7 @@ export function getFormatLabel(format: ExportFormat, locale: string = 'en'): str
     json: { en: 'JSON', zh: 'JSON' },
     excel: { en: 'Excel', zh: 'Excel' },
   };
-  return locale === 'zh-CN' ? labels[format].zh : labels[format].en;
+  return isChineseLocale(locale) ? labels[format].zh : labels[format].en;
 }
 
 /**
@@ -840,5 +841,5 @@ export function getDataTypeLabel(dataType: ExportDataType, locale: string = 'en'
     anomalies: { en: 'Anomalies', zh: '异常数据' },
     all: { en: 'All Data', zh: '全部数据' },
   };
-  return locale === 'zh-CN' ? labels[dataType].zh : labels[dataType].en;
+  return isChineseLocale(locale) ? labels[dataType].zh : labels[dataType].en;
 }

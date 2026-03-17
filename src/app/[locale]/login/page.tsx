@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useUser, useAuthLoading, useAuthError, useAuthActions } from '@/stores/authStore';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, MailWarning } from 'lucide-react';
 
 interface ErrorInfo {
@@ -14,6 +14,8 @@ interface ErrorInfo {
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = useLocale();
   const user = useUser();
   const loading = useAuthLoading();
   const error = useAuthError();
@@ -27,9 +29,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push(`/${locale}`);
     }
-  }, [user, router]);
+  }, [user, router, locale]);
 
   const parseError = (errorMessage: string): ErrorInfo => {
     const lowerError = errorMessage.toLowerCase();
@@ -68,7 +70,7 @@ export default function LoginPage() {
       setErrorInfo(parseError(signInError.message));
       setIsLoading(false);
     } else {
-      router.push('/');
+      router.push(`/${locale}`);
     }
   };
 
@@ -112,7 +114,7 @@ export default function LoginPage() {
                   <p className="text-sm text-red-600">{displayError}</p>
                   {errorInfo?.type === 'email_not_confirmed' && (
                     <Link
-                      href={`/auth/resend-verification?email=${encodeURIComponent(email)}`}
+                      href={`/${locale}/auth/resend-verification?email=${encodeURIComponent(email)}`}
                       className="mt-2 inline-block text-sm text-blue-600 hover:text-blue-700 font-medium underline"
                     >
                       {t('auth.login.error.resendConfirmation')}
@@ -187,7 +189,7 @@ export default function LoginPage() {
                 </label>
               </div>
               <Link
-                href="/auth/forgot-password"
+                href={`/${locale}/auth/forgot-password`}
                 className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
               >
                 {t('auth.login.forgotPassword')}
@@ -268,7 +270,7 @@ export default function LoginPage() {
           <p className="mt-8 text-center text-sm text-gray-500">
             {t('auth.login.noAccount')}{' '}
             <Link
-              href="/register"
+              href={`/${locale}/register`}
               className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
               {t('auth.login.registerNow')}
