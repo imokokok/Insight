@@ -1209,6 +1209,15 @@
     "fixedThresholdDesc": "Use fixed percentage as anomaly detection threshold",
     "dynamicThresholdDesc": "Dynamically adjust threshold based on historical volatility (CV)",
     "atrThresholdDesc": "Use ATR (Average True Range) indicator to calculate dynamic threshold",
+    "tabOverview": "Overview",
+    "tabOverviewDesc": "Core Stats & Price Comparison",
+    "tabCorrelation": "Correlation",
+    "tabCorrelationDesc": "Cross-Chain Correlation Analysis",
+    "tabAdvanced": "Advanced",
+    "tabAdvancedDesc": "Cointegration & Volatility Analysis",
+    "tabCharts": "Charts",
+    "tabChartsDesc": "Interactive Price Trends",
+    "frequency": "Frequency",
     "cointegrationAnalysis": "Cointegration Analysis",
     "cointegrationDesc": "Cointegration analysis detects long-term equilibrium relationships between two chain prices. ADF statistic less than critical value (-2.86) indicates cointegration exists.",
     "noCointegrationDetected": "No cointegration relationship detected",
@@ -5179,6 +5188,8 @@
       "confirmPasswordLabel": "Confirm password",
       "confirmPasswordPlaceholder": "Enter password again",
       "termsAgreement": "I have read and agree to the {terms} and {privacy}",
+      "termsAgreementPrefix": "I have read and agree to the ",
+      "termsAgreementMiddle": " and ",
       "terms": "Terms of Service",
       "privacy": "Privacy Policy",
       "submitting": "Registering...",
@@ -5566,7 +5577,122 @@
       "factor2Title": "Scuttlebutt Consensus",
       "factor2Desc": "Proprietary consensus mechanism provides high security guarantees",
       "factor3Title": "MakerDAO Dependency",
-      "factor3Desc": "Heavy reliance on MakerDAO ecosystem for demand"
+      "factor3Desc": "Heavy reliance on MakerDAO ecosystem for demand",
+      "lowRisk": "Low Risk",
+      "mediumRisk": "Medium Risk",
+      "highRisk": "High Risk",
+      "criticalRisk": "Critical Risk",
+      "daysAgo": "{days} days ago",
+      "securityLevel": "Security Level",
+      "verificationStatus": "Verification Status",
+      "scuttlebuttIntegration": "Scuttlebutt Security Integration",
+      "scuttlebuttNote": "Scuttlebutt Security:",
+      "scuttlebuttNoteDesc": " Chronicle uses the Scuttlebutt protocol to ensure data transmission security and validator identity verification."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "jailed": "Jailed"
+    },
+    "securityLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "verificationStatus": {
+      "verified": "Verified",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "assetType": {
+      "stablecoin": "Stablecoin",
+      "crypto": "Crypto",
+      "rwa": "RWA"
+    },
+    "network": {
+      "status": "Network Status",
+      "validators": "Validators",
+      "responseTime": "Response Time",
+      "dataFeeds": "Data Feeds",
+      "uptime": "Uptime",
+      "activeValidators": "Active Validators",
+      "avgLatency": "Avg Latency",
+      "activeFeeds": "Active Feeds",
+      "healthOverview": "Network Health Overview",
+      "networkHealthStatus": "Network Health Status",
+      "totalStaked": "Total Staked",
+      "updateFrequency": "Update Frequency",
+      "avgReputation": "Avg Reputation",
+      "latency": "Latency",
+      "validatorDistribution": "Validator Distribution",
+      "active": "Active",
+      "inactive": "Inactive",
+      "online": "Online",
+      "warning": "Warning",
+      "offline": "Offline",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "stakingDistribution": "Staking Distribution",
+      "hourlyActivity": "Hourly Network Activity",
+      "features": "Network Features",
+      "decentralized": "Decentralized Architecture",
+      "decentralizedDesc": "Distributed validator network with no single point of failure",
+      "realtime": "Real-time Updates",
+      "realtimeDesc": "Sub-second price updates with high frequency data feeds",
+      "scalable": "Highly Scalable",
+      "scalableDesc": "Capable of handling thousands of price feeds simultaneously",
+      "reliable": "Reliable Infrastructure",
+      "reliableDesc": "Enterprise-grade uptime with redundant validator nodes",
+      "secure": "Secure by Design",
+      "secureDesc": "Multi-layered security with cryptographic verification",
+      "monitoring": "24/7 Monitoring",
+      "monitoringDesc": "Continuous network monitoring and automated alerting"
+    },
+    "scuttlebutt": {
+      "title": "Scuttlebutt Security Protocol",
+      "securityLevel": "Security Level",
+      "auditScore": "Audit Score",
+      "features": "Security Features",
+      "securityFeatures": "Active Security Features",
+      "verificationStatus": "Verification Status",
+      "lastAudit": "Last Audit",
+      "historicalEvents": "Historical Security Events"
+    },
+    "validators": {
+      "title": "Validator Network",
+      "total": "Total Validators",
+      "active": "Active Validators",
+      "avgReputation": "Average Reputation",
+      "totalStaked": "Total Staked",
+      "networkHealth": "Network Health",
+      "list": "Validators List",
+      "name": "Name",
+      "reputation": "Reputation",
+      "uptime": "Uptime",
+      "responseTime": "Response Time",
+      "staked": "Staked",
+      "status": "Status"
+    },
+    "makerdao": {
+      "title": "MakerDAO Integration",
+      "tvl": "Total Value Locked",
+      "daiSupply": "DAI Supply",
+      "systemSurplus": "System Surplus",
+      "debtCeiling": "Debt Ceiling",
+      "integrationVersion": "Integration Version",
+      "supportedAssets": "Supported Assets",
+      "asset": "Asset",
+      "type": "Type",
+      "price": "Price",
+      "collateralRatio": "Collateral Ratio",
+      "stabilityFee": "Stability Fee"
     }
   },
   "winklink": {
@@ -5809,6 +5935,38 @@
       "refresh": "Refresh",
       "lastUpdated": "Last Updated",
       "stale": "Stale"
+    },
+    "mitigationMeasures": {
+      "title": "Mitigation Measures",
+      "noMeasures": "No mitigation measures available",
+      "types": {
+        "technical": "Technical",
+        "governance": "Governance",
+        "operational": "Operational"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "effectivenessLabel": "Effectiveness",
+      "effectiveness": {
+        "high": "High Effectiveness",
+        "medium": "Medium Effectiveness",
+        "low": "Low Effectiveness"
+      },
+      "Scuttlebutt Verification": "Scuttlebutt Verification",
+      "Validator Rotation": "Validator Rotation",
+      "Multi-Chain Validation": "Multi-Chain Validation",
+      "Threshold Signature Scheme": "Threshold Signature Scheme",
+      "Decentralized Governance": "Decentralized Governance",
+      "24/7 Monitoring": "24/7 Monitoring"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      }
     }
   },
   "gasFeeComparison": {

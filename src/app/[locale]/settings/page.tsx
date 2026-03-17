@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser, useAuthLoading } from '@/stores/authStore';
+import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 import dynamic from 'next/dynamic';
 import type { SettingsTab } from '@/components/settings';
-import { getValidLocale } from '@/i18n/routing';
+import { useLocale } from 'next-intl';
 
 // 动态导入设置组件
 const SettingsLayout = dynamic(
@@ -36,31 +36,28 @@ const DataManagementPanel = dynamic(
 export default function SettingsPage() {
   const user = useUser();
   const loading = useAuthLoading();
+  const initialized = useAuthInitialized();
   const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [mounted, setMounted] = useState(false);
 
-  // 从路径或浏览器语言检测语言
-  const [locale, setLocale] = useState('en');
-
   useEffect(() => {
     setMounted(true);
-    // 检测语言
-    const browserLocale = navigator.language;
-    const validLocale = getValidLocale(browserLocale);
-    setLocale(validLocale);
   }, []);
 
   useEffect(() => {
-    if (!loading && !user) {
-      // 使用检测到的语言进行重定向
+    // 只有在初始化完成后才检查用户状态
+    if (initialized && !loading && !user) {
+      // 使用当前语言进行重定向
       const redirectPath = `/${locale}/login?redirect=/${locale}/settings`;
       router.push(redirectPath);
     }
-  }, [user, loading, router, locale]);
+  }, [user, loading, initialized, router, locale]);
 
-  if (loading || !mounted) {
+  // 等待初始化和挂载完成
+  if (loading || !initialized || !mounted) {
     return (
       <div className="min-h-screen bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -88,6 +85,7 @@ export default function SettingsPage() {
     );
   }
 
+  // 初始化完成后，如果没有用户，返回 null（正在重定向）
   if (!user) {
     return null;
   }

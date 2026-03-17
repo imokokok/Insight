@@ -161,7 +161,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                       <span
                         className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(validator.status)}`}
                       >
-                        {validator.status}
+                        {t(`chronicle.status.${validator.status}`)}
                       </span>
                     </div>
                   </td>

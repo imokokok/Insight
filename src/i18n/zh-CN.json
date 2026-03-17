@@ -1221,6 +1221,15 @@
     "fixedThresholdDesc": "使用固定百分比作为异常检测阈值",
     "dynamicThresholdDesc": "基于历史波动率(CV)动态调整阈值",
     "atrThresholdDesc": "使用ATR(平均真实波幅)指标计算动态阈值",
+    "tabOverview": "概览",
+    "tabOverviewDesc": "核心统计与价格对比",
+    "tabCorrelation": "相关性",
+    "tabCorrelationDesc": "链间相关性分析",
+    "tabAdvanced": "高级分析",
+    "tabAdvancedDesc": "协整与波动率分析",
+    "tabCharts": "价格图表",
+    "tabChartsDesc": "交互式价格走势",
+    "frequency": "频率",
     "cointegrationAnalysis": "协整分析",
     "cointegrationDesc": "协整分析用于检测两条链价格之间是否存在长期均衡关系。通过Engle-Granger两步法检验，识别统计套利机会。",
     "noCointegrationDetected": "未检测到协整关系",
@@ -5364,6 +5373,8 @@
       "confirmPasswordLabel": "确认密码",
       "confirmPasswordPlaceholder": "再次输入密码",
       "termsAgreement": "我已阅读并同意 {terms} 和 {privacy}",
+      "termsAgreementPrefix": "我已阅读并同意 ",
+      "termsAgreementMiddle": " 和 ",
       "terms": "服务条款",
       "privacy": "隐私政策",
       "submitting": "注册中...",
@@ -5754,7 +5765,122 @@
       "factor2Title": "Scuttlebutt 共识",
       "factor2Desc": "专有共识机制提供高安全性保障",
       "factor3Title": "MakerDAO 依赖",
-      "factor3Desc": "对 MakerDAO 生态系统的需求依赖较高"
+      "factor3Desc": "对 MakerDAO 生态系统的需求依赖较高",
+      "lowRisk": "低风险",
+      "mediumRisk": "中风险",
+      "highRisk": "高风险",
+      "criticalRisk": "极高风险",
+      "daysAgo": "{days} 天前",
+      "securityLevel": "安全级别",
+      "verificationStatus": "验证状态",
+      "scuttlebuttIntegration": "Scuttlebutt 安全集成",
+      "scuttlebuttNote": "Scuttlebutt 安全：",
+      "scuttlebuttNoteDesc": "Chronicle 使用 Scuttlebutt 协议确保数据传输安全和验证者身份验证。"
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "非活跃",
+      "jailed": "被监禁"
+    },
+    "securityLevel": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "verificationStatus": {
+      "verified": "已验证",
+      "pending": "待验证",
+      "failed": "验证失败"
+    },
+    "severity": {
+      "critical": "严重",
+      "warning": "警告",
+      "info": "信息"
+    },
+    "assetType": {
+      "stablecoin": "稳定币",
+      "crypto": "加密货币",
+      "rwa": "现实世界资产"
+    },
+    "network": {
+      "status": "网络状态",
+      "validators": "验证者",
+      "responseTime": "响应时间",
+      "dataFeeds": "数据喂价",
+      "uptime": "在线率",
+      "activeValidators": "活跃验证者",
+      "avgLatency": "平均延迟",
+      "activeFeeds": "活跃喂价",
+      "healthOverview": "网络健康概览",
+      "networkHealthStatus": "网络健康状态",
+      "totalStaked": "总质押",
+      "updateFrequency": "更新频率",
+      "avgReputation": "平均声誉",
+      "latency": "延迟",
+      "validatorDistribution": "验证者分布",
+      "active": "活跃",
+      "inactive": "非活跃",
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线",
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差",
+      "stakingDistribution": "质押分布",
+      "hourlyActivity": "每小时网络活动",
+      "features": "网络特性",
+      "decentralized": "去中心化架构",
+      "decentralizedDesc": "分布式验证者网络，无单点故障",
+      "realtime": "实时更新",
+      "realtimeDesc": "亚秒级价格更新，高频数据喂价",
+      "scalable": "高可扩展性",
+      "scalableDesc": "可同时处理数千个价格喂价",
+      "reliable": "可靠的基础设施",
+      "reliableDesc": "企业级正常运行时间，冗余验证者节点",
+      "secure": "安全设计",
+      "secureDesc": "多层安全，加密验证",
+      "monitoring": "24/7 监控",
+      "monitoringDesc": "持续网络监控和自动警报"
+    },
+    "scuttlebutt": {
+      "title": "Scuttlebutt 安全协议",
+      "securityLevel": "安全级别",
+      "auditScore": "审计评分",
+      "features": "安全特性",
+      "securityFeatures": "活跃安全特性",
+      "verificationStatus": "验证状态",
+      "lastAudit": "上次审计",
+      "historicalEvents": "历史安全事件"
+    },
+    "validators": {
+      "title": "验证者网络",
+      "total": "总验证者",
+      "active": "活跃验证者",
+      "avgReputation": "平均声誉",
+      "totalStaked": "总质押",
+      "networkHealth": "网络健康",
+      "list": "验证者列表",
+      "name": "名称",
+      "reputation": "声誉",
+      "uptime": "在线率",
+      "responseTime": "响应时间",
+      "staked": "质押",
+      "status": "状态"
+    },
+    "makerdao": {
+      "title": "MakerDAO 集成",
+      "tvl": "总锁仓价值",
+      "daiSupply": "DAI 供应量",
+      "systemSurplus": "系统盈余",
+      "debtCeiling": "债务上限",
+      "integrationVersion": "集成版本",
+      "supportedAssets": "支持的资产",
+      "asset": "资产",
+      "type": "类型",
+      "price": "价格",
+      "collateralRatio": "抵押率",
+      "stabilityFee": "稳定费"
     }
   },
   "winklink": {
@@ -5999,6 +6125,38 @@
       "refresh": "刷新",
       "lastUpdated": "最后更新",
       "stale": "已过期"
+    },
+    "mitigationMeasures": {
+      "title": "缓解措施",
+      "noMeasures": "暂无缓解措施",
+      "types": {
+        "technical": "技术",
+        "governance": "治理",
+        "operational": "运营"
+      },
+      "status": {
+        "active": "活跃",
+        "inactive": "未激活"
+      },
+      "effectivenessLabel": "有效性",
+      "effectiveness": {
+        "high": "高效",
+        "medium": "中等",
+        "low": "低效"
+      },
+      "Scuttlebutt Verification": "Scuttlebutt 验证",
+      "Validator Rotation": "验证者轮换",
+      "Multi-Chain Validation": "多链验证",
+      "Threshold Signature Scheme": "阈值签名方案",
+      "Decentralized Governance": "去中心化治理",
+      "24/7 Monitoring": "24/7 监控"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      }
     }
   },
   "gasFeeComparison": {

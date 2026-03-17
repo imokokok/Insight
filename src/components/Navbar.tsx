@@ -22,7 +22,10 @@ export default function Navbar() {
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
-    return pathname.split('?')[0];
+    // Remove locale prefix (e.g., /zh-CN/pyth-network -> /pyth-network)
+    const pathWithoutQuery = pathname.split('?')[0];
+    const localeMatch = pathWithoutQuery.match(/^\/(?:zh-CN|en)(\/.*)$/);
+    return localeMatch ? localeMatch[1] : pathWithoutQuery;
   }, [pathname]);
 
   const isActive = (href: string) => {
@@ -71,6 +74,7 @@ export default function Navbar() {
 
               return (
                 <Link
+                  key={item.href}
                   href={item.href}
                   className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                     active
