@@ -127,9 +127,17 @@ export default function Navbar() {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 p-1.5 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                      {profile?.display_name?.[0]?.toUpperCase() ||
-                        user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
+                    <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center text-white text-sm font-medium overflow-hidden">
+                      {profile?.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt={profile?.display_name || 'User'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        profile?.display_name?.[0]?.toUpperCase() ||
+                        user.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />
+                      )}
                     </div>
                   </button>
 

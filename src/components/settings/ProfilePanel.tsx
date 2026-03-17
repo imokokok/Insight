@@ -48,8 +48,10 @@ export function ProfilePanel() {
     }
   };
 
-  const handleAvatarUpdate = (url: string) => {
+  const handleAvatarUpdate = async (url: string) => {
     setAvatarUrl(url);
+    // 立即刷新全局 profile 状态，确保导航栏等各处同步更新
+    await refreshProfile();
   };
 
   const handleAvatarError = (errorMsg: string) => {
