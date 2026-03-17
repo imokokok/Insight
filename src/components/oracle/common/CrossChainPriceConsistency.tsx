@@ -99,7 +99,10 @@ function getStatusBadgeColor(status: 'normal' | 'warning' | 'critical'): string 
   }
 }
 
-function getStatusLabel(status: 'normal' | 'warning' | 'critical', t: (key: string) => string): string {
+function getStatusLabel(
+  status: 'normal' | 'warning' | 'critical',
+  t: (key: string) => string
+): string {
   switch (status) {
     case 'normal':
       return t('crossChainPriceConsistency.status.normal');
@@ -163,7 +166,9 @@ export function CrossChainPriceConsistency({
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-yellow-800">{t('crossChainPriceConsistency.warningTitle')}</h4>
+                <h4 className="text-sm font-medium text-yellow-800">
+                  {t('crossChainPriceConsistency.warningTitle')}
+                </h4>
                 <p className="text-sm text-yellow-700 mt-1">
                   {t('crossChainPriceConsistency.warningDesc')}
                 </p>
@@ -174,12 +179,16 @@ export function CrossChainPriceConsistency({
 
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-blue-50 rounded p-3 text-center">
-            <p className="text-xs text-blue-600 mb-1">{t('crossChainPriceConsistency.basePrice')}</p>
+            <p className="text-xs text-blue-600 mb-1">
+              {t('crossChainPriceConsistency.basePrice')}
+            </p>
             <p className="text-lg font-bold text-blue-700">${basePrice.toFixed(2)}</p>
             <p className="text-xs text-blue-500 mt-1">Solana</p>
           </div>
           <div className="bg-gray-50 rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">{t('crossChainPriceConsistency.maxDeviation')}</p>
+            <p className="text-xs text-gray-600 mb-1">
+              {t('crossChainPriceConsistency.maxDeviation')}
+            </p>
             <p className={`text-lg font-bold ${getDeviationColor(maxDeviation)}`}>
               {maxDeviation.toFixed(3)}%
             </p>
@@ -192,28 +201,46 @@ export function CrossChainPriceConsistency({
             </p>
           </div>
           <div className="bg-gray-50  p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">{t('crossChainPriceConsistency.avgLatency')}</p>
+            <p className="text-xs text-gray-600 mb-1">
+              {t('crossChainPriceConsistency.avgLatency')}
+            </p>
             <p className="text-lg font-bold text-gray-700">{avgLatency}ms</p>
             <p className="text-xs text-gray-500 mt-1">
-              {avgLatency < 100 ? t('crossChainPriceConsistency.latencyStatus.timely') : avgLatency < 200 ? t('crossChainPriceConsistency.latencyStatus.normal') : t('crossChainPriceConsistency.latencyStatus.high')}
+              {avgLatency < 100
+                ? t('crossChainPriceConsistency.latencyStatus.timely')
+                : avgLatency < 200
+                  ? t('crossChainPriceConsistency.latencyStatus.normal')
+                  : t('crossChainPriceConsistency.latencyStatus.high')}
             </p>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainPriceConsistency.chainComparison')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('crossChainPriceConsistency.chainComparison')}
+          </h4>
           <div className="overflow-x-auto -mx-4 px-4">
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainPriceConsistency.chain')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainPriceConsistency.price')}</th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainPriceConsistency.deviation')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainPriceConsistency.chain')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainPriceConsistency.price')}
+                  </th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainPriceConsistency.deviation')}
+                  </th>
                   <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 w-32">
                     {t('crossChainPriceConsistency.deviationVisualization')}
                   </th>
-                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainPriceConsistency.latency')}</th>
-                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">{t('crossChainPriceConsistency.status.label')}</th>
+                  <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainPriceConsistency.latency')}
+                  </th>
+                  <th className="text-center py-2 px-3 text-xs font-medium text-gray-500">
+                    {t('crossChainPriceConsistency.status.label')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -260,7 +287,8 @@ export function CrossChainPriceConsistency({
                           {Math.min(
                             Math.round((Math.abs(chain.deviationPercent) / maxBarDeviation) * 100),
                             100
-                          )}%
+                          )}
+                          %
                         </span>
                       </div>
                     </td>
@@ -286,7 +314,9 @@ export function CrossChainPriceConsistency({
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('crossChainPriceConsistency.deviationBarChart')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('crossChainPriceConsistency.deviationBarChart')}
+          </h4>
           <div className="space-y-3">
             {chainData.map((chain, index) => (
               <div key={chain.chainId} className="flex items-center gap-3">
@@ -330,7 +360,9 @@ export function CrossChainPriceConsistency({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">更新延迟分布</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('crossChainPriceConsistency.latencyDistribution')}
+            </h4>
             <div className="space-y-2">
               {chainData.map((chain) => (
                 <div key={chain.chainId} className="flex items-center gap-2">
@@ -355,26 +387,33 @@ export function CrossChainPriceConsistency({
           </div>
 
           <div className="bg-gray-50 rounded p-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">偏差阈值说明</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('crossChainPriceConsistency.deviationThreshold')}
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-green-500" />
-                <span className="text-sm text-gray-600">偏差 &lt; 0.1%：一致性良好</span>
+                <span className="text-sm text-gray-600">
+                  {t('crossChainPriceConsistency.deviationThresholdGood')}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-yellow-500" />
-                <span className="text-sm text-gray-600">0.1% ≤ 偏差 &lt; 0.3%：轻微偏差</span>
+                <span className="text-sm text-gray-600">
+                  {t('crossChainPriceConsistency.deviationThresholdWarning')}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-red-500" />
-                <span className="text-sm text-gray-600">偏差 ≥ 0.3%：偏差较大，需关注</span>
+                <span className="text-sm text-gray-600">
+                  {t('crossChainPriceConsistency.deviationThresholdCritical')}
+                </span>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                Pyth 通过 Wormhole 实现跨链价格传输，Solana
-                作为主链发布价格，其他链（Ethereum、Arbitrum、Base、Optimism、Polygon 等）通过
-                Wormhole 消息接收价格更新。
+                {t('crossChainPriceConsistency.pythMechanism1')}{' '}
+                {t('crossChainPriceConsistency.pythMechanism2')}
               </p>
             </div>
           </div>
@@ -395,15 +434,14 @@ export function CrossChainPriceConsistency({
               />
             </svg>
             <div>
-              <h4 className="text-sm font-medium text-pink-800">Pyth 跨链价格机制</h4>
+              <h4 className="text-sm font-medium text-pink-800">
+                {t('crossChainPriceConsistency.pythMechanismTitle')}
+              </h4>
               <ul className="text-sm text-pink-700 mt-2 space-y-1">
-                <li>• Solana 作为 Pyth 的主链，价格首先在 Solana 上发布</li>
-                <li>
-                  • 通过 Wormhole 跨链消息传递，价格同步到
-                  Ethereum、Arbitrum、Base、Optimism、Polygon 等链
-                </li>
-                <li>• 各链价格应保持高度一致，偏差通常应小于 0.1%</li>
-                <li>• 较大偏差可能表示网络拥堵或跨链消息延迟</li>
+                <li>• {t('crossChainPriceConsistency.pythMechanism1')}</li>
+                <li>• {t('crossChainPriceConsistency.pythMechanism2')}</li>
+                <li>• {t('crossChainPriceConsistency.pythMechanism3')}</li>
+                <li>• {t('crossChainPriceConsistency.pythMechanism4')}</li>
               </ul>
             </div>
           </div>

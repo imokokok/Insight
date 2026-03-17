@@ -2,6 +2,7 @@
 
 import { useState, ReactNode } from 'react';
 import { baseColors, semanticColors } from '@/lib/config/colors';
+import { useTranslations } from 'next-intl';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -18,6 +19,7 @@ export function CollapsibleSection({
   defaultExpanded = false,
   storageKey,
 }: CollapsibleSectionProps) {
+  const t = useTranslations('crossChain');
   const [isExpanded, setIsExpanded] = useState(() => {
     if (storageKey && typeof window !== 'undefined') {
       const saved = localStorage.getItem(`crossChain_${storageKey}`);
@@ -53,7 +55,7 @@ export function CollapsibleSection({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-            {isExpanded ? '收起' : '展开'}
+            {isExpanded ? t('collapse') : t('expand')}
           </span>
           <svg
             className={`w-5 h-5 transition-transform duration-200 ${

@@ -179,13 +179,17 @@ function AnomalyList({ anomalies }: { anomalies: AnomalyData[] }) {
                           <span className="font-mono font-medium">${anomaly.price.toFixed(2)}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">{t('panels.anomalyStats.expected')}: </span>
+                          <span className="text-gray-500">
+                            {t('panels.anomalyStats.expected')}:{' '}
+                          </span>
                           <span className="font-mono font-medium">
                             ${anomaly.expectedPrice.toFixed(2)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500">{t('panels.anomalyStats.deviation')}: </span>
+                          <span className="text-gray-500">
+                            {t('panels.anomalyStats.deviation')}:{' '}
+                          </span>
                           <span
                             className={`font-mono font-medium ${
                               anomaly.deviation > 0 ? 'text-green-600' : 'text-red-600'

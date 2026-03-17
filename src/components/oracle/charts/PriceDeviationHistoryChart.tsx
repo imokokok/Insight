@@ -53,7 +53,10 @@ const DEVIATION_THRESHOLDS = {
 function formatTime(index: number, t: (key: string) => string): string {
   const now = new Date();
   now.setMinutes(now.getMinutes() - (19 - index) * 3);
-  return now.toLocaleTimeString(t('common.locale') || 'zh-CN', { hour: '2-digit', minute: '2-digit' });
+  return now.toLocaleTimeString(t('common.locale') || 'zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function calculateTrend(data: number[]): 'increasing' | 'decreasing' | 'stable' {
@@ -289,12 +292,8 @@ export function PriceDeviationHistoryChart({
                 onChange={(e) => setBaselineType(e.target.value as BaselineType)}
                 className="px-3 py-1 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="average">
-                  {t('charts.priceDeviationHistory.baselineAverage')}
-                </option>
-                <option value="median">
-                  {t('charts.priceDeviationHistory.baselineMedian')}
-                </option>
+                <option value="average">{t('charts.priceDeviationHistory.baselineAverage')}</option>
+                <option value="median">{t('charts.priceDeviationHistory.baselineMedian')}</option>
                 <option value="chainlink">
                   {t('charts.priceDeviationHistory.baselineChainlink')}
                 </option>

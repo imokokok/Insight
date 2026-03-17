@@ -25,18 +25,78 @@ interface TrendDataPoint {
 
 function getMockTrendData(t: (key: string) => string): TrendDataPoint[] {
   return [
-    { month: '2025-03', monthShort: t('charts.dataSourceTrend.months.mar'), newSources: 18, cumulative: 380 },
-    { month: '2025-04', monthShort: t('charts.dataSourceTrend.months.apr'), newSources: 22, cumulative: 402 },
-    { month: '2025-05', monthShort: t('charts.dataSourceTrend.months.may'), newSources: 15, cumulative: 417 },
-    { month: '2025-06', monthShort: t('charts.dataSourceTrend.months.jun'), newSources: 28, cumulative: 445 },
-    { month: '2025-07', monthShort: t('charts.dataSourceTrend.months.jul'), newSources: 32, cumulative: 477 },
-    { month: '2025-08', monthShort: t('charts.dataSourceTrend.months.aug'), newSources: 25, cumulative: 502 },
-    { month: '2025-09', monthShort: t('charts.dataSourceTrend.months.sep'), newSources: 20, cumulative: 522 },
-    { month: '2025-10', monthShort: t('charts.dataSourceTrend.months.oct'), newSources: 18, cumulative: 540 },
-    { month: '2025-11', monthShort: t('charts.dataSourceTrend.months.nov'), newSources: 24, cumulative: 564 },
-    { month: '2025-12', monthShort: t('charts.dataSourceTrend.months.dec'), newSources: 30, cumulative: 594 },
-    { month: '2026-01', monthShort: t('charts.dataSourceTrend.months.jan'), newSources: 35, cumulative: 629 },
-    { month: '2026-02', monthShort: t('charts.dataSourceTrend.months.feb'), newSources: 28, cumulative: 657 },
+    {
+      month: '2025-03',
+      monthShort: t('charts.dataSourceTrend.months.mar'),
+      newSources: 18,
+      cumulative: 380,
+    },
+    {
+      month: '2025-04',
+      monthShort: t('charts.dataSourceTrend.months.apr'),
+      newSources: 22,
+      cumulative: 402,
+    },
+    {
+      month: '2025-05',
+      monthShort: t('charts.dataSourceTrend.months.may'),
+      newSources: 15,
+      cumulative: 417,
+    },
+    {
+      month: '2025-06',
+      monthShort: t('charts.dataSourceTrend.months.jun'),
+      newSources: 28,
+      cumulative: 445,
+    },
+    {
+      month: '2025-07',
+      monthShort: t('charts.dataSourceTrend.months.jul'),
+      newSources: 32,
+      cumulative: 477,
+    },
+    {
+      month: '2025-08',
+      monthShort: t('charts.dataSourceTrend.months.aug'),
+      newSources: 25,
+      cumulative: 502,
+    },
+    {
+      month: '2025-09',
+      monthShort: t('charts.dataSourceTrend.months.sep'),
+      newSources: 20,
+      cumulative: 522,
+    },
+    {
+      month: '2025-10',
+      monthShort: t('charts.dataSourceTrend.months.oct'),
+      newSources: 18,
+      cumulative: 540,
+    },
+    {
+      month: '2025-11',
+      monthShort: t('charts.dataSourceTrend.months.nov'),
+      newSources: 24,
+      cumulative: 564,
+    },
+    {
+      month: '2025-12',
+      monthShort: t('charts.dataSourceTrend.months.dec'),
+      newSources: 30,
+      cumulative: 594,
+    },
+    {
+      month: '2026-01',
+      monthShort: t('charts.dataSourceTrend.months.jan'),
+      newSources: 35,
+      cumulative: 629,
+    },
+    {
+      month: '2026-02',
+      monthShort: t('charts.dataSourceTrend.months.feb'),
+      newSources: 28,
+      cumulative: 657,
+    },
   ];
 }
 

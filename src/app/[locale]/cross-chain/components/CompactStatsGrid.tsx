@@ -32,7 +32,7 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
           className="text-xs px-3 py-1.5 border transition-colors hover:bg-gray-50"
           style={{ borderColor: baseColors.gray[300], color: baseColors.gray[600] }}
         >
-          {showAll ? t('crossChain.collapse') || '收起' : t('crossChain.viewAll') || '查看全部'}
+          {showAll ? t('crossChain.collapse') : t('crossChain.viewAll')}
           <span className="ml-1" style={{ color: baseColors.gray[400] }}>
             ({coreStats.length}/{statsData.length})
           </span>

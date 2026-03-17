@@ -1324,9 +1324,7 @@ export function LatencyTrendChart({
                     <p className="font-medium mb-1" style={{ color: baseColors.slate[700] }}>
                       {t('charts.latency.stdDevLabel')}
                     </p>
-                    <p style={{ color: baseColors.gray[600] }}>
-                      {t('charts.latency.stdDevDesc')}
-                    </p>
+                    <p style={{ color: baseColors.gray[600] }}>{t('charts.latency.stdDevDesc')}</p>
                   </div>
                 </div>
                 <p className="mt-2" style={{ color: baseColors.gray[600] }}>

@@ -173,7 +173,9 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">{t('gasFeeComparison.avgVerificationFee')}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                {t('gasFeeComparison.avgVerificationFee')}
+              </p>
               <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(statistics.avgVerification)}
               </p>
@@ -211,7 +213,11 @@ export function GasFeeComparison({ data, loading = false }: GasFeeComparisonProp
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {key === 'total' ? t('gasFeeComparison.total') : key === 'update' ? t('gasFeeComparison.update') : t('gasFeeComparison.verification')}
+                {key === 'total'
+                  ? t('gasFeeComparison.total')
+                  : key === 'update'
+                    ? t('gasFeeComparison.update')
+                    : t('gasFeeComparison.verification')}
               </button>
             ))}
           </div>

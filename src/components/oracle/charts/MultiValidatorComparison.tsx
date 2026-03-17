@@ -39,7 +39,9 @@ interface ChartDataPoint {
   [key: string]: string | number;
 }
 
-function getTimeRangeConfig(t: (key: string) => string): Record<TimeRange, { period: HistoryPeriod; label: string }> {
+function getTimeRangeConfig(
+  t: (key: string) => string
+): Record<TimeRange, { period: HistoryPeriod; label: string }> {
   return {
     '7D': { period: 7, label: t('charts.multiValidator.days7') },
     '30D': { period: 30, label: t('charts.multiValidator.days30') },
@@ -47,11 +49,25 @@ function getTimeRangeConfig(t: (key: string) => string): Record<TimeRange, { per
   };
 }
 
-function getMetricConfig(t: (key: string) => string): Record<MetricType, { label: string; unit: string; color: string }> {
+function getMetricConfig(
+  t: (key: string) => string
+): Record<MetricType, { label: string; unit: string; color: string }> {
   return {
-    uptime: { label: t('charts.multiValidator.uptime'), unit: '%', color: semanticColors.success.DEFAULT },
-    staked: { label: t('charts.multiValidator.staked'), unit: ' BAND', color: chartColors.recharts.primary },
-    commission: { label: t('charts.multiValidator.commission'), unit: '%', color: chartColors.recharts.purple },
+    uptime: {
+      label: t('charts.multiValidator.uptime'),
+      unit: '%',
+      color: semanticColors.success.DEFAULT,
+    },
+    staked: {
+      label: t('charts.multiValidator.staked'),
+      unit: ' BAND',
+      color: chartColors.recharts.primary,
+    },
+    commission: {
+      label: t('charts.multiValidator.commission'),
+      unit: '%',
+      color: chartColors.recharts.purple,
+    },
   };
 }
 
@@ -504,7 +520,9 @@ export function MultiValidatorComparison({ validators, client }: MultiValidatorC
                     width={50}
                   />
                   <Tooltip
-                    content={<CustomTooltip metricType={metricType} validators={validators} t={t} />}
+                    content={
+                      <CustomTooltip metricType={metricType} validators={validators} t={t} />
+                    }
                   />
                   <Legend
                     verticalAlign="top"

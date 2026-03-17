@@ -22,7 +22,10 @@ import {
 
 const logger = createLogger('ValidatorAnalyticsPanel');
 
-function formatRelativeTime(timestamp: number | null, t: (key: string, params?: Record<string, string | number>) => string): string {
+function formatRelativeTime(
+  timestamp: number | null,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
   if (!timestamp) return '';
   const now = Date.now();
   const diffInSeconds = Math.floor((now - timestamp) / 1000);
@@ -652,7 +655,9 @@ export function ValidatorAnalyticsPanel() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {lastUpdateTime && (
-            <span className="text-sm text-gray-500">{t('panels.validatorAnalytics.lastUpdated')}: {relativeTime}</span>
+            <span className="text-sm text-gray-500">
+              {t('panels.validatorAnalytics.lastUpdated')}: {relativeTime}
+            </span>
           )}
           {isRefreshing && (
             <div className="flex items-center gap-2">
@@ -795,7 +800,9 @@ export function ValidatorAnalyticsPanel() {
               <option value={50}>50</option>
             </select>
             <span>{t('panels.validatorAnalytics.items')}</span>
-            <span className="ml-4 text-gray-400">{t('panels.validatorAnalytics.totalRecords', { count: filteredValidators.length })}</span>
+            <span className="ml-4 text-gray-400">
+              {t('panels.validatorAnalytics.totalRecords', { count: filteredValidators.length })}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

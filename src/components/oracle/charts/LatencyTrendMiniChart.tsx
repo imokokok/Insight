@@ -198,9 +198,7 @@ export function LatencyTrendMiniChart({
                   : `bg-[${semanticColors.success.light}] text-[${semanticColors.success.text}]`
               }`}
             >
-              {point.isAnomaly
-                ? t('charts.trend.abnormal')
-                : t('charts.trend.normal')}
+              {point.isAnomaly ? t('charts.trend.abnormal') : t('charts.trend.normal')}
             </span>
           </div>
         </div>
@@ -240,9 +238,7 @@ export function LatencyTrendMiniChart({
             <h3 className="text-lg font-semibold text-gray-900">
               {t('charts.trend.title')} - {oracleName}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('charts.trend.subtitle')}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{t('charts.trend.subtitle')}</p>
           </div>
         </div>
       )}
@@ -330,12 +326,8 @@ export function LatencyTrendMiniChart({
       {/* Trend Chart */}
       <div className="bg-white border border-gray-200 p-5">
         <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-900">
-            {t('charts.trend.chartTitle')}
-          </h4>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('charts.trend.chartDesc')}
-          </p>
+          <h4 className="text-sm font-semibold text-gray-900">{t('charts.trend.chartTitle')}</h4>
+          <p className="text-xs text-gray-500 mt-1">{t('charts.trend.chartDesc')}</p>
         </div>
 
         <ResponsiveContainer width="100%" height={height}>
@@ -433,18 +425,14 @@ export function LatencyTrendMiniChart({
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3" style={{ backgroundColor: semanticColors.danger.DEFAULT }} />
-            <span className="text-xs text-gray-500">
-              {t('charts.trend.anomalyPoint')}
-            </span>
+            <span className="text-xs text-gray-500">{t('charts.trend.anomalyPoint')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span
               className="w-4 h-3 rounded"
               style={{ backgroundColor: semanticColors.danger.light }}
             />
-            <span className="text-xs text-gray-500">
-              {t('charts.trend.anomalyArea')}
-            </span>
+            <span className="text-xs text-gray-500">{t('charts.trend.anomalyArea')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span

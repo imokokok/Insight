@@ -168,7 +168,18 @@ export default function ChartRenderer({
       const compareItem = compareData[index];
       const result: any = { ...item };
 
-      ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'].forEach((key) => {
+      [
+        'chainlink',
+        'pyth',
+        'band',
+        'api3',
+        'uma',
+        'redstone',
+        'dia',
+        'tellor',
+        'chronicle',
+        'winklink',
+      ].forEach((key) => {
         const currentValue = item[key as keyof TVSTrendData] as number;
         const compareValue = compareItem?.[key as keyof TVSTrendData] as number;
         result[`${key}Compare`] = compareValue || 0;
@@ -242,7 +253,18 @@ export default function ChartRenderer({
   );
 
   const renderTrendChart = () => {
-    const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'];
+    const oracleKeys = [
+      'chainlink',
+      'pyth',
+      'band',
+      'api3',
+      'uma',
+      'redstone',
+      'dia',
+      'tellor',
+      'chronicle',
+      'winklink',
+    ];
     const oracleColors: Record<string, string> = {
       chainlink: chartColors.marketOverview.chainlink,
       pyth: chartColors.marketOverview.pyth,

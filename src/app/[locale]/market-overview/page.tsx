@@ -194,7 +194,18 @@ export default function MarketOverviewPage() {
       const compareItem = compareData[index];
       const result: any = { ...item };
 
-      ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'].forEach((key) => {
+      [
+        'chainlink',
+        'pyth',
+        'band',
+        'api3',
+        'uma',
+        'redstone',
+        'dia',
+        'tellor',
+        'chronicle',
+        'winklink',
+      ].forEach((key) => {
         const currentValue = item[key] as number;
         const compareValue = compareItem?.[key] as number;
         result[`${key}Compare`] = compareValue || 0;
@@ -537,7 +548,18 @@ export default function MarketOverviewPage() {
                           const latestData = prepareComparisonData(trendData, trendComparisonData)[
                             trendData.length - 1
                           ];
-                          const oracleKeys = ['chainlink', 'pyth', 'band', 'api3', 'uma', 'redstone', 'dia', 'tellor', 'chronicle', 'winklink'];
+                          const oracleKeys = [
+                            'chainlink',
+                            'pyth',
+                            'band',
+                            'api3',
+                            'uma',
+                            'redstone',
+                            'dia',
+                            'tellor',
+                            'chronicle',
+                            'winklink',
+                          ];
                           const avgDiff =
                             oracleKeys.reduce((sum, key) => {
                               return sum + (latestData[`${key}DiffPercent`] || 0);

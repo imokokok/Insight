@@ -17,11 +17,11 @@ export default function LanguageSwitcher() {
     // 获取当前路径，替换语言前缀
     const currentPath = pathname;
     const newPath = currentPath.replace(/^\/(en|zh-CN)/, `/${newLocale}`);
-    
+
     startTransition(() => {
       router.replace(newPath);
     });
-    
+
     setIsDropdownOpen(false);
   };
 

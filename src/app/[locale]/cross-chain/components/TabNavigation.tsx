@@ -18,7 +18,7 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   const t = useTranslations();
-  
+
   const tabs: Tab[] = [
     {
       id: 'overview',

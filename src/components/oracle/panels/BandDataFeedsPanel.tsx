@@ -235,7 +235,10 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
         setPriceFeeds(mockPriceFeeds);
         setDataSources(mockDataSources);
       } catch (error) {
-        logger.error('Failed to fetch data feeds:', error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to fetch data feeds:',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }

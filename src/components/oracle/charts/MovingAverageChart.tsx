@@ -218,7 +218,9 @@ export function MovingAverageChart({
   if (!selectedOracleData) {
     return (
       <DashboardCard title={t('charts.movingAverage.title')} className={className}>
-        <div className="h-80 flex items-center justify-center text-gray-400">{t('charts.movingAverage.noData')}</div>
+        <div className="h-80 flex items-center justify-center text-gray-400">
+          {t('charts.movingAverage.noData')}
+        </div>
       </DashboardCard>
     );
   }
@@ -367,19 +369,27 @@ export function MovingAverageChart({
                 }
               >
                 {t('charts.movingAverage.trend')}:{' '}
-                {stats.trend === 'bullish' ? t('charts.movingAverage.bullish') : stats.trend === 'bearish' ? t('charts.movingAverage.bearish') : t('charts.movingAverage.neutral')}
+                {stats.trend === 'bullish'
+                  ? t('charts.movingAverage.bullish')
+                  : stats.trend === 'bearish'
+                    ? t('charts.movingAverage.bearish')
+                    : t('charts.movingAverage.neutral')}
               </div>
               <div className="text-sm" style={{ color: baseColors.gray[600] }}>
-                {t('charts.movingAverage.bbPosition')}: <span className="font-medium">{stats.bbPosition.toFixed(1)}%</span>
+                {t('charts.movingAverage.bbPosition')}:{' '}
+                <span className="font-medium">{stats.bbPosition.toFixed(1)}%</span>
               </div>
               <div className="text-sm" style={{ color: baseColors.gray[600] }}>
-                {t('charts.movingAverage.rollingStdDev')}: <span className="font-medium">${stats.volatility.toFixed(4)}</span>
+                {t('charts.movingAverage.rollingStdDev')}:{' '}
+                <span className="font-medium">${stats.volatility.toFixed(4)}</span>
               </div>
             </div>
           )}
 
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.movingAverage.priceAndMA')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('charts.movingAverage.priceAndMA')}
+            </h4>
             <div style={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -473,7 +483,9 @@ export function MovingAverageChart({
 
           {showRollingStdDev && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.movingAverage.rollingStdDevTitle')}</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                {t('charts.movingAverage.rollingStdDevTitle')}
+              </h4>
               <div style={{ height: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart

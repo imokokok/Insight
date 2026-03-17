@@ -1,15 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { ArrowRight, Search, TrendingUp, Shield, Zap, BookOpen, Activity } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { chartColors } from '@/lib/config/colors';
 import HeroBackground from './HeroBackground';
 
-const generateTrendData = (baseValue: number, points: number = 20) => {
-  const data = [];
+interface TrendData {
+  value: number;
+}
+
+interface Metric {
+  label: string;
+  value: string;
+  subLabel: string;
+  icon: typeof Shield;
+  trend: TrendData[];
+  color: string;
+}
+
+const generateTrendData = (baseValue: number, points: number = 20): TrendData[] => {
+  const data: TrendData[] = [];
   let currentValue = baseValue;
   for (let i = 0; i < points; i++) {
     const change = (Math.random() - 0.48) * 0.05;
@@ -19,13 +33,12 @@ const generateTrendData = (baseValue: number, points: number = 20) => {
   return data;
 };
 
-const getMetrics = (t: (key: string) => string) => [
+const getStaticMetrics = (t: (key: string) => string): Omit<Metric, 'trend'>[] => [
   {
     label: 'tvs',
     value: '$42.1B',
     subLabel: t('home.hero.metrics.totalValueSecured'),
     icon: Shield,
-    trend: generateTrendData(40),
     color: chartColors.chart.blue,
   },
   {
@@ -33,7 +46,6 @@ const getMetrics = (t: (key: string) => string) => [
     value: '5',
     subLabel: t('home.hero.metrics.activeOracles'),
     icon: Zap,
-    trend: generateTrendData(5, 15),
     color: chartColors.chart.emerald,
   },
   {
@@ -41,17 +53,48 @@ const getMetrics = (t: (key: string) => string) => [
     value: '1200+',
     subLabel: t('home.hero.metrics.supportedPairs'),
     icon: TrendingUp,
-    trend: generateTrendData(1100, 25),
     color: chartColors.chart.violet,
   },
 ];
 
 export default function ProfessionalHero() {
   const t = useTranslations();
+  const locale = useLocale();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const metrics = getMetrics(t);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const symbol = searchQuery.trim().toUpperCase();
+      router.push(`/${locale}/price-query?symbol=${symbol}`);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const metrics = useMemo(() => {
+    const staticMetrics = getStaticMetrics(t);
+    if (!mounted) {
+      return staticMetrics.map((m) => ({
+        ...m,
+        trend: [{ value: 0 }],
+      }));
+    }
+    return staticMetrics.map((m) => ({
+      ...m,
+      trend:
+        m.label === 'tvs'
+          ? generateTrendData(40)
+          : m.label === 'oracles'
+            ? generateTrendData(5, 15)
+            : generateTrendData(1100, 25),
+    }));
+  }, [t, mounted]);
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
@@ -86,14 +129,21 @@ export default function ProfessionalHero() {
             </p>
 
             <div className="max-w-2xl mx-auto mb-10">
-              <div
-                className={`relative flex items-center bg-white border overflow-hidden transition-colors duration-200 ${
-                  isSearchFocused ? 'border-gray-900' : 'border-gray-300'
+              <form
+                onSubmit={handleSearch}
+                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border transition-all duration-300 ease-out overflow-hidden ${
+                  isSearchFocused
+                    ? 'shadow-xl shadow-emerald-500/10 border-emerald-300/50 scale-[1.02]'
+                    : 'border-gray-200/80 hover:border-gray-300 hover:shadow-xl'
                 }`}
               >
-                <div className="pl-4">
+                <div className="pl-5">
                   <Search
-                    className={`w-5 h-5 transition-colors duration-200 ${isSearchFocused ? 'text-gray-900' : 'text-gray-400'}`}
+                    className={`w-5 h-5 transition-all duration-300 ${
+                      isSearchFocused
+                        ? 'text-emerald-600 scale-110'
+                        : 'text-gray-400'
+                    }`}
                   />
                 </div>
                 <input
@@ -103,12 +153,16 @@ export default function ProfessionalHero() {
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
                   placeholder={t('home.hero.searchPlaceholder')}
-                  className="flex-1 px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent outline-none min-w-0"
+                  className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 min-w-0 !outline-none"
+                  style={{ outline: 'none', boxShadow: 'none' }}
                 />
-                <button className="mr-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors duration-200 text-sm sm:text-base whitespace-nowrap">
+                <button
+                  type="submit"
+                  className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold rounded-xl hover:from-gray-800 hover:to-gray-700 hover:shadow-lg hover:shadow-gray-900/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
+                >
                   {t('common.search')}
                 </button>
-              </div>
+              </form>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">

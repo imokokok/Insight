@@ -64,7 +64,10 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
         setStats(mockStats);
         setRegions(regionData);
       } catch (error) {
-        logger.error('Failed to fetch validators:', error instanceof Error ? error : new Error(String(error)));
+        logger.error(
+          'Failed to fetch validators:',
+          error instanceof Error ? error : new Error(String(error))
+        );
       } finally {
         setLoading(false);
       }
@@ -197,7 +200,9 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
               <span className="text-sm text-gray-500">{t('band.validators.sortBy')}:</span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'rank' | 'stake' | 'uptime' | 'commission')}
+                onChange={(e) =>
+                  setSortBy(e.target.value as 'rank' | 'stake' | 'uptime' | 'commission')
+                }
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="rank">{t('band.validators.rank')}</option>

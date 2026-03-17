@@ -91,7 +91,9 @@ export default function CrossChainPriceMonitor() {
                 {isZh ? '跨链价格监控' : 'Cross-Chain Price Monitor'}
               </h2>
               <p className="text-sm text-gray-500">
-                {isZh ? '实时追踪不同链上的价格差异' : 'Real-time price deviation tracking across chains'}
+                {isZh
+                  ? '实时追踪不同链上的价格差异'
+                  : 'Real-time price deviation tracking across chains'}
               </p>
             </div>
           </div>
@@ -132,14 +134,18 @@ export default function CrossChainPriceMonitor() {
           <div className="bg-gray-50 p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm text-gray-500">{isZh ? '监控链数' : 'Chains Monitored'}</span>
+              <span className="text-sm text-gray-500">
+                {isZh ? '监控链数' : 'Chains Monitored'}
+              </span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{currentData.length}</div>
           </div>
           <div className="bg-gray-50 p-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-purple-600" />
-              <span className="text-sm text-gray-500">{isZh ? '一致性率' : 'Consistency Rate'}</span>
+              <span className="text-sm text-gray-500">
+                {isZh ? '一致性率' : 'Consistency Rate'}
+              </span>
             </div>
             <div className="text-2xl font-bold text-gray-900">{consistencyRate.toFixed(1)}%</div>
           </div>
@@ -178,7 +184,9 @@ export default function CrossChainPriceMonitor() {
                     <span
                       className={`inline-block w-3 h-3 rounded-full ${getDeviationIntensity(chain.deviation)}`}
                     />
-                    <span className="ml-2 text-xs capitalize">{getConsistencyStatus(chain.deviation)}</span>
+                    <span className="ml-2 text-xs capitalize">
+                      {getConsistencyStatus(chain.deviation)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -190,15 +198,21 @@ export default function CrossChainPriceMonitor() {
         <div className="mt-6 flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-gray-600">{isZh ? '高一致性 (<0.1%)' : 'High Consistency (<0.1%)'}</span>
+            <span className="text-gray-600">
+              {isZh ? '高一致性 (<0.1%)' : 'High Consistency (<0.1%)'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className="text-gray-600">{isZh ? '中等一致性 (0.1-0.3%)' : 'Medium Consistency (0.1-0.3%)'}</span>
+            <span className="text-gray-600">
+              {isZh ? '中等一致性 (0.1-0.3%)' : 'Medium Consistency (0.1-0.3%)'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-gray-600">{isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}</span>
+            <span className="text-gray-600">
+              {isZh ? '低一致性 (>0.3%)' : 'Low Consistency (>0.3%)'}
+            </span>
           </div>
         </div>
       </div>

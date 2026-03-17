@@ -474,8 +474,8 @@ export function LatencyDistributionHistogram({
       {/* Statistics Grid - Always visible */}
       <div className="grid grid-cols-6 gap-3">
         {statItems.map((item) => (
-          <div 
-            key={item.label} 
+          <div
+            key={item.label}
             className="bg-white border border-gray-200 p-3 text-center overflow-hidden"
             title={`${item.label}: ${item.value}`}
           >

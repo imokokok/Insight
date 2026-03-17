@@ -43,7 +43,10 @@ function generateMockData(t: (key: string) => string): DeviationDataPoint[] {
     const pythPrice = marketAvg * (1 + deviation / 100);
 
     data.push({
-      timestamp: timestamp.toLocaleTimeString(t('common.locale') || 'zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: timestamp.toLocaleTimeString(t('common.locale') || 'zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       deviation: Number(deviation.toFixed(3)),
       pythPrice: Number(pythPrice.toFixed(4)),
       marketAvg: Number(marketAvg.toFixed(4)),
@@ -92,9 +95,15 @@ export function PriceDeviationRisk() {
                 />
               </svg>
               <div>
-                <h4 className="text-sm font-medium text-orange-800">{t('charts.priceDeviationRisk.warningTitle')}</h4>
+                <h4 className="text-sm font-medium text-orange-800">
+                  {t('charts.priceDeviationRisk.warningTitle')}
+                </h4>
                 <p className="text-sm text-orange-700 mt-1">
-                  {t('charts.priceDeviationRisk.warningMessage', { current: stats.current.toFixed(3), threshold: DEVIATION_THRESHOLD, count: warningCount })}
+                  {t('charts.priceDeviationRisk.warningMessage', {
+                    current: stats.current.toFixed(3),
+                    threshold: DEVIATION_THRESHOLD,
+                    count: warningCount,
+                  })}
                 </p>
               </div>
             </div>
@@ -103,7 +112,9 @@ export function PriceDeviationRisk() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.currentDeviation')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('charts.priceDeviationRisk.currentDeviation')}
+            </p>
             <p
               className={`text-xl font-bold ${stats.current >= DEVIATION_THRESHOLD ? 'text-orange-600' : 'text-gray-900'}`}
             >
@@ -111,21 +122,29 @@ export function PriceDeviationRisk() {
             </p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.maxDeviation')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('charts.priceDeviationRisk.maxDeviation')}
+            </p>
             <p className="text-xl font-bold text-gray-900">{stats.max.toFixed(3)}%</p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.minDeviation')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('charts.priceDeviationRisk.minDeviation')}
+            </p>
             <p className="text-xl font-bold text-gray-900">{stats.min.toFixed(3)}%</p>
           </div>
           <div className="bg-gray-50  p-3">
-            <p className="text-xs text-gray-500 mb-1">{t('charts.priceDeviationRisk.avgDeviation')}</p>
+            <p className="text-xs text-gray-500 mb-1">
+              {t('charts.priceDeviationRisk.avgDeviation')}
+            </p>
             <p className="text-xl font-bold text-gray-900">{stats.avg.toFixed(3)}%</p>
           </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('charts.priceDeviationRisk.historicalTrend')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('charts.priceDeviationRisk.historicalTrend')}
+          </h4>
           <div style={{ height: 280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={deviationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -143,7 +162,10 @@ export function PriceDeviationRisk() {
                   width={50}
                 />
                 <Tooltip
-                  formatter={(value) => [`${Number(value).toFixed(3)}%`, t('charts.priceDeviationRisk.deviation')]}
+                  formatter={(value) => [
+                    `${Number(value).toFixed(3)}%`,
+                    t('charts.priceDeviationRisk.deviation'),
+                  ]}
                   labelStyle={{ color: semanticColors.neutral.text }}
                   contentStyle={{
                     backgroundColor: 'white',
@@ -177,19 +199,25 @@ export function PriceDeviationRisk() {
         <div className="flex items-center justify-center gap-6 pt-2 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-0.5 bg-purple-500" />
-            <span className="text-xs text-gray-600">{t('charts.priceDeviationRisk.deviation')}</span>
+            <span className="text-xs text-gray-600">
+              {t('charts.priceDeviationRisk.deviation')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-0.5 bg-orange-500 border-dashed"
               style={{ borderTop: `2px dashed ${semanticColors.warning.DEFAULT}` }}
             />
-            <span className="text-xs text-gray-600">{t('charts.priceDeviationRisk.warningThreshold', { threshold: DEVIATION_THRESHOLD })}</span>
+            <span className="text-xs text-gray-600">
+              {t('charts.priceDeviationRisk.warningThreshold', { threshold: DEVIATION_THRESHOLD })}
+            </span>
           </div>
         </div>
 
         <div className="bg-blue-50  p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">{t('charts.priceDeviationRisk.analysisTitle')}</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">
+            {t('charts.priceDeviationRisk.analysisTitle')}
+          </h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>{t('charts.priceDeviationRisk.analysis1')}</li>
             <li>{t('charts.priceDeviationRisk.analysis2')}</li>

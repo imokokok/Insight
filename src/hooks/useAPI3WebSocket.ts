@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  getAPI3WebSocketService,
-  API3PriceData,
-} from '@/lib/services/api3WebSocket';
+import { getAPI3WebSocketService, API3PriceData } from '@/lib/services/api3WebSocket';
 
 export type API3ConnectionStatus =
   | 'connecting'

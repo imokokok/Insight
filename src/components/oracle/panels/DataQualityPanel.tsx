@@ -684,9 +684,7 @@ function DataSourceReliabilityCard({ sources }: { sources: DataSourceReliability
           <p className="text-xs text-gray-500 mb-1">{t('dataQuality.avgUpdateFrequency')}</p>
           <p className="text-lg font-bold text-gray-900">
             {avgUpdateFrequency.toFixed(0)}
-            <span className="text-sm text-gray-500 ml-1">
-              {t('dataQuality.secondsSuffix')}
-            </span>
+            <span className="text-sm text-gray-500 ml-1">{t('dataQuality.secondsSuffix')}</span>
           </p>
         </div>
         <div className="bg-gray-50  p-3 text-center">

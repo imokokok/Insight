@@ -122,7 +122,11 @@ export class PythHermesClient {
           ? priceData.confidence
           : String(priceData.confidence ?? '0');
 
-      const confidenceInterval = this.calculateConfidenceInterval(price, confidenceValue, Number(exponent));
+      const confidenceInterval = this.calculateConfidenceInterval(
+        price,
+        confidenceValue,
+        Number(exponent)
+      );
 
       return {
         provider: OracleProvider.PYTH,

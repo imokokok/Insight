@@ -12,24 +12,24 @@ export async function middleware(request: NextRequest) {
   // 获取浏览器语言
   const acceptLanguage = request.headers.get('accept-language');
   const browserLocale = acceptLanguage?.split(',')[0]?.split('-')[0];
-  
+
   // 根据浏览器语言决定目标语言：中文显示中文，其他显示英文
   const targetLocale = getValidLocale(browserLocale);
-  
+
   // 检查当前路径是否已经有语言前缀
   const pathname = request.nextUrl.pathname;
   const hasLocalePrefix = /^\/(en|zh-CN)(\/|$)/.test(pathname);
-  
+
   // 如果没有语言前缀，重定向到对应的语言版本
   if (!hasLocalePrefix) {
     const url = request.nextUrl.clone();
     url.pathname = `/${targetLocale}${pathname}`;
     return NextResponse.redirect(url);
   }
-  
+
   // 先处理国际化路由
   const intlResponse = intlMiddleware(request);
-  
+
   // 创建 Supabase 客户端
   let supabaseResponse = NextResponse.next({
     request,

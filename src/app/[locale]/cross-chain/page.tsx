@@ -343,8 +343,8 @@ export default function CrossChainPage() {
   const renderAdvancedTab = () => (
     <>
       <CollapsibleSection
-        title={t('crossChain.cointegrationAnalysis') || '协整分析'}
-        description={t('crossChain.cointegrationDesc') || '检测链间价格序列的长期均衡关系'}
+        title={t('crossChain.cointegrationAnalysis')}
+        description={t('crossChain.cointegrationDesc')}
         defaultExpanded={false}
         storageKey="cointegrationExpanded"
       >
@@ -354,8 +354,8 @@ export default function CrossChainPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title={t('crossChain.volatilityAnalysis') || '波动率分析'}
-        description={t('crossChain.volatilityAnalysisDesc') || '滚动波动率、相关性矩阵与波动率锥'}
+        title={t('crossChain.volatilityAnalysis')}
+        description={t('crossChain.volatilityAnalysisDesc')}
         defaultExpanded={false}
         storageKey="volatilityExpanded"
       >
