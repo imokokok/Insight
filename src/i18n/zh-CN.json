@@ -1357,6 +1357,12 @@
       "results": "显示 {count} / {total} 条结果",
       "noResults": "未找到匹配的结果"
     },
+    "noResults": {
+      "title": "未找到 \"{symbol}\" 的价格数据",
+      "description": "该币种可能不存在或暂未被任何预言机支持",
+      "suggestion": "请检查币种代码或尝试搜索下方的热门币种",
+      "popularTokens": "热门币种"
+    },
     "selectors": {
       "symbol": "交易对",
       "oracle": "预言机",

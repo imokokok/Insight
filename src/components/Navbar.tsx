@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
 import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
@@ -13,6 +13,7 @@ import { NavGroup } from './navigation/types';
 export default function Navbar() {
   const pathname = usePathname();
   const t = useTranslations();
+  const locale = useLocale();
   const user = useUser();
   const profile = useProfile();
   const loading = useAuthLoading();
@@ -100,7 +101,7 @@ export default function Navbar() {
             {user && !loading ? (
               <div className="hidden lg:flex items-center gap-1">
                 <Link
-                  href="/favorites"
+                  href={`/${locale}/favorites`}
                   className={`p-2 transition-colors ${
                     isActive('/favorites')
                       ? 'text-blue-600 bg-blue-50'
@@ -111,7 +112,7 @@ export default function Navbar() {
                   <Heart className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="/alerts"
+                  href={`/${locale}/alerts`}
                   className={`p-2 transition-colors ${
                     isActive('/alerts')
                       ? 'text-blue-600 bg-blue-50'
@@ -147,7 +148,7 @@ export default function Navbar() {
                         </div>
                         <div className="py-1">
                           <Link
-                            href="/settings"
+                            href={`/${locale}/settings`}
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
@@ -172,13 +173,13 @@ export default function Navbar() {
             ) : !loading ? (
               <div className="hidden lg:flex items-center gap-2">
                 <Link
-                  href="/login"
+                  href={`/${locale}/login`}
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   {t('navbar.login')}
                 </Link>
                 <Link
-                  href="/register"
+                  href={`/${locale}/register`}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                 >
                   {t('navbar.register')}
