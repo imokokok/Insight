@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  Palette,
   Globe,
   Clock,
   Database,
   Save,
   Loader2,
   CheckCircle,
-  Sun,
-  Moon,
+  RefreshCw,
+  DollarSign,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useUser, useProfile, useAuthInitialized } from '@/stores/authStore';
@@ -22,8 +21,9 @@ interface UserPreferences {
   defaultOracle: string;
   defaultSymbol: string;
   defaultTimeRange: string;
-  theme: 'light' | 'dark' | 'system';
   language: string;
+  defaultCurrency: string;
+  autoRefreshInterval: string;
 }
 
 const STORAGE_KEY = 'user_preferences';
@@ -32,16 +32,22 @@ const defaultPreferences: UserPreferences = {
   defaultOracle: 'chainlink',
   defaultSymbol: 'BTC/USD',
   defaultTimeRange: '24h',
-  theme: 'system',
   language: 'zh-CN',
+  defaultCurrency: 'USD',
+  autoRefreshInterval: '30',
 };
 
 const oracleOptions = [
   { value: 'chainlink', label: 'Chainlink' },
-  { value: 'pyth', label: 'Pyth Network' },
-  { value: 'band', label: 'Band Protocol' },
-  { value: 'api3', label: 'API3' },
+  { value: 'band-protocol', label: 'Band Protocol' },
   { value: 'uma', label: 'UMA' },
+  { value: 'pyth', label: 'Pyth Network' },
+  { value: 'api3', label: 'API3' },
+  { value: 'redstone', label: 'Redstone' },
+  { value: 'dia', label: 'DIA' },
+  { value: 'tellor', label: 'Tellor' },
+  { value: 'chronicle', label: 'Chronicle' },
+  { value: 'winklink', label: 'WINkLink' },
 ];
 
 const symbolOptions = [
@@ -91,6 +97,22 @@ const languageOptionKeys = [
   { value: 'en-US', key: 'settings.preferences.languages.en' },
 ];
 
+const currencyOptions = [
+  { value: 'USD', label: 'USD ($)' },
+  { value: 'CNY', label: 'CNY (¥)' },
+  { value: 'EUR', label: 'EUR (€)' },
+  { value: 'JPY', label: 'JPY (¥)' },
+  { value: 'GBP', label: 'GBP (£)' },
+];
+
+const autoRefreshOptionKeys = [
+  { value: '0', key: 'settings.preferences.refreshInterval.off' },
+  { value: '10', key: 'settings.preferences.refreshInterval.sec10' },
+  { value: '30', key: 'settings.preferences.refreshInterval.sec30' },
+  { value: '60', key: 'settings.preferences.refreshInterval.min1' },
+  { value: '300', key: 'settings.preferences.refreshInterval.min5' },
+];
+
 export function PreferencesPanel() {
   const t = useTranslations();
   const user = useUser();
@@ -114,6 +136,11 @@ export function PreferencesPanel() {
     [t]
   );
 
+  const autoRefreshOptions = useMemo(
+    () => autoRefreshOptionKeys.map((option) => ({ value: option.value, label: t(option.key) })),
+    [t]
+  );
+
   const loadPreferences = useCallback(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     let localPrefs: Partial<UserPreferences> = {};
@@ -133,8 +160,9 @@ export function PreferencesPanel() {
         defaultSymbol:
           dbPrefs.defaultSymbol || localPrefs.defaultSymbol || defaultPreferences.defaultSymbol,
         defaultTimeRange: localPrefs.defaultTimeRange || defaultPreferences.defaultTimeRange,
-        theme: dbPrefs.theme || localPrefs.theme || defaultPreferences.theme,
         language: localPrefs.language || defaultPreferences.language,
+        defaultCurrency: localPrefs.defaultCurrency || defaultPreferences.defaultCurrency,
+        autoRefreshInterval: localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
       };
       setPreferences(merged);
     } else {
@@ -168,22 +196,8 @@ export function PreferencesPanel() {
           preferences: {
             defaultProvider: preferences.defaultOracle as OracleProvider,
             defaultSymbol: preferences.defaultSymbol,
-            theme: preferences.theme,
           },
         });
-      }
-
-      if (preferences.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (preferences.theme === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
       }
 
       setSuccess(t('settings.preferences.saveSuccess'));
@@ -214,10 +228,10 @@ export function PreferencesPanel() {
         </div>
       ) : (
         <>
-          <div className="bg-white border border-gray-200 overflow-hidden">
+          <div className="bg-white border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Palette className="w-5 h-5 text-gray-400" />
+                <Database className="w-5 h-5 text-gray-400" />
                 {t('settings.preferences.title')}
               </h2>
               <p className="text-sm text-gray-500 mt-1">{t('settings.preferences.subtitle')}</p>
@@ -232,18 +246,27 @@ export function PreferencesPanel() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Database className="w-4 h-4 text-gray-400" />
                     {t('settings.preferences.defaultOracle')}
                   </label>
-                  <SegmentedControl
-                    options={oracleOptions}
-                    value={preferences.defaultOracle}
-                    onChange={(value) => updatePreference('defaultOracle', value as string)}
-                    size="md"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <div className="grid grid-cols-5 gap-2">
+                    {oracleOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => updatePreference('defaultOracle', option.value)}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                          preferences.defaultOracle === option.value
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
                     {t('settings.preferences.defaultOracleHint')}
                   </p>
                 </div>
@@ -296,74 +319,38 @@ export function PreferencesPanel() {
                     {t('settings.preferences.languageHint')}
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                {preferences.theme === 'dark' ? (
-                  <Moon className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <Sun className="w-5 h-5 text-gray-400" />
-                )}
-                {t('settings.preferences.themeSettings')}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {t('settings.preferences.themeSettingsDesc')}
-              </p>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-gray-400" />
+                    {t('settings.preferences.defaultCurrency')}
+                  </label>
+                  <DropdownSelect
+                    options={currencyOptions}
+                    value={preferences.defaultCurrency}
+                    onChange={(value) => updatePreference('defaultCurrency', value)}
+                    placeholder={t('settings.preferences.selectCurrency') || '请选择货币'}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('settings.preferences.defaultCurrencyHint')}
+                  </p>
+                </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  {
-                    value: 'light',
-                    label: t('settings.preferences.themeLight'),
-                    icon: Sun,
-                    desc: t('settings.preferences.themeLightDesc'),
-                  },
-                  {
-                    value: 'dark',
-                    label: t('settings.preferences.themeDark'),
-                    icon: Moon,
-                    desc: t('settings.preferences.themeDarkDesc'),
-                  },
-                  {
-                    value: 'system',
-                    label: t('settings.preferences.themeSystem'),
-                    icon: Palette,
-                    desc: t('settings.preferences.themeSystemDesc'),
-                  },
-                ].map((option) => {
-                  const Icon = option.icon;
-                  const isSelected = preferences.theme === option.value;
-
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() =>
-                        updatePreference('theme', option.value as UserPreferences['theme'])
-                      }
-                      className={`p-4 border-2 transition-all text-left ${
-                        isSelected
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon
-                        className={`w-6 h-6 mb-2 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}
-                      />
-                      <div
-                        className={`font-medium text-sm ${isSelected ? 'text-blue-600' : 'text-gray-900'}`}
-                      >
-                        {option.label}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{option.desc}</div>
-                    </button>
-                  );
-                })}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 text-gray-400" />
+                    {t('settings.preferences.autoRefreshInterval')}
+                  </label>
+                  <DropdownSelect
+                    options={autoRefreshOptions}
+                    value={preferences.autoRefreshInterval}
+                    onChange={(value) => updatePreference('autoRefreshInterval', value)}
+                    placeholder={t('settings.preferences.selectRefreshInterval') || '请选择刷新间隔'}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('settings.preferences.autoRefreshIntervalHint')}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
