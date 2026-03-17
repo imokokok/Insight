@@ -51,9 +51,11 @@ const liveTickerData = [
 
 interface MetricCard {
   id: string;
-  title: string;
+  title: {
+    en: string;
+    zh: string;
+  };
   value: string;
-  subtitle: string;
   change?: string;
   isPositive?: boolean;
   icon: React.ElementType;
@@ -63,17 +65,22 @@ interface MetricCard {
   hasLiveIndicator?: boolean;
   alert?: {
     type: 'info' | 'warning' | 'success';
-    message: string;
+    message: {
+      en: string;
+      zh: string;
+    };
   };
-  description?: string;
+  description?: {
+    en: string;
+    zh: string;
+  };
 }
 
 const metrics: MetricCard[] = [
   {
     id: 'tvs',
-    title: 'Total Value Secured',
+    title: { en: 'Total Value Secured', zh: '保障总价值' },
     value: '$42.1B',
-    subtitle: '保障总价值',
     change: '+12.5%',
     isPositive: true,
     icon: Shield,
@@ -81,26 +88,33 @@ const metrics: MetricCard[] = [
     chart: 'area',
     chartData: tvsData,
     hasLiveIndicator: true,
-    description: '平台保障的总资产价值，包括DeFi协议、稳定币和其他链上资产',
+    description: {
+      en: 'Total asset value secured by the platform, including DeFi protocols, stablecoins, and other on-chain assets',
+      zh: '平台保障的总资产价值，包括DeFi协议、稳定币和其他链上资产',
+    },
   },
   {
     id: 'oracles',
-    title: 'Active Oracles',
+    title: { en: 'Active Oracles', zh: '活跃预言机' },
     value: '5',
-    subtitle: '活跃预言机',
     change: '+1',
     isPositive: true,
     icon: Activity,
     size: 'medium',
     hasLiveIndicator: true,
-    alert: { type: 'success', message: '所有预言机运行正常' },
-    description: '当前活跃的去中心化预言机网络节点数量',
+    alert: {
+      type: 'success',
+      message: { en: 'All oracles operating normally', zh: '所有预言机运行正常' },
+    },
+    description: {
+      en: 'Current active decentralized oracle network nodes',
+      zh: '当前活跃的去中心化预言机网络节点数量',
+    },
   },
   {
     id: 'sources',
-    title: 'Data Sources',
+    title: { en: 'Data Sources', zh: '数据源' },
     value: '1200+',
-    subtitle: '数据源',
     change: '+8.2%',
     isPositive: true,
     icon: Globe,
@@ -108,41 +122,56 @@ const metrics: MetricCard[] = [
     chart: 'line',
     chartData: sourcesData,
     hasLiveIndicator: true,
-    description: '聚合的数据提供商和交易所数量',
+    description: {
+      en: 'Number of aggregated data providers and exchanges',
+      zh: '聚合的数据提供商和交易所数量',
+    },
   },
   {
     id: 'updates',
-    title: 'Daily Updates',
+    title: { en: 'Daily Updates', zh: '日更新次数' },
     value: '2.4M',
-    subtitle: '日更新次数',
     icon: Zap,
     size: 'small',
     hasLiveIndicator: true,
-    alert: { type: 'info', message: '更新频率提升 15%' },
-    description: '每日价格更新和数据推送总次数',
+    alert: {
+      type: 'info',
+      message: { en: 'Update frequency increased by 15%', zh: '更新频率提升 15%' },
+    },
+    description: {
+      en: 'Daily price updates and data push total count',
+      zh: '每日价格更新和数据推送总次数',
+    },
   },
   {
     id: 'latency',
-    title: 'Avg Latency',
+    title: { en: 'Avg Latency', zh: '平均延迟' },
     value: '245ms',
-    subtitle: '平均延迟',
     change: '-15ms',
     isPositive: true,
     icon: Clock,
     size: 'small',
     hasLiveIndicator: true,
-    description: '从数据生成到链上确认的平均时间',
+    description: {
+      en: 'Average time from data generation to on-chain confirmation',
+      zh: '从数据生成到链上确认的平均时间',
+    },
   },
   {
     id: 'accuracy',
-    title: 'Accuracy Rate',
+    title: { en: 'Accuracy Rate', zh: '准确率' },
     value: '99.97%',
-    subtitle: '准确率',
     icon: BarChart3,
-    size: 'small',
+    size: 'medium',
     hasLiveIndicator: true,
-    alert: { type: 'success', message: '过去30天零故障' },
-    description: '数据准确性和系统可用性百分比',
+    alert: {
+      type: 'success',
+      message: { en: 'Zero failures in the past 30 days', zh: '过去30天零故障' },
+    },
+    description: {
+      en: 'Data accuracy and system availability percentage',
+      zh: '数据准确性和系统可用性百分比',
+    },
   },
 ];
 
@@ -461,7 +490,7 @@ export default function BentoMetricsGrid() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
           {metrics.map((card) => {
             const Icon = card.icon;
             const isHovered = hoveredCard === card.id;
@@ -474,6 +503,7 @@ export default function BentoMetricsGrid() {
                   relative bg-white border transition-colors duration-200 cursor-pointer
                   ${card.size === 'large' ? 'sm:col-span-2 sm:row-span-2' : ''}
                   ${card.size === 'medium' ? 'sm:col-span-1' : ''}
+                  ${card.size === 'small' ? 'sm:col-span-1' : ''}
                 `}
                 style={{
                   borderColor: isAnimating
@@ -526,9 +556,13 @@ export default function BentoMetricsGrid() {
                         className="text-xs sm:text-sm font-medium truncate"
                         style={{ color: baseColors.gray[600] }}
                       >
-                        {card.title}
+                        {isChineseLocale(locale) ? card.title.zh : card.title.en}
                       </div>
-                      {card.description && <InfoTooltip content={card.description} />}
+                      {card.description && (
+                        <InfoTooltip
+                          content={isChineseLocale(locale) ? card.description.zh : card.description.en}
+                        />
+                      )}
                     </div>
                     <div
                       className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
@@ -538,15 +572,14 @@ export default function BentoMetricsGrid() {
                     >
                       {card.value}
                     </div>
-                    <div
-                      className="text-[10px] sm:text-xs font-medium"
-                      style={{ color: baseColors.gray[500] }}
-                    >
-                      {card.subtitle}
-                    </div>
 
                     {card.alert && (
-                      <AlertBadge type={card.alert.type} message={card.alert.message} />
+                      <AlertBadge
+                        type={card.alert.type}
+                        message={
+                          isChineseLocale(locale) ? card.alert.message.zh : card.alert.message.en
+                        }
+                      />
                     )}
                   </div>
 
