@@ -9,11 +9,11 @@ import {
   Layers,
   ExternalLink,
   Search,
-  Filter,
   ChevronUp,
   ChevronDown,
   Building2,
 } from 'lucide-react';
+import { DropdownSelect, SelectorOption } from '@/components/ui/selectors';
 
 interface ProtocolListProps {
   data: ProtocolDetail[];
@@ -33,17 +33,23 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // 获取所有类别
   const categories = useMemo(() => {
     const cats = new Set(data.map((p) => p.category));
     return ['all', ...Array.from(cats)];
   }, [data]);
 
-  // 过滤和排序数据
+  const categoryOptions: SelectorOption<string>[] = useMemo(() => {
+    return categories.map((cat) => ({
+      value: cat,
+      label: cat === 'all' 
+        ? (isChineseLocale(locale) ? '所有类别' : 'All Categories')
+        : cat,
+    }));
+  }, [categories, locale]);
+
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    // 搜索过滤
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -54,12 +60,10 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       );
     }
 
-    // 类别过滤
     if (selectedCategory !== 'all') {
       filtered = filtered.filter((p) => p.category === selectedCategory);
     }
 
-    // 排序
     return [...filtered].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
@@ -80,7 +84,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
     overscan: 5,
   });
 
-  // 切换排序
   const _handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -90,7 +93,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
     }
   };
 
-  // 切换展开状态
   const toggleExpand = (id: string) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
@@ -101,7 +103,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
     setExpandedItems(newExpanded);
   };
 
-  // 获取类别颜色
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
       Lending: 'bg-blue-100 text-blue-700',
@@ -115,7 +116,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
 
-  // 渲染排序图标
   const _SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
       return <ChevronUp className="w-3 h-3 text-gray-300" />;
@@ -142,7 +142,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
 
   return (
     <div className="space-y-3">
-      {/* 搜索和过滤 */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -154,26 +153,17 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-2 py-1.5 border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{isChineseLocale(locale) ? '所有类别' : 'All Categories'}</option>
-            {categories
-              .filter((c) => c !== 'all')
-              .map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-          </select>
-        </div>
+        <DropdownSelect
+          options={categoryOptions}
+          value={selectedCategory}
+          onChange={(value) => setSelectedCategory(value)}
+          placeholder={isChineseLocale(locale) ? '选择类别' : 'Select category'}
+          searchable
+          searchPlaceholder={isChineseLocale(locale) ? '搜索类别...' : 'Search categories...'}
+          className="w-48"
+        />
       </div>
 
-      {/* 统计信息 */}
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span>
           {isChineseLocale(locale) ? '共' : 'Total'} {filteredData.length}{' '}
@@ -186,7 +176,6 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
         )}
       </div>
 
-      {/* 协议列表 */}
       <div ref={parentRef} className="space-y-1.5 max-h-[360px] overflow-auto">
         {filteredData.length > 0 && (
           <div

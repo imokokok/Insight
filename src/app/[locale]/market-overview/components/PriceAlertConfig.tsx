@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PriceAlert } from '../types';
 import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
+import { SegmentedControl } from '@/components/ui/selectors';
 import {
   Bell,
   Plus,
@@ -42,6 +43,11 @@ export default function PriceAlertConfig({
     price: '',
     channels: ['email'],
   });
+
+  const typeOptions = [
+    { value: 'above' as const, label: isChineseLocale(locale) ? '高于' : 'Above' },
+    { value: 'below' as const, label: isChineseLocale(locale) ? '低于' : 'Below' },
+  ];
 
   const handleAddAlert = () => {
     if (!newAlert.asset || !newAlert.price) return;
@@ -87,7 +93,6 @@ export default function PriceAlertConfig({
 
   return (
     <div className="space-y-3">
-      {/* 头部 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-gray-500" />
@@ -104,7 +109,6 @@ export default function PriceAlertConfig({
         </button>
       </div>
 
-      {/* 添加表单 */}
       {showAddForm && (
         <div className="py-3 border-t border-gray-100">
           <div className="space-y-2">
@@ -116,16 +120,12 @@ export default function PriceAlertConfig({
                 onChange={(e) => setNewAlert({ ...newAlert, asset: e.target.value })}
                 className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <select
+              <SegmentedControl
+                options={typeOptions}
                 value={newAlert.type}
-                onChange={(e) =>
-                  setNewAlert({ ...newAlert, type: e.target.value as 'above' | 'below' })
-                }
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="above">{isChineseLocale(locale) ? '高于' : 'Above'}</option>
-                <option value="below">{isChineseLocale(locale) ? '低于' : 'Below'}</option>
-              </select>
+                onChange={(value) => setNewAlert({ ...newAlert, type: value as 'above' | 'below' })}
+                size="sm"
+              />
               <input
                 type="number"
                 placeholder={isChineseLocale(locale) ? '价格' : 'Price'}
@@ -135,7 +135,6 @@ export default function PriceAlertConfig({
               />
             </div>
 
-            {/* 通知渠道 */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">
                 {isChineseLocale(locale) ? '通知方式:' : 'Notify via:'}
@@ -179,7 +178,6 @@ export default function PriceAlertConfig({
         </div>
       )}
 
-      {/* 警报列表 */}
       <div className="space-y-1.5">
         {alerts.map((alert) => (
           <div

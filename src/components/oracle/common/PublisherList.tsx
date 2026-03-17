@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Publisher, PublisherStatus } from '@/types/oracle';
 import { useTranslations } from 'next-intl';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface AnomalyInfo {
   isPriceDeviationAnomaly: boolean;
@@ -228,16 +229,17 @@ export function PublisherList({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600">{t('publisher.filterByStatus')}:</label>
-          <select
+          <DropdownSelect
+            options={[
+              { value: 'all', label: t('publisher.allPublishers') },
+              { value: 'active', label: t('publisher.activeOnly') },
+              { value: 'degraded', label: t('publisher.degraded') },
+              { value: 'inactive', label: t('publisher.inactive') },
+            ]}
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-1.5 text-sm border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="all">{t('publisher.allPublishers')}</option>
-            <option value="active">{t('publisher.activeOnly')}</option>
-            <option value="degraded">{t('publisher.degraded')}</option>
-            <option value="inactive">{t('publisher.inactive')}</option>
-          </select>
+            onChange={(value) => setFilter(value)}
+            size="sm"
+          />
         </div>
         <div className="text-sm text-gray-500">
           {t('publisher.publisherCount', { count: filteredPublishers.length })}

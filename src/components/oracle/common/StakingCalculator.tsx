@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { UMAClient } from '@/lib/oracles/uma';
 import { DashboardCard } from './DashboardCard';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 const umaClient = new UMAClient();
 
@@ -31,6 +32,42 @@ export function StakingCalculator() {
     yearlyReward: 0,
     apr: 0,
   });
+
+  const validatorTypeOptions = useMemo(
+    () => [
+      {
+        value: 'institution' as ValidatorType,
+        label: t('oracleCommon.stakingCalculator.validatorTypes.institution'),
+      },
+      {
+        value: 'independent' as ValidatorType,
+        label: t('oracleCommon.stakingCalculator.validatorTypes.independent'),
+      },
+      {
+        value: 'community' as ValidatorType,
+        label: t('oracleCommon.stakingCalculator.validatorTypes.community'),
+      },
+    ],
+    [t]
+  );
+
+  const disputeFrequencyOptions = useMemo(
+    () => [
+      {
+        value: 'low' as DisputeFrequency,
+        label: t('oracleCommon.stakingCalculator.disputeFrequencies.low'),
+      },
+      {
+        value: 'medium' as DisputeFrequency,
+        label: t('oracleCommon.stakingCalculator.disputeFrequencies.medium'),
+      },
+      {
+        value: 'high' as DisputeFrequency,
+        label: t('oracleCommon.stakingCalculator.disputeFrequencies.high'),
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const fetchCalculation = async () => {
@@ -80,7 +117,7 @@ export function StakingCalculator() {
                 type="number"
                 value={stakeAmount}
                 onChange={(e) => setStakeAmount(Math.max(0, Number(e.target.value)))}
-                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2.5 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 placeholder={t('oracleCommon.stakingCalculator.stakeAmountPlaceholder')}
                 min="0"
               />
@@ -95,42 +132,24 @@ export function StakingCalculator() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('oracleCommon.stakingCalculator.validatorType')}
               </label>
-              <select
+              <SegmentedControl
+                options={validatorTypeOptions}
                 value={validatorType}
-                onChange={(e) => setValidatorType(e.target.value as ValidatorType)}
-                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="institution">
-                  {t('oracleCommon.stakingCalculator.validatorTypes.institution')}
-                </option>
-                <option value="independent">
-                  {t('oracleCommon.stakingCalculator.validatorTypes.independent')}
-                </option>
-                <option value="community">
-                  {t('oracleCommon.stakingCalculator.validatorTypes.community')}
-                </option>
-              </select>
+                onChange={(value) => setValidatorType(value as ValidatorType)}
+                size="md"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('oracleCommon.stakingCalculator.disputeFrequency')}
               </label>
-              <select
+              <SegmentedControl
+                options={disputeFrequencyOptions}
                 value={disputeFrequency}
-                onChange={(e) => setDisputeFrequency(e.target.value as DisputeFrequency)}
-                className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="low">
-                  {t('oracleCommon.stakingCalculator.disputeFrequencies.low')}
-                </option>
-                <option value="medium">
-                  {t('oracleCommon.stakingCalculator.disputeFrequencies.medium')}
-                </option>
-                <option value="high">
-                  {t('oracleCommon.stakingCalculator.disputeFrequencies.high')}
-                </option>
-              </select>
+                onChange={(value) => setDisputeFrequency(value as DisputeFrequency)}
+                size="md"
+              />
             </div>
           </div>
         </div>
@@ -141,7 +160,7 @@ export function StakingCalculator() {
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50  p-4">
+            <div className="bg-blue-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.daily')}
               </p>
@@ -151,7 +170,7 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-green-50  p-4">
+            <div className="bg-green-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.monthly')}
               </p>
@@ -161,7 +180,7 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-purple-50  p-4">
+            <div className="bg-purple-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.yearly')}
               </p>
@@ -171,7 +190,7 @@ export function StakingCalculator() {
               <p className="text-xs text-gray-400 mt-1">UMA</p>
             </div>
 
-            <div className="bg-orange-50  p-4">
+            <div className="bg-orange-50 p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 {t('oracleCommon.stakingCalculator.apr')}
               </p>
@@ -182,7 +201,7 @@ export function StakingCalculator() {
             </div>
           </div>
 
-          <div className="bg-gray-50  p-4">
+          <div className="bg-gray-50 p-4">
             <h5 className="text-sm font-medium text-gray-700 mb-4">
               {t('oracleCommon.stakingCalculator.rewardComparison')}
             </h5>

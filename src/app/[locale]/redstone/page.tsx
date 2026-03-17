@@ -21,6 +21,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { useRedStoneAllData } from '@/hooks/useRedStoneData';
 import { useQuery } from '@tanstack/react-query';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 type SortOption = 'reputation' | 'dataPoints' | 'lastUpdate';
 type FilterOption = 'all' | 'highReputation' | 'mostData';
@@ -383,29 +384,29 @@ export default function RedStonePage() {
                 <div className="flex flex-wrap gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{t('redstone.providers.sortBy')}:</span>
-                    <select
+                    <SegmentedControl
+                      options={[
+                        { value: 'reputation', label: t('redstone.providers.reputation') },
+                        { value: 'dataPoints', label: t('redstone.providers.dataPoints') },
+                        { value: 'lastUpdate', label: t('redstone.providers.lastUpdate') },
+                      ]}
                       value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as SortOption)}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="reputation">{t('redstone.providers.reputation')}</option>
-                      <option value="dataPoints">{t('redstone.providers.dataPoints')}</option>
-                      <option value="lastUpdate">{t('redstone.providers.lastUpdate')}</option>
-                    </select>
+                      onChange={(value) => setSortBy(value as SortOption)}
+                      size="sm"
+                    />
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{t('redstone.providers.filter')}:</span>
-                    <select
+                    <SegmentedControl
+                      options={[
+                        { value: 'all', label: t('redstone.providers.all') },
+                        { value: 'highReputation', label: t('redstone.providers.highReputation') },
+                        { value: 'mostData', label: t('redstone.providers.mostData') },
+                      ]}
                       value={filterBy}
-                      onChange={(e) => setFilterBy(e.target.value as FilterOption)}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="all">{t('redstone.providers.all')}</option>
-                      <option value="highReputation">
-                        {t('redstone.providers.highReputation')}
-                      </option>
-                      <option value="mostData">{t('redstone.providers.mostData')}</option>
-                    </select>
+                      onChange={(value) => setFilterBy(value as FilterOption)}
+                      size="sm"
+                    />
                   </div>
                 </div>
 

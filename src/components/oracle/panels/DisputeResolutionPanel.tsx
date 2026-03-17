@@ -24,6 +24,7 @@ import {
 } from './DisputeVotingPanel';
 import { useUMARealtimeDisputes, UMADisputeUpdate } from '@/hooks/useUMARealtime';
 import { createLogger } from '@/lib/utils/logger';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 const logger = createLogger('DisputeResolutionPanel');
 
@@ -531,71 +532,46 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
             <label className="text-sm text-gray-600">
               {t('uma.disputeResolution.filterByStatus')}:
             </label>
-            <select
+            <DropdownSelect
+              options={[
+                { value: 'all', label: t('uma.disputeResolution.allStatus') },
+                { value: 'active', label: t('uma.disputeResolution.statusActive') },
+                { value: 'resolved', label: t('uma.disputeResolution.statusResolved') },
+                { value: 'rejected', label: t('uma.disputeResolution.statusRejected') },
+              ]}
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">{t('uma.disputeResolution.allStatus')}</option>
-              <option value="active">{t('uma.disputeResolution.statusActive')}</option>
-              <option value="resolved">{t('uma.disputeResolution.statusResolved')}</option>
-              <option value="rejected">{t('uma.disputeResolution.statusRejected')}</option>
-            </select>
+              onChange={(value) => setFilter(value)}
+              size="sm"
+            />
           </div>
 
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">{t('disputeResolution.filterByType')}:</label>
-            <div className="relative">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as DisputeType | 'all')}
-                className="px-3 py-1.5 pl-9 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[120px]"
-              >
-                <option value="all">{t('validatorPanel.all')}</option>
-                <option value="price">{t('uma.disputeTypes.price')}</option>
-                <option value="state">{t('uma.disputeTypes.state')}</option>
-                <option value="liquidation">{t('uma.disputeTypes.liquidation')}</option>
-                <option value="other">{t('uma.disputeTypes.other')}</option>
-              </select>
-              <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                {typeFilter === 'all' ? (
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                ) : (
-                  <span className={DisputeTypeStyles[typeFilter].color}>
-                    {getTypeIcon(typeFilter, 'w-4 h-4')}
-                  </span>
-                )}
-              </div>
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+            <DropdownSelect
+              options={[
+                { value: 'all', label: t('validatorPanel.all') },
+                { value: 'price', label: t('uma.disputeTypes.price') },
+                { value: 'state', label: t('uma.disputeTypes.state') },
+                { value: 'liquidation', label: t('uma.disputeTypes.liquidation') },
+                { value: 'other', label: t('uma.disputeTypes.other') },
+              ]}
+              value={typeFilter}
+              onChange={(value) => setTypeFilter(value as DisputeType | 'all')}
+              size="sm"
+            />
           </div>
 
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">{t('uma.disputeResolution.sortBy')}:</label>
-            <select
+            <DropdownSelect
+              options={[
+                { value: 'timestamp', label: t('uma.disputeResolution.timestamp') },
+                { value: 'reward', label: t('uma.disputeResolution.reward') },
+              ]}
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'timestamp' | 'reward')}
-              className="px-3 py-1.5 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="timestamp">{t('uma.disputeResolution.timestamp')}</option>
-              <option value="reward">{t('uma.disputeResolution.reward')}</option>
-            </select>
+              onChange={(value) => setSortBy(value as 'timestamp' | 'reward')}
+              size="sm"
+            />
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="px-3 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"

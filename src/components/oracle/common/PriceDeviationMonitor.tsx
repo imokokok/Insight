@@ -28,6 +28,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { SegmentedControl } from '@/components/ui/selectors';
 const logger = createLogger('PriceDeviationMonitor');
 
 interface DeviationData {
@@ -262,34 +263,24 @@ export function PriceDeviationMonitor() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('priceDeviation.selectSymbol')}
             </label>
-            <select
+            <SegmentedControl
+              options={symbols.map((s) => ({ value: s, label: s }))}
               value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              {symbols.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSymbol(value as string)}
+              size="sm"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('priceDeviation.selectChain')}
             </label>
-            <select
+            <SegmentedControl
+              options={chains.map((c) => ({ value: c, label: c }))}
               value={chain}
-              onChange={(e) => setChain(e.target.value as Blockchain)}
-              className="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              {chains.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setChain(value as Blockchain)}
+              size="sm"
+            />
           </div>
         </div>
 

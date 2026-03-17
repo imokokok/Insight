@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 type BaselineType = 'average' | 'median' | 'chainlink';
 
@@ -287,17 +288,16 @@ export function PriceDeviationHistoryChart({
               <label className="text-sm text-gray-600">
                 {t('charts.priceDeviationHistory.baseline')}:
               </label>
-              <select
+              <SegmentedControl
+                options={[
+                  { value: 'average', label: t('charts.priceDeviationHistory.baselineAverage') },
+                  { value: 'median', label: t('charts.priceDeviationHistory.baselineMedian') },
+                  { value: 'chainlink', label: t('charts.priceDeviationHistory.baselineChainlink') },
+                ]}
                 value={baselineType}
-                onChange={(e) => setBaselineType(e.target.value as BaselineType)}
-                className="px-3 py-1 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="average">{t('charts.priceDeviationHistory.baselineAverage')}</option>
-                <option value="median">{t('charts.priceDeviationHistory.baselineMedian')}</option>
-                <option value="chainlink">
-                  {t('charts.priceDeviationHistory.baselineChainlink')}
-                </option>
-              </select>
+                onChange={(value) => setBaselineType(value as BaselineType)}
+                size="sm"
+              />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-600">

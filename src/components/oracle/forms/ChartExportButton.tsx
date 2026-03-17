@@ -18,6 +18,7 @@ import {
   PDFExportOptions,
   BatchExportItem,
 } from '@/utils/chartExport';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface ChartExportButtonProps {
   chartRef?: RefObject<HTMLElement | HTMLDivElement | null>;
@@ -494,17 +495,15 @@ export function ChartExportButton({
         <label className="text-xs font-medium text-gray-700 mb-2 block">
           {t('priceChart.export.resolution')}
         </label>
-        <select
+        <DropdownSelect
+          options={(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => ({
+            value: res,
+            label: RESOLUTION_CONFIG[res].label,
+          }))}
           value={selectedResolution}
-          onChange={(e) => setSelectedResolution(e.target.value as Resolution)}
-          className="w-full px-3 py-2 text-xs border border-gray-200  focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {(Object.keys(RESOLUTION_CONFIG) as Resolution[]).map((res) => (
-            <option key={res} value={res}>
-              {RESOLUTION_CONFIG[res].label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedResolution(value as Resolution)}
+          size="sm"
+        />
       </div>
 
       <div className="px-4 py-3">

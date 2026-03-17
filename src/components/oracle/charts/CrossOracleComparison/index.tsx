@@ -44,6 +44,7 @@ import {
 import { useSorting } from './useSorting';
 import { TrendIndicator } from './TrendIndicator';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 const logger = createLogger('CrossOracleComparison');
 
@@ -1226,16 +1227,17 @@ export function CrossOracleComparison() {
             <span className="text-sm text-gray-700">{t('crossOracle.enableAutoRefresh')}</span>
           </label>
           {autoRefresh && (
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value))}
-              className="px-2 py-1 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={10000}>10s</option>
-              <option value={30000}>30s</option>
-              <option value={60000}>1m</option>
-              <option value={300000}>5m</option>
-            </select>
+            <DropdownSelect
+              options={[
+                { value: '10000', label: '10s' },
+                { value: '30000', label: '30s' },
+                { value: '60000', label: '1m' },
+                { value: '300000', label: '5m' },
+              ]}
+              value={String(refreshInterval)}
+              onChange={(value) => setRefreshInterval(Number(value))}
+              size="sm"
+            />
           )}
         </div>
       </div>

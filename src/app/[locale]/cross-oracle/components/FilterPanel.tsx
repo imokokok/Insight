@@ -3,6 +3,7 @@
 import { OracleProvider } from '@/types/oracle';
 import { oracleNames, TimeRange, DeviationFilter, timeRanges } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -34,6 +35,14 @@ export function FilterPanel({
   t,
 }: FilterPanelProps) {
   if (!isOpen) return null;
+
+  const oracleOptions = [
+    { value: 'all' as const, label: '全部预言机' },
+    ...getOracleProvidersSortedByMarketCap().map((oracle) => ({
+      value: oracle as OracleProvider | 'all',
+      label: oracleNames[oracle],
+    })),
+  ];
 
   return (
     <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 z-50">
@@ -115,18 +124,12 @@ export function FilterPanel({
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
             预言机筛选
           </label>
-          <select
+          <DropdownSelect
+            options={oracleOptions}
             value={oracleFilter}
-            onChange={(e) => onOracleFilterChange(e.target.value as OracleProvider | 'all')}
-            className="w-full px-3 py-2 text-sm border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-          >
-            <option value="all">全部预言机</option>
-            {getOracleProvidersSortedByMarketCap().map((oracle) => (
-              <option key={oracle} value={oracle}>
-                {oracleNames[oracle]}
-              </option>
-            ))}
-          </select>
+            onChange={onOracleFilterChange}
+            className="w-full"
+          />
         </div>
       </div>
 

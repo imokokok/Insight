@@ -5,6 +5,7 @@ import { chartColors, semanticColors, baseColors, animationColors } from '@/lib/
 import { DashboardCard } from '../common/DashboardCard';
 import { useTranslations } from 'next-intl';
 import { formatNumber } from '@/lib/utils/format';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 export type VotePosition = 'for' | 'against' | 'abstain';
 
@@ -423,15 +424,16 @@ function ValidatorVoteList({
 
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-sm text-gray-500">{t('panels.disputeVoting.sort')}:</span>
-            <select
+            <SegmentedControl
+              options={[
+                { value: 'power', label: t('panels.disputeVoting.votingPower') },
+                { value: 'time', label: t('panels.disputeVoting.time') },
+                { value: 'reputation', label: t('panels.disputeVoting.reputation') },
+              ]}
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="power">{t('panels.disputeVoting.votingPower')}</option>
-              <option value="time">{t('panels.disputeVoting.time')}</option>
-              <option value="reputation">{t('panels.disputeVoting.reputation')}</option>
-            </select>
+              onChange={(value) => setSortBy(value as typeof sortBy)}
+              size="sm"
+            />
           </div>
         </div>
 

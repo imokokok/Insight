@@ -16,6 +16,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { QueryResult } from '../constants';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface DataQualityMetrics {
   oracle: string;
@@ -337,20 +338,15 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
       </div>
 
       <div className="mb-4">
-        <select
+        <DropdownSelect
+          options={results.map((result) => ({
+            value: `${result.provider}-${result.chain}`,
+            label: `${result.provider} (${result.chain})`,
+          }))}
           value={selectedOracle}
-          onChange={(e) => setSelectedOracle(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-        >
-          {results.map((result) => (
-            <option
-              key={`${result.provider}-${result.chain}`}
-              value={`${result.provider}-${result.chain}`}
-            >
-              {result.provider} ({result.chain})
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSelectedOracle(value)}
+          className="w-full"
+        />
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-4">

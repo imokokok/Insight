@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { baseColors } from '@/lib/config/colors';
 import { PredictionAccuracy } from './latencyUtils';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 interface LatencyPredictionProps {
   predictionPeriod: number;
@@ -65,16 +66,17 @@ export function LatencyPrediction({
           <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
             {t('charts.latency.smaPeriod')}
           </label>
-          <select
-            value={smaPeriod}
-            onChange={(e) => setSmaPeriod(Number(e.target.value))}
-            className="w-full text-sm px-3 py-2"
-            style={{ border: `1px solid ${baseColors.gray[300]}` }}
-          >
-            <option value={5}>5 {t('charts.latency.points')}</option>
-            <option value={10}>10 {t('charts.latency.points')}</option>
-            <option value={20}>20 {t('charts.latency.points')}</option>
-          </select>
+          <SegmentedControl
+            options={[
+              { value: '5', label: `5 ${t('charts.latency.points')}` },
+              { value: '10', label: `10 ${t('charts.latency.points')}` },
+              { value: '20', label: `20 ${t('charts.latency.points')}` },
+            ]}
+            value={smaPeriod.toString()}
+            onChange={(value) => setSmaPeriod(Number(value))}
+            size="sm"
+            className="w-full"
+          />
           <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
             {t('charts.latency.smaDescription')}
           </p>
@@ -83,16 +85,17 @@ export function LatencyPrediction({
           <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
             {t('charts.latency.predictionPeriod')}
           </label>
-          <select
-            value={predictionPeriod}
-            onChange={(e) => setPredictionPeriod(Number(e.target.value))}
-            className="w-full text-sm px-3 py-2"
-            style={{ border: `1px solid ${baseColors.gray[300]}` }}
-          >
-            <option value={5}>5 {t('charts.latency.points')}</option>
-            <option value={10}>10 {t('charts.latency.points')}</option>
-            <option value={20}>20 {t('charts.latency.points')}</option>
-          </select>
+          <SegmentedControl
+            options={[
+              { value: '5', label: `5 ${t('charts.latency.points')}` },
+              { value: '10', label: `10 ${t('charts.latency.points')}` },
+              { value: '20', label: `20 ${t('charts.latency.points')}` },
+            ]}
+            value={predictionPeriod.toString()}
+            onChange={(value) => setPredictionPeriod(Number(value))}
+            size="sm"
+            className="w-full"
+          />
           <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
             {t('charts.latency.predictionDescription')}
           </p>

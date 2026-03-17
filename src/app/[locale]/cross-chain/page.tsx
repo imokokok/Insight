@@ -40,6 +40,7 @@ import {
 import { ChainStats, RefreshInterval } from './constants';
 import { useColorblindMode, useSetColorblindMode } from '@/stores/crossChainStore';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 export default function CrossChainPage() {
   const t = useTranslations();
@@ -560,24 +561,16 @@ export default function CrossChainPage() {
           >
             JSON
           </button>
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 border"
-            style={{ borderColor: baseColors.gray[200] }}
-          >
+          <div className="flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: baseColors.gray[200] }}>
             <span className="text-sm" style={{ color: baseColors.gray[600] }}>
               {t('crossChain.autoRefresh')}
             </span>
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value) as RefreshInterval)}
-              className="text-sm bg-transparent border-none focus:outline-none"
-            >
-              {refreshOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <SegmentedControl
+              options={refreshOptions.map((opt) => ({ value: opt.value.toString(), label: opt.label }))}
+              value={refreshInterval.toString()}
+              onChange={(value) => setRefreshInterval(Number(value) as RefreshInterval)}
+              size="sm"
+            />
           </div>
           <button
             onClick={fetchData}

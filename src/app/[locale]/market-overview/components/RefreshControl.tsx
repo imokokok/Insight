@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { RefreshCw, Clock, Check } from 'lucide-react';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface RefreshControlProps {
   lastUpdated?: Date;
   isRefreshing?: boolean;
   onRefresh?: () => void;
-  autoRefreshInterval?: number; // seconds
+  autoRefreshInterval?: number;
   onAutoRefreshChange?: (interval: number) => void;
 }
 
@@ -24,7 +25,17 @@ export default function RefreshControl({
   const [countdown, setCountdown] = useState<number>(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // 自动刷新倒计时
+  const intervalOptions = useMemo(
+    () => [
+      { value: 0, label: isChineseLocale(locale) ? '手动' : 'Manual' },
+      { value: 30, label: isChineseLocale(locale) ? '30秒' : '30s' },
+      { value: 60, label: isChineseLocale(locale) ? '1分钟' : '1m' },
+      { value: 300, label: isChineseLocale(locale) ? '5分钟' : '5m' },
+      { value: 900, label: isChineseLocale(locale) ? '15分钟' : '15m' },
+    ],
+    [locale]
+  );
+
   useEffect(() => {
     if (autoRefreshInterval <= 0) return;
 
@@ -42,7 +53,6 @@ export default function RefreshControl({
     return () => clearInterval(timer);
   }, [autoRefreshInterval, onRefresh]);
 
-  // 显示刷新成功提示
   useEffect(() => {
     if (!isRefreshing && lastUpdated) {
       setShowSuccess(true);
@@ -75,7 +85,6 @@ export default function RefreshControl({
 
   return (
     <div className="flex items-center gap-3">
-      {/* 刷新按钮 */}
       <button
         onClick={handleRefresh}
         disabled={isRefreshing}
@@ -93,33 +102,27 @@ export default function RefreshControl({
         </span>
       </button>
 
-      {/* 自动刷新选择 */}
       <div className="flex items-center gap-1.5">
         <Clock className="w-3.5 h-3.5 text-gray-400" />
-        <select
+        <DropdownSelect
+          options={intervalOptions}
           value={autoRefreshInterval}
-          onChange={(e) => onAutoRefreshChange?.(parseInt(e.target.value))}
-          className="px-2 py-1 text-sm border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value={0}>{isChineseLocale(locale) ? '手动' : 'Manual'}</option>
-          <option value={30}>{isChineseLocale(locale) ? '30秒' : '30s'}</option>
-          <option value={60}>{isChineseLocale(locale) ? '1分钟' : '1m'}</option>
-          <option value={300}>{isChineseLocale(locale) ? '5分钟' : '5m'}</option>
-          <option value={900}>{isChineseLocale(locale) ? '15分钟' : '15m'}</option>
-        </select>
+          onChange={(value) => onAutoRefreshChange?.(value)}
+          className="w-24"
+        />
       </div>
 
-      {/* 倒计时 */}
       {autoRefreshInterval > 0 && countdown > 0 && (
         <div className="text-xs text-gray-500">{formatCountdown(countdown)}</div>
       )}
 
-      {/* 最后更新时间 */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
         {showSuccess ? (
           <>
             <Check className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-green-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
+            <span className="text-green-600">
+              {isChineseLocale(locale) ? '已更新' : 'Updated'}
+            </span>
           </>
         ) : (
           <>

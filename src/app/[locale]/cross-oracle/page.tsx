@@ -36,7 +36,11 @@ import {
 import { symbols } from './constants';
 import { useCrossOraclePage } from './useCrossOraclePage';
 import { chartColors, baseColors } from '@/lib/config/colors';
-import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
+import {
+  SegmentedControl,
+  DropdownSelect,
+  MultiSelect,
+} from '@/components/ui/selectors';
 
 export default function CrossOraclePage() {
   const {
@@ -694,22 +698,23 @@ export default function CrossOraclePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 选择预言机查看延迟数据
               </label>
-              <select
+              <DropdownSelect
+                options={[
+                  { value: '', label: '所有预言机' },
+                  ...selectedOracles.map((oracle) => ({
+                    value: oracle,
+                    label: oracleNames[oracle],
+                  })),
+                ]}
                 value={selectedPerformanceOracle || ''}
-                onChange={(e) =>
+                onChange={(value) =>
                   setSelectedPerformanceOracle(
-                    e.target.value ? (e.target.value as OracleProvider) : null
+                    value ? (value as OracleProvider) : null
                   )
                 }
-                className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">所有预言机</option>
-                {selectedOracles.map((oracle) => (
-                  <option key={oracle} value={oracle}>
-                    {oracleNames[oracle]}
-                  </option>
-                ))}
-              </select>
+                placeholder="选择预言机"
+                className="w-full"
+              />
             </div>
             <LatencyDistributionHistogram
               data={getOracleLatencyData(selectedPerformanceOracle)}
