@@ -650,7 +650,7 @@ export default function PriceQueryPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-dune min-h-screen">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-dune min-h-screen">
       <div aria-live="polite" className="sr-only">
         {loading
           ? t('priceQuery.loadingData')
@@ -678,90 +678,103 @@ export default function PriceQueryPage() {
         setSelectedTimeRange={setSelectedTimeRange}
       />
 
-      <Selectors
-        selectedOracles={selectedOracles}
-        setSelectedOracles={setSelectedOracles}
-        selectedChains={selectedChains}
-        setSelectedChains={setSelectedChains}
-        selectedSymbol={selectedSymbol}
-        setSelectedSymbol={setSelectedSymbol}
-        selectedTimeRange={selectedTimeRange}
-        setSelectedTimeRange={setSelectedTimeRange}
-        loading={loading}
-        onQuery={fetchQueryData}
-        supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
-        compareMode={compareMode}
-        setCompareMode={setCompareMode}
-        compareTimeRange={compareTimeRange}
-        setCompareTimeRange={setCompareTimeRange}
-        showBaseline={showBaseline}
-        setShowBaseline={setShowBaseline}
-      />
-
-      {loading ? (
-        <div className="space-y-8">
-          <ChartSkeleton height={200} variant="area" showToolbar={false} />
-          <ChartSkeleton height={400} variant="price" showToolbar={true} />
-        </div>
-      ) : queryResults.length === 0 ? (
-        <NoDataEmptyState onRefresh={fetchQueryData} />
-      ) : (
-        <>
-          <StatsGrid
-            avgPrice={avgPrice}
-            maxPrice={maxPrice}
-            minPrice={minPrice}
-            priceRange={priceRange}
-            standardDeviation={standardDeviation}
-            standardDeviationPercent={standardDeviationPercent}
-            dataPoints={queryResults.length}
-            queryDuration={queryDuration}
-            avgChange24hPercent={avgChange24hPercent}
-            prices={validPrices}
-            compareMode={compareMode}
-            compareAvgPrice={compareAvgPrice}
-            compareMaxPrice={compareMaxPrice}
-            compareMinPrice={compareMinPrice}
-            comparePriceRange={comparePriceRange}
-            compareAvgChange24hPercent={compareAvgChange24hPercent}
-            comparePrices={compareValidPrices}
-          />
-
-          <DataQualityPanel results={queryResults} historicalData={historicalData} />
-
-          <PriceResultsTable
-            results={queryResults}
-            filteredResults={filteredQueryResults}
-            filterText={filterText}
-            setFilterText={setFilterText}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            avgPrice={avgPrice}
-            selectedRow={selectedRow}
-            onRowSelect={setSelectedRow}
-            historicalData={historicalData}
-          />
-
-          <div ref={chartContainerRef}>
-            <PriceChart
-              chartData={chartData}
-              queryResults={queryResults}
-              hiddenSeries={hiddenSeries}
-              onToggleSeries={toggleSeries}
+      {/* 左右分栏布局 */}
+      <div className="flex flex-col xl:flex-row gap-6">
+        {/* 左侧：选择器区域 */}
+        <div className="xl:w-[400px] xl:flex-shrink-0">
+          <div className="xl:sticky xl:top-4">
+            <Selectors
+              selectedOracles={selectedOracles}
+              setSelectedOracles={setSelectedOracles}
+              selectedChains={selectedChains}
+              setSelectedChains={setSelectedChains}
+              selectedSymbol={selectedSymbol}
+              setSelectedSymbol={setSelectedSymbol}
               selectedTimeRange={selectedTimeRange}
-              selectedRow={selectedRow}
+              setSelectedTimeRange={setSelectedTimeRange}
+              loading={loading}
+              onQuery={fetchQueryData}
+              supportedChainsBySelectedOracles={supportedChainsBySelectedOracles}
               compareMode={compareMode}
-              compareChartData={compareChartData}
-              compareQueryResults={compareQueryResults}
+              setCompareMode={setCompareMode}
+              compareTimeRange={compareTimeRange}
+              setCompareTimeRange={setCompareTimeRange}
               showBaseline={showBaseline}
-              avgPrice={avgPrice}
+              setShowBaseline={setShowBaseline}
             />
           </div>
+        </div>
 
-          <QuickLinks />
-        </>
-      )}
+        {/* 右侧：结果展示区域 */}
+        <div className="flex-1 min-w-0">
+          {loading ? (
+            <div className="space-y-6">
+              <ChartSkeleton height={160} variant="area" showToolbar={false} />
+              <ChartSkeleton height={300} variant="price" showToolbar={true} />
+            </div>
+          ) : queryResults.length === 0 ? (
+            <NoDataEmptyState onRefresh={fetchQueryData} />
+          ) : (
+            <div className="space-y-6">
+              <StatsGrid
+                avgPrice={avgPrice}
+                maxPrice={maxPrice}
+                minPrice={minPrice}
+                priceRange={priceRange}
+                standardDeviation={standardDeviation}
+                standardDeviationPercent={standardDeviationPercent}
+                dataPoints={queryResults.length}
+                queryDuration={queryDuration}
+                avgChange24hPercent={avgChange24hPercent}
+                prices={validPrices}
+                compareMode={compareMode}
+                compareAvgPrice={compareAvgPrice}
+                compareMaxPrice={compareMaxPrice}
+                compareMinPrice={compareMinPrice}
+                comparePriceRange={comparePriceRange}
+                compareAvgChange24hPercent={compareAvgChange24hPercent}
+                comparePrices={compareValidPrices}
+              />
+
+              <DataQualityPanel results={queryResults} historicalData={historicalData} />
+
+              <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+                <PriceResultsTable
+                  results={queryResults}
+                  filteredResults={filteredQueryResults}
+                  filterText={filterText}
+                  setFilterText={setFilterText}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  avgPrice={avgPrice}
+                  selectedRow={selectedRow}
+                  onRowSelect={setSelectedRow}
+                  historicalData={historicalData}
+                />
+
+                <div ref={chartContainerRef} className="min-w-0">
+                  <PriceChart
+                    chartData={chartData}
+                    queryResults={queryResults}
+                    hiddenSeries={hiddenSeries}
+                    onToggleSeries={toggleSeries}
+                    selectedTimeRange={selectedTimeRange}
+                    selectedRow={selectedRow}
+                    compareMode={compareMode}
+                    compareChartData={compareChartData}
+                    compareQueryResults={compareQueryResults}
+                    showBaseline={showBaseline}
+                    avgPrice={avgPrice}
+                  />
+                </div>
+              </div>
+
+              <QuickLinks />
+            </div>
+          )}
+        </div>
+      </div>
 
       <ExportConfig
         isOpen={showExportConfig}

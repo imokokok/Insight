@@ -1,9 +1,13 @@
 'use client';
 
+interface IconProps {
+  className?: string;
+}
+
 export const Icons = {
-  currency: () => (
+  currency: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -17,9 +21,9 @@ export const Icons = {
       />
     </svg>
   ),
-  oracle: () => (
+  oracle: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -33,9 +37,9 @@ export const Icons = {
       />
     </svg>
   ),
-  blockchain: () => (
+  blockchain: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -49,9 +53,9 @@ export const Icons = {
       />
     </svg>
   ),
-  clock: () => (
+  clock: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -65,9 +69,9 @@ export const Icons = {
       />
     </svg>
   ),
-  download: () => (
+  download: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -81,9 +85,9 @@ export const Icons = {
       />
     </svg>
   ),
-  refresh: () => (
+  refresh: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -97,9 +101,9 @@ export const Icons = {
       />
     </svg>
   ),
-  arrowUp: () => (
+  arrowUp: ({ className = 'w-3 h-3' }: IconProps) => (
     <svg
-      className="w-3 h-3"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -108,9 +112,9 @@ export const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7 7 7" />
     </svg>
   ),
-  arrowDown: () => (
+  arrowDown: ({ className = 'w-3 h-3' }: IconProps) => (
     <svg
-      className="w-3 h-3"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -119,9 +123,9 @@ export const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7-7-7" />
     </svg>
   ),
-  chart: () => (
+  chart: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -135,9 +139,9 @@ export const Icons = {
       />
     </svg>
   ),
-  search: () => (
+  search: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -151,9 +155,9 @@ export const Icons = {
       />
     </svg>
   ),
-  zoomIn: () => (
+  zoomIn: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -167,9 +171,9 @@ export const Icons = {
       />
     </svg>
   ),
-  zoomOut: () => (
+  zoomOut: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -183,9 +187,9 @@ export const Icons = {
       />
     </svg>
   ),
-  reset: () => (
+  reset: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -199,9 +203,9 @@ export const Icons = {
       />
     </svg>
   ),
-  image: () => (
+  image: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -215,9 +219,9 @@ export const Icons = {
       />
     </svg>
   ),
-  alert: () => (
+  alert: ({ className = 'w-4 h-4' }: IconProps) => (
     <svg
-      className="w-4 h-4"
+      className={className}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

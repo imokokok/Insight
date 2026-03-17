@@ -1,12 +1,29 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { ArrowRight, Search, TrendingUp, Shield, Zap, BookOpen, Activity } from 'lucide-react';
+import {
+  ArrowRight,
+  Search,
+  TrendingUp,
+  Shield,
+  Zap,
+  Activity,
+  Clock,
+  X,
+  ChevronRight,
+} from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { chartColors } from '@/lib/config/colors';
+import { symbols } from '@/lib/constants';
+import {
+  getSearchHistory,
+  saveSearchHistory,
+  clearSearchHistory,
+  SearchHistoryItem,
+} from '@/lib/utils/searchHistory';
 import HeroBackground from './HeroBackground';
 
 interface TrendData {
@@ -57,29 +74,169 @@ const getStaticMetrics = (t: (key: string) => string): Omit<Metric, 'trend'>[] =
   },
 ];
 
+// 热门币种
+const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI', 'AAVE', 'MKR'];
+
 export default function ProfessionalHero() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(false);
+  const [mountedState, setMountedState] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  // 加载搜索历史和 mounted 状态
+  useEffect(() => {
+    const initializeData = () => {
+      setSearchHistory(getSearchHistory());
+    };
+    initializeData();
+    mountedRef.current = true;
+    // 使用 requestAnimationFrame 避免同步 setState 警告
+    requestAnimationFrame(() => {
+      setMountedState(true);
+    });
+  }, []);
+
+  // 过滤后的币种列表
+  const filteredSymbols = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.trim().toUpperCase();
+    return symbols.filter((symbol) => symbol.includes(query) && symbol !== query).slice(0, 5);
+  }, [searchQuery]);
+
+  // 下拉框显示的所有选项
+  const dropdownItems = useMemo(() => {
+    const items: { type: 'history' | 'popular' | 'search'; symbol: string }[] = [];
+
+    // 搜索历史（最多3条）
+    if (!searchQuery.trim() && searchHistory.length > 0) {
+      searchHistory.slice(0, 3).forEach((item) => {
+        items.push({ type: 'history', symbol: item.symbol });
+      });
+    }
+
+    // 热门币种（如果没有输入）
+    if (!searchQuery.trim()) {
+      POPULAR_TOKENS.forEach((symbol) => {
+        if (!items.some((item) => item.symbol === symbol)) {
+          items.push({ type: 'popular', symbol });
+        }
+      });
+    }
+
+    // 搜索结果
+    filteredSymbols.forEach((symbol) => {
+      items.push({ type: 'search', symbol });
+    });
+
+    return items.slice(0, 8);
+  }, [searchHistory, filteredSymbols, searchQuery]);
+
+  // 处理搜索跳转
+  const handleSearch = useCallback(
+    (symbol: string) => {
+      const normalizedSymbol = symbol.trim().toUpperCase();
+      if (!normalizedSymbol) return;
+
+      saveSearchHistory(normalizedSymbol);
+      setSearchHistory(getSearchHistory());
+      setIsDropdownOpen(false);
+      router.push(`/${locale}/price-query?symbol=${normalizedSymbol}`);
+    },
+    [locale, router]
+  );
+
+  // 表单提交
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      const symbol = searchQuery.trim().toUpperCase();
-      router.push(`/${locale}/price-query?symbol=${symbol}`);
+    if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
+      handleSearch(dropdownItems[highlightedIndex].symbol);
+    } else if (searchQuery.trim()) {
+      handleSearch(searchQuery);
     }
   };
 
+  // 键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isDropdownOpen) {
+      if (e.key === 'ArrowDown' && dropdownItems.length > 0) {
+        e.preventDefault();
+        setIsDropdownOpen(true);
+        setHighlightedIndex(0);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < dropdownItems.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
+          handleSearch(dropdownItems[highlightedIndex].symbol);
+        } else if (searchQuery.trim()) {
+          handleSearch(searchQuery);
+        }
+        break;
+      case 'Escape':
+        setIsDropdownOpen(false);
+        setHighlightedIndex(-1);
+        inputRef.current?.blur();
+        break;
+    }
+  };
+
+  // 点击外部关闭下拉框
   useEffect(() => {
-    setMounted(true);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+        setHighlightedIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // 清除搜索历史
+  const handleClearHistory = () => {
+    clearSearchHistory();
+    setSearchHistory([]);
+  };
+
+  // 高亮匹配文字
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    const regex = new RegExp(`(${query.trim()})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="text-emerald-600 font-semibold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
 
   const metrics = useMemo(() => {
     const staticMetrics = getStaticMetrics(t);
-    if (!mounted) {
+    if (!mountedState) {
       return staticMetrics.map((m) => ({
         ...m,
         trend: [{ value: 0 }],
@@ -94,7 +251,7 @@ export default function ProfessionalHero() {
             ? generateTrendData(5, 15)
             : generateTrendData(1100, 25),
     }));
-  }, [t, mounted]);
+  }, [t, mountedState]);
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
@@ -128,10 +285,11 @@ export default function ProfessionalHero() {
                 '全面分析和比较主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。'}
             </p>
 
-            <div className="max-w-2xl mx-auto mb-10">
+            {/* 搜索框区域 */}
+            <div className="max-w-2xl mx-auto mb-4" ref={dropdownRef}>
               <form
-                onSubmit={handleSearch}
-                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border transition-all duration-300 ease-out overflow-hidden ${
+                onSubmit={handleSubmit}
+                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border transition-all duration-300 ease-out overflow-visible ${
                   isSearchFocused
                     ? 'shadow-xl shadow-emerald-500/10 border-emerald-300/50 scale-[1.02]'
                     : 'border-gray-200/80 hover:border-gray-300 hover:shadow-xl'
@@ -140,29 +298,124 @@ export default function ProfessionalHero() {
                 <div className="pl-5">
                   <Search
                     className={`w-5 h-5 transition-all duration-300 ${
-                      isSearchFocused
-                        ? 'text-emerald-600 scale-110'
-                        : 'text-gray-400'
+                      isSearchFocused ? 'text-emerald-600 scale-110' : 'text-gray-400'
                     }`}
                   />
                 </div>
                 <input
+                  ref={inputRef}
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsDropdownOpen(true);
+                    setHighlightedIndex(-1);
+                  }}
+                  onFocus={() => {
+                    setIsSearchFocused(true);
+                    setIsDropdownOpen(true);
+                  }}
                   onBlur={() => setIsSearchFocused(false)}
+                  onKeyDown={handleKeyDown}
                   placeholder={t('home.hero.searchPlaceholder')}
                   className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 min-w-0 !outline-none"
                   style={{ outline: 'none', boxShadow: 'none' }}
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      inputRef.current?.focus();
+                    }}
+                    className="p-1 mr-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   type="submit"
                   className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold rounded-xl hover:from-gray-800 hover:to-gray-700 hover:shadow-lg hover:shadow-gray-900/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
                 >
                   {t('common.search')}
                 </button>
+
+                {/* 搜索建议下拉框 */}
+                {isDropdownOpen && dropdownItems.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* 搜索历史标题 */}
+                    {!searchQuery.trim() && searchHistory.length > 0 && (
+                      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>最近搜索</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleClearHistory}
+                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          清除
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 建议列表 */}
+                    <div className="max-h-64 overflow-y-auto">
+                      {dropdownItems.map((item, index) => (
+                        <button
+                          key={`${item.type}-${item.symbol}`}
+                          type="button"
+                          onClick={() => handleSearch(item.symbol)}
+                          onMouseEnter={() => setHighlightedIndex(index)}
+                          className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                            index === highlightedIndex ? 'bg-emerald-50' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {item.type === 'history' && <Clock className="w-4 h-4 text-gray-400" />}
+                            {item.type === 'popular' && (
+                              <TrendingUp className="w-4 h-4 text-emerald-500" />
+                            )}
+                            {item.type === 'search' && <Search className="w-4 h-4 text-gray-400" />}
+                            <span className="font-medium text-gray-900">
+                              {highlightMatch(item.symbol, searchQuery)}
+                            </span>
+                            {item.type === 'popular' && (
+                              <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                热门
+                              </span>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300" />
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 底部提示 */}
+                    <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex items-center justify-between">
+                      <span>使用 ↑↓ 选择，↵ 确认</span>
+                      <span>ESC 关闭</span>
+                    </div>
+                  </div>
+                )}
               </form>
+            </div>
+
+            {/* 热门币种快捷标签 */}
+            <div className="max-w-2xl mx-auto mb-10">
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-400 mr-1">热门:</span>
+                {POPULAR_TOKENS.map((token) => (
+                  <button
+                    key={token}
+                    onClick={() => handleSearch(token)}
+                    className="px-3 py-1 text-xs font-medium text-gray-600 bg-white/80 hover:bg-white border border-gray-200 hover:border-emerald-300 rounded-full transition-all duration-200 hover:shadow-sm hover:text-emerald-600"
+                  >
+                    {token}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">

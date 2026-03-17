@@ -448,111 +448,115 @@ export function PriceChart({
   if (chartData.length === 0) return null;
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.chart />
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* 表头 */}
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <Icons.chart className="w-4 h-4" />
           {t('priceQuery.chart.title')}
         </h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportChart}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
-            title={t('priceQuery.chart.exportImage')}
-          >
-            <Icons.image />
-            {t('priceQuery.chart.exportImage')}
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-4 mb-4">
-        <span className="text-sm font-medium text-gray-700">
-          {t('priceQuery.chart.indicators')}:
-        </span>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showMA7}
-            onChange={(e) => setShowMA7(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-600">MA7</span>
-        </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showMA30}
-            onChange={(e) => setShowMA30(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-600">MA30</span>
-        </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showBollingerBands}
-            onChange={(e) => setShowBollingerBands(e.target.checked)}
-            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-          />
-          <span className="text-sm text-gray-600">{t('priceQuery.chart.bollingerBands')}</span>
-        </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showConfidenceInterval}
-            onChange={(e) => setShowConfidenceInterval(e.target.checked)}
-            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-          />
-          <span className="text-sm text-gray-600">{t('priceQuery.chart.confidenceInterval')}</span>
-        </label>
+        <button
+          onClick={handleExportChart}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors rounded"
+        >
+          <Icons.image className="w-3.5 h-3.5" />
+          {t('priceQuery.chart.exportImage')}
+        </button>
       </div>
 
-      {/* 图表注释控制面板 */}
-      <div className="flex flex-wrap items-center gap-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-        <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-          <Icons.alert />
-          {t('priceQuery.chart.annotations')}
-        </span>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showAnomalies}
-            onChange={(e) => setShowAnomalies(e.target.checked)}
-            className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-          />
-          <span className="text-sm text-gray-600">{t('priceQuery.chart.anomalyMarkers')}</span>
-          {anomalyPoints.length > 0 && (
-            <span className="text-xs text-red-600 font-medium">({anomalyPoints.length})</span>
-          )}
-        </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showPriceSpikes}
-            onChange={(e) => setShowPriceSpikes(e.target.checked)}
-            className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-          />
-          <span className="text-sm text-gray-600">{t('priceQuery.chart.priceSpikes')}</span>
-          {priceSpikeEvents.length > 0 && (
-            <span className="text-xs text-orange-600 font-medium">({priceSpikeEvents.length})</span>
-          )}
-        </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showValueLabels}
-            onChange={(e) => setShowValueLabels(e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-600">{t('priceQuery.chart.valueLabels')}</span>
-        </label>
+      {/* 指标控制 */}
+      <div className="px-4 py-2 bg-gray-50/50 border-b border-gray-200">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="text-xs font-medium text-gray-600">
+            {t('priceQuery.chart.indicators')}:
+          </span>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showMA7}
+              onChange={(e) => setShowMA7(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">MA7</span>
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showMA30}
+              onChange={(e) => setShowMA30(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">MA30</span>
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showBollingerBands}
+              onChange={(e) => setShowBollingerBands(e.target.checked)}
+              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">{t('priceQuery.chart.bollingerBands')}</span>
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showConfidenceInterval}
+              onChange={(e) => setShowConfidenceInterval(e.target.checked)}
+              className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">{t('priceQuery.chart.confidenceInterval')}</span>
+          </label>
+        </div>
+
+        {/* 图表注释控制 */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 pt-2 border-t border-gray-200">
+          <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+            <Icons.alert className="w-3 h-3" />
+            {t('priceQuery.chart.annotations')}:
+          </span>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAnomalies}
+              onChange={(e) => setShowAnomalies(e.target.checked)}
+              className="rounded border-gray-300 text-red-600 focus:ring-red-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">{t('priceQuery.chart.anomalyMarkers')}</span>
+            {anomalyPoints.length > 0 && (
+              <span className="text-[10px] text-red-600 font-medium">({anomalyPoints.length})</span>
+            )}
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPriceSpikes}
+              onChange={(e) => setShowPriceSpikes(e.target.checked)}
+              className="rounded border-gray-300 text-orange-600 focus:ring-orange-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">{t('priceQuery.chart.priceSpikes')}</span>
+            {priceSpikeEvents.length > 0 && (
+              <span className="text-[10px] text-orange-600 font-medium">({priceSpikeEvents.length})</span>
+            )}
+          </label>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showValueLabels}
+              onChange={(e) => setShowValueLabels(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+            />
+            <span className="text-xs text-gray-600">{t('priceQuery.chart.valueLabels')}</span>
+          </label>
+        </div>
       </div>
-      <div ref={chartContainerRef} className="overflow-hidden">
-        <div className="h-[300px] sm:h-[400px] lg:h-96">
+
+      {/* 图表 */}
+      <div ref={chartContainerRef} className="p-4">
+        <div className="h-[280px] sm:h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={annotatedChartData}
-              margin={{ top: 10, right: 30, left: 10, bottom: 60 }}
+              margin={{ top: 10, right: 30, left: 10, bottom: 50 }}
             >
               <defs>
                 {queryResults.map(({ provider, chain }) => {
@@ -586,7 +590,7 @@ export function PriceChart({
               <XAxis
                 dataKey="time"
                 stroke={chartColors.recharts.axis}
-                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
                 tickLine={false}
                 axisLine={false}
                 dy={10}
@@ -599,10 +603,10 @@ export function PriceChart({
                 domain={['auto', 'auto']}
                 tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
                 stroke={chartColors.recharts.axis}
-                tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
+                tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
                 tickLine={false}
                 axisLine={false}
-                width={70}
+                width={60}
               />
               {/* 额外的Y轴（当价格差异大时） */}
               {needsMultipleYAxes &&
@@ -616,11 +620,11 @@ export function PriceChart({
                       domain={['auto', 'auto']}
                       tickFormatter={(value) => `$${Number(value).toLocaleString()}`}
                       stroke={chartColors.recharts.axis}
-                      tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
+                      tick={{ fontSize: 9, fill: chartColors.recharts.tick }}
                       tickLine={false}
                       axisLine={false}
-                      width={60}
-                      offset={index * 60}
+                      width={50}
+                      offset={index * 50}
                     />
                   ))}
               <Tooltip content={<CustomTooltip />} />
@@ -833,7 +837,7 @@ export function PriceChart({
                         value: label,
                         position: 'top',
                         fill: color,
-                        fontSize: 10,
+                        fontSize: 9,
                       }}
                     />
                   );
@@ -852,7 +856,7 @@ export function PriceChart({
                       key={`anomaly-${index}`}
                       x={anomaly.time}
                       y={anomaly.value}
-                      r={6}
+                      r={5}
                       fill={color}
                       stroke={strokeColor}
                       strokeWidth={2}
@@ -869,7 +873,7 @@ export function PriceChart({
                     value: `${t('priceQuery.chart.baseline')}: $${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                     position: 'right',
                     fill: baseColors.gray[500],
-                    fontSize: 11,
+                    fontSize: 10,
                   }}
                   stroke={baseColors.gray[500]}
                   strokeDasharray="8 4"
@@ -927,7 +931,7 @@ export function PriceChart({
                     activeDot={
                       isHidden
                         ? false
-                        : { r: selectedRow === `${provider}-${chain}` ? 6 : 5, strokeWidth: 0 }
+                        : { r: selectedRow === `${provider}-${chain}` ? 5 : 4, strokeWidth: 0 }
                     }
                     yAxisId={yAxisMap[label] || 'left'}
                   >
@@ -937,8 +941,8 @@ export function PriceChart({
                         position="top"
                         formatter={(value: any) => `$${Number(value).toFixed(2)}`}
                         fill={color}
-                        fontSize={10}
-                        offset={5}
+                        fontSize={9}
+                        offset={4}
                       />
                     )}
                   </Line>
@@ -948,7 +952,7 @@ export function PriceChart({
               {/* Brush 组件 - 用于缩放 */}
               <Brush
                 dataKey="time"
-                height={30}
+                height={24}
                 stroke={baseColors.gray[500]}
                 fill={baseColors.gray[100]}
                 startIndex={brushRange.startIndex ?? brushDefaultRange.startIndex}
@@ -962,7 +966,7 @@ export function PriceChart({
                     setBrushRange({ startIndex: range.startIndex, endIndex: range.endIndex });
                   }
                 }}
-                travellerWidth={8}
+                travellerWidth={6}
               />
             </ComposedChart>
           </ResponsiveContainer>
