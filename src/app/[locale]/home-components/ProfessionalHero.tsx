@@ -171,7 +171,7 @@ export default function ProfessionalHero() {
     e.preventDefault();
     if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
       const selectedItem = dropdownItems[highlightedIndex];
-      if (selectedItem.type === 'search' && 'item' in selectedItem.item && 'item' in selectedItem.item) {
+      if (selectedItem.type === 'search' && 'score' in selectedItem.item) {
         handleSearch(selectedItem.item as SearchResult);
       } else if ('symbol' in selectedItem.item) {
         handleSearch(selectedItem.item.symbol);
@@ -209,7 +209,7 @@ export default function ProfessionalHero() {
         e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
           const selectedItem = dropdownItems[highlightedIndex];
-          if (selectedItem.type === 'search' && 'item' in selectedItem.item && 'item' in selectedItem.item) {
+          if (selectedItem.type === 'search' && 'score' in selectedItem.item) {
             handleSearch(selectedItem.item as SearchResult);
           } else if ('symbol' in selectedItem.item) {
             handleSearch(selectedItem.item.symbol);
@@ -399,7 +399,7 @@ export default function ProfessionalHero() {
 
                     <div className="max-h-80 overflow-y-auto">
                       {dropdownItems.map((dropdownItem, index) => {
-                        const isSearchResult = dropdownItem.type === 'search' && 'item' in dropdownItem.item && 'item' in dropdownItem.item;
+                        const isSearchResult = dropdownItem.type === 'search' && 'score' in dropdownItem.item;
                         const searchResult = isSearchResult ? (dropdownItem.item as SearchResult) : null;
                         const searchableItem = searchResult?.item;
                         const symbol = 'symbol' in dropdownItem.item ? dropdownItem.item.symbol : searchableItem?.symbol || '';
