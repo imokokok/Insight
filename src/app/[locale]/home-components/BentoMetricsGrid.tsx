@@ -560,7 +560,9 @@ export default function BentoMetricsGrid() {
                       </div>
                       {card.description && (
                         <InfoTooltip
-                          content={isChineseLocale(locale) ? card.description.zh : card.description.en}
+                          content={
+                            isChineseLocale(locale) ? card.description.zh : card.description.en
+                          }
                         />
                       )}
                     </div>

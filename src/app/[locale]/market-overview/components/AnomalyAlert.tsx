@@ -276,7 +276,9 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
               <div className="pt-2 mt-2 border-t border-black/5">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-500">{isChineseLocale(locale) ? '异常ID:' : 'ID:'}</span>
+                    <span className="text-gray-500">
+                      {isChineseLocale(locale) ? '异常ID:' : 'ID:'}
+                    </span>
                     <span className="ml-1 font-mono text-gray-700">{alert.id}</span>
                   </div>
                   <div>

@@ -186,9 +186,7 @@ function CompletenessScoreCard({ metrics }: { metrics: DataQualityMetrics[] }) {
           <h3 className="text-sm font-semibold text-gray-900">
             {t('dataQuality.completenessScore')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.completenessDesc')}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.completenessDesc')}</p>
         </div>
         <svg
           className="w-5 h-5 text-blue-600"
@@ -319,9 +317,7 @@ function LatencyDistributionChart({ results }: { results: QueryResult[] }) {
           <h3 className="text-sm font-semibold text-gray-900">
             {t('dataQuality.latencyDistribution')}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.latencyDistributionDesc')}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.latencyDistributionDesc')}</p>
         </div>
         <div className="p-2 bg-purple-50 border border-purple-100">
           <svg
@@ -488,12 +484,8 @@ function FreshnessTrendChart({
     <div className="bg-white border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {t('dataQuality.freshnessTrend')}
-          </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t('dataQuality.freshnessTrendDesc')}
-          </p>
+          <h3 className="text-sm font-semibold text-gray-900">{t('dataQuality.freshnessTrend')}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{t('dataQuality.freshnessTrendDesc')}</p>
         </div>
         <div className="p-2 bg-green-50 border border-green-100">
           <svg
@@ -627,9 +619,7 @@ function FreshnessTrendChart({
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-green-500" />
-          <span className="text-xs text-gray-500">
-            {t('dataQuality.fresh')} (&gt;80%)
-          </span>
+          <span className="text-xs text-gray-500">{t('dataQuality.fresh')} (&gt;80%)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-yellow-500" />
@@ -637,9 +627,7 @@ function FreshnessTrendChart({
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 bg-red-500" />
-          <span className="text-xs text-gray-500">
-            {t('dataQuality.delayed')} (&lt;50%)
-          </span>
+          <span className="text-xs text-gray-500">{t('dataQuality.delayed')} (&lt;50%)</span>
         </div>
       </div>
     </div>

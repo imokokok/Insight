@@ -55,7 +55,9 @@ export default function ChainBreakdownChart({
               <span className="font-medium">{item.share.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '协议数' : 'Protocols'}:</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '协议数' : 'Protocols'}:
+              </span>
               <span className="font-medium">{item.protocols}</span>
             </div>
             <div className="flex justify-between">

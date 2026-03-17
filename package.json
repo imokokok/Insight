@@ -11,7 +11,68 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "clean:dev": "rm -rf .next && next dev",
-    "clean:start": "rm -rf .next && next build && next start"
+    "clean:start": "rm -rf .next && next build && next start",
+    "perf:test": "ts-node scripts/performance-test.ts",
+    "perf:quick": "node scripts/quick-perf.mjs"
+  },
+  "performanceBudget": {
+    "webVitals": {
+      "LCP": {
+        "target": 2500,
+        "warning": 4000,
+        "unit": "ms",
+        "description": "Largest Contentful Paint"
+      },
+      "INP": {
+        "target": 200,
+        "warning": 500,
+        "unit": "ms",
+        "description": "Interaction to Next Paint"
+      },
+      "CLS": {
+        "target": 0.1,
+        "warning": 0.25,
+        "unit": "score",
+        "description": "Cumulative Layout Shift"
+      },
+      "FCP": {
+        "target": 1800,
+        "warning": 3000,
+        "unit": "ms",
+        "description": "First Contentful Paint"
+      },
+      "TTFB": {
+        "target": 800,
+        "warning": 1800,
+        "unit": "ms",
+        "description": "Time to First Byte"
+      }
+    },
+    "bundle": {
+      "javascript": {
+        "target": 300,
+        "warning": 500,
+        "unit": "KB",
+        "description": "Total JavaScript bundle size"
+      },
+      "css": {
+        "target": 100,
+        "warning": 150,
+        "unit": "KB",
+        "description": "Total CSS bundle size"
+      },
+      "images": {
+        "target": 500,
+        "warning": 1000,
+        "unit": "KB",
+        "description": "Total image size"
+      }
+    },
+    "resources": {
+      "maxResourceCount": 50,
+      "maxThirdPartyScripts": 10,
+      "maxFonts": 5
+    }
   },
   "dependencies": {
     "@pythnetwork/hermes-client": "^2.0.0",
@@ -40,6 +101,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -56,9 +118,11 @@
     "html2canvas": "^1.4.1",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "playwright": "^1.40.0",
     "prettier": "^3.8.1",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   },
   "overrides": {

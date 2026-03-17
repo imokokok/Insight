@@ -23,7 +23,9 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
       } else {
@@ -99,9 +101,7 @@ function ResetPasswordContent() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.resetPassword.invalidLink.title')}
             </h2>
-            <p className="text-gray-500 mb-6">
-              {t('auth.resetPassword.invalidLink.description')}
-            </p>
+            <p className="text-gray-500 mb-6">{t('auth.resetPassword.invalidLink.description')}</p>
             <Link
               href="/auth/forgot-password"
               className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
@@ -125,9 +125,7 @@ function ResetPasswordContent() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.resetPassword.success.title')}
             </h2>
-            <p className="text-gray-500 mb-6">
-              {t('auth.resetPassword.success.description')}
-            </p>
+            <p className="text-gray-500 mb-6">{t('auth.resetPassword.success.description')}</p>
             <Link
               href="/login"
               className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
@@ -153,9 +151,7 @@ function ResetPasswordContent() {
             <h2 className="mt-4 text-xl font-semibold text-gray-900">
               {t('auth.resetPassword.title')}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('auth.resetPassword.subtitle')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('auth.resetPassword.subtitle')}</p>
           </div>
 
           {error && (

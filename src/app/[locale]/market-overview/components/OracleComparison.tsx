@@ -306,7 +306,8 @@ export default function OracleComparison({ data, loading = false }: OracleCompar
               <tbody className="divide-y divide-gray-100">
                 {Object.entries(filteredData[0]?.metrics || {}).map(([key, metric]) => {
                   const metricKey = key as keyof ComparisonData['metrics'];
-                  const label = METRIC_LABELS[metricKey]?.[isChineseLocale(locale) ? 'zh' : 'en'] || key;
+                  const label =
+                    METRIC_LABELS[metricKey]?.[isChineseLocale(locale) ? 'zh' : 'en'] || key;
                   const icon = METRIC_ICONS[metricKey];
 
                   return (

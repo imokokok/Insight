@@ -144,3 +144,44 @@ export type {
   UseTechnicalIndicatorsReturn,
   BatchIndicatorOptions,
 } from './useTechnicalIndicators';
+
+// Adaptive Downsampling Hook
+export { useAdaptiveDownsampling, useChartPerformanceMonitor } from './useAdaptiveDownsampling';
+
+// Performance Metrics Hooks
+export {
+  usePerformanceTracker,
+  useComponentPerformance,
+  useWebVitalsMonitor,
+  useMemoryMonitor,
+  usePerformanceReport,
+  useLongTaskMonitor,
+  useResourceTimingMonitor,
+} from './usePerformanceMetrics';
+export type {
+  OperationMetric,
+  ComponentRenderMetric,
+  PerformanceReport,
+} from './usePerformanceMetrics';
+
+// Hover Prefetch Hooks
+export {
+  useHoverPrefetch,
+  useHoverPrefetchHandlers,
+  createPrefetchConfig,
+} from './useHoverPrefetch';
+export type { HoverPrefetchOptions, PrefetchConfig } from './useHoverPrefetch';
+
+// Route Prefetch Hooks
+export {
+  useRoutePrefetch,
+  usePrefetchOnNavigation,
+  usePrefetchMetrics,
+  getRoutePrefetchConfig,
+  routePrefetchMap,
+} from './useRoutePrefetch';
+export type {
+  RoutePrefetchConfig,
+  PrefetchQueryConfig,
+  UseRoutePrefetchOptions,
+} from './useRoutePrefetch';

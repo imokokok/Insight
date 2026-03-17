@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ProtocolDetail } from '../types';
 import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
@@ -29,6 +30,8 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
   const [sortField, setSortField] = useState<SortField>('tvl');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const parentRef = useRef<HTMLDivElement>(null);
 
   // 获取所有类别
   const categories = useMemo(() => {
@@ -64,6 +67,18 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       return (aVal - bVal) * multiplier;
     });
   }, [data, searchTerm, selectedCategory, sortField, sortDirection]);
+
+  const getEstimatedSize = (index: number) => {
+    const protocol = filteredData[index];
+    return expandedItems.has(protocol.id) ? 200 : 80;
+  };
+
+  const virtualizer = useVirtualizer({
+    count: filteredData.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: getEstimatedSize,
+    overscan: 5,
+  });
 
   // 切换排序
   const _handleSort = (field: SortField) => {
@@ -172,126 +187,160 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       </div>
 
       {/* 协议列表 */}
-      <div className="space-y-1.5 max-h-[360px] overflow-auto">
-        {filteredData.map((protocol) => (
+      <div ref={parentRef} className="space-y-1.5 max-h-[360px] overflow-auto">
+        {filteredData.length > 0 && (
           <div
-            key={protocol.id}
-            className="py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
           >
-            <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                    {protocol.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-gray-900 text-sm">{protocol.name}</span>
-                      <span
-                        className={`px-1.5 py-0.5 text-xs font-medium ${getCategoryColor(
-                          protocol.category
-                        )}`}
-                      >
-                        {protocol.category}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                      <span className="flex items-center gap-1">
-                        <Layers className="w-3 h-3" />
-                        {protocol.chains.length} {isChineseLocale(locale) ? '条链' : 'chains'}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {isChineseLocale(locale) ? '主要预言机' : 'Primary'}: {protocol.primaryOracle}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <div className="font-medium text-gray-900 text-sm">{protocol.tvlFormatted}</div>
-                    <div
-                      className={`text-xs font-medium ${
-                        protocol.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {protocol.change24h >= 0 ? '+' : ''}
-                      {protocol.change24h.toFixed(1)}% (24h)
-                    </div>
-                  </div>
-                  {expandedItems.has(protocol.id) ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  )}
-                </div>
-              </div>
-            </div>
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const protocol = filteredData[virtualItem.index];
 
-            {/* 展开的详情 */}
-            {expandedItems.has(protocol.id) && (
-              <div className="pt-3 mt-2 border-t border-gray-100">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-2">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-0.5">
-                      {isChineseLocale(locale) ? '7天变化' : '7d Change'}
+              return (
+                <div
+                  key={protocol.id}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <div className="py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="cursor-pointer" onClick={() => toggleExpand(protocol.id)}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                            {protocol.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-medium text-gray-900 text-sm">
+                                {protocol.name}
+                              </span>
+                              <span
+                                className={`px-1.5 py-0.5 text-xs font-medium ${getCategoryColor(
+                                  protocol.category
+                                )}`}
+                              >
+                                {protocol.category}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                              <span className="flex items-center gap-1">
+                                <Layers className="w-3 h-3" />
+                                {protocol.chains.length}{' '}
+                                {isChineseLocale(locale) ? '条链' : 'chains'}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {isChineseLocale(locale) ? '主要预言机' : 'Primary'}:{' '}
+                                {protocol.primaryOracle}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="font-medium text-gray-900 text-sm">
+                              {protocol.tvlFormatted}
+                            </div>
+                            <div
+                              className={`text-xs font-medium ${
+                                protocol.change24h >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}
+                            >
+                              {protocol.change24h >= 0 ? '+' : ''}
+                              {protocol.change24h.toFixed(1)}% (24h)
+                            </div>
+                          </div>
+                          {expandedItems.has(protocol.id) ? (
+                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      className={`font-medium text-sm ${
-                        protocol.change7d >= 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {protocol.change7d >= 0 ? '+' : ''}
-                      {protocol.change7d.toFixed(1)}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-0.5">
-                      {isChineseLocale(locale) ? '预言机数量' : 'Oracles'}
-                    </div>
-                    <div className="font-medium text-gray-900 text-sm">{protocol.oracleCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-0.5">
-                      {isChineseLocale(locale) ? '支持链' : 'Chains'}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {protocol.chains.slice(0, 4).map((chain) => (
-                        <span key={chain} className="px-1 py-0.5 bg-gray-100 text-xs text-gray-600">
-                          {chain}
-                        </span>
-                      ))}
-                      {protocol.chains.length > 4 && (
-                        <span className="px-1 py-0.5 bg-gray-100 text-xs text-gray-400">
-                          +{protocol.chains.length - 4}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-0.5">
-                      {isChineseLocale(locale) ? '主要预言机' : 'Primary Oracle'}
-                    </div>
-                    <div className="font-medium text-gray-900 text-sm">
-                      {protocol.primaryOracle}
-                    </div>
+
+                    {expandedItems.has(protocol.id) && (
+                      <div className="pt-3 mt-2 border-t border-gray-100">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-2">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-0.5">
+                              {isChineseLocale(locale) ? '7天变化' : '7d Change'}
+                            </div>
+                            <div
+                              className={`font-medium text-sm ${
+                                protocol.change7d >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}
+                            >
+                              {protocol.change7d >= 0 ? '+' : ''}
+                              {protocol.change7d.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-0.5">
+                              {isChineseLocale(locale) ? '预言机数量' : 'Oracles'}
+                            </div>
+                            <div className="font-medium text-gray-900 text-sm">
+                              {protocol.oracleCount}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-0.5">
+                              {isChineseLocale(locale) ? '支持链' : 'Chains'}
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {protocol.chains.slice(0, 4).map((chain) => (
+                                <span
+                                  key={chain}
+                                  className="px-1 py-0.5 bg-gray-100 text-xs text-gray-600"
+                                >
+                                  {chain}
+                                </span>
+                              ))}
+                              {protocol.chains.length > 4 && (
+                                <span className="px-1 py-0.5 bg-gray-100 text-xs text-gray-400">
+                                  +{protocol.chains.length - 4}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-500 mb-0.5">
+                              {isChineseLocale(locale) ? '主要预言机' : 'Primary Oracle'}
+                            </div>
+                            <div className="font-medium text-gray-900 text-sm">
+                              {protocol.primaryOracle}
+                            </div>
+                          </div>
+                        </div>
+                        {protocol.url && (
+                          <a
+                            href={protocol.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
+                          >
+                            {isChineseLocale(locale) ? '访问网站' : 'Visit Website'}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-                {protocol.url && (
-                  <a
-                    href={protocol.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
-                  >
-                    {isChineseLocale(locale) ? '访问网站' : 'Visit Website'}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-            )}
+              );
+            })}
           </div>
-        ))}
+        )}
       </div>
 
       {filteredData.length === 0 && (

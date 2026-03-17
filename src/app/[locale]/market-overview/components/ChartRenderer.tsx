@@ -481,7 +481,9 @@ export default function ChartRenderer({
           </div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '支持链数' : 'Chains'}:</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '支持链数' : 'Chains'}:
+              </span>
               <span className="font-medium text-gray-900">{item.chains}</span>
             </div>
             <div className="flex justify-between">

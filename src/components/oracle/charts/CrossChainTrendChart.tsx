@@ -12,12 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
-import {
-  chartColors,
-  semanticColors,
-  chainColors,
-  shadowColors,
-} from '@/lib/config/colors';
+import { chartColors, semanticColors, chainColors, shadowColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
 import { useTranslations } from 'next-intl';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';

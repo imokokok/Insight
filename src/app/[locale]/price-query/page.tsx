@@ -25,12 +25,7 @@ import {
   QueryHistoryItem,
 } from '@/utils/queryHistory';
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
-import {
-  QueryResult,
-  providerNames,
-  chainNames,
-  oracleI18nKeys,
-} from './constants';
+import { QueryResult, providerNames, chainNames, oracleI18nKeys } from './constants';
 import {
   PageHeader,
   Selectors,

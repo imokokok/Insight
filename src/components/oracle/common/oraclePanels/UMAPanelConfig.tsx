@@ -89,10 +89,7 @@ const renderNetworkTab = (context: PanelRenderContext): ReactNode => {
 
   return (
     <div className="mb-6">
-      <UMANetworkPanel
-        networkStats={umaNetworkStats}
-        client={config.client}
-      />
+      <UMANetworkPanel networkStats={umaNetworkStats} client={config.client} />
     </div>
   );
 };

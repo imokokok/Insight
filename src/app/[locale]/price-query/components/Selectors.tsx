@@ -251,14 +251,21 @@ export function Selectors({
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-wider">{t('priceQuery.selectors.advancedOptions')}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider">
+              {t('priceQuery.selectors.advancedOptions')}
+            </span>
             <svg
               className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 
@@ -272,7 +279,9 @@ export function Selectors({
                   onChange={(e) => setCompareMode?.(e.target.checked)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
-                <span className="text-xs font-medium text-gray-700">{t('priceQuery.selectors.compareMode')}</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {t('priceQuery.selectors.compareMode')}
+                </span>
               </label>
 
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
@@ -282,7 +291,9 @@ export function Selectors({
                   onChange={(e) => setShowBaseline?.(e.target.checked)}
                   className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
                 />
-                <span className="text-xs font-medium text-gray-700">{t('priceQuery.selectors.showBaseline')}</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {t('priceQuery.selectors.showBaseline')}
+                </span>
               </label>
 
               {/* 对比时间范围 */}

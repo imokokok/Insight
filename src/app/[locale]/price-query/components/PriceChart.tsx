@@ -504,7 +504,9 @@ export function PriceChart({
               onChange={(e) => setShowConfidenceInterval(e.target.checked)}
               className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-3.5 h-3.5"
             />
-            <span className="text-xs text-gray-600">{t('priceQuery.chart.confidenceInterval')}</span>
+            <span className="text-xs text-gray-600">
+              {t('priceQuery.chart.confidenceInterval')}
+            </span>
           </label>
         </div>
 
@@ -535,7 +537,9 @@ export function PriceChart({
             />
             <span className="text-xs text-gray-600">{t('priceQuery.chart.priceSpikes')}</span>
             {priceSpikeEvents.length > 0 && (
-              <span className="text-[10px] text-orange-600 font-medium">({priceSpikeEvents.length})</span>
+              <span className="text-[10px] text-orange-600 font-medium">
+                ({priceSpikeEvents.length})
+              </span>
             )}
           </label>
           <label className="inline-flex items-center gap-1.5 cursor-pointer">

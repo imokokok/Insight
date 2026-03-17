@@ -225,14 +225,20 @@ export function PriceResultsTable({
                   {t('priceQuery.results.table.oracle')}
                   {sortField === 'oracle' && (
                     <span className="text-gray-900">
-                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
+                      {sortDirection === 'asc' ? (
+                        <Icons.arrowUp className="w-3 h-3" />
+                      ) : (
+                        <Icons.arrowDown className="w-3 h-3" />
+                      )}
                     </span>
                   )}
                 </div>
               </div>
               <div
                 className={`text-left py-2.5 px-3 font-semibold whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors select-none ${
-                  sortField === 'blockchain' ? 'bg-gray-100 text-gray-900' : 'bg-gray-50 text-gray-700'
+                  sortField === 'blockchain'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'bg-gray-50 text-gray-700'
                 }`}
                 onClick={() => onSort('blockchain')}
               >
@@ -240,7 +246,11 @@ export function PriceResultsTable({
                   {t('priceQuery.results.table.blockchain')}
                   {sortField === 'blockchain' && (
                     <span className="text-gray-900">
-                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
+                      {sortDirection === 'asc' ? (
+                        <Icons.arrowUp className="w-3 h-3" />
+                      ) : (
+                        <Icons.arrowDown className="w-3 h-3" />
+                      )}
                     </span>
                   )}
                 </div>
@@ -255,29 +265,25 @@ export function PriceResultsTable({
                   {t('priceQuery.results.table.price')}
                   {sortField === 'price' && (
                     <span className="text-gray-900">
-                      {sortDirection === 'asc' ? <Icons.arrowUp className="w-3 h-3" /> : <Icons.arrowDown className="w-3 h-3" />}
+                      {sortDirection === 'asc' ? (
+                        <Icons.arrowUp className="w-3 h-3" />
+                      ) : (
+                        <Icons.arrowDown className="w-3 h-3" />
+                      )}
                     </span>
                   )}
                 </div>
               </div>
-              <div
-                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
-              >
+              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
                 {t('priceQuery.results.table.change24h')}
               </div>
-              <div
-                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
-              >
+              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
                 {t('priceQuery.results.table.freshness')}
               </div>
-              <div
-                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
-              >
+              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
                 {t('dataQuality.completenessScore')}
               </div>
-              <div
-                className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
-              >
+              <div className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50">
                 {t('priceQuery.results.table.confidence')}
               </div>
 
@@ -382,7 +388,13 @@ export function PriceResultsTable({
                       }`}
                     >
                       {result.priceData.change24hPercent !== undefined ? (
-                        <span className={change24hPercent >= 0 ? 'text-green-600 text-xs' : 'text-red-600 text-xs'}>
+                        <span
+                          className={
+                            change24hPercent >= 0
+                              ? 'text-green-600 text-xs'
+                              : 'text-red-600 text-xs'
+                          }
+                        >
                           {change24hPercent >= 0 ? '+' : ''}
                           {change24hPercent.toFixed(2)}%
                         </span>

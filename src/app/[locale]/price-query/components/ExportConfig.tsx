@@ -197,7 +197,9 @@ export function ExportConfig({
                     onChange={() => toggleField(field.key)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">{t(`priceQuery.export.${field.label}`)}</span>
+                  <span className="text-sm text-gray-700">
+                    {t(`priceQuery.export.${field.label}`)}
+                  </span>
                 </label>
               ))}
             </div>

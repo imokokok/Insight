@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
+import OraclePrefetchCard from './OraclePrefetchCard';
 import {
   PieChart,
   Pie,
@@ -190,7 +191,7 @@ interface MarketShareDataItem {
   protocols?: number;
 }
 
-export default function OracleMarketOverview() {
+function OracleMarketOverviewBase() {
   const locale = useLocale();
   const [selectedRange, setSelectedRange] = useState('30D');
   const [activeChart, setActiveChart] = useState<ChartType>('pie');
@@ -225,61 +226,162 @@ export default function OracleMarketOverview() {
     };
   }, []);
 
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: CustomLabelProps) => {
-    if (!cx || !cy || !midAngle || !innerRadius || !outerRadius || !percent) return null;
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const renderCustomizedLabel = useCallback(
+    ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: CustomLabelProps) => {
+      if (!cx || !cy || !midAngle || !innerRadius || !outerRadius || !percent) return null;
+      const RADIAN = Math.PI / 180;
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+      return (
+        <text
+          x={x}
+          y={y}
+          fill={baseColors.gray[50]}
+          textAnchor={x > cx ? 'start' : 'end'}
+          dominantBaseline="central"
+          className="text-xs font-medium"
+        >
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+      );
+    },
+    []
+  );
+
+  const CustomTooltip = useMemo(() => {
+    const TooltipComponent = ({ active, payload, label }: TooltipProps<MarketShareDataItem>) => {
+      if (active && payload && payload.length) {
+        return (
+          <div
+            className="bg-white border"
+            style={{ borderColor: baseColors.gray[200], padding: '0.75rem' }}
+          >
+            <p className="font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
+              {label}
+            </p>
+            {payload.map((entry, index: number) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
+                <span style={{ color: baseColors.gray[600] }}>{entry.name}:</span>
+                <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                  {entry.value}
+                  {activeChart === 'pie' ? '%' : activeChart === 'bar' ? ' chains' : 'B'}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+      }
+      return null;
+    };
+    return TooltipComponent;
+  }, [activeChart]);
+
+  const renderTable = useCallback(() => {
+    const data =
+      activeChart === 'pie'
+        ? marketShareData
+        : activeChart === 'bar'
+          ? chainSupportData
+          : marketShareData;
 
     return (
-      <text
-        x={x}
-        y={y}
-        fill={baseColors.gray[50]}
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="text-xs font-medium"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
+      <div className="h-full overflow-auto">
+        <table className="w-full">
+          <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
+            <tr>
+              <th
+                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: baseColors.gray[600] }}
+              >
+                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
+              </th>
+              <th
+                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                style={{ color: baseColors.gray[600] }}
+              >
+                {activeChart === 'pie'
+                  ? isChineseLocale(locale)
+                    ? '市场份额'
+                    : 'Market Share'
+                  : activeChart === 'bar'
+                    ? isChineseLocale(locale)
+                      ? '支持链数'
+                      : 'Chains'
+                    : isChineseLocale(locale)
+                      ? 'TVS'
+                      : 'TVS'}
+              </th>
+              {activeChart === 'bar' && (
+                <th
+                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: baseColors.gray[600] }}
+                >
+                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
+                </th>
+              )}
+              {activeChart === 'pie' && (
+                <th
+                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: baseColors.gray[600] }}
+                >
+                  {isChineseLocale(locale) ? 'TVS' : 'TVS'}
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
+            {data.map((item, _index: number) => (
+              <tr
+                key={item.name}
+                className={`transition-colors cursor-pointer ${
+                  selectedItem === item.name ? '' : ''
+                }`}
+                style={{
+                  backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
+                }}
+                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
+                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
+                      {item.name}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
+                    {activeChart === 'pie' ? `${'value' in item ? item.value : 0}%` : item.chains}
+                  </span>
+                </td>
+                {activeChart === 'bar' && (
+                  <td className="px-4 py-3 text-right">
+                    <span style={{ color: baseColors.gray[600] }}>
+                      {'protocols' in item ? item.protocols : 0}
+                    </span>
+                  </td>
+                )}
+                {activeChart === 'pie' && (
+                  <td className="px-4 py-3 text-right">
+                    <span style={{ color: baseColors.gray[600] }}>
+                      {'tvs' in item ? item.tvs : ''}
+                    </span>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
-  };
+  }, [activeChart, locale, selectedItem]);
 
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<MarketShareDataItem>) => {
-    if (active && payload && payload.length) {
-      return (
-        <div
-          className="bg-white border"
-          style={{ borderColor: baseColors.gray[200], padding: '0.75rem' }}
-        >
-          <p className="font-semibold mb-2" style={{ color: baseColors.gray[900] }}>
-            {label}
-          </p>
-          {payload.map((entry, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3" style={{ backgroundColor: entry.color }} />
-              <span style={{ color: baseColors.gray[600] }}>{entry.name}:</span>
-              <span className="font-medium" style={{ color: baseColors.gray[900] }}>
-                {entry.value}
-                {activeChart === 'pie' ? '%' : activeChart === 'bar' ? ' chains' : 'B'}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const renderChart = () => {
+  const renderChart = useCallback(() => {
     if (viewType === 'table') {
       return renderTable();
     }
@@ -509,111 +611,17 @@ export default function OracleMarketOverview() {
       default:
         return null;
     }
-  };
+  }, [
+    viewType,
+    activeChart,
+    hoveredItem,
+    selectedItem,
+    renderCustomizedLabel,
+    CustomTooltip,
+    renderTable,
+  ]);
 
-  const renderTable = () => {
-    const data =
-      activeChart === 'pie'
-        ? marketShareData
-        : activeChart === 'bar'
-          ? chainSupportData
-          : marketShareData;
-
-    return (
-      <div className="h-full overflow-auto">
-        <table className="w-full">
-          <thead className="sticky top-0" style={{ backgroundColor: baseColors.gray[50] }}>
-            <tr>
-              <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                style={{ color: baseColors.gray[600] }}
-              >
-                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
-              </th>
-              <th
-                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
-                style={{ color: baseColors.gray[600] }}
-              >
-                {activeChart === 'pie'
-                  ? isChineseLocale(locale)
-                    ? '市场份额'
-                    : 'Market Share'
-                  : activeChart === 'bar'
-                    ? isChineseLocale(locale)
-                      ? '支持链数'
-                      : 'Chains'
-                    : isChineseLocale(locale)
-                      ? 'TVS'
-                      : 'TVS'}
-              </th>
-              {activeChart === 'bar' && (
-                <th
-                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: baseColors.gray[600] }}
-                >
-                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
-                </th>
-              )}
-              {activeChart === 'pie' && (
-                <th
-                  className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: baseColors.gray[600] }}
-                >
-                  {isChineseLocale(locale) ? 'TVS' : 'TVS'}
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody style={{ borderColor: baseColors.gray[100] }} className="divide-y">
-            {data.map((item, _index: number) => (
-              <tr
-                key={item.name}
-                className={`transition-colors cursor-pointer ${
-                  selectedItem === item.name ? '' : ''
-                }`}
-                style={{
-                  backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
-                }}
-                onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
-                onMouseEnter={() => setHoveredItem(item.name)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3" style={{ backgroundColor: item.color }} />
-                    <span className="font-medium" style={{ color: baseColors.gray[900] }}>
-                      {item.name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-semibold" style={{ color: baseColors.gray[900] }}>
-                    {activeChart === 'pie' ? `${'value' in item ? item.value : 0}%` : item.chains}
-                  </span>
-                </td>
-                {activeChart === 'bar' && (
-                  <td className="px-4 py-3 text-right">
-                    <span style={{ color: baseColors.gray[600] }}>
-                      {'protocols' in item ? item.protocols : 0}
-                    </span>
-                  </td>
-                )}
-                {activeChart === 'pie' && (
-                  <td className="px-4 py-3 text-right">
-                    <span style={{ color: baseColors.gray[600] }}>
-                      {'tvs' in item ? item.tvs : ''}
-                    </span>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  const getChartTitle = () => {
+  const getChartTitle = useCallback(() => {
     switch (activeChart) {
       case 'pie':
         return isChineseLocale(locale) ? '市场份额分布' : 'Market Share Distribution';
@@ -624,7 +632,7 @@ export default function OracleMarketOverview() {
       default:
         return '';
     }
-  };
+  }, [activeChart, locale]);
 
   return (
     <section className="py-16 bg-white">
@@ -906,10 +914,7 @@ export default function OracleMarketOverview() {
               </div>
             </div>
 
-            <div
-              className="bg-white border"
-              style={{ borderColor: baseColors.gray[200] }}
-            >
+            <div className="bg-white border" style={{ borderColor: baseColors.gray[200] }}>
               <div
                 className="px-4 py-3 border-b flex items-center justify-between"
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
@@ -923,46 +928,19 @@ export default function OracleMarketOverview() {
               </div>
               <div className="max-h-[320px] overflow-y-auto">
                 {marketShareData.map((item, index) => (
-                  <div
+                  <OraclePrefetchCard
                     key={item.name}
-                    className={`px-4 py-2.5 border-b transition-colors cursor-pointer flex items-center justify-between ${
-                      selectedItem === item.name ? '' : 'hover:bg-gray-50'
-                    } ${hoveredItem && hoveredItem !== item.name ? 'opacity-50' : 'opacity-100'}`}
-                    style={{
-                      borderColor: baseColors.gray[100],
-                      backgroundColor: selectedItem === item.name ? baseColors.gray[50] : 'transparent',
-                    }}
-                    onMouseEnter={() => setHoveredItem(item.name)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    onClick={() => setSelectedItem(item.name === selectedItem ? null : item.name)}
-                  >
-                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                      <span
-                        className="text-xs font-medium w-5 text-center"
-                        style={{ color: baseColors.gray[400] }}
-                      >
-                        {index + 1}
-                      </span>
-                      <div className="w-2.5 h-2.5 flex-shrink-0" style={{ backgroundColor: item.color }} />
-                      <span
-                        className="text-sm font-medium truncate"
-                        style={{ color: baseColors.gray[900] }}
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-right">
-                      <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                        {item.tvs}
-                      </span>
-                      <span
-                        className="text-sm font-semibold w-12"
-                        style={{ color: item.color }}
-                      >
-                        {item.value}%
-                      </span>
-                    </div>
-                  </div>
+                    name={item.name}
+                    value={item.value}
+                    color={item.color}
+                    tvs={item.tvs}
+                    chains={item.chains}
+                    index={index}
+                    isSelected={selectedItem === item.name}
+                    isHovered={hoveredItem === item.name}
+                    onSelect={(name) => setSelectedItem(name === selectedItem ? null : name)}
+                    onHover={setHoveredItem}
+                  />
                 ))}
               </div>
             </div>
@@ -996,3 +974,7 @@ export default function OracleMarketOverview() {
     </section>
   );
 }
+
+const OracleMarketOverview = memo(OracleMarketOverviewBase);
+
+export default OracleMarketOverview;
