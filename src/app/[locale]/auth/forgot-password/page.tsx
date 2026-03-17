@@ -83,9 +83,7 @@ function ForgotPasswordContent() {
             <h2 className="text-xl font-semibold text-gray-900">
               {t('auth.forgotPassword.title')}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('auth.forgotPassword.subtitle')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('auth.forgotPassword.subtitle')}</p>
           </div>
 
           {error && (
@@ -126,9 +124,7 @@ function ForgotPasswordContent() {
                 <Mail className="w-5 h-5" />
               )}
               <span>
-                {isLoading
-                  ? t('auth.forgotPassword.sending')
-                  : t('auth.forgotPassword.submit')}
+                {isLoading ? t('auth.forgotPassword.sending') : t('auth.forgotPassword.submit')}
               </span>
             </button>
           </form>

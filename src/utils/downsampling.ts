@@ -141,3 +141,111 @@ export function downsampleDataForPerformance(data: DataPoint[]): DataPoint[] {
     performanceMode: true,
   });
 }
+
+export interface AdaptiveDownsampleConfig {
+  renderTime?: number;
+  targetRenderTime?: number;
+  minPoints?: number;
+  maxPoints?: number;
+}
+
+const PERFORMANCE_THRESHOLDS = {
+  excellent: { maxRenderTime: 100, targetPoints: 500 },
+  good: { maxRenderTime: 200, targetPoints: 350 },
+  acceptable: { maxRenderTime: 300, targetPoints: 250 },
+  poor: { maxRenderTime: 500, targetPoints: 150 },
+  critical: { maxRenderTime: Infinity, targetPoints: 100 },
+};
+
+export function adaptiveDownsample(
+  data: DataPoint[],
+  config: AdaptiveDownsampleConfig = {}
+): DataPoint[] {
+  const { renderTime = 0, targetRenderTime = 300, minPoints = 100, maxPoints = 500 } = config;
+
+  const dataLength = data.length;
+
+  if (dataLength <= minPoints) {
+    return data;
+  }
+
+  let targetPoints: number;
+
+  if (renderTime === 0) {
+    if (dataLength <= 200) return data;
+    if (dataLength <= 500) targetPoints = Math.min(250, dataLength);
+    else if (dataLength <= 1000) targetPoints = 300;
+    else if (dataLength <= 2000) targetPoints = 350;
+    else if (dataLength <= 5000) targetPoints = 400;
+    else targetPoints = maxPoints;
+  } else {
+    const renderRatio = renderTime / targetRenderTime;
+
+    if (renderRatio <= 0.5) {
+      targetPoints = PERFORMANCE_THRESHOLDS.excellent.targetPoints;
+    } else if (renderRatio <= 0.75) {
+      targetPoints = PERFORMANCE_THRESHOLDS.good.targetPoints;
+    } else if (renderRatio <= 1.0) {
+      targetPoints = PERFORMANCE_THRESHOLDS.acceptable.targetPoints;
+    } else if (renderRatio <= 1.5) {
+      targetPoints = PERFORMANCE_THRESHOLDS.poor.targetPoints;
+    } else {
+      targetPoints = PERFORMANCE_THRESHOLDS.critical.targetPoints;
+    }
+
+    targetPoints = Math.max(minPoints, Math.min(maxPoints, Math.floor(targetPoints / renderRatio)));
+  }
+
+  targetPoints = Math.min(targetPoints, dataLength);
+
+  return downsampleData(data, {
+    targetPoints,
+    preservePeaks: true,
+    preserveTrends: targetPoints >= 250,
+  });
+}
+
+export function shouldDownsample(dataLength: number, threshold: number = 500): boolean {
+  return dataLength > threshold;
+}
+
+export function calculateOptimalPoints(
+  dataLength: number,
+  devicePerformance: 'low' | 'medium' | 'high' = 'medium'
+): number {
+  const multipliers = {
+    low: 0.5,
+    medium: 1,
+    high: 1.5,
+  };
+
+  const basePoints = calculateOptimalTargetPoints(dataLength, {});
+  return Math.floor(basePoints * multipliers[devicePerformance]);
+}
+
+export function getDownsamplingMetrics(
+  originalLength: number,
+  downsampledLength: number,
+  processingTime: number
+): {
+  compressionRatio: number;
+  pointsRemoved: number;
+  processingTimeMs: number;
+  efficiency: 'excellent' | 'good' | 'acceptable' | 'poor';
+} {
+  const compressionRatio = (1 - downsampledLength / originalLength) * 100;
+  const pointsRemoved = originalLength - downsampledLength;
+
+  let efficiency: 'excellent' | 'good' | 'acceptable' | 'poor';
+  if (processingTime < 10) efficiency = 'excellent';
+  else if (processingTime < 30) efficiency = 'good';
+  else if (processingTime < 50) efficiency = 'acceptable';
+  else efficiency = 'poor';
+
+  return {
+    compressionRatio,
+    pointsRemoved,
+    processingTimeMs: processingTime,
+    efficiency,
+  };
+}

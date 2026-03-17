@@ -15,10 +15,7 @@ export interface VersionMiddlewareOptions {
 }
 
 export function createVersionMiddleware(options: VersionMiddlewareOptions = {}) {
-  const {
-    defaultVersion = API_VERSIONS.CURRENT,
-    onDeprecated,
-  } = options;
+  const { defaultVersion = API_VERSIONS.CURRENT, onDeprecated } = options;
 
   return async (request: NextRequest): Promise<NextResponse | null> => {
     const pathParts = request.nextUrl.pathname.split('/').filter(Boolean);

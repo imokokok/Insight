@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { chartColors, baseColors } from '@/lib/config/colors';
 import { HistogramDataPoint } from './latencyUtils';
@@ -27,10 +19,7 @@ export function LatencyHistogram({ histogramData }: LatencyHistogramProps) {
       </h4>
       <div style={{ height: 200 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={histogramData}
-            margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-          >
+          <BarChart data={histogramData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={chartColors.recharts.grid}
@@ -78,10 +67,7 @@ export function LatencyHistogram({ histogramData }: LatencyHistogramProps) {
                     <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
                       {t('charts.latency.latencyRangeLabel')}
                     </p>
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: baseColors.gray[900] }}
-                    >
+                    <p className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>
                       {data.range} ms
                     </p>
                     <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>

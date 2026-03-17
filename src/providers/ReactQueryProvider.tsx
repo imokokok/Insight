@@ -11,18 +11,25 @@ interface ReactQueryProviderProps {
   children: ReactNode;
 }
 
-const STALE_TIME_CONFIG = {
+export const STALE_TIME_CONFIG = {
   price: 30 * 1000,
   history: 5 * 60 * 1000,
   network: 60 * 1000,
   default: 5 * 60 * 1000,
 } as const;
 
-const GC_TIME_CONFIG = {
+export const GC_TIME_CONFIG = {
   price: 60 * 1000,
   history: 10 * 60 * 1000,
   network: 2 * 60 * 1000,
   default: 10 * 60 * 1000,
+} as const;
+
+export const REFETCH_INTERVAL_CONFIG = {
+  price: 60 * 1000,
+  history: false,
+  network: 2 * 60 * 1000,
+  default: false,
 } as const;
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
@@ -101,5 +108,3 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
-
-export { STALE_TIME_CONFIG, GC_TIME_CONFIG };

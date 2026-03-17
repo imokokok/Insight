@@ -54,7 +54,7 @@ function PriceFlashIndicator({
   isActive: boolean;
 }) {
   const t = useTranslations();
-  
+
   if (!isActive || !direction) return null;
 
   return (
@@ -77,12 +77,28 @@ function ConnectionStatusIndicator({
   lastUpdate: Date | null;
 }) {
   const t = useTranslations();
-  
+
   const statusConfig = {
-    connected: { color: 'bg-green-500', text: t('priceQuery.chart.connectionStatus.connected'), animate: '' },
-    connecting: { color: 'bg-yellow-500', text: t('priceQuery.chart.connectionStatus.connecting'), animate: 'animate-pulse' },
-    reconnecting: { color: 'bg-orange-500', text: t('priceQuery.chart.connectionStatus.reconnecting'), animate: 'animate-pulse' },
-    disconnected: { color: 'bg-gray-400', text: t('priceQuery.chart.connectionStatus.disconnected'), animate: '' },
+    connected: {
+      color: 'bg-green-500',
+      text: t('priceQuery.chart.connectionStatus.connected'),
+      animate: '',
+    },
+    connecting: {
+      color: 'bg-yellow-500',
+      text: t('priceQuery.chart.connectionStatus.connecting'),
+      animate: 'animate-pulse',
+    },
+    reconnecting: {
+      color: 'bg-orange-500',
+      text: t('priceQuery.chart.connectionStatus.reconnecting'),
+      animate: 'animate-pulse',
+    },
+    disconnected: {
+      color: 'bg-gray-400',
+      text: t('priceQuery.chart.connectionStatus.disconnected'),
+      animate: '',
+    },
     error: { color: 'bg-red-500', text: t('priceQuery.chart.connectionStatus.error'), animate: '' },
   };
 
@@ -93,7 +109,9 @@ function ConnectionStatusIndicator({
       <span className={`w-2 h-2 ${config.color} ${config.animate}`} />
       <span>{config.text}</span>
       {lastUpdate && (
-        <span className="text-gray-400">· {t('priceQuery.chart.lastUpdate')}: {lastUpdate.toLocaleTimeString()}</span>
+        <span className="text-gray-400">
+          · {t('priceQuery.chart.lastUpdate')}: {lastUpdate.toLocaleTimeString()}
+        </span>
       )}
     </div>
   );
@@ -325,7 +343,9 @@ export function PriceChartRealtime({
         <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-emerald-600 font-medium">{symbol} {t('priceQuery.chart.realtimePrice')}</p>
+              <p className="text-sm text-emerald-600 font-medium">
+                {symbol} {t('priceQuery.chart.realtimePrice')}
+              </p>
               <div className="flex items-baseline gap-2">
                 <span
                   className={`text-3xl font-bold transition-all duration-300 ${
@@ -351,9 +371,15 @@ export function PriceChartRealtime({
               </div>
             </div>
             <div className="text-right text-sm text-gray-500">
-              <p>{t('priceQuery.chart.stats.high24h')}: ${priceData.high24h?.toFixed(6) || '-'}</p>
-              <p>{t('priceQuery.chart.stats.low24h')}: ${priceData.low24h?.toFixed(6) || '-'}</p>
-              <p>{t('priceQuery.chart.stats.volume24h')}: ${priceData.volume24h?.toFixed(2) || '-'}</p>
+              <p>
+                {t('priceQuery.chart.stats.high24h')}: ${priceData.high24h?.toFixed(6) || '-'}
+              </p>
+              <p>
+                {t('priceQuery.chart.stats.low24h')}: ${priceData.low24h?.toFixed(6) || '-'}
+              </p>
+              <p>
+                {t('priceQuery.chart.stats.volume24h')}: ${priceData.volume24h?.toFixed(2) || '-'}
+              </p>
             </div>
           </div>
         </div>

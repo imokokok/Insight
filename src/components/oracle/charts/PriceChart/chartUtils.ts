@@ -27,7 +27,10 @@ export function calculateVolumeRange(
   return { min: 0, max: max * 3 };
 }
 
-export function calculatePriceChange(data: IndicatorDataPoint[]): { value: number; percent: number } {
+export function calculatePriceChange(data: IndicatorDataPoint[]): {
+  value: number;
+  percent: number;
+} {
   if (data.length < 2) return { value: 0, percent: 0 };
   const first = data[0].price;
   const last = data[data.length - 1].price;
@@ -81,10 +84,7 @@ export function calculateChartHeights(
   showMACD: boolean
 ): { main: number; rsi: number; macd: number } {
   const minHeight = isMobile ? 300 : 400;
-  const availableHeight = Math.max(
-    minHeight,
-    height - (showToolbar ? (isMobile ? 140 : 180) : 0)
-  );
+  const availableHeight = Math.max(minHeight, height - (showToolbar ? (isMobile ? 140 : 180) : 0));
   const gap = isMobile ? 4 : 8;
 
   if (showRSI && showMACD) {

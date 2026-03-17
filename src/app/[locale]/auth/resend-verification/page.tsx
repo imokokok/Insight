@@ -92,9 +92,7 @@ function ResendVerificationContent() {
             <h2 className="mt-4 text-xl font-semibold text-gray-900">
               {t('auth.resendVerification.title')}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              {t('auth.resendVerification.subtitle')}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{t('auth.resendVerification.subtitle')}</p>
           </div>
 
           {error && (

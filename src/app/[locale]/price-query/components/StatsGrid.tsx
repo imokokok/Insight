@@ -71,9 +71,12 @@ export function StatsGrid({
   }, [prices]);
 
   const getConsistencyRating = (stdDevPercent: number): { label: string; color: string } => {
-    if (stdDevPercent < 0.1) return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-green-600' };
-    if (stdDevPercent < 0.3) return { label: t('priceQuery.stats.consistency.good'), color: 'text-blue-600' };
-    if (stdDevPercent < 0.5) return { label: t('priceQuery.stats.consistency.fair'), color: 'text-orange-600' };
+    if (stdDevPercent < 0.1)
+      return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-green-600' };
+    if (stdDevPercent < 0.3)
+      return { label: t('priceQuery.stats.consistency.good'), color: 'text-blue-600' };
+    if (stdDevPercent < 0.5)
+      return { label: t('priceQuery.stats.consistency.fair'), color: 'text-orange-600' };
     return { label: t('priceQuery.stats.consistency.poor'), color: 'text-red-600' };
   };
 
@@ -185,7 +188,11 @@ export function StatsGrid({
           />
         </div>
         <div className="px-4 py-3">
-          <StatItem label={t('priceQuery.stats.dataPoints')} value={dataPoints.toString()} compact />
+          <StatItem
+            label={t('priceQuery.stats.dataPoints')}
+            value={dataPoints.toString()}
+            compact
+          />
         </div>
       </div>
 

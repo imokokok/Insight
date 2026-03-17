@@ -63,184 +63,185 @@ const fetchUserProfile = async (userId: string, session: Session | null) => {
 };
 
 export const useAuthStore = create<AuthStore>()(
-  devtools((set, get) => ({
-    user: null,
-    session: null,
-    profile: null,
-    loading: true,
-    error: null,
-    initialized: false,
-    subscription: null,
+  devtools(
+    (set, get) => ({
+      user: null,
+      session: null,
+      profile: null,
+      loading: true,
+      error: null,
+      initialized: false,
+      subscription: null,
 
-        initialize: async () => {
-          try {
-            set({ loading: true, error: null });
-            const { session: currentSession } = await getSession();
-            const currentUser = currentSession?.user ?? null;
+      initialize: async () => {
+        try {
+          set({ loading: true, error: null });
+          const { session: currentSession } = await getSession();
+          const currentUser = currentSession?.user ?? null;
 
+          set({
+            session: currentSession,
+            user: currentUser,
+          });
+
+          if (currentSession?.user) {
+            const profile = await fetchUserProfile(currentSession.user.id, currentSession);
+            set({ profile });
+          }
+
+          const existingSubscription = get().subscription;
+          if (existingSubscription) {
+            existingSubscription.unsubscribe();
+          }
+
+          const subscription = onAuthStateChange(async (event, newSession) => {
             set({
-              session: currentSession,
-              user: currentUser,
+              session: newSession,
+              user: newSession?.user ?? null,
             });
 
-            if (currentSession?.user) {
-              const profile = await fetchUserProfile(currentSession.user.id, currentSession);
+            if (event === 'SIGNED_IN' && newSession?.user) {
+              const profile = await fetchUserProfile(newSession.user.id, newSession);
               set({ profile });
+            } else if (event === 'SIGNED_OUT') {
+              set({ profile: null });
             }
-
-            const existingSubscription = get().subscription;
-            if (existingSubscription) {
-              existingSubscription.unsubscribe();
-            }
-
-            const subscription = onAuthStateChange(async (event, newSession) => {
-              set({
-                session: newSession,
-                user: newSession?.user ?? null,
-              });
-
-              if (event === 'SIGNED_IN' && newSession?.user) {
-                const profile = await fetchUserProfile(newSession.user.id, newSession);
-                set({ profile });
-              } else if (event === 'SIGNED_OUT') {
-                set({ profile: null });
-              }
-            });
-
-            set({ subscription, initialized: true, loading: false });
-          } catch (err) {
-            set({ error: err as Error, loading: false, initialized: true });
-          }
-        },
-
-        cleanup: () => {
-          const { subscription } = get();
-          if (subscription) {
-            subscription.unsubscribe();
-            set({ subscription: null });
-          }
-        },
-
-        signUp: async (email: string, password: string, displayName?: string) => {
-          set({ loading: true, error: null });
-
-          const {
-            user: newUser,
-            session: newSession,
-            error: signUpError,
-          } = await authSignUp(email, password, displayName);
-
-          if (signUpError) {
-            set({ error: signUpError, loading: false });
-            return { error: signUpError };
-          }
-
-          set({
-            user: newUser,
-            session: newSession,
           });
 
-          if (newUser) {
-            const profile = await fetchUserProfile(newUser.id, newSession);
-            set({ profile });
-          }
+          set({ subscription, initialized: true, loading: false });
+        } catch (err) {
+          set({ error: err as Error, loading: false, initialized: true });
+        }
+      },
 
-          set({ loading: false });
-          return { error: null };
-        },
+      cleanup: () => {
+        const { subscription } = get();
+        if (subscription) {
+          subscription.unsubscribe();
+          set({ subscription: null });
+        }
+      },
 
-        signIn: async (email: string, password: string) => {
-          set({ loading: true, error: null });
+      signUp: async (email: string, password: string, displayName?: string) => {
+        set({ loading: true, error: null });
 
-          const {
-            user: signInUser,
-            session: signInSession,
-            error: signInError,
-          } = await authSignIn(email, password);
+        const {
+          user: newUser,
+          session: newSession,
+          error: signUpError,
+        } = await authSignUp(email, password, displayName);
 
-          if (signInError) {
-            set({ error: signInError, loading: false });
-            return { error: signInError };
-          }
+        if (signUpError) {
+          set({ error: signUpError, loading: false });
+          return { error: signUpError };
+        }
 
-          set({
-            user: signInUser,
-            session: signInSession,
-          });
+        set({
+          user: newUser,
+          session: newSession,
+        });
 
-          if (signInUser) {
-            const profile = await fetchUserProfile(signInUser.id, signInSession);
-            set({ profile });
-          }
+        if (newUser) {
+          const profile = await fetchUserProfile(newUser.id, newSession);
+          set({ profile });
+        }
 
-          set({ loading: false });
-          return { error: null };
-        },
+        set({ loading: false });
+        return { error: null };
+      },
 
-        signInWithOAuth: async (provider: Provider) => {
-          set({ loading: true, error: null });
+      signIn: async (email: string, password: string) => {
+        set({ loading: true, error: null });
 
-          const { error: oauthError } = await authSignInWithOAuth(provider);
+        const {
+          user: signInUser,
+          session: signInSession,
+          error: signInError,
+        } = await authSignIn(email, password);
 
-          if (oauthError) {
-            set({ error: oauthError, loading: false });
-            return { error: oauthError };
-          }
+        if (signInError) {
+          set({ error: signInError, loading: false });
+          return { error: signInError };
+        }
 
-          return { error: null };
-        },
+        set({
+          user: signInUser,
+          session: signInSession,
+        });
 
-        signOut: async () => {
-          set({ loading: true, error: null });
+        if (signInUser) {
+          const profile = await fetchUserProfile(signInUser.id, signInSession);
+          set({ profile });
+        }
 
-          const { error: signOutError } = await authSignOut();
+        set({ loading: false });
+        return { error: null };
+      },
 
-          if (signOutError) {
-            set({ error: signOutError, loading: false });
-            return { error: signOutError };
-          }
+      signInWithOAuth: async (provider: Provider) => {
+        set({ loading: true, error: null });
 
-          set({
-            user: null,
-            session: null,
-            profile: null,
-            loading: false,
-          });
+        const { error: oauthError } = await authSignInWithOAuth(provider);
 
-          return { error: null };
-        },
+        if (oauthError) {
+          set({ error: oauthError, loading: false });
+          return { error: oauthError };
+        }
 
-        resetPassword: async (email: string) => {
-          set({ loading: true, error: null });
+        return { error: null };
+      },
 
-          const { error: resetError } = await authResetPassword(email);
+      signOut: async () => {
+        set({ loading: true, error: null });
 
-          if (resetError) {
-            set({ error: resetError, loading: false });
-            return { error: resetError };
-          }
+        const { error: signOutError } = await authSignOut();
 
-          set({ loading: false });
-          return { error: null };
-        },
+        if (signOutError) {
+          set({ error: signOutError, loading: false });
+          return { error: signOutError };
+        }
 
-        refreshProfile: async () => {
-          const { user, session } = get();
-          if (user) {
-            const profile = await fetchUserProfile(user.id, session);
-            set({ profile });
-          }
-        },
+        set({
+          user: null,
+          session: null,
+          profile: null,
+          loading: false,
+        });
 
-        setUser: (user) => set({ user }),
-        setSession: (session) => set({ session }),
-        setProfile: (profile) => set({ profile }),
-        setLoading: (loading) => set({ loading }),
-        setError: (error) => set({ error }),
-        clearError: () => set({ error: null }),
-      }),
-      { name: 'AuthStore' }
-    )
+        return { error: null };
+      },
+
+      resetPassword: async (email: string) => {
+        set({ loading: true, error: null });
+
+        const { error: resetError } = await authResetPassword(email);
+
+        if (resetError) {
+          set({ error: resetError, loading: false });
+          return { error: resetError };
+        }
+
+        set({ loading: false });
+        return { error: null };
+      },
+
+      refreshProfile: async () => {
+        const { user, session } = get();
+        if (user) {
+          const profile = await fetchUserProfile(user.id, session);
+          set({ profile });
+        }
+      },
+
+      setUser: (user) => set({ user }),
+      setSession: (session) => set({ session }),
+      setProfile: (profile) => set({ profile }),
+      setLoading: (loading) => set({ loading }),
+      setError: (error) => set({ error }),
+      clearError: () => set({ error: null }),
+    }),
+    { name: 'AuthStore' }
+  )
 );
 
 export const useUser = () => useAuthStore((state) => state.user);

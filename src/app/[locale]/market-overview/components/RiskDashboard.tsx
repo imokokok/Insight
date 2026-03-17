@@ -188,7 +188,9 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           {/* 因素分解 */}
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '链多样性' : 'Chains'}</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '链多样性' : 'Chains'}
+              </span>
               <span className="font-medium">{data.diversification.factors.chainDiversity}%</span>
             </div>
             <div className="flex justify-between">
@@ -198,7 +200,9 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
               <span className="font-medium">{data.diversification.factors.protocolDiversity}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '资产多样性' : 'Assets'}</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '资产多样性' : 'Assets'}
+              </span>
               <span className="font-medium">{data.diversification.factors.assetDiversity}%</span>
             </div>
           </div>
@@ -235,7 +239,9 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '日波动率' : 'Daily'}</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '日波动率' : 'Daily'}
+              </span>
               <span className="font-medium">
                 {(data.volatility.dailyVolatility * 100).toFixed(2)}%
               </span>

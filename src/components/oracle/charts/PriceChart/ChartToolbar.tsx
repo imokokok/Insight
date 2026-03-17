@@ -5,7 +5,12 @@ import { ChartExportButton } from '../../forms/ChartExportButton';
 import { MoreOptionsDropdown } from '../../common/MoreOptionsDropdown';
 import { ChartExportData } from '@/utils/chartExport';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
-import { DataGranularity, ComparisonPeriod, getGranularityConfig, ConfidenceLevel } from './priceChartConfig';
+import {
+  DataGranularity,
+  ComparisonPeriod,
+  getGranularityConfig,
+  ConfidenceLevel,
+} from './priceChartConfig';
 
 interface ChartToolbarProps {
   symbol: string;
@@ -252,9 +257,7 @@ export function ChartToolbar({
                 className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
                 style={{
                   backgroundColor: showBollingerBands ? baseColors.gray[50] : 'transparent',
-                  color: showBollingerBands
-                    ? chartColors.recharts.purple
-                    : baseColors.gray[600],
+                  color: showBollingerBands ? chartColors.recharts.purple : baseColors.gray[600],
                 }}
                 onMouseEnter={(e) => {
                   if (!showBollingerBands) e.currentTarget.style.color = baseColors.gray[900];
@@ -286,10 +289,7 @@ export function ChartToolbar({
               }}
               title={t('priceChart.ma7')}
             >
-              <span
-                className="w-2 h-2"
-                style={{ backgroundColor: chartColors.recharts.warning }}
-              />
+              <span className="w-2 h-2" style={{ backgroundColor: chartColors.recharts.warning }} />
               {t('priceChart.ma7')}
             </button>
             {!isMobile && (
@@ -308,10 +308,7 @@ export function ChartToolbar({
                 }}
                 title={t('priceChart.ma14')}
               >
-                <span
-                  className="w-2 h-2"
-                  style={{ backgroundColor: baseColors.primary[500] }}
-                />
+                <span className="w-2 h-2" style={{ backgroundColor: baseColors.primary[500] }} />
                 {t('priceChart.ma14')}
               </button>
             )}
@@ -341,10 +338,7 @@ export function ChartToolbar({
 
             {!isMobile && (
               <>
-                <div
-                  className="w-px h-4 mx-1"
-                  style={{ backgroundColor: baseColors.gray[300] }}
-                />
+                <div className="w-px h-4 mx-1" style={{ backgroundColor: baseColors.gray[300] }} />
                 <button
                   onClick={onToggleRSI}
                   className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"
@@ -388,10 +382,7 @@ export function ChartToolbar({
                   MACD
                 </button>
 
-                <div
-                  className="w-px h-4 mx-1"
-                  style={{ backgroundColor: baseColors.gray[300] }}
-                />
+                <div className="w-px h-4 mx-1" style={{ backgroundColor: baseColors.gray[300] }} />
                 <button
                   onClick={onToggleVolume}
                   className="px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 min-h-[44px] min-w-[44px]"

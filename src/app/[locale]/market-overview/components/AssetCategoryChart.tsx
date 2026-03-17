@@ -68,7 +68,9 @@ export default function AssetCategoryChart({
               <span className="font-medium">{item.share.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{isChineseLocale(locale) ? '资产数' : 'Assets'}:</span>
+              <span className="text-gray-500">
+                {isChineseLocale(locale) ? '资产数' : 'Assets'}:
+              </span>
               <span className="font-medium">{item.assets.length}</span>
             </div>
             <div className="pt-1 border-t border-gray-100 mt-1">

@@ -17,7 +17,7 @@ export function ChartSkeleton({
   variant = 'price',
 }: ChartSkeletonProps) {
   return (
-    <div className={`animate-pulse ${className}`} style={{ height }}>
+    <div className={`skeleton-shimmer ${className}`} style={{ height }}>
       {showToolbar && (
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export function MiniChartSkeleton({
   className = '',
 }: MiniChartSkeletonProps) {
   return (
-    <div className={`animate-pulse ${className}`} style={{ height, width }}>
+    <div className={`skeleton-shimmer ${className}`} style={{ height, width }}>
       <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
         <rect x="0" y="0" width="200" height="80" fill={chartColors.recharts.background} />
         <defs>
@@ -193,7 +193,7 @@ interface MetricCardSkeletonProps {
 
 export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) {
   return (
-    <div className={`animate-pulse border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}>
+    <div className={`skeleton-shimmer border border-gray-200/60 bg-gray-50/80 p-6 ${className}`}>
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 bg-gray-200 h-11 w-11" />
         <div className="h-6 w-16 bg-gray-200" />
@@ -205,5 +205,176 @@ export function MetricCardSkeleton({ className = '' }: MetricCardSkeletonProps) 
       </div>
       <div className="mt-5 h-20 w-full bg-gray-200" />
     </div>
+  );
+}
+
+interface HeroSkeletonProps {
+  className?: string;
+}
+
+export function HeroSkeleton({ className = '' }: HeroSkeletonProps) {
+  return (
+    <section className={`relative min-h-screen flex flex-col overflow-hidden ${className}`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
+      <div className="relative z-10 flex-1 flex items-center px-6 lg:px-12 xl:px-20 py-12">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="skeleton-shimmer inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 mb-8">
+              <div className="w-8 h-4 bg-gray-200" />
+            </div>
+
+            <div className="skeleton-shimmer mb-6">
+              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-3/4 mx-auto bg-gray-200 mb-4" />
+              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-2/3 mx-auto bg-gray-200" />
+            </div>
+
+            <div className="skeleton-shimmer h-6 w-96 max-w-full mx-auto mb-10 bg-gray-200" />
+
+            <div className="skeleton-shimmer max-w-2xl mx-auto mb-4">
+              <div className="h-14 bg-gray-200 rounded-2xl" />
+            </div>
+
+            <div className="skeleton-shimmer flex items-center justify-center gap-2 flex-wrap mb-10">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="px-3 py-1 h-7 w-16 bg-gray-200 rounded-full" />
+              ))}
+            </div>
+
+            <div className="skeleton-shimmer flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">
+              <div className="h-12 w-40 bg-gray-200" />
+              <div className="h-12 w-40 bg-gray-200" />
+            </div>
+
+            <div className="skeleton-shimmer grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white border border-gray-200 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-gray-100 h-10 w-10" />
+                      <div className="h-4 w-20 bg-gray-200" />
+                    </div>
+                    <div className="h-6 w-16 bg-gray-200" />
+                  </div>
+                  <div className="h-9 w-24 bg-gray-200 mb-3" />
+                  <div className="h-12 w-full bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+interface LivePriceTickerSkeletonProps {
+  className?: string;
+}
+
+export function LivePriceTickerSkeleton({ className = '' }: LivePriceTickerSkeletonProps) {
+  return (
+    <div
+      className={`w-full bg-slate-50 border-y border-slate-200 py-4 overflow-hidden ${className}`}
+    >
+      <div className="px-6 lg:px-12 xl:px-20 mb-3">
+        <div className="flex items-center gap-2">
+          <div className="skeleton-shimmer h-2 w-2 bg-gray-200 rounded-full" />
+          <div className="skeleton-shimmer h-4 w-24 bg-gray-200" />
+        </div>
+      </div>
+
+      <div className="skeleton-shimmer flex gap-4 px-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white border border-gray-200 min-w-[240px] sm:min-w-[280px]"
+          >
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200" />
+            <div className="min-w-[80px] sm:min-w-[100px]">
+              <div className="h-4 w-12 bg-gray-200 mb-1" />
+              <div className="h-3 w-16 bg-gray-200" />
+            </div>
+            <div className="min-w-[70px] sm:min-w-[90px]">
+              <div className="h-5 w-20 bg-gray-200 mb-1" />
+              <div className="h-3 w-12 bg-gray-200" />
+            </div>
+            <div className="w-16 h-10 bg-gray-200" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface BentoGridSkeletonProps {
+  className?: string;
+}
+
+export function BentoGridSkeleton({ className = '' }: BentoGridSkeletonProps) {
+  return (
+    <section className={`py-16 bg-slate-50 border-y border-slate-200 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 xl:px-20">
+        <div className="text-center mb-12">
+          <div className="skeleton-shimmer inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 mb-4">
+            <div className="w-4 h-4 bg-gray-200" />
+            <div className="h-4 w-20 bg-gray-200" />
+          </div>
+          <div className="skeleton-shimmer h-10 w-64 mx-auto mb-3 bg-gray-200" />
+          <div className="skeleton-shimmer h-6 w-96 max-w-full mx-auto bg-gray-200" />
+        </div>
+
+        <div className="skeleton-shimmer grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
+          <div className="sm:col-span-2 sm:row-span-2 bg-white border border-gray-200 p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-gray-100 h-9 w-9" />
+              <div className="h-5 w-16 bg-gray-200" />
+            </div>
+            <div className="h-4 w-28 bg-gray-200 mb-1" />
+            <div className="h-8 w-24 bg-gray-200 mb-2" />
+            <div className="h-20 w-full bg-gray-200 mb-3" />
+            <div className="h-16 w-full bg-gray-200" />
+          </div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-white border border-gray-200 p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-2 bg-gray-100 h-9 w-9" />
+                <div className="h-5 w-16 bg-gray-200" />
+              </div>
+              <div className="h-4 w-24 bg-gray-200 mb-1" />
+              <div className="h-8 w-20 bg-gray-200 mb-2" />
+              <div className="h-14 w-full bg-gray-200" />
+            </div>
+          ))}
+        </div>
+
+        <div className="skeleton-shimmer mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="text-center p-4 border bg-white border-gray-200">
+              <div className="h-7 w-16 mx-auto bg-gray-200 mb-1" />
+              <div className="h-3 w-20 mx-auto bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+interface CTASkeletonProps {
+  className?: string;
+}
+
+export function CTASkeleton({ className = '' }: CTASkeletonProps) {
+  return (
+    <section className={`py-20 bg-gray-900 ${className}`}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-20 text-center">
+        <div className="skeleton-shimmer h-12 w-96 max-w-full mx-auto mb-6 bg-gray-700" />
+        <div className="skeleton-shimmer h-6 w-[500px] max-w-full mx-auto mb-10 bg-gray-700" />
+        <div className="skeleton-shimmer flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="h-12 w-40 bg-gray-700" />
+          <div className="h-12 w-40 bg-gray-700" />
+        </div>
+      </div>
+    </section>
   );
 }

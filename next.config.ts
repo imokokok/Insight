@@ -1,16 +1,35 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import createNextIntlPlugin from 'next-intl/plugin';
+import createBundleAnalyzer from '@next/bundle-analyzer';
+import type { NextConfig } from 'next';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const withBundleAnalyzer = createBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: process.env.CI !== 'true',
+});
+
+const nextConfig: NextConfig = {
   transpilePackages: ['recharts'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
   experimental: {
-    optimizePackageImports: ['recharts'],
+    optimizePackageImports: ['recharts', 'framer-motion', 'lucide-react', 'date-fns'],
+  },
+  onDemandEntries: {
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
   },
   turbopack: {},
   async headers() {
@@ -42,4 +61,4 @@ const config = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, sentryConfig)
   : nextConfig;
 
-export default withNextIntl(config);
+export default withBundleAnalyzer(withNextIntl(config));

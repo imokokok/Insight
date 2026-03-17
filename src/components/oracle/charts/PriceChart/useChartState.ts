@@ -64,7 +64,10 @@ export function useChartState() {
   const lastRealtimeUpdateRef = useRef<number>(Date.now());
 
   const handleBrushChange = useCallback(
-    (range: { startIndex?: number; endIndex?: number }, brushZoom?: { handleBrushChange: (range: { startIndex?: number; endIndex?: number }) => void }) => {
+    (
+      range: { startIndex?: number; endIndex?: number },
+      brushZoom?: { handleBrushChange: (range: { startIndex?: number; endIndex?: number }) => void }
+    ) => {
       setBrushRange(range);
       brushZoom?.handleBrushChange(range);
       if (range.startIndex !== undefined && range.endIndex !== undefined) {

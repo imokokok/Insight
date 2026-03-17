@@ -286,7 +286,9 @@ export default function CorrelationMatrix({
               },
               {
                 color: CORRELATION_COLORS.moderatePositive,
-                label: isChineseLocale(locale) ? '中等正相关 (0.4-0.7)' : 'Moderate Positive (0.4-0.7)',
+                label: isChineseLocale(locale)
+                  ? '中等正相关 (0.4-0.7)'
+                  : 'Moderate Positive (0.4-0.7)',
               },
               {
                 color: CORRELATION_COLORS.weakPositive,
@@ -298,16 +300,21 @@ export default function CorrelationMatrix({
               },
               {
                 color: CORRELATION_COLORS.weakNegative,
-                label: isChineseLocale(locale) ? '弱负相关 (-0.4--0.1)' : 'Weak Negative (-0.4--0.1)',
+                label: isChineseLocale(locale)
+                  ? '弱负相关 (-0.4--0.1)'
+                  : 'Weak Negative (-0.4--0.1)',
               },
               {
                 color: CORRELATION_COLORS.moderateNegative,
-                label:
-                  isChineseLocale(locale) ? '中等负相关 (-0.7--0.4)' : 'Moderate Negative (-0.7--0.4)',
+                label: isChineseLocale(locale)
+                  ? '中等负相关 (-0.7--0.4)'
+                  : 'Moderate Negative (-0.7--0.4)',
               },
               {
                 color: CORRELATION_COLORS.strongNegative,
-                label: isChineseLocale(locale) ? '强负相关 (-1.0--0.7)' : 'Strong Negative (-1.0--0.7)',
+                label: isChineseLocale(locale)
+                  ? '强负相关 (-1.0--0.7)'
+                  : 'Strong Negative (-1.0--0.7)',
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
@@ -342,7 +349,9 @@ export default function CorrelationMatrix({
               {isChineseLocale(locale) ? '相关性详情' : 'Correlation Details'}
             </h4>
             <p className="text-xs text-gray-500 mt-1">
-              {isChineseLocale(locale) ? `数据范围: ${data.timeRange}` : `Time Range: ${data.timeRange}`}
+              {isChineseLocale(locale)
+                ? `数据范围: ${data.timeRange}`
+                : `Time Range: ${data.timeRange}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -354,7 +363,9 @@ export default function CorrelationMatrix({
               <option value="correlation">
                 {isChineseLocale(locale) ? '按相关性排序' : 'Sort by Correlation'}
               </option>
-              <option value="name">{isChineseLocale(locale) ? '按名称排序' : 'Sort by Name'}</option>
+              <option value="name">
+                {isChineseLocale(locale) ? '按名称排序' : 'Sort by Name'}
+              </option>
             </select>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Search,
@@ -24,6 +24,7 @@ import {
   Line,
 } from 'recharts';
 import { chartColors } from '@/lib/config/colors';
+import { useRoutePrefetch } from '@/hooks';
 
 interface FeatureCard {
   id: string;
@@ -171,6 +172,19 @@ function MiniChart({
 export default function FeatureCards() {
   const t = useTranslations();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const { prefetchRoute } = useRoutePrefetch({ enabled: true, prefetchOnMount: false });
+
+  const handleMouseEnter = useCallback(
+    (featureId: string, href: string) => {
+      setHoveredCard(featureId);
+      prefetchRoute(href);
+    },
+    [prefetchRoute]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredCard(null);
+  }, []);
 
   return (
     <section className="py-12 sm:py-16 bg-white border-t border-slate-200">
@@ -204,8 +218,8 @@ export default function FeatureCards() {
                   transition-colors duration-200
                   ${isHovered ? 'border-gray-400' : ''}
                 `}
-                onMouseEnter={() => setHoveredCard(feature.id)}
-                onMouseLeave={() => setHoveredCard(null)}
+                onMouseEnter={() => handleMouseEnter(feature.id, feature.href)}
+                onMouseLeave={handleMouseLeave}
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div

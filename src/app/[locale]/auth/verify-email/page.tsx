@@ -69,9 +69,7 @@ function VerifyEmailContent() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.verifyEmail.success.title')}
             </h2>
-            <p className="text-gray-500 mb-6">
-              {t('auth.verifyEmail.success.description')}
-            </p>
+            <p className="text-gray-500 mb-6">{t('auth.verifyEmail.success.description')}</p>
             <div className="space-y-3">
               <Link
                 href="/login"

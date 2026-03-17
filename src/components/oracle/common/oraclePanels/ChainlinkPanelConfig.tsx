@@ -237,10 +237,7 @@ const renderRiskTab = (context: PanelRenderContext): ReactNode => {
         <RiskAssessmentPanel provider={config.provider} />
       </div>
       <div className="mb-6">
-        <DataQualityPanel
-          symbol={config.symbol}
-          basePrice={config.marketData.high24h}
-        />
+        <DataQualityPanel symbol={config.symbol} basePrice={config.marketData.high24h} />
       </div>
     </>
   );

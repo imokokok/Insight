@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import {
   Line,
   XAxis,
@@ -45,7 +45,7 @@ interface LatencyTrendChartProps {
   anomalyThreshold?: number;
 }
 
-function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
+const CustomDot = memo(function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
   if (payload?.isAnomaly) {
     return (
       <Dot
@@ -68,9 +68,9 @@ function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
       strokeWidth={2}
     />
   );
-}
+});
 
-export function LatencyTrendChart({
+function LatencyTrendChartBase({
   symbol = 'ETH',
   className,
   anomalyThreshold = 200,
@@ -240,106 +240,112 @@ export function LatencyTrendChart({
 
   const stats = useLatencyStats(data);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 500);
-  };
+  }, []);
 
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<LatencyDataPoint>) => {
-    if (!active || !payload || payload.length === 0) return null;
+  const CustomTooltip = useMemo(() => {
+    const TooltipComponent = ({ active, payload, label }: TooltipProps<LatencyDataPoint>) => {
+      if (!active || !payload || payload.length === 0) return null;
 
-    const dataPoint = payload[0].payload;
-    const isDynamicAnomaly = dataPoint.latency > dynamicThreshold.threshold;
+      const dataPoint = payload[0].payload;
+      const isDynamicAnomaly = dataPoint.latency > dynamicThreshold.threshold;
 
-    return (
-      <div
-        className="p-3 min-w-[200px]"
-        style={{
-          backgroundColor: baseColors.gray[50],
-          border: `1px solid ${baseColors.gray[200]}`,
-          boxShadow: shadowColors.tooltip,
-        }}
-      >
-        <p className="text-xs font-medium mb-2" style={{ color: baseColors.gray[900] }}>
-          {label}
-        </p>
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.latency')}
-            </span>
-            <span
-              className="text-sm font-bold"
-              style={{
-                color: dataPoint.isAnomaly ? semanticColors.danger.dark : baseColors.primary[600],
-              }}
-            >
-              {dataPoint.latency} ms
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.fixedThreshold')}
-            </span>
-            <span className="text-xs" style={{ color: baseColors.gray[700] }}>
-              {anomalyThreshold} ms
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.dynamicThreshold')}
-            </span>
-            <span className="text-xs" style={{ color: semanticColors.warning.dark }}>
-              {dynamicThreshold.threshold} ms
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.baselineMA20')}
-            </span>
-            <span className="text-xs" style={{ color: semanticColors.success.dark }}>
-              {dynamicThreshold.baseline} ms
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.stdDev')}
-            </span>
-            <span className="text-xs" style={{ color: baseColors.gray[700] }}>
-              {dynamicThreshold.stdDev}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-              {t('charts.latency.status')}
-            </span>
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded"
-              style={{
-                backgroundColor: dataPoint.isAnomaly
-                  ? semanticColors.danger.light
-                  : semanticColors.success.light,
-                color: dataPoint.isAnomaly
-                  ? semanticColors.danger.text
-                  : semanticColors.success.text,
-              }}
-            >
-              {dataPoint.isAnomaly ? t('charts.latency.abnormal') : t('charts.latency.normal')}
-            </span>
-          </div>
-          {isDynamicAnomaly && (
-            <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
-              <span className="text-xs font-medium" style={{ color: semanticColors.warning.dark }}>
-                ⚠️ {t('charts.latency.exceedsDynamicThreshold')}
+      return (
+        <div
+          className="p-3 min-w-[200px]"
+          style={{
+            backgroundColor: baseColors.gray[50],
+            border: `1px solid ${baseColors.gray[200]}`,
+            boxShadow: shadowColors.tooltip,
+          }}
+        >
+          <p className="text-xs font-medium mb-2" style={{ color: baseColors.gray[900] }}>
+            {label}
+          </p>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.latency')}
+              </span>
+              <span
+                className="text-sm font-bold"
+                style={{
+                  color: dataPoint.isAnomaly ? semanticColors.danger.dark : baseColors.primary[600],
+                }}
+              >
+                {dataPoint.latency} ms
               </span>
             </div>
-          )}
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.fixedThreshold')}
+              </span>
+              <span className="text-xs" style={{ color: baseColors.gray[700] }}>
+                {anomalyThreshold} ms
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.dynamicThreshold')}
+              </span>
+              <span className="text-xs" style={{ color: semanticColors.warning.dark }}>
+                {dynamicThreshold.threshold} ms
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.baselineMA20')}
+              </span>
+              <span className="text-xs" style={{ color: semanticColors.success.dark }}>
+                {dynamicThreshold.baseline} ms
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.stdDev')}
+              </span>
+              <span className="text-xs" style={{ color: baseColors.gray[700] }}>
+                {dynamicThreshold.stdDev}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs" style={{ color: baseColors.gray[500] }}>
+                {t('charts.latency.status')}
+              </span>
+              <span
+                className="text-xs font-medium px-2 py-0.5 rounded"
+                style={{
+                  backgroundColor: dataPoint.isAnomaly
+                    ? semanticColors.danger.light
+                    : semanticColors.success.light,
+                  color: dataPoint.isAnomaly
+                    ? semanticColors.danger.text
+                    : semanticColors.success.text,
+                }}
+              >
+                {dataPoint.isAnomaly ? t('charts.latency.abnormal') : t('charts.latency.normal')}
+              </span>
+            </div>
+            {isDynamicAnomaly && (
+              <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${baseColors.gray[100]}` }}>
+                <span
+                  className="text-xs font-medium"
+                  style={{ color: semanticColors.warning.dark }}
+                >
+                  ⚠️ {t('charts.latency.exceedsDynamicThreshold')}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    };
+    return TooltipComponent;
+  }, [dynamicThreshold, anomalyThreshold, t]);
 
-  const renderAnomalyAreas = () => {
+  const renderAnomalyAreas = useCallback(() => {
     return stats.anomalyPeriods.map((period, index) => (
       <ReferenceArea
         key={index}
@@ -351,7 +357,7 @@ export function LatencyTrendChart({
         fillOpacity={0.5}
       />
     ));
-  };
+  }, [stats.anomalyPeriods, data, anomalyThreshold, maxLatency]);
 
   return (
     <DashboardCard
@@ -789,3 +795,18 @@ export function LatencyTrendChart({
     </DashboardCard>
   );
 }
+
+function arePropsEqual(
+  prevProps: LatencyTrendChartProps,
+  nextProps: LatencyTrendChartProps
+): boolean {
+  return (
+    prevProps.symbol === nextProps.symbol &&
+    prevProps.className === nextProps.className &&
+    prevProps.anomalyThreshold === nextProps.anomalyThreshold
+  );
+}
+
+const LatencyTrendChart = memo(LatencyTrendChartBase, arePropsEqual);
+
+export { LatencyTrendChart };

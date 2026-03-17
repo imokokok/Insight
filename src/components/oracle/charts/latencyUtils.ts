@@ -128,7 +128,10 @@ export function generatePredictions(
   });
 }
 
-export function calculatePredictionAccuracy(actual: number[], predicted: number[]): PredictionAccuracy {
+export function calculatePredictionAccuracy(
+  actual: number[],
+  predicted: number[]
+): PredictionAccuracy {
   if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
     return { mae: 0, rmse: 0, mape: 0 };
   }

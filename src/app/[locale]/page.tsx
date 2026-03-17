@@ -1,12 +1,29 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import ProfessionalHero from './home-components/ProfessionalHero';
-import LivePriceTicker from './home-components/LivePriceTicker';
-import BentoMetricsGrid from './home-components/BentoMetricsGrid';
+import {
+  HeroSkeleton,
+  LivePriceTickerSkeleton,
+  BentoGridSkeleton,
+  CTASkeleton,
+} from '@/components/ui/ChartSkeleton';
 import OracleMarketOverviewSkeleton from './home-components/OracleMarketOverviewSkeleton';
 import ArbitrageHeatmapSkeleton from './home-components/ArbitrageHeatmapSkeleton';
-import ProfessionalCTA from './home-components/ProfessionalCTA';
+
+const ProfessionalHero = dynamic(() => import('./home-components/ProfessionalHero'), {
+  loading: () => <HeroSkeleton />,
+  ssr: true,
+});
+
+const LivePriceTicker = dynamic(() => import('./home-components/LivePriceTicker'), {
+  loading: () => <LivePriceTickerSkeleton />,
+  ssr: false,
+});
+
+const BentoMetricsGrid = dynamic(() => import('./home-components/BentoMetricsGrid'), {
+  loading: () => <BentoGridSkeleton />,
+  ssr: false,
+});
 
 const OracleMarketOverview = dynamic(() => import('./home-components/OracleMarketOverview'), {
   loading: () => <OracleMarketOverviewSkeleton />,
@@ -18,15 +35,30 @@ const ArbitrageHeatmap = dynamic(() => import('./home-components/ArbitrageHeatma
   ssr: false,
 });
 
+const ProfessionalCTA = dynamic(() => import('./home-components/ProfessionalCTA'), {
+  loading: () => <CTASkeleton />,
+  ssr: false,
+});
+
 export default function Home() {
   return (
     <main className="min-h-screen">
       <ProfessionalHero />
-      <LivePriceTicker />
-      <BentoMetricsGrid />
-      <OracleMarketOverview />
-      <ArbitrageHeatmap />
-      <ProfessionalCTA />
+      <div className="non-critical-content">
+        <LivePriceTicker />
+      </div>
+      <div className="non-critical-content">
+        <BentoMetricsGrid />
+      </div>
+      <div className="non-critical-content">
+        <OracleMarketOverview />
+      </div>
+      <div className="non-critical-content">
+        <ArbitrageHeatmap />
+      </div>
+      <div className="non-critical-content">
+        <ProfessionalCTA />
+      </div>
     </main>
   );
 }

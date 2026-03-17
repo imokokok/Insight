@@ -53,7 +53,11 @@ export default function MarketOverviewPage() {
   }, []);
 
   const chartTypes = [
-    { key: 'pie', label: isChineseLocale(locale) ? '市场份额' : 'Market Share', icon: PieChartIcon },
+    {
+      key: 'pie',
+      label: isChineseLocale(locale) ? '市场份额' : 'Market Share',
+      icon: PieChartIcon,
+    },
     { key: 'trend', label: isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend', icon: TrendingUp },
     { key: 'bar', label: isChineseLocale(locale) ? '链支持' : 'Chain Support', icon: BarChart3 },
     { key: 'chain', label: isChineseLocale(locale) ? '链分布' : 'Chain Breakdown', icon: Network },

@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { priceKeys } from '@/lib/queries/queryKeys';
+import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 interface PricePoint {
   timestamp: number;
@@ -15,7 +17,7 @@ interface PriceHistoryParams {
 
 export function usePriceHistory(params: PriceHistoryParams) {
   return useQuery<PricePoint[]>({
-    queryKey: ['price-history', params],
+    queryKey: priceKeys.history(params),
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       searchParams.set('symbol', params.symbol);
@@ -33,6 +35,7 @@ export function usePriceHistory(params: PriceHistoryParams) {
       return data.history || [];
     },
     enabled: !!params.symbol,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME_CONFIG.history,
+    gcTime: GC_TIME_CONFIG.history,
   });
 }

@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { oracleKeys } from '@/lib/queries/queryKeys';
+import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
 
 interface OracleData {
   provider: string;
@@ -18,7 +20,7 @@ interface OracleDataParams {
 
 export function useOracleData(params: OracleDataParams = {}) {
   return useQuery<OracleData | OracleData[]>({
-    queryKey: ['oracle-data', params],
+    queryKey: oracleKeys.list(params),
     queryFn: async () => {
       const url = params.provider ? `/api/oracles/${params.provider}` : '/api/oracles';
 
@@ -30,6 +32,7 @@ export function useOracleData(params: OracleDataParams = {}) {
 
       return response.json();
     },
-    staleTime: 60 * 1000,
+    staleTime: STALE_TIME_CONFIG.network,
+    gcTime: GC_TIME_CONFIG.network,
   });
 }

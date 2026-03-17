@@ -24,6 +24,15 @@ export interface WebSocketMessage<T = unknown> {
   timestamp: number;
 }
 
+export interface PerformanceMetrics {
+  connectionLatency: number;
+  messageProcessingTime: number;
+  messagesPerSecond: number;
+  lastMessageTimestamp: number;
+  averageBatchSize: number;
+  throttleCount: number;
+}
+
 export interface WebSocketConfig {
   url: string;
   reconnectInterval?: number;
@@ -31,9 +40,19 @@ export interface WebSocketConfig {
   heartbeatInterval?: number;
   heartbeatTimeout?: number;
   useExponentialBackoff?: boolean;
+  batchSize?: number;
+  batchWindowMs?: number;
+  throttleMs?: number;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (error: Error) => void;
+  onPerformanceMetrics?: (metrics: PerformanceMetrics) => void;
+}
+
+interface BatchedUpdate {
+  channel: string;
+  messages: WebSocketMessage[];
+  firstTimestamp: number;
 }
 
 export type MessageHandler<T = unknown> = (message: WebSocketMessage<T>) => void;
@@ -41,10 +60,14 @@ export type StatusHandler = (status: WebSocketStatus) => void;
 
 export default class WebSocketManager {
   protected ws: WebSocket | null = null;
-  protected config: Omit<Required<WebSocketConfig>, 'onConnect' | 'onDisconnect' | 'onError'> & {
+  protected config: Omit<
+    Required<WebSocketConfig>,
+    'onConnect' | 'onDisconnect' | 'onError' | 'onPerformanceMetrics'
+  > & {
     onConnect?: () => void;
     onDisconnect?: () => void;
     onError?: (error: Error) => void;
+    onPerformanceMetrics?: (metrics: PerformanceMetrics) => void;
   };
   protected status: WebSocketStatus = 'disconnected';
   protected reconnectAttempts = 0;
@@ -56,23 +79,142 @@ export default class WebSocketManager {
   protected subscribedChannels: Set<string> = new Set();
   protected messageQueue: string[] = [];
 
+  protected batchedUpdates: Map<string, BatchedUpdate> = new Map();
+  protected batchTimer: NodeJS.Timeout | null = null;
+  protected lastProcessTime: Map<string, number> = new Map();
+  protected performanceMetrics: PerformanceMetrics = {
+    connectionLatency: 0,
+    messageProcessingTime: 0,
+    messagesPerSecond: 0,
+    lastMessageTimestamp: 0,
+    averageBatchSize: 0,
+    throttleCount: 0,
+  };
+  protected messageCountWindow: number[] = [];
+  protected connectionStartTime: number = 0;
+  protected totalMessagesProcessed = 0;
+  protected totalBatchesProcessed = 0;
+
   constructor(config: WebSocketConfig) {
     this.config = {
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
       heartbeatInterval: 30000,
       heartbeatTimeout: 10000,
-      useExponentialBackoff: false,
+      useExponentialBackoff: true,
+      batchSize: 10,
+      batchWindowMs: 100,
+      throttleMs: 100,
       ...config,
     };
   }
 
-  // 获取当前状态
   getStatus(): WebSocketStatus {
     return this.status;
   }
 
-  // 连接 WebSocket
+  getPerformanceMetrics(): PerformanceMetrics {
+    return { ...this.performanceMetrics };
+  }
+
+  protected updatePerformanceMetrics(processingTime: number, batchSize: number): void {
+    const now = Date.now();
+    this.messageCountWindow.push(now);
+
+    const oneSecondAgo = now - 1000;
+    this.messageCountWindow = this.messageCountWindow.filter((t) => t > oneSecondAgo);
+
+    this.totalMessagesProcessed += batchSize;
+    this.totalBatchesProcessed++;
+
+    this.performanceMetrics = {
+      connectionLatency: this.performanceMetrics.connectionLatency,
+      messageProcessingTime: processingTime,
+      messagesPerSecond: this.messageCountWindow.length,
+      lastMessageTimestamp: now,
+      averageBatchSize: this.totalMessagesProcessed / this.totalBatchesProcessed,
+      throttleCount: this.performanceMetrics.throttleCount,
+    };
+
+    this.config.onPerformanceMetrics?.(this.performanceMetrics);
+  }
+
+  protected shouldThrottle(channel: string): boolean {
+    const now = Date.now();
+    const lastTime = this.lastProcessTime.get(channel) || 0;
+    return now - lastTime < this.config.throttleMs;
+  }
+
+  protected addToBatch(message: WebSocketMessage): void {
+    const channel = message.channel;
+    const now = Date.now();
+
+    if (!this.batchedUpdates.has(channel)) {
+      this.batchedUpdates.set(channel, {
+        channel,
+        messages: [],
+        firstTimestamp: now,
+      });
+    }
+
+    const batch = this.batchedUpdates.get(channel)!;
+    batch.messages.push(message);
+
+    if (batch.messages.length >= this.config.batchSize) {
+      this.flushBatch(channel);
+      return;
+    }
+
+    if (!this.batchTimer) {
+      this.batchTimer = setTimeout(() => {
+        this.flushAllBatches();
+      }, this.config.batchWindowMs);
+    }
+  }
+
+  protected flushBatch(channel: string): void {
+    const batch = this.batchedUpdates.get(channel);
+    if (!batch || batch.messages.length === 0) return;
+
+    const startTime = performance.now();
+
+    const handlers = this.messageHandlers.get(channel);
+    if (handlers) {
+      const latestMessage = batch.messages[batch.messages.length - 1];
+      handlers.forEach((handler) => {
+        try {
+          handler(latestMessage);
+        } catch (error) {
+          logger.error('Error in message handler', error as Error);
+        }
+      });
+    }
+
+    const processingTime = performance.now() - startTime;
+    this.updatePerformanceMetrics(processingTime, batch.messages.length);
+
+    this.lastProcessTime.set(channel, Date.now());
+    this.batchedUpdates.delete(channel);
+
+    logger.debug(
+      `Batch processed for channel ${channel}: ${batch.messages.length} messages in ${processingTime.toFixed(2)}ms`
+    );
+  }
+
+  protected flushAllBatches(): void {
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer);
+      this.batchTimer = null;
+    }
+
+    const channels = Array.from(this.batchedUpdates.keys());
+    channels.forEach((channel) => this.flushBatch(channel));
+  }
+
+  protected recordThrottle(): void {
+    this.performanceMetrics.throttleCount++;
+  }
+
   connect(): void {
     if (!this.config.url) {
       throw new Error(
@@ -86,12 +228,16 @@ export default class WebSocketManager {
     }
 
     this.setStatus('connecting');
+    this.connectionStartTime = Date.now();
 
     try {
       this.ws = new WebSocket(this.config.url);
 
       this.ws.onopen = () => {
-        logger.info('WebSocket connected');
+        const connectionLatency = Date.now() - this.connectionStartTime;
+        this.performanceMetrics.connectionLatency = connectionLatency;
+
+        logger.info(`WebSocket connected in ${connectionLatency}ms`);
         this.setStatus('connected');
         this.reconnectAttempts = 0;
         this.startHeartbeat();
@@ -108,6 +254,7 @@ export default class WebSocketManager {
         logger.warn('WebSocket closed');
         this.setStatus('disconnected');
         this.stopHeartbeat();
+        this.flushAllBatches();
         this.config.onDisconnect?.();
         this.attemptReconnect();
       };
@@ -127,10 +274,15 @@ export default class WebSocketManager {
     }
   }
 
-  // 断开连接
   disconnect(): void {
     this.stopHeartbeat();
     this.clearReconnectTimer();
+    this.flushAllBatches();
+
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer);
+      this.batchTimer = null;
+    }
 
     if (this.ws) {
       this.ws.close();
@@ -219,28 +371,23 @@ export default class WebSocketManager {
     this.statusHandlers.forEach((handler) => handler(status));
   }
 
-  // 保护方法：处理消息
   protected handleMessage(data: string): void {
     try {
       const message: WebSocketMessage = JSON.parse(data);
 
-      // 处理心跳响应
       if (message.type === 'pong') {
         this.handlePong();
         return;
       }
 
-      // 分发到对应的处理器
-      const handlers = this.messageHandlers.get(message.channel);
-      if (handlers) {
-        handlers.forEach((handler) => {
-          try {
-            handler(message);
-          } catch (error) {
-            logger.error('Error in message handler', error as Error);
-          }
-        });
+      const channel = message.channel;
+
+      if (this.shouldThrottle(channel)) {
+        this.recordThrottle();
+        logger.debug(`Message throttled for channel: ${channel}`);
       }
+
+      this.addToBatch(message);
     } catch (error) {
       logger.error('Failed to parse WebSocket message', error as Error);
     }
@@ -286,7 +433,6 @@ export default class WebSocketManager {
     }
   }
 
-  // 保护方法：尝试重连
   protected attemptReconnect(): void {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
       logger.error('Max reconnect attempts reached');
@@ -302,7 +448,7 @@ export default class WebSocketManager {
       : this.config.reconnectInterval;
 
     logger.info(
-      `Reconnecting in ${delay}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}`
+      `Reconnecting in ${delay}ms... Attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts} (exponential backoff: ${this.config.useExponentialBackoff})`
     );
 
     this.reconnectTimer = setTimeout(() => {
@@ -454,19 +600,15 @@ export class MockWebSocketManager extends WebSocketManager {
             timestamp: Date.now(),
           };
 
-          const handlers = this.messageHandlers.get(channel);
-          if (handlers) {
-            handlers.forEach((handler) => {
-              try {
-                handler(mockMessage);
-              } catch (error) {
-                logger.error('Error in mock message handler', error as Error);
-              }
-            });
+          if (this.shouldThrottle(channel)) {
+            this.recordThrottle();
+            logger.debug(`Mock message throttled for channel: ${channel}`);
           }
+
+          this.addToBatch(mockMessage);
         }
       });
-    }, 2000); // 每2秒推送一次模拟数据
+    }, 2000);
   }
 
   private stopMockDataStream(): void {
@@ -486,22 +628,41 @@ export interface UseWebSocketOptions {
   channels?: string[];
   autoConnect?: boolean;
   useMock?: boolean;
+  onPerformanceMetrics?: (metrics: PerformanceMetrics) => void;
 }
 
 export function createWebSocketHook(defaultConfig: WebSocketConfig) {
   return function useWebSocket<T = unknown>(options: UseWebSocketOptions = {}) {
-    const { url = defaultConfig.url, channels = [], autoConnect = true, useMock = false } = options;
+    const {
+      url = defaultConfig.url,
+      channels = [],
+      autoConnect = true,
+      useMock = false,
+      onPerformanceMetrics,
+    } = options;
 
     const managerRef = useRef<WebSocketManager | null>(null);
     const [status, setStatus] = useState<WebSocketStatus>('disconnected');
     const [lastMessage, setLastMessage] = useState<WebSocketMessage<T> | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>({
+      connectionLatency: 0,
+      messageProcessingTime: 0,
+      messagesPerSecond: 0,
+      lastMessageTimestamp: 0,
+      averageBatchSize: 0,
+      throttleCount: 0,
+    });
 
     useEffect(() => {
       const ManagerClass = useMock ? MockWebSocketManager : WebSocketManager;
       managerRef.current = new ManagerClass({
         ...defaultConfig,
         url,
+        onPerformanceMetrics: (metrics) => {
+          setPerformanceMetrics(metrics);
+          onPerformanceMetrics?.(metrics);
+        },
       });
 
       const unsubscribeStatus = managerRef.current.onStatusChange((newStatus) => {
@@ -516,7 +677,7 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
         unsubscribeStatus();
         managerRef.current?.disconnect();
       };
-    }, [url, autoConnect, useMock]);
+    }, [url, autoConnect, useMock, onPerformanceMetrics]);
 
     useEffect(() => {
       if (!managerRef.current || channels.length === 0) return;
@@ -556,15 +717,21 @@ export function createWebSocketHook(defaultConfig: WebSocketConfig) {
       return managerRef.current?.subscribe(channel, handler as MessageHandler);
     }, []);
 
+    const getPerformanceMetrics = useCallback(() => {
+      return managerRef.current?.getPerformanceMetrics() || performanceMetrics;
+    }, [performanceMetrics]);
+
     return {
       status,
       lastMessage,
       lastUpdated,
+      performanceMetrics,
       connect,
       disconnect,
       reconnect,
       send,
       subscribe,
+      getPerformanceMetrics,
       isConnected: status === 'connected',
       isConnecting: status === 'connecting',
       isReconnecting: status === 'reconnecting',
@@ -584,4 +751,8 @@ export const useWebSocket = createWebSocketHook({
   maxReconnectAttempts: 5,
   heartbeatInterval: 30000,
   heartbeatTimeout: 10000,
+  useExponentialBackoff: true,
+  batchSize: 10,
+  batchWindowMs: 100,
+  throttleMs: 100,
 });

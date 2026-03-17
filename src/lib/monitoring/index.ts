@@ -1,5 +1,15 @@
 import * as Sentry from '@sentry/nextjs';
 import type { User } from '@supabase/supabase-js';
+import {
+  initWebVitals,
+  onMetric,
+  reportMetric,
+  reportCustomMetric,
+  getPerformanceScore,
+  PERFORMANCE_THRESHOLDS,
+  type WebVitalMetric,
+  type MetricName,
+} from './webVitals';
 
 type SentryUser = {
   id: string;
@@ -56,3 +66,14 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
     Sentry.addBreadcrumb(breadcrumb);
   }
 };
+
+export {
+  initWebVitals,
+  onMetric,
+  reportMetric,
+  reportCustomMetric,
+  getPerformanceScore,
+  PERFORMANCE_THRESHOLDS,
+};
+
+export type { WebVitalMetric, MetricName };

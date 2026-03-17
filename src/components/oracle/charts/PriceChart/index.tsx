@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import {
   ComposedChart,
   Line,
@@ -24,7 +24,13 @@ import { Blockchain } from '@/types/oracle';
 import { TimeRange } from '../../common/TabNavigation';
 import { AnomalyMarker } from '../../common/AnomalyMarker';
 import { ChartExportData } from '@/utils/chartExport';
-import { downsampleData } from '@/utils/downsampling';
+import {
+  downsampleData,
+  shouldDownsample,
+  getDownsamplingMetrics,
+  AdaptiveDownsampleConfig,
+  DataPoint,
+} from '@/utils/downsampling';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { createLogger } from '@/lib/utils/logger';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
@@ -72,9 +78,11 @@ interface PriceChartProps {
   showToolbar?: boolean;
   defaultPrice?: number;
   enableRealtime?: boolean;
+  downsamplingConfig?: AdaptiveDownsampleConfig;
+  autoDownsample?: boolean;
 }
 
-export function PriceChart({
+function PriceChartBase({
   client,
   symbol,
   chain,
@@ -82,6 +90,8 @@ export function PriceChart({
   showToolbar = true,
   defaultPrice,
   enableRealtime = true,
+  downsamplingConfig,
+  autoDownsample = true,
 }: PriceChartProps) {
   const t = useTranslations();
   const screenSize = useScreenSize();
@@ -222,7 +232,8 @@ export function PriceChart({
           price: newPrice,
           volume: lastPoint.volume * (0.9 + Math.random() * 0.2),
           open: lastPoint.close || lastPoint.price,
-          high: Math.max(lastPoint.close || lastPoint.price, newPrice) * (1 + Math.random() * 0.005),
+          high:
+            Math.max(lastPoint.close || lastPoint.price, newPrice) * (1 + Math.random() * 0.005),
           low: Math.min(lastPoint.close || lastPoint.price, newPrice) * (1 - Math.random() * 0.005),
           close: newPrice,
         };
@@ -244,6 +255,44 @@ export function PriceChart({
       enabled: isUMAClient && realtimeEnabled,
       onPriceUpdate: handlePriceUpdate,
     });
+
+  const applyDownsampling = useCallback(
+    (data: DataPoint[]) => {
+      if (!autoDownsample) {
+        return data;
+      }
+
+      const dataLength = data.length;
+      if (!shouldDownsample(dataLength, 500)) {
+        logger.debug('Data size within limits, skipping downsampling', {
+          dataLength,
+          threshold: 500,
+        });
+        return data;
+      }
+
+      const startTime = performance.now();
+      const downsampled = downsampleData(data, {
+        preservePeaks: true,
+        preserveTrends: true,
+        ...downsamplingConfig,
+      });
+      const processingTime = performance.now() - startTime;
+
+      const metrics = getDownsamplingMetrics(dataLength, downsampled.length, processingTime);
+
+      logger.info('Downsampling applied', {
+        originalPoints: dataLength,
+        downsampledPoints: downsampled.length,
+        compressionRatio: `${metrics.compressionRatio.toFixed(1)}%`,
+        processingTime: `${processingTime.toFixed(2)}ms`,
+        efficiency: metrics.efficiency,
+      });
+
+      return downsampled;
+    },
+    [autoDownsample, downsamplingConfig]
+  );
 
   const fetchData = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -276,17 +325,11 @@ export function PriceChart({
         };
         const historicalPoints = await bandClient.getHistoricalBandPrices(periodMap[timeRange]);
         const chartData = convertHistoricalPricePoints(historicalPoints);
-        const downsampledData = downsampleData(chartData, {
-          preservePeaks: true,
-          preserveTrends: true,
-        });
+        const downsampledData = applyDownsampling(chartData);
         setRawData(downsampledData);
       } else {
         const historicalData = generateHistoricalData(priceData.price, timeRange);
-        const downsampledData = downsampleData(historicalData, {
-          preservePeaks: true,
-          preserveTrends: true,
-        });
+        const downsampledData = applyDownsampling(historicalData);
         setRawData(downsampledData);
       }
     } catch (error) {
@@ -299,7 +342,7 @@ export function PriceChart({
       const fallbackPrice = defaultPrice || 100;
       setCurrentPrice(fallbackPrice);
       const fallbackData = generateHistoricalData(fallbackPrice, timeRange);
-      setRawData(downsampleData(fallbackData, { preservePeaks: true, preserveTrends: true }));
+      setRawData(applyDownsampling(fallbackData));
     } finally {
       if (!abortController.signal.aborted) {
         setLoading(false);
@@ -320,6 +363,7 @@ export function PriceChart({
     setLoading,
     setCurrentPrice,
     setRawData,
+    applyDownsampling,
   ]);
 
   const fetchComparisonData = useCallback(async () => {
@@ -355,10 +399,8 @@ export function PriceChart({
         const period1Data = convertHistoricalPricePoints(period1Points, false);
         const period2Data = convertHistoricalPricePoints(period2Points, true);
 
-        setRawData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
-        setComparisonData(
-          downsampleData(period2Data, { preservePeaks: true, preserveTrends: true })
-        );
+        setRawData(applyDownsampling(period1Data));
+        setComparisonData(applyDownsampling(period2Data));
       } else {
         const period1Data = generateDataWithGranularity(
           priceData.price,
@@ -373,12 +415,9 @@ export function PriceChart({
           granularity
         );
 
-        setRawData(downsampleData(period1Data, { preservePeaks: true, preserveTrends: true }));
+        setRawData(applyDownsampling(period1Data));
         setComparisonData(
-          downsampleData(
-            period2Data.map((d) => ({ ...d, isComparison: true })),
-            { preservePeaks: true, preserveTrends: true }
-          )
+          applyDownsampling(period2Data.map((d) => ({ ...d, isComparison: true })))
         );
       }
     } catch (error) {
@@ -400,6 +439,7 @@ export function PriceChart({
     setCurrentPrice,
     setRawData,
     setComparisonData,
+    applyDownsampling,
   ]);
 
   useEffect(() => {
@@ -565,12 +605,16 @@ export function PriceChart({
           onTogglePredictionInterval={() =>
             updateChartSettings({ showPredictionInterval: !showPredictionInterval })
           }
-          onConfidenceLevelChange={(level) => updateChartSettings({ confidenceLevel: level as ConfidenceLevel })}
+          onConfidenceLevelChange={(level) =>
+            updateChartSettings({ confidenceLevel: level as ConfidenceLevel })
+          }
           onShowAnomalyStats={() => setShowAnomalyStats(!showAnomalyStats)}
           isMobile={isMobile}
           isUMAClient={isUMAClient}
           realtimeEnabled={realtimeEnabled}
-          umaConnectionStatus={umaConnectionStatus as 'connected' | 'connecting' | 'reconnecting' | 'disconnected'}
+          umaConnectionStatus={
+            umaConnectionStatus as 'connected' | 'connecting' | 'reconnecting' | 'disconnected'
+          }
           umaRealtimePrice={umaRealtimePrice}
         />
       )}
@@ -1203,5 +1247,23 @@ export function PriceChart({
     </div>
   );
 }
+
+function arePropsEqual(prevProps: PriceChartProps, nextProps: PriceChartProps): boolean {
+  return (
+    prevProps.client === nextProps.client &&
+    prevProps.symbol === nextProps.symbol &&
+    prevProps.chain === nextProps.chain &&
+    prevProps.height === nextProps.height &&
+    prevProps.showToolbar === nextProps.showToolbar &&
+    prevProps.defaultPrice === nextProps.defaultPrice &&
+    prevProps.enableRealtime === nextProps.enableRealtime &&
+    prevProps.autoDownsample === nextProps.autoDownsample &&
+    prevProps.downsamplingConfig === nextProps.downsamplingConfig
+  );
+}
+
+const PriceChart = memo(PriceChartBase, arePropsEqual);
+
+export { PriceChart };
 
 export { PriceChart as default };
