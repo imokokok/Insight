@@ -325,7 +325,7 @@ export default function ProfessionalHero() {
             </p>
 
             {/* 搜索框区域 */}
-            <div className="max-w-2xl mx-auto mb-4" ref={dropdownRef}>
+            <div className="relative max-w-2xl mx-auto mb-4 z-[100]" ref={dropdownRef}>
               <form
                 onSubmit={handleSubmit}
                 className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border transition-all duration-300 ease-out overflow-visible ${
