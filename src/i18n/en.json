@@ -1334,6 +1334,12 @@
       "results": "Showing {count} / {total} results",
       "noResults": "No matching results found"
     },
+    "noResults": {
+      "title": "No price data found for \"{symbol}\"",
+      "description": "This token may not exist or is not currently supported by any oracle",
+      "suggestion": "Please check the token symbol or try searching for popular tokens below",
+      "popularTokens": "Popular Tokens"
+    },
     "selectors": {
       "symbol": "Trading Pair",
       "oracle": "Oracle",

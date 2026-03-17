@@ -39,8 +39,8 @@ import {
   DataQualityPanel,
 } from './components';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
-import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import { createLogger } from '@/lib/utils/logger';
+import { Search, TrendingUp } from 'lucide-react';
 import { exportToCSV, exportToJSON, exportToPDF } from './utils/exportUtils';
 
 const logger = createLogger('price-query-page');
@@ -712,7 +712,45 @@ export default function PriceQueryPage() {
               <ChartSkeleton height={300} variant="price" showToolbar={true} />
             </div>
           ) : queryResults.length === 0 ? (
-            <NoDataEmptyState onRefresh={fetchQueryData} />
+            <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white border border-gray-200">
+              <div className="w-20 h-20 mb-6 bg-gray-50 flex items-center justify-center rounded-full">
+                <Search className="w-10 h-10 text-gray-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {t('priceQuery.noResults.title', { symbol: selectedSymbol })}
+              </h3>
+              <p className="text-sm text-gray-500 max-w-md mb-2">
+                {t('priceQuery.noResults.description')}
+              </p>
+              <p className="text-xs text-gray-400 mb-8">
+                {t('priceQuery.noResults.suggestion')}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <button
+                  onClick={fetchQueryData}
+                  className="px-6 py-2.5 bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors"
+                >
+                  {t('common.refresh')}
+                </button>
+              </div>
+              <div className="mt-10 pt-8 border-t border-gray-100 w-full max-w-md">
+                <p className="text-xs text-gray-400 mb-4 flex items-center justify-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  {t('priceQuery.noResults.popularTokens')}
+                </p>
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI'].map((token) => (
+                    <button
+                      key={token}
+                      onClick={() => setSelectedSymbol(token)}
+                      className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-200 hover:border-emerald-200 transition-all duration-200"
+                    >
+                      {token}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-6">
               <StatsGrid

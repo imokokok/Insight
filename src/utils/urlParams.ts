@@ -41,9 +41,8 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   const symbolParam = params.get('symbol');
   if (symbolParam) {
     const upperSymbol = symbolParam.trim().toUpperCase();
-    if (VALID_SYMBOLS.includes(upperSymbol)) {
-      result.symbol = upperSymbol;
-    }
+    // 允许任意币种代码，不限于预定义列表
+    result.symbol = upperSymbol;
   }
 
   const timeRangeParam = params.get('timeRange');

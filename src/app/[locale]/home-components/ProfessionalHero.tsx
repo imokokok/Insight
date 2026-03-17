@@ -22,6 +22,7 @@ import {
   getSearchHistory,
   saveSearchHistory,
   clearSearchHistory,
+  removeFromSearchHistory,
   SearchHistoryItem,
 } from '@/lib/utils/searchHistory';
 import HeroBackground from './HeroBackground';
@@ -218,6 +219,13 @@ export default function ProfessionalHero() {
     setSearchHistory([]);
   };
 
+  // 删除单条搜索历史
+  const handleRemoveHistoryItem = (symbol: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeFromSearchHistory(symbol);
+    setSearchHistory(getSearchHistory());
+  };
+
   // 高亮匹配文字
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
@@ -363,16 +371,18 @@ export default function ProfessionalHero() {
                     {/* 建议列表 */}
                     <div className="max-h-64 overflow-y-auto">
                       {dropdownItems.map((item, index) => (
-                        <button
+                        <div
                           key={`${item.type}-${item.symbol}`}
-                          type="button"
-                          onClick={() => handleSearch(item.symbol)}
                           onMouseEnter={() => setHighlightedIndex(index)}
                           className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
                             index === highlightedIndex ? 'bg-emerald-50' : 'hover:bg-gray-50'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleSearch(item.symbol)}
+                            className="flex-1 flex items-center gap-3 text-left"
+                          >
                             {item.type === 'history' && <Clock className="w-4 h-4 text-gray-400" />}
                             {item.type === 'popular' && (
                               <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -386,9 +396,21 @@ export default function ProfessionalHero() {
                                 热门
                               </span>
                             )}
+                          </button>
+                          <div className="flex items-center gap-2">
+                            {item.type === 'history' && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleRemoveHistoryItem(item.symbol, e)}
+                                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                title="删除此记录"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <ChevronRight className="w-4 h-4 text-gray-300" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-300" />
-                        </button>
+                        </div>
                       ))}
                     </div>
 
