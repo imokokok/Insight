@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ScheduledExport } from '../types';
 import { useTranslations } from 'next-intl';
 import { Calendar, Mail, Trash2, Plus, Check, Repeat } from 'lucide-react';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 interface ScheduledExportConfigProps {
   schedules: ScheduledExport[];
@@ -105,24 +106,21 @@ export default function ScheduledExportConfig({
               className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="grid grid-cols-2 gap-2">
-              <select
+              <SegmentedControl
+                options={[
+                  { value: 'daily', label: t('marketOverview.scheduledExport.frequency.daily') },
+                  { value: 'weekly', label: t('marketOverview.scheduledExport.frequency.weekly') },
+                  { value: 'monthly', label: t('marketOverview.scheduledExport.frequency.monthly') },
+                ]}
                 value={newSchedule.frequency}
-                onChange={(e) =>
+                onChange={(value) =>
                   setNewSchedule({
                     ...newSchedule,
-                    frequency: e.target.value as ScheduledExport['frequency'],
+                    frequency: value as ScheduledExport['frequency'],
                   })
                 }
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="daily">{t('marketOverview.scheduledExport.frequency.daily')}</option>
-                <option value="weekly">
-                  {t('marketOverview.scheduledExport.frequency.weekly')}
-                </option>
-                <option value="monthly">
-                  {t('marketOverview.scheduledExport.frequency.monthly')}
-                </option>
-              </select>
+                size="sm"
+              />
               <input
                 type="time"
                 value={newSchedule.time}
@@ -138,20 +136,21 @@ export default function ScheduledExportConfig({
               className="w-full px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex gap-2">
-              <select
+              <SegmentedControl
+                options={[
+                  { value: 'csv', label: 'CSV' },
+                  { value: 'json', label: 'JSON' },
+                  { value: 'xlsx', label: 'Excel' },
+                ]}
                 value={newSchedule.format}
-                onChange={(e) =>
+                onChange={(value) =>
                   setNewSchedule({
                     ...newSchedule,
-                    format: e.target.value as ScheduledExport['format'],
+                    format: value as ScheduledExport['format'],
                   })
                 }
-                className="px-2 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="csv">CSV</option>
-                <option value="json">JSON</option>
-                <option value="xlsx">Excel</option>
-              </select>
+                size="sm"
+              />
             </div>
             <div className="flex gap-2">
               <button

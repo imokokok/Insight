@@ -22,6 +22,7 @@ import {
   calculateBollingerBands,
   calculateRollingStdDev,
 } from '@/lib/indicators';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 export interface PriceDataPoint {
   timestamp: number;
@@ -234,18 +235,15 @@ export function MovingAverageChart({
               <span className="text-sm" style={{ color: baseColors.gray[600] }}>
                 {t('charts.movingAverage.oracle')}:
               </span>
-              <select
+              <DropdownSelect
+                options={data.map((oracleData) => ({
+                  value: oracleData.oracle,
+                  label: oracleNames[oracleData.oracle],
+                }))}
                 value={selectedOracle}
-                onChange={(e) => setSelectedOracle(e.target.value as OracleProvider)}
-                className="text-sm border px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: baseColors.gray[200] }}
-              >
-                {data.map((oracleData) => (
-                  <option key={oracleData.oracle} value={oracleData.oracle}>
-                    {oracleNames[oracleData.oracle]}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setSelectedOracle(value as OracleProvider)}
+                className="text-sm"
+              />
             </div>
 
             <div className="flex items-center gap-2">

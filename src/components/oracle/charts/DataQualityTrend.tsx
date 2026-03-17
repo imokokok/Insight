@@ -33,6 +33,7 @@ import {
   SelectedTimeRange,
 } from '@/stores/uiStore';
 import { createLogger } from '@/lib/utils/logger';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 const logger = createLogger('DataQualityTrend');
 
@@ -520,16 +521,17 @@ export function DataQualityTrend({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">{t('charts.dataQuality.timeRange')}:</span>
-              <select
+              <SegmentedControl
+                options={[
+                  { value: '1h', label: t('charts.dataQuality.1hour') },
+                  { value: '6h', label: t('charts.dataQuality.6hours') },
+                  { value: '24h', label: t('charts.dataQuality.24hours') },
+                  { value: '7d', label: t('charts.dataQuality.7days') },
+                ]}
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value as '1h' | '6h' | '24h' | '7d')}
-                className="text-sm border border-gray-200  px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="1h">{t('charts.dataQuality.1hour')}</option>
-                <option value="6h">{t('charts.dataQuality.6hours')}</option>
-                <option value="24h">{t('charts.dataQuality.24hours')}</option>
-                <option value="7d">{t('charts.dataQuality.7days')}</option>
-              </select>
+                onChange={(value) => setTimeRange(value as '1h' | '6h' | '24h' | '7d')}
+                size="sm"
+              />
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">

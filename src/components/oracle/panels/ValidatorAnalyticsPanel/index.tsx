@@ -19,6 +19,7 @@ import {
   VALIDATOR_TYPE_STYLES,
   VALIDATOR_TYPE_LABELS,
 } from './config';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 const logger = createLogger('ValidatorAnalyticsPanel');
 
@@ -790,15 +791,16 @@ export function ValidatorAnalyticsPanel() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>{t('panels.validatorAnalytics.itemsPerPage')}</span>
-            <select
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+            <SegmentedControl
+              options={[
+                { value: '10', label: '10' },
+                { value: '20', label: '20' },
+                { value: '50', label: '50' },
+              ]}
+              value={pageSize.toString()}
+              onChange={(value) => handlePageSizeChange(Number(value))}
+              size="sm"
+            />
             <span>{t('panels.validatorAnalytics.items')}</span>
             <span className="ml-4 text-gray-400">
               {t('panels.validatorAnalytics.totalRecords', { count: filteredValidators.length })}

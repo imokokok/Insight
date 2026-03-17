@@ -5,6 +5,7 @@ import { AlertEvent } from '@/lib/supabase/database.types';
 import { useAcknowledgeAlert } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { useTranslations } from 'next-intl';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface AlertHistoryProps {
   events: AlertEvent[];
@@ -79,27 +80,29 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">{t('alerts.history.status')}</label>
-            <select
+            <DropdownSelect
+              options={[
+                { value: 'all', label: t('alerts.history.all') },
+                { value: 'unacknowledged', label: t('alerts.history.unacknowledged') },
+                { value: 'acknowledged', label: t('alerts.history.acknowledged') },
+              ]}
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-              className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">{t('alerts.history.all')}</option>
-              <option value="unacknowledged">{t('alerts.history.unacknowledged')}</option>
-              <option value="acknowledged">{t('alerts.history.acknowledged')}</option>
-            </select>
+              onChange={(value) => setFilterStatus(value as FilterStatus)}
+              size="sm"
+            />
           </div>
 
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">{t('alerts.history.sort')}</label>
-            <select
+            <DropdownSelect
+              options={[
+                { value: 'newest', label: t('alerts.history.newest') },
+                { value: 'oldest', label: t('alerts.history.oldest') },
+              ]}
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-              className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="newest">{t('alerts.history.newest')}</option>
-              <option value="oldest">{t('alerts.history.oldest')}</option>
-            </select>
+              onChange={(value) => setSortOrder(value as SortOrder)}
+              size="sm"
+            />
           </div>
         </div>
 

@@ -20,6 +20,7 @@ import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { usePythAllData } from '@/hooks/usePythData';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 type SortField = 'stake' | 'accuracy' | 'name';
 type SortOrder = 'asc' | 'desc';
@@ -260,21 +261,16 @@ export default function PythNetworkPage() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <select
+                    <SegmentedControl
+                      options={[
+                        { value: 'stake', label: t('pyth.publishers.sortByStake') || '按质押排序' },
+                        { value: 'accuracy', label: t('pyth.publishers.sortByAccuracy') || '按准确率排序' },
+                        { value: 'name', label: t('pyth.publishers.sortByName') || '按名称排序' },
+                      ]}
                       value={publisherSortField}
-                      onChange={(e) => setPublisherSortField(e.target.value as SortField)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    >
-                      <option value="stake">
-                        {t('pyth.publishers.sortByStake') || '按质押排序'}
-                      </option>
-                      <option value="accuracy">
-                        {t('pyth.publishers.sortByAccuracy') || '按准确率排序'}
-                      </option>
-                      <option value="name">
-                        {t('pyth.publishers.sortByName') || '按名称排序'}
-                      </option>
-                    </select>
+                      onChange={(value) => setPublisherSortField(value as SortField)}
+                      size="sm"
+                    />
                     <button
                       onClick={() =>
                         setPublisherSortOrder(publisherSortOrder === 'asc' ? 'desc' : 'asc')

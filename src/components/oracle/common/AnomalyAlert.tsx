@@ -14,6 +14,7 @@ import {
   Blockchain,
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
+import { SegmentedControl, DropdownSelect } from '@/components/ui/selectors';
 
 const logger = createLogger('AnomalyAlert');
 
@@ -744,45 +745,46 @@ export function AnomalyAlert() {
         }
       >
         <div className="flex flex-wrap gap-2 mb-4">
-          <select
+          <DropdownSelect
+            options={[
+              { value: 'all', label: t('anomalyAlert.allTypes') },
+              { value: 'price_spike', label: t('anomalyAlert.type_price_spike') },
+              { value: 'price_deviation', label: t('anomalyAlert.type_price_deviation') },
+              { value: 'data_delay', label: t('anomalyAlert.type_data_delay') },
+              { value: 'price_drop', label: t('anomalyAlert.type_price_drop') },
+            ]}
             value={filter.type}
-            onChange={(e) => setFilter({ ...filter, type: e.target.value as AnomalyType | 'all' })}
-            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{t('anomalyAlert.allTypes')}</option>
-            <option value="price_spike">{t('anomalyAlert.type_price_spike')}</option>
-            <option value="price_deviation">{t('anomalyAlert.type_price_deviation')}</option>
-            <option value="data_delay">{t('anomalyAlert.type_data_delay')}</option>
-            <option value="price_drop">{t('anomalyAlert.type_price_drop')}</option>
-          </select>
+            onChange={(value) => setFilter({ ...filter, type: value as AnomalyType | 'all' })}
+            size="sm"
+          />
 
-          <select
+          <DropdownSelect
+            options={[
+              { value: 'all', label: t('anomalyAlert.allSeverities') },
+              { value: 'high', label: t('anomalyAlert.severity_high') },
+              { value: 'medium', label: t('anomalyAlert.severity_medium') },
+              { value: 'low', label: t('anomalyAlert.severity_low') },
+            ]}
             value={filter.severity}
-            onChange={(e) =>
-              setFilter({ ...filter, severity: e.target.value as AnomalySeverity | 'all' })
-            }
-            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{t('anomalyAlert.allSeverities')}</option>
-            <option value="high">{t('anomalyAlert.severity_high')}</option>
-            <option value="medium">{t('anomalyAlert.severity_medium')}</option>
-            <option value="low">{t('anomalyAlert.severity_low')}</option>
-          </select>
+            onChange={(value) => setFilter({ ...filter, severity: value as AnomalySeverity | 'all' })}
+            size="sm"
+          />
 
-          <select
+          <DropdownSelect
+            options={[
+              { value: 'all', label: t('anomalyAlert.allStatus') },
+              { value: 'false', label: t('anomalyAlert.unacknowledged') },
+              { value: 'true', label: t('anomalyAlert.acknowledged') },
+            ]}
             value={filter.acknowledged === 'all' ? 'all' : filter.acknowledged ? 'true' : 'false'}
-            onChange={(e) =>
+            onChange={(value) =>
               setFilter({
                 ...filter,
-                acknowledged: e.target.value === 'all' ? 'all' : e.target.value === 'true',
+                acknowledged: value === 'all' ? 'all' : value === 'true',
               })
             }
-            className="px-3 py-1.5 border border-gray-300  text-sm focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{t('anomalyAlert.allStatus')}</option>
-            <option value="false">{t('anomalyAlert.unacknowledged')}</option>
-            <option value="true">{t('anomalyAlert.acknowledged')}</option>
-          </select>
+            size="sm"
+          />
         </div>
 
         {filteredAnomalies.length === 0 ? (

@@ -7,6 +7,7 @@ import { useCreateAlert, CreateAlertInput } from '@/hooks/useAlerts';
 import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { useTranslations } from 'next-intl';
+import { DropdownSelect, SegmentedControl, SelectorOption } from '@/components/ui/selectors';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
@@ -24,6 +25,38 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { createAlert, isCreating } = useCreateAlert();
+
+  const symbolOptions: SelectorOption<string>[] = useMemo(
+    () => symbols.map((s) => ({ value: s, label: s })),
+    []
+  );
+
+  const providerOptions: SelectorOption<OracleProvider | ''>[] = useMemo(
+    () => [
+      { value: '', label: t('alerts.create.allProviders') },
+      ...Object.entries(providerNames).map(([key, name]) => ({
+        value: key as OracleProvider,
+        label: name,
+        icon: <span className="w-1.5 h-1.5 rounded-full" />,
+        color: oracleColors[key as OracleProvider],
+      })),
+    ],
+    [t]
+  );
+
+  const chainOptions: SelectorOption<Blockchain | ''>[] = useMemo(
+    () => [
+      {
+        value: '',
+        label: provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst'),
+      },
+      ...Object.entries(chainNames).map(([key, name]) => ({
+        value: key as Blockchain,
+        label: name,
+      })),
+    ],
+    [provider, t]
+  );
 
   const CONDITION_OPTIONS: { value: AlertConditionType; label: string; description: string }[] =
     useMemo(
@@ -134,7 +167,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={alertName}
             onChange={(e) => setAlertName(e.target.value)}
             placeholder={t('alerts.create.namePlaceholder')}
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -142,17 +175,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('alerts.create.symbolLabel')}
           </label>
-          <select
+          <SegmentedControl
+            options={symbolOptions}
             value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-          >
-            {symbols.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setSymbol(value as string)}
+            size="sm"
+          />
         </div>
 
         <div>
@@ -160,22 +188,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             {t('alerts.create.providerLabel')}{' '}
             <span className="text-gray-400">{t('alerts.create.providerOptional')}</span>
           </label>
-          <select
+          <DropdownSelect
+            options={providerOptions}
             value={provider}
-            onChange={(e) => handleProviderChange(e.target.value as OracleProvider | '')}
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-          >
-            <option value="">{t('alerts.create.allProviders')}</option>
-            {Object.entries(providerNames).map(([key, name]) => (
-              <option key={key} value={key}>
-                <span
-                  className="inline-block w-2 h-2  mr-2"
-                  style={{ backgroundColor: oracleColors[key as OracleProvider] }}
-                />
-                {name}
-              </option>
-            ))}
-          </select>
+            onChange={handleProviderChange}
+            placeholder={t('alerts.create.allProviders')}
+          />
         </div>
 
         <div>
@@ -183,21 +201,13 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             {t('alerts.create.chainLabel')}{' '}
             <span className="text-gray-400">{t('alerts.create.chainOptional')}</span>
           </label>
-          <select
+          <DropdownSelect
+            options={chainOptions}
             value={chain}
-            onChange={(e) => setChain(e.target.value as Blockchain | '')}
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            onChange={(value) => setChain(value as Blockchain | '')}
             disabled={!provider}
-          >
-            <option value="">
-              {provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')}
-            </option>
-            {Object.entries(chainNames).map(([key, name]) => (
-              <option key={key} value={key}>
-                {name}
-              </option>
-            ))}
-          </select>
+            placeholder={provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')}
+          />
         </div>
 
         <div>
@@ -208,7 +218,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             {CONDITION_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className={`flex items-start p-3 border  cursor-pointer transition-colors ${
+                className={`flex items-start p-3 border cursor-pointer transition-colors ${
                   conditionType === option.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:bg-gray-50'
@@ -241,7 +251,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
             placeholder={getTargetPlaceholder()}
-            className="w-full px-3 py-2 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -252,12 +262,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
           <button
             type="button"
             onClick={() => setIsActive(!isActive)}
-            className={`relative inline-flex h-6 w-11 items-center  transition-colors ${
+            className={`relative inline-flex h-6 w-11 items-center transition-colors ${
               isActive ? 'bg-blue-600' : 'bg-gray-200'
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform  bg-white transition-transform ${
+              className={`inline-block h-4 w-4 transform bg-white transition-transform ${
                 isActive ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
@@ -265,13 +275,13 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200  text-sm text-red-600">{error}</div>
+          <div className="p-3 bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>
         )}
 
         <button
           type="submit"
           disabled={isCreating}
-          className={`w-full py-2 px-4  font-medium text-white transition-colors ${
+          className={`w-full py-2 px-4 font-medium text-white transition-colors ${
             isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >

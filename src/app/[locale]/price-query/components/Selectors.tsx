@@ -6,6 +6,7 @@ import { Icons } from './Icons';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { symbols, oracleColors, chainColors, TIME_RANGES, oracleI18nKeys } from '../constants';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { SegmentedControl, MultiSelect, SelectorOption } from '@/components/ui/selectors';
 
 interface SelectorsProps {
   selectedOracles: OracleProvider[];
@@ -49,30 +50,44 @@ export function Selectors({
   const t = useTranslations();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const toggleOracle = (oracle: OracleProvider) => {
-    setSelectedOracles(
-      selectedOracles.includes(oracle)
-        ? selectedOracles.filter((o) => o !== oracle)
-        : [...selectedOracles, oracle]
-    );
-  };
+  const symbolOptions: SelectorOption<string>[] = symbols.slice(0, 12).map((symbol) => ({
+    value: symbol,
+    label: symbol,
+  }));
 
-  const toggleChain = (chain: Blockchain) => {
-    setSelectedChains(
-      selectedChains.includes(chain)
-        ? selectedChains.filter((c) => c !== chain)
-        : [...selectedChains, chain]
-    );
-  };
+  const oracleOptions: SelectorOption<OracleProvider>[] = getOracleProvidersSortedByMarketCap().map(
+    (oracle) => ({
+      value: oracle,
+      label: t(`navbar.${oracleI18nKeys[oracle]}`),
+      color: oracleColors[oracle],
+      icon: <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: oracleColors[oracle] }} />,
+    })
+  );
 
-  const isChainSupported = (chain: Blockchain): boolean => {
-    if (selectedOracles.length === 0) return true;
-    return supportedChainsBySelectedOracles.has(chain);
+  const chainOptions: SelectorOption<Blockchain>[] = Object.values(Blockchain).map((chain) => ({
+    value: chain,
+    label: t(`blockchain.${chain.toLowerCase()}`),
+    color: chainColors[chain],
+    disabled: selectedOracles.length > 0 && !supportedChainsBySelectedOracles.has(chain),
+    icon: <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: chainColors[chain] }} />,
+  }));
+
+  const timeRangeOptions: SelectorOption<number>[] = TIME_RANGES.map((range) => ({
+    value: range.value,
+    label: t(`priceQuery.timeRanges.${range.key}`),
+  }));
+
+  const handleSelectAllChains = () => {
+    const supportedChains = Array.from(supportedChainsBySelectedOracles);
+    if (supportedChains.length > 0) {
+      setSelectedChains(supportedChains);
+    } else {
+      setSelectedChains(Object.values(Blockchain));
+    }
   };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
-      {/* 标题栏 */}
       <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           <Icons.currency className="w-4 h-4 text-gray-600" />
@@ -93,159 +108,49 @@ export function Selectors({
       </div>
 
       <div className="p-4 space-y-5">
-        {/* 交易对选择 */}
         <div className="bg-gray-50/50 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-              {t('priceQuery.selectors.symbol')}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {symbols.slice(0, 12).map((symbol) => (
-              <button
-                key={symbol}
-                onClick={() => setSelectedSymbol(symbol)}
-                className={`px-3 py-1.5 text-xs font-medium transition-all rounded-md ${
-                  selectedSymbol === symbol
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                {symbol}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={symbolOptions}
+            value={selectedSymbol}
+            onChange={(value) => setSelectedSymbol(value as string)}
+            label={t('priceQuery.selectors.symbol')}
+          />
         </div>
 
-        {/* 预言机选择 */}
         <div className="bg-gray-50/50 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-              {t('priceQuery.selectors.oracle')}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setSelectedOracles(getOracleProvidersSortedByMarketCap())}
-                className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
-              >
-                {t('priceQuery.selectors.selectAll')}
-              </button>
-              <button
-                onClick={() => setSelectedOracles([])}
-                className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
-              >
-                {t('priceQuery.selectors.deselectAll')}
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {getOracleProvidersSortedByMarketCap().map((oracle) => {
-              const isSelected = selectedOracles.includes(oracle);
-              const i18nKey = oracleI18nKeys[oracle];
-              return (
-                <button
-                  key={oracle}
-                  onClick={() => toggleOracle(oracle)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all rounded-md ${
-                    isSelected
-                      ? 'bg-gray-900 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: isSelected ? 'white' : oracleColors[oracle] }}
-                  />
-                  {t(`navbar.${i18nKey}`)}
-                </button>
-              );
-            })}
-          </div>
+          <MultiSelect
+            options={oracleOptions}
+            value={selectedOracles}
+            onChange={(values) => setSelectedOracles(values as OracleProvider[])}
+            label={t('priceQuery.selectors.oracle')}
+            showSelectAll
+            selectAllLabel={t('priceQuery.selectors.selectAll')}
+            deselectAllLabel={t('priceQuery.selectors.deselectAll')}
+          />
         </div>
 
-        {/* 区块链选择 */}
         <div className="bg-gray-50/50 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-              {t('priceQuery.selectors.blockchain')}
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  const supportedChains = Array.from(supportedChainsBySelectedOracles);
-                  if (supportedChains.length > 0) {
-                    setSelectedChains(supportedChains);
-                  } else {
-                    setSelectedChains(Object.values(Blockchain));
-                  }
-                }}
-                className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
-              >
-                {t('priceQuery.selectors.selectAll')}
-              </button>
-              <button
-                onClick={() => setSelectedChains([])}
-                className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-100 transition-colors rounded border border-gray-200"
-              >
-                {t('priceQuery.selectors.deselectAll')}
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto pr-1 scrollbar-thin">
-            {Object.values(Blockchain).map((chain) => {
-              const isSelected = selectedChains.includes(chain);
-              const isSupported = isChainSupported(chain);
-              return (
-                <button
-                  key={chain}
-                  onClick={() => {
-                    if (isSupported) {
-                      toggleChain(chain);
-                    }
-                  }}
-                  disabled={!isSupported}
-                  className={`inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium transition-all rounded-md ${
-                    !isSupported
-                      ? 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-400'
-                      : isSelected
-                        ? 'bg-gray-900 text-white shadow-sm'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: isSelected ? 'white' : chainColors[chain] }}
-                  />
-                  {t(`blockchain.${chain.toLowerCase()}`)}
-                </button>
-              );
-            })}
-          </div>
+          <MultiSelect
+            options={chainOptions}
+            value={selectedChains}
+            onChange={(values) => setSelectedChains(values as Blockchain[])}
+            label={t('priceQuery.selectors.blockchain')}
+            showSelectAll
+            selectAllLabel={t('priceQuery.selectors.selectAll')}
+            deselectAllLabel={t('priceQuery.selectors.deselectAll')}
+            maxVisible={20}
+          />
         </div>
 
-        {/* 时间范围 */}
         <div className="bg-gray-50/50 rounded-lg p-3">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block mb-2.5">
-            {t('priceQuery.selectors.timeRange')}
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {TIME_RANGES.map((range) => (
-              <button
-                key={range.value}
-                onClick={() => setSelectedTimeRange(range.value)}
-                className={`px-3 py-1.5 text-xs font-medium transition-all rounded-md ${
-                  selectedTimeRange === range.value
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                {t(`priceQuery.timeRanges.${range.key}`)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={timeRangeOptions}
+            value={selectedTimeRange}
+            onChange={(value) => setSelectedTimeRange(value as number)}
+            label={t('priceQuery.selectors.timeRange')}
+          />
         </div>
 
-        {/* 高级选项折叠面板 */}
         <div className="pt-2">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
@@ -271,7 +176,6 @@ export function Selectors({
 
           {showAdvanced && (
             <div className="mt-2 space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              {/* 对比模式 */}
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"
@@ -296,27 +200,15 @@ export function Selectors({
                 </span>
               </label>
 
-              {/* 对比时间范围 */}
               {compareMode && (
                 <div className="pt-2 border-t border-gray-200 mt-2">
-                  <span className="text-[10px] font-medium text-gray-500 block mb-2">
-                    {t('priceQuery.selectors.compareTime')}
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {TIME_RANGES.map((range) => (
-                      <button
-                        key={`compare-${range.value}`}
-                        onClick={() => setCompareTimeRange?.(range.value)}
-                        className={`px-2.5 py-1 text-[10px] font-medium transition-all rounded-md ${
-                          compareTimeRange === range.value
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                        }`}
-                      >
-                        {t(`priceQuery.timeRanges.${range.key}`)}
-                      </button>
-                    ))}
-                  </div>
+                  <SegmentedControl
+                    options={timeRangeOptions}
+                    value={compareTimeRange}
+                    onChange={(value) => setCompareTimeRange?.(value as number)}
+                    label={t('priceQuery.selectors.compareTime')}
+                    size="sm"
+                  />
                 </div>
               )}
             </div>

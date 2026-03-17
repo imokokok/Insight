@@ -27,6 +27,7 @@ import {
 } from '../utils';
 import { Blockchain } from '@/types/oracle';
 import { chartColors, semanticColors } from '@/lib/config/colors';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 interface VolatilitySurfaceProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -496,17 +497,15 @@ export function VolatilitySurface({ data }: VolatilitySurfaceProps) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">{t('crossChain.selectChain')}:</span>
-            <select
-              value={selectedConeChain || ''}
-              onChange={(e) => setSelectedConeChain((e.target.value as Blockchain) || null)}
-              className="text-sm border border-gray-200 px-2 py-1"
-            >
-              {filteredChains.map((chain) => (
-                <option key={chain} value={chain}>
-                  {chainNames[chain]}
-                </option>
-              ))}
-            </select>
+            <DropdownSelect<Blockchain>
+              options={filteredChains.map((chain) => ({
+                value: chain,
+                label: chainNames[chain],
+              }))}
+              value={selectedConeChain || filteredChains[0] || ('' as Blockchain)}
+              onChange={(value) => setSelectedConeChain(value)}
+              className="w-40"
+            />
           </div>
         </div>
 

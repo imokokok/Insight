@@ -8,6 +8,7 @@ import { useCrossChainStore } from '@/stores/crossChainStore';
 import { ThresholdType } from '../utils';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { baseColors, chainColors as configChainColors } from '@/lib/config/colors';
+import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
 
 interface CrossChainFiltersProps {
   data: ReturnType<typeof useCrossChainData>;
@@ -49,13 +50,6 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     label: symbol,
   }));
 
-  const _refreshOptions = [
-    { value: 0, label: t('crossChain.autoRefreshOff') },
-    { value: 30000, label: t('crossChain.autoRefresh30s') },
-    { value: 60000, label: t('crossChain.autoRefresh1m') },
-    { value: 300000, label: t('crossChain.autoRefresh5m') },
-  ];
-
   const filteredChains = supportedChains.filter((chain) => visibleChains.includes(chain));
   const baseChainOptions = filteredChains.map((chain) => ({
     value: chain,
@@ -93,6 +87,30 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     [Blockchain.CELO]: configChainColors.celo,
   };
 
+  const maPeriodOptions = [
+    { value: 7, label: '7' },
+    { value: 25, label: '25' },
+    { value: 99, label: '99' },
+  ];
+
+  const thresholdTypeOptions = [
+    { value: 'fixed' as ThresholdType, label: t('crossChain.fixedThreshold') },
+    { value: 'dynamic' as ThresholdType, label: t('crossChain.dynamicVolatility') },
+    { value: 'atr' as ThresholdType, label: t('crossChain.atrIndicator') },
+  ];
+
+  const calculationPeriodOptions = [
+    { value: 7, label: '7' },
+    { value: 14, label: '14' },
+    { value: 20, label: '20' },
+    { value: 30, label: '30' },
+  ];
+
+  const timeRangeOptions = TIME_RANGES.map((range) => ({
+    value: range.value,
+    label: range.label,
+  }));
+
   return (
     <div>
       <div
@@ -106,18 +124,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           >
             {t('crossChain.oracleProvider')}
           </label>
-          <select
+          <DropdownSelect
+            options={providerOptions}
             value={selectedProvider}
-            onChange={(e) => setSelectedProvider(e.target.value as OracleProvider)}
-            className="px-3 py-2 text-sm border bg-white focus:outline-none min-w-[140px]"
-            style={{ borderColor: baseColors.gray[300] }}
-          >
-            {providerOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setSelectedProvider(value as OracleProvider)}
+            className="min-w-[140px]"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -127,18 +139,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           >
             {t('crossChain.symbol')}
           </label>
-          <select
+          <DropdownSelect
+            options={symbolOptions}
             value={selectedSymbol}
-            onChange={(e) => setSelectedSymbol(e.target.value)}
-            className="px-3 py-2 text-sm border bg-white focus:outline-none min-w-[100px]"
-            style={{ borderColor: baseColors.gray[300] }}
-          >
-            {symbolOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setSelectedSymbol(value)}
+            className="min-w-[100px]"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -148,27 +154,12 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
           >
             {t('crossChain.timeRange')}
           </label>
-          <div className="flex items-center p-1" style={{ backgroundColor: baseColors.gray[100] }}>
-            {TIME_RANGES.map((range) => (
-              <button
-                key={range.value}
-                onClick={() => setSelectedTimeRange(range.value)}
-                className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                  selectedTimeRange === range.value ? 'bg-white border' : ''
-                }`}
-                style={{
-                  color:
-                    selectedTimeRange === range.value
-                      ? baseColors.primary[600]
-                      : baseColors.gray[600],
-                  borderColor:
-                    selectedTimeRange === range.value ? baseColors.gray[300] : 'transparent',
-                }}
-              >
-                {range.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={timeRangeOptions}
+            value={selectedTimeRange}
+            onChange={(value) => setSelectedTimeRange(value as number)}
+            size="sm"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -183,19 +174,18 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
               </span>
             )}
           </label>
-          <select
+          <DropdownSelect
+            options={baseChainOptions.map((option) => ({
+              ...option,
+              label:
+                option.value === recommendedBaseChain
+                  ? `${option.label} (${t('crossChain.recommended')})`
+                  : option.label,
+            }))}
             value={selectedBaseChain || ''}
-            onChange={(e) => setSelectedBaseChain(e.target.value as Blockchain)}
-            className="px-3 py-2 text-sm border bg-white focus:outline-none min-w-[140px]"
-            style={{ borderColor: baseColors.gray[300] }}
-          >
-            {baseChainOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-                {option.value === recommendedBaseChain ? ` (${t('crossChain.recommended')})` : ''}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setSelectedBaseChain(value as Blockchain)}
+            className="min-w-[140px]"
+          />
         </div>
       </div>
 
@@ -256,17 +246,13 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             >
               {t('crossChain.maPeriod')}:
             </label>
-            <select
+            <DropdownSelect
+              options={maPeriodOptions}
               value={maPeriod}
-              onChange={(e) => setMaPeriod(Number(e.target.value))}
+              onChange={(value) => setMaPeriod(value as number)}
               disabled={!showMA}
-              className="px-3 py-1.5 text-sm border bg-white focus:outline-none min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ borderColor: baseColors.gray[300] }}
-            >
-              <option value={7}>7</option>
-              <option value={25}>25</option>
-              <option value={99}>99</option>
-            </select>
+              className="min-w-[80px]"
+            />
           </div>
           <button
             onClick={() => {
@@ -294,21 +280,17 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             >
               {t('crossChain.thresholdType')}
             </label>
-            <select
+            <DropdownSelect
+              options={thresholdTypeOptions}
               value={thresholdConfig.type}
-              onChange={(e) =>
+              onChange={(value) =>
                 setThresholdConfig({
                   ...thresholdConfig,
-                  type: e.target.value as ThresholdType,
+                  type: value as ThresholdType,
                 })
               }
-              className="px-3 py-2 text-sm border bg-white focus:outline-none min-w-[140px]"
-              style={{ borderColor: baseColors.gray[300] }}
-            >
-              <option value="fixed">{t('crossChain.fixedThreshold')}</option>
-              <option value="dynamic">{t('crossChain.dynamicVolatility')}</option>
-              <option value="atr">{t('crossChain.atrIndicator')}</option>
-            </select>
+              className="min-w-[140px]"
+            />
           </div>
 
           <div className="flex flex-col gap-1">
@@ -366,22 +348,17 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
             >
               {t('crossChain.calculationPeriod')}
             </label>
-            <select
+            <DropdownSelect
+              options={calculationPeriodOptions}
               value={thresholdConfig.volatilityWindow}
-              onChange={(e) =>
+              onChange={(value) =>
                 setThresholdConfig({
                   ...thresholdConfig,
-                  volatilityWindow: Number(e.target.value),
+                  volatilityWindow: value as number,
                 })
               }
-              className="px-3 py-2 text-sm border bg-white focus:outline-none min-w-[100px]"
-              style={{ borderColor: baseColors.gray[300] }}
-            >
-              <option value={7}>7</option>
-              <option value={14}>14</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-            </select>
+              className="min-w-[100px]"
+            />
           </div>
 
           <div className="text-xs max-w-xs" style={{ color: baseColors.gray[500] }}>

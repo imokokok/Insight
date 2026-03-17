@@ -13,6 +13,7 @@ import {
   oracleI18nKeys,
 } from '../constants';
 import { semanticColors } from '@/lib/config/colors';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 type ScoreLevel = 'excellent' | 'good' | 'warning' | 'critical';
 
@@ -130,7 +131,11 @@ export function PriceResultsTable({
     setCurrentPage(1);
   };
 
-  const pageSizeOptions = [10, 20, 50];
+  const pageSizeOptions = [
+    { value: 10, label: '10' },
+    { value: 20, label: '20' },
+    { value: 50, label: '50' },
+  ];
 
   const getPageNumbers = (): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -448,17 +453,12 @@ export function PriceResultsTable({
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <span>{t('priceQuery.pagination.perPage')}</span>
-            <select
+            <SegmentedControl
+              options={pageSizeOptions}
               value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-            >
-              {pageSizeOptions.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handlePageSizeChange(value as number)}
+              size="sm"
+            />
             <span>{t('priceQuery.pagination.items')}</span>
             <span className="ml-2 text-gray-500">
               {t('priceQuery.pagination.total', { count: filteredResults.length })}

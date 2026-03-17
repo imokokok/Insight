@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 interface BandValidatorsPanelProps {
   client: BandProtocolClient;
@@ -198,18 +199,19 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
             </CardTitle>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{t('band.validators.sortBy')}:</span>
-              <select
+              <SegmentedControl
+                options={[
+                  { value: 'rank', label: t('band.validators.rank') },
+                  { value: 'stake', label: t('band.validators.stake') },
+                  { value: 'uptime', label: t('band.validators.uptime') },
+                  { value: 'commission', label: t('band.validators.commission') },
+                ]}
                 value={sortBy}
-                onChange={(e) =>
-                  setSortBy(e.target.value as 'rank' | 'stake' | 'uptime' | 'commission')
+                onChange={(value) =>
+                  setSortBy(value as 'rank' | 'stake' | 'uptime' | 'commission')
                 }
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              >
-                <option value="rank">{t('band.validators.rank')}</option>
-                <option value="stake">{t('band.validators.stake')}</option>
-                <option value="uptime">{t('band.validators.uptime')}</option>
-                <option value="commission">{t('band.validators.commission')}</option>
-              </select>
+                size="sm"
+              />
             </div>
           </div>
         </CardHeader>

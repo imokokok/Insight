@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
 
 interface BandDataFeedsPanelProps {
   client: BandProtocolClient;
@@ -340,15 +341,16 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
               {t('band.dataFeeds.priceFeeds')}
             </CardTitle>
             <div className="flex items-center gap-2">
-              <select
+              <SegmentedControl
+                options={[
+                  { value: 'all', label: t('band.dataFeeds.allCategories') },
+                  { value: 'crypto', label: t('band.dataFeeds.crypto') },
+                  { value: 'stablecoin', label: t('band.dataFeeds.stablecoin') },
+                ]}
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              >
-                <option value="all">{t('band.dataFeeds.allCategories')}</option>
-                <option value="crypto">{t('band.dataFeeds.crypto')}</option>
-                <option value="stablecoin">{t('band.dataFeeds.stablecoin')}</option>
-              </select>
+                onChange={(value) => setSelectedCategory(value)}
+                size="sm"
+              />
             </div>
           </div>
         </CardHeader>

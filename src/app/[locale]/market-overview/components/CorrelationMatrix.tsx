@@ -6,6 +6,7 @@ import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors, baseColors } from '@/lib/config/colors';
+import { SegmentedControl } from '@/components/ui/selectors';
 
 interface CorrelationMatrixProps {
   data: CorrelationData;
@@ -17,7 +18,7 @@ interface CorrelationMatrixProps {
 const CORRELATION_COLORS = {
   strongPositive: semanticColors.success.main,
   moderatePositive: semanticColors.success.light,
-  weakPositive: baseColors.primary[100], // lighter green
+  weakPositive: baseColors.primary[100],
   neutral: semanticColors.neutral.main,
   weakNegative: semanticColors.danger.light,
   moderateNegative: semanticColors.danger.main,
@@ -86,7 +87,6 @@ export default function CorrelationMatrix({
     };
   }, [data.pairs]);
 
-  // 移动端列表视图组件
   const MobileCorrelationList = () => (
     <div className="space-y-2">
       {sortedPairs.map((pair) => {
@@ -158,7 +158,6 @@ export default function CorrelationMatrix({
 
   return (
     <div className="space-y-4">
-      {/* 统计信息 */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="py-3 border-t border-gray-100">
@@ -196,7 +195,6 @@ export default function CorrelationMatrix({
         </div>
       )}
 
-      {/* 热力图 - 桌面端显示，移动端隐藏 */}
       <div className="hidden md:block py-4 border-b border-gray-100">
         <div className="mb-3">
           <h4 className="text-sm font-semibold text-gray-900">
@@ -211,7 +209,6 @@ export default function CorrelationMatrix({
 
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
-            {/* 表头 */}
             <div className="flex">
               <div className="w-20 flex-shrink-0" />
               {data.oracles.map((oracle) => (
@@ -224,7 +221,6 @@ export default function CorrelationMatrix({
               ))}
             </div>
 
-            {/* 矩阵 */}
             {data.oracles.map((oracleA, i) => (
               <div key={oracleA} className="flex">
                 <div className="w-20 flex-shrink-0 text-xs font-medium text-gray-600 py-2.5 px-2 text-right">
@@ -275,7 +271,6 @@ export default function CorrelationMatrix({
           </div>
         </div>
 
-        {/* 图例 */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <span className="text-gray-500">{isChineseLocale(locale) ? '图例:' : 'Legend:'}</span>
@@ -326,7 +321,6 @@ export default function CorrelationMatrix({
         </div>
       </div>
 
-      {/* 移动端列表视图 */}
       <div className="md:hidden py-4 border-b border-gray-100">
         <div className="mb-3">
           <h4 className="text-sm font-semibold text-gray-900">
@@ -341,7 +335,6 @@ export default function CorrelationMatrix({
         <MobileCorrelationList />
       </div>
 
-      {/* 相关性列表 */}
       <div className="py-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -354,20 +347,15 @@ export default function CorrelationMatrix({
                 : `Time Range: ${data.timeRange}`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'correlation' | 'name')}
-              className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="correlation">
-                {isChineseLocale(locale) ? '按相关性排序' : 'Sort by Correlation'}
-              </option>
-              <option value="name">
-                {isChineseLocale(locale) ? '按名称排序' : 'Sort by Name'}
-              </option>
-            </select>
-          </div>
+          <SegmentedControl
+            options={[
+              { value: 'correlation', label: isChineseLocale(locale) ? '按相关性' : 'Correlation' },
+              { value: 'name', label: isChineseLocale(locale) ? '按名称' : 'Name' },
+            ]}
+            value={sortBy}
+            onChange={(value) => setSortBy(value as 'correlation' | 'name')}
+            size="sm"
+          />
         </div>
 
         <div className="max-h-[300px] overflow-auto">
@@ -441,7 +429,6 @@ export default function CorrelationMatrix({
         </div>
       </div>
 
-      {/* 详情弹窗 */}
       {showDetails && selectedPair && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-gray-200 rounded max-w-sm w-full p-4">
@@ -535,7 +522,6 @@ export default function CorrelationMatrix({
         </div>
       )}
 
-      {/* 说明 */}
       <div className="flex items-start gap-2 text-xs text-gray-500 py-3 border-b border-gray-100">
         <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
         <div>

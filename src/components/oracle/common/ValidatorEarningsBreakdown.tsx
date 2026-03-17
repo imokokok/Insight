@@ -13,6 +13,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
 import { createLogger } from '@/lib/utils/logger';
+import { DropdownSelect } from '@/components/ui/selectors';
 
 const logger = createLogger('ValidatorEarningsBreakdown');
 
@@ -414,17 +415,15 @@ export function ValidatorEarningsBreakdown({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('validator.selectValidator')}
             </label>
-            <select
+            <DropdownSelect
+              options={validators.map((v) => ({
+                value: v.id,
+                label: `${v.name} (${t(`validator.type.${v.type}`)})`,
+              }))}
               value={selectedValidator}
-              onChange={(e) => handleValidatorChange(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
-              {validators.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name} ({t(`validator.type.${v.type}`)})
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleValidatorChange(value)}
+              size="md"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
