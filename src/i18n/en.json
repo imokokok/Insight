@@ -41,6 +41,28 @@
     "register": "Register",
     "signOut": "Sign Out"
   },
+  "blockchain": {
+    "ethereum": "Ethereum",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "solana": "Solana",
+    "avalanche": "Avalanche",
+    "fantom": "Fantom",
+    "cronos": "Cronos",
+    "juno": "Juno",
+    "cosmos": "Cosmos",
+    "osmosis": "Osmosis",
+    "bnb-chain": "BNB Chain",
+    "base": "Base",
+    "scroll": "Scroll",
+    "zksync": "zkSync",
+    "aptos": "Aptos",
+    "sui": "Sui",
+    "gnosis": "Gnosis",
+    "mantle": "Mantle",
+    "linea": "Linea"
+  },
   "footer": {
     "copyright": "© 2026 Insight. All rights reserved.",
     "documentation": "Documentation",
@@ -1295,6 +1317,7 @@
   },
   "priceQuery": {
     "scrollHint": "← Swipe to view more →",
+    "title": "Price Query",
     "filter": {
       "placeholder": "Search oracle or blockchain...",
       "results": "Showing {count} / {total} results",
@@ -1304,11 +1327,24 @@
       "symbol": "Trading Pair",
       "oracle": "Oracle",
       "blockchain": "Blockchain",
-      "timeRange": "Time Range"
+      "timeRange": "Time Range",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect",
+      "advancedOptions": "Advanced Options",
+      "compareMode": "Compare Mode",
+      "showBaseline": "Show Baseline",
+      "compareTime": "Compare Time"
     },
     "query": "Query",
     "loading": "Loading...",
     "loadingData": "Loading data...",
+    "pagination": {
+      "perPage": "Per page",
+      "items": "items",
+      "total": "Total {count} items",
+      "prevPage": "Previous",
+      "nextPage": "Next"
+    },
     "results": {
       "title": "Price Query Results",
       "empty": "Please select oracles and blockchains to query",
@@ -1320,6 +1356,12 @@
         "change24h": "24h Change",
         "freshness": "Freshness",
         "confidence": "Confidence"
+      },
+      "qualityScore": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning",
+        "critical": "Critical"
       }
     },
     "stats": {
@@ -1334,11 +1376,47 @@
       "queryDuration": "Query Duration",
       "change24h": "24h Change",
       "volatility": "Volatility",
-      "annualized": "Annualized"
+      "annualized": "Annualized",
+      "compare": "Compare",
+      "collapse": "Collapse",
+      "expand": "View More",
+      "consistency": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      }
     },
     "chart": {
       "title": "Price Trend Chart",
       "exportImage": "Export Image",
+      "indicators": "Indicators",
+      "bollingerBands": "Bollinger Bands",
+      "confidenceInterval": "Confidence Interval",
+      "annotations": "Annotations",
+      "anomalyMarkers": "Anomaly Markers",
+      "priceSpikes": "Price Spikes",
+      "valueLabels": "Value Labels",
+      "baseline": "Baseline",
+      "compareSuffix": "Compare",
+      "priceHigh": "Price High",
+      "priceLow": "Price Low",
+      "realtime": "Realtime",
+      "realtimeUpdate": "Realtime Update",
+      "realtimePrice": "Realtime Price",
+      "lastUpdate": "Last Update",
+      "connectionStatus": {
+        "connected": "Connected",
+        "connecting": "Connecting...",
+        "reconnecting": "Reconnecting...",
+        "disconnected": "Disconnected",
+        "error": "Connection Error"
+      },
+      "stats": {
+        "high24h": "24h High",
+        "low24h": "24h Low",
+        "volume24h": "24h Volume"
+      },
       "tooltip": {
         "open": "Open:",
         "high": "High:",
@@ -1369,6 +1447,35 @@
       "crossOracle": "Cross-Oracle Comparison",
       "crossOracleDesc": "Compare prices of multiple oracles on the same chain",
       "chainlinkDesc": "Decentralized oracle network"
+    },
+    "config": {
+      "save": "Save Config",
+      "load": "Load Config",
+      "name": "Config Name",
+      "saved": "Config saved",
+      "loaded": "Config loaded",
+      "deleted": "Config deleted",
+      "empty": "No saved configs",
+      "placeholder": "Enter config name"
+    },
+    "alert": {
+      "title": "Price Alert",
+      "setAlert": "Set Alert",
+      "priceThreshold": "Price Threshold",
+      "differenceThreshold": "Difference Threshold",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "triggered": "Alert Triggered"
+    },
+    "export": {
+      "header": "Price Query Results",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "timestamp": "Timestamp",
+      "source": "Source",
+      "change24h": "24h Change",
+      "confidence": "Confidence"
     }
   },
   "priceDeviation": {
@@ -1862,6 +1969,7 @@
     "dev": "dev"
   },
   "dataQuality": {
+    "completenessScore": "Quality",
     "priceDeviationMonitor": "Price Deviation Monitor",
     "comparisonWithOracles": "Comparison with other oracle prices",
     "basePrice": "Base Price",
@@ -1906,7 +2014,21 @@
     "dataQualityAnalysis": "Data Quality Analysis",
     "oracleDataQualityMetrics": "Professional oracle data quality metrics",
     "lastUpdated": "Last Updated",
-    "refreshData": "Refresh Data"
+    "refreshData": "Refresh Data",
+    "latencyDistribution": "Latency Distribution",
+    "latencyDistributionDesc": "Oracle update latency distribution histogram",
+    "completenessDesc": "Based on data point count, time continuity and missing value ratio",
+    "avgScore": "Average Score",
+    "dataSources": "Data Sources",
+    "excellentRate": "Excellent Rate",
+    "dataPoints": "Data Points",
+    "continuity": "Continuity",
+    "missing": "Missing",
+    "freshnessTrend": "Freshness Trend",
+    "freshnessTrendDesc": "Data update frequency trend over time",
+    "fresh": "Fresh",
+    "stale": "Stale",
+    "delayed": "Delayed"
   },
   "networkHealth": {
     "status": {

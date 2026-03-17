@@ -18,6 +18,7 @@ import {
   Area,
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   OracleMarketData,
   TVSTrendData,
@@ -319,17 +320,17 @@ export default function ChartRenderer({
                       <div className="ml-5 mt-1 space-y-1">
                         <div className="flex justify-between">
                           <span className="text-gray-500">
-                            {locale === 'zh-CN' ? '当期' : 'Current'}:
+                            {isChineseLocale(locale) ? '当期' : 'Current'}:
                           </span>
                           <span className="font-medium">${currentValue?.toFixed(2)}B</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">
                             {comparisonMode === 'yoy'
-                              ? locale === 'zh-CN'
+                              ? isChineseLocale(locale)
                                 ? '同比'
                                 : 'YoY'
-                              : locale === 'zh-CN'
+                              : isChineseLocale(locale)
                                 ? '环比'
                                 : 'MoM'}
                             :
@@ -340,7 +341,7 @@ export default function ChartRenderer({
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">
-                            {locale === 'zh-CN' ? '变化' : 'Change'}:
+                            {isChineseLocale(locale) ? '变化' : 'Change'}:
                           </span>
                           <span
                             className={`font-medium ${diffPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
@@ -426,7 +427,7 @@ export default function ChartRenderer({
               key={`${key}-compare`}
               type="monotone"
               dataKey={`${key}Compare`}
-              name={`${oracleNames[key]} ${comparisonMode === 'yoy' ? (locale === 'zh-CN' ? '(同比)' : '(YoY)') : locale === 'zh-CN' ? '(环比)' : '(MoM)'}`}
+              name={`${oracleNames[key]} ${comparisonMode === 'yoy' ? (isChineseLocale(locale) ? '(同比)' : '(YoY)') : isChineseLocale(locale) ? '(环比)' : '(MoM)'}`}
               stroke={oracleColors[key]}
               strokeWidth={2}
               strokeDasharray="5 5"
@@ -480,12 +481,12 @@ export default function ChartRenderer({
           </div>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '支持链数' : 'Chains'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '支持链数' : 'Chains'}:</span>
               <span className="font-medium text-gray-900">{item.chains}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '协议数量' : 'Protocols'}:
+                {isChineseLocale(locale) ? '协议数量' : 'Protocols'}:
               </span>
               <span className="font-medium text-gray-900">{item.protocols}</span>
             </div>
@@ -493,7 +494,7 @@ export default function ChartRenderer({
               <>
                 <div className="flex justify-between">
                   <span className="text-gray-500">
-                    {locale === 'zh-CN' ? '市场份额' : 'Share'}:
+                    {isChineseLocale(locale) ? '市场份额' : 'Share'}:
                   </span>
                   <span className="font-medium text-gray-900">{oracleData.share}%</span>
                 </div>
@@ -577,16 +578,16 @@ export default function ChartRenderer({
             <thead className="bg-gray-50 sticky top-0">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                  {isChineseLocale(locale) ? '预言机' : 'Oracle'}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+                  {isChineseLocale(locale) ? '支持链数' : 'Chains'}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '协议数' : 'Protocols'}
+                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '市场份额' : 'Share'}
+                  {isChineseLocale(locale) ? '市场份额' : 'Share'}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   TVS
@@ -639,14 +640,14 @@ export default function ChartRenderer({
           <thead className="bg-gray-50 sticky top-0">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {activeChart === 'pie'
-                  ? locale === 'zh-CN'
+                  ? isChineseLocale(locale)
                     ? '市场份额'
                     : 'Market Share'
-                  : locale === 'zh-CN'
+                  : isChineseLocale(locale)
                     ? 'TVS'
                     : 'TVS'}
               </th>
@@ -656,10 +657,10 @@ export default function ChartRenderer({
                     TVS
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {locale === 'zh-CN' ? '支持链数' : 'Chains'}
+                    {isChineseLocale(locale) ? '支持链数' : 'Chains'}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {locale === 'zh-CN' ? '24h变化' : '24h Change'}
+                    {isChineseLocale(locale) ? '24h变化' : '24h Change'}
                   </th>
                 </>
               )}

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors, baseColors } from '@/lib/config/colors';
 
@@ -34,13 +35,13 @@ function getCorrelationColor(value: number): string {
 }
 
 function getCorrelationLabel(value: number, locale: string): string {
-  if (value >= 0.7) return locale === 'zh-CN' ? '强正相关' : 'Strong Positive';
-  if (value >= 0.4) return locale === 'zh-CN' ? '中等正相关' : 'Moderate Positive';
-  if (value >= 0.1) return locale === 'zh-CN' ? '弱正相关' : 'Weak Positive';
-  if (value >= -0.1) return locale === 'zh-CN' ? '无相关' : 'No Correlation';
-  if (value >= -0.4) return locale === 'zh-CN' ? '弱负相关' : 'Weak Negative';
-  if (value >= -0.7) return locale === 'zh-CN' ? '中等负相关' : 'Moderate Negative';
-  return locale === 'zh-CN' ? '强负相关' : 'Strong Negative';
+  if (value >= 0.7) return isChineseLocale(locale) ? '强正相关' : 'Strong Positive';
+  if (value >= 0.4) return isChineseLocale(locale) ? '中等正相关' : 'Moderate Positive';
+  if (value >= 0.1) return isChineseLocale(locale) ? '弱正相关' : 'Weak Positive';
+  if (value >= -0.1) return isChineseLocale(locale) ? '无相关' : 'No Correlation';
+  if (value >= -0.4) return isChineseLocale(locale) ? '弱负相关' : 'Weak Negative';
+  if (value >= -0.7) return isChineseLocale(locale) ? '中等负相关' : 'Moderate Negative';
+  return isChineseLocale(locale) ? '强负相关' : 'Strong Negative';
 }
 
 function getCorrelationIcon(value: number) {
@@ -117,7 +118,7 @@ export default function CorrelationMatrix({
                 </span>
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500">
-                <span>{locale === 'zh-CN' ? '置信度' : 'Confidence'}:</span>
+                <span>{isChineseLocale(locale) ? '置信度' : 'Confidence'}:</span>
                 <span className="font-medium text-gray-700">
                   {(pair.confidence * 100).toFixed(0)}%
                 </span>
@@ -135,7 +136,7 @@ export default function CorrelationMatrix({
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -148,7 +149,7 @@ export default function CorrelationMatrix({
         <div className="text-center">
           <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无相关性数据' : 'No correlation data available'}
+            {isChineseLocale(locale) ? '暂无相关性数据' : 'No correlation data available'}
           </p>
         </div>
       </div>
@@ -165,7 +166,7 @@ export default function CorrelationMatrix({
               {stats.avgCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
-              {locale === 'zh-CN' ? '平均相关性' : 'Avg Correlation'}
+              {isChineseLocale(locale) ? '平均相关性' : 'Avg Correlation'}
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
@@ -173,7 +174,7 @@ export default function CorrelationMatrix({
               {stats.maxCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
-              {locale === 'zh-CN' ? '最高相关性' : 'Max Correlation'}
+              {isChineseLocale(locale) ? '最高相关性' : 'Max Correlation'}
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
@@ -181,7 +182,7 @@ export default function CorrelationMatrix({
               {stats.minCorrelation.toFixed(2)}
             </div>
             <div className="text-xs text-gray-600">
-              {locale === 'zh-CN' ? '最低相关性' : 'Min Correlation'}
+              {isChineseLocale(locale) ? '最低相关性' : 'Min Correlation'}
             </div>
           </div>
           <div className="py-3 border-t border-gray-100">
@@ -189,7 +190,7 @@ export default function CorrelationMatrix({
               {stats.strongCorrelations}/{stats.totalPairs}
             </div>
             <div className="text-xs text-gray-600">
-              {locale === 'zh-CN' ? '强相关对数' : 'Strong Pairs'}
+              {isChineseLocale(locale) ? '强相关对数' : 'Strong Pairs'}
             </div>
           </div>
         </div>
@@ -199,10 +200,10 @@ export default function CorrelationMatrix({
       <div className="hidden md:block py-4 border-b border-gray-100">
         <div className="mb-3">
           <h4 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '相关性热力图' : 'Correlation Heatmap'}
+            {isChineseLocale(locale) ? '相关性热力图' : 'Correlation Heatmap'}
           </h4>
           <p className="text-xs text-gray-500 mt-1">
-            {locale === 'zh-CN'
+            {isChineseLocale(locale)
               ? '基于 TVS 历史数据计算的皮尔逊相关系数'
               : 'Pearson correlation coefficient based on TVS historical data'}
           </p>
@@ -277,36 +278,36 @@ export default function CorrelationMatrix({
         {/* 图例 */}
         <div className="mt-3 pt-3 border-t border-gray-100">
           <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-gray-500">{locale === 'zh-CN' ? '图例:' : 'Legend:'}</span>
+            <span className="text-gray-500">{isChineseLocale(locale) ? '图例:' : 'Legend:'}</span>
             {[
               {
                 color: CORRELATION_COLORS.strongPositive,
-                label: locale === 'zh-CN' ? '强正相关 (0.7-1.0)' : 'Strong Positive (0.7-1.0)',
+                label: isChineseLocale(locale) ? '强正相关 (0.7-1.0)' : 'Strong Positive (0.7-1.0)',
               },
               {
                 color: CORRELATION_COLORS.moderatePositive,
-                label: locale === 'zh-CN' ? '中等正相关 (0.4-0.7)' : 'Moderate Positive (0.4-0.7)',
+                label: isChineseLocale(locale) ? '中等正相关 (0.4-0.7)' : 'Moderate Positive (0.4-0.7)',
               },
               {
                 color: CORRELATION_COLORS.weakPositive,
-                label: locale === 'zh-CN' ? '弱正相关 (0.1-0.4)' : 'Weak Positive (0.1-0.4)',
+                label: isChineseLocale(locale) ? '弱正相关 (0.1-0.4)' : 'Weak Positive (0.1-0.4)',
               },
               {
                 color: CORRELATION_COLORS.neutral,
-                label: locale === 'zh-CN' ? '无相关 (-0.1-0.1)' : 'No Correlation (-0.1-0.1)',
+                label: isChineseLocale(locale) ? '无相关 (-0.1-0.1)' : 'No Correlation (-0.1-0.1)',
               },
               {
                 color: CORRELATION_COLORS.weakNegative,
-                label: locale === 'zh-CN' ? '弱负相关 (-0.4--0.1)' : 'Weak Negative (-0.4--0.1)',
+                label: isChineseLocale(locale) ? '弱负相关 (-0.4--0.1)' : 'Weak Negative (-0.4--0.1)',
               },
               {
                 color: CORRELATION_COLORS.moderateNegative,
                 label:
-                  locale === 'zh-CN' ? '中等负相关 (-0.7--0.4)' : 'Moderate Negative (-0.7--0.4)',
+                  isChineseLocale(locale) ? '中等负相关 (-0.7--0.4)' : 'Moderate Negative (-0.7--0.4)',
               },
               {
                 color: CORRELATION_COLORS.strongNegative,
-                label: locale === 'zh-CN' ? '强负相关 (-1.0--0.7)' : 'Strong Negative (-1.0--0.7)',
+                label: isChineseLocale(locale) ? '强负相关 (-1.0--0.7)' : 'Strong Negative (-1.0--0.7)',
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
@@ -322,10 +323,10 @@ export default function CorrelationMatrix({
       <div className="md:hidden py-4 border-b border-gray-100">
         <div className="mb-3">
           <h4 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '相关性列表' : 'Correlation List'}
+            {isChineseLocale(locale) ? '相关性列表' : 'Correlation List'}
           </h4>
           <p className="text-xs text-gray-500 mt-1">
-            {locale === 'zh-CN'
+            {isChineseLocale(locale)
               ? '基于 TVS 历史数据计算的皮尔逊相关系数'
               : 'Pearson correlation coefficient based on TVS historical data'}
           </p>
@@ -338,10 +339,10 @@ export default function CorrelationMatrix({
         <div className="flex items-center justify-between mb-3">
           <div>
             <h4 className="text-sm font-semibold text-gray-900">
-              {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
+              {isChineseLocale(locale) ? '相关性详情' : 'Correlation Details'}
             </h4>
             <p className="text-xs text-gray-500 mt-1">
-              {locale === 'zh-CN' ? `数据范围: ${data.timeRange}` : `Time Range: ${data.timeRange}`}
+              {isChineseLocale(locale) ? `数据范围: ${data.timeRange}` : `Time Range: ${data.timeRange}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -351,9 +352,9 @@ export default function CorrelationMatrix({
               className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="correlation">
-                {locale === 'zh-CN' ? '按相关性排序' : 'Sort by Correlation'}
+                {isChineseLocale(locale) ? '按相关性排序' : 'Sort by Correlation'}
               </option>
-              <option value="name">{locale === 'zh-CN' ? '按名称排序' : 'Sort by Name'}</option>
+              <option value="name">{isChineseLocale(locale) ? '按名称排序' : 'Sort by Name'}</option>
             </select>
           </div>
         </div>
@@ -363,19 +364,19 @@ export default function CorrelationMatrix({
             <thead className="sticky top-0">
               <tr>
                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '预言机 A' : 'Oracle A'}
+                  {isChineseLocale(locale) ? '预言机 A' : 'Oracle A'}
                 </th>
                 <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '预言机 B' : 'Oracle B'}
+                  {isChineseLocale(locale) ? '预言机 B' : 'Oracle B'}
                 </th>
                 <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '相关系数' : 'Correlation'}
+                  {isChineseLocale(locale) ? '相关系数' : 'Correlation'}
                 </th>
                 <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '关系' : 'Relationship'}
+                  {isChineseLocale(locale) ? '关系' : 'Relationship'}
                 </th>
                 <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  {locale === 'zh-CN' ? '置信度' : 'Confidence'}
+                  {isChineseLocale(locale) ? '置信度' : 'Confidence'}
                 </th>
               </tr>
             </thead>
@@ -435,7 +436,7 @@ export default function CorrelationMatrix({
           <div className="bg-white border border-gray-200 rounded max-w-sm w-full p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-900">
-                {locale === 'zh-CN' ? '相关性详情' : 'Correlation Details'}
+                {isChineseLocale(locale) ? '相关性详情' : 'Correlation Details'}
               </h3>
               <button
                 onClick={() => setShowDetails(false)}
@@ -473,7 +474,7 @@ export default function CorrelationMatrix({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs text-gray-500">
-                      {locale === 'zh-CN' ? '关系类型' : 'Relationship'}
+                      {isChineseLocale(locale) ? '关系类型' : 'Relationship'}
                     </div>
                     <div className="text-sm font-medium text-gray-900">
                       {getCorrelationLabel(selectedPair.correlation, locale)}
@@ -481,7 +482,7 @@ export default function CorrelationMatrix({
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">
-                      {locale === 'zh-CN' ? '置信度' : 'Confidence'}
+                      {isChineseLocale(locale) ? '置信度' : 'Confidence'}
                     </div>
                     <div className="text-sm font-medium text-gray-900">
                       {(selectedPair.confidence * 100).toFixed(0)}%
@@ -489,7 +490,7 @@ export default function CorrelationMatrix({
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">
-                      {locale === 'zh-CN' ? '样本数量' : 'Sample Size'}
+                      {isChineseLocale(locale) ? '样本数量' : 'Sample Size'}
                     </div>
                     <div className="text-sm font-medium text-gray-900">
                       {selectedPair.sampleSize}
@@ -497,7 +498,7 @@ export default function CorrelationMatrix({
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">
-                      {locale === 'zh-CN' ? '数据范围' : 'Time Range'}
+                      {isChineseLocale(locale) ? '数据范围' : 'Time Range'}
                     </div>
                     <div className="text-sm font-medium text-gray-900">{data.timeRange}</div>
                   </div>
@@ -506,7 +507,7 @@ export default function CorrelationMatrix({
 
               <div className="text-xs text-gray-600">
                 <p>
-                  {locale === 'zh-CN'
+                  {isChineseLocale(locale)
                     ? '相关系数衡量两个预言机 TVS 变化的同步程度。正值表示同向变动，负值表示反向变动。'
                     : 'The correlation coefficient measures how synchronized the TVS changes are between two oracles. Positive values indicate moving in the same direction, negative values indicate moving in opposite directions.'}
                 </p>
@@ -517,7 +518,7 @@ export default function CorrelationMatrix({
               onClick={() => setShowDetails(false)}
               className="w-full mt-4 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
             >
-              {locale === 'zh-CN' ? '关闭' : 'Close'}
+              {isChineseLocale(locale) ? '关闭' : 'Close'}
             </button>
           </div>
         </div>
@@ -528,10 +529,10 @@ export default function CorrelationMatrix({
         <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="font-medium text-gray-700 mb-0.5">
-            {locale === 'zh-CN' ? '关于相关性分析' : 'About Correlation Analysis'}
+            {isChineseLocale(locale) ? '关于相关性分析' : 'About Correlation Analysis'}
           </p>
           <p>
-            {locale === 'zh-CN'
+            {isChineseLocale(locale)
               ? '相关性系数范围从 -1 到 1。1 表示完全正相关，-1 表示完全负相关，0 表示无相关性。'
               : 'Correlation coefficient ranges from -1 to 1. 1 indicates perfect positive correlation, -1 indicates perfect negative correlation, 0 indicates no correlation.'}
           </p>

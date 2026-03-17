@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { useMarketOverviewData } from './useMarketOverviewData';
 import { ChartType, ViewType, TIME_RANGES } from './types';
 import { RefreshInterval } from './constants';
@@ -53,25 +54,25 @@ export default function MarketOverviewPage() {
   }, []);
 
   const chartTypes = [
-    { key: 'pie', label: locale === 'zh-CN' ? '市场份额' : 'Market Share', icon: PieChartIcon },
-    { key: 'trend', label: locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend', icon: TrendingUp },
-    { key: 'bar', label: locale === 'zh-CN' ? '链支持' : 'Chain Support', icon: BarChart3 },
-    { key: 'chain', label: locale === 'zh-CN' ? '链分布' : 'Chain Breakdown', icon: Network },
-    { key: 'protocol', label: locale === 'zh-CN' ? '协议' : 'Protocols', icon: Building2 },
+    { key: 'pie', label: isChineseLocale(locale) ? '市场份额' : 'Market Share', icon: PieChartIcon },
+    { key: 'trend', label: isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend', icon: TrendingUp },
+    { key: 'bar', label: isChineseLocale(locale) ? '链支持' : 'Chain Support', icon: BarChart3 },
+    { key: 'chain', label: isChineseLocale(locale) ? '链分布' : 'Chain Breakdown', icon: Network },
+    { key: 'protocol', label: isChineseLocale(locale) ? '协议' : 'Protocols', icon: Building2 },
     {
       key: 'asset',
-      label: locale === 'zh-CN' ? '资产类别' : 'Asset Categories',
+      label: isChineseLocale(locale) ? '资产类别' : 'Asset Categories',
       icon: PieChartIcon2,
     },
     {
       key: 'comparison',
-      label: locale === 'zh-CN' ? '多预言机对比' : 'Oracle Comparison',
+      label: isChineseLocale(locale) ? '多预言机对比' : 'Oracle Comparison',
       icon: GitCompare,
     },
-    { key: 'benchmark', label: locale === 'zh-CN' ? '行业基准' : 'Benchmark', icon: Target },
+    { key: 'benchmark', label: isChineseLocale(locale) ? '行业基准' : 'Benchmark', icon: Target },
     {
       key: 'correlation',
-      label: locale === 'zh-CN' ? '相关性' : 'Correlation',
+      label: isChineseLocale(locale) ? '相关性' : 'Correlation',
       icon: ActivitySquare,
     },
   ];
@@ -143,23 +144,23 @@ export default function MarketOverviewPage() {
   const getChartTitle = () => {
     switch (activeChart) {
       case 'pie':
-        return locale === 'zh-CN' ? '市场份额分布' : 'Market Share Distribution';
+        return isChineseLocale(locale) ? '市场份额分布' : 'Market Share Distribution';
       case 'trend':
-        return locale === 'zh-CN' ? 'TVS 趋势分析' : 'TVS Trend Analysis';
+        return isChineseLocale(locale) ? 'TVS 趋势分析' : 'TVS Trend Analysis';
       case 'bar':
-        return locale === 'zh-CN' ? '链支持情况' : 'Chain Support Overview';
+        return isChineseLocale(locale) ? '链支持情况' : 'Chain Support Overview';
       case 'chain':
-        return locale === 'zh-CN' ? '链级别 TVS 分布' : 'Chain TVS Breakdown';
+        return isChineseLocale(locale) ? '链级别 TVS 分布' : 'Chain TVS Breakdown';
       case 'protocol':
-        return locale === 'zh-CN' ? '协议列表' : 'Protocol List';
+        return isChineseLocale(locale) ? '协议列表' : 'Protocol List';
       case 'asset':
-        return locale === 'zh-CN' ? '资产类别分析' : 'Asset Category Analysis';
+        return isChineseLocale(locale) ? '资产类别分析' : 'Asset Category Analysis';
       case 'comparison':
-        return locale === 'zh-CN' ? '多预言机对比分析' : 'Multi-Oracle Comparison';
+        return isChineseLocale(locale) ? '多预言机对比分析' : 'Multi-Oracle Comparison';
       case 'benchmark':
-        return locale === 'zh-CN' ? '行业基准对比' : 'Industry Benchmark Comparison';
+        return isChineseLocale(locale) ? '行业基准对比' : 'Industry Benchmark Comparison';
       case 'correlation':
-        return locale === 'zh-CN' ? 'TVS 相关性分析' : 'TVS Correlation Analysis';
+        return isChineseLocale(locale) ? 'TVS 相关性分析' : 'TVS Correlation Analysis';
       default:
         return '';
     }
@@ -229,11 +230,11 @@ export default function MarketOverviewPage() {
                 <BarChart3 className="w-6 h-6 text-blue-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
+                {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
               </h1>
             </div>
             <p className="text-gray-600 ml-14">
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? '全面分析预言机市场份额、TVS趋势和链支持情况'
                 : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
             </p>
@@ -264,7 +265,7 @@ export default function MarketOverviewPage() {
         <div className="flex flex-wrap items-end gap-8 lg:gap-12 mb-8 pb-6 border-b border-gray-200">
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '总 tvs' : 'total tvs'}
+              {isChineseLocale(locale) ? '总 tvs' : 'total tvs'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">{totalTVS}</p>
@@ -281,7 +282,7 @@ export default function MarketOverviewPage() {
 
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '支持链数' : 'chains'}
+              {isChineseLocale(locale) ? '支持链数' : 'chains'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">{totalChains}</p>
@@ -291,7 +292,7 @@ export default function MarketOverviewPage() {
 
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '协议数量' : 'protocols'}
+              {isChineseLocale(locale) ? '协议数量' : 'protocols'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">{totalProtocols}+</p>
@@ -301,7 +302,7 @@ export default function MarketOverviewPage() {
 
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '市场主导' : 'dominance'}
+              {isChineseLocale(locale) ? '市场主导' : 'dominance'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">{marketStats.marketDominance}%</p>
@@ -311,7 +312,7 @@ export default function MarketOverviewPage() {
 
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '平均延迟' : 'latency'}
+              {isChineseLocale(locale) ? '平均延迟' : 'latency'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">
@@ -323,7 +324,7 @@ export default function MarketOverviewPage() {
 
           <div>
             <p className="text-xs text-gray-500 lowercase tracking-wide">
-              {locale === 'zh-CN' ? '预言机数' : 'oracles'}
+              {isChineseLocale(locale) ? '预言机数' : 'oracles'}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <p className="text-3xl font-semibold text-gray-900">{marketStats.oracleCount}</p>
@@ -338,10 +339,10 @@ export default function MarketOverviewPage() {
               <div className="flex items-center gap-6 flex-wrap">
                 <div className="flex items-center">
                   {[
-                    { key: 'pie', label: locale === 'zh-CN' ? '市场份额' : 'Market Share' },
-                    { key: 'trend', label: locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend' },
-                    { key: 'bar', label: locale === 'zh-CN' ? '链支持' : 'Chain Support' },
-                    { key: 'chain', label: locale === 'zh-CN' ? '链分布' : 'Chain Breakdown' },
+                    { key: 'pie', label: isChineseLocale(locale) ? '市场份额' : 'Market Share' },
+                    { key: 'trend', label: isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend' },
+                    { key: 'bar', label: isChineseLocale(locale) ? '链支持' : 'Chain Support' },
+                    { key: 'chain', label: isChineseLocale(locale) ? '链分布' : 'Chain Breakdown' },
                   ].map((item) => {
                     const type = chartTypes.find((t) => t.key === item.key);
                     if (!type) return null;
@@ -369,8 +370,8 @@ export default function MarketOverviewPage() {
 
                 <div className="flex items-center">
                   {[
-                    { key: 'protocol', label: locale === 'zh-CN' ? '协议' : 'Protocols' },
-                    { key: 'asset', label: locale === 'zh-CN' ? '资产' : 'Assets' },
+                    { key: 'protocol', label: isChineseLocale(locale) ? '协议' : 'Protocols' },
+                    { key: 'asset', label: isChineseLocale(locale) ? '资产' : 'Assets' },
                   ].map((item) => {
                     const type = chartTypes.find((t) => t.key === item.key);
                     if (!type) return null;
@@ -424,9 +425,9 @@ export default function MarketOverviewPage() {
                             ? 'text-blue-600 bg-blue-50'
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }`}
-                        title={locale === 'zh-CN' ? '同比对比' : 'Year-over-Year'}
+                        title={isChineseLocale(locale) ? '同比对比' : 'Year-over-Year'}
                       >
-                        {locale === 'zh-CN' ? '同比' : 'YoY'}
+                        {isChineseLocale(locale) ? '同比' : 'YoY'}
                       </button>
                       <button
                         onClick={() => toggleComparisonMode('mom')}
@@ -435,9 +436,9 @@ export default function MarketOverviewPage() {
                             ? 'text-blue-600 bg-blue-50'
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }`}
-                        title={locale === 'zh-CN' ? '环比对比' : 'Month-over-Month'}
+                        title={isChineseLocale(locale) ? '环比对比' : 'Month-over-Month'}
                       >
-                        {locale === 'zh-CN' ? '环比' : 'MoM'}
+                        {isChineseLocale(locale) ? '环比' : 'MoM'}
                       </button>
                     </div>
 
@@ -459,7 +460,7 @@ export default function MarketOverviewPage() {
                     {comparisonMode === 'none' && (
                       <div className="flex items-center gap-2 px-2 py-1">
                         <span className="text-xs font-medium text-purple-700">
-                          {locale === 'zh-CN' ? '置信区间' : 'CI'}
+                          {isChineseLocale(locale) ? '置信区间' : 'CI'}
                         </span>
                         <button
                           onClick={() => setShowConfidenceInterval(!showConfidenceInterval)}
@@ -493,7 +494,7 @@ export default function MarketOverviewPage() {
                     }`}
                   >
                     <PieChartIcon className="w-4 h-4" />
-                    {locale === 'zh-CN' ? '图表' : 'Chart'}
+                    {isChineseLocale(locale) ? '图表' : 'Chart'}
                   </button>
                   <button
                     onClick={() => setViewType('table')}
@@ -504,7 +505,7 @@ export default function MarketOverviewPage() {
                     }`}
                   >
                     <TableIcon className="w-4 h-4" />
-                    {locale === 'zh-CN' ? '表格' : 'Table'}
+                    {isChineseLocale(locale) ? '表格' : 'Table'}
                   </button>
                 </div>
               </div>
@@ -525,7 +526,7 @@ export default function MarketOverviewPage() {
                       <button
                         onClick={() => setLinkedOracle(null)}
                         className="ml-1 p-0.5 hover:bg-purple-200 transition-colors"
-                        title={locale === 'zh-CN' ? '清除联动' : 'Clear Link'}
+                        title={isChineseLocale(locale) ? '清除联动' : 'Clear Link'}
                       >
                         <X className="w-3 h-3 text-purple-600" />
                       </button>
@@ -537,10 +538,10 @@ export default function MarketOverviewPage() {
                       <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 border border-blue-200">
                         <span className="text-xs text-blue-700">
                           {comparisonMode === 'yoy'
-                            ? locale === 'zh-CN'
+                            ? isChineseLocale(locale)
                               ? '同比'
                               : 'YoY'
-                            : locale === 'zh-CN'
+                            : isChineseLocale(locale)
                               ? '环比'
                               : 'MoM'}
                         </span>
@@ -583,7 +584,7 @@ export default function MarketOverviewPage() {
                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 hover:bg-blue-50 transition-colors"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      {locale === 'zh-CN' ? '重置' : 'Reset'}
+                      {isChineseLocale(locale) ? '重置' : 'Reset'}
                     </button>
                   )}
                   {selectedItem && (
@@ -591,7 +592,7 @@ export default function MarketOverviewPage() {
                       onClick={() => setSelectedItem(null)}
                       className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 hover:bg-gray-100 transition-colors"
                     >
-                      {locale === 'zh-CN' ? '清除' : 'Clear'}
+                      {isChineseLocale(locale) ? '清除' : 'Clear'}
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -603,7 +604,7 @@ export default function MarketOverviewPage() {
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 animate-spin" />
                     <span className="text-gray-500 text-sm">
-                      {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+                      {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
                     </span>
                   </div>
                 </div>
@@ -682,7 +683,7 @@ export default function MarketOverviewPage() {
                     !['chain', 'protocol', 'asset'].includes(activeChart) && (
                       <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
                         <Info className="w-4 h-4" />
-                        {locale === 'zh-CN'
+                        {isChineseLocale(locale)
                           ? '悬停查看详情，点击选中项目'
                           : 'Hover for details, click to select'}
                       </div>
@@ -696,7 +697,7 @@ export default function MarketOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '选中时间范围' : 'Time Range'}
+                      {isChineseLocale(locale) ? '选中时间范围' : 'Time Range'}
                     </p>
                     <p className="text-xl font-bold text-gray-900">{selectedTimeRange}</p>
                   </div>
@@ -704,8 +705,8 @@ export default function MarketOverviewPage() {
                 </div>
                 <div className="mt-2 text-xs text-gray-400">
                   {lastUpdated
-                    ? `${locale === 'zh-CN' ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
-                    : locale === 'zh-CN'
+                    ? `${isChineseLocale(locale) ? '更新于' : 'Updated'} ${lastUpdated.toLocaleTimeString()}`
+                    : isChineseLocale(locale)
                       ? '数据已更新'
                       : 'Data updated'}
                 </div>
@@ -714,7 +715,7 @@ export default function MarketOverviewPage() {
               <div className="overflow-hidden">
                 <div className="py-2 border-b border-gray-100">
                   <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    {locale === 'zh-CN' ? '预言机市场份额' : 'Oracle Market Share'}
+                    {isChineseLocale(locale) ? '预言机市场份额' : 'Oracle Market Share'}
                   </h4>
                 </div>
                 <div className="py-2 space-y-1 max-h-[280px] overflow-y-auto">
@@ -759,7 +760,7 @@ export default function MarketOverviewPage() {
                           TVS: <span className="text-gray-700">{item.tvs}</span>
                         </span>
                         <span>
-                          {locale === 'zh-CN' ? '链' : 'Chains'}:{' '}
+                          {isChineseLocale(locale) ? '链' : 'Chains'}:{' '}
                           <span className="text-gray-700">{item.chains}</span>
                         </span>
                         <span className={item.change24h >= 0 ? 'text-green-600' : 'text-red-600'}>
@@ -776,14 +777,14 @@ export default function MarketOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
+                      {isChineseLocale(locale) ? '总市场份额' : 'Total Market Share'}
                     </p>
                     <p className="text-lg font-bold text-gray-900">100%</p>
                   </div>
                   <PieChartIcon className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
-                  {locale === 'zh-CN'
+                  {isChineseLocale(locale)
                     ? `覆盖 ${marketStats.oracleCount} 个主要预言机`
                     : `Covering ${marketStats.oracleCount} major oracles`}
                 </div>
@@ -796,11 +797,11 @@ export default function MarketOverviewPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-gray-400" />
                 <h3 className="text-sm font-semibold text-gray-900">
-                  {locale === 'zh-CN' ? '热门资产' : 'Top Assets'}
+                  {isChineseLocale(locale) ? '热门资产' : 'Top Assets'}
                 </h3>
               </div>
               <span className="text-xs text-gray-400">
-                {assets.length} {locale === 'zh-CN' ? '个资产' : 'assets'}
+                {assets.length} {isChineseLocale(locale) ? '个资产' : 'assets'}
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -808,22 +809,22 @@ export default function MarketOverviewPage() {
                 <thead>
                   <tr className="border-b border-gray-100">
                     <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '资产' : 'Asset'}
+                      {isChineseLocale(locale) ? '资产' : 'Asset'}
                     </th>
                     <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '价格' : 'Price'}
+                      {isChineseLocale(locale) ? '价格' : 'Price'}
                     </th>
                     <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '24h变化' : '24h Change'}
+                      {isChineseLocale(locale) ? '24h变化' : '24h Change'}
                     </th>
                     <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '7d变化' : '7d Change'}
+                      {isChineseLocale(locale) ? '7d变化' : '7d Change'}
                     </th>
                     <th className="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '24h成交量' : '24h Volume'}
+                      {isChineseLocale(locale) ? '24h成交量' : '24h Volume'}
                     </th>
                     <th className="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
+                      {isChineseLocale(locale) ? '主要预言机' : 'Primary Oracle'}
                     </th>
                   </tr>
                 </thead>
@@ -902,7 +903,7 @@ export default function MarketOverviewPage() {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500" />
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {locale === 'zh-CN' ? '数据异常检测' : 'Anomaly Detected'}
+                  {isChineseLocale(locale) ? '数据异常检测' : 'Anomaly Detected'}
                 </h3>
               </div>
               <button
@@ -923,7 +924,7 @@ export default function MarketOverviewPage() {
             <div className="space-y-4">
               <div className="bg-red-50 p-4 border border-red-200">
                 <p className="text-sm text-red-600 mb-1">
-                  {locale === 'zh-CN' ? '检测到异常波动' : 'Abnormal fluctuation detected'}
+                  {isChineseLocale(locale) ? '检测到异常波动' : 'Abnormal fluctuation detected'}
                 </p>
                 <p className="text-2xl font-bold text-red-700">
                   {(selectedAnomaly.changeRate * 100).toFixed(2)}%
@@ -933,13 +934,13 @@ export default function MarketOverviewPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-3 border border-gray-200">
                   <p className="text-xs text-gray-500 mb-1">
-                    {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                    {isChineseLocale(locale) ? '预言机' : 'Oracle'}
                   </p>
                   <p className="font-medium text-gray-900">{selectedAnomaly.dataKey}</p>
                 </div>
                 <div className="bg-gray-50 p-3 border border-gray-200">
                   <p className="text-xs text-gray-500 mb-1">
-                    {locale === 'zh-CN' ? '日期' : 'Date'}
+                    {isChineseLocale(locale) ? '日期' : 'Date'}
                   </p>
                   <p className="font-medium text-gray-900">{selectedAnomaly.date}</p>
                 </div>
@@ -948,7 +949,7 @@ export default function MarketOverviewPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">
-                    {locale === 'zh-CN' ? '当前值' : 'Current Value'}
+                    {isChineseLocale(locale) ? '当前值' : 'Current Value'}
                   </span>
                   <span className="font-medium text-gray-900">
                     ${selectedAnomaly.value.toFixed(2)}B
@@ -956,7 +957,7 @@ export default function MarketOverviewPage() {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-sm text-gray-600">
-                    {locale === 'zh-CN' ? '上一期值' : 'Previous Value'}
+                    {isChineseLocale(locale) ? '上一期值' : 'Previous Value'}
                   </span>
                   <span className="font-medium text-gray-900">
                     ${selectedAnomaly.prevValue.toFixed(2)}B
@@ -964,7 +965,7 @@ export default function MarketOverviewPage() {
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-gray-600">
-                    {locale === 'zh-CN' ? '变化量' : 'Change'}
+                    {isChineseLocale(locale) ? '变化量' : 'Change'}
                   </span>
                   <span
                     className={`font-medium ${
@@ -981,7 +982,7 @@ export default function MarketOverviewPage() {
 
               <div className="bg-amber-50 p-3 border border-amber-200">
                 <p className="text-xs text-amber-700">
-                  {locale === 'zh-CN'
+                  {isChineseLocale(locale)
                     ? '该数据点的变化率超过了设定的阈值，可能存在异常波动。建议进一步调查原因。'
                     : 'This data point exceeds the configured threshold. Further investigation is recommended.'}
                 </p>
@@ -993,7 +994,7 @@ export default function MarketOverviewPage() {
                 onClick={() => setSelectedAnomaly(null)}
                 className="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
               >
-                {locale === 'zh-CN' ? '关闭' : 'Close'}
+                {isChineseLocale(locale) ? '关闭' : 'Close'}
               </button>
             </div>
           </div>

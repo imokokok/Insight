@@ -38,13 +38,13 @@ interface ExportConfigProps {
 }
 
 const DEFAULT_FIELDS: ExportField[] = [
-  { key: 'oracle', label: '预言机', enabled: true },
-  { key: 'blockchain', label: '区块链', enabled: true },
-  { key: 'price', label: '价格', enabled: true },
-  { key: 'timestamp', label: '时间戳', enabled: true },
-  { key: 'change24h', label: '24h变化', enabled: true },
-  { key: 'confidence', label: '置信度', enabled: true },
-  { key: 'source', label: '来源', enabled: false },
+  { key: 'oracle', label: 'oracle', enabled: true },
+  { key: 'blockchain', label: 'blockchain', enabled: true },
+  { key: 'price', label: 'price', enabled: true },
+  { key: 'timestamp', label: 'timestamp', enabled: true },
+  { key: 'change24h', label: 'change24h', enabled: true },
+  { key: 'confidence', label: 'confidence', enabled: true },
+  { key: 'source', label: 'source', enabled: false },
 ];
 
 export function ExportConfig({
@@ -197,7 +197,7 @@ export function ExportConfig({
                     onChange={() => toggleField(field.key)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                   />
-                  <span className="text-sm text-gray-700">{field.label}</span>
+                  <span className="text-sm text-gray-700">{t(`priceQuery.export.${field.label}`)}</span>
                 </label>
               ))}
             </div>

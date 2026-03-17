@@ -71,10 +71,10 @@ export function StatsGrid({
   }, [prices]);
 
   const getConsistencyRating = (stdDevPercent: number): { label: string; color: string } => {
-    if (stdDevPercent < 0.1) return { label: '优秀', color: 'text-green-600' };
-    if (stdDevPercent < 0.3) return { label: '良好', color: 'text-blue-600' };
-    if (stdDevPercent < 0.5) return { label: '一般', color: 'text-orange-600' };
-    return { label: '较差', color: 'text-red-600' };
+    if (stdDevPercent < 0.1) return { label: t('priceQuery.stats.consistency.excellent'), color: 'text-green-600' };
+    if (stdDevPercent < 0.3) return { label: t('priceQuery.stats.consistency.good'), color: 'text-blue-600' };
+    if (stdDevPercent < 0.5) return { label: t('priceQuery.stats.consistency.fair'), color: 'text-orange-600' };
+    return { label: t('priceQuery.stats.consistency.poor'), color: 'text-red-600' };
   };
 
   const consistencyRating =
@@ -144,7 +144,7 @@ export function StatsGrid({
             <div
               className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
             >
-              对比: {avgPriceDiffStyle.text}
+              {t('priceQuery.stats.compare')}: {avgPriceDiffStyle.text}
             </div>
           )}
         </div>
@@ -170,7 +170,7 @@ export function StatsGrid({
             avgChange24hPercent !== undefined &&
             compareAvgChange24hPercent !== undefined && (
               <div className="mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block bg-gray-50 text-gray-600">
-                对比: {compareAvgChange24hPercent >= 0 ? '+' : ''}
+                {t('priceQuery.stats.compare')}: {compareAvgChange24hPercent >= 0 ? '+' : ''}
                 {compareAvgChange24hPercent.toFixed(2)}%
               </div>
             )}
@@ -213,7 +213,7 @@ export function StatsGrid({
             <div
               className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
             >
-              对比: {maxPriceDiffStyle.text}
+              {t('priceQuery.stats.compare')}: {maxPriceDiffStyle.text}
             </div>
           )}
         </div>
@@ -235,7 +235,7 @@ export function StatsGrid({
             <div
               className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
             >
-              对比: {minPriceDiffStyle.text}
+              {t('priceQuery.stats.compare')}: {minPriceDiffStyle.text}
             </div>
           )}
         </div>
@@ -257,7 +257,7 @@ export function StatsGrid({
             <div
               className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
             >
-              对比: {priceRangeDiffStyle.text}
+              {t('priceQuery.stats.compare')}: {priceRangeDiffStyle.text}
             </div>
           )}
         </div>

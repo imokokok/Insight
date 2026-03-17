@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { Wifi, WifiOff, AlertCircle } from 'lucide-react';
 
 interface RealtimeIndicatorProps {
@@ -35,9 +36,9 @@ export default function RealtimeIndicator({
   };
 
   const getStatusText = () => {
-    if (!isConnected) return locale === 'zh-CN' ? '已断开' : 'Disconnected';
-    if (latency && latency > 1000) return locale === 'zh-CN' ? '延迟高' : 'High Latency';
-    return locale === 'zh-CN' ? '实时' : 'Live';
+    if (!isConnected) return isChineseLocale(locale) ? '已断开' : 'Disconnected';
+    if (latency && latency > 1000) return isChineseLocale(locale) ? '延迟高' : 'High Latency';
+    return isChineseLocale(locale) ? '实时' : 'Live';
   };
 
   return (
@@ -62,7 +63,7 @@ export default function RealtimeIndicator({
           className="flex items-center gap-1 px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50 transition-colors"
         >
           <Wifi className="w-3 h-3" />
-          {locale === 'zh-CN' ? '重连' : 'Reconnect'}
+          {isChineseLocale(locale) ? '重连' : 'Reconnect'}
         </button>
       )}
     </div>

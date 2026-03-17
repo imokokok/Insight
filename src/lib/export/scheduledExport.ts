@@ -6,6 +6,7 @@
 
 import { ExportConfig, ExportFormat, ExportDataType, ExportTimeRange } from './exportConfig';
 import { createLogger } from '@/lib/utils/logger';
+import { isChineseLocale } from '@/i18n/routing';
 
 const logger = createLogger('ScheduledExport');
 
@@ -168,7 +169,7 @@ export function updateTaskNextRunTime(task: ScheduledExportTask): ScheduledExpor
 export function getFrequencyLabel(frequency: ExportFrequency, locale: string = 'en'): string {
   const option = FREQUENCY_OPTIONS.find((o) => o.value === frequency);
   if (!option) return frequency;
-  return locale === 'zh-CN' ? option.labelZh : option.label;
+  return isChineseLocale(locale) ? option.labelZh : option.label;
 }
 
 /**

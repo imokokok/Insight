@@ -33,10 +33,10 @@ interface PriceResultsTableProps {
 }
 
 const SCORE_CONFIG: Record<ScoreLevel, { color: string; bgColor: string; label: string }> = {
-  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: '优秀' },
-  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: '良好' },
-  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: '警告' },
-  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: '异常' },
+  excellent: { color: semanticColors.success.main, bgColor: 'bg-green-500', label: 'excellent' },
+  good: { color: semanticColors.info.main, bgColor: 'bg-blue-500', label: 'good' },
+  warning: { color: semanticColors.warning.main, bgColor: 'bg-yellow-500', label: 'warning' },
+  critical: { color: semanticColors.danger.main, bgColor: 'bg-red-500', label: 'critical' },
 };
 
 function getScoreLevel(score: number): ScoreLevel {
@@ -58,6 +58,7 @@ function calculateCompletenessScore(dataPoints: number, expectedPoints: number):
 }
 
 function DataQualityBadge({ score }: { score: number }) {
+  const t = useTranslations();
   const level = getScoreLevel(score);
   const config = SCORE_CONFIG[level];
 
@@ -274,7 +275,7 @@ export function PriceResultsTable({
               <div
                 className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
               >
-                {t('dataQuality.completenessScore') || '质量'}
+                {t('dataQuality.completenessScore')}
               </div>
               <div
                 className="text-right py-2.5 px-3 font-semibold text-gray-700 bg-gray-50"
@@ -436,7 +437,7 @@ export function PriceResultsTable({
       {filteredResults.length > 10 && (
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-gray-600">
-            <span>每页</span>
+            <span>{t('priceQuery.pagination.perPage')}</span>
             <select
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
@@ -448,9 +449,9 @@ export function PriceResultsTable({
                 </option>
               ))}
             </select>
-            <span>条</span>
+            <span>{t('priceQuery.pagination.items')}</span>
             <span className="ml-2 text-gray-500">
-              共 {filteredResults.length} 条
+              {t('priceQuery.pagination.total', { count: filteredResults.length })}
             </span>
           </div>
 
@@ -460,7 +461,7 @@ export function PriceResultsTable({
               disabled={currentPage === 1}
               className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
             >
-              上一页
+              {t('priceQuery.pagination.prevPage')}
             </button>
 
             {getPageNumbers().map((page, index) => (
@@ -487,7 +488,7 @@ export function PriceResultsTable({
               disabled={currentPage === totalPages}
               className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
             >
-              下一页
+              {t('priceQuery.pagination.nextPage')}
             </button>
           </div>
         </div>

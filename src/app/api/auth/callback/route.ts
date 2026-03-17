@@ -61,7 +61,11 @@ export async function GET(request: NextRequest) {
     const { error: profileError } = await supabase.from('user_profiles').upsert(
       {
         id: user.id,
-        display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        display_name:
+          user.user_metadata?.display_name ||
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          null,
         updated_at: new Date().toISOString(),
       },
       {

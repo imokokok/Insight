@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { Globe } from 'lucide-react';
 import { chartColors, baseColors } from '@/lib/config/colors';
 
@@ -50,11 +51,11 @@ export default function ChainBreakdownChart({
               <span className="font-medium">{item.tvsFormatted}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '份额' : 'Share'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '份额' : 'Share'}:</span>
               <span className="font-medium">{item.share.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '协议数' : 'Protocols'}:</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '协议数' : 'Protocols'}:</span>
               <span className="font-medium">{item.protocols}</span>
             </div>
             <div className="flex justify-between">
@@ -69,12 +70,12 @@ export default function ChainBreakdownChart({
             <div className="pt-1 border-t border-gray-100 mt-1">
               <div className="flex justify-between text-xs">
                 <span className="text-gray-400">
-                  {locale === 'zh-CN' ? '主要预言机' : 'Top Oracle'}:
+                  {isChineseLocale(locale) ? '主要预言机' : 'Top Oracle'}:
                 </span>
                 <span className="font-medium text-gray-600">{item.topOracle}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-gray-400">{locale === 'zh-CN' ? '份额' : 'Share'}:</span>
+                <span className="text-gray-400">{isChineseLocale(locale) ? '份额' : 'Share'}:</span>
                 <span className="font-medium text-gray-600">{item.topOracleShare.toFixed(1)}%</span>
               </div>
             </div>
@@ -91,7 +92,7 @@ export default function ChainBreakdownChart({
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -104,7 +105,7 @@ export default function ChainBreakdownChart({
         <div className="text-center">
           <Globe className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无链数据' : 'No chain data available'}
+            {isChineseLocale(locale) ? '暂无链数据' : 'No chain data available'}
           </p>
         </div>
       </div>
@@ -118,22 +119,22 @@ export default function ChainBreakdownChart({
           <thead className="sticky top-0">
             <tr>
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '链' : 'Chain'}
+                {isChineseLocale(locale) ? '链' : 'Chain'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 TVS
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '份额' : 'Share'}
+                {isChineseLocale(locale) ? '份额' : 'Share'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '协议' : 'Protocols'}
+                {isChineseLocale(locale) ? '协议' : 'Protocols'}
               </th>
               <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 24h
               </th>
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {locale === 'zh-CN' ? '主要预言机' : 'Top Oracle'}
+                {isChineseLocale(locale) ? '主要预言机' : 'Top Oracle'}
               </th>
             </tr>
           </thead>
@@ -202,7 +203,7 @@ export default function ChainBreakdownChart({
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            {locale === 'zh-CN' ? '饼图' : 'Pie'}
+            {isChineseLocale(locale) ? '饼图' : 'Pie'}
           </button>
           <button
             onClick={() => setChartType('bar')}
@@ -212,11 +213,11 @@ export default function ChainBreakdownChart({
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            {locale === 'zh-CN' ? '柱状图' : 'Bar'}
+            {isChineseLocale(locale) ? '柱状图' : 'Bar'}
           </button>
         </div>
         <span className="text-xs text-gray-400">
-          {locale === 'zh-CN' ? '点击图表查看详情' : 'Click chart for details'}
+          {isChineseLocale(locale) ? '点击图表查看详情' : 'Click chart for details'}
         </span>
       </div>
 

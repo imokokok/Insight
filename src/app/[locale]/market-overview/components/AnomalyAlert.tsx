@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AnomalyData } from '../types';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   AlertTriangle,
   Bell,
@@ -87,10 +88,10 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   // 获取严重程度标签
   const getLevelLabel = (level: AnomalyData['level']) => {
     const labels: Record<AnomalyData['level'], string> = {
-      critical: locale === 'zh-CN' ? '严重' : 'Critical',
-      high: locale === 'zh-CN' ? '高' : 'High',
-      medium: locale === 'zh-CN' ? '中' : 'Medium',
-      low: locale === 'zh-CN' ? '低' : 'Low',
+      critical: isChineseLocale(locale) ? '严重' : 'Critical',
+      high: isChineseLocale(locale) ? '高' : 'High',
+      medium: isChineseLocale(locale) ? '中' : 'Medium',
+      low: isChineseLocale(locale) ? '低' : 'Low',
     };
     return labels[level];
   };
@@ -118,12 +119,12 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
   // 获取类型标签
   const getTypeLabel = (type: AnomalyData['type']) => {
     const labels: Record<AnomalyData['type'], string> = {
-      price_spike: locale === 'zh-CN' ? '价格飙升' : 'Price Spike',
-      price_drop: locale === 'zh-CN' ? '价格暴跌' : 'Price Drop',
-      volatility_spike: locale === 'zh-CN' ? '波动率激增' : 'Volatility Spike',
-      trend_break: locale === 'zh-CN' ? '趋势突破' : 'Trend Break',
-      volume_anomaly: locale === 'zh-CN' ? '交易量异常' : 'Volume Anomaly',
-      correlation_break: locale === 'zh-CN' ? '相关性崩溃' : 'Correlation Break',
+      price_spike: isChineseLocale(locale) ? '价格飙升' : 'Price Spike',
+      price_drop: isChineseLocale(locale) ? '价格暴跌' : 'Price Drop',
+      volatility_spike: isChineseLocale(locale) ? '波动率激增' : 'Volatility Spike',
+      trend_break: isChineseLocale(locale) ? '趋势突破' : 'Trend Break',
+      volume_anomaly: isChineseLocale(locale) ? '交易量异常' : 'Volume Anomaly',
+      correlation_break: isChineseLocale(locale) ? '相关性崩溃' : 'Correlation Break',
     };
     return labels[type];
   };
@@ -137,15 +138,15 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
     // 小于1小时
     if (diff < 3600000) {
       const minutes = Math.floor(diff / 60000);
-      return locale === 'zh-CN' ? `${minutes}分钟前` : `${minutes}m ago`;
+      return isChineseLocale(locale) ? `${minutes}分钟前` : `${minutes}m ago`;
     }
     // 小于24小时
     if (diff < 86400000) {
       const hours = Math.floor(diff / 3600000);
-      return locale === 'zh-CN' ? `${hours}小时前` : `${hours}h ago`;
+      return isChineseLocale(locale) ? `${hours}小时前` : `${hours}h ago`;
     }
     // 默认显示日期
-    return date.toLocaleDateString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+    return date.toLocaleDateString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -159,7 +160,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -174,10 +175,10 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
             <Activity className="w-5 h-5 text-green-600" />
           </div>
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '暂无异常警报' : 'No anomaly alerts'}
+            {isChineseLocale(locale) ? '暂无异常警报' : 'No anomaly alerts'}
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            {locale === 'zh-CN' ? '所有指标正常' : 'All indicators normal'}
+            {isChineseLocale(locale) ? '所有指标正常' : 'All indicators normal'}
           </p>
         </div>
       </div>
@@ -189,18 +190,18 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
       {/* 统计摘要 */}
       <div className="flex items-center gap-3 text-xs mb-3">
         <span className="text-gray-500">
-          {locale === 'zh-CN' ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
+          {isChineseLocale(locale) ? '活跃警报:' : 'Active:'} {sortedAlerts.length}
         </span>
         {sortedAlerts.some((a) => a.level === 'critical') && (
           <span className="px-1.5 py-0.5 bg-red-100 text-red-700 font-medium">
             {sortedAlerts.filter((a) => a.level === 'critical').length}{' '}
-            {locale === 'zh-CN' ? '严重' : 'Critical'}
+            {isChineseLocale(locale) ? '严重' : 'Critical'}
           </span>
         )}
         {sortedAlerts.some((a) => a.level === 'high') && (
           <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 font-medium">
             {sortedAlerts.filter((a) => a.level === 'high').length}{' '}
-            {locale === 'zh-CN' ? '高' : 'High'}
+            {isChineseLocale(locale) ? '高' : 'High'}
           </span>
         )}
       </div>
@@ -240,11 +241,11 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                       {formatTime(alert.timestamp)}
                     </span>
                     <span>
-                      {locale === 'zh-CN' ? '当前值:' : 'Current:'}{' '}
+                      {isChineseLocale(locale) ? '当前值:' : 'Current:'}{' '}
                       <span className="font-medium text-gray-700">{alert.value}</span>
                     </span>
                     <span>
-                      {locale === 'zh-CN' ? '预期值:' : 'Expected:'}{' '}
+                      {isChineseLocale(locale) ? '预期值:' : 'Expected:'}{' '}
                       <span className="font-medium text-gray-700">{alert.expectedValue}</span>
                     </span>
                   </div>
@@ -275,19 +276,19 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
               <div className="pt-2 mt-2 border-t border-black/5">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-500">{locale === 'zh-CN' ? '异常ID:' : 'ID:'}</span>
+                    <span className="text-gray-500">{isChineseLocale(locale) ? '异常ID:' : 'ID:'}</span>
                     <span className="ml-1 font-mono text-gray-700">{alert.id}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">
-                      {locale === 'zh-CN' ? '持续时间:' : 'Duration:'}
+                      {isChineseLocale(locale) ? '持续时间:' : 'Duration:'}
                     </span>
                     <span className="ml-1 text-gray-700">
                       {alert.duration
                         ? `${Math.floor(alert.duration / 60000)}${
-                            locale === 'zh-CN' ? '分钟' : 'min'
+                            isChineseLocale(locale) ? '分钟' : 'min'
                           }`
-                        : locale === 'zh-CN'
+                        : isChineseLocale(locale)
                           ? '进行中'
                           : 'Ongoing'}
                     </span>
@@ -295,7 +296,7 @@ export default function AnomalyAlert({ data, loading = false, onAcknowledge }: A
                   {alert.oracle && (
                     <div className="col-span-2">
                       <span className="text-gray-500">
-                        {locale === 'zh-CN' ? '受影响预言机:' : 'Affected Oracle:'}
+                        {isChineseLocale(locale) ? '受影响预言机:' : 'Affected Oracle:'}
                       </span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         <span className="px-1.5 py-0.5 bg-white/60 text-xs text-gray-700">

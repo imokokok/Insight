@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { ProtocolDetail } from '../types';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   Layers,
   ExternalLink,
@@ -117,7 +118,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent animate-spin" />
           <span className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '加载中...' : 'Loading...'}
+            {isChineseLocale(locale) ? '加载中...' : 'Loading...'}
           </span>
         </div>
       </div>
@@ -132,7 +133,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder={locale === 'zh-CN' ? '搜索协议...' : 'Search protocols...'}
+            placeholder={isChineseLocale(locale) ? '搜索协议...' : 'Search protocols...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -145,7 +146,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-2 py-1.5 border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">{locale === 'zh-CN' ? '所有类别' : 'All Categories'}</option>
+            <option value="all">{isChineseLocale(locale) ? '所有类别' : 'All Categories'}</option>
             {categories
               .filter((c) => c !== 'all')
               .map((cat) => (
@@ -160,12 +161,12 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
       {/* 统计信息 */}
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span>
-          {locale === 'zh-CN' ? '共' : 'Total'} {filteredData.length}{' '}
-          {locale === 'zh-CN' ? '个协议' : 'protocols'}
+          {isChineseLocale(locale) ? '共' : 'Total'} {filteredData.length}{' '}
+          {isChineseLocale(locale) ? '个协议' : 'protocols'}
         </span>
         {searchTerm && (
           <span className="text-blue-600">
-            {locale === 'zh-CN' ? '搜索: ' : 'Search: '}&quot;{searchTerm}&quot;
+            {isChineseLocale(locale) ? '搜索: ' : 'Search: '}&quot;{searchTerm}&quot;
           </span>
         )}
       </div>
@@ -197,11 +198,11 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                       <span className="flex items-center gap-1">
                         <Layers className="w-3 h-3" />
-                        {protocol.chains.length} {locale === 'zh-CN' ? '条链' : 'chains'}
+                        {protocol.chains.length} {isChineseLocale(locale) ? '条链' : 'chains'}
                       </span>
                       <span>•</span>
                       <span>
-                        {locale === 'zh-CN' ? '主要预言机' : 'Primary'}: {protocol.primaryOracle}
+                        {isChineseLocale(locale) ? '主要预言机' : 'Primary'}: {protocol.primaryOracle}
                       </span>
                     </div>
                   </div>
@@ -233,7 +234,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-2">
                   <div>
                     <div className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '7天变化' : '7d Change'}
+                      {isChineseLocale(locale) ? '7天变化' : '7d Change'}
                     </div>
                     <div
                       className={`font-medium text-sm ${
@@ -246,13 +247,13 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '预言机数量' : 'Oracles'}
+                      {isChineseLocale(locale) ? '预言机数量' : 'Oracles'}
                     </div>
                     <div className="font-medium text-gray-900 text-sm">{protocol.oracleCount}</div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '支持链' : 'Chains'}
+                      {isChineseLocale(locale) ? '支持链' : 'Chains'}
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {protocol.chains.slice(0, 4).map((chain) => (
@@ -269,7 +270,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-0.5">
-                      {locale === 'zh-CN' ? '主要预言机' : 'Primary Oracle'}
+                      {isChineseLocale(locale) ? '主要预言机' : 'Primary Oracle'}
                     </div>
                     <div className="font-medium text-gray-900 text-sm">
                       {protocol.primaryOracle}
@@ -283,7 +284,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
                   >
-                    {locale === 'zh-CN' ? '访问网站' : 'Visit Website'}
+                    {isChineseLocale(locale) ? '访问网站' : 'Visit Website'}
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -297,7 +298,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
         <div className="text-center py-8">
           <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
           <p className="text-gray-500 text-sm">
-            {locale === 'zh-CN' ? '未找到匹配的协议' : 'No protocols found'}
+            {isChineseLocale(locale) ? '未找到匹配的协议' : 'No protocols found'}
           </p>
         </div>
       )}

@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 
 export default function ProfessionalCTA() {
   const locale = useLocale();
-  const isZh = locale === 'zh-CN';
+  const isZh = isChineseLocale(locale);
 
   return (
     <section className="py-16 sm:py-20 bg-white border-t border-slate-200">

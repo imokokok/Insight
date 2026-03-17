@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import { RiskMetrics, RiskLevel } from '../types';
 import { getRiskLevelColor } from '@/lib/analytics/riskMetrics';
 import {
@@ -28,7 +29,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
+            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -46,11 +47,11 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
+            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
         <div className="text-center py-6 text-gray-500 text-sm">
-          {locale === 'zh-CN' ? '暂无风险数据' : 'No risk data available'}
+          {isChineseLocale(locale) ? '暂无风险数据' : 'No risk data available'}
         </div>
       </div>
     );
@@ -58,10 +59,10 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
   const getRiskLabel = (level: RiskLevel): string => {
     const labels: Record<RiskLevel, string> = {
-      low: locale === 'zh-CN' ? '低风险' : 'Low Risk',
-      medium: locale === 'zh-CN' ? '中等风险' : 'Medium Risk',
-      high: locale === 'zh-CN' ? '高风险' : 'High Risk',
-      critical: locale === 'zh-CN' ? '极高风险' : 'Critical Risk',
+      low: isChineseLocale(locale) ? '低风险' : 'Low Risk',
+      medium: isChineseLocale(locale) ? '中等风险' : 'Medium Risk',
+      high: isChineseLocale(locale) ? '高风险' : 'High Risk',
+      critical: isChineseLocale(locale) ? '极高风险' : 'Critical Risk',
     };
     return labels[level];
   };
@@ -69,22 +70,22 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
   const getHHIStatus = (value: number): { label: string; color: string } => {
     if (value < 1500) {
       return {
-        label: locale === 'zh-CN' ? '竞争型市场' : 'Competitive Market',
+        label: isChineseLocale(locale) ? '竞争型市场' : 'Competitive Market',
         color: semanticColors.success.main,
       };
     } else if (value < 2500) {
       return {
-        label: locale === 'zh-CN' ? '中度集中' : 'Moderate Concentration',
+        label: isChineseLocale(locale) ? '中度集中' : 'Moderate Concentration',
         color: semanticColors.warning.main,
       };
     } else if (value < 3500) {
       return {
-        label: locale === 'zh-CN' ? '高度集中' : 'High Concentration',
+        label: isChineseLocale(locale) ? '高度集中' : 'High Concentration',
         color: semanticColors.danger.main,
       };
     } else {
       return {
-        label: locale === 'zh-CN' ? '垄断型市场' : 'Monopoly Market',
+        label: isChineseLocale(locale) ? '垄断型市场' : 'Monopoly Market',
         color: semanticColors.info.dark,
       };
     }
@@ -99,12 +100,12 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-blue-600" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {locale === 'zh-CN' ? '风险指标' : 'Risk Metrics'}
+            {isChineseLocale(locale) ? '风险指标' : 'Risk Metrics'}
           </h3>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">
-            {locale === 'zh-CN' ? '综合风险:' : 'Overall Risk:'}
+            {isChineseLocale(locale) ? '综合风险:' : 'Overall Risk:'}
           </span>
           <span
             className="px-2 py-0.5 text-xs font-medium"
@@ -125,7 +126,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="flex items-center gap-2 mb-2">
             <PieChart className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs text-gray-700">
-              {locale === 'zh-CN' ? 'HHI 指数' : 'HHI Index'}
+              {isChineseLocale(locale) ? 'HHI 指数' : 'HHI Index'}
             </span>
           </div>
           <div className="mb-1">
@@ -166,7 +167,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs text-gray-700">
-              {locale === 'zh-CN' ? '多元化评分' : 'Diversification'}
+              {isChineseLocale(locale) ? '多元化评分' : 'Diversification'}
             </span>
           </div>
           <div className="mb-1">
@@ -187,17 +188,17 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           {/* 因素分解 */}
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '链多样性' : 'Chains'}</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '链多样性' : 'Chains'}</span>
               <span className="font-medium">{data.diversification.factors.chainDiversity}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '协议多样性' : 'Protocols'}
+                {isChineseLocale(locale) ? '协议多样性' : 'Protocols'}
               </span>
               <span className="font-medium">{data.diversification.factors.protocolDiversity}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '资产多样性' : 'Assets'}</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '资产多样性' : 'Assets'}</span>
               <span className="font-medium">{data.diversification.factors.assetDiversity}%</span>
             </div>
           </div>
@@ -208,7 +209,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="flex items-center gap-2 mb-2">
             <Activity className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs text-gray-700">
-              {locale === 'zh-CN' ? '波动率指数' : 'Volatility Index'}
+              {isChineseLocale(locale) ? '波动率指数' : 'Volatility Index'}
             </span>
           </div>
           <div className="mb-1">
@@ -227,14 +228,14 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '年化波动率' : 'Annualized'}
+                {isChineseLocale(locale) ? '年化波动率' : 'Annualized'}
               </span>
               <span className="font-medium">
                 {(data.volatility.annualizedVolatility * 100).toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{locale === 'zh-CN' ? '日波动率' : 'Daily'}</span>
+              <span className="text-gray-500">{isChineseLocale(locale) ? '日波动率' : 'Daily'}</span>
               <span className="font-medium">
                 {(data.volatility.dailyVolatility * 100).toFixed(2)}%
               </span>
@@ -247,7 +248,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs text-gray-700">
-              {locale === 'zh-CN' ? '相关性风险' : 'Correlation Risk'}
+              {isChineseLocale(locale) ? '相关性风险' : 'Correlation Risk'}
             </span>
           </div>
           <div className="mb-1">
@@ -269,7 +270,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '平均相关性' : 'Avg Correlation'}
+                {isChineseLocale(locale) ? '平均相关性' : 'Avg Correlation'}
               </span>
               <span className="font-medium">
                 {(data.correlationRisk.avgCorrelation * 100).toFixed(1)}%
@@ -277,7 +278,7 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">
-                {locale === 'zh-CN' ? '高相关对' : 'High Corr Pairs'}
+                {isChineseLocale(locale) ? '高相关对' : 'High Corr Pairs'}
               </span>
               <span className="font-medium">
                 {data.correlationRisk.highCorrelationPairs.length}
@@ -293,10 +294,10 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-medium text-red-800">
-              {locale === 'zh-CN' ? '市场集中度风险警告' : 'Market Concentration Risk Warning'}
+              {isChineseLocale(locale) ? '市场集中度风险警告' : 'Market Concentration Risk Warning'}
             </p>
             <p className="text-xs text-red-600 mt-0.5">
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? `HHI 指数为 ${data.hhi.value}，表明市场高度集中。前4大企业占据 ${data.hhi.concentrationRatio}% 的市场份额，存在系统性风险。`
                 : `HHI index is ${data.hhi.value}, indicating high market concentration. Top 4 players control ${data.hhi.concentrationRatio}% market share, posing systemic risk.`}
             </p>
@@ -309,10 +310,10 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
           <Info className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-xs font-medium text-amber-800">
-              {locale === 'zh-CN' ? '多元化不足警告' : 'Diversification Warning'}
+              {isChineseLocale(locale) ? '多元化不足警告' : 'Diversification Warning'}
             </p>
             <p className="text-xs text-amber-600 mt-0.5">
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? '多元化评分较低，建议增加链、协议和资产的多样性以降低风险。'
                 : 'Diversification score is low. Consider increasing diversity across chains, protocols, and assets to reduce risk.'}
             </p>
@@ -322,9 +323,9 @@ export default function RiskDashboard({ data, loading }: RiskDashboardProps) {
 
       {/* 更新时间 */}
       <div className="mt-3 text-xs text-gray-400 text-right">
-        {locale === 'zh-CN' ? '更新于: ' : 'Updated: '}
+        {isChineseLocale(locale) ? '更新于: ' : 'Updated: '}
         {new Date(data.overallRisk.timestamp).toLocaleString(
-          locale === 'zh-CN' ? 'zh-CN' : 'en-US'
+          isChineseLocale(locale) ? 'zh-CN' : 'en-US'
         )}
       </div>
     </div>

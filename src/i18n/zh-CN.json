@@ -41,6 +41,28 @@
     "register": "注册",
     "signOut": "退出登录"
   },
+  "blockchain": {
+    "ethereum": "以太坊",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "solana": "Solana",
+    "avalanche": "Avalanche",
+    "fantom": "Fantom",
+    "cronos": "Cronos",
+    "juno": "Juno",
+    "cosmos": "Cosmos",
+    "osmosis": "Osmosis",
+    "bnb-chain": "BNB Chain",
+    "base": "Base",
+    "scroll": "Scroll",
+    "zksync": "zkSync",
+    "aptos": "Aptos",
+    "sui": "Sui",
+    "gnosis": "Gnosis",
+    "mantle": "Mantle",
+    "linea": "Linea"
+  },
   "footer": {
     "copyright": "© 2026 Insight。保留所有权利。",
     "documentation": "文档",
@@ -1318,6 +1340,7 @@
   },
   "priceQuery": {
     "scrollHint": "← 左右滑动查看更多 →",
+    "title": "价格查询",
     "filter": {
       "placeholder": "搜索预言机或区块链...",
       "results": "显示 {count} / {total} 条结果",
@@ -1327,11 +1350,24 @@
       "symbol": "交易对",
       "oracle": "预言机",
       "blockchain": "区块链",
-      "timeRange": "时间范围"
+      "timeRange": "时间范围",
+      "selectAll": "全选",
+      "deselectAll": "取消",
+      "advancedOptions": "高级选项",
+      "compareMode": "对比模式",
+      "showBaseline": "显示基准线",
+      "compareTime": "对比时间"
     },
     "query": "查询",
     "loading": "加载中...",
     "loadingData": "加载数据中...",
+    "pagination": {
+      "perPage": "每页",
+      "items": "条",
+      "total": "共 {count} 条",
+      "prevPage": "上一页",
+      "nextPage": "下一页"
+    },
     "results": {
       "title": "价格查询结果",
       "empty": "请选择预言机和区块链进行查询",
@@ -1345,6 +1381,12 @@
         "responseTime": "响应时间",
         "change24h": "24小时涨跌",
         "freshness": "数据新鲜度"
+      },
+      "qualityScore": {
+        "excellent": "优秀",
+        "good": "良好",
+        "warning": "警告",
+        "critical": "异常"
       }
     },
     "stats": {
@@ -1361,11 +1403,47 @@
       "queryDuration": "查询耗时",
       "change24h": "24小时涨跌",
       "volatility": "波动率",
-      "annualized": "年化"
+      "annualized": "年化",
+      "compare": "对比",
+      "collapse": "收起",
+      "expand": "查看更多",
+      "consistency": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "较差"
+      }
     },
     "chart": {
       "title": "价格趋势图表",
       "exportImage": "导出图片",
+      "indicators": "指标",
+      "bollingerBands": "布林带",
+      "confidenceInterval": "置信区间",
+      "annotations": "注释",
+      "anomalyMarkers": "异常标记",
+      "priceSpikes": "价格突变",
+      "valueLabels": "数值标签",
+      "baseline": "基准线",
+      "compareSuffix": "对比",
+      "priceHigh": "价格偏高",
+      "priceLow": "价格偏低",
+      "realtime": "实时",
+      "realtimeUpdate": "实时更新",
+      "realtimePrice": "实时价格",
+      "lastUpdate": "最后更新",
+      "connectionStatus": {
+        "connected": "已连接",
+        "connecting": "连接中...",
+        "reconnecting": "重连中...",
+        "disconnected": "已断开",
+        "error": "连接错误"
+      },
+      "stats": {
+        "high24h": "24h 最高",
+        "low24h": "24h 最低",
+        "volume24h": "24h 成交量"
+      },
       "tooltip": {
         "open": "开盘:",
         "high": "最高:",
@@ -1415,6 +1493,16 @@
       "enabled": "已启用",
       "disabled": "已禁用",
       "triggered": "预警触发"
+    },
+    "export": {
+      "header": "价格查询结果",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "price": "价格",
+      "timestamp": "时间戳",
+      "source": "来源",
+      "change24h": "24h变化",
+      "confidence": "置信度"
     }
   },
   "priceDeviation": {
@@ -1908,6 +1996,7 @@
     "dev": "偏差"
   },
   "dataQuality": {
+    "completenessScore": "质量",
     "priceDeviationMonitor": "价格偏差监控",
     "comparisonWithOracles": "与其他预言机价格对比分析",
     "basePrice": "基准价格",
@@ -1952,7 +2041,21 @@
     "dataQualityAnalysis": "数据质量分析",
     "oracleDataQualityMetrics": "预言机数据质量专业分析指标",
     "lastUpdated": "最后更新",
-    "refreshData": "刷新数据"
+    "refreshData": "刷新数据",
+    "latencyDistribution": "延迟分布可视化",
+    "latencyDistributionDesc": "各预言机更新延迟分布直方图",
+    "completenessDesc": "基于数据点数量、时间连续性和缺失值比例",
+    "avgScore": "平均评分",
+    "dataSources": "数据源",
+    "excellentRate": "优秀率",
+    "dataPoints": "数据点",
+    "continuity": "连续性",
+    "missing": "缺失",
+    "freshnessTrend": "数据新鲜度趋势",
+    "freshnessTrendDesc": "数据更新频率随时间变化趋势",
+    "fresh": "新鲜",
+    "stale": "滞后",
+    "delayed": "延迟"
   },
   "networkHealth": {
     "status": {

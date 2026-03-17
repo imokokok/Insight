@@ -11,8 +11,6 @@ import {
   ReferenceLine,
   ReferenceArea,
   Dot,
-  BarChart,
-  Bar,
   Area,
   ComposedChart,
 } from 'recharts';
@@ -23,271 +21,28 @@ import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
 import { chartColors, baseColors, semanticColors, shadowColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
+import {
+  LatencyDataPoint,
+  ThresholdHistoryEntry,
+  DynamicThreshold,
+  PredictionAccuracy,
+  generatePredictions,
+  calculatePredictionAccuracy,
+  generateMockLatencyData,
+  downsampleLatencyData,
+  calculateDynamicThreshold,
+  calculateSMA,
+} from './latencyUtils';
+import { useLatencyStats } from './useLatencyStats';
+import { LatencyHistogram } from './LatencyHistogram';
+import { LatencyPrediction } from './LatencyPrediction';
 
 const logger = createLogger('LatencyTrendChart');
-
-interface ThresholdHistoryEntry {
-  timestamp: Date;
-  threshold: number;
-  baseline: number;
-  stdDev: number;
-}
-
-interface DynamicThreshold {
-  threshold: number;
-  baseline: number;
-  stdDev: number;
-}
-
-interface HistogramDataPoint {
-  range: string;
-  count: number;
-  min: number;
-  max: number;
-}
-
-interface PredictionPoint {
-  timestamp: string;
-  predicted: number;
-  upperBound: number;
-  lowerBound: number;
-  fullTimestamp: Date;
-}
-
-interface PredictionAccuracy {
-  mae: number;
-  rmse: number;
-  mape: number;
-}
-
-function calculatePercentile(sortedData: number[], percentile: number): number {
-  const index = Math.ceil((percentile / 100) * sortedData.length) - 1;
-  return sortedData[Math.max(0, index)];
-}
-
-function generateHistogramData(
-  latencies: number[],
-  bucketCount: number = 12
-): HistogramDataPoint[] {
-  if (latencies.length === 0) return [];
-
-  const min = Math.min(...latencies);
-  const max = Math.max(...latencies);
-  const range = max - min;
-
-  if (range === 0) {
-    return [{ range: `${min.toFixed(0)}`, count: latencies.length, min, max }];
-  }
-
-  const bucketSize = range / bucketCount;
-  const buckets: HistogramDataPoint[] = [];
-
-  for (let i = 0; i < bucketCount; i++) {
-    const bucketMin = min + i * bucketSize;
-    const bucketMax = min + (i + 1) * bucketSize;
-    const count = latencies.filter(
-      (l) => l >= bucketMin && (i === bucketCount - 1 ? l <= bucketMax : l < bucketMax)
-    ).length;
-
-    buckets.push({
-      range: `${bucketMin.toFixed(0)}-${bucketMax.toFixed(0)}`,
-      count,
-      min: bucketMin,
-      max: bucketMax,
-    });
-  }
-
-  return buckets;
-}
-
-// SMA预测算法
-function calculateSMA(data: number[], period: number): number {
-  if (data.length < period) {
-    return data.reduce((a, b) => a + b, 0) / data.length;
-  }
-  const sum = data.slice(-period).reduce((a, b) => a + b, 0);
-  return sum / period;
-}
-
-// 计算标准差
-function calculateStdDev(data: number[]): number {
-  if (data.length === 0) return 0;
-  const mean = data.reduce((a, b) => a + b, 0) / data.length;
-  const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
-  return Math.sqrt(variance);
-}
-
-// 生成未来时间戳
-function generateFutureTimestamp(baseDate: Date, minutesAhead: number): Date {
-  const future = new Date(baseDate);
-  future.setMinutes(future.getMinutes() + minutesAhead);
-  return future;
-}
-
-// 生成预测数据
-function generatePredictions(
-  historicalData: LatencyDataPoint[],
-  periods: number,
-  smaPeriod: number
-): PredictionPoint[] {
-  if (historicalData.length === 0) return [];
-
-  const latencies = historicalData.map((d) => d.latency);
-  const sma = calculateSMA(latencies, smaPeriod);
-  const stdDev = calculateStdDev(latencies);
-  const lastTimestamp = historicalData[historicalData.length - 1].fullTimestamp;
-
-  return Array.from({ length: periods }, (_, i) => {
-    const futureTimestamp = generateFutureTimestamp(lastTimestamp, i + 1);
-    const hour = futureTimestamp.getHours();
-    const minute = futureTimestamp.getMinutes();
-    const label = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-
-    return {
-      timestamp: label,
-      predicted: Number(sma.toFixed(1)),
-      upperBound: Number((sma + 1.96 * stdDev).toFixed(1)),
-      lowerBound: Number(Math.max(0, sma - 1.96 * stdDev).toFixed(1)),
-      fullTimestamp: futureTimestamp,
-    };
-  });
-}
-
-// 计算预测准确度
-function calculatePredictionAccuracy(actual: number[], predicted: number[]): PredictionAccuracy {
-  if (actual.length === 0 || predicted.length === 0 || actual.length !== predicted.length) {
-    return { mae: 0, rmse: 0, mape: 0 };
-  }
-
-  const n = actual.length;
-  let maeSum = 0;
-  let rmseSum = 0;
-  let mapeSum = 0;
-  let validMapeCount = 0;
-
-  for (let i = 0; i < n; i++) {
-    const error = Math.abs(actual[i] - predicted[i]);
-    maeSum += error;
-    rmseSum += error * error;
-
-    if (actual[i] !== 0) {
-      mapeSum += (error / actual[i]) * 100;
-      validMapeCount++;
-    }
-  }
-
-  return {
-    mae: Number((maeSum / n).toFixed(2)),
-    rmse: Number(Math.sqrt(rmseSum / n).toFixed(2)),
-    mape: validMapeCount > 0 ? Number((mapeSum / validMapeCount).toFixed(2)) : 0,
-  };
-}
-
-interface LatencyDataPoint {
-  timestamp: string;
-  latency: number;
-  isAnomaly: boolean;
-  fullTimestamp: Date;
-}
 
 interface LatencyTrendChartProps {
   symbol?: string;
   className?: string;
   anomalyThreshold?: number;
-}
-
-function generateMockLatencyData(threshold: number): LatencyDataPoint[] {
-  const now = new Date();
-  const data: LatencyDataPoint[] = [];
-  const baseLatency = 80;
-  const normalVariance = 30;
-
-  for (let i = 59; i >= 0; i--) {
-    const timestamp = new Date(now);
-    timestamp.setMinutes(timestamp.getMinutes() - i);
-
-    const minute = timestamp.getMinutes();
-    const hour = timestamp.getHours();
-
-    let latency: number;
-    const random = Math.random();
-
-    if (random > 0.92) {
-      latency = baseLatency + 150 + Math.random() * 100;
-    } else if (random > 0.85) {
-      latency = baseLatency + 80 + Math.random() * 50;
-    } else {
-      const timeFactor = hour >= 9 && hour <= 17 ? 1.2 : 0.9;
-      latency = baseLatency + (Math.random() - 0.5) * normalVariance * timeFactor;
-    }
-
-    latency = Math.max(20, latency);
-    const isAnomaly = latency > threshold;
-
-    const label = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-
-    data.push({
-      timestamp: label,
-      latency: Number(latency.toFixed(1)),
-      isAnomaly,
-      fullTimestamp: timestamp,
-    });
-  }
-
-  return data;
-}
-
-function downsampleLatencyData(
-  data: LatencyDataPoint[],
-  targetPoints: number = 50
-): LatencyDataPoint[] {
-  if (data.length <= targetPoints) {
-    return data;
-  }
-
-  const step = Math.ceil(data.length / targetPoints);
-  const result: LatencyDataPoint[] = [];
-
-  for (let i = 0; i < data.length; i += step) {
-    const chunk = data.slice(i, Math.min(i + step, data.length));
-
-    let maxLatencyPoint = chunk[0];
-    let minLatencyPoint = chunk[0];
-
-    for (const point of chunk) {
-      if (point.latency > maxLatencyPoint.latency) {
-        maxLatencyPoint = point;
-      }
-      if (point.latency < minLatencyPoint.latency) {
-        minLatencyPoint = point;
-      }
-    }
-
-    if (!result.includes(maxLatencyPoint)) {
-      result.push(maxLatencyPoint);
-    }
-
-    if (
-      chunk.length > 2 &&
-      minLatencyPoint !== maxLatencyPoint &&
-      !result.includes(minLatencyPoint)
-    ) {
-      result.push(minLatencyPoint);
-    }
-
-    const middleIndex = Math.floor(chunk.length / 2);
-    const middlePoint = chunk[middleIndex];
-    if (middlePoint && !result.includes(middlePoint) && result.length < targetPoints) {
-      result.push(middlePoint);
-    }
-  }
-
-  const lastPoint = data[data.length - 1];
-  if (!result.includes(lastPoint)) {
-    result.push(lastPoint);
-  }
-
-  return result.sort((a, b) => a.fullTimestamp.getTime() - b.fullTimestamp.getTime());
 }
 
 function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
@@ -315,30 +70,6 @@ function CustomDot({ cx, cy, payload }: CustomDotProps<LatencyDataPoint>) {
   );
 }
 
-function calculateDynamicThreshold(data: LatencyDataPoint[]): DynamicThreshold {
-  if (data.length < 20) {
-    const avg = data.reduce((sum, d) => sum + d.latency, 0) / data.length;
-    return {
-      baseline: Number(avg.toFixed(1)),
-      stdDev: 0,
-      threshold: Number((avg * 2).toFixed(1)),
-    };
-  }
-
-  const recentData = data.slice(-20);
-  const movingAverage = recentData.reduce((sum, d) => sum + d.latency, 0) / 20;
-  const variance =
-    recentData.reduce((sum, d) => sum + Math.pow(d.latency - movingAverage, 2), 0) / 20;
-  const stdDev = Math.sqrt(variance);
-  const dynamicThreshold = movingAverage + 2 * stdDev;
-
-  return {
-    baseline: Number(movingAverage.toFixed(1)),
-    stdDev: Number(stdDev.toFixed(1)),
-    threshold: Number(dynamicThreshold.toFixed(1)),
-  };
-}
-
 export function LatencyTrendChart({
   symbol = 'ETH',
   className,
@@ -357,12 +88,10 @@ export function LatencyTrendChart({
   const [error, setError] = useState<string | null>(null);
   const [useMockData, setUseMockData] = useState(false);
 
-  // 预测控制状态
   const [predictionPeriod, setPredictionPeriod] = useState<number>(5);
   const [smaPeriod, setSmaPeriod] = useState<number>(10);
   const [showPrediction, setShowPrediction] = useState<boolean>(true);
 
-  // Fetch real data from Pyth
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -370,15 +99,12 @@ export function LatencyTrendChart({
 
       try {
         const client = getPythHermesClient();
-        // Get historical prices to calculate latency
         const prices = await client.getHistoricalPrices(symbol, 1);
 
         if (prices.length === 0) {
           throw new Error('No price data available');
         }
 
-        // Calculate latency from price timestamps (simulated for now)
-        // In real scenario, this would come from Pyth's update latency metrics
         const now = new Date();
         const latencyData: LatencyDataPoint[] = [];
 
@@ -389,14 +115,12 @@ export function LatencyTrendChart({
           const minute = timestamp.getMinutes();
           const hour = timestamp.getHours();
 
-          // Simulate latency based on market hours and randomness
           const baseLatency = 80;
           const timeFactor = hour >= 9 && hour <= 17 ? 1.2 : 0.9;
           const randomVariance = (Math.random() - 0.5) * 60;
 
           let latency = baseLatency * timeFactor + randomVariance;
 
-          // Add occasional spikes
           if (Math.random() > 0.92) {
             latency += 100 + Math.random() * 100;
           }
@@ -438,23 +162,19 @@ export function LatencyTrendChart({
 
     fetchData();
 
-    // Refresh every 30 seconds
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [symbol, anomalyThreshold]);
 
-  // 生成预测数据
   const predictions = useMemo(() => {
     return generatePredictions(data, predictionPeriod, smaPeriod);
   }, [data, predictionPeriod, smaPeriod]);
 
-  // 计算预测准确度（使用历史数据验证）
   const predictionAccuracy = useMemo(() => {
     if (data.length < smaPeriod + predictionPeriod) {
       return { mae: 0, rmse: 0, mape: 0 };
     }
 
-    // 使用历史数据进行回测
     const validationData = data.slice(0, -predictionPeriod);
     const actualData = data.slice(-predictionPeriod);
 
@@ -467,7 +187,6 @@ export function LatencyTrendChart({
     return calculatePredictionAccuracy(actualValues, predictedValues);
   }, [data, predictionPeriod, smaPeriod]);
 
-  // 合并历史数据和预测数据用于图表显示
   const chartData = useMemo(() => {
     const historicalData = data.map((d) => ({
       ...d,
@@ -489,7 +208,6 @@ export function LatencyTrendChart({
     return [...historicalData, ...predictionData];
   }, [data, predictions]);
 
-  // Calculate dynamic threshold and update history
   const updateDynamicThreshold = useCallback(() => {
     const newThreshold = calculateDynamicThreshold(data);
     setDynamicThreshold(newThreshold);
@@ -504,12 +222,10 @@ export function LatencyTrendChart({
     ]);
   }, [data]);
 
-  // Initial calculation
   useEffect(() => {
     updateDynamicThreshold();
   }, [updateDynamicThreshold]);
 
-  // Recalculate every 5 minutes (300000ms)
   useEffect(() => {
     const interval = setInterval(() => {
       updateDynamicThreshold();
@@ -522,68 +238,7 @@ export function LatencyTrendChart({
     return Math.max(...data.map((d) => d.latency));
   }, [data]);
 
-  const stats = useMemo(() => {
-    const latencies = data.map((d) => d.latency);
-    const sortedLatencies = [...latencies].sort((a, b) => a - b);
-    const avg = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
-    const max = Math.max(...latencies);
-    const min = Math.min(...latencies);
-    const anomalyCount = data.filter((d) => d.isAnomaly).length;
-    const anomalyDataPoints = data.filter((d) => d.isAnomaly);
-
-    // Calculate percentiles
-    const p50 = calculatePercentile(sortedLatencies, 50);
-    const p90 = calculatePercentile(sortedLatencies, 90);
-    const p99 = calculatePercentile(sortedLatencies, 99);
-
-    // Generate histogram data
-    const histogramData = generateHistogramData(latencies, 12);
-
-    let longestAnomalyDuration = 0;
-    let currentDuration = 0;
-    const anomalyPeriods: { start: number; end: number }[] = [];
-    let currentStart = -1;
-
-    data.forEach((d, i) => {
-      if (d.isAnomaly) {
-        if (currentStart === -1) {
-          currentStart = i;
-        }
-        currentDuration++;
-      } else {
-        if (currentStart !== -1) {
-          anomalyPeriods.push({ start: currentStart, end: i - 1 });
-          if (currentDuration > longestAnomalyDuration) {
-            longestAnomalyDuration = currentDuration;
-          }
-        }
-        currentStart = -1;
-        currentDuration = 0;
-      }
-    });
-
-    if (currentStart !== -1) {
-      anomalyPeriods.push({ start: currentStart, end: data.length - 1 });
-      if (currentDuration > longestAnomalyDuration) {
-        longestAnomalyDuration = currentDuration;
-      }
-    }
-
-    return {
-      avg: Number(avg.toFixed(1)),
-      max: Number(max.toFixed(1)),
-      min: Number(min.toFixed(1)),
-      p50: Number(p50.toFixed(1)),
-      p90: Number(p90.toFixed(1)),
-      p99: Number(p99.toFixed(1)),
-      histogramData,
-      anomalyCount,
-      anomalyPercent: Number(((anomalyCount / data.length) * 100).toFixed(1)),
-      longestAnomalyDuration,
-      anomalyPeriods,
-      anomalyDataPoints,
-    };
-  }, [data]);
+  const stats = useLatencyStats(data);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -788,7 +443,6 @@ export function LatencyTrendChart({
           </div>
         </div>
 
-        {/* Dynamic Threshold Statistics */}
         <div className="grid grid-cols-4 gap-3">
           <div
             className="p-3 text-center"
@@ -846,7 +500,6 @@ export function LatencyTrendChart({
           </div>
         </div>
 
-        {/* Percentile Statistics */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 text-center" style={{ backgroundColor: baseColors.primary[50] }}>
             <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
@@ -886,134 +539,15 @@ export function LatencyTrendChart({
           </div>
         </div>
 
-        {/* 预测控制面板 */}
-        <div
-          className="p-4"
-          style={{
-            backgroundColor: baseColors.gray[100],
-            border: `1px solid ${baseColors.gray[200]}`,
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill={baseColors.primary[600]} viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <h4 className="text-sm font-semibold" style={{ color: baseColors.gray[900] }}>
-                {t('charts.latency.predictionControl')}
-              </h4>
-            </div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showPrediction}
-                onChange={(e) => setShowPrediction(e.target.checked)}
-                className="w-4 h-4 rounded"
-                style={{ accentColor: baseColors.primary[600] }}
-              />
-              <span className="text-xs" style={{ color: baseColors.gray[700] }}>
-                {t('charts.latency.showPrediction')}
-              </span>
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
-                {t('charts.latency.smaPeriod')}
-              </label>
-              <select
-                value={smaPeriod}
-                onChange={(e) => setSmaPeriod(Number(e.target.value))}
-                className="w-full text-sm px-3 py-2"
-                style={{ border: `1px solid ${baseColors.gray[300]}` }}
-              >
-                <option value={5}>5 {t('charts.latency.points')}</option>
-                <option value={10}>10 {t('charts.latency.points')}</option>
-                <option value={20}>20 {t('charts.latency.points')}</option>
-              </select>
-              <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                {t('charts.latency.smaDescription')}
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs mb-1" style={{ color: baseColors.gray[600] }}>
-                {t('charts.latency.predictionPeriod')}
-              </label>
-              <select
-                value={predictionPeriod}
-                onChange={(e) => setPredictionPeriod(Number(e.target.value))}
-                className="w-full text-sm px-3 py-2"
-                style={{ border: `1px solid ${baseColors.gray[300]}` }}
-              >
-                <option value={5}>5 {t('charts.latency.points')}</option>
-                <option value={10}>10 {t('charts.latency.points')}</option>
-                <option value={20}>20 {t('charts.latency.points')}</option>
-              </select>
-              <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                {t('charts.latency.predictionDescription')}
-              </p>
-            </div>
-          </div>
-
-          {/* 预测准确度统计 */}
-          {showPrediction && (
-            <div
-              className="grid grid-cols-3 gap-3 pt-4"
-              style={{ borderTop: `1px solid ${baseColors.primary[200]}` }}
-            >
-              <div className="text-center">
-                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-                  MAE
-                </p>
-                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
-                  {predictionAccuracy.mae}
-                  <span className="text-xs font-normal ml-1">ms</span>
-                </p>
-                <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  {t('charts.latency.mae')}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-                  RMSE
-                </p>
-                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
-                  {predictionAccuracy.rmse}
-                  <span className="text-xs font-normal ml-1">ms</span>
-                </p>
-                <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  {t('charts.latency.rmse')}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs mb-1" style={{ color: baseColors.primary[600] }}>
-                  MAPE
-                </p>
-                <p className="text-lg font-bold" style={{ color: baseColors.primary[700] }}>
-                  {predictionAccuracy.mape}
-                  <span className="text-xs font-normal ml-1">%</span>
-                </p>
-                <p className="text-xs" style={{ color: baseColors.primary[500] }}>
-                  {t('charts.latency.mape')}
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-4 text-xs" style={{ color: baseColors.gray[600] }}>
-            <p>
-              <span className="font-medium" style={{ color: baseColors.primary[700] }}>
-                {t('charts.latency.predictionNote')}
-              </span>
-              {t('charts.latency.predictionNoteDesc', { smaPeriod, predictionPeriod })}
-            </p>
-          </div>
-        </div>
+        <LatencyPrediction
+          predictionPeriod={predictionPeriod}
+          setPredictionPeriod={setPredictionPeriod}
+          smaPeriod={smaPeriod}
+          setSmaPeriod={setSmaPeriod}
+          showPrediction={showPrediction}
+          setShowPrediction={setShowPrediction}
+          predictionAccuracy={predictionAccuracy}
+        />
 
         <div style={{ height: 280 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -1041,7 +575,6 @@ export function LatencyTrendChart({
               />
               <Tooltip content={<CustomTooltip />} />
               {renderAnomalyAreas()}
-              {/* Fixed threshold line */}
               <ReferenceLine
                 y={anomalyThreshold}
                 stroke={semanticColors.danger.DEFAULT}
@@ -1053,7 +586,6 @@ export function LatencyTrendChart({
                   fontSize: 10,
                 }}
               />
-              {/* Dynamic threshold line */}
               <ReferenceLine
                 y={dynamicThreshold.threshold}
                 stroke={semanticColors.warning.DEFAULT}
@@ -1066,7 +598,6 @@ export function LatencyTrendChart({
                   fontSize: 10,
                 }}
               />
-              {/* Baseline (moving average) line */}
               <ReferenceLine
                 y={dynamicThreshold.baseline}
                 stroke={semanticColors.success.DEFAULT}
@@ -1089,7 +620,6 @@ export function LatencyTrendChart({
                   fontSize: 10,
                 }}
               />
-              {/* 置信区间区域 */}
               {showPrediction && (
                 <Area
                   type="monotone"
@@ -1110,7 +640,6 @@ export function LatencyTrendChart({
                   legendType="none"
                 />
               )}
-              {/* 实际延迟线 */}
               <Line
                 type="monotone"
                 dataKey="latency"
@@ -1126,7 +655,6 @@ export function LatencyTrendChart({
                 name={t('charts.latency.actualLatency')}
                 connectNulls={false}
               />
-              {/* 预测线 */}
               {showPrediction && (
                 <Line
                   type="monotone"
@@ -1154,93 +682,7 @@ export function LatencyTrendChart({
           </ResponsiveContainer>
         </div>
 
-        {/* Latency Distribution Histogram */}
-        <div className="p-4" style={{ backgroundColor: baseColors.gray[50] }}>
-          <h4 className="text-sm font-medium mb-3" style={{ color: baseColors.gray[900] }}>
-            {t('charts.latency.histogramTitle')}
-          </h4>
-          <div style={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={stats.histogramData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={chartColors.recharts.grid}
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="range"
-                  stroke={chartColors.recharts.axis}
-                  tick={{ fontSize: 10, fill: chartColors.recharts.tick }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={50}
-                  interval={0}
-                  label={{
-                    value: t('charts.latency.latencyRange'),
-                    position: 'insideBottom',
-                    offset: -10,
-                    fill: chartColors.recharts.axis,
-                    fontSize: 11,
-                  }}
-                />
-                <YAxis
-                  stroke={chartColors.recharts.axis}
-                  tick={{ fontSize: 11, fill: chartColors.recharts.tick }}
-                  label={{
-                    value: t('charts.latency.frequency'),
-                    angle: -90,
-                    position: 'insideLeft',
-                    fill: chartColors.recharts.axis,
-                    fontSize: 11,
-                  }}
-                />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (!active || !payload || payload.length === 0) return null;
-                    const data = payload[0].payload as HistogramDataPoint;
-                    return (
-                      <div
-                        className="p-2"
-                        style={{
-                          backgroundColor: baseColors.gray[50],
-                          border: `1px solid ${baseColors.gray[200]}`,
-                        }}
-                      >
-                        <p className="text-xs mb-1" style={{ color: baseColors.gray[500] }}>
-                          {t('charts.latency.latencyRangeLabel')}
-                        </p>
-                        <p
-                          className="text-sm font-semibold"
-                          style={{ color: baseColors.gray[900] }}
-                        >
-                          {data.range} ms
-                        </p>
-                        <p className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-                          {t('charts.latency.frequency')}
-                        </p>
-                        <p
-                          className="text-sm font-semibold"
-                          style={{ color: chartColors.recharts.primary }}
-                        >
-                          {data.count}
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  fill={chartColors.recharts.primary}
-                  stroke={chartColors.recharts.primaryDark}
-                  strokeWidth={1}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <LatencyHistogram histogramData={stats.histogramData} />
 
         {stats.anomalyCount > 0 && (
           <div
@@ -1282,7 +724,6 @@ export function LatencyTrendChart({
           </div>
         )}
 
-        {/* Dynamic Threshold Explanation Card */}
         <div
           className="p-4"
           style={{

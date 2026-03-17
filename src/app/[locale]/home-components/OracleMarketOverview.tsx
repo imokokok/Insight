@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 import {
   PieChart,
   Pie,
@@ -527,21 +528,21 @@ export default function OracleMarketOverview() {
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: baseColors.gray[600] }}
               >
-                {locale === 'zh-CN' ? '预言机' : 'Oracle'}
+                {isChineseLocale(locale) ? '预言机' : 'Oracle'}
               </th>
               <th
                 className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                 style={{ color: baseColors.gray[600] }}
               >
                 {activeChart === 'pie'
-                  ? locale === 'zh-CN'
+                  ? isChineseLocale(locale)
                     ? '市场份额'
                     : 'Market Share'
                   : activeChart === 'bar'
-                    ? locale === 'zh-CN'
+                    ? isChineseLocale(locale)
                       ? '支持链数'
                       : 'Chains'
-                    : locale === 'zh-CN'
+                    : isChineseLocale(locale)
                       ? 'TVS'
                       : 'TVS'}
               </th>
@@ -550,7 +551,7 @@ export default function OracleMarketOverview() {
                   className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {locale === 'zh-CN' ? '协议数' : 'Protocols'}
+                  {isChineseLocale(locale) ? '协议数' : 'Protocols'}
                 </th>
               )}
               {activeChart === 'pie' && (
@@ -558,7 +559,7 @@ export default function OracleMarketOverview() {
                   className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {locale === 'zh-CN' ? 'TVS' : 'TVS'}
+                  {isChineseLocale(locale) ? 'TVS' : 'TVS'}
                 </th>
               )}
             </tr>
@@ -615,11 +616,11 @@ export default function OracleMarketOverview() {
   const getChartTitle = () => {
     switch (activeChart) {
       case 'pie':
-        return locale === 'zh-CN' ? '市场份额分布' : 'Market Share Distribution';
+        return isChineseLocale(locale) ? '市场份额分布' : 'Market Share Distribution';
       case 'trend':
-        return locale === 'zh-CN' ? 'TVS 趋势分析' : 'TVS Trend Analysis';
+        return isChineseLocale(locale) ? 'TVS 趋势分析' : 'TVS Trend Analysis';
       case 'bar':
-        return locale === 'zh-CN' ? '链支持情况' : 'Chain Support Overview';
+        return isChineseLocale(locale) ? '链支持情况' : 'Chain Support Overview';
       default:
         return '';
     }
@@ -639,17 +640,17 @@ export default function OracleMarketOverview() {
             >
               <PieChartIcon className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               <span className="text-sm font-medium" style={{ color: baseColors.gray[600] }}>
-                {locale === 'zh-CN' ? '市场概览' : 'Market Overview'}
+                {isChineseLocale(locale) ? '市场概览' : 'Market Overview'}
               </span>
             </div>
             <h2
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ color: baseColors.gray[900] }}
             >
-              {locale === 'zh-CN' ? '预言机市场分析' : 'Oracle Market Analysis'}
+              {isChineseLocale(locale) ? '预言机市场分析' : 'Oracle Market Analysis'}
             </h2>
             <p className="text-lg max-w-2xl" style={{ color: baseColors.gray[600] }}>
-              {locale === 'zh-CN'
+              {isChineseLocale(locale)
                 ? '全面分析预言机市场份额、TVS趋势和链支持情况'
                 : 'Comprehensive analysis of oracle market share, TVS trends and chain support'}
             </p>
@@ -687,7 +688,7 @@ export default function OracleMarketOverview() {
                 <DollarSign className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {locale === 'zh-CN' ? '总 TVS' : 'Total TVS'}
+                {isChineseLocale(locale) ? '总 TVS' : 'Total TVS'}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
@@ -711,14 +712,14 @@ export default function OracleMarketOverview() {
                 <Globe className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {locale === 'zh-CN' ? '支持链数' : 'Total Chains'}
+                {isChineseLocale(locale) ? '支持链数' : 'Total Chains'}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalChains}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {locale === 'zh-CN' ? '跨链覆盖' : 'Cross-chain'}
+              {isChineseLocale(locale) ? '跨链覆盖' : 'Cross-chain'}
             </div>
           </div>
 
@@ -731,14 +732,14 @@ export default function OracleMarketOverview() {
                 <Layers className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {locale === 'zh-CN' ? '协议数量' : 'Protocols'}
+                {isChineseLocale(locale) ? '协议数量' : 'Protocols'}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.totalProtocols}+
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {locale === 'zh-CN' ? '集成项目' : 'Integrations'}
+              {isChineseLocale(locale) ? '集成项目' : 'Integrations'}
             </div>
           </div>
 
@@ -751,14 +752,14 @@ export default function OracleMarketOverview() {
                 <Activity className="w-4 h-4" style={{ color: baseColors.gray[600] }} />
               </div>
               <span className="text-sm" style={{ color: baseColors.gray[500] }}>
-                {locale === 'zh-CN' ? '市场主导' : 'Dominance'}
+                {isChineseLocale(locale) ? '市场主导' : 'Dominance'}
               </span>
             </div>
             <div className="text-2xl font-bold" style={{ color: baseColors.gray[900] }}>
               {stats.avgDominance}
             </div>
             <div className="text-xs mt-1" style={{ color: baseColors.gray[500] }}>
-              {locale === 'zh-CN' ? 'Chainlink 份额' : 'Chainlink Share'}
+              {isChineseLocale(locale) ? 'Chainlink 份额' : 'Chainlink Share'}
             </div>
           </div>
         </div>
@@ -778,7 +779,7 @@ export default function OracleMarketOverview() {
               }}
             >
               <PieChartIcon className="w-4 h-4" />
-              {locale === 'zh-CN' ? '市场份额' : 'Market Share'}
+              {isChineseLocale(locale) ? '市场份额' : 'Market Share'}
             </button>
             <button
               onClick={() => setActiveChart('trend')}
@@ -793,7 +794,7 @@ export default function OracleMarketOverview() {
               }}
             >
               <TrendingUp className="w-4 h-4" />
-              {locale === 'zh-CN' ? 'TVS趋势' : 'TVS Trend'}
+              {isChineseLocale(locale) ? 'TVS趋势' : 'TVS Trend'}
             </button>
             <button
               onClick={() => setActiveChart('bar')}
@@ -808,7 +809,7 @@ export default function OracleMarketOverview() {
               }}
             >
               <BarChart3 className="w-4 h-4" />
-              {locale === 'zh-CN' ? '链支持' : 'Chain Support'}
+              {isChineseLocale(locale) ? '链支持' : 'Chain Support'}
             </button>
           </div>
 
@@ -827,7 +828,7 @@ export default function OracleMarketOverview() {
               }}
             >
               <PieChartIcon className="w-4 h-4" />
-              {locale === 'zh-CN' ? '图表' : 'Chart'}
+              {isChineseLocale(locale) ? '图表' : 'Chart'}
             </button>
             <button
               onClick={() => setViewType('table')}
@@ -840,7 +841,7 @@ export default function OracleMarketOverview() {
               }}
             >
               <TableIcon className="w-4 h-4" />
-              {locale === 'zh-CN' ? '表格' : 'Table'}
+              {isChineseLocale(locale) ? '表格' : 'Table'}
             </button>
           </div>
         </div>
@@ -860,7 +861,7 @@ export default function OracleMarketOverview() {
                   className="text-sm flex items-center gap-1 hover:opacity-80"
                   style={{ color: baseColors.gray[600] }}
                 >
-                  {locale === 'zh-CN' ? '清除选择' : 'Clear Selection'}
+                  {isChineseLocale(locale) ? '清除选择' : 'Clear Selection'}
                   <ChevronRight className="w-4 h-4 rotate-90" />
                 </button>
               )}
@@ -884,7 +885,7 @@ export default function OracleMarketOverview() {
                 style={{ color: baseColors.gray[500] }}
               >
                 <Info className="w-4 h-4" />
-                {locale === 'zh-CN'
+                {isChineseLocale(locale)
                   ? '悬停查看详情，点击选中项目'
                   : 'Hover for details, click to select'}
               </div>
@@ -897,11 +898,11 @@ export default function OracleMarketOverview() {
               style={{ backgroundColor: baseColors.gray[900], color: baseColors.gray[50] }}
             >
               <div className="text-sm mb-1" style={{ color: baseColors.gray[300] }}>
-                {locale === 'zh-CN' ? '选中时间范围' : 'Selected Time Range'}
+                {isChineseLocale(locale) ? '选中时间范围' : 'Selected Time Range'}
               </div>
               <div className="text-2xl font-bold">{selectedRange}</div>
               <div className="text-xs mt-1" style={{ color: baseColors.gray[400] }}>
-                {locale === 'zh-CN' ? '数据已更新' : 'Data updated'}
+                {isChineseLocale(locale) ? '数据已更新' : 'Data updated'}
               </div>
             </div>
 
@@ -914,10 +915,10 @@ export default function OracleMarketOverview() {
                 style={{ borderColor: baseColors.gray[200], backgroundColor: baseColors.gray[50] }}
               >
                 <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
-                  {locale === 'zh-CN' ? '预言机排名' : 'Oracle Rankings'}
+                  {isChineseLocale(locale) ? '预言机排名' : 'Oracle Rankings'}
                 </span>
                 <span className="text-xs" style={{ color: baseColors.gray[500] }}>
-                  {locale === 'zh-CN' ? 'TVS / 份额' : 'TVS / Share'}
+                  {isChineseLocale(locale) ? 'TVS / 份额' : 'TVS / Share'}
                 </span>
               </div>
               <div className="max-h-[320px] overflow-y-auto">
@@ -973,7 +974,7 @@ export default function OracleMarketOverview() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
-                    {locale === 'zh-CN' ? '总市场份额' : 'Total Market Share'}
+                    {isChineseLocale(locale) ? '总市场份额' : 'Total Market Share'}
                   </div>
                   <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     100%
@@ -981,7 +982,7 @@ export default function OracleMarketOverview() {
                 </div>
                 <div className="text-right">
                   <div className="text-xs mb-0.5" style={{ color: baseColors.gray[500] }}>
-                    {locale === 'zh-CN' ? '覆盖预言机' : 'Oracles Covered'}
+                    {isChineseLocale(locale) ? '覆盖预言机' : 'Oracles Covered'}
                   </div>
                   <div className="text-xl font-bold" style={{ color: baseColors.gray[900] }}>
                     {stats.oracleCount}

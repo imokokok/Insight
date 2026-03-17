@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
+import { isChineseLocale } from '@/i18n/routing';
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -34,7 +35,7 @@ export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   const formatTime = (timestamp: string | number | undefined) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+    return date.toLocaleTimeString(isChineseLocale(locale) ? 'zh-CN' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
