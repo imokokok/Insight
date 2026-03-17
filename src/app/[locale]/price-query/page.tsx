@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useCommonShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { usePreferences } from '@/hooks';
 import {
   OracleProvider,
   Blockchain,
@@ -61,6 +62,8 @@ const oracleClients = {
 
 export default function PriceQueryPage() {
   const t = useTranslations();
+  const { preferences, isLoading: isPrefsLoading } = usePreferences();
+
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
   ]);
@@ -102,24 +105,68 @@ export default function PriceQueryPage() {
   // 使用 state 来跟踪 URL 参数是否已解析
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
 
+  // 将偏好设置转换为页面状态
+  const applyPreferences = useCallback(() => {
+    if (isPrefsLoading) return;
+
+    // 映射预言机名称到 OracleProvider
+    const oracleMapping: Record<string, OracleProvider> = {
+      chainlink: OracleProvider.CHAINLINK,
+      'band-protocol': OracleProvider.BAND_PROTOCOL,
+      uma: OracleProvider.UMA,
+      pyth: OracleProvider.PYTH,
+      api3: OracleProvider.API3,
+      redstone: OracleProvider.REDSTONE,
+      dia: OracleProvider.DIA,
+      tellor: OracleProvider.TELLOR,
+      chronicle: OracleProvider.CHRONICLE,
+      winklink: OracleProvider.WINKLINK,
+    };
+
+    // 映射时间范围字符串到小时数
+    const timeRangeMapping: Record<string, number> = {
+      '1h': 1,
+      '6h': 6,
+      '24h': 24,
+      '7d': 168,
+      '30d': 720,
+    };
+
+    const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
+    const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
+    const defaultSymbol = preferences.defaultSymbol.split('/')[0] || 'BTC';
+
+    setSelectedOracles([defaultOracle]);
+    setSelectedSymbol(defaultSymbol);
+    setSelectedTimeRange(defaultTimeRange);
+  }, [preferences, isPrefsLoading]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const config = parseQueryParams(window.location.search);
-    if (config.oracles && config.oracles.length > 0) {
-      setSelectedOracles(config.oracles);
-    }
-    if (config.chains && config.chains.length > 0) {
-      setSelectedChains(config.chains);
-    }
-    if (config.symbol) {
-      setSelectedSymbol(config.symbol);
-    }
-    if (config.timeRange) {
-      setSelectedTimeRange(config.timeRange);
+
+    // 如果 URL 没有参数，应用用户偏好设置
+    const hasUrlParams = config.oracles?.length || config.chains?.length || config.symbol || config.timeRange;
+
+    if (!hasUrlParams) {
+      applyPreferences();
+    } else {
+      if (config.oracles && config.oracles.length > 0) {
+        setSelectedOracles(config.oracles);
+      }
+      if (config.chains && config.chains.length > 0) {
+        setSelectedChains(config.chains);
+      }
+      if (config.symbol) {
+        setSelectedSymbol(config.symbol);
+      }
+      if (config.timeRange) {
+        setSelectedTimeRange(config.timeRange);
+      }
     }
     // 标记 URL 参数已解析
     setUrlParamsParsed(true);
-  }, []);
+  }, [applyPreferences]);
 
   useEffect(() => {
     if (!urlParamsParsed) return;

@@ -26,6 +26,22 @@ interface UserPreferences {
   autoRefreshInterval: string;
 }
 
+// 数据库字段名映射（snake_case）
+interface DbUserPreferences {
+  default_oracle?: string;
+  default_symbol?: string;
+  default_time_range?: string;
+  language?: string;
+  default_currency?: string;
+  auto_refresh_interval?: number;
+  theme?: string;
+  chart_settings?: {
+    show_confidence_interval?: boolean;
+    auto_refresh?: boolean;
+    refresh_interval?: number;
+  };
+}
+
 const STORAGE_KEY = 'user_preferences';
 
 const defaultPreferences: UserPreferences = {
@@ -153,16 +169,22 @@ export function PreferencesPanel() {
     }
 
     if (user && profile?.preferences) {
-      const dbPrefs = profile.preferences;
+      const dbPrefs = profile.preferences as DbUserPreferences;
       const merged: UserPreferences = {
         defaultOracle:
-          dbPrefs.defaultProvider || localPrefs.defaultOracle || defaultPreferences.defaultOracle,
+          dbPrefs.default_oracle || localPrefs.defaultOracle || defaultPreferences.defaultOracle,
         defaultSymbol:
-          dbPrefs.defaultSymbol || localPrefs.defaultSymbol || defaultPreferences.defaultSymbol,
-        defaultTimeRange: localPrefs.defaultTimeRange || defaultPreferences.defaultTimeRange,
-        language: localPrefs.language || defaultPreferences.language,
-        defaultCurrency: localPrefs.defaultCurrency || defaultPreferences.defaultCurrency,
-        autoRefreshInterval: localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
+          dbPrefs.default_symbol || localPrefs.defaultSymbol || defaultPreferences.defaultSymbol,
+        defaultTimeRange:
+          dbPrefs.default_time_range || localPrefs.defaultTimeRange || defaultPreferences.defaultTimeRange,
+        language:
+          dbPrefs.language || localPrefs.language || defaultPreferences.language,
+        defaultCurrency:
+          dbPrefs.default_currency || localPrefs.defaultCurrency || defaultPreferences.defaultCurrency,
+        autoRefreshInterval:
+          dbPrefs.auto_refresh_interval !== undefined
+            ? String(dbPrefs.auto_refresh_interval)
+            : localPrefs.autoRefreshInterval || defaultPreferences.autoRefreshInterval,
       };
       setPreferences(merged);
     } else {
@@ -192,11 +214,22 @@ export function PreferencesPanel() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
 
       if (user) {
-        await updateUserProfile(user.id, {
-          preferences: {
-            defaultProvider: preferences.defaultOracle as OracleProvider,
-            defaultSymbol: preferences.defaultSymbol,
+        const dbPreferences: DbUserPreferences = {
+          default_oracle: preferences.defaultOracle,
+          default_symbol: preferences.defaultSymbol,
+          default_time_range: preferences.defaultTimeRange,
+          language: preferences.language,
+          default_currency: preferences.defaultCurrency,
+          auto_refresh_interval: parseInt(preferences.autoRefreshInterval, 10),
+          theme: 'dark',
+          chart_settings: {
+            show_confidence_interval: true,
+            auto_refresh: preferences.autoRefreshInterval !== '0',
+            refresh_interval: parseInt(preferences.autoRefreshInterval, 10) * 1000,
           },
+        };
+        await updateUserProfile(user.id, {
+          preferences: dbPreferences as Record<string, unknown>,
         });
       }
 
