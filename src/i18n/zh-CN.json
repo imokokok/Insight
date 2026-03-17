@@ -61,7 +61,15 @@
     "sui": "Sui",
     "gnosis": "Gnosis",
     "mantle": "Mantle",
-    "linea": "Linea"
+    "linea": "Linea",
+    "celestia": "Celestia",
+    "injective": "Injective",
+    "sei": "Sei",
+    "tron": "Tron",
+    "ton": "TON",
+    "near": "NEAR",
+    "aurora": "Aurora",
+    "celo": "Celo"
   },
   "footer": {
     "copyright": "© 2026 Insight。保留所有权利。",
@@ -265,6 +273,9 @@
     "selectedChains": "已选择",
     "clear": "清除",
     "lastUpdated": "更新时间:",
+    "statistics": "统计数据",
+    "viewAll": "查看全部",
+    "collapse": "收起",
     "visibleChains": "可见链",
     "difference": "差异",
     "dataPoints": "数据点数",
@@ -1357,6 +1368,12 @@
       "compareMode": "对比模式",
       "showBaseline": "显示基准线",
       "compareTime": "对比时间"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1小时",
+      "timeRange6Hours": "6小时",
+      "timeRange24Hours": "24小时",
+      "timeRange7Days": "7天"
     },
     "query": "查询",
     "loading": "加载中...",

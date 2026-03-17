@@ -61,7 +61,15 @@
     "sui": "Sui",
     "gnosis": "Gnosis",
     "mantle": "Mantle",
-    "linea": "Linea"
+    "linea": "Linea",
+    "celestia": "Celestia",
+    "injective": "Injective",
+    "sei": "Sei",
+    "tron": "Tron",
+    "ton": "TON",
+    "near": "NEAR",
+    "aurora": "Aurora",
+    "celo": "Celo"
   },
   "footer": {
     "copyright": "© 2026 Insight. All rights reserved.",
@@ -256,6 +264,9 @@
     "autoRefresh1m": "1m",
     "autoRefresh5m": "5m",
     "lastUpdated": "Last updated",
+    "statistics": "Statistics",
+    "viewAll": "View All",
+    "collapse": "Collapse",
     "dataPoints": "Data Points",
     "deviationAlert": "{count} chain(s) detected with price deviation above threshold",
     "median": "Median",
@@ -1329,11 +1340,17 @@
       "blockchain": "Blockchain",
       "timeRange": "Time Range",
       "selectAll": "Select All",
-      "deselectAll": "Deselect",
+      "deselectAll": "Deselect All",
       "advancedOptions": "Advanced Options",
       "compareMode": "Compare Mode",
       "showBaseline": "Show Baseline",
       "compareTime": "Compare Time"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1 Hour",
+      "timeRange6Hours": "6 Hours",
+      "timeRange24Hours": "24 Hours",
+      "timeRange7Days": "7 Days"
     },
     "query": "Query",
     "loading": "Loading...",
