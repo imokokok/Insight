@@ -1444,6 +1444,21 @@
   "pyth": {
     "title": "Pyth Network",
     "subtitle": "高频金融数据预言机",
+    "menu": {
+      "marketData": "市场数据",
+      "publishers": "发布者",
+      "validators": "验证者",
+      "networkHealth": "网络健康度",
+      "priceFeeds": "价格源",
+      "crossChain": "跨链",
+      "crossOracleComparison": "跨预言机对比",
+      "riskAssessment": "风险评估"
+    },
+    "tabs": {
+      "stats": "统计",
+      "extreme": "极端事件",
+      "trend": "趋势分析"
+    },
     "stats": {
       "updateFrequency": "更新频率",
       "publisherCount": "发布者数量",
@@ -2484,6 +2499,17 @@
     "bandProtocol": {
       "title": "Band Protocol 网络指标",
       "subtitle": "链上验证者与质押数据",
+      "menu": {
+        "marketData": "市场数据",
+        "networkHealth": "网络健康度",
+        "validators": "验证者",
+        "crossChain": "跨链",
+        "dataFeeds": "数据馈送",
+        "staking": "质押",
+        "ecosystem": "生态系统",
+        "crossOracle": "跨预言机对比",
+        "riskAssessment": "风险评估"
+      },
       "activeValidators": "活跃验证者",
       "activePercent": "活跃",
       "stakedTokens": "质押代币总量",
