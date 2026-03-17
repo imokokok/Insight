@@ -127,7 +127,7 @@ export function ChronicleMakerDAOIntegrationPanel({
                     <span
                       className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getAssetTypeColor(asset.type)}`}
                     >
-                      {asset.type}
+                      {t(`chronicle.assetType.${asset.type}`)}
                     </span>
                   </td>
                   <td className="py-2 px-3 text-gray-900">${asset.price.toLocaleString()}</td>

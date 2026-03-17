@@ -400,7 +400,7 @@ export default function CrossChainPage() {
                     width={40}
                     stroke={chartColors.recharts.axis}
                   />
-                  <Tooltip formatter={(value) => [value, '频率']} />
+                  <Tooltip formatter={(value) => [value, t('crossChain.frequency')]} />
                   {meanBinIndex >= 0 && priceDistributionData[meanBinIndex] && (
                     <ReferenceLine
                       x={priceDistributionData[meanBinIndex].range}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { baseColors } from '@/lib/config/colors';
 
 export type TabId = 'overview' | 'correlation' | 'advanced' | 'charts';
@@ -16,26 +17,28 @@ interface TabNavigationProps {
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const t = useTranslations();
+  
   const tabs: Tab[] = [
     {
       id: 'overview',
-      label: '概览',
-      description: '核心统计与价格对比',
+      label: t('crossChain.tabOverview'),
+      description: t('crossChain.tabOverviewDesc'),
     },
     {
       id: 'correlation',
-      label: '相关性',
-      description: '链间相关性分析',
+      label: t('crossChain.tabCorrelation'),
+      description: t('crossChain.tabCorrelationDesc'),
     },
     {
       id: 'advanced',
-      label: '高级分析',
-      description: '协整与波动率分析',
+      label: t('crossChain.tabAdvanced'),
+      description: t('crossChain.tabAdvancedDesc'),
     },
     {
       id: 'charts',
-      label: '价格图表',
-      description: '交互式价格走势',
+      label: t('crossChain.tabCharts'),
+      description: t('crossChain.tabChartsDesc'),
     },
   ];
 

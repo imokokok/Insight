@@ -65,7 +65,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             <span
               className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium capitalize border ${getSecurityLevelColor(data.securityLevel)}`}
             >
-              {data.securityLevel}
+              {t(`chronicle.securityLevel.${data.securityLevel}`)}
             </span>
           </div>
           <div className="py-2">
@@ -85,7 +85,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             <div className="flex items-center gap-2">
               {getVerificationStatusIcon(data.verificationStatus)}
               <span className="text-sm font-semibold text-gray-900 capitalize">
-                {data.verificationStatus}
+                {t(`chronicle.verificationStatus.${data.verificationStatus}`)}
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -124,7 +124,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
               <span
                 className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getSeverityColor(event.severity)}`}
               >
-                {event.severity}
+                {t(`chronicle.severity.${event.severity}`)}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900">{event.event}</p>

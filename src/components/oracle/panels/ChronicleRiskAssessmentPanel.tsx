@@ -123,12 +123,12 @@ export function ChronicleRiskAssessmentPanel({
                 }`}
               >
                 {riskData.overallRiskScore >= 90
-                  ? 'Low Risk'
+                  ? t('chronicle.risk.lowRisk')
                   : riskData.overallRiskScore >= 70
-                    ? 'Medium Risk'
+                    ? t('chronicle.risk.mediumRisk')
                     : riskData.overallRiskScore >= 50
-                      ? 'High Risk'
-                      : 'Critical Risk'}
+                      ? t('chronicle.risk.highRisk')
+                      : t('chronicle.risk.criticalRisk')}
               </span>
             </div>
             <div className="flex items-end justify-end gap-1 mt-2">
@@ -239,7 +239,7 @@ export function ChronicleRiskAssessmentPanel({
               <p className="text-xl font-bold text-gray-900">
                 {lastAuditTimestamp
                   ? new Date(lastAuditTimestamp).toLocaleDateString()
-                  : '7 days ago'}
+                  : t('chronicle.risk.daysAgo', { days: 7 })}
               </p>
             </div>
           </div>

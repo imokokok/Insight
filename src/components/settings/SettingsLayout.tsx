@@ -51,7 +51,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10  bg-gray-100 border border-gray-200 flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-600 flex items-center justify-center">
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>

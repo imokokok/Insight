@@ -239,35 +239,20 @@ export default function RegisterPage() {
                 className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-gray-300"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                {t('auth.register.termsAgreement')
-                  .replace('{terms}', '')
-                  .replace('{privacy}', '')
-                  .split(/(\s+)/)
-                  .map((part, index) => {
-                    if (part === t('auth.register.terms')) {
-                      return (
-                        <Link
-                          key="terms"
-                          href="/terms"
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          {part}
-                        </Link>
-                      );
-                    }
-                    if (part === t('auth.register.privacy')) {
-                      return (
-                        <Link
-                          key="privacy"
-                          href="/privacy"
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          {part}
-                        </Link>
-                      );
-                    }
-                    return part;
-                  })}
+                <span>{t('auth.register.termsAgreementPrefix')}</span>
+                <Link
+                  href="/terms"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {t('auth.register.terms')}
+                </Link>
+                <span>{t('auth.register.termsAgreementMiddle')}</span>
+                <Link
+                  href="/privacy"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {t('auth.register.privacy')}
+                </Link>
               </label>
             </div>
 
