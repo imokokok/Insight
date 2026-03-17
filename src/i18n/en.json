@@ -471,7 +471,10 @@
       "networkHealth": "Network Health",
       "crossOracleComparison": "Cross-Oracle Comparison",
       "ecosystem": "Ecosystem",
-      "riskAssessment": "Risk Assessment"
+      "riskAssessment": "Risk Assessment",
+      "nodes": "Nodes",
+      "services": "Services",
+      "dataFeeds": "Data Feeds"
     },
     "stats": {
       "decentralizedNodes": "Decentralized Nodes",
@@ -663,6 +666,15 @@
   "dia": {
     "title": "DIA",
     "subtitle": "Decentralized Information Asset cross-chain data oracle",
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "dataFeeds": "Data Feeds",
+      "nftData": "NFT Data",
+      "staking": "Staking",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk"
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "stats": {
@@ -857,6 +869,18 @@
   "tellor": {
     "title": "Tellor",
     "subtitle": "Decentralized crypto-native oracle for transparency and decentralization",
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "reporters": "Reporters",
+      "disputes": "Disputes",
+      "staking": "Staking",
+      "priceStream": "Price Stream",
+      "marketDepth": "Market Depth",
+      "multiChain": "Multi-Chain",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk"
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "stats": {
@@ -1204,6 +1228,16 @@
       "circulatingSupply": "Circulating Supply",
       "stakingApr": "Staking APR"
     },
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "providers": "Providers",
+      "dataStreams": "Data Streams",
+      "crossChain": "Cross-Chain",
+      "ecosystem": "Ecosystem",
+      "crossOracle": "Cross-Oracle",
+      "risk": "Risk"
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "providers": {
@@ -1322,6 +1356,21 @@
   "pyth": {
     "title": "Pyth Network",
     "subtitle": "High-frequency financial data oracle",
+    "menu": {
+      "marketData": "Market Data",
+      "publishers": "Publishers",
+      "validators": "Validators",
+      "networkHealth": "Network Health",
+      "priceFeeds": "Price Feeds",
+      "crossChain": "Cross-Chain",
+      "crossOracleComparison": "Cross-Oracle Comparison",
+      "riskAssessment": "Risk Assessment"
+    },
+    "tabs": {
+      "stats": "Statistics",
+      "extreme": "Extreme Events",
+      "trend": "Trend Analysis"
+    },
     "stats": {
       "updateFrequency": "Update Frequency",
       "publisherCount": "Publishers",
@@ -1428,6 +1477,19 @@
   "api3": {
     "title": "API3",
     "subtitle": "First-party oracle network enabling decentralized API connectivity",
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "staking": "Staking",
+      "advantages": "Advantages",
+      "analytics": "Analytics",
+      "gas": "Gas",
+      "crossOracle": "Cross-Oracle",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk"
+    },
     "firstPartyOracle": {
       "title": "First-Party Oracle Analytics"
     },
@@ -2332,6 +2394,17 @@
     "bandProtocol": {
       "title": "Band Protocol Network Metrics",
       "subtitle": "On-chain validators and staking data",
+      "menu": {
+        "marketData": "Market Data",
+        "networkHealth": "Network Health",
+        "validators": "Validators",
+        "crossChain": "Cross-Chain",
+        "dataFeeds": "Data Feeds",
+        "staking": "Staking",
+        "ecosystem": "Ecosystem",
+        "crossOracle": "Cross-Oracle",
+        "riskAssessment": "Risk Assessment"
+      },
       "activeValidators": "Active Validators",
       "activePercent": "active",
       "stakedTokens": "Total Staked Tokens",
@@ -3323,6 +3396,14 @@
   },
   "chronicle": {
     "subtitle": "MakerDAO Native Oracle - High-security decentralized price feeds with Scuttlebutt security protocol",
+    "tabs": {
+      "market": "Market",
+      "makerdao": "MakerDAO",
+      "validators": "Validators",
+      "network": "Network",
+      "scuttlebutt": "Scuttlebutt",
+      "risk": "Risk"
+    },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "stats": {
@@ -3446,7 +3527,13 @@
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "tabs": {
-      "crossOracle": "Cross-Oracle Comparison"
+      "market": "Market",
+      "network": "Network",
+      "tron": "TRON",
+      "staking": "Staking",
+      "gaming": "Gaming",
+      "crossOracle": "Cross-Oracle",
+      "risk": "Risk"
     },
     "stats": {
       "activeNodes": "Active Nodes",
