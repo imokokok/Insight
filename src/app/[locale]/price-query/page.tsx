@@ -97,38 +97,31 @@ export default function PriceQueryPage() {
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const isInitialized = useRef(false);
+
+  // 使用 state 来跟踪 URL 参数是否已解析
+  const [urlParamsParsed, setUrlParamsParsed] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const config = parseQueryParams(window.location.search);
-    let hasUrlParams = false;
     if (config.oracles && config.oracles.length > 0) {
       setSelectedOracles(config.oracles);
-      hasUrlParams = true;
     }
     if (config.chains && config.chains.length > 0) {
       setSelectedChains(config.chains);
-      hasUrlParams = true;
     }
     if (config.symbol) {
       setSelectedSymbol(config.symbol);
-      hasUrlParams = true;
     }
     if (config.timeRange) {
       setSelectedTimeRange(config.timeRange);
-      hasUrlParams = true;
     }
-    isInitialized.current = true;
-    // 如果没有 URL 参数，使用默认值触发查询
-    if (!hasUrlParams) {
-      fetchQueryData();
-    }
-    // 如果有 URL 参数，状态更新会触发下面的 useEffect 执行查询
+    // 标记 URL 参数已解析
+    setUrlParamsParsed(true);
   }, []);
 
   useEffect(() => {
-    if (!isInitialized.current) return;
+    if (!urlParamsParsed) return;
     const config: QueryConfig = {
       oracles: selectedOracles,
       chains: selectedChains,
@@ -136,7 +129,7 @@ export default function PriceQueryPage() {
       timeRange: selectedTimeRange,
     };
     updateUrlParams(config);
-  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange]);
+  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, urlParamsParsed]);
 
   const toggleSeries = (seriesName: string) => {
     setHiddenSeries((prev) => {
@@ -361,10 +354,10 @@ export default function PriceQueryPage() {
 
   useEffect(() => {
     // 等待 URL 参数解析完成后再触发查询
-    if (!isInitialized.current) return;
+    if (!urlParamsParsed) return;
     fetchQueryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange]);
+  }, [selectedOracles, selectedChains, selectedSymbol, selectedTimeRange, urlParamsParsed]);
 
   useEffect(() => {
     setHistoryItems(getQueryHistory());
