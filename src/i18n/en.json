@@ -269,6 +269,12 @@
       "fair": "Fair",
       "poor": "Poor"
     },
+    "stability": {
+      "stable": "Stable",
+      "unstable": "Unstable",
+      "highlyUnstable": "Highly Unstable",
+      "moderate": "Moderate"
+    },
     "stabilityAnalysis": "Stability & Synchronization Analysis",
     "priceVolatility": "Price Volatility",
     "stabilityRating": "Stability Rating",
@@ -398,6 +404,8 @@
     "dataPointLabel": "Data Point #{{index}}",
     "cointegrationAnalysis": "Cointegration Analysis",
     "cointegrationDesc": "Cointegration analysis detects long-term equilibrium relationships between two chain prices. ADF statistic less than critical value (-2.86) indicates cointegration exists.",
+    "volatilityAnalysis": "Volatility Analysis",
+    "volatilityAnalysisDesc": "Analyze volatility levels across chains to identify high and low volatility periods.",
     "noCointegrationDetected": "No cointegration relationship detected",
     "needMoreData": "More historical data required for testing",
     "hedgeRatio": "Hedge Ratio",

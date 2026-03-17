@@ -271,6 +271,12 @@
       "fair": "一般",
       "poor": "较差"
     },
+    "stability": {
+      "stable": "稳定",
+      "unstable": "不稳定",
+      "highlyUnstable": "高度不稳定",
+      "moderate": "中等"
+    },
     "stabilityAnalysis": "稳定性与同步性分析",
     "priceVolatility": "价格波动率",
     "stabilityRating": "稳定性评级",
@@ -409,6 +415,8 @@
     "dataPointLabel": "数据点 #{{index}}",
     "cointegrationAnalysis": "协整分析",
     "cointegrationDesc": "协整分析用于检测两条链价格之间是否存在长期均衡关系。通过Engle-Granger两步法检验，识别统计套利机会。",
+    "volatilityAnalysis": "波动率分析",
+    "volatilityAnalysisDesc": "分析各链价格的波动率水平，识别高波动和低波动时期。",
     "noCointegrationDetected": "未检测到协整关系",
     "needMoreData": "需要更多历史数据进行检验",
     "hedgeRatio": "对冲比率",
