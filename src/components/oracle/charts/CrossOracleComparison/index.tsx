@@ -44,7 +44,7 @@ import {
 import { useSorting } from './useSorting';
 import { TrendIndicator } from './TrendIndicator';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
-import { DropdownSelect } from '@/components/ui/selectors';
+import { DropdownSelect, SegmentedControl } from '@/components/ui/selectors';
 
 const logger = createLogger('CrossOracleComparison');
 
@@ -601,24 +601,16 @@ export function CrossOracleComparison() {
       <div className="py-4 border-b border-gray-100">
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('crossOracle.selectTradingPair')}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {symbols.map((symbol) => (
-                <button
-                  key={symbol}
-                  onClick={() => setSelectedSymbol(symbol)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    selectedSymbol === symbol
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {symbol}/USD
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              label={t('crossOracle.selectTradingPair')}
+              options={symbols.map((symbol) => ({
+                value: symbol,
+                label: `${symbol}/USD`,
+              }))}
+              value={selectedSymbol}
+              onChange={(value) => setSelectedSymbol(value as string)}
+              size="sm"
+            />
           </div>
 
           <div className="flex-1">
