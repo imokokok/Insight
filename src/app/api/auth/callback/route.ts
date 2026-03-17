@@ -11,19 +11,24 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
+    const errorCode = searchParams.get('error_code');
+    const type = searchParams.get('type');
 
     if (error) {
-      logger.error('OAuth error', new Error(`${error}: ${errorDescription}`));
-      const redirectUrl = new URL('/auth/error', request.url);
+      logger.error('Auth callback error', new Error(`${error}: ${errorDescription}`));
+      const redirectUrl = new URL('/auth/verify-email', request.url);
       redirectUrl.searchParams.set('error', error);
       if (errorDescription) {
         redirectUrl.searchParams.set('error_description', errorDescription);
+      }
+      if (errorCode) {
+        redirectUrl.searchParams.set('error_code', errorCode);
       }
       return NextResponse.redirect(redirectUrl);
     }
 
     if (!code) {
-      return NextResponse.redirect(new URL('/auth/error?error=missing_code', request.url));
+      return NextResponse.redirect(new URL('/auth/verify-email?error=missing_code', request.url));
     }
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       logger.error('Missing Supabase configuration');
-      return NextResponse.redirect(new URL('/auth/error?error=server_error', request.url));
+      return NextResponse.redirect(new URL('/auth/verify-email?error=server_error', request.url));
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
         'Failed to exchange code for session',
         exchangeError instanceof Error ? exchangeError : new Error(String(exchangeError))
       );
-      return NextResponse.redirect(new URL('/auth/error?error=auth_failed', request.url));
+      return NextResponse.redirect(new URL('/auth/verify-email?error=auth_failed', request.url));
     }
 
     const { user, session } = data;
@@ -71,7 +76,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const redirectPath = state || '/';
+    let redirectPath: string;
+    if (type === 'recovery') {
+      redirectPath = '/auth/reset-password';
+    } else if (type === 'signup' || type === 'email_change') {
+      redirectPath = '/auth/verify-email';
+    } else if (state) {
+      redirectPath = state;
+    } else {
+      redirectPath = '/';
+    }
+
     const response = NextResponse.redirect(new URL(redirectPath, request.url));
 
     response.cookies.set('sb-access-token', session.access_token, {
@@ -93,9 +108,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     logger.error(
-      'Error in OAuth callback',
+      'Error in auth callback',
       error instanceof Error ? error : new Error(String(error))
     );
-    return NextResponse.redirect(new URL('/auth/error?error=server_error', request.url));
+    return NextResponse.redirect(new URL('/auth/verify-email?error=server_error', request.url));
   }
 }
