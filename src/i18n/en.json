@@ -332,6 +332,15 @@
     "priceDistributionAnalysis": "Price Distribution Analysis",
     "priceDistributionHistogram": "Price Distribution Histogram",
     "chainPriceBoxPlot": "Chain Price Box Plot",
+    "boxPlot": {
+      "outliers": "Outliers",
+      "legend": {
+        "box": "Box",
+        "median": "Median",
+        "whisker": "Whisker",
+        "outlier": "Outlier"
+      }
+    },
     "minValue": "Min",
     "maxValue": "Max",
     "chainCorrelationAnalysis": "Cross-Chain Correlation Analysis",
