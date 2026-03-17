@@ -10,7 +10,6 @@ import {
   NotFoundError,
   InternalError,
   PriceFetchError,
-  OracleClientError,
   errorToResponse,
   isAppError,
 } from '@/lib/errors';

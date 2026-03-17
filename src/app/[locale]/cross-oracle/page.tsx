@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -26,7 +25,7 @@ import { SnapshotComparison } from '@/components/oracle/common/SnapshotCompariso
 import { FloatingActionButton } from '@/components/oracle/common/FloatingActionButton';
 import { FavoriteButton } from '@/components/favorites';
 import { OracleProvider } from '@/types/oracle';
-import { oracleNames, TimeRange } from './constants';
+import { oracleNames } from './constants';
 import {
   FilterPanel,
   TabNavigation,

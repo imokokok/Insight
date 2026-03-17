@@ -99,7 +99,7 @@ function getBasePrices(): BasePrices {
         ...DEFAULT_BASE_PRICES,
         ...parsed,
       };
-    } catch (e) {
+    } catch (_e) {
       logger.warn('Failed to parse BASE_PRICES env, using defaults');
     }
   }

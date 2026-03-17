@@ -8,7 +8,7 @@ import { Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
 function ResetPasswordContent() {
-  const searchParams = useSearchParams();
+  const _searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations();
 

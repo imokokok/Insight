@@ -1,7 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('usePriceHistory');
 
 interface PricePoint {
   timestamp: number;

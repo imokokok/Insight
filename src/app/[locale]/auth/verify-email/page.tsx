@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { useAuthActions, useUser } from '@/stores/authStore';
+import { useUser } from '@/stores/authStore';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ function VerifyEmailContent() {
     }
   }, [errorParam, errorCode, emailParam, user, router]);
 
-  const getErrorMessage = (error: string, code: string | null): string => {
+  const getErrorMessage = (error: string, _code: string | null): string => {
     switch (error) {
       case 'access_denied':
         return t('auth.verifyEmail.error.accessDenied');

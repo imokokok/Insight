@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createLogger } from '@/lib/utils/logger';
 import {
   calculateSMA,
-  calculateEMA,
   calculateBollingerBands,
   calculateRSI,
   calculateMACD,

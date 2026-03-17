@@ -13,7 +13,6 @@ import {
   Legend,
   ResponsiveContainer,
   Brush,
-  ReferenceLine,
 } from 'recharts';
 import { Icons } from './Icons';
 import { CustomTooltip } from './CustomTooltip';
@@ -23,7 +22,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { useAPI3Price } from '@/hooks/useAPI3WebSocket';
 import { API3PriceData } from '@/lib/services/api3WebSocket';
 import { format } from 'date-fns';
-import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
+import { chartColors, semanticColors } from '@/lib/config/colors';
 
 const logger = createLogger('price-query-PriceChartRealtime');
 

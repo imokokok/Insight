@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ScheduledExport } from '../types';
 import { useTranslations } from 'next-intl';
-import { Calendar, Clock, Mail, Trash2, Plus, Check, X, Repeat } from 'lucide-react';
+import { Calendar, Mail, Trash2, Plus, Check, Repeat } from 'lucide-react';
 
 interface ScheduledExportConfigProps {
   schedules: ScheduledExport[];

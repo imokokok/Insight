@@ -9,8 +9,6 @@ import {
   QueryResult,
   oracleColors,
   chainColors,
-  providerNames,
-  chainNames,
   DEVIATION_THRESHOLD,
   oracleI18nKeys,
 } from '../constants';
@@ -58,7 +56,7 @@ function calculateCompletenessScore(dataPoints: number, expectedPoints: number):
 }
 
 function DataQualityBadge({ score }: { score: number }) {
-  const t = useTranslations();
+  const _t = useTranslations();
   const level = getScoreLevel(score);
   const config = SCORE_CONFIG[level];
 

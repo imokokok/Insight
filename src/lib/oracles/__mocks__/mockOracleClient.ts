@@ -1,6 +1,5 @@
 import { PriceData, OracleProvider, Blockchain, OracleError } from '@/types/oracle';
 import {
-  IOracleClient,
   IMockOracleClient,
   MockCallHistory,
   IOracleClientConfig,

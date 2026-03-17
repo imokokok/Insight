@@ -1,7 +1,6 @@
 import {
   ValidatorFn,
   chain,
-  required,
   isString,
   isNumber,
   isInteger,

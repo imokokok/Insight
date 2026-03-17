@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { ChainlinkClient } from '@/lib/oracles/chainlink';
 import { PriceData, Blockchain } from '@/types/oracle';
 

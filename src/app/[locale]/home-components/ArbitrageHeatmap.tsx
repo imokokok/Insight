@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { TrendingUp, Activity, Globe, ChevronDown, Search } from 'lucide-react';
 import Image from 'next/image';

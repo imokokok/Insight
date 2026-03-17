@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { PriceAlert } from '@/lib/supabase/database.types';
 import { providerNames, chainNames, oracleColors, chainColors } from '@/lib/constants';
 import { useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';

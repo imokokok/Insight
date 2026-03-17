@@ -7,7 +7,7 @@ import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 import LanguageSwitcher from './LanguageSwitcher';
-import { DropdownMenu, MobileDrawer, navigationConfig, userNavigationConfig } from './navigation';
+import { DropdownMenu, MobileDrawer, navigationConfig } from './navigation';
 import { NavGroup } from './navigation/types';
 
 export default function Navbar() {

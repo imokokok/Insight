@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { CorrelationData, CorrelationPair } from '../types';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { BarChart3, Info, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { semanticColors, baseColors } from '@/lib/config/colors';

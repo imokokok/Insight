@@ -45,7 +45,7 @@ export function StatsGrid({
   compareMinPrice = 0,
   comparePriceRange = 0,
   compareAvgChange24hPercent,
-  comparePrices = [],
+  comparePrices: _comparePrices,
 }: StatsGridProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);

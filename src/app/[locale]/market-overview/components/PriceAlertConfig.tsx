@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { PriceAlert } from '../types';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import {
   Bell,

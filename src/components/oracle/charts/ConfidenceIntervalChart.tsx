@@ -16,7 +16,7 @@ import { DashboardCard } from '../common/DashboardCard';
 import { getPythHermesClient } from '@/lib/oracles/pythHermesClient';
 import { createLogger } from '@/lib/utils/logger';
 import { NotImplementedError } from '@/lib/errors';
-import { chartColors, semanticColors, baseColors, shadowColors } from '@/lib/config/colors';
+import { chartColors, semanticColors, baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('ConfidenceIntervalChart');
 

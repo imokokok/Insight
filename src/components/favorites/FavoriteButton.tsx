@@ -30,9 +30,9 @@ export function FavoriteButton({
   onFavoriteChange,
 }: FavoriteButtonProps) {
   const user = useUser();
-  const { isFavorited, favorite } = useIsFavorited(configType, configData);
+  const { isFavorited, favorite: _favorite } = useIsFavorited(configType, configData);
   const { toggleFavorite, isToggling } = useToggleFavorite();
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [_showTooltip, setShowTooltip] = useState(false);
 
   const handleClick = useCallback(
     async (e: React.MouseEvent) => {

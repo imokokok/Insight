@@ -4,7 +4,7 @@
  * 提供定时导出功能，包括定时任务管理、本地存储配置、导出历史记录等。
  */
 
-import { ExportConfig, ExportFormat, ExportDataType, ExportTimeRange } from './exportConfig';
+import { ExportConfig, ExportFormat } from './exportConfig';
 import { createLogger } from '@/lib/utils/logger';
 import { isChineseLocale } from '@/i18n/routing';
 

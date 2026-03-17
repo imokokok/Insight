@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
-import { RefreshCw, Clock, Check, AlertCircle } from 'lucide-react';
+import { RefreshCw, Clock, Check } from 'lucide-react';
 
 interface RefreshControlProps {
   lastUpdated?: Date;

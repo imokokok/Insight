@@ -26,7 +26,7 @@ export function FavoritesManager({
   const { favorites, isLoading, error } = useFavorites();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ConfigType | 'all'>('all');
-  const [editingFavorite, setEditingFavorite] = useState<UserFavorite | null>(null);
+  const [_editingFavorite, setEditingFavorite] = useState<UserFavorite | null>(null);
 
   const filteredFavorites = useMemo(() => {
     let result = favorites;
@@ -79,7 +79,7 @@ export function FavoritesManager({
     setEditingFavorite(favorite);
   };
 
-  const handleDelete = (favoriteId: string) => {
+  const handleDelete = (_favoriteId: string) => {
     setEditingFavorite(null);
   };
 

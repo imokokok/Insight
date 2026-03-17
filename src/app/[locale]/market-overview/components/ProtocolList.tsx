@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { ProtocolDetail } from '../types';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import {
   Layers,
@@ -66,7 +66,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
   }, [data, searchTerm, selectedCategory, sortField, sortDirection]);
 
   // 切换排序
-  const handleSort = (field: SortField) => {
+  const _handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -101,7 +101,7 @@ export default function ProtocolList({ data, loading = false }: ProtocolListProp
   };
 
   // 渲染排序图标
-  const SortIcon = ({ field }: { field: SortField }) => {
+  const _SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
       return <ChevronUp className="w-3 h-3 text-gray-300" />;
     }

@@ -1,8 +1,5 @@
 import { ApiResponse, RequestConfig } from './types';
 import { ApiError } from './ApiError';
-import { createLogger } from '@/lib/utils/logger';
-
-const logger = createLogger('ApiClient');
 
 type RequestInterceptor = (config: RequestInit) => RequestInit;
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;

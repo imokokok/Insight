@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase, queries, PriceAlert, AlertEvent } from '@/lib/supabase/client';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import type { OracleProvider, Blockchain } from '@/types/oracle';

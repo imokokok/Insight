@@ -89,4 +89,4 @@ export interface PriceDataPoint {
 
 export type NullableNumber = number | null;
 
-export type NullableArray<T = number> = NullableNumber[];
+export type NullableArray = NullableNumber[];

@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 import { ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
-import { chainColors, chartColors, baseColors, animationColors } from '@/lib/config/colors';
+import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 

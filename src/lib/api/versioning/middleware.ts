@@ -17,7 +17,6 @@ export interface VersionMiddlewareOptions {
 export function createVersionMiddleware(options: VersionMiddlewareOptions = {}) {
   const {
     defaultVersion = API_VERSIONS.CURRENT,
-    includeVersionHeader = true,
     onDeprecated,
   } = options;
 
@@ -78,7 +77,7 @@ export function addVersionHeaders(
   return response;
 }
 
-export function withVersionHeaders<T>(
+export function withVersionHeaders(
   response: NextResponse,
   version: ApiVersion = API_VERSIONS.CURRENT
 ): NextResponse {

@@ -17,7 +17,7 @@ import { getColorblindHeatmapColor, colorblindLegendConfig } from '../colorblind
 import { useMemo } from 'react';
 import { Blockchain } from '@/lib/oracles';
 import { PriceData } from '@/lib/oracles';
-import { baseColors, semanticColors, chartColors, shadowColors } from '@/lib/config/colors';
+import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
 
 interface PriceSpreadHeatmapProps {
   data: ReturnType<typeof useCrossChainData>;

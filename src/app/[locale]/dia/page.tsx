@@ -13,7 +13,6 @@ import {
   TabNavigation,
   LoadingState,
   ErrorFallback,
-  RiskAssessmentPanel,
 } from '@/components/oracle';
 import {
   DIANFTDataPanel,

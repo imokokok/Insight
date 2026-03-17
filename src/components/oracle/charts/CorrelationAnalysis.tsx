@@ -10,7 +10,6 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceLine,
-  Cell,
 } from 'recharts';
 import { OracleProvider } from '@/types/oracle';
 import { DashboardCard } from '../common/DashboardCard';

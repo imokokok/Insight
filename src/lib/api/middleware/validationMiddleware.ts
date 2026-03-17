@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 import { ApiResponseBuilder } from '../response';
-import { ObjectSchema, validateObject, ValidationResult } from '../validation';
+import { ObjectSchema, validateObject } from '../validation';
 
 const logger = createLogger('validation-middleware');
 
