@@ -343,6 +343,15 @@
     "priceDistributionAnalysis": "价格分布分析",
     "priceDistributionHistogram": "价格分布直方图",
     "chainPriceBoxPlot": "各链价格箱线图",
+    "boxPlot": {
+      "outliers": "异常值",
+      "legend": {
+        "box": "箱体",
+        "median": "中位数",
+        "whisker": "须线",
+        "outlier": "异常值"
+      }
+    },
     "minValue": "最小值",
     "maxValue": "最大值",
     "chainCorrelationAnalysis": "链间相关性分析",
