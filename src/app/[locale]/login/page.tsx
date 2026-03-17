@@ -14,10 +14,10 @@ interface ErrorInfo {
 
 export default function LoginPage() {
   const router = useRouter();
-  const params = useParams();
+  const _params = useParams();
   const locale = useLocale();
   const user = useUser();
-  const loading = useAuthLoading();
+  const _loading = useAuthLoading();
   const error = useAuthError();
   const { signIn, signInWithOAuth } = useAuthActions();
   const t = useTranslations();

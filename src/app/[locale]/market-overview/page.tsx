@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import { useMarketOverviewData } from './useMarketOverviewData';
-import { ChartType, ViewType, TIME_RANGES } from './types';
+import { ChartType, TIME_RANGES } from './types';
 import { RefreshInterval } from './constants';
 import { formatPrice } from '@/lib/utils/chartSharedUtils';
 import { formatCompactNumber } from '@/lib/utils/format';
@@ -14,7 +14,6 @@ import {
   TrendingUp,
   BarChart3,
   Table as TableIcon,
-  Activity,
   Info,
   RefreshCw,
   Clock,
@@ -35,13 +34,13 @@ import RefreshControl from './components/RefreshControl';
 import RealtimeIndicator from './components/RealtimeIndicator';
 
 export default function MarketOverviewPage() {
-  const t = useTranslations();
+  const _t = useTranslations();
   const locale = useLocale();
   const data = useMarketOverviewData();
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {

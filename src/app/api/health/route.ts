@@ -81,7 +81,7 @@ function checkEnvironment(): HealthCheckResult['checks']['environment'] {
 }
 
 export async function GET() {
-  const startTime = Date.now();
+  const _startTime = Date.now();
 
   const [database, environment] = await Promise.all([checkDatabase(), checkEnvironment()]);
 

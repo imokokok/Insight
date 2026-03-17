@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { Locale, getValidLocale } from '@/i18n/routing';
+import { Locale } from '@/i18n/routing';
 
 export default function LanguageSwitcher() {
   const router = useRouter();

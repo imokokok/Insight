@@ -7,7 +7,6 @@ import {
   PageHeader,
   PriceChart,
   MarketDataPanel,
-  NetworkHealthPanel,
   DashboardCard,
   StatCard,
   TabNavigation,

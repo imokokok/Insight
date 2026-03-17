@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Icons } from './Icons';
-import { QueryResult, providerNames, chainNames } from '../constants';
+import { QueryResult } from '../constants';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
+import { Icons } from './Icons';
 
 export type ExportFormat = 'csv' | 'json' | 'pdf';
 

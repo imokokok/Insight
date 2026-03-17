@@ -23,14 +23,13 @@ interface CustomTooltipProps {
 }
 
 export function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  const t = useTranslations();
+  const _t = useTranslations();
   const locale = useLocale();
 
   if (!active || !payload || payload.length === 0) return null;
 
-  // 检查是否有异常或价格突变信息
-  const hasAnomaly = payload.some((p) => p.payload?.isAnomaly);
-  const hasPriceSpike = payload.some((p) => p.payload?.isPriceSpike);
+  const _hasAnomaly = payload.some((p) => p.payload?.isAnomaly);
+  const _hasPriceSpike = payload.some((p) => p.payload?.isPriceSpike);
 
   const formatTime = (timestamp: string | number | undefined) => {
     if (!timestamp) return '';

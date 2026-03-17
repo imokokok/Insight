@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { API3Client } from '@/lib/oracles/api3';
 import type {

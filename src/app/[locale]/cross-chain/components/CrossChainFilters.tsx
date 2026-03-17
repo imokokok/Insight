@@ -49,7 +49,7 @@ export function CrossChainFilters({ data }: CrossChainFiltersProps) {
     label: symbol,
   }));
 
-  const refreshOptions = [
+  const _refreshOptions = [
     { value: 0, label: t('crossChain.autoRefreshOff') },
     { value: 30000, label: t('crossChain.autoRefresh30s') },
     { value: 60000, label: t('crossChain.autoRefresh1m') },

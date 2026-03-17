@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
-import { Wifi, WifiOff, AlertCircle } from 'lucide-react';
+import { Wifi } from 'lucide-react';
 
 interface RealtimeIndicatorProps {
   isConnected?: boolean;

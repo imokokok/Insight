@@ -29,8 +29,6 @@ import {
   QueryResult,
   providerNames,
   chainNames,
-  oracleColors,
-  chainColors,
   oracleI18nKeys,
 } from './constants';
 import {
@@ -82,13 +80,13 @@ export default function PriceQueryPage() {
   );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
-  const [queryStartTime, setQueryStartTime] = useState<number | null>(null);
+  const [_queryStartTime, setQueryStartTime] = useState<number | null>(null);
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
-  const [queryProgress, setQueryProgress] = useState<{ completed: number; total: number }>({
+  const [_queryProgress, setQueryProgress] = useState<{ completed: number; total: number }>({
     completed: 0,
     total: 0,
   });
-  const [currentQueryTarget, setCurrentQueryTarget] = useState<{
+  const [_currentQueryTarget, setCurrentQueryTarget] = useState<{
     oracle: OracleProvider | null;
     chain: Blockchain | null;
   }>({ oracle: null, chain: null });

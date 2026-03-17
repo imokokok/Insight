@@ -1,5 +1,5 @@
 import { getRequestConfig } from 'next-intl/server';
-import { routing, getValidLocale } from './routing';
+import { getValidLocale } from './routing';
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // 从请求中获取 locale

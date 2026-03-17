@@ -183,7 +183,7 @@ function getErrorConfig(error?: Error): {
   };
 }
 
-function DefaultErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
+function DefaultErrorFallback({ error, onReset, translations: _translations }: ErrorFallbackProps) {
   const t = useTranslations();
   const config = getErrorConfig(error);
 

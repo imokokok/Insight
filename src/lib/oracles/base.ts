@@ -9,7 +9,6 @@ import {
   configureStorage,
   getStorageConfig,
 } from './storage';
-import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceFetchError, OracleClientError } from '@/lib/errors';
 
 export { shouldUseDatabase, configureStorage, getStorageConfig };

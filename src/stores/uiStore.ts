@@ -97,7 +97,7 @@ const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
-const STORAGE_KEYS = {
+const _STORAGE_KEYS = {
   TIME_RANGE: 'insight_timeRange',
   SYNC_ENABLED: 'insight_syncEnabled',
   CUSTOM_DATE_RANGE: 'insight_customDateRange',

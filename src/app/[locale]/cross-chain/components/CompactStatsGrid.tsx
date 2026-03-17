@@ -16,8 +16,7 @@ export function CompactStatsGrid({ statsData }: CompactStatsGridProps) {
 
   // 核心指标（始终显示）
   const coreStats = statsData.slice(0, 6);
-  // 扩展指标（可展开）
-  const extendedStats = statsData.slice(6);
+  const _extendedStats = statsData.slice(6);
 
   const displayStats = showAll ? statsData : coreStats;
 

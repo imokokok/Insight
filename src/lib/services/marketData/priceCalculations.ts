@@ -13,7 +13,6 @@ import {
   AnomalyData,
 } from '@/app/[locale]/market-overview/types';
 import { ExportConfig, ExportDataType, generateExportFileName } from '@/lib/export/exportConfig';
-import { baseColors } from '@/lib/config/colors';
 
 const logger = createLogger('marketData:priceCalculations');
 

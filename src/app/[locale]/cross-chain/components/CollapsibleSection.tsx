@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, ReactNode } from 'react';
-import { baseColors, semanticColors } from '@/lib/config/colors';
+import { baseColors } from '@/lib/config/colors';
 import { useTranslations } from 'next-intl';
 
 interface CollapsibleSectionProps {

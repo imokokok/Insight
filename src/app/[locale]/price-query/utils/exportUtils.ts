@@ -7,7 +7,7 @@ import { QueryResult, providerNames, chainNames } from '../constants';
 import { ExportConfigData } from '../components/ExportConfig';
 import { OracleProvider, Blockchain } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
-import { exportColors, baseColors } from '@/lib/config/colors';
+import { exportColors } from '@/lib/config/colors';
 
 const logger = createLogger('ExportUtils');
 

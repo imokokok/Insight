@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { useTranslations } from 'next-intl';
 import { AccuracyTrendPoint } from '@/hooks/usePriceHistory';
-import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
+import { chartColors, baseColors } from '@/lib/config/colors';
 
 interface AccuracyTrendChartProps {
   data: AccuracyTrendPoint[];

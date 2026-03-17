@@ -63,7 +63,7 @@ describe('usePriceData', () => {
   });
 
   it('should track previous price', async () => {
-    const { result, rerender } = renderHook(() => usePriceData(client, { symbol: 'BTC' }));
+    const { result } = renderHook(() => usePriceData(client, { symbol: 'BTC' }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AppError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
 import { ApiResponseBuilder, ApiResponse, ApiSuccessResponse } from './response';
 import {

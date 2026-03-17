@@ -5,19 +5,6 @@
  */
 
 import { isChineseLocale } from '@/i18n/routing';
-import {
-  OracleMarketData,
-  AssetData,
-  TVSTrendData,
-  ChainBreakdown,
-  ProtocolDetail,
-  AssetCategory,
-  ComparisonData,
-  BenchmarkData,
-  CorrelationData,
-  RiskMetrics,
-  AnomalyData,
-} from '@/app/[locale]/market-overview/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ExportConfig');

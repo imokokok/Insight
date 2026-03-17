@@ -18,7 +18,6 @@ import { chartColors, chainColors, baseColors, semanticColors } from '@/lib/conf
 const logger = createLogger('marketData:defiLlamaApi');
 
 const DEFILLAMA_API_BASE = 'https://api.llama.fi';
-const DEFILLAMA_PRO_API_BASE = 'https://pro-api.llama.fi';
 const REQUEST_TIMEOUT = 10000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -340,7 +339,7 @@ export async function fetchOraclesData(): Promise<OracleMarketData[]> {
     let response: Response;
     try {
       response = await fetchWithRetry(`${DEFILLAMA_API_BASE}/oracles`);
-    } catch (error) {
+    } catch (_error) {
       logger.warn('/oracles endpoint unavailable, falling back to /protocols');
       response = await fetchWithRetry(`${DEFILLAMA_API_BASE}/protocols`);
 
@@ -568,7 +567,7 @@ export async function fetchAssetsData(
             });
           }
         });
-      } catch (error) {
+      } catch (_error) {
         logger.warn('Failed to fetch from CoinGecko, using fallback data');
       }
     }

@@ -2,11 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { Icons } from './Icons';
 import { QueryHistoryItem } from '@/utils/queryHistory';
-import { formatHistoryTime } from '@/utils/queryHistory';
 import { OracleProvider, Blockchain } from '@/types/oracle';
-import { ArrowLeft, Heart, Download, RefreshCw } from 'lucide-react';
+import { Heart, Download, RefreshCw } from 'lucide-react';
 
 interface PageHeaderProps {
   showHistory: boolean;
@@ -38,35 +36,35 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({
-  showHistory,
+  showHistory: _showHistory,
   setShowHistory,
-  historyItems,
+  historyItems: _historyItems,
   onSelectHistory,
   onClearHistory,
-  loading,
-  queryResultsLength,
-  onExportCSV,
-  onExportJSON,
-  onOpenExportConfig,
+  loading: _loading,
+  queryResultsLength: _queryResultsLength,
+  onExportCSV: _onExportCSV,
+  onExportJSON: _onExportJSON,
+  onOpenExportConfig: _onOpenExportConfig,
   onToggleFavorite,
   isFavorite,
   onExport,
   onRefresh,
   isRefreshing,
-  symbol,
-  chain,
-  provider,
+  symbol: _symbol,
+  chain: _chain,
+  provider: _provider,
 }: PageHeaderProps) {
   const t = useTranslations();
-  const locale = useLocale();
-  const router = useRouter();
+  const _locale = useLocale();
+  const _router = useRouter();
 
-  const handleHistorySelect = (item: QueryHistoryItem) => {
+  const _handleHistorySelect = (item: QueryHistoryItem) => {
     onSelectHistory(item);
     setShowHistory(false);
   };
 
-  const handleClearHistory = () => {
+  const _handleClearHistory = () => {
     onClearHistory();
     setShowHistory(false);
   };

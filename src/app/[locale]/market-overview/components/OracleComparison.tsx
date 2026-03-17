@@ -13,7 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { TooltipProps } from '@/types/ui/recharts';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { isChineseLocale } from '@/i18n/routing';
 import {
   Check,
@@ -29,7 +29,7 @@ import {
   BarChart3,
   X,
 } from 'lucide-react';
-import { chartColors, baseColors } from '@/lib/config/colors';
+import { chartColors } from '@/lib/config/colors';
 
 interface OracleComparisonProps {
   data: ComparisonData[];

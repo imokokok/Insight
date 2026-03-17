@@ -59,7 +59,7 @@ export default function ChainlinkPage() {
   const stats = useMemo(() => {
     const activeNodes = networkStats?.activeNodes ?? 1847;
     const dataFeeds = networkStats?.dataFeeds ?? 1243;
-    const nodeUptime = networkStats?.nodeUptime ?? 99.9;
+    const _nodeUptime = networkStats?.nodeUptime ?? 99.9;
     const totalValueSecured = config.marketData.marketCap;
 
     return [

@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const loading = useAuthLoading();
   const initialized = useAuthInitialized();
   const router = useRouter();
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [mounted, setMounted] = useState(false);

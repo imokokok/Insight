@@ -8,8 +8,6 @@ import {
   FileSpreadsheet,
   FileJson,
   FileCode,
-  Calendar,
-  Filter,
   Check,
 } from 'lucide-react';
 

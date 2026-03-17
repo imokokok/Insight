@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -10,12 +10,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Brush,
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import {
   chartColors,
-  baseColors,
   semanticColors,
   chainColors,
   shadowColors,

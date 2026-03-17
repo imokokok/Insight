@@ -17,7 +17,7 @@ interface DropdownMenuProps {
 export function DropdownMenu({ group, isActive, currentPath, onItemClick }: DropdownMenuProps) {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [_isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 

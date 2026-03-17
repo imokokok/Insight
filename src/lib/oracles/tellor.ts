@@ -535,7 +535,7 @@ export class TellorClient extends BaseOracleClient {
     }));
 
     const currentScore = riskTrend[riskTrend.length - 1].score;
-    const avg24h = riskTrend.reduce((sum, r) => sum + r.score, 0) / riskTrend.length;
+    const _avg24h = riskTrend.reduce((sum, r) => sum + r.score, 0) / riskTrend.length;
 
     return {
       dataQualityScore: Number((85 + Math.random() * 10).toFixed(2)),

@@ -22,16 +22,13 @@ import {
   MOCK_ORACLE_DATA,
   MOCK_ASSETS,
   generateTVSTrendData as generateMockTVSTrendData,
-  CHAIN_SUPPORT_DATA,
   RefreshInterval,
 } from './constants';
 import {
-  fetchMarketData,
   fetchOraclesData,
   fetchAssetsData,
   generateTVSTrendData,
   checkApiHealth,
-  MarketDataError,
   fetchChainBreakdown,
   fetchProtocolDetails,
   fetchAssetCategories,
@@ -718,8 +715,7 @@ export function useMarketOverviewData(): UseMarketOverviewDataReturn {
         break;
 
       case 'marketStats':
-        // 更新市场统计
-        const statsData = wsLastMessage.data as {
+        const _statsData = wsLastMessage.data as {
           totalTVS: number;
           totalChains: number;
           totalProtocols: number;

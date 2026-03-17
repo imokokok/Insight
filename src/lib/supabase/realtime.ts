@@ -49,12 +49,6 @@ export interface FavoriteChangePayload {
 
 type SubscriptionCallback<T> = (payload: T) => void;
 
-interface SubscriptionConfig {
-  channel: RealtimeChannel;
-  tableName: string;
-  userId?: string;
-}
-
 class RealtimeManager {
   private client: SupabaseClient;
   private subscriptions: Map<string, RealtimeChannel> = new Map();
