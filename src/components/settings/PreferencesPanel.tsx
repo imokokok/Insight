@@ -40,13 +40,42 @@ const oracleOptions = [
   { value: 'uma', label: 'UMA' },
 ];
 
+// 从跨链比较页面导入的交易对列表
 const symbolOptions = [
+  // Layer 1
   { value: 'BTC/USD', label: 'BTC/USD' },
   { value: 'ETH/USD', label: 'ETH/USD' },
-  { value: 'BNB/USD', label: 'BNB/USD' },
   { value: 'SOL/USD', label: 'SOL/USD' },
   { value: 'AVAX/USD', label: 'AVAX/USD' },
+  { value: 'NEAR/USD', label: 'NEAR/USD' },
   { value: 'MATIC/USD', label: 'MATIC/USD' },
+  { value: 'ARB/USD', label: 'ARB/USD' },
+  { value: 'OP/USD', label: 'OP/USD' },
+  { value: 'DOT/USD', label: 'DOT/USD' },
+  { value: 'ADA/USD', label: 'ADA/USD' },
+  { value: 'ATOM/USD', label: 'ATOM/USD' },
+  { value: 'FTM/USD', label: 'FTM/USD' },
+  // DeFi
+  { value: 'LINK/USD', label: 'LINK/USD' },
+  { value: 'UNI/USD', label: 'UNI/USD' },
+  { value: 'AAVE/USD', label: 'AAVE/USD' },
+  { value: 'MKR/USD', label: 'MKR/USD' },
+  { value: 'SNX/USD', label: 'SNX/USD' },
+  { value: 'COMP/USD', label: 'COMP/USD' },
+  { value: 'YFI/USD', label: 'YFI/USD' },
+  { value: 'CRV/USD', label: 'CRV/USD' },
+  { value: 'LDO/USD', label: 'LDO/USD' },
+  { value: 'SUSHI/USD', label: 'SUSHI/USD' },
+  { value: '1INCH/USD', label: '1INCH/USD' },
+  { value: 'BAL/USD', label: 'BAL/USD' },
+  { value: 'FXS/USD', label: 'FXS/USD' },
+  { value: 'RPL/USD', label: 'RPL/USD' },
+  { value: 'GMX/USD', label: 'GMX/USD' },
+  { value: 'DYDX/USD', label: 'DYDX/USD' },
+  // Stablecoins
+  { value: 'USDC/USD', label: 'USDC/USD' },
+  { value: 'USDT/USD', label: 'USDT/USD' },
+  { value: 'DAI/USD', label: 'DAI/USD' },
 ];
 
 const timeRangeOptions = [

@@ -2631,7 +2631,7 @@
       "title": "个人资料",
       "subtitle": "管理您的个人信息和头像",
       "avatarLabel": "头像",
-      "avatarHint": "支持 JPEG, PNG, GIF, WebP 格式，最大 2MB",
+      "avatarHint": "支持 JPEG, PNG, GIF, WebP 格式，最大 5MB",
       "displayNameLabel": "显示名称",
       "displayNamePlaceholder": "输入您的显示名称",
       "emailLabel": "邮箱地址",
@@ -2640,7 +2640,7 @@
       "saveSuccess": "个人资料已保存",
       "saveError": "保存失败，请重试",
       "invalidImageType": "请上传有效的图片文件",
-      "imageSizeExceeded": "图片大小不能超过 2MB",
+      "imageSizeExceeded": "图片大小不能超过 5MB",
       "uploadError": "上传失败: ",
       "avatarUpdateError": "更新头像失败",
       "avatarUpdateSuccess": "头像已更新",
@@ -2657,7 +2657,26 @@
       "passwordMismatch": "两次输入的密码不一致",
       "passwordUpdateSuccess": "密码已更新",
       "passwordUpdateError": "密码更新失败",
-      "cancel": "取消"
+      "cancel": "取消",
+      "avatar": {
+        "label": "头像",
+        "hint": "支持 JPEG, PNG, GIF, WebP 格式，最大 5MB",
+        "clickOrDrag": "点击或拖拽上传",
+        "dropHere": "释放上传",
+        "delete": "删除头像",
+        "cropTitle": "裁剪头像",
+        "zoomIn": "放大",
+        "zoomOut": "缩小",
+        "rotate": "旋转",
+        "apply": "应用",
+        "uploading": "上传中...",
+        "uploadSuccess": "头像上传成功",
+        "uploadFailed": "头像上传失败",
+        "deleteSuccess": "头像已删除",
+        "deleteFailed": "删除头像失败",
+        "invalidType": "请上传有效的图片文件 (JPEG, PNG, GIF, WebP)",
+        "sizeExceeded": "图片大小不能超过 5MB"
+      }
     },
     "notifications": {
       "title": "通知设置",
@@ -2702,7 +2721,18 @@
       "themeDarkDesc": "使用暗色主题",
       "themeSystemDesc": "自动跟随系统设置",
       "saveSettings": "保存设置",
-      "saveSuccess": "偏好设置已保存"
+      "saveSuccess": "偏好设置已保存",
+      "timeRange": {
+        "hour1": "1小时",
+        "hour6": "6小时",
+        "day1": "1天",
+        "day7": "7天",
+        "day30": "30天"
+      },
+      "languages": {
+        "zhCN": "简体中文",
+        "en": "English"
+      }
     },
     "data": {
       "title": "数据管理",

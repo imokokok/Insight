@@ -2604,7 +2604,7 @@
       "title": "Profile",
       "subtitle": "Manage your personal information and avatar",
       "avatarLabel": "Avatar",
-      "avatarHint": "Supports JPEG, PNG, GIF, WebP formats, max 2MB",
+      "avatarHint": "Supports JPEG, PNG, GIF, WebP formats, max 5MB",
       "displayNameLabel": "Display Name",
       "displayNamePlaceholder": "Enter your display name",
       "emailLabel": "Email Address",
@@ -2613,7 +2613,7 @@
       "saveSuccess": "Profile saved successfully",
       "saveError": "Failed to save, please try again",
       "invalidImageType": "Please upload a valid image file",
-      "imageSizeExceeded": "Image size cannot exceed 2MB",
+      "imageSizeExceeded": "Image size cannot exceed 5MB",
       "uploadError": "Upload failed: ",
       "avatarUpdateError": "Failed to update avatar",
       "avatarUpdateSuccess": "Avatar updated successfully",
@@ -2630,7 +2630,26 @@
       "passwordMismatch": "Passwords do not match",
       "passwordUpdateSuccess": "Password updated successfully",
       "passwordUpdateError": "Failed to update password",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "avatar": {
+        "label": "Avatar",
+        "hint": "Supports JPEG, PNG, GIF, WebP formats, max 5MB",
+        "clickOrDrag": "Click or drag to upload",
+        "dropHere": "Drop to upload",
+        "delete": "Delete Avatar",
+        "cropTitle": "Crop Avatar",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "rotate": "Rotate",
+        "apply": "Apply",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Avatar uploaded successfully",
+        "uploadFailed": "Failed to upload avatar",
+        "deleteSuccess": "Avatar deleted successfully",
+        "deleteFailed": "Failed to delete avatar",
+        "invalidType": "Please upload a valid image file (JPEG, PNG, GIF, WebP)",
+        "sizeExceeded": "Image size cannot exceed 5MB"
+      }
     },
     "notifications": {
       "title": "Notification Settings",
@@ -2675,7 +2694,18 @@
       "themeDarkDesc": "Use dark theme",
       "themeSystemDesc": "Follow system settings automatically",
       "saveSettings": "Save Settings",
-      "saveSuccess": "Preferences saved"
+      "saveSuccess": "Preferences saved",
+      "timeRange": {
+        "hour1": "1 Hour",
+        "hour6": "6 Hours",
+        "day1": "1 Day",
+        "day7": "7 Days",
+        "day30": "30 Days"
+      },
+      "languages": {
+        "zhCN": "简体中文",
+        "en": "English"
+      }
     },
     "data": {
       "title": "Data Management",
