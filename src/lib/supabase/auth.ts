@@ -1,6 +1,5 @@
 import { supabase } from './client';
 import type { User, Session, AuthError, Provider } from '@supabase/supabase-js';
-import { Blockchain, OracleProvider } from '@/types/oracle';
 
 export interface AuthResponse {
   user: User | null;
@@ -13,12 +12,19 @@ export interface UserProfile {
   display_name: string | null;
   avatar_url?: string | null;
   preferences?: {
-    defaultSymbol?: string;
-    defaultChain?: Blockchain;
-    defaultProvider?: OracleProvider;
-    refreshInterval?: number;
-    notificationsEnabled?: boolean;
+    default_oracle?: string;
+    default_symbol?: string;
+    default_chain?: string;
+    default_time_range?: string;
+    language?: string;
+    default_currency?: string;
+    auto_refresh_interval?: number;
     theme?: 'light' | 'dark' | 'system';
+    chart_settings?: {
+      show_confidence_interval?: boolean;
+      auto_refresh?: boolean;
+      refresh_interval?: number;
+    };
   };
   notification_settings?: {
     email_alerts?: boolean;
