@@ -477,7 +477,11 @@
       "decentralizedNodes": "Decentralized Nodes",
       "supportedChains": "Supported Chains",
       "dataFeeds": "Data Feeds",
-      "totalValueSecured": "Total Value Secured"
+      "totalValueSecured": "Total Value Secured",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply",
+      "stakingApr": "Staking APR"
     },
     "marketData": {
       "marketCap": "Market Cap",
@@ -486,6 +490,7 @@
     "priceChart": {
       "title": "LINK Price Chart"
     },
+    "priceTrend": "Price Trend",
     "networkHealth": {
       "activeNodes": "Active Nodes",
       "responseTime": "Response Time",
@@ -550,6 +555,8 @@
       "dimensionScores": "Dimension Scores",
       "decentralization": "Decentralization",
       "security": "Security",
+      "stability": "Stability",
+      "dataQuality": "Data Quality",
       "riskMetrics": "Risk Metrics",
       "nodeConcentration": "Node Concentration Risk",
       "singlePointFailure": "Single Point of Failure",
@@ -562,7 +569,58 @@
       "securityTimeline": "Security Timeline",
       "mitigationMeasures": "Risk Mitigation Measures",
       "resolved": "Resolved",
-      "monitoring": "Monitoring"
+      "monitoring": "Monitoring",
+      "scoreTrend": "Score Trend",
+      "overallScore": "Overall Score",
+      "riskLevel": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      },
+      "eventTypes": {
+        "upgrade": "Upgrade",
+        "maintenance": "Maintenance",
+        "response": "Response",
+        "incident": "Incident"
+      },
+      "serviceLevelRisk": "Service Level Risk",
+      "serviceRiskFactors": "Service Risk Factors",
+      "ccipRisks": "CCIP Risks",
+      "vrfRisks": "VRF Risks",
+      "rmnCoverage": "RMN Coverage",
+      "rateLimiting": "Rate Limiting",
+      "circuitBreakers": "Circuit Breakers",
+      "cryptographicSecurity": "Cryptographic Security",
+      "onChainVerification": "On-chain Verification",
+      "blockHashDependency": "Block Hash Dependency",
+      "active": "Active",
+      "inactive": "Inactive",
+      "multiNodeConsensus": "Multi-Node Consensus",
+      "anomalyDetection": "Anomaly Detection",
+      "nodeStaking": "Node Staking",
+      "crossChainRedundancy": "Cross-Chain Redundancy",
+      "securityAudit": "Security Audit",
+      "decentralizedGovernance": "Decentralized Governance"
+    },
+    "risk": {
+      "securityEvents": {
+        "stakingV2Upgrade": {
+          "title": "Staking v2 Upgrade",
+          "description": "Completed staking mechanism upgrade, enhancing network security and reward distribution efficiency"
+        },
+        "nodeSoftwareUpdate": {
+          "title": "Node Software Update",
+          "description": "Released node software update, fixing known issues and improving performance"
+        },
+        "priceDeviationResponse": {
+          "title": "Price Deviation Response",
+          "description": "Quickly responded to and handled price deviation events, ensuring data accuracy"
+        },
+        "ccipLaunch": {
+          "title": "CCIP Launch",
+          "description": "Cross-chain interoperability protocol officially launched, supporting multi-chain data transmission"
+        }
+      }
     },
     "quickStats": "Quick Stats",
     "24hVolume": "24h Volume",
@@ -591,6 +649,15 @@
       "includeMetadata": "Include Metadata",
       "cancel": "Cancel",
       "export": "Export"
+    },
+    "timeRange": {
+      "1H": "1H",
+      "24H": "24H",
+      "7D": "7D",
+      "30D": "30D",
+      "90D": "90D",
+      "1Y": "1Y",
+      "ALL": "ALL"
     }
   },
   "dia": {
@@ -1129,10 +1196,15 @@
     "subtitle": "Modular Oracle Solution",
     "stats": {
       "activeNodes": "Active Nodes",
+      "dataFeeds": "Data Feeds",
+      "avgResponse": "Avg Response",
       "volume24h": "24h Volume",
       "marketCap": "Market Cap",
-      "networkUptime": "Network Uptime"
+      "networkUptime": "Network Uptime",
+      "circulatingSupply": "Circulating Supply",
+      "stakingApr": "Staking APR"
     },
+    "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
     "providers": {
       "title": "Data Providers",
@@ -1189,6 +1261,9 @@
     },
     "ecosystem": {
       "integrations": "Integrations"
+    },
+    "crossOracle": {
+      "title": "Cross-Oracle Comparison"
     }
   },
   "pythNetwork": {
@@ -1261,7 +1336,16 @@
     "publishers": {
       "title": "Data Publishers",
       "stake": "Stake",
-      "accuracy": "Accuracy"
+      "accuracy": "Accuracy",
+      "searchPlaceholder": "Search publishers...",
+      "sortByStake": "Sort by Stake",
+      "sortByAccuracy": "Sort by Accuracy",
+      "sortByName": "Sort by Name",
+      "totalPublishers": "Total Publishers",
+      "totalStaked": "Total Staked",
+      "avgAccuracy": "Avg Accuracy",
+      "topPublisher": "Top Publisher",
+      "contribution": "Contribution"
     },
     "priceFeeds": {
       "title": "Price Feeds",
@@ -1271,7 +1355,74 @@
         "equities": "Equities",
         "commodities": "Commodities",
         "forex": "Forex"
-      }
+      },
+      "totalDescription": "Pyth provides {count}+ price feeds covering crypto, equities, commodities, and forex."
+    },
+    "validators": {
+      "title": "Validators",
+      "totalValidators": "Total Validators",
+      "activeValidators": "Active Validators",
+      "totalStaked": "Total Staked",
+      "avgUptime": "Avg Uptime",
+      "name": "Name",
+      "status": "Status",
+      "stake": "Stake",
+      "uptime": "Uptime",
+      "rewards": "Rewards",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusJailed": "Jailed"
+    },
+    "crossChain": {
+      "title": "Cross-Chain Support",
+      "supported": "Supported",
+      "updateFrequency": "Update Frequency",
+      "latency": "Latency",
+      "status": "Status",
+      "online": "Online",
+      "description": "Pyth supports multiple blockchains through Wormhole cross-chain protocol, enabling sub-second price updates."
+    },
+    "crossOracle": {
+      "title": "Cross-Oracle Comparison"
+    },
+    "pageTitles": {
+      "market": "Market Data",
+      "network": "Network Status",
+      "validators": "Validators",
+      "disputes": "Disputes",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment",
+      "crossChain": "Cross-Chain",
+      "crossOracle": "Cross-Oracle Comparison"
+    },
+    "menu": {
+      "marketData": "Market Data",
+      "publishers": "Publishers",
+      "validators": "Validators",
+      "networkHealth": "Network Health",
+      "priceFeeds": "Price Feeds",
+      "crossChain": "Cross-Chain",
+      "crossOracleComparison": "Cross-Oracle Comparison",
+      "riskAssessment": "Risk Assessment"
+    },
+    "riskAssessment": {
+      "overallRiskScore": "Overall Risk Score",
+      "comprehensiveAssessment": "Comprehensive Risk Assessment",
+      "dimensionScores": "Dimension Scores",
+      "riskMetrics": "Risk Metrics",
+      "publisherConcentration": "Publisher Concentration",
+      "topPublishersShare": "Top Publishers Share",
+      "top10PublishersShare": "Top 10 Publishers Share",
+      "giniCoefficient": "Gini Coefficient",
+      "dataQuality": "Data Quality",
+      "updateFrequency": "Update Frequency",
+      "confidenceInterval": "Confidence Interval",
+      "priceFeeds": "Price Feeds",
+      "securityTimeline": "Security Timeline",
+      "resolved": "Resolved",
+      "monitoring": "Monitoring",
+      "crossChainRisk": "Cross-Chain Risk",
+      "mitigationMeasures": "Mitigation Measures"
     }
   },
   "api3": {
@@ -1361,8 +1512,12 @@
     "stats": {
       "activeAirnodes": "Active Airnodes",
       "dapiFeeds": "dAPI Feeds",
-      "stakingApr": "Staking APR"
+      "stakingApr": "Staking APR",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
     },
+    "priceTrend": "Price Trend",
     "quickStats": "Quick Stats"
   },
   "priceQuery": {
@@ -1971,6 +2126,32 @@
     "confirmClear": "Confirm Clear",
     "confirmClearDesc": "Cannot be recovered after clearing, continue?",
     "clear": "Clear"
+  },
+  "snapshotPublic": {
+    "backToHome": "Back to Home",
+    "priceSnapshot": "Price Snapshot",
+    "createdAt": "Created at",
+    "tradingPair": "Trading Pair",
+    "publicShare": "Public Share",
+    "configInfo": "Configuration",
+    "selectedOracles": "Selected Oracles",
+    "avgPrice": "Average Price",
+    "weightedAvgPrice": "Weighted Avg Price",
+    "highestPrice": "Highest Price",
+    "lowestPrice": "Lowest Price",
+    "priceRange": "Price Range",
+    "standardDeviation": "Standard Deviation",
+    "deviationPercent": "Deviation Percent",
+    "priceData": "Price Data",
+    "oracle": "Oracle",
+    "chain": "Chain",
+    "price": "Price",
+    "confidence": "Confidence",
+    "createYourOwn": "Want to create your own price snapshot?",
+    "startNow": "Get Started Now",
+    "notFound": "Snapshot does not exist or is not publicly shared",
+    "notFoundOrDeleted": "Snapshot does not exist or has been deleted",
+    "loadFailed": "Failed to load snapshot"
   },
   "confidenceAlert": {
     "title": "Confidence Interval Real-time Alert",
@@ -3010,6 +3191,9 @@
     },
     "time": {
       "justUpdated": "Just updated",
+      "secondsAgo": "{seconds}s ago",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
       "seconds": "s",
       "minutes": "m",
       "hours": "h"
@@ -3466,10 +3650,12 @@
         "warning": "Warning",
         "danger": "Danger"
       },
-      "timesPerMinute": "times/min"
+      "timesPerMinute": "times/min",
+      "range": "Range: {value}"
     },
     "oraclePageTemplate": {
-      "ecosystemOverview": "Ecosystem Overview"
+      "ecosystemOverview": "Ecosystem Overview",
+      "ecosystemDescription": "{name} ecosystem covers {count} blockchain networks, providing secure and reliable data services for DeFi, NFT, gaming and more."
     },
     "dataFreshness": {
       "title": "Data Freshness",
