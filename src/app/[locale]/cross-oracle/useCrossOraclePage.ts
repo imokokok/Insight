@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useI18n } from '@/lib/i18n/provider';
+import { useTranslations } from 'next-intl';
 import { OracleProvider, PriceData, saveSnapshot, SnapshotStats } from '@/types/oracle';
 import {
   oracleClients,
@@ -166,7 +166,7 @@ export interface UseCrossOraclePageReturn {
 }
 
 export function useCrossOraclePage(): UseCrossOraclePageReturn {
-  const { t } = useI18n();
+  const t = useTranslations();
   const router = useRouter();
   const user = useUser();
 

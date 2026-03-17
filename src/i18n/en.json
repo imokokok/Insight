@@ -113,6 +113,28 @@
     },
     "loading": "Loading..."
   },
+  "emptyState": {
+    "search": {
+      "title": "No results found",
+      "description": "Try adjusting your search keywords or filters"
+    },
+    "data": {
+      "title": "No data available",
+      "description": "There is no data to display at the moment, please try again later"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "An error occurred while loading data, please refresh the page and try again"
+    },
+    "filter": {
+      "title": "No matching results",
+      "description": "There are no matching results for the current filters, please adjust your filter criteria"
+    },
+    "default": {
+      "title": "No content",
+      "description": "There is no content to display at the moment"
+    }
+  },
   "error": {
     "boundary": {
       "somethingWrong": "Something went wrong",
@@ -132,7 +154,7 @@
     "title": "Cross-Oracle Comparison",
     "subtitle": "Multi-oracle price comparison and monitoring",
     "refresh": "Refresh",
-    "lastUpdated": "Last updated: {time}",
+    "lastUpdated": "Last updated",
     "currentPriceComparison": "Current Price Comparison",
     "priceTrend": "Price Trend (Last 24 Hours)",
     "oracle": "Oracle",
@@ -1902,7 +1924,36 @@
     "totalDataSourcesSubtitle": "Real-time price data sources"
   },
   "snapshot": {
-    "title": "Snapshot Comparison Analysis"
+    "title": "Snapshot Comparison Analysis",
+    "savedCount": "{count} snapshots saved",
+    "cloudLabel": "(Cloud)",
+    "saveSnapshot": "Save Snapshot",
+    "noSnapshot": "No snapshots",
+    "noSnapshotDesc": "Save current data snapshot for future comparison",
+    "snapshotList": "Snapshot List",
+    "clearAll": "Clear All",
+    "shared": "Shared",
+    "oracleCount": "{count} oracles",
+    "avgPrice": "Avg Price",
+    "deviation": "Deviation",
+    "unshare": "Unshare",
+    "shareSnapshot": "Share Snapshot",
+    "copyShareLink": "Copy Share Link",
+    "deleteSnapshot": "Delete Snapshot",
+    "migrateToCloud": "Migrate to Cloud",
+    "localSnapshotsDetected": "Detected {count} local snapshots",
+    "migrationDesc": "Migrate local snapshots to cloud for sync across devices",
+    "remindLater": "Remind Later",
+    "skip": "Skip",
+    "migrating": "Migrating...",
+    "startMigration": "Start Migration",
+    "confirmDelete": "Confirm Delete",
+    "confirmDeleteDesc": "Cannot be recovered after deletion, continue?",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirmClear": "Confirm Clear",
+    "confirmClearDesc": "Cannot be recovered after clearing, continue?",
+    "clear": "Clear"
   },
   "confidenceAlert": {
     "title": "Confidence Interval Real-time Alert",
@@ -2523,6 +2574,8 @@
     "shortTermVolatility": "Short-term Volatility",
     "midTermVolatility": "Mid-term Volatility",
     "longTermVolatility": "Long-term Volatility",
+    "windowSize": "Window Size: {window} data points",
+    "volatilityComparison": "{label} Volatility Comparison",
     "totalVolatility": "Total Volatility",
     "shortTermProportion": "Short-term Volatility Proportion",
     "midTermProportion": "Mid-term Volatility Proportion",
@@ -3742,6 +3795,7 @@
     "deviationDistribution": "Deviation Distribution",
     "oracleDeviationRanking": "Oracle Deviation Ranking",
     "highDeviationDetected": "High Deviation Data Points Detected",
+    "anomalyWarning": "Found {count} anomaly data points, recommend checking data sources",
     "range": {
       "extremelyLow": "Extremely Low",
       "low": "Low",
@@ -3990,6 +4044,71 @@
         "nov": "Nov",
         "dec": "Dec"
       }
+    },
+    "dataQuality": {
+      "title": "Data Quality Trend Analysis",
+      "accuracy": "Accuracy",
+      "availability": "Availability",
+      "consistency": "Consistency",
+      "responseSpeed": "Response Speed",
+      "heartbeatCompliance": "Heartbeat Compliance",
+      "baseQuality": "Base Quality",
+      "latency": "Latency",
+      "deviation": "Deviation",
+      "outlier": "Outlier",
+      "stale": "Stale",
+      "timeRange": "Time Range",
+      "selectOracle": "Select Oracle",
+      "1hour": "1 Hour",
+      "6hours": "6 Hours",
+      "24hours": "24 Hours",
+      "7days": "7 Days",
+      "showRadarChart": "Show Radar Chart",
+      "showRanking": "Show Ranking",
+      "qualityScoreTrend": "Quality Score Trend",
+      "excellent": "Excellent",
+      "good": "Good",
+      "pass": "Pass",
+      "fail": "Fail",
+      "qualityScore": "Quality Score",
+      "avgQualityScore": "Avg Quality Score",
+      "range": "Range",
+      "trend": "Trend",
+      "improving": "Improving",
+      "declining": "Declining",
+      "stable": "Stable",
+      "avgLatency": "Avg Latency",
+      "outlierRate": "Outlier Rate",
+      "staleRate": "Stale Rate",
+      "heartbeatComplianceShort": "Heartbeat",
+      "qualityRanking": "Quality Ranking",
+      "rank": "Rank",
+      "oracle": "Oracle",
+      "overallScore": "Overall Score",
+      "multiDimensionComparison": "Multi-Dimension Comparison",
+      "dimensionDescription": "Dimension Description",
+      "accuracyDesc": "Price data deviation from reference value",
+      "availabilityDesc": "Ratio of successful data returns",
+      "consistencyDesc": "Stability and continuity of data updates",
+      "responseSpeedDesc": "Response time for data requests",
+      "heartbeatComplianceDesc": "Ratio of data updates meeting expected heartbeat",
+      "baseQualityDesc": "Comprehensive base data quality assessment",
+      "updateLatencyComparison": "Update Latency Comparison",
+      "priceDeviationFromMedian": "Price Deviation from Median",
+      "heartbeatComplianceRate": "Heartbeat Compliance Rate",
+      "target": "Target",
+      "complianceRate": "Compliance Rate",
+      "qualityScoreDescription": "Quality Score Description",
+      "qualityScoreDescTitle": "Quality score is calculated based on the following dimensions:",
+      "updateLatency": "Update Latency",
+      "updateLatencyDesc": "Time from source to available",
+      "priceDeviation": "Price Deviation",
+      "priceDeviationDesc": "Price deviation from median",
+      "outlierDetection": "Outlier Detection",
+      "outlierDetectionDesc": "Identify data points significantly deviating from normal range",
+      "dataStale": "Data Stale",
+      "dataStaleDesc": "Data not updated in time",
+      "heartbeatComplianceDescLong": "Data update frequency meets expectations"
     }
   },
   "panels": {
