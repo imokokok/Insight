@@ -124,8 +124,8 @@ function getErrorConfig(error?: Error): {
   if (!error) {
     return {
       icon: '⚠️',
-      title: 'error.somethingWrong',
-      message: 'error.description',
+      title: 'error.boundary.somethingWrong',
+      message: 'error.boundary.global.description',
       color: 'red',
     };
   }
@@ -169,7 +169,7 @@ function getErrorConfig(error?: Error): {
   if (isAppError(error)) {
     return {
       icon: '⚠️',
-      title: 'error.somethingWrong',
+      title: 'error.boundary.somethingWrong',
       message: error.message,
       color: 'red',
     };
@@ -177,8 +177,8 @@ function getErrorConfig(error?: Error): {
 
   return {
     icon: '⚠️',
-    title: 'error.somethingWrong',
-    message: 'error.description',
+    title: 'error.boundary.somethingWrong',
+    message: 'error.boundary.global.description',
     color: 'red',
   };
 }
@@ -227,7 +227,7 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
           onClick={onReset}
           className={`inline-flex items-center px-4 py-2 text-white  transition-colors ${colors.button}`}
         >
-          {t('error.tryAgain')}
+          {t('error.boundary.tryAgain')}
         </button>
       </div>
     </div>

@@ -12,6 +12,7 @@ import {
   Area,
 } from 'recharts';
 import { PriceDeviationHeatmap } from '@/components/oracle/charts/PriceDeviationHeatmap';
+import { LatencyDistributionHistogram } from '@/components/oracle/charts/LatencyDistributionHistogram';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { NoDataEmptyState } from '@/components/ui/EmptyState';
 import { PriceDistributionBoxPlot } from '@/components/oracle/charts/PriceDistributionBoxPlot';

@@ -113,6 +113,28 @@
     },
     "loading": "加载中..."
   },
+  "emptyState": {
+    "search": {
+      "title": "未找到结果",
+      "description": "请尝试调整搜索关键词或筛选条件"
+    },
+    "data": {
+      "title": "暂无数据",
+      "description": "当前没有可显示的数据，请稍后再试"
+    },
+    "error": {
+      "title": "出错了",
+      "description": "加载数据时发生错误，请刷新页面重试"
+    },
+    "filter": {
+      "title": "无匹配结果",
+      "description": "当前筛选条件下没有匹配的数据，请调整筛选条件"
+    },
+    "default": {
+      "title": "暂无内容",
+      "description": "当前没有可显示的内容"
+    }
+  },
   "error": {
     "boundary": {
       "somethingWrong": "出现错误",
@@ -132,7 +154,7 @@
     "title": "跨预言机比较",
     "subtitle": "多预言机价格比对与监控",
     "refresh": "刷新",
-    "lastUpdated": "最后更新: {time}",
+    "lastUpdated": "最后更新",
     "currentPriceComparison": "当前价格对比",
     "priceTrend": "价格趋势（过去24小时）",
     "oracle": "预言机",
@@ -1929,7 +1951,36 @@
     "totalDataSourcesSubtitle": "实时价格数据源"
   },
   "snapshot": {
-    "title": "快照对比分析"
+    "title": "快照对比分析",
+    "savedCount": "已保存 {count} 个快照",
+    "cloudLabel": "(云端)",
+    "saveSnapshot": "保存快照",
+    "noSnapshot": "暂无快照",
+    "noSnapshotDesc": "保存当前数据快照，方便后续对比分析",
+    "snapshotList": "快照列表",
+    "clearAll": "清空全部",
+    "shared": "已分享",
+    "oracleCount": "{count} 个预言机",
+    "avgPrice": "均价",
+    "deviation": "偏差",
+    "unshare": "取消分享",
+    "shareSnapshot": "分享快照",
+    "copyShareLink": "复制分享链接",
+    "deleteSnapshot": "删除快照",
+    "migrateToCloud": "迁移到云端",
+    "localSnapshotsDetected": "检测到 {count} 个本地快照",
+    "migrationDesc": "将本地快照迁移到云端，可在多台设备间同步",
+    "remindLater": "稍后提醒",
+    "skip": "跳过",
+    "migrating": "迁移中...",
+    "startMigration": "开始迁移",
+    "confirmDelete": "确认删除",
+    "confirmDeleteDesc": "删除后无法恢复，是否继续？",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirmClear": "确认清空",
+    "confirmClearDesc": "清空后无法恢复，是否继续？",
+    "clear": "清空"
   },
   "confidenceAlert": {
     "title": "置信区间实时预警",
@@ -2550,6 +2601,8 @@
     "shortTermVolatility": "短期波动",
     "midTermVolatility": "中期波动",
     "longTermVolatility": "长期波动",
+    "windowSize": "窗口大小: {window} 个数据点",
+    "volatilityComparison": "{label} 波动率对比",
     "totalVolatility": "总波动率",
     "shortTermProportion": "短期波动占比",
     "midTermProportion": "中期波动占比",
@@ -3774,6 +3827,7 @@
     "deviationDistribution": "偏差分布",
     "oracleDeviationRanking": "预言机偏差排名",
     "highDeviationDetected": "检测到高偏差数据点",
+    "anomalyWarning": "发现 {count} 个异常数据点，建议检查数据源",
     "range": {
       "extremelyLow": "极低",
       "low": "低",
@@ -4025,6 +4079,71 @@
         "nov": "11月",
         "dec": "12月"
       }
+    },
+    "dataQuality": {
+      "title": "数据质量趋势分析",
+      "accuracy": "准确性",
+      "availability": "可用性",
+      "consistency": "一致性",
+      "responseSpeed": "响应速度",
+      "heartbeatCompliance": "心跳合规性",
+      "baseQuality": "基础质量",
+      "latency": "延迟",
+      "deviation": "偏差",
+      "outlier": "异常值",
+      "stale": "过期",
+      "timeRange": "时间范围",
+      "selectOracle": "选择预言机",
+      "1hour": "1小时",
+      "6hours": "6小时",
+      "24hours": "24小时",
+      "7days": "7天",
+      "showRadarChart": "显示雷达图",
+      "showRanking": "显示排名",
+      "qualityScoreTrend": "质量评分趋势",
+      "excellent": "优秀",
+      "good": "良好",
+      "pass": "及格",
+      "fail": "不及格",
+      "qualityScore": "质量评分",
+      "avgQualityScore": "平均质量评分",
+      "range": "范围",
+      "trend": "趋势",
+      "improving": "改善中",
+      "declining": "下降中",
+      "stable": "稳定",
+      "avgLatency": "平均延迟",
+      "outlierRate": "异常率",
+      "staleRate": "过期率",
+      "heartbeatComplianceShort": "心跳合规",
+      "qualityRanking": "质量排名",
+      "rank": "排名",
+      "oracle": "预言机",
+      "overallScore": "综合评分",
+      "multiDimensionComparison": "多维度对比",
+      "dimensionDescription": "维度说明",
+      "accuracyDesc": "价格数据与参考值的偏离程度",
+      "availabilityDesc": "数据成功返回的比例",
+      "consistencyDesc": "数据更新的稳定性和连续性",
+      "responseSpeedDesc": "数据请求的响应时间",
+      "heartbeatComplianceDesc": "数据更新频率符合预期心跳的比例",
+      "baseQualityDesc": "综合基础数据质量评估",
+      "updateLatencyComparison": "更新延迟对比",
+      "priceDeviationFromMedian": "价格偏离中位数",
+      "heartbeatComplianceRate": "心跳合规率",
+      "target": "目标",
+      "complianceRate": "合规率",
+      "qualityScoreDescription": "质量评分说明",
+      "qualityScoreDescTitle": "质量评分基于以下维度计算：",
+      "updateLatency": "更新延迟",
+      "updateLatencyDesc": "数据从源到可用的时间",
+      "priceDeviation": "价格偏差",
+      "priceDeviationDesc": "价格与中位数的偏离程度",
+      "outlierDetection": "异常检测",
+      "outlierDetectionDesc": "识别明显偏离正常范围的数据点",
+      "dataStale": "数据过期",
+      "dataStaleDesc": "数据未及时更新的情况",
+      "heartbeatComplianceDescLong": "数据更新频率符合预期"
     }
   },
   "panels": {
