@@ -104,7 +104,7 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
                 <Award className="w-5 h-5 text-white" />
               </div>
               <p className="text-2xl font-bold mb-1">{tier.apr}%</p>
-              <p className="text-xs opacity-75">APR</p>
+              <p className="text-xs opacity-75">{t('winklink.staking.aprLabel')}</p>
               <div className="mt-3 pt-3 border-t border-current border-opacity-20">
                 <p className="text-xs">
                   {formatNumber(tier.minStake)} - {formatNumber(tier.maxStake)}

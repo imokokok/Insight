@@ -228,43 +228,43 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
   const mitigationMeasures: MitigationMeasure[] = useMemo(
     () => [
       {
-        name: t('winklink.risk.measures.multiNodeValidation'),
+        name: 'winklink.risk.measures.multiNodeValidation',
         type: 'technical',
         status: 'active',
         effectiveness: 95,
       },
       {
-        name: t('winklink.risk.measures.slashingMechanism'),
+        name: 'winklink.risk.measures.slashingMechanism',
         type: 'governance',
         status: 'active',
         effectiveness: 88,
       },
       {
-        name: t('winklink.risk.measures.emergencyPause'),
+        name: 'winklink.risk.measures.emergencyPause',
         type: 'operational',
         status: 'active',
         effectiveness: 92,
       },
       {
-        name: t('winklink.risk.measures.auditCycle'),
+        name: 'winklink.risk.measures.auditCycle',
         type: 'technical',
         status: 'active',
         effectiveness: 90,
       },
       {
-        name: t('winklink.risk.measures.decentralizationIncentive'),
+        name: 'winklink.risk.measures.decentralizationIncentive',
         type: 'governance',
         status: 'active',
         effectiveness: 75,
       },
       {
-        name: t('winklink.risk.measures.realTimeMonitoring'),
+        name: 'winklink.risk.measures.realTimeMonitoring',
         type: 'operational',
         status: 'active',
         effectiveness: 94,
       },
     ],
-    [t]
+    []
   );
 
   // 跨链风险数据
@@ -322,7 +322,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <span
               className={`text-xs px-2 py-1 rounded ${dataQualityRisk.bgColor} ${dataQualityRisk.color}`}
             >
-              {dataQualityRisk.level} risk
+              {t(`winklink.risk.${dataQualityRisk.level}Risk`)}
             </span>
           </div>
           <div className="py-2">
@@ -334,7 +334,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <span
               className={`text-xs px-2 py-1 rounded ${deviationRisk.bgColor} ${deviationRisk.color}`}
             >
-              {deviationRisk.level} risk
+              {t(`winklink.risk.${deviationRisk.level}Risk`)}
             </span>
           </div>
           <div className="py-2">
@@ -344,7 +344,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             </div>
             <p className="text-xl font-bold text-gray-900">{data.nodeConcentrationRisk}%</p>
             <span className={`text-xs px-2 py-1 rounded ${nodeRisk.bgColor} ${nodeRisk.color}`}>
-              {nodeRisk.level} risk
+              {t(`winklink.risk.${nodeRisk.level}Risk`)}
             </span>
           </div>
           <div className="py-2">
@@ -356,7 +356,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               {(100 - data.uptimeRisk * 100).toFixed(2)}%
             </p>
             <span className={`text-xs px-2 py-1 rounded ${uptimeRisk.bgColor} ${uptimeRisk.color}`}>
-              {uptimeRisk.level} risk
+              {t(`winklink.risk.${uptimeRisk.level}Risk`)}
             </span>
           </div>
         </div>

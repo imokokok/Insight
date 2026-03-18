@@ -413,7 +413,7 @@ export default function RedStonePage() {
                 {/* Providers List */}
                 <div className="space-y-3">
                   {providersLoading ? (
-                    <div className="text-center py-8 text-gray-500">Loading providers...</div>
+                    <div className="text-center py-8 text-gray-500">{t('redstone.providers.loading')}</div>
                   ) : (
                     sortedProviders.map((provider, index) => (
                       <div
@@ -531,7 +531,7 @@ export default function RedStonePage() {
                     {t('redstone.dataStreams.streamCount')}
                   </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">1,250+</p>
-                  <p className="text-xs text-gray-600 mt-1">Active data streams</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.activeDataStreams')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
@@ -540,7 +540,7 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-green-600 mt-2">
                     {metrics?.dataFreshnessScore ? metrics.dataFreshnessScore.toFixed(1) : '98.5'}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Out of 100</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.outOf100')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
@@ -549,7 +549,7 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-blue-600 mt-2">
                     {metrics?.modularFee ? (metrics.modularFee * 100).toFixed(3) : '0.015'}%
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Per update</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.perUpdate')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
@@ -558,7 +558,7 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-purple-600 mt-2">
                     {metrics?.providerCount || 18}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Active providers</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.activeProviders')}</p>
                 </div>
               </div>
 
@@ -567,35 +567,35 @@ export default function RedStonePage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Stream Types</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.dataStreams.streamTypes')}</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Price Feeds</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.priceFeeds')}</span>
                           <span className="text-sm font-medium">1,000+</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Custom Data</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.customData')}</span>
                           <span className="text-sm font-medium">150+</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">L2 Data</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.l2Data')}</span>
                           <span className="text-sm font-medium">100+</span>
                         </div>
                       </div>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Update Frequency</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.dataStreams.updateFrequencyTitle')}</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">High Frequency</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.highFrequency')}</span>
                           <span className="text-sm font-medium">~10s</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Standard</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.standard')}</span>
                           <span className="text-sm font-medium">~60s</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Low Frequency</span>
+                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.lowFrequency')}</span>
                           <span className="text-sm font-medium">~300s</span>
                         </div>
                       </div>
@@ -615,24 +615,24 @@ export default function RedStonePage() {
                     {t('redstone.crossChain.supportedChains')}
                   </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">{SUPPORTED_CHAINS.length}</p>
-                  <p className="text-xs text-gray-600 mt-1">Active networks</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.activeNetworks')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
                     {t('redstone.stats.avgResponse')}
                   </h4>
                   <p className="text-2xl font-bold text-green-600 mt-2">75ms</p>
-                  <p className="text-xs text-gray-600 mt-1">Average across chains</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.averageAcrossChains')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">Fastest Chain</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.crossChain.fastestChain')}</h4>
                   <p className="text-2xl font-bold text-blue-600 mt-2">Base</p>
-                  <p className="text-xs text-gray-600 mt-1">60ms latency</p>
+                  <p className="text-xs text-gray-600 mt-1">60ms {t('redstone.crossChain.latency')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">Uptime</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.crossChain.uptime')}</h4>
                   <p className="text-2xl font-bold text-purple-600 mt-2">99.9%</p>
-                  <p className="text-xs text-gray-600 mt-1">All chains</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.allChains')}</p>
                 </div>
               </div>
 
@@ -694,29 +694,29 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-red-600 mt-2">
                     {ECOSYSTEM_INTEGRATIONS.length}+
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Projects integrated</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.projectsIntegrated')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">DeFi Protocols</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.defiProtocols')}</h4>
                   <p className="text-2xl font-bold text-blue-600 mt-2">
                     {ecosystemByCategory.defi?.length || 6}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Using RedStone</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.usingRedstone')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">Infrastructure</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.categories.infrastructure')}</h4>
                   <p className="text-2xl font-bold text-green-600 mt-2">
                     {ecosystemByCategory.infrastructure?.length || 3}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Partners</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.infrastructurePartners')}</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">NFT & Gaming</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.nftAndGaming')}</h4>
                   <p className="text-2xl font-bold text-purple-600 mt-2">
                     {(ecosystemByCategory.nft?.length || 2) +
                       (ecosystemByCategory.gaming?.length || 0)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Projects</p>
+                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.projects')}</p>
                 </div>
               </div>
 

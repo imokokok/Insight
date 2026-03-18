@@ -110,7 +110,7 @@ function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
             <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
           </div>
           <p className="text-gray-400 text-xs mt-2">
-            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('common.justNow')}
+            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('common.time.justNow')}
           </p>
         </div>
         <div className={`p-4 ${config.bgColor} bg-opacity-20`}>
@@ -211,7 +211,7 @@ function ActivityHeatmap({
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>{t('common.low')}</span>
+          <span>{t('networkHealth.activityHeatmap.low')}</span>
           <div className="flex gap-1">
             <div className="w-3 h-3 bg-blue-200"></div>
             <div className="w-3 h-3 bg-blue-700"></div>
@@ -219,7 +219,7 @@ function ActivityHeatmap({
             <div className="w-3 h-3 bg-blue-500"></div>
             <div className="w-3 h-3 bg-blue-400"></div>
           </div>
-          <span>{t('common.high')}</span>
+          <span>{t('networkHealth.activityHeatmap.high')}</span>
         </div>
       </div>
 

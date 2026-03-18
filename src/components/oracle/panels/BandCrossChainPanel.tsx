@@ -43,7 +43,7 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-gray-500 text-center">Failed to load cross-chain data</p>
+          <p className="text-gray-500 text-center">{t('bandProtocol.crossChain.failedToLoad')}</p>
         </CardContent>
       </Card>
     );
@@ -65,31 +65,31 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.crossChain.totalRequests24h')}
+            {t('bandProtocol.crossChain.totalRequests24h')}
           </p>
           <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests24h)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 12.5% Last 24 hours</p>
+          <p className="text-xs text-green-600 mt-1">↑ 12.5% {t('bandProtocol.crossChain.last24Hours')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.crossChain.totalRequests7d')}
+            {t('bandProtocol.crossChain.totalRequests7d')}
           </p>
           <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests7d)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 8.3% Last 7 days</p>
+          <p className="text-xs text-green-600 mt-1">↑ 8.3% {t('bandProtocol.crossChain.last7Days')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.crossChain.totalRequests30d')}
+            {t('bandProtocol.crossChain.totalRequests30d')}
           </p>
           <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests30d)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 15.2% Last 30 days</p>
+          <p className="text-xs text-green-600 mt-1">↑ 15.2% {t('bandProtocol.crossChain.last30Days')}</p>
         </div>
         <div className="bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.crossChain.supportedChains')}
+            {t('bandProtocol.crossChain.supportedChains')}
           </p>
           <p className="text-2xl font-bold text-gray-900">{stats.chains.length}</p>
-          <p className="text-xs text-gray-500 mt-1">Active chains</p>
+          <p className="text-xs text-gray-500 mt-1">{t('bandProtocol.crossChain.activeChains')}</p>
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">
-            {t('band.crossChain.chainDataRequests')}
+            {t('bandProtocol.crossChain.chainDataRequests')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -106,22 +106,22 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.chainName')}
+                    {t('bandProtocol.crossChain.chainName')}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.requests24h')}
+                    {t('bandProtocol.crossChain.requests24h')}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.requests7d')}
+                    {t('bandProtocol.crossChain.requests7d')}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.requests30d')}
+                    {t('bandProtocol.crossChain.requests30d')}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.avgGasCost')}
+                    {t('bandProtocol.crossChain.avgGasCost')}
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                    {t('band.crossChain.supportedSymbols')}
+                    {t('bandProtocol.crossChain.supportedSymbols')}
                   </th>
                 </tr>
               </thead>
@@ -147,7 +147,7 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
                       {formatNumber(chain.requestCount30d)}
                     </td>
                     <td className="text-right py-3 px-4 text-sm text-gray-600">
-                      {chain.avgGasCost.toFixed(4)} BAND
+                      {chain.avgGasCost.toFixed(4)} {t('bandProtocol.crossChain.tokenBand')}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex flex-wrap gap-1">
@@ -177,32 +177,32 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
       {/* IBC Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('band.crossChain.ibcInfo')}</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('bandProtocol.crossChain.ibcInfo')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="text-sm font-medium text-purple-900 mb-2">
-                {t('band.crossChain.ibcTransfers')}
+                {t('bandProtocol.crossChain.ibcTransfers')}
               </h4>
               <p className="text-2xl font-bold text-purple-700">
                 {formatNumber(stats.totalRequests24h * 0.4)}
               </p>
-              <p className="text-sm text-purple-600 mt-1">24h transfers</p>
+              <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.transfers24h')}</p>
             </div>
             <div className="p-4 bg-indigo-50 rounded-lg">
               <h4 className="text-sm font-medium text-indigo-900 mb-2">
-                {t('band.crossChain.ibcChannels')}
+                {t('bandProtocol.crossChain.ibcChannels')}
               </h4>
               <p className="text-2xl font-bold text-indigo-700">12</p>
-              <p className="text-sm text-indigo-600 mt-1">Active channels</p>
+              <p className="text-sm text-indigo-600 mt-1">{t('bandProtocol.crossChain.activeChannels')}</p>
             </div>
             <div className="p-4 bg-teal-50 rounded-lg">
               <h4 className="text-sm font-medium text-teal-900 mb-2">
-                {t('band.crossChain.avgLatency')}
+                {t('bandProtocol.crossChain.avgLatency')}
               </h4>
               <p className="text-2xl font-bold text-teal-700">2.8s</p>
-              <p className="text-sm text-teal-600 mt-1">Cross-chain latency</p>
+              <p className="text-sm text-teal-600 mt-1">{t('bandProtocol.crossChain.crossChainLatency')}</p>
             </div>
           </div>
         </CardContent>

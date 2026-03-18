@@ -65,7 +65,7 @@ export function UMADashboardPanel({
   };
 
   return (
-    <DashboardCard title={t('uma.dashboard.networkHealth') || '网络健康指标'}>
+    <DashboardCard title={t('uma.dashboard.networkHealth')}>
       <div className="space-y-6">
         {/* 主要指标 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -124,7 +124,7 @@ export function UMADashboardPanel({
         {networkStatus.length > 0 && (
           <div className="border-t border-gray-200 pt-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('uma.dashboard.detailedStatus') || '详细状态'}
+              {t('uma.dashboard.detailedStatus')}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {networkStatus.map((item, index) => (
@@ -145,7 +145,7 @@ export function UMADashboardPanel({
         {dataSources.length > 0 && (
           <div className="border-t border-gray-200 pt-4">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('uma.dashboard.dataSources') || '数据源状态'}
+              {t('uma.dashboard.dataSources')}
             </h4>
             <div className="space-y-2">
               {dataSources.map((source, index) => (

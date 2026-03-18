@@ -272,7 +272,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 <div className="w-20 text-right text-sm font-medium text-gray-900">
                   {category.percentage}%
                 </div>
-                <div className="w-24 text-right text-sm text-gray-500">{category.count} games</div>
+                <div className="w-24 text-right text-sm text-gray-500">{category.count} {t('winklink.gaming.games')}</div>
                 <div className="w-28 text-right text-sm font-medium text-gray-900">
                   ${(category.volume24h / 1e6).toFixed(1)}M
                 </div>

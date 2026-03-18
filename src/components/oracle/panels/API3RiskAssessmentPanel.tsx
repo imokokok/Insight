@@ -57,49 +57,52 @@ function LegacyRiskScoreCard({ title, score, description, color }: RiskScoreCard
   );
 }
 
-const api3SecurityEvents: RiskEvent[] = [
-  {
-    date: '2024-03-10',
-    type: 'upgrade',
-    title: 'OEV Network Launch',
-    description: 'Introduction of Oracle Extractable Value network for improved MEV protection',
-    status: 'resolved',
-  },
-  {
-    date: '2024-02-15',
-    type: 'upgrade',
-    title: 'Airnode V2 Release',
-    description: 'Major upgrade to Airnode with enhanced gas optimization and monitoring',
-    status: 'resolved',
-  },
-  {
-    date: '2024-01-20',
-    type: 'response',
-    title: 'dAPI Coverage Expansion',
-    description: 'Added 50+ new dAPIs with improved redundancy mechanisms',
-    status: 'resolved',
-  },
-  {
-    date: '2023-12-05',
-    type: 'maintenance',
-    title: 'First-Party Oracle Infrastructure Upgrade',
-    description: 'Routine infrastructure optimization for first-party oracle nodes',
-    status: 'resolved',
-  },
-];
+function useAPI3SecurityEvents(): RiskEvent[] {
+  const t = useTranslations();
+  return [
+    {
+      date: '2024-03-10',
+      type: 'upgrade',
+      title: t('api3.risk.securityEvents.oevNetworkLaunch.title'),
+      description: t('api3.risk.securityEvents.oevNetworkLaunch.description'),
+      status: 'resolved',
+    },
+    {
+      date: '2024-02-15',
+      type: 'upgrade',
+      title: t('api3.risk.securityEvents.airnodeV2Release.title'),
+      description: t('api3.risk.securityEvents.airnodeV2Release.description'),
+      status: 'resolved',
+    },
+    {
+      date: '2024-01-20',
+      type: 'response',
+      title: t('api3.risk.securityEvents.dapiCoverageExpansion.title'),
+      description: t('api3.risk.securityEvents.dapiCoverageExpansion.description'),
+      status: 'resolved',
+    },
+    {
+      date: '2023-12-05',
+      type: 'maintenance',
+      title: t('api3.risk.securityEvents.infrastructureUpgrade.title'),
+      description: t('api3.risk.securityEvents.infrastructureUpgrade.description'),
+      status: 'resolved',
+    },
+  ];
+}
 
 const api3MitigationMeasures: MitigationMeasure[] = [
   {
-    name: 'First-Party Oracle Architecture',
+    name: 'api3.risk.mitigationMeasures.firstPartyOracle',
     type: 'technical',
     status: 'active',
     effectiveness: 95,
   },
-  { name: 'Coverage Pool Staking', type: 'technical', status: 'active', effectiveness: 90 },
-  { name: 'DAO Governance', type: 'governance', status: 'active', effectiveness: 85 },
-  { name: 'Service Coverage', type: 'operational', status: 'active', effectiveness: 88 },
-  { name: 'OEV Protection', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'Multi-Chain Deployment', type: 'operational', status: 'active', effectiveness: 87 },
+  { name: 'api3.risk.mitigationMeasures.coveragePoolStaking', type: 'technical', status: 'active', effectiveness: 90 },
+  { name: 'api3.risk.mitigationMeasures.daoGovernance', type: 'governance', status: 'active', effectiveness: 85 },
+  { name: 'api3.risk.mitigationMeasures.serviceCoverage', type: 'operational', status: 'active', effectiveness: 88 },
+  { name: 'api3.risk.mitigationMeasures.oevProtection', type: 'technical', status: 'active', effectiveness: 92 },
+  { name: 'api3.risk.mitigationMeasures.multiChainDeployment', type: 'operational', status: 'active', effectiveness: 87 },
 ];
 
 function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
@@ -273,7 +276,7 @@ function StakingRisk({ staking }: { staking?: StakingData }) {
           </div>
           <div className="p-3 bg-gray-50 border border-gray-200">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.staking.lockup')}</p>
-            <p className="text-lg font-semibold text-gray-900">7 days</p>
+            <p className="text-lg font-semibold text-gray-900">{t('api3.risk.staking.lockupValue')}</p>
           </div>
         </div>
       </div>
@@ -287,6 +290,7 @@ export function API3RiskAssessmentPanel({
   dapiCoverage,
 }: API3RiskAssessmentPanelProps) {
   const t = useTranslations();
+  const api3SecurityEvents = useAPI3SecurityEvents();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const handleRefresh = () => {

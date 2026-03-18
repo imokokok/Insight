@@ -38,12 +38,12 @@ interface ChronicleRiskAssessmentPanelProps {
 
 // 示例缓解措施
 const chronicleMitigationMeasures: MitigationMeasure[] = [
-  { name: 'Scuttlebutt Verification', type: 'technical', status: 'active', effectiveness: 96 },
-  { name: 'Validator Rotation', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'Multi-Chain Validation', type: 'technical', status: 'active', effectiveness: 89 },
-  { name: 'Threshold Signature Scheme', type: 'technical', status: 'active', effectiveness: 94 },
-  { name: 'Decentralized Governance', type: 'governance', status: 'active', effectiveness: 87 },
-  { name: '24/7 Monitoring', type: 'operational', status: 'active', effectiveness: 93 },
+  { name: 'chronicle.risk.mitigationMeasures.scuttlebuttVerification', type: 'technical', status: 'active', effectiveness: 96 },
+  { name: 'chronicle.risk.mitigationMeasures.validatorRotation', type: 'technical', status: 'active', effectiveness: 92 },
+  { name: 'chronicle.risk.mitigationMeasures.multiChainValidation', type: 'technical', status: 'active', effectiveness: 89 },
+  { name: 'chronicle.risk.mitigationMeasures.thresholdSignature', type: 'technical', status: 'active', effectiveness: 94 },
+  { name: 'chronicle.risk.mitigationMeasures.decentralizedGovernance', type: 'governance', status: 'active', effectiveness: 87 },
+  { name: 'chronicle.risk.mitigationMeasures.monitoring', type: 'operational', status: 'active', effectiveness: 93 },
 ];
 
 export function ChronicleRiskAssessmentPanel({

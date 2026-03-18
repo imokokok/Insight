@@ -46,41 +46,39 @@ const getTellorSecurityEvents = (t: ReturnType<typeof useTranslations>): RiskEve
   },
 ];
 
-const getTellorMitigationMeasures = (
-  t: ReturnType<typeof useTranslations>
-): MitigationMeasure[] => [
+const getTellorMitigationMeasures = (): MitigationMeasure[] => [
   {
-    name: t('tellor.risk.mitigationMeasures.disputeMechanism'),
+    name: 'tellor.risk.mitigationMeasures.disputeMechanism',
     type: 'technical',
     status: 'active',
     effectiveness: 92,
   },
   {
-    name: t('tellor.risk.mitigationMeasures.stakingSlashing'),
+    name: 'tellor.risk.mitigationMeasures.stakingSlashing',
     type: 'technical',
     status: 'active',
     effectiveness: 88,
   },
   {
-    name: t('tellor.risk.mitigationMeasures.multiSourceData'),
+    name: 'tellor.risk.mitigationMeasures.multiSourceData',
     type: 'technical',
     status: 'active',
     effectiveness: 85,
   },
   {
-    name: t('tellor.risk.mitigationMeasures.decentralizedGovernance'),
+    name: 'tellor.risk.mitigationMeasures.decentralizedGovernance',
     type: 'governance',
     status: 'active',
     effectiveness: 82,
   },
   {
-    name: t('tellor.risk.mitigationMeasures.reporterIncentives'),
+    name: 'tellor.risk.mitigationMeasures.reporterIncentives',
     type: 'operational',
     status: 'active',
     effectiveness: 90,
   },
   {
-    name: t('tellor.risk.mitigationMeasures.transparencyReports'),
+    name: 'tellor.risk.mitigationMeasures.transparencyReports',
     type: 'operational',
     status: 'active',
     effectiveness: 78,
@@ -91,7 +89,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   const t = useTranslations();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const tellorSecurityEvents = getTellorSecurityEvents(t);
-  const tellorMitigationMeasures = getTellorMitigationMeasures(t);
+  const tellorMitigationMeasures = getTellorMitigationMeasures();
 
   const getRiskLevelColor = (level: 'low' | 'medium' | 'high') => {
     switch (level) {
@@ -141,7 +139,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
           </div>
           <div className="text-right">
             <span className="text-3xl font-bold uppercase">{data.overallRiskLevel}</span>
-            <p className="text-sm mt-1">Risk Level</p>
+            <p className="text-sm mt-1">{t('tellor.risk.riskLevelLabel')}</p>
           </div>
         </div>
       </div>
@@ -203,8 +201,8 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
               })}
             </div>
             <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>12h ago</span>
-              <span>Now</span>
+              <span>{t('tellor.risk.timeAgo', { hours: 12 })}</span>
+              <span>{t('tellor.risk.now')}</span>
             </div>
           </div>
         </DashboardCard>
@@ -341,7 +339,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
               <div className="flex-1">
                 <p className="text-sm text-gray-700">{alert.message}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {new Date(alert.timestamp).toLocaleString('zh-CN')}
+                  {new Date(alert.timestamp).toLocaleString()}
                 </p>
               </div>
               <span

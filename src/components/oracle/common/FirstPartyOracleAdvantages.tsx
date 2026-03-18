@@ -38,8 +38,8 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
     },
     {
       feature: t('api3.firstPartyOracle.responseTime'),
-      api3: '180ms',
-      traditional: '200-500ms',
+      api3: t('api3.firstPartyOracle.responseTimeValue'),
+      traditional: t('api3.firstPartyOracle.traditionalResponseTime'),
       api3HasAdvantage: true,
     },
     {
@@ -133,7 +133,7 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                 <p className="text-xs text-gray-600 uppercase tracking-wider">
                   {t('api3.firstPartyOracle.responseTime')}
                 </p>
-                <p className="text-lg font-semibold text-gray-900">{data.responseTime}ms</p>
+                <p className="text-lg font-semibold text-gray-900">{t('api3.firstPartyOracle.responseTimeValue')}</p>
               </div>
             </div>
           </div>
@@ -151,7 +151,7 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                     {t('api3.firstPartyOracle.feature')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    API3
+                    {t('api3.firstPartyOracle.api3Name')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     {t('api3.firstPartyOracle.traditionalOracle')}
