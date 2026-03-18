@@ -8,8 +8,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // 使用 getValidLocale 处理：中文显示中文，其他都显示英文
   const locale = getValidLocale(requestedLocale);
 
+  // 根据 locale 加载对应的消息文件
+  const messages = locale === 'zh-CN'
+    ? (await import('./zh-CN.json')).default
+    : (await import('./en.json')).default;
+
   return {
     locale,
-    messages: (await import(`./${locale}.json`)).default,
+    messages,
   };
 });

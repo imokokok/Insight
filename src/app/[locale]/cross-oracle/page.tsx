@@ -83,6 +83,7 @@ export default function CrossOraclePage() {
     selectedRowIndex,
     hoveredRowIndex,
     highlightedOutlierIndex,
+    chartContainerRef,
     showFavoritesDropdown,
     setShowFavoritesDropdown,
     favoritesDropdownRef,

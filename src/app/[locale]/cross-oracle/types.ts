@@ -42,6 +42,7 @@ export interface UseCrossOraclePageReturn {
   hoveredRowIndex: number | null;
   highlightedOutlierIndex: number | null;
   tableRef: React.RefObject<HTMLTableSectionElement | null>;
+  chartContainerRef: React.RefObject<HTMLDivElement | null>;
   showFavoritesDropdown: boolean;
   setShowFavoritesDropdown: React.Dispatch<React.SetStateAction<boolean>>;
   favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;

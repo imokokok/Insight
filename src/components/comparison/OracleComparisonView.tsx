@@ -49,7 +49,8 @@ export function OracleComparisonView({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const comparisonResult: OracleComparisonResult = useMemo(() => {
-    const prices = oracles.map((o) => o.metrics.price);
+    const validOracles = oracles.filter((o) => o.metrics?.price != null);
+    const prices = validOracles.map((o) => o.metrics.price);
     const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
     const sorted = [...prices].sort((a, b) => a - b);
     const median = sorted.length % 2 === 0
@@ -59,12 +60,12 @@ export function OracleComparisonView({
     const min = Math.min(...prices);
     const variance = prices.reduce((sum, p) => sum + Math.pow(p - avg, 2), 0) / prices.length;
     const stdDev = Math.sqrt(variance);
-    const maxDeviation = Math.max(...oracles.map((o) => Math.abs(o.metrics.deviation || 0)));
+    const maxDeviation = Math.max(...validOracles.map((o) => Math.abs(o.metrics.deviation || 0)));
     const cv = (stdDev / avg) * 100;
     const consistencyScore = Math.max(0, Math.min(100, 100 - cv * 10));
 
     return {
-      oracles,
+      oracles: validOracles,
       averagePrice: avg,
       medianPrice: median,
       priceRange: max - min,
@@ -75,30 +76,31 @@ export function OracleComparisonView({
   }, [oracles]);
 
   const sortedOracles = useMemo(() => {
-    const sorted = [...oracles].sort((a, b) => {
+    const validOracles = oracles.filter((o) => o.metrics != null);
+    const sorted = [...validOracles].sort((a, b) => {
       let aVal: number;
       let bVal: number;
 
       switch (sortBy) {
         case 'price':
-          aVal = a.metrics.price;
-          bVal = b.metrics.price;
+          aVal = a.metrics?.price ?? 0;
+          bVal = b.metrics?.price ?? 0;
           break;
         case 'deviation':
-          aVal = Math.abs(a.metrics.deviation || 0);
-          bVal = Math.abs(b.metrics.deviation || 0);
+          aVal = Math.abs(a.metrics?.deviation || 0);
+          bVal = Math.abs(b.metrics?.deviation || 0);
           break;
         case 'confidence':
-          aVal = a.metrics.confidence || 0;
-          bVal = b.metrics.confidence || 0;
+          aVal = a.metrics?.confidence || 0;
+          bVal = b.metrics?.confidence || 0;
           break;
         case 'responseTime':
-          aVal = a.metrics.responseTime || 0;
-          bVal = b.metrics.responseTime || 0;
+          aVal = a.metrics?.responseTime || 0;
+          bVal = b.metrics?.responseTime || 0;
           break;
         default:
-          aVal = a.metrics.price;
-          bVal = b.metrics.price;
+          aVal = a.metrics?.price ?? 0;
+          bVal = b.metrics?.price ?? 0;
       }
 
       return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
@@ -108,18 +110,20 @@ export function OracleComparisonView({
   }, [oracles, sortBy, sortOrder]);
 
   const radarData = useMemo(() => {
+    const validOracles = oracles.filter((o) => o.metrics != null);
+    if (validOracles.length === 0) return [];
     const metrics = [
-      { key: 'price', label: t('metrics.price'), max: Math.max(...oracles.map((o) => o.metrics.price)) * 1.1 },
+      { key: 'price', label: t('metrics.price'), max: Math.max(...validOracles.map((o) => o.metrics?.price ?? 0)) * 1.1 || 1 },
       { key: 'confidence', label: t('metrics.confidence'), max: 100 },
-      { key: 'responseTime', label: t('metrics.responseTime'), max: Math.max(...oracles.map((o) => o.metrics.responseTime || 0)) * 1.2 },
+      { key: 'responseTime', label: t('metrics.responseTime'), max: Math.max(...validOracles.map((o) => o.metrics?.responseTime || 0)) * 1.2 || 1 },
       { key: 'accuracy', label: t('metrics.accuracy'), max: 100 },
       { key: 'reliability', label: t('metrics.reliability'), max: 100 },
     ];
 
     return metrics.map((m) => ({
       metric: m.label,
-      ...oracles.reduce((acc, o) => {
-        const val = o.metrics[m.key as keyof typeof o.metrics] as number || 0;
+      ...validOracles.reduce((acc, o) => {
+        const val = (o.metrics?.[m.key as keyof typeof o.metrics] as number) || 0;
         acc[o.name] = (val / m.max) * 100;
         return acc;
       }, {} as Record<string, number>),
@@ -127,12 +131,14 @@ export function OracleComparisonView({
   }, [oracles, t]);
 
   const priceChartData = useMemo(() => {
-    return oracles.map((o) => ({
-      name: o.name,
-      price: o.metrics.price,
-      deviation: o.metrics.deviation || 0,
-      color: o.color,
-    }));
+    return oracles
+      .filter((o) => o.metrics != null)
+      .map((o) => ({
+        name: o.name,
+        price: o.metrics?.price ?? 0,
+        deviation: o.metrics?.deviation || 0,
+        color: o.color,
+      }));
   }, [oracles]);
 
   const getConsistencyColor = (score: number): string => {
@@ -321,7 +327,7 @@ export function OracleComparisonView({
               </thead>
               <tbody>
                 {sortedOracles.map((oracle) => {
-                  const deviation = oracle.metrics.deviation || 0;
+                  const deviation = oracle.metrics?.deviation || 0;
                   const isBenchmark = benchmarkOracle === oracle.provider;
 
                   return (
@@ -344,23 +350,23 @@ export function OracleComparisonView({
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-gray-900">
-                        ${oracle.metrics.price.toFixed(2)}
+                        ${oracle.metrics?.price?.toFixed(2) ?? '-'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <DifferenceBadge value={deviation} type="percentage" />
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">
-                        {oracle.metrics.confidence !== undefined
+                        {oracle.metrics?.confidence !== undefined
                           ? `${(oracle.metrics.confidence * 100).toFixed(1)}%`
                           : '-'}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">
-                        {oracle.metrics.responseTime !== undefined
+                        {oracle.metrics?.responseTime !== undefined
                           ? `${oracle.metrics.responseTime}ms`
                           : '-'}
                       </td>
                       <td className="px-4 py-3 text-right text-gray-600">
-                        {oracle.metrics.accuracy !== undefined
+                        {oracle.metrics?.accuracy !== undefined
                           ? `${oracle.metrics.accuracy.toFixed(1)}%`
                           : '-'}
                       </td>

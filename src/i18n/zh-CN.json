@@ -716,7 +716,7 @@
       "quickAccess": "快速访问收藏",
       "viewAll": "查看全部收藏"
     },
-    "freshness": {
+    "freshnessOptions": {
       "justNow": "刚刚",
       "secondsAgo": "{seconds}秒前",
       "minutesAgo": "{minutes}分钟前",
@@ -773,6 +773,7 @@
     "price": "价格",
     "differenceVs": "差异（与 {chain} 相比）",
     "percentDifference": "差异百分比",
+    "trend": "趋势",
     "priceChart": "价格图表",
     "averagePrice": "平均价格",
     "highestPrice": "最高价格",
@@ -875,6 +876,9 @@
     "recommended": "推荐",
     "refreshSuccess": "刷新成功",
     "filter": "筛选",
+    "filterAll": "全部",
+    "filterAbnormal": "异常",
+    "filterNormal": "正常",
     "residualDiagnostics": "残差诊断",
     "autocorrelationFunction": "自相关函数 (ACF)",
     "autocorrelationCoefficient": "自相关系数",
@@ -2866,6 +2870,7 @@
       "timeRange7Days": "7天"
     },
     "query": "查询",
+    "querying": "正在查询...",
     "loading": "加载中...",
     "loadingData": "加载数据中...",
     "pagination": {
