@@ -8,10 +8,18 @@ import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import type { AlertConditionType } from '@/lib/supabase/database.types';
 import { useTranslations } from 'next-intl';
 import { DropdownSelect, SegmentedControl, SelectorOption } from '@/components/ui/selectors';
+import { AlertTemplates, AlertTemplate } from './AlertTemplates';
+import { AlertMutePeriod, MutePeriodConfig } from './AlertMutePeriod';
 
 interface AlertConfigProps {
   onAlertCreated?: () => void;
 }
+
+const DEFAULT_MUTE_CONFIG: MutePeriodConfig = {
+  enabled: false,
+  duration: 60,
+  recurring: false,
+};
 
 export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const t = useTranslations();
@@ -22,6 +30,8 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   const [conditionType, setConditionType] = useState<AlertConditionType>('above');
   const [targetValue, setTargetValue] = useState<string>('');
   const [isActive, setIsActive] = useState<boolean>(true);
+  const [muteConfig, setMuteConfig] = useState<MutePeriodConfig>(DEFAULT_MUTE_CONFIG);
+  const [showMuteSettings, setShowMuteSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { createAlert, isCreating } = useCreateAlert();
@@ -87,6 +97,16 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
     }
   }, []);
 
+  const handleApplyTemplate = useCallback((template: AlertTemplate) => {
+    setSymbol(template.config.symbol);
+    setProvider(template.config.provider as OracleProvider | '');
+    setChain(template.config.chain as Blockchain | '');
+    setConditionType(template.config.condition_type);
+    setTargetValue(template.config.target_value.toString());
+    setIsActive(template.config.is_active);
+    setAlertName(template.name);
+  }, []);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -124,6 +144,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
 
       if (alert) {
         setTargetValue('');
+        setAlertName('');
         setError(null);
         onAlertCreated?.();
       }
@@ -157,6 +178,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
   return (
     <DashboardCard title={t('alerts.create.title')}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <AlertTemplates onSelectTemplate={handleApplyTemplate} selectedSymbol={symbol} />
+
+        <div className="border-t border-gray-200 pt-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('alerts.create.customConfig')}</h4>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('alerts.create.nameLabel')}{' '}
@@ -272,6 +299,39 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               }`}
             />
           </button>
+        </div>
+
+        <div className="border-t border-gray-200 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowMuteSettings(!showMuteSettings)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div>
+              <h4 className="text-sm font-medium text-gray-700">{t('alerts.mute.settings')}</h4>
+              <p className="text-xs text-gray-500">
+                {muteConfig.enabled
+                  ? t('alerts.mute.enabledHint')
+                  : t('alerts.mute.disabledHint')}
+              </p>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-400 transition-transform ${
+                showMuteSettings ? 'rotate-180' : ''
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showMuteSettings && (
+            <div className="mt-3">
+              <AlertMutePeriod config={muteConfig} onChange={setMuteConfig} />
+            </div>
+          )}
         </div>
 
         {error && (

@@ -16,6 +16,8 @@ import { ProgressBar, JumpIndicator } from './components/SmallComponents';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
 import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
+import { DataSourceSection } from './components/DataSourceSection';
+import { BenchmarkComparisonSection } from './components/BenchmarkComparisonSection';
 import {
   BarChart,
   Bar,
@@ -213,6 +215,32 @@ export default function CrossChainPage() {
   const renderOverviewTab = () => (
     <>
       <CompactStatsGrid statsData={statsData} />
+
+      <DataSourceSection
+        dataPoints={currentPrices.map(p => ({
+          chain: p.chain || Blockchain.ETHEREUM,
+          price: p.price,
+          timestamp: p.timestamp,
+          source: p.source,
+          confidence: p.confidence,
+          provider: selectedProvider,
+        }))}
+        lastUpdated={lastUpdated}
+        onRefresh={fetchData}
+        isLoading={loading}
+      />
+
+      {/* Benchmark Comparison Section */}
+      {currentPrices.length > 0 && (
+        <BenchmarkComparisonSection
+          chainPrices={currentPrices.map(p => ({
+            chain: p.chain || Blockchain.ETHEREUM,
+            price: p.price,
+            timestamp: p.timestamp,
+          }))}
+          loading={loading}
+        />
+      )}
 
       <div id="heatmap">
         <HeatmapDetailView data={data} />

@@ -136,10 +136,10 @@ export interface UseMarketOverviewDataReturn {
 }
 
 export function useMarketOverviewData(): UseMarketOverviewDataReturn {
-  // 数据状态
+  // 数据状态 - 使用默认值避免初始渲染时图表空白
   const [oracleData, setOracleData] = useState<OracleMarketData[]>(MOCK_ORACLE_DATA);
   const [assets, setAssets] = useState<AssetData[]>(MOCK_ASSETS);
-  const [trendData, setTrendData] = useState<TVSTrendData[]>([]);
+  const [trendData, setTrendData] = useState<TVSTrendData[]>(() => generateMockTVSTrendData(720));
   const [chainBreakdown, setChainBreakdown] = useState<ChainBreakdown[]>([]);
   const [protocolDetails, setProtocolDetails] = useState<ProtocolDetail[]>([]);
   const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);

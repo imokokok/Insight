@@ -1,0 +1,296 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
+import { DropdownSelect } from '@/components/ui/selectors';
+
+export interface MutePeriodConfig {
+  enabled: boolean;
+  duration: number; // in minutes
+  startTime?: string; // HH:mm format
+  endTime?: string; // HH:mm format
+  recurring: boolean;
+  daysOfWeek?: number[]; // 0-6, 0 = Sunday
+}
+
+interface AlertMutePeriodProps {
+  config: MutePeriodConfig;
+  onChange: (config: MutePeriodConfig) => void;
+}
+
+const DURATION_OPTIONS = [
+  { value: 15, label: '15 minutes' },
+  { value: 30, label: '30 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 120, label: '2 hours' },
+  { value: 240, label: '4 hours' },
+  { value: 480, label: '8 hours' },
+  { value: 1440, label: '24 hours' },
+  { value: -1, label: 'Custom schedule' },
+];
+
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Sun', labelZh: '周日' },
+  { value: 1, label: 'Mon', labelZh: '周一' },
+  { value: 2, label: 'Tue', labelZh: '周二' },
+  { value: 3, label: 'Wed', labelZh: '周三' },
+  { value: 4, label: 'Thu', labelZh: '周四' },
+  { value: 5, label: 'Fri', labelZh: '周五' },
+  { value: 6, label: 'Sat', labelZh: '周六' },
+];
+
+export function AlertMutePeriod({ config, onChange }: AlertMutePeriodProps) {
+  const t = useTranslations();
+  const [localConfig, setLocalConfig] = useState<MutePeriodConfig>(config);
+
+  const durationOptions = useMemo(() => {
+    return DURATION_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: t(`alerts.mute.duration.${opt.value}`) || opt.label,
+    }));
+  }, [t]);
+
+  const handleToggleEnable = useCallback(() => {
+    const newConfig = { ...localConfig, enabled: !localConfig.enabled };
+    setLocalConfig(newConfig);
+    onChange(newConfig);
+  }, [localConfig, onChange]);
+
+  const handleDurationChange = useCallback(
+    (value: number) => {
+      const newConfig = { ...localConfig, duration: value };
+      setLocalConfig(newConfig);
+      onChange(newConfig);
+    },
+    [localConfig, onChange]
+  );
+
+  const handleRecurringChange = useCallback(
+    (recurring: boolean) => {
+      const newConfig = { ...localConfig, recurring };
+      setLocalConfig(newConfig);
+      onChange(newConfig);
+    },
+    [localConfig, onChange]
+  );
+
+  const handleStartTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newConfig = { ...localConfig, startTime: e.target.value };
+      setLocalConfig(newConfig);
+      onChange(newConfig);
+    },
+    [localConfig, onChange]
+  );
+
+  const handleEndTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newConfig = { ...localConfig, endTime: e.target.value };
+      setLocalConfig(newConfig);
+      onChange(newConfig);
+    },
+    [localConfig, onChange]
+  );
+
+  const handleDayToggle = useCallback(
+    (day: number) => {
+      const currentDays = localConfig.daysOfWeek || [];
+      const newDays = currentDays.includes(day)
+        ? currentDays.filter((d) => d !== day)
+        : [...currentDays, day].sort();
+      const newConfig = { ...localConfig, daysOfWeek: newDays };
+      setLocalConfig(newConfig);
+      onChange(newConfig);
+    },
+    [localConfig, onChange]
+  );
+
+  const isCustomSchedule = localConfig.duration === -1;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-medium text-gray-900">{t('alerts.mute.title')}</h4>
+          <p className="text-xs text-gray-500 mt-0.5">{t('alerts.mute.description')}</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggleEnable}
+          className={`relative inline-flex h-6 w-11 items-center transition-colors ${
+            localConfig.enabled ? 'bg-blue-600' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform bg-white transition-transform ${
+              localConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
+      {localConfig.enabled && (
+        <div className="space-y-4 pt-3 border-t border-gray-200">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {t('alerts.mute.durationLabel')}
+            </label>
+            <DropdownSelect
+              options={durationOptions}
+              value={localConfig.duration}
+              onChange={(value) => handleDurationChange(value as number)}
+            />
+          </div>
+
+          {isCustomSchedule && (
+            <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    {t('alerts.mute.startTime')}
+                  </label>
+                  <input
+                    type="time"
+                    value={localConfig.startTime || '22:00'}
+                    onChange={handleStartTimeChange}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    {t('alerts.mute.endTime')}
+                  </label>
+                  <input
+                    type="time"
+                    value={localConfig.endTime || '08:00'}
+                    onChange={handleEndTimeChange}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={localConfig.recurring}
+                    onChange={(e) => handleRecurringChange(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  {t('alerts.mute.recurring')}
+                </label>
+              </div>
+
+              {localConfig.recurring && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    {t('alerts.mute.daysOfWeek')}
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const isSelected = (localConfig.daysOfWeek || []).includes(day.value);
+                      return (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => handleDayToggle(day.value)}
+                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                            isSelected
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {t(`common.days.${day.value}`) || day.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+            <div className="flex items-start gap-2">
+              <svg
+                className="w-4 h-4 flex-shrink-0 mt-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{t('alerts.mute.notice')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function isInMutePeriod(config: MutePeriodConfig): boolean {
+  if (!config.enabled) return false;
+
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  if (config.duration > 0) {
+    // Fixed duration from now (for temporary mute)
+    return false; // This should be checked at trigger time with stored start time
+  }
+
+  // Custom schedule
+  if (config.startTime && config.endTime) {
+    const [startHour, startMin] = config.startTime.split(':').map(Number);
+    const [endHour, endMin] = config.endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    // Check day of week for recurring
+    if (config.recurring && config.daysOfWeek && config.daysOfWeek.length > 0) {
+      const currentDay = now.getDay();
+      if (!config.daysOfWeek.includes(currentDay)) {
+        return false;
+      }
+    }
+
+    // Check time range
+    if (startMinutes <= endMinutes) {
+      return currentTime >= startMinutes && currentTime <= endMinutes;
+    } else {
+      // Overnight (e.g., 22:00 - 08:00)
+      return currentTime >= startMinutes || currentTime <= endMinutes;
+    }
+  }
+
+  return false;
+}
+
+export function formatMutePeriod(config: MutePeriodConfig, t: (key: string) => string): string {
+  if (!config.enabled) return t('alerts.mute.disabled');
+
+  if (config.duration > 0) {
+    return t(`alerts.mute.duration.${config.duration}`) || `${config.duration} minutes`;
+  }
+
+  if (config.startTime && config.endTime) {
+    const timeRange = `${config.startTime} - ${config.endTime}`;
+    if (config.recurring && config.daysOfWeek && config.daysOfWeek.length > 0) {
+      const days = config.daysOfWeek
+        .map((d) => t(`common.days.${d}`) || DAYS_OF_WEEK[d].label)
+        .join(', ');
+      return `${timeRange} (${days})`;
+    }
+    return timeRange;
+  }
+
+  return t('alerts.mute.enabled');
+}
+
+export default AlertMutePeriod;

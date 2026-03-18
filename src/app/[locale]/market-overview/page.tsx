@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import ChartRenderer from './components/ChartRenderer';
-import ExportSection from './components/ExportSection';
+import UnifiedExportSection from './components/UnifiedExportSection';
 import RefreshControl from './components/RefreshControl';
 import RealtimeIndicator from './components/RealtimeIndicator';
 
@@ -144,6 +144,12 @@ export default function MarketOverviewPage() {
     wsConnectedChannels,
   } = data;
 
+  useEffect(() => {
+    if (['pie', 'trend', 'bar'].includes(activeChart) && viewType === 'table') {
+      setViewType('chart');
+    }
+  }, [activeChart, viewType, setViewType]);
+
   const getChartTitle = () => {
     switch (activeChart) {
       case 'pie':
@@ -244,13 +250,13 @@ export default function MarketOverviewPage() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <ExportSection
+            <UnifiedExportSection
               loading={loading}
+              oracleData={oracleData}
+              assets={assets}
               chartContainerRef={chartContainerRef}
               activeChart={activeChart}
               getChartTitle={getChartTitle}
-              exportToCSV={exportToCSV}
-              exportToJSON={exportToJSON}
             />
 
             <RefreshControl
@@ -487,30 +493,32 @@ export default function MarketOverviewPage() {
 
                 <div className="h-4 w-px bg-gray-300 hidden lg:block" />
 
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setViewType('chart')}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
-                      viewType === 'chart'
-                        ? 'text-blue-600 border-blue-600'
-                        : 'text-gray-500 border-transparent hover:text-gray-700'
-                    }`}
-                  >
-                    <PieChartIcon className="w-4 h-4" />
-                    {isChineseLocale(locale) ? '图表' : 'Chart'}
-                  </button>
-                  <button
-                    onClick={() => setViewType('table')}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
-                      viewType === 'table'
-                        ? 'text-blue-600 border-blue-600'
-                        : 'text-gray-500 border-transparent hover:text-gray-700'
-                    }`}
-                  >
-                    <TableIcon className="w-4 h-4" />
-                    {isChineseLocale(locale) ? '表格' : 'Table'}
-                  </button>
-                </div>
+                {!['pie', 'trend', 'bar'].includes(activeChart) && (
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setViewType('chart')}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                        viewType === 'chart'
+                          ? 'text-blue-600 border-blue-600'
+                          : 'text-gray-500 border-transparent hover:text-gray-700'
+                      }`}
+                    >
+                      <PieChartIcon className="w-4 h-4" />
+                      {isChineseLocale(locale) ? '图表' : 'Chart'}
+                    </button>
+                    <button
+                      onClick={() => setViewType('table')}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                        viewType === 'table'
+                          ? 'text-blue-600 border-blue-600'
+                          : 'text-gray-500 border-transparent hover:text-gray-700'
+                      }`}
+                    >
+                      <TableIcon className="w-4 h-4" />
+                      {isChineseLocale(locale) ? '表格' : 'Table'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

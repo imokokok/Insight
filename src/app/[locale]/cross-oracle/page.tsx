@@ -33,6 +33,10 @@ import {
   StatsSection,
   PriceTableSection,
   PairSelector,
+  DataSourcePanel,
+  UnifiedExportSection,
+  OracleComparisonSection,
+  BenchmarkComparisonSection,
 } from './components';
 import { symbols } from './constants';
 import { useCrossOraclePage } from './useCrossOraclePage';
@@ -268,7 +272,42 @@ export default function CrossOraclePage() {
         t={t}
       />
 
-      <div className="mb-8">
+      {/* Oracle Comparison Section */}
+      {priceData.length > 0 && (
+        <OracleComparisonSection
+          priceData={priceData}
+          benchmarkOracle={selectedOracles[0]}
+          showCharts={true}
+          showRadar={true}
+          showTable={true}
+        />
+      )}
+
+      {/* Benchmark Comparison Section */}
+      {priceData.length > 0 && (
+        <BenchmarkComparisonSection
+          priceData={priceData}
+          loading={isLoading}
+        />
+      )}
+
+      <div className="flex items-center justify-between gap-4">
+        <DataSourcePanel
+          priceData={priceData}
+          lastUpdated={lastUpdated}
+          onRefresh={fetchPriceData}
+          isLoading={isLoading}
+        />
+        <UnifiedExportSection
+          loading={isLoading}
+          crossOracleData={filteredPriceData}
+          chartContainerRef={chartContainerRef}
+          selectedAssets={[selectedSymbol]}
+          selectedOracles={selectedOracles.map((o) => oracleNames[o])}
+        />
+      </div>
+
+      <div ref={chartContainerRef} className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {t('crossOracle.priceTrend')}

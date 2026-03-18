@@ -118,24 +118,24 @@ export default function ChainBreakdownChart({
     return (
       <div className="h-[320px] overflow-auto">
         <table className="w-full">
-          <thead className="sticky top-0">
-            <tr>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+          <thead className="sticky top-0 bg-white z-10">
+            <tr className="border-b border-gray-200">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 {isChineseLocale(locale) ? '链' : 'Chain'}
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 TVS
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 {isChineseLocale(locale) ? '份额' : 'Share'}
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 {isChineseLocale(locale) ? '协议' : 'Protocols'}
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 24h
               </th>
-              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                 {isChineseLocale(locale) ? '主要预言机' : 'Top Oracle'}
               </th>
             </tr>

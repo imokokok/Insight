@@ -99,6 +99,15 @@
       "medium": "中",
       "low": "低"
     },
+    "days": {
+      "0": "周日",
+      "1": "周一",
+      "2": "周二",
+      "3": "周三",
+      "4": "周四",
+      "5": "周五",
+      "6": "周六"
+    },
     "locale": "zh-CN",
     "favorite": "收藏",
     "favorited": "已收藏"
@@ -237,6 +246,94 @@
     "default": {
       "title": "暂无内容",
       "description": "当前没有可显示的内容"
+    },
+    "folder": {
+      "title": "暂无项目",
+      "description": "此文件夹为空，添加一些项目开始使用。"
+    },
+    "offline": {
+      "title": "您已离线",
+      "description": "请检查您的网络连接后重试。"
+    },
+    "empty": {
+      "title": "这里空空如也",
+      "description": "当前没有可显示的内容。"
+    },
+    "new": {
+      "title": "开始使用",
+      "description": "欢迎！让我们通过快速指南帮您完成设置。"
+    },
+    "custom": {
+      "title": "自定义状态",
+      "description": "这是一个自定义的空状态消息。"
+    },
+    "viewExample": "查看示例",
+    "quickStart": "快速开始",
+    "tryExampleData": "尝试示例数据",
+    "createNew": "创建新项",
+    "refresh": "刷新",
+    "retry": "重试",
+    "retrying": "重试中...",
+    "contactSupport": "联系支持",
+    "errorDetails": "错误详情",
+    "noResultsFor": "未找到",
+    "clearSearch": "清除搜索",
+    "trySearching": "尝试搜索：",
+    "lastSynced": "最后同步",
+    "retryConnection": "重试连接",
+    "favorites": {
+      "title": "暂无收藏",
+      "description": "将项目添加到收藏夹以便快速访问",
+      "browse": "浏览项目"
+    }
+  },
+  "loading": {
+    "loadingData": "加载数据中",
+    "fetchingData": "正在获取数据...",
+    "cancel": "取消",
+    "elapsedTime": "已用时间",
+    "estimatedTime": "预计时间",
+    "completed": "已完成",
+    "failed": "失败",
+    "total": "总计",
+    "progress": "进度"
+  },
+  "tutorial": {
+    "welcomeTitle": "欢迎使用 Oracle Insight",
+    "welcomeDescription": "让我们通过快速交互式导览，带您了解平台的主要功能。",
+    "startTutorial": "开始教程",
+    "skip": "跳过",
+    "skipForNow": "暂时跳过",
+    "dontShowAgain": "不再显示",
+    "close": "关闭",
+    "next": "下一步",
+    "previous": "上一步",
+    "complete": "完成",
+    "finish": "完成",
+    "steps": "步骤",
+    "interactive": "交互式",
+    "goToStep": "跳转到第 {step} 步",
+    "completionTitle": "教程完成！",
+    "completionDescription": "一切就绪！开始探索平台，发现强大的预言机分析功能。",
+    "startUsing": "开始使用",
+    "viewSummary": "查看摘要",
+    "steps": {
+      "welcome": {
+        "title": "欢迎",
+        "description": "发现强大的预言机分析和实时价格监控功能。"
+      },
+      "explore": {
+        "title": "探索",
+        "description": "浏览不同的预言机提供商并比较其性能指标。"
+      },
+      "analyze": {
+        "title": "分析",
+        "description": "深入分析价格趋势、偏差和跨链比较。"
+      },
+      "customize": {
+        "title": "定制",
+        "description": "个性化您的仪表板并设置重要价格变动警报。"
+      }
     }
   },
   "error": {
@@ -4533,6 +4630,91 @@
       "changePercent": "价格变化 {change}% 达到目标 {target}%",
       "changePercentSimple": "价格变化达到目标 {target}%",
       "default": "条件已满足"
+    },
+    "templates": {
+      "title": "快速模板",
+      "categories": {
+        "all": "全部",
+        "price": "价格",
+        "volatility": "波动",
+        "data": "数据"
+      },
+      "showMore": "显示更多",
+      "showLess": "收起",
+      "priceBreakout": {
+        "name": "价格突破",
+        "description": "当价格突破阻力位时触发告警"
+      },
+      "priceDrop": {
+        "name": "价格下跌",
+        "description": "当价格跌破支撑位时触发告警"
+      },
+      "volatilitySpike": {
+        "name": "波动率激增",
+        "description": "当价格变化超过阈值时触发告警"
+      },
+      "deviationAlert": {
+        "name": "偏差告警",
+        "description": "当价格出现显著偏差时触发告警"
+      },
+      "dataDelay": {
+        "name": "数据延迟",
+        "description": "当预言机数据延迟时触发告警"
+      }
+    },
+    "batch": {
+      "selectAll": "选择全部 {count} 个告警",
+      "selectedCount": "已选择 {count} 个",
+      "enable": "启用",
+      "disable": "禁用",
+      "delete": "删除",
+      "clearSelection": "清除选择",
+      "deleteConfirm": "确定要删除选中的 {count} 个告警吗？"
+    },
+    "mute": {
+      "title": "静默期",
+      "description": "临时抑制告警通知",
+      "settings": "静默设置",
+      "enabledHint": "静默期已启用",
+      "disabledHint": "点击配置静默期",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "durationLabel": "持续时间",
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "recurring": "重复计划",
+      "daysOfWeek": "星期",
+      "notice": "在静默期内，告警仍会触发，但通知将被抑制",
+      "duration": {
+        "15": "15 分钟",
+        "30": "30 分钟",
+        "60": "1 小时",
+        "120": "2 小时",
+        "240": "4 小时",
+        "480": "8 小时",
+        "1440": "24 小时",
+        "-1": "自定义计划"
+      }
+    },
+    "create": {
+      "title": "创建价格告警",
+      "nameLabel": "告警名称",
+      "nameOptional": "(可选)",
+      "namePlaceholder": "为告警起个名字",
+      "symbolLabel": "交易对",
+      "providerLabel": "预言机",
+      "providerOptional": "(可选)",
+      "allProviders": "所有预言机",
+      "chainLabel": "链",
+      "chainOptional": "(可选)",
+      "allChains": "所有链",
+      "selectProviderFirst": "请先选择预言机",
+      "conditionLabel": "告警条件",
+      "targetValueLabel": "目标值",
+      "enableAlert": "启用告警",
+      "submitting": "创建中...",
+      "submit": "创建告警",
+      "customConfig": "自定义配置"
     }
   },
   "favorites": {
@@ -5830,5 +6012,544 @@
     "cancel": "取消",
     "generating": "生成中...",
     "generateFullReport": "生成完整报告"
+  },
+  "dataTransparency": {
+    "title": "数据透明度",
+    "dataSources": "数据来源",
+    "providers": "预言机",
+    "chains": "区块链",
+    "dataPoints": "数据点",
+    "showMore": "显示更多 ({count})",
+    "showLess": "收起",
+    "noSources": "暂无数据来源",
+    "chain": "链",
+    "source": "来源",
+    "confidence": "可信度",
+    "viewProof": "查看验证证明",
+    "nextRefresh": "下次刷新",
+    "credibility": {
+      "high": "高可信度",
+      "medium": "中等可信度",
+      "low": "低可信度",
+      "unverified": "未验证"
+    },
+    "freshness": {
+      "fresh": "数据新鲜",
+      "stale": "数据稍旧",
+      "expired": "数据过期"
+    }
+  },
+  "methodology": {
+    "title": "数据方法论",
+    "subtitle": "了解我们的价格聚合算法和风险评估体系",
+    "aggregation": {
+      "title": "价格聚合",
+      "description": "多源数据融合与价格计算",
+      "sectionTitle": "价格聚合算法",
+      "intro": "我们采用多种价格聚合算法，根据数据质量和市场条件动态选择最优方案，确保价格准确性和抗操纵性。",
+      "simpleAverage": {
+        "title": "简单平均",
+        "description": "对所有有效数据源的价格进行算术平均，适用于数据源质量相近的场景。"
+      },
+      "weightedAverage": {
+        "title": "加权平均",
+        "description": "根据各数据源的流动性、交易量和历史准确性分配权重，更准确地反映市场价格。"
+      },
+      "median": {
+        "title": "中位数",
+        "description": "取所有价格的中位数，有效抵抗极端值和异常数据的影响。"
+      },
+      "trimmedMean": {
+        "title": "截尾均值",
+        "description": "去除最高和最低的一定比例数据后计算平均值，平衡了平均和中位数的优点。"
+      },
+      "weightFactors": "权重因子",
+      "factors": {
+        "liquidity": "流动性深度",
+        "volume": "交易量",
+        "reputation": "数据源声誉",
+        "freshness": "数据新鲜度"
+      }
+    },
+    "riskAssessment": {
+      "title": "风险评估",
+      "description": "多维度风险识别与量化",
+      "sectionTitle": "风险评估维度",
+      "intro": "我们的风险评估体系从多个维度分析预言机数据的风险状况，帮助用户识别潜在问题并做出明智决策。"
+    },
+    "risk": {
+      "centralization": {
+        "title": "中心化风险",
+        "description": "评估数据提供者的去中心化程度，集中度越高风险越大。",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "freshness": {
+        "title": "数据时效性风险",
+        "description": "评估数据的更新频率和时效性，过时数据可能导致决策失误。",
+        "fresh": "新鲜",
+        "stale": "稍旧",
+        "expired": "过期"
+      },
+      "deviation": {
+        "title": "价格偏差风险",
+        "description": "监控不同数据源之间的价格差异，异常偏差可能预示市场操纵或技术故障。",
+        "normal": "正常",
+        "warning": "警告",
+        "critical": "严重"
+      },
+      "liquidity": {
+        "title": "流动性风险",
+        "description": "评估底层市场的流动性状况，低流动性可能导致价格失真。",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      }
+    },
+    "dataQuality": {
+      "title": "数据质量",
+      "description": "全面数据质量监控体系",
+      "sectionTitle": "数据质量维度",
+      "intro": "我们建立了完整的数据质量管理体系，从多个维度持续监控和评估数据质量。",
+      "completeness": {
+        "title": "完整性",
+        "description": "数据记录的完整程度，包括字段完整性和时间序列连续性。"
+      },
+      "accuracy": {
+        "title": "准确性",
+        "description": "数据与真实值的接近程度，通过多源对比和历史验证评估。"
+      },
+      "consistency": {
+        "title": "一致性",
+        "description": "数据在不同时间和来源之间的一致性，异常波动可能指示数据问题。"
+      },
+      "timeliness": {
+        "title": "及时性",
+        "description": "数据从产生到可用的时间延迟，对于高频交易场景尤为重要。"
+      }
+    },
+    "confidenceScore": {
+      "title": "可信度评分",
+      "intro": "我们使用综合评分模型计算每个数据点的可信度，帮助用户评估数据可靠性。",
+      "formula": "评分公式",
+      "freshness": "数据新鲜度",
+      "completeness": "数据完整性",
+      "consistency": "数据一致性",
+      "reliability": "来源可靠性"
+    },
+    "dataSources": {
+      "title": "数据来源与验证",
+      "intro": "我们的数据来自多个层级的来源，每个层级都有不同的验证要求和可信度等级。",
+      "primary": "一级数据源",
+      "primaryDesc": "直接来自顶级交易所和官方预言机网络，经过严格验证",
+      "secondary": "二级数据源",
+      "secondaryDesc": "来自知名数据聚合器和验证节点，质量可靠",
+      "tertiary": "三级数据源",
+      "tertiaryDesc": "来自社区节点和补充数据源，作为参考和交叉验证"
+    },
+    "disclaimer": {
+      "title": "免责声明",
+      "content": "本页面提供的方法论仅供技术参考，实际数据处理方式可能因市场条件和技术发展而调整。我们不对因使用本平台数据而产生的任何损失承担责任。"
+    }
+  },
+  "priceQuery": {
+    "dataSources": {
+      "title": "查询数据来源"
+    },
+    "comparison": {
+      "title": "时间对比分析"
+    }
+  },
+  "crossOracle": {
+    "dataSources": {
+      "title": "对比数据来源"
+    },
+    "comparison": {
+      "summary": "对比摘要",
+      "avgPrice": "平均价格",
+      "priceRange": "价格范围",
+      "consistency": "一致性评分",
+      "oracleCount": "预言机数量"
+    },
+    "benchmark": {
+      "title": "行业基准对比"
+    }
+  },
+  "crossChain": {
+    "dataSources": {
+      "title": "跨链数据来源"
+    },
+    "benchmark": {
+      "title": "跨链基准对比"
+    }
+  },
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索预言机、交易对、区块链、页面...",
+    "noResults": "未找到结果",
+    "noResultsDesc": "未找到与 \"{query}\" 相关的结果，请尝试其他关键词",
+    "initialTitle": "开始搜索",
+    "initialDesc": "输入关键词搜索预言机、交易对、区块链、页面和功能",
+    "groups": {
+      "oracles": "预言机",
+      "pairs": "交易对",
+      "blockchains": "区块链",
+      "pages": "页面",
+      "features": "功能",
+      "documentation": "文档"
+    },
+    "oracles": {
+      "chainlinkDesc": "领先的去中心化预言机网络",
+      "pythDesc": "机构级低延迟金融数据",
+      "bandDesc": "Cosmos 生态系统跨链数据预言机",
+      "api3Desc": "第一方 DAO 治理预言机",
+      "redstoneDesc": "模块化 EVM+ 预言机堆栈",
+      "umaDesc": "乐观预言机自定义数据验证",
+      "diaDesc": "透明众包数据验证预言机",
+      "tellorDesc": "去中心化透明预言机",
+      "chronicleDesc": "MakerDAO 基础设施预言机",
+      "winklinkDesc": "TRON 生态系统预言机"
+    },
+    "pairs": {
+      "priceFeed": "价格数据喂价"
+    },
+    "pages": {
+      "home": "首页",
+      "homeDesc": "Insight 仪表板主页",
+      "marketOverview": "市场概览",
+      "marketOverviewDesc": "实时市场情报和指标",
+      "priceQuery": "价格查询",
+      "priceQueryDesc": "跨预言机网络价格查询",
+      "crossOracle": "多预言机对比",
+      "crossOracleDesc": "多预言机价格比较分析",
+      "crossChain": "跨链分析",
+      "crossChainDesc": "跨链价格分析和基准测试",
+      "favorites": "收藏",
+      "favoritesDesc": "管理您的收藏资产",
+      "alerts": "提醒",
+      "alertsDesc": "价格提醒和通知",
+      "settings": "设置",
+      "settingsDesc": "用户偏好设置"
+    },
+    "features": {
+      "realtimePrice": "实时价格",
+      "realtimePriceDesc": "实时价格数据流",
+      "priceComparison": "价格对比",
+      "priceComparisonDesc": "跨预言机价格比较",
+      "priceAlerts": "价格提醒",
+      "priceAlertsDesc": "自定义价格提醒通知",
+      "dataExport": "数据导出",
+      "dataExportDesc": "导出市场数据",
+      "charts": "图表",
+      "chartsDesc": "交互式价格图表"
+    },
+    "docs": {
+      "methodology": "方法论",
+      "methodologyDesc": "数据和方法论说明",
+      "apiReference": "API 文档",
+      "apiReferenceDesc": "API 参考文档",
+      "help": "帮助",
+      "helpDesc": "帮助和支持中心"
+    },
+    "shortcuts": {
+      "navigate": "导航",
+      "select": "选择",
+      "close": "关闭"
+    },
+    "footer": {
+      "navigate": "导航",
+      "select": "选择"
+    }
+  },
+  "mobile": {
+    "chart": {
+      "pan": "滑动",
+      "zoom": "双指缩放",
+      "swipe": "左右滑动"
+    },
+    "pullToRefresh": {
+      "pull": "下拉刷新",
+      "release": "松开刷新",
+      "refreshing": "刷新中..."
+    },
+    "settings": {
+      "title": "移动设置",
+      "subtitle": "自定义您的移动体验",
+      "appearance": "外观",
+      "theme": "主题",
+      "themeDesc": "选择您喜欢的主题",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统",
+      "compactMode": "紧凑模式",
+      "compactModeDesc": "减少间距显示更多内容",
+      "notifications": "通知",
+      "enableNotifications": "启用通知",
+      "notificationsDesc": "接收更新和提醒",
+      "pushAlerts": "推送提醒",
+      "pushAlertsDesc": "价格提醒时通知我",
+      "dataPerformance": "数据与性能",
+      "dataMode": "数据使用",
+      "dataModeDesc": "控制数据加载方式",
+      "auto": "自动",
+      "wifiOnly": "仅Wi-Fi",
+      "lowData": "低数据模式",
+      "highPerformance": "高性能模式",
+      "highPerformanceDesc": "启用流畅动画效果",
+      "hideBalances": "隐藏余额",
+      "hideBalancesDesc": "隐藏敏感的财务数据",
+      "language": "语言",
+      "currentLanguage": "当前语言",
+      "about": "关于",
+      "version": "版本"
+    }
+  },
+  "unifiedExport": {
+    "export": "导出",
+    "exporting": "导出中...",
+    "selectFormat": "选择格式",
+    "exportConfig": "导出配置",
+    "selectFields": "选择字段",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "includeMetadata": "包含元数据",
+    "includeChart": "包含图表",
+    "includeStats": "包含统计信息",
+    "dataPreview": "数据预览",
+    "recordCount": "记录数",
+    "selectedFields": "已选字段",
+    "cancel": "取消",
+    "history": "历史记录",
+    "history": {
+      "title": "导出历史",
+      "all": "全部",
+      "completed": "已完成",
+      "failed": "失败",
+      "noHistory": "暂无导出历史",
+      "reDownload": "重新下载",
+      "delete": "删除",
+      "clearAll": "清空历史"
+    }
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "subtitle": "使用快捷键快速导航和控制应用",
+    "refresh": "刷新数据",
+    "search": "打开搜索",
+    "close": "关闭对话框",
+    "fullscreen": "全屏图表",
+    "export": "导出数据",
+    "help": "显示帮助",
+    "unknown": "未知快捷键",
+    "categories": {
+      "navigation": "导航",
+      "actions": "操作",
+      "general": "通用"
+    },
+    "tips": {
+      "title": "提示",
+      "description": "随时按 '?' 键显示此帮助面板。快捷键在整个应用中全局有效。"
+    },
+    "footer": {
+      "hint": "按 ? 键切换此面板"
+    }
+  },
+  "comparison": {
+    "timeRange": {
+      "last1h": "最近1小时",
+      "last24h": "最近24小时",
+      "last7d": "最近7天",
+      "last30d": "最近30天",
+      "last90d": "最近90天",
+      "last1y": "最近1年",
+      "custom": "自定义",
+      "yearOverYear": "同比",
+      "previousPeriod": "上一周期",
+      "currentYear": "今年",
+      "previousYear": "去年",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "cancel": "取消",
+      "apply": "应用",
+      "currentPeriod": "当前周期",
+      "comparisonPeriod": "对比周期"
+    },
+    "timeComparison": {
+      "currentPeriod": "当前周期",
+      "comparisonPeriod": "对比周期",
+      "difference": "差异",
+      "percentChange": "变化百分比",
+      "currentAvg": "当前平均值",
+      "comparisonAvg": "对比平均值"
+    },
+    "oracleComparison": {
+      "title": "多预言机对比",
+      "averagePrice": "平均价格",
+      "medianPrice": "中位数价格",
+      "consistencyScore": "一致性评分",
+      "maxDeviation": "最大偏差",
+      "priceComparison": "价格对比",
+      "deviationFromAverage": "与平均值偏差",
+      "performanceRadar": "性能雷达图",
+      "detailedComparison": "详细对比",
+      "oracle": "预言机",
+      "price": "价格",
+      "deviation": "偏差",
+      "confidence": "置信度",
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "benchmark": "基准",
+      "sortBy": "排序方式",
+      "consistency": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "较差"
+      },
+      "metrics": {
+        "price": "价格",
+        "confidence": "置信度",
+        "responseTime": "响应时间",
+        "accuracy": "准确率",
+        "reliability": "可靠性",
+        "deviation": "偏差"
+      }
+    },
+    "benchmark": {
+      "title": "行业基准对比",
+      "industryAverage": "行业平均",
+      "marketLeader": "市场领导者",
+      "customBenchmark": "自定义基准",
+      "actualValue": "实际值",
+      "benchmark": "基准值",
+      "difference": "差异",
+      "gap": "差距",
+      "performanceGap": "性能差距",
+      "aboveBenchmark": "高于基准",
+      "belowBenchmark": "低于基准",
+      "atBenchmark": "持平",
+      "unitsFromBenchmark": "单位差异",
+      "benchmarkComparison": "基准对比",
+      "detailedComparison": "详细对比",
+      "metric": "指标",
+      "actual": "实际",
+      "status": "状态"
+    },
+    "difference": {
+      "increase": "上涨",
+      "decrease": "下跌",
+      "noChange": "无变化",
+      "positive": "正向",
+      "negative": "负向",
+      "neutral": "中性"
+    }
+  },
+  "error": {
+    "defaultTitle": "发生错误",
+    "errorCode": "错误代码",
+    "cause": "原因",
+    "suggestedActions": "建议操作",
+    "showDetails": "显示技术详情",
+    "hideDetails": "隐藏技术详情",
+    "timestamp": "时间戳",
+    "report": "报告错误",
+    "reporting": "报告提交中...",
+    "formValidation": {
+      "title": "请修正以下错误"
+    },
+    "suggestions": {
+      "checkConnection": {
+        "title": "检查网络连接",
+        "description": "请确保您已连接到互联网，然后重试。"
+      },
+      "retryLater": {
+        "title": "稍后重试",
+        "description": "服务器可能暂时不可用。请稍等片刻后重试。"
+      },
+      "slowNetwork": {
+        "title": "检测到网络较慢",
+        "description": "您的连接似乎较慢。请尝试刷新页面或检查网络。"
+      },
+      "reduceData": {
+        "title": "减少数据量",
+        "description": "尝试将数据过滤到更小的时间范围或更少的项目。"
+      },
+      "relogin": {
+        "title": "重新登录",
+        "description": "您的会话可能已过期。请重新登录以继续。"
+      },
+      "refreshPage": {
+        "title": "刷新页面",
+        "description": "有时简单的页面刷新可以解决临时问题。"
+      },
+      "contactSupport": {
+        "title": "联系支持",
+        "description": "如果问题仍然存在，请联系我们的支持团队寻求帮助。"
+      }
+    }
+  },
+  "accessibility": {
+    "title": "无障碍设置",
+    "description": "自定义您的体验以更好地满足您的需求",
+    "skipLink": "跳转到主要内容",
+    "resetSettings": "重置为默认值",
+    "sections": {
+      "theme": "主题",
+      "colorVision": "色觉辅助",
+      "fontSize": "字体大小",
+      "focusIndicator": "焦点指示器",
+      "motion": "动画"
+    },
+    "theme": {
+      "default": "默认",
+      "defaultDescription": "标准配色方案",
+      "highContrast": "高对比度",
+      "highContrastDescription": "增强对比度以提高可见性",
+      "dark": "深色模式",
+      "darkDescription": "深色背景配浅色文字"
+    },
+    "colorScheme": {
+      "normal": "正常",
+      "normalDescription": "标准色觉",
+      "protanopia": "红色盲",
+      "protanopiaDescription": "红色盲友好颜色",
+      "deuteranopia": "绿色盲",
+      "deuteranopiaDescription": "绿色盲友好颜色",
+      "tritanopia": "蓝色盲",
+      "tritanopiaDescription": "蓝色盲友好颜色",
+      "achromatopsia": "全色盲",
+      "achromatopsiaDescription": "灰度模式"
+    },
+    "fontSize": {
+      "normal": "正常",
+      "normalDescription": "标准文字大小",
+      "large": "大",
+      "largeDescription": "112.5% 文字大小",
+      "xLarge": "特大",
+      "xLargeDescription": "125% 文字大小"
+    },
+    "focusIndicator": {
+      "default": "默认",
+      "defaultDescription": "标准焦点环",
+      "enhanced": "增强",
+      "enhancedDescription": "更大、更显眼的焦点指示器"
+    },
+    "reduceMotion": "减少动画",
+    "reduceMotionDescription": "最小化动画和过渡效果",
+    "preview": {
+      "title": "预览",
+      "description": "查看您的设置效果",
+      "sampleText": "示例文本",
+      "sampleButton": "按钮",
+      "sampleLink": "链接"
+    },
+    "highContrast": "高对比度",
+    "highContrastOn": "高对比度已开启",
+    "enableHighContrast": "启用高对比度模式",
+    "disableHighContrast": "禁用高对比度模式"
+  },
+  "ui": {
+    "closeNotification": "关闭通知"
   }
 }

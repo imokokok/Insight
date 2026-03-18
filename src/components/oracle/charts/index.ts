@@ -63,3 +63,29 @@ export type { MultiValidatorComparisonProps } from './MultiValidatorComparison';
 export { CrossOracleComparison } from './CrossOracleComparison';
 export { PriceStream } from './PriceStream';
 export { KPIDashboard } from './KPIDashboard';
+
+// Chart Interaction Components
+export { ChartGuide, useChartGuide } from './ChartGuide';
+export type { ChartGuideProps } from './ChartGuide';
+
+export {
+  EnhancedChartToolbar,
+  type EnhancedChartToolbarProps,
+  type ToolbarButton,
+  type ToolbarGroup,
+  type ToolbarButtonSize,
+  type ToolbarButtonVariant,
+} from './ChartToolbar';
+
+export {
+  EnhancedTooltip,
+  PriceTooltip,
+  MultiSeriesTooltip,
+  TechnicalIndicatorTooltip,
+  type EnhancedTooltipProps,
+  type TooltipDataPoint,
+  type TooltipComparisonData,
+} from './EnhancedTooltip';
+
+export { InteractivePriceChart } from './InteractivePriceChart';
+export type { InteractivePriceChartProps } from './InteractivePriceChart';

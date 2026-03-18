@@ -65,6 +65,22 @@ export interface UseAcknowledgeAlertReturn {
   isAcknowledging: boolean;
 }
 
+export interface BatchOperationResult {
+  processed: number;
+  succeeded: number;
+  failed: number;
+  successIds: string[];
+  failedIds: string[];
+}
+
+export interface UseBatchAlertsReturn {
+  batchOperation: (
+    action: 'enable' | 'disable' | 'delete',
+    alertIds: string[]
+  ) => Promise<{ result: BatchOperationResult | null; error: Error | null }>;
+  isProcessing: boolean;
+}
+
 const ALERTS_KEY = 'user-alerts';
 const ALERT_EVENTS_KEY = 'user-alert-events';
 
@@ -339,4 +355,50 @@ export function useAlertEventsRealtime() {
   }, [user?.id, refetch]);
 
   return { events };
+}
+
+export function useBatchAlerts(): UseBatchAlertsReturn {
+  const user = useUser();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const batchOperation = useCallback(
+    async (action: 'enable' | 'disable' | 'delete', alertIds: string[]) => {
+      if (!user?.id) {
+        return { result: null, error: new Error(alertErrorKeys.userNotLoggedIn) };
+      }
+
+      if (alertIds.length === 0) {
+        return { result: null, error: new Error('No alerts selected') };
+      }
+
+      setIsProcessing(true);
+      try {
+        const response = await fetch('/api/alerts/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action, alertIds }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          return { result: null, error: new Error(data.error || 'Batch operation failed') };
+        }
+
+        await queryClient.invalidateQueries({ queryKey: [ALERTS_KEY, user.id] });
+
+        return { result: data.results as BatchOperationResult, error: null };
+      } catch (err) {
+        return { result: null, error: err as Error };
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [user?.id, queryClient]
+  );
+
+  return { batchOperation, isProcessing };
 }

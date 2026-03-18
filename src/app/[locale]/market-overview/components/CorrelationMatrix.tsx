@@ -360,21 +360,21 @@ export default function CorrelationMatrix({
 
         <div className="max-h-[300px] overflow-auto">
           <table className="w-full">
-            <thead className="sticky top-0">
-              <tr>
-                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <thead className="sticky top-0 bg-white z-10">
+              <tr className="border-b border-gray-200">
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                   {isChineseLocale(locale) ? '预言机 A' : 'Oracle A'}
                 </th>
-                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                   {isChineseLocale(locale) ? '预言机 B' : 'Oracle B'}
                 </th>
-                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                   {isChineseLocale(locale) ? '相关系数' : 'Correlation'}
                 </th>
-                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                   {isChineseLocale(locale) ? '关系' : 'Relationship'}
                 </th>
-                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-3 py-2.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-white">
                   {isChineseLocale(locale) ? '置信度' : 'Confidence'}
                 </th>
               </tr>

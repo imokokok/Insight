@@ -36,3 +36,15 @@ export {
   isOperationalError,
   type ErrorResponse,
 } from './errorToResponse';
+
+export {
+  errorRecovery,
+  errorReporting,
+  useErrorRecovery,
+  createRetryableFetch,
+  ErrorReportingService,
+  type RetryConfig,
+  type ErrorLogEntry,
+  type ErrorContext,
+  type ErrorReport,
+} from './errorRecovery';

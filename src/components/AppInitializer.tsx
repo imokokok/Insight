@@ -5,6 +5,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRealtimeStore } from '@/stores/realtimeStore';
 import { initWebVitals } from '@/lib/monitoring/webVitals';
 import { setUser } from '@/lib/monitoring';
+import { ShortcutProvider } from '@/components/shortcuts';
+import { ShortcutInitializer } from '@/components/shortcuts';
+import { ShortcutHelpPanel } from '@/components/shortcuts';
 
 export function AppInitializer({ children }: { children: React.ReactNode }) {
   const initializeAuth = useAuthStore((state) => state.initialize);
@@ -28,5 +31,11 @@ export function AppInitializer({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  return <>{children}</>;
+  return (
+    <ShortcutProvider>
+      <ShortcutInitializer />
+      <ShortcutHelpPanel />
+      {children}
+    </ShortcutProvider>
+  );
 }
