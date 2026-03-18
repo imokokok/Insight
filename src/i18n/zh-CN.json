@@ -1575,7 +1575,8 @@
       "activeValidators": "活跃验证者",
       "validatorUptime": "验证者在线率",
       "totalDisputes": "总争议数",
-      "disputeSuccessRate": "争议成功率"
+      "disputeSuccessRate": "争议成功率",
+      "dataFeeds": "数据喂价"
     },
     "networkHealth": {
       "responseTime": "响应时间",
@@ -1583,7 +1584,8 @@
       "warning": "警告",
       "offline": "离线",
       "excellent": "优秀",
-      "good": "良好"
+      "good": "良好",
+      "active": "活跃"
     },
     "disputeResolution": {
       "efficiencyAnalysis": "争议解决效率分析",
@@ -1611,7 +1613,28 @@
       "filterByStatus": "按状态筛选",
       "allStatus": "全部状态",
       "sortBy": "排序方式",
-      "noDisputes": "暂无争议数据"
+      "noDisputes": "暂无争议数据",
+      "votingDistribution": "投票分布",
+      "amountDistribution": "争议金额分布",
+      "amountDistributionAnalysis": "争议金额分布分析",
+      "avgRewardToStakeRatio": "平均奖励/质押比例",
+      "avgRoi": "平均 ROI",
+      "highEfficiencyCount": "高效争议",
+      "lowEfficiencyCount": "低效争议",
+      "efficiencyMetrics": "奖励效率指标",
+      "amountTrend": "金额趋势",
+      "avgStake": "平均质押",
+      "avgReward": "平均奖励",
+      "avgStakeAmount": "平均质押金额",
+      "avgRewardAmount": "平均奖励金额",
+      "avgTotalValue": "平均总价值",
+      "totalStakeAmount": "总质押金额"
+    },
+    "disputeTypes": {
+      "price": "价格争议",
+      "state": "状态争议",
+      "liquidation": "清算争议",
+      "other": "其他争议"
     },
     "validatorAnalytics": {
       "totalActiveValidators": "总活跃验证者",
@@ -1633,6 +1656,20 @@
       "staked": "质押量",
       "earnings": "收益",
       "rank": "排名",
+      "actions": "操作",
+      "viewOnEtherscan": "在 Etherscan 上查看",
+      "viewHistory": "查看历史",
+      "validatorDetails": "验证者详情",
+      "region": "地区",
+      "address": "地址",
+      "estimatedRewards": "预估奖励",
+      "estimatedDaily": "预估日收益",
+      "day": "天",
+      "estimatedMonthly": "预估月收益",
+      "month": "月",
+      "estimatedYearly": "预估年收益",
+      "year": "年",
+      "rewardEstimateNote": "预估收益基于历史数据，实际收益可能有所不同",
       "legend": {
         "responseTimeExcellent": "< 120ms",
         "responseTimeGood": "120-150ms",
@@ -1680,8 +1717,9 @@
         "secured": "保障价值"
       },
       "requestDistribution": "请求类型分布",
-      "useCases": "Optimistic Oracle 用例",
+      "useCasesTitle": "Optimistic Oracle 用例",
       "protocolsTitle": "使用UMA的协议",
+      "supportedChains": "支持的链",
       "chainsDescription": "UMA已部署到以下区块链网络，提供跨链预言机服务：",
       "category": {
         "bridge": "跨链桥",
@@ -1743,7 +1781,75 @@
       "quickSelect": "快速选择",
       "randomSelect": "随机选择"
     },
-    "scoreExplanation": {
+    "staking": {
+      "historyTitle": "质押历史趋势",
+      "totalStaked": "总质押量",
+      "rewards": "奖励分发",
+      "step1Title": "获取UMA代币",
+      "step1Desc": "从交易所购买UMA代币并转入您的钱包",
+      "step2Title": "选择验证者",
+      "step2Desc": "根据收益率、信誉度和成功率选择合适的验证者",
+      "step3Title": "质押代币",
+      "step3Desc": "将UMA代币质押到选定的验证者节点",
+      "step4Title": "获得奖励",
+      "step4Desc": "参与争议解决获得UMA奖励",
+      "guideTitle": "质押指南",
+      "riskTitle": "风险提示",
+      "risk1Title": "质押锁定期",
+      "risk1Desc": "解除质押后需要等待一段时间才能取回代币",
+      "risk2Title": "验证者风险",
+      "risk2Desc": "选择不可靠的验证者可能影响收益",
+      "risk3Title": "市场波动",
+      "risk3Desc": "UMA代币价格波动会影响实际收益",
+      "stakingRate": "质押率",
+      "ofTotalSupply": "占总供应量",
+      "averageAPY": "平均年化收益率",
+      "validatorCount": "验证者数量",
+      "activeValidators": "活跃验证者"
+    },
+    "risk": {
+      "institution": "机构验证者",
+      "independent": "独立验证者",
+      "community": "社区验证者",
+      "top10": "前10验证者",
+      "remaining": "其他验证者",
+      "totalStakedValue": "总质押价值",
+      "totalStakedDesc": "UMA网络中的总质押价值",
+      "avgValidatorStake": "平均验证者质押",
+      "avgValidatorStakeDesc": "每个验证者的平均质押量",
+      "concentrationRisk": "集中度风险",
+      "concentrationRiskDesc": "基于质押分布的风险等级",
+      "avgDisputeResolution": "平均争议解决时间",
+      "avgDisputeResolutionDesc": "解决争议的平均时间",
+      "economicSecurityScore": "经济安全评分",
+      "economicSecurityScoreDesc": "基于总质押价值和经济激励的评分",
+      "networkDecentralizationScore": "网络去中心化评分",
+      "networkDecentralizationScoreDesc": "基于验证者分布和集中度的评分",
+      "disputeResolutionScore": "争议解决评分",
+      "disputeResolutionScoreDesc": "基于争议解决效率和成功率的评分",
+      "protocolSecurityScore": "协议安全评分",
+      "protocolSecurityScoreDesc": "基于协议设计和安全措施的评分",
+      "economicSecurity": "经济安全",
+      "validatorTypeDistribution": "验证者类型分布",
+      "stakingConcentration": "质押集中度",
+      "top10ValidatorsControl": "前10验证者控制总质押的 {percentage}%",
+      "highConcentrationWarning": "检测到高集中度风险",
+      "mediumConcentration": "中等集中度水平",
+      "healthyDistribution": "健康的质押分布",
+      "disputeResolutionTime": "争议解决时间",
+      "disputeCount": "争议数量",
+      "avgResolutionTime": "平均解决时间",
+      "medianResolutionTime": "中位数解决时间",
+      "disputeSuccessRateTrend": "争议成功率趋势",
+      "successRate": "成功率",
+      "disputeSuccessRateDescription": "当前争议解决成功率为 {rate}%",
+      "assessmentSummary": "风险评估摘要",
+      "networkHealth": "网络健康度",
+      "networkHealthDesc": "网络运行正常，验证者参与度高",
+      "economicSecurityDesc": "通过充足的质押维持经济安全"
+    },
+    "loading": "加载中...",
+    "dataQuality": {
       "title": "UMA 数据质量评分算法说明",
       "subtitle": "了解评分如何计算及各维度权重配置",
       "tabs": {
@@ -1767,7 +1873,18 @@
       "overallScore": "综合评分",
       "last30DaysTrend": "最近 30 天评分趋势",
       "range": "范围",
-      "close": "关闭"
+      "close": "关闭",
+      "improving": "改善中",
+      "declining": "下降中",
+      "stable": "稳定",
+      "networkHealth": "网络健康度",
+      "dataIntegrity": "数据完整性",
+      "responseTime": "响应时间",
+      "validatorActivity": "验证者活跃度",
+      "viewDetails": "查看详情",
+      "excellent": "优秀",
+      "good": "良好",
+      "needsImprovement": "需改进"
     },
     "pageTitles": {
       "market": "市场数据",
@@ -1778,6 +1895,31 @@
       "risk": "风险评估",
       "crossChain": "跨链",
       "crossOracle": "跨预言机分析"
+    },
+    "disputeVoting": {
+      "support": "支持",
+      "against": "反对",
+      "abstain": "弃权",
+      "supportRate": "支持率",
+      "totalVotingPower": "总投票权",
+      "quorum": "法定人数 (Quorum)",
+      "quorumReached": "已达到法定投票人数",
+      "threshold": "通过阈值",
+      "statusPassed": "投票通过 - 已达到通过条件",
+      "statusQuorumReached": "投票进行中 - 已达到法定人数但未达支持阈值",
+      "statusInProgress": "投票进行中 - 等待更多验证者参与",
+      "all": "全部",
+      "position": "立场",
+      "sort": "排序",
+      "votingPower": "投票权",
+      "time": "时间",
+      "reputation": "声誉",
+      "validators": "验证节点",
+      "validator": "验证者",
+      "percentage": "占比",
+      "noVotesFound": "没有找到匹配的投票记录",
+      "voteDistribution": "投票分布",
+      "validatorVotes": "验证者投票"
     }
   },
   "redstone": {
@@ -2347,7 +2489,7 @@
       "gas": "Gas",
       "crossOracle": "跨预言机",
       "ecosystem": "生态系统",
-      "risk": "风险"
+      "risk": "风险评估"
     }
   },
   "priceQuery": {
@@ -3105,9 +3247,9 @@
     "recentUpdate": "最近更新",
     "updateFrequency": "更新频率",
     "lastUpdate": "最后更新",
-    "secondsAgo": "秒前",
-    "minutesAgo": "分钟前",
-    "hoursAgo": "小时前",
+    "secondsAgo": "{seconds}秒前",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前",
     "compositeQualityScore": "综合质量评分",
     "comprehensiveDataAssessment": "数据质量综合评估",
     "totalScore": "总分",
@@ -4333,6 +4475,13 @@
       "acknowledge": "确认",
       "acknowledging": "确认中...",
       "viewDetails": "查看详情"
+    },
+    "conditionMet": {
+      "above": "价格 {current} 达到目标 {target}",
+      "below": "价格 {current} 低于目标 {target}",
+      "changePercent": "价格变化 {change}% 达到目标 {target}%",
+      "changePercentSimple": "价格变化达到目标 {target}%",
+      "default": "条件已满足"
     }
   },
   "favorites": {
@@ -4865,7 +5014,12 @@
     "lastPage": "末页",
     "jumpTo": "跳转至",
     "page": "页",
-    "reward": "奖励"
+    "reward": "奖励",
+    "showing": "显示 {start} - {end} 条，共 {total} 条",
+    "all": "全部"
+  },
+  "validatorPanel": {
+    "all": "全部"
   },
   "redStoneMetrics": {
     "title": "RedStone 核心指标",
@@ -5463,7 +5617,11 @@
       "itemsPerPage": "每页显示",
       "items": "条",
       "prevPage": "上一页",
-      "nextPage": "下一页"
+      "nextPage": "下一页",
+      "secondsAgo": "{seconds}秒前",
+      "minutesAgo": "{minutes}分钟前",
+      "hoursAgo": "{hours}小时前",
+      "totalRecords": "共 {count} 条记录"
     },
     "disputeVoting": {
       "support": "支持",
@@ -5486,7 +5644,9 @@
       "validators": "验证节点",
       "validator": "验证者",
       "percentage": "占比",
-      "noVotesFound": "没有找到匹配的投票记录"
+      "noVotesFound": "没有找到匹配的投票记录",
+      "voteDistribution": "投票分布",
+      "validatorVotes": "验证者投票"
     },
     "diaRiskAssessment": {
       "decentralizationMetricDesc": "多源数据聚合，覆盖中心化交易所和DeFi协议",

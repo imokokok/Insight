@@ -163,6 +163,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
+          name: string | null;
           symbol: string;
           provider: string | null;
           chain: string | null;
@@ -176,6 +177,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
+          name?: string | null;
           symbol: string;
           provider?: string | null;
           chain?: string | null;
@@ -189,6 +191,7 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
+          name?: string | null;
           symbol?: string;
           provider?: string | null;
           chain?: string | null;
