@@ -5122,9 +5122,11 @@
     "stakeAmount": "质押数量",
     "commissionRate": "佣金率",
     "uptime": "在线率",
-    "status": "状态",
-    "active": "活跃",
-    "jailed": "被监禁",
+    "statusLabel": "状态",
+    "status": {
+      "active": "活跃",
+      "jailed": "被监禁"
+    },
     "quickFilter": "快速筛选",
     "lowCommission": "低佣金 (<5%)",
     "highStake": "高质押 (前20%)",
