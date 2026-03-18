@@ -1017,7 +1017,13 @@
     "currentPrice": "Current Price",
     "customLine": "Custom Line",
     "correlationStrength": "Correlation Strength",
-    "weakToStrong": "Weak → Strong"
+    "weakToStrong": "Weak → Strong",
+    "dataSources": {
+      "title": "Data Sources"
+    },
+    "benchmark": {
+      "title": "Industry Benchmark Comparison"
+    }
   },
   "chainlink": {
     "menu": {

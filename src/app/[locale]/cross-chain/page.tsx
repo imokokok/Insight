@@ -95,6 +95,7 @@ export default function CrossChainPage() {
     focusedChain,
     setFocusedChain,
     currentPrices,
+    selectedProvider,
   } = data;
 
   const refreshOptions = [

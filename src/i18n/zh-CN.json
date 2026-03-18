@@ -199,6 +199,162 @@
       "oracles": "预言机"
     }
   },
+  "priceQuery": {
+    "title": "价格数据查询",
+    "description": "跨多个预言机和区块链查询实时价格数据",
+    "loading": "加载中",
+    "loadingData": "正在加载数据...",
+    "query": "查询",
+    "querying": "正在查询...",
+    "noResults": {
+      "title": "未找到 {symbol} 的结果",
+      "description": "所选条件下没有可用的价格数据",
+      "suggestion": "请尝试调整您的预言机、区块链或代币选择",
+      "popularTokens": "热门代币"
+    },
+    "results": {
+      "title": "个结果",
+      "empty": "没有可显示的结果",
+      "table": {
+        "oracle": "预言机",
+        "blockchain": "区块链",
+        "price": "价格",
+        "change24h": "24小时变化",
+        "freshness": "新鲜度",
+        "confidence": "置信度",
+        "source": "来源"
+      }
+    },
+    "filter": {
+      "placeholder": "筛选结果...",
+      "noResults": "没有结果匹配您的筛选"
+    },
+    "pagination": {
+      "perPage": "每页",
+      "items": "项",
+      "prevPage": "上一页",
+      "nextPage": "下一页"
+    },
+    "selectors": {
+      "symbol": "代币",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "timeRange": "时间范围",
+      "selectAll": "全选",
+      "deselectAll": "取消全选",
+      "advancedOptions": "高级选项",
+      "compareMode": "对比模式",
+      "showBaseline": "显示基线",
+      "compareTime": "对比时间"
+    },
+    "stats": {
+      "avgPrice": "平均价格",
+      "change24h": "24小时变化",
+      "volatility": "波动率",
+      "annualized": "年化",
+      "dataPoints": "数据点",
+      "maxPrice": "最高价格",
+      "minPrice": "最低价格",
+      "priceRange": "价格区间",
+      "standardDeviation": "标准差",
+      "absoluteValue": "绝对值",
+      "queryDuration": "查询耗时",
+      "compare": "对比",
+      "consistency": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "较差"
+      }
+    },
+    "export": {
+      "header": "价格数据导出",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "price": "价格",
+      "timestamp": "时间戳",
+      "source": "来源"
+    },
+    "comparison": {
+      "title": "时间对比"
+    },
+    "dataSources": {
+      "title": "数据来源"
+    },
+    "autoRefresh": {
+      "title": "自动刷新",
+      "off": "关闭",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟",
+      "refreshing": "刷新中...",
+      "countdown": "下次刷新在 {seconds} 秒后"
+    },
+    "lastUpdated": "最后更新",
+    "progress": "进度",
+    "error": {
+      "fetchFailed": "获取价格数据失败",
+      "retry": "重试",
+      "retrying": "重试中...",
+      "lastSuccessfulFetch": "上次成功获取：{time}",
+      "noSuccessfulFetch": "尚未成功获取"
+    },
+    "chart": {
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "reset": "重置",
+      "granularity": {
+        "label": "粒度",
+        "minute": "分钟",
+        "hour": "小时",
+        "day": "天"
+      },
+      "indicators": {
+        "ma7": "MA 7",
+        "ma14": "MA 14",
+        "ma30": "MA 30",
+        "bollingerBands": "布林带",
+        "rsi": "RSI",
+        "macd": "MACD",
+        "volume": "成交量"
+      },
+      "timeRange": {
+        "label": "时间范围",
+        "all": "全部"
+      },
+      "timeComparison": {
+        "title": "时间对比",
+        "period1": "周期 1",
+        "period2": "周期 2",
+        "to": "至"
+      },
+      "realtimeStatus": {
+        "live": "实时",
+        "connecting": "连接中",
+        "reconnecting": "重连中",
+        "disconnected": "已断开"
+      },
+      "tooltip": {
+        "time": "时间",
+        "dataPoints": "数据点"
+      }
+    },
+    "consistency": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1小时",
+      "timeRange6Hours": "6小时",
+      "timeRange24Hours": "24小时",
+      "timeRange7Days": "7天"
+    },
+    "quickLinks": {
+      "chainlink": "Chainlink"
+    }
+  },
   "home": {
     "hero": {
       "badge": "专业级预言机数据分析平台",
@@ -833,7 +989,13 @@
     "currentPrice": "当前价格",
     "customLine": "自定义线",
     "correlationStrength": "相关性强度",
-    "weakToStrong": "弱 → 强"
+    "weakToStrong": "弱 → 强",
+    "dataSources": {
+      "title": "数据来源"
+    },
+    "benchmark": {
+      "title": "行业基准对比"
+    }
   },
   "chainlink": {
     "menu": {
