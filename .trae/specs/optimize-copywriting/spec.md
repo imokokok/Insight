@@ -1,134 +1,181 @@
-# 预言机数据分析平台文案优化规范
+# 预言机数据分析平台文案优化规格
 
-## 背景与目标
+## Why
 
-当前项目的国际化文案存在以下问题：
-1. **术语不统一**：同一概念使用多种表达方式（如 Oracle/Provider/Source 混用）
-2. **表述口语化**：部分文案过于随意，缺乏专业数据分析平台的严谨性
-3. **信息密度低**：部分描述过于冗长，未能精准传达核心信息
-4. **中英文不匹配**：部分中文文案与英文含义存在偏差
+作为一个专业的预言机数据分析平台，当前的文案存在以下问题：
+1. **术语不统一**：同一概念在不同地方使用不同翻译（如 "Publisher" 有时翻译为"发布者"，有时使用英文）
+2. **专业度不足**：部分文案过于口语化，缺乏金融数据分析平台应有的专业性
+3. **中英文混杂**：中文翻译中残留大量英文术语，影响用户体验
+4. **表达冗长**：部分描述过于啰嗦，不够简洁有力
+5. **缺乏品牌调性**：文案风格不统一，未能体现专业数据平台的品牌形象
 
-## 优化原则
+## What Changes
 
-### 1. 术语标准化
-- 统一使用行业通用术语
-- 建立术语对照表，确保中英文严格对应
-- 避免同一概念的多重表述
+- **统一术语体系**：建立标准化的中英术语对照表，确保全文一致
+- **提升专业度**：使用金融数据分析行业惯用的专业术语
+- **优化中文表达**：将英文术语本地化为标准中文金融术语
+- **精简文案**：删减冗余词汇，提升信息密度
+- **统一品牌调性**：建立专业、精准、可信赖的文案风格
 
-### 2. 专业化表达
-- 使用金融/数据分析领域的专业词汇
-- 保持客观、准确的描述风格
-- 避免模糊性形容词
+## Impact
 
-### 3. 简洁精准
-- 去除冗余修饰词
-- 突出核心信息
-- 保持文案的信息密度
+- **受影响文件**：
+  - `src/i18n/zh-CN.json` - 中文翻译文件
+  - `src/i18n/en.json` - 英文翻译文件（参考对比）
 
-### 4. 一致性
-- 相同场景使用相同表述
-- 保持中英文语义严格对应
-- 统一大小写和标点规范
+- **关键优化区域**：
+  - 导航菜单文案
+  - 仪表盘指标标签
+  - 图表和数据分析相关文案
+  - 风险评级相关文案
+  - 预言机特定功能描述
 
-## 关键术语对照表
+## ADDED Requirements
 
-| 英文 | 中文 | 说明 |
-|------|------|------|
-| Oracle | 预言机 | 统一使用，不混用 Provider/Source |
-| Price Feed | 价格馈送 | 指预言机提供的价格数据服务 |
-| Data Publisher | 数据发布者 | Pyth 等预言机的数据提供方 |
-| Validator | 验证者 | 区块链网络验证节点 |
-| Node Operator | 节点运营者 | 预言机节点运营方 |
-| TVS | 保障价值 | Total Value Secured |
-| Deviation | 偏差 | 价格偏离程度 |
-| Latency | 延迟 | 数据更新延迟 |
-| Confidence Interval | 置信区间 | 价格可信度范围 |
+### Requirement: 术语标准化
 
-## 需要优化的文案类别
+The system SHALL 使用统一的标准化术语。
 
-### 1. 导航与菜单 (navbar)
-- 优化描述性文案，使其更专业
-- 统一各预言机页面的副标题风格
+#### Scenario: 核心术语统一
+- **WHEN** 用户浏览平台任何页面
+- **THEN** 相同概念应使用一致的术语表达
 
-### 2. 首页文案 (home)
-- 提升 Hero 区域的专业感
-- 优化功能介绍描述
+**术语对照表**：
+| 英文 | 原中文 | 优化后中文 |
+|------|--------|-----------|
+| Oracle | 预言机 | 预言机 |
+| Publisher | 发布者/Publisher | 数据发布方 |
+| Price Feed | 价格源/数据源 | 价格馈送 |
+| Data Feed | 数据馈送 | 数据馈送 |
+| Validator | 验证者 | 验证节点 |
+| Staking | 质押 | 质押 |
+| TVS/TVL | 保障价值/锁仓价值 | 总保障价值(TVS) / 总锁仓价值(TVL) |
+| APR | APR | 年化收益率(APR) |
+| Confidence | 置信度 | 置信度 |
+| Deviation | 偏差/偏离 | 价格偏差 |
+| Latency | 延迟 | 响应延迟 |
+| Consensus | 共识 | 数据共识 |
 
-### 3. 跨预言机分析 (crossOracle)
-- 统一指标命名
-- 优化图表说明文案
+### Requirement: 专业度提升
 
-### 4. 跨链分析 (crossChain)
-- 标准化统计指标名称
-- 优化技术术语表达
+The system SHALL 使用金融数据分析行业的专业术语。
 
-### 5. 各预言机详情页
-- 统一统计卡片文案
-- 优化风险评估描述
+#### Scenario: 风险评级文案
+- **WHEN** 用户查看风险评估模块
+- **THEN** 应使用专业的风险评级术语
 
-### 6. 通用组件 (common)
-- 统一状态描述
-- 优化操作按钮文案
+**优化示例**：
+- "整体风险评分" → "综合风险评级"
+- "低风险" → "低风险等级"
+- "中风险" → "中等风险等级"
+- "高风险" → "高风险等级"
 
-## 具体优化示例
+#### Scenario: 数据分析文案
+- **WHEN** 用户查看数据分析相关功能
+- **THEN** 应使用专业的数据分析术语
 
-### Before → After
+**优化示例**：
+- "价格趋同指数" → "价格趋同性指数"
+- "数据完整性评分" → "数据完整性指数"
+- "稳定性指数" → "价格稳定性指数"
 
-**示例 1 - 首页描述**
-```
-Before:
-"Comprehensive analysis and comparison of mainstream oracle protocols including Chainlink, Band Protocol, UMA, Pyth, and API3. Real-time price monitoring, protocol performance evaluation, empowering Web3 developers and analysts to make informed decisions."
+### Requirement: 简洁性优化
 
-After:
-"Professional oracle data analytics platform providing real-time price monitoring, multi-dimensional performance evaluation, and cross-protocol comparative analysis. Supporting Chainlink, Pyth, Band Protocol, and other major oracle networks."
-```
+The system SHALL 保持文案简洁有力。
 
-**示例 2 - 跨预言机分析副标题**
-```
-Before:
-"Multi-source Oracle Real-time Price Comparison & Deviation Analysis"
+#### Scenario: 删除冗余词汇
+- **WHEN** 用户阅读界面文案
+- **THEN** 不应出现重复或不必要的修饰词
 
-After:
-"Real-Time Multi-Oracle Price Comparison & Deviation Analytics"
-```
+**优化示例**：
+- "全面的多源价格聚合与趋同分析" → "多源价格聚合与趋同分析"
+- "实时市场情报，包含全面的预言机 TVL" → "实时市场数据，涵盖预言机 TVL"
 
-**示例 3 - 状态描述**
-```
-Before:
-"excellent": "Excellent"
-"good": "Good"
-"fair": "Fair"
-"poor": "Poor"
+### Requirement: 品牌调性统一
 
-After:
-"excellent": "Optimal"
-"good": "Normal"
-"fair": "Suboptimal"
-"poor": "Critical"
-```
+The system SHALL 保持专业、精准、可信赖的品牌调性。
 
-## 实施范围
+#### Scenario: 首页 Hero 区域
+- **WHEN** 用户访问首页
+- **THEN** 文案应体现专业数据平台的定位
+
+**优化示例**：
+- "企业级预言机分析平台" → "专业级预言机数据分析平台"
+- "探索平台" → "进入平台"
+- "技术文档" → "查看文档"
+
+## MODIFIED Requirements
+
+### Requirement: 导航菜单优化
+
+**原内容**：
+- "跨预言机分析" / "Cross-Oracle Analysis"
+- "跨链分析" / "Cross-Chain Comparison"
+
+**优化后**：
+- "多预言机对比" / "Multi-Oracle Comparison"
+- "跨链价格分析" / "Cross-Chain Price Analysis"
+
+### Requirement: 统计指标标签优化
+
+**原内容**：
+- "24小时交易量" / "24h Trading Volume"
+- "网络在线率" / "Network Uptime"
+
+**优化后**：
+- "24h 成交额" / "24h Volume"
+- "网络可用率" / "Network Availability"
+
+### Requirement: 状态描述优化
+
+**原内容**：
+- "运行中" / "Operational"
+- "离线" / "Offline"
+- "降级" / "Degraded"
+
+**优化后**：
+- "正常运行" / "Normal"
+- "服务中断" / "Offline"
+- "性能降级" / "Degraded"
+
+## REMOVED Requirements
+
+无删除需求，仅优化现有文案。
+
+## 文案优化清单
 
 ### 高优先级
-1. 首页 Hero 区域文案
-2. 导航菜单描述
-3. 核心功能页面标题和副标题
-4. 通用状态描述
+
+1. **首页 Hero 区域**
+   - 副标题优化
+   - CTA 按钮文案优化
+   - 核心指标标签优化
+
+2. **导航菜单**
+   - 统一各预言机页面命名
+   - 优化功能入口描述
+
+3. **风险评级模块**
+   - 统一风险等级描述
+   - 优化风险评估维度标签
+
+4. **数据分析模块**
+   - 统一统计指标命名
+   - 优化图表标签
 
 ### 中优先级
-1. 各预言机详情页统计标签
-2. 图表和可视化组件说明
-3. 风险提示文案
+
+5. **预言机特定页面**
+   - Chainlink、Pyth、API3 等页面文案统一
+   - 服务描述优化
+
+6. **预警通知文案**
+   - 异常检测提示优化
+   - 预警规则描述优化
 
 ### 低优先级
-1. 设置页面文案
-2. 帮助和提示信息
-3. 错误提示信息
 
-## 验收标准
-
-1. 所有优化后的文案符合专业金融数据分析平台定位
-2. 中英文文案严格对应，无歧义
-3. 术语使用统一，无混用现象
-4. 文案简洁，信息密度高
-5. 通过团队内部评审
+7. **辅助文案**
+   - 空状态提示优化
+   - 加载状态提示优化
+   - 错误提示优化

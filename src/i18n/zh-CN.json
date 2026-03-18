@@ -35,9 +35,9 @@
       "poor": "临界"
     },
     "activity": {
-      "active": "运行中",
-      "inactive": "离线",
-      "degraded": "降级"
+      "active": "正常运行",
+      "inactive": "服务中断",
+      "degraded": "性能降级"
     },
     "alert": {
       "normal": "标准",
@@ -106,9 +106,9 @@
   "navbar": {
     "home": "首页",
     "marketOverview": "市场概览",
-    "priceQuery": "价格查询",
-    "crossOracle": "跨预言机分析",
-    "crossChain": "跨链分析",
+    "priceQuery": "价格数据查询",
+    "crossOracle": "多预言机对比",
+    "crossChain": "跨链价格分析",
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
     "uma": "UMA",
@@ -192,18 +192,18 @@
   },
   "home": {
     "hero": {
-      "badge": "企业级预言机分析平台",
+      "badge": "专业级预言机数据分析平台",
       "title": {
         "part1": "预言机智能分析",
         "part2": "驱动数据决策"
       },
       "description": "统一预言机分析平台，为 Chainlink、Pyth、API3 等主流预言机网络提供实时价格监控、跨协议基准测试和全面的性能指标。为 DeFi 协议、开发者和分析师提供可操作的洞察。",
-      "ctaPrimary": "探索平台",
-      "ctaSecondary": "技术文档",
+      "ctaPrimary": "进入平台",
+      "ctaSecondary": "查看文档",
       "metrics": {
-        "totalValueSecured": "总保障价值",
-        "activeOracles": "活跃预言机",
-        "supportedPairs": "支持交易对"
+        "totalValueSecured": "总保障价值(TVS)",
+        "activeOracles": "活跃预言机数量",
+        "supportedPairs": "支持交易对数量"
       },
       "liveData": "实时数据",
       "searchPlaceholder": "搜索交易对、预言机或区块链..."
@@ -267,14 +267,14 @@
     "live": "实时",
     "crossOraclePriceComparison": "跨预言机价格比对",
     "oracleCount": "预言机数量",
-    "dataQuality": "数据完整性评分",
+    "dataQuality": "数据完整性指数",
     "averagePrice": "共识价格",
     "highestPrice": "最高价格",
     "priceRange": "价格区间",
     "deviation": "偏差百分比",
     "standardDeviation": "标准差",
     "variance": "方差",
-    "consistencyRating": "价格趋同指数",
+    "consistencyRating": "价格趋同性指数",
     "consistency": {
       "excellent": "最优",
       "good": "正常",
@@ -302,7 +302,7 @@
       "lowestPrice": "最低价格",
       "maxPriceDifference": "最大价格差异",
       "deviationFromAverage": "均值偏离度",
-      "avgResponseTime": "平均响应时间"
+      "avgResponseTime": "平均响应延迟"
     },
     "selectTradingPair": "选择交易对",
     "priceDeviationThreshold": "价格偏离预警阈值:",
@@ -510,7 +510,7 @@
     },
     "stabilityAnalysis": "稳定性与同步分析",
     "priceVolatility": "价格方差",
-    "stabilityRating": "稳定性指数",
+    "stabilityRating": "价格稳定性指数",
     "baseChain": "基准链",
     "export": "导出",
     "priceSpreadHeatmap": "跨链价格偏离热力图",
@@ -718,7 +718,7 @@
       "services": "服务",
       "dataFeeds": "数据源",
       "staking": "质押",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议",
       "crossChain": "跨链"
     },
@@ -727,7 +727,7 @@
       "supportedChains": "支持的链",
       "dataFeeds": "数据源",
       "totalValueSecured": "保障总价值",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
       "stakingApr": "质押 APR"
@@ -748,7 +748,7 @@
     "nodeAnalytics": {
       "totalActiveNodes": "总活跃节点",
       "acrossRegions": "覆盖 {count} 个地区",
-      "avgResponseTime": "平均响应时间",
+      "avgResponseTime": "平均响应延迟",
       "networkAverage": "网络平均值",
       "avgSuccessRate": "平均成功率",
       "geographicDistribution": "地理分布",
@@ -776,8 +776,8 @@
       "derivatives": "衍生品",
       "synthetics": "合成资产",
       "active": "活跃",
-      "paused": "暂停",
-      "deprecated": "已弃用",
+      "paused": "服务暂停",
+      "deprecated": "已下线",
       "mostPopular": "最受欢迎",
       "feedName": "数据流名称",
       "category": "分类",
@@ -813,13 +813,13 @@
       "ccipProtocols": "CCIP 协议"
     },
     "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
+      "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合安全评估",
       "dimensionScores": "维度子评分",
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
-      "dataQuality": "数据质量",
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "dataQuality": "数据完整性",
       "riskMetrics": "风险指标",
       "nodeConcentration": "节点集中度风险",
       "singlePointFailure": "单点故障风险",
@@ -836,9 +836,9 @@
       "scoreTrend": "评分趋势",
       "overallScore": "综合评分",
       "riskLevel": {
-        "low": "低风险",
-        "medium": "中风险",
-        "high": "高风险"
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
       },
       "eventTypes": {
         "upgrade": "升级",
@@ -874,7 +874,7 @@
       "communityPool": "社区池",
       "lockupPeriod": "锁定期",
       "aprHistory": "APR 历史",
-      "deprecated": "已弃用",
+      "deprecated": "已下线",
       "active": "活跃",
       "upcoming": "即将上线",
       "slashingConditions": "惩罚条件",
@@ -1016,9 +1016,9 @@
       "topUseCases": "主要用例"
     },
     "quickStats": "快速统计",
-    "24hVolume": "24小时交易量",
+    "24hVolume": "24h 成交额",
     "stakingApr": "质押 APR",
-    "networkUptime": "网络在线率",
+    "networkUptime": "网络可用率",
     "networkStatus": "网络状态",
     "successRate": "成功率",
     "normal": "正常",
@@ -1055,7 +1055,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -1071,14 +1071,14 @@
     "quickStats": "快速统计",
     "stats": {
       "stakingApr": "质押 APR",
-      "networkUptime": "网络在线率",
+      "networkUptime": "网络可用率",
       "nodeUptime": "节点在线率",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
       "activeDataSources": "活跃数据源",
       "dataFeeds": "数据馈送",
-      "avgResponseTime": "平均响应时间",
+      "avgResponseTime": "平均响应延迟",
       "totalFeeds": "总馈送数",
       "activeFeeds": "活跃馈送",
       "avgConfidence": "平均置信度",
@@ -1156,8 +1156,8 @@
       "updateFrequency": "更新频率",
       "status": {
         "active": "活跃",
-        "paused": "暂停",
-        "deprecated": "废弃"
+        "paused": "服务暂停",
+        "deprecated": "已下线"
       },
       "description": "描述",
       "createdAt": "创建时间",
@@ -1181,7 +1181,7 @@
       "change24h": "24小时变化",
       "allCollections": "所有集合",
       "24h": "24小时",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "totalSupply": "总供应量",
       "confidence": "置信度",
       "updateFrequency": "更新频率",
@@ -1229,7 +1229,7 @@
       "lockupPeriod": "锁定期",
       "aprHistory": "APR 历史",
       "active": "活跃",
-      "deprecated": "已弃用",
+      "deprecated": "已下线",
       "upcoming": "即将推出",
       "slashingConditions": "惩罚条件",
       "downtime": "停机",
@@ -1261,13 +1261,13 @@
       "noProtocols": "暂无协议数据"
     },
     "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
+      "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合安全评估",
       "dimensionScores": "维度评分",
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
-      "dataQuality": "数据质量",
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "dataQuality": "数据完整性",
       "decentralizationDesc": "多源数据聚合，覆盖中心化交易所和DeFi协议",
       "securityDesc": "多层数据验证机制，开源透明代码库",
       "stabilityDesc": "99.2%正常运行时间，自动故障转移",
@@ -1277,9 +1277,9 @@
       "avgCredibility": "平均可信度",
       "totalSources": "数据源总数",
       "riskLevel": {
-        "low": "低风险",
-        "medium": "中等风险",
-        "high": "高风险"
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
       },
       "aggregationRiskAnalysis": "聚合风险分析",
       "sourceConcentration": "数据源集中度",
@@ -1302,7 +1302,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -1329,8 +1329,8 @@
       "activeNodes": "活跃节点",
       "totalLiquidity": "总流动性",
       "stakingApr": "质押 APR",
-      "networkUptime": "网络在线率",
-      "volume24h": "24小时交易量",
+      "networkUptime": "网络可用率",
+      "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量"
     },
@@ -1537,7 +1537,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -1615,7 +1615,7 @@
     },
     "validatorAnalytics": {
       "totalActiveValidators": "总活跃验证者",
-      "avgResponseTime": "平均响应时间",
+      "avgResponseTime": "平均响应延迟",
       "avgSuccessRate": "平均成功率",
       "totalStaked": "总质押量",
       "performanceRanking": "性能排名",
@@ -1648,7 +1648,7 @@
     "network": {
       "activeValidators": "活跃验证者",
       "validatorUptime": "验证者在线率",
-      "avgResponseTime": "平均响应时间",
+      "avgResponseTime": "平均响应延迟",
       "totalStaked": "总质押量",
       "totalDisputes": "总争议数",
       "disputeSuccessRate": "争议成功率",
@@ -1772,7 +1772,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -1869,7 +1869,7 @@
       }
     },
     "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
+      "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合风险评估",
       "dimensionScores": "维度评分",
       "riskMetrics": "风险指标",
@@ -1890,14 +1890,14 @@
       "scoreTrend": "评分趋势",
       "score": "评分",
       "riskLevel": {
-        "low": "低风险",
-        "medium": "中等风险",
-        "high": "高风险"
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
       },
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
-      "dataQuality": "数据质量",
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "dataQuality": "数据完整性",
       "eventTypes": {
         "upgrade": "升级",
         "maintenance": "维护",
@@ -1933,7 +1933,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -1996,12 +1996,12 @@
       "currentSlot": "当前 Slot",
       "tps": "TPS",
       "transactionsPerSecond": "每秒交易数",
-      "validators": "验证者",
+      "validators": "验证节点",
       "totalStake": "总质押量",
       "status": {
         "active": "活跃",
         "inactive": "未激活",
-        "degraded": "降级"
+        "degraded": "性能降级"
       }
     },
     "ema": {
@@ -2017,7 +2017,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -2030,10 +2030,10 @@
     "subtitle": "高频金融数据预言机",
     "menu": {
       "marketData": "市场数据",
-      "publishers": "发布者",
-      "validators": "验证者",
+      "publishers": "数据发布方",
+      "validators": "验证节点",
       "networkHealth": "网络健康度",
-      "priceFeeds": "价格源",
+      "priceFeeds": "价格馈送",
       "crossChain": "跨链",
       "crossOracleComparison": "跨预言机分析",
       "riskAssessment": "风险评估"
@@ -2048,29 +2048,29 @@
       "publisherCount": "发布者数量",
       "crossChainSupport": "跨链支持",
       "networkUptime": "网络正常运行时间",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量"
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "publishers": {
-      "title": "数据发布者",
+      "title": "数据发布方",
       "stake": "质押",
       "accuracy": "准确率",
-      "searchPlaceholder": "搜索发布者...",
+      "searchPlaceholder": "搜索数据发布方...",
       "sortByStake": "按质押排序",
       "sortByAccuracy": "按准确率排序",
       "sortByName": "按名称排序",
-      "totalPublishers": "发布者总数",
+      "totalPublishers": "数据发布方总数",
       "totalStaked": "总质押",
       "avgAccuracy": "平均准确率",
-      "topPublisher": "头部发布者",
+      "topPublisher": "头部数据发布方",
       "contribution": "贡献度"
     },
     "priceFeeds": {
-      "title": "价格源",
-      "priceFeeds": "个价格源",
+      "title": "价格馈送",
+      "priceFeeds": "个价格馈送",
       "categories": {
         "crypto": "加密货币",
         "equities": "股票",
@@ -2080,9 +2080,9 @@
       "totalDescription": "Pyth 提供 {count}+ 个价格源，覆盖加密货币、股票、商品和外汇等多个资产类别。"
     },
     "validators": {
-      "title": "验证者列表",
-      "totalValidators": "验证者总数",
-      "activeValidators": "活跃验证者",
+      "title": "验证节点列表",
+      "totalValidators": "验证节点总数",
+      "activeValidators": "活跃验证节点",
       "totalStaked": "总质押",
       "avgUptime": "平均在线率",
       "name": "名称",
@@ -2109,7 +2109,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -2119,7 +2119,7 @@
     "menu": {
       "marketData": "市场数据",
       "publishers": "发布者",
-      "validators": "验证者",
+      "validators": "验证节点",
       "networkHealth": "网络健康度",
       "priceFeeds": "价格源",
       "crossChain": "跨链",
@@ -2127,31 +2127,31 @@
       "riskAssessment": "风险评估"
     },
     "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
+      "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合风险评估",
       "dimensionScores": "维度评分",
       "riskMetrics": "风险指标",
-      "publisherConcentration": "发布者集中度",
-      "topPublishersShare": "头部发布者占比",
-      "top10PublishersShare": "前10发布者占比",
+      "publisherConcentration": "数据发布方集中度",
+      "topPublishersShare": "头部数据发布方占比",
+      "top10PublishersShare": "前10数据发布方占比",
       "giniCoefficient": "基尼系数",
-      "dataQuality": "数据质量",
+      "dataQuality": "数据完整性",
       "updateFrequency": "更新频率",
       "confidenceInterval": "置信区间",
-      "priceFeeds": "价格源",
+      "priceFeeds": "价格馈送",
       "securityTimeline": "安全时间线",
       "resolved": "已解决",
       "monitoring": "监控中",
       "crossChainRisk": "跨链风险",
       "mitigationMeasures": "缓解措施",
       "riskLevel": {
-        "low": "低风险",
-        "medium": "中等风险",
-        "high": "高风险"
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
       },
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
       "eventTypes": {
         "upgrade": "升级",
         "maintenance": "维护",
@@ -2159,7 +2159,7 @@
       },
       "active": "活跃",
       "inactive": "未激活",
-      "publisherStaking": "发布者质押",
+      "publisherStaking": "数据发布方质押",
       "confidenceIntervals": "置信区间",
       "multiSourceAggregation": "多源聚合",
       "slashingConditions": "惩罚条件",
@@ -2228,7 +2228,7 @@
         "title": "网络健康风险",
         "healthScore": "网络健康评分",
         "uptime": "节点在线率",
-        "responseTime": "平均响应时间",
+        "responseTime": "平均响应延迟",
         "excellent": "网络健康和性能优秀",
         "fair": "网络健康一般，检测到轻微问题",
         "poor": "网络健康较差，存在重大风险"
@@ -2268,6 +2268,16 @@
         "serviceCoverage": "服务覆盖",
         "oevProtection": "OEV 保护",
         "multiChainDeployment": "多链部署"
+      },
+      "dimensions": {
+        "decentralization": "去中心化",
+        "decentralizationDesc": "数据源和节点运营商的分布情况",
+        "security": "安全性",
+        "securityDesc": "覆盖池偿付能力和保险机制",
+        "stability": "稳定性",
+        "stabilityDesc": "网络可用率和运营一致性",
+        "dataQuality": "数据质量",
+        "dataQualityDesc": "价格喂价的准确性和可靠性"
       }
     },
     "crossOracle": {
@@ -2309,7 +2319,7 @@
       "activeAirnodes": "活跃 Airnodes",
       "dapiFeeds": "dAPI 数据源",
       "stakingApr": "质押 APR",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
       "networkUptime": "网络正常运行时间"
@@ -2319,7 +2329,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -2576,7 +2586,7 @@
     "responseTime": {
       "title": "响应时间分布",
       "subtitle": "节点响应时间统计",
-      "avgResponseTime": "平均响应时间",
+      "avgResponseTime": "平均响应延迟",
       "excellent": "优秀 (<50ms)",
       "good": "良好 (50-100ms)",
       "fair": "一般 (100-150ms)",
@@ -2755,7 +2765,7 @@
     "title": "跨预言机价格对比",
     "subtitle": "实时对比多个预言机提供商的价格",
     "consistencyScore": "价格一致性评分",
-    "avgResponseTime": "平均响应时间",
+    "avgResponseTime": "平均响应延迟",
     "dataSources": "数据源",
     "supportedChains": "支持的链",
     "quickCompare": "快速对比主流预言机",
@@ -2813,7 +2823,7 @@
   },
   "concentrationRisk": {
     "title": "数据源集中度风险分析",
-    "publisherWeightDistribution": "Publisher 权重分布",
+    "publisherWeightDistribution": "数据发布方权重分布",
     "weight": "权重",
     "diversityScore": "数据源多样性评分",
     "diversityLevel": {
@@ -2824,19 +2834,19 @@
     },
     "herfindahlIndex": "Herfindahl 指数",
     "herfindahlIndexDesc": "越低越分散",
-    "maxPublisherWeight": "最大 Publisher 权重",
-    "maxPublisherWeightDesc": "建议 <30%",
-    "singlePublisherFailureImpact": "单一 Publisher 故障影响",
-    "impactLevel": {
-      "low": "低风险",
-      "medium": "中等风险",
-      "high": "高风险"
-    },
-    "impactDescription": {
-      "prefix": "当最大权重 Publisher 发生故障时，可能对价格准确性产生",
-      "suffix": "影响。"
-    },
-    "publisherDetails": "Publisher 详情",
+    "maxPublisherWeight": "最大数据发布方权重",
+      "maxPublisherWeightDesc": "建议 <30%",
+    "singlePublisherFailureImpact": "单一数据发布方故障影响",
+      "impactLevel": {
+        "low": "低风险等级",
+        "medium": "中等风险",
+        "high": "高风险等级"
+      },
+      "impactDescription": {
+        "prefix": "当最大权重数据发布方发生故障时，可能对价格准确性产生",
+        "suffix": "影响。"
+      },
+      "publisherDetails": "数据发布方详情",
     "table": {
       "name": "名称",
       "weight": "权重",
@@ -2846,14 +2856,14 @@
     },
     "status": {
       "active": "正常",
-      "degraded": "降级",
-      "inactive": "离线"
+      "degraded": "性能降级",
+      "inactive": "服务中断"
     },
     "riskExplanation": {
       "title": "集中度风险说明",
       "item1": "Herfindahl 指数用于衡量市场集中度，数值越低表示数据源越分散",
-      "item2": "理想情况下，单一 Publisher 权重不应超过 30%",
-      "item3": "多样性评分综合考虑了 Publisher 数量和权重分布",
+      "item2": "理想情况下，单一数据发布方权重不应超过 30%",
+      "item3": "多样性评分综合考虑了数据发布方数量和权重分布",
       "item4": "高集中度可能导致单点故障风险，影响价格数据的可靠性"
     }
   },
@@ -3008,17 +3018,17 @@
     "lastCheck": "上次检测"
   },
   "publisher": {
-    "filterByStatus": "按状态筛选",
-    "allPublishers": "所有发布者",
-    "activeOnly": "仅活跃",
-    "degraded": "降级",
-    "inactive": "未激活",
-    "noPublishers": "未找到符合条件的发布者",
-    "status": {
-      "active": "活跃",
+      "filterByStatus": "按状态筛选",
+      "allPublishers": "所有数据发布方",
+      "activeOnly": "仅活跃",
+      "degraded": "性能降级",
       "inactive": "未激活",
-      "degraded": "降级"
-    },
+      "noPublishers": "未找到符合条件的数据发布方",
+      "status": {
+        "active": "活跃",
+        "inactive": "未激活",
+        "degraded": "性能降级"
+      },
     "anomaly": "异常",
     "anomalyTypes": "异常类型: ",
     "priceDeviation": "价格偏差",
@@ -3139,7 +3149,7 @@
     "vsLastWeek": "较上周",
     "activeNodes": "活跃节点数",
     "nodeUptime": "节点在线率",
-    "avgResponseTime": "平均响应时间",
+    "avgResponseTime": "平均响应延迟",
     "updateFrequency": "数据更新频率",
     "every": "每",
     "seconds": "秒",
@@ -3204,7 +3214,7 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
-      "validators": "验证者",
+      "validators": "验证节点",
       "crossChain": "跨链",
       "dataFeeds": "数据馈送",
       "staking": "质押",
@@ -3225,7 +3235,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -3233,19 +3243,19 @@
       "crossOracle": "跨预言机分析"
     },
     "riskAssessment": {
-      "overallRiskScore": "整体风险评分",
+      "overallRiskScore": "综合风险评级",
       "comprehensiveAssessment": "综合风险评估",
       "dimensionScores": "维度评分",
-      "decentralization": "去中心化",
-      "security": "安全性",
-      "stability": "稳定性",
-      "dataQuality": "数据质量",
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "dataQuality": "数据完整性",
       "scoreTrend": "评分趋势",
       "overall": "综合",
       "riskMetrics": "风险指标",
-      "validatorConcentration": "验证者集中度",
-      "topValidatorsShare": "头部验证者占比",
-      "top10ValidatorsShare": "前10验证者占比",
+      "validatorConcentration": "验证节点集中度",
+      "topValidatorsShare": "头部验证节点占比",
+      "top10ValidatorsShare": "前10验证节点占比",
       "giniCoefficient": "基尼系数",
       "ibcMetrics": "IBC指标",
       "connectedChains": "已连接链数",
@@ -3256,21 +3266,21 @@
     "crossChain": {
       "title": "跨链数据",
       "subtitle": "Band Protocol 跨链数据传输统计",
-      "totalRequests24h": "BAND.CROSSCHAIN.TOTALREQUESTS24H",
-      "totalRequests7d": "BAND.CROSSCHAIN.TOTALREQUESTS7D",
-      "totalRequests30d": "BAND.CROSSCHAIN.TOTALREQUESTS30D",
-      "supportedChains": "BAND.CROSSCHAIN.SUPPORTEDCHAINS",
-      "chainDataRequests": "band.crossChain.chainDataRequests",
-      "chainName": "band.crossChain.chainName",
-      "requests24h": "band.crossChain.requests24h",
-      "requests7d": "band.crossChain.requests7d",
-      "requests30d": "band.crossChain.requests30d",
-      "avgGasCost": "band.crossChain.avgGasCost",
-      "supportedSymbols": "band.crossChain.supportedSymbols",
-      "ibcInfo": "band.crossChain.ibcInfo",
-      "ibcTransfers": "band.crossChain.ibcTransfers",
-      "ibcChannels": "band.crossChain.ibcChannels",
-      "avgLatency": "band.crossChain.avgLatency",
+      "totalRequests24h": "总请求数 (24小时)",
+      "totalRequests7d": "总请求数 (7天)",
+      "totalRequests30d": "总请求数 (30天)",
+      "supportedChains": "支持的链",
+      "chainDataRequests": "链数据请求",
+      "chainName": "链名称",
+      "requests24h": "24小时请求",
+      "requests7d": "7天请求",
+      "requests30d": "30天请求",
+      "avgGasCost": "平均Gas费用",
+      "supportedSymbols": "支持的代币",
+      "ibcInfo": "IBC信息",
+      "ibcTransfers": "IBC转账",
+      "ibcChannels": "IBC通道",
+      "avgLatency": "平均延迟",
       "last24Hours": "最近24小时",
       "last7Days": "最近7天",
       "last30Days": "最近30天",
@@ -3294,7 +3304,7 @@
       "chainId": "链 ID",
       "channelId": "通道 ID",
       "tvl": "TVL",
-      "volume24h": "24小时交易量",
+      "volume24h": "24h 成交额",
       "status": "状态",
       "active": "活跃",
       "bandInCosmos": "Band 在 Cosmos 生态",
@@ -3418,15 +3428,109 @@
       "oracleScripts": "预言机脚本",
       "crossChainRisk": "跨链风险",
       "riskLevel": {
-        "low": "低风险",
+        "low": "低风险等级",
         "medium": "中等风险",
-        "high": "高风险"
+        "high": "高风险等级"
+      }
+    },
+    "validators": {
+      "totalValidators": "验证者总数",
+      "active": "活跃",
+      "avgCommission": "平均佣金",
+      "networkAverage": "网络平均值",
+      "avgUptime": "平均在线率",
+      "last30Days": "过去30天",
+      "topRegion": "主要地区",
+      "ofNetwork": "的网络",
+      "geographicDistribution": "地理分布",
+      "validators": "验证节点",
+      "validatorList": "验证者列表",
+      "sortBy": "排序方式",
+      "rank": "排名",
+      "stake": "质押",
+      "uptime": "在线率",
+      "commission": "佣金",
+      "validator": "验证者",
+      "stakedTokens": "质押代币",
+      "status": "状态",
+      "jailed": "被监禁",
+      "validatorInfo": "验证者信息",
+      "minStake": "最低质押",
+      "minStakeDesc": "成为验证者的最低要求",
+      "slashing": "惩罚率",
+      "slashingDesc": "双重签名惩罚",
+      "maxValidators": "最大验证者数",
+      "maxValidatorsDesc": "活跃验证者集合大小"
+    },
+    "dataFeeds": {
+      "totalFeeds": "总数据馈送",
+      "active": "活跃",
+      "dataSources": "数据源",
+      "totalSources": "总数据源",
+      "avgConfidence": "平均置信度",
+      "acrossAllFeeds": "跨所有馈送",
+      "avgUpdateFreq": "平均更新频率",
+      "updateInterval": "更新间隔",
+      "priceFeeds": "价格馈送",
+      "allCategories": "全部",
+      "crypto": "加密货币",
+      "stablecoin": "稳定币",
+      "symbol": "交易对",
+      "price": "价格",
+      "change24h": "24小时变化",
+      "updateFreq": "更新频率",
+      "confidence": "置信度",
+      "sources": "数据源数量",
+      "status": "状态",
+      "feeds": "馈送数",
+      "reliability": "可靠性",
+      "latency": "延迟",
+      "dataQuality": "数据质量",
+      "multiSource": "多源验证",
+      "multiSourceDesc": "Band Protocol 聚合多个优质数据源的数据，确保准确性和可靠性",
+      "realTime": "实时更新",
+      "realTimeDesc": "高频价格更新，亚秒级延迟，满足响应式应用需求",
+      "decentralized": "去中心化验证",
+      "decentralizedDesc": "验证者网络通过加密证明和经济激励确保数据完整性"
+    },
+    "staking": {
+      "totalStaked": "总质押量",
+      "ofTotalSupply": "占总供应量",
+      "stakingApr": "质押年化收益率",
+      "annualReturn": "年回报率",
+      "activeValidators": "活跃验证者",
+      "outOf": "共",
+      "total": "总计",
+      "inflationRate": "通胀率",
+      "annual": "年化",
+      "stakingDistribution": "质押分布",
+      "validators": "验证节点",
+      "ofNetwork": "的网络",
+      "topValidators": "头部验证者",
+      "rank": "排名",
+      "validator": "验证者",
+      "stakedAmount": "质押数量",
+      "commission": "佣金",
+      "uptime": "在线率",
+      "stakingInfo": "质押信息",
+      "unbondingPeriod": "解绑期",
+      "days": "天",
+      "unbondingDesc": "解除质押所需时间",
+      "minStake": "最低质押",
+      "minStakeDesc": "成为验证者的最低要求",
+      "communityPool": "社区池",
+      "communityPoolDesc": "用于网络发展",
+      "tier": {
+        "whale": "巨鲸",
+        "large": "大型",
+        "medium": "中型",
+        "small": "小型"
       }
     }
   },
   "publisherAnalysis": {
     "anomalyTypeDistribution": "异常类型分布：",
-    "anomalyCheckSuggestion": "请检查异常 Publisher 的运行状态和数据质量"
+    "anomalyCheckSuggestion": "请检查异常数据发布方的运行状态和数据质量"
   },
   "confidenceInterval": {
     "title": "置信区间",
@@ -3447,9 +3551,9 @@
     "historicalEvents": "历史相似波动率事件",
     "volatility": "波动率",
     "riskLevel": {
-      "low": "低风险",
+      "low": "低风险等级",
       "medium": "中等风险",
-      "high": "高风险"
+      "high": "高风险等级"
     },
     "duration": {
       "1hour": "1小时",
@@ -3464,7 +3568,7 @@
   },
   "riskAssessment": {
     "riskLevel": {
-      "low": "低风险",
+      "low": "低风险等级",
       "medium": "中等风险",
       "high": "较高风险",
       "critical": "高风险"
@@ -3520,32 +3624,32 @@
     "stakeDescription": "参与 API3 质押，获取稳定收益"
   },
   "publisherContribution": {
-    "title": "Publisher 贡献分析",
-    "subtitle": "聚合价格贡献权重分布",
-    "totalPublishers": "总 Publishers",
-    "avgReliability": "平均可靠性",
-    "avgLatency": "平均延迟",
-    "contributionWeight": "贡献权重",
-    "weightDistribution": "贡献权重分布",
-    "weightComparisonChart": "权重对比条形图",
-    "weightDetails": "贡献权重详情",
-    "weightCalculation": "权重计算说明",
-    "reliabilityScore": "可靠性分数",
-    "reliabilityScoreDesc": "基于历史可靠性评分",
-    "latencyFactor": "延迟因子",
-    "latencyFactorDesc": "响应速度权重",
-    "statusFactor": "状态因子",
-    "statusFactorDesc": "当前运行状态",
-    "accuracyFactor": "准确度因子",
-    "accuracyFactorDesc": "价格准确度评分",
-    "rank": "排名",
-    "publisher": "Publisher",
-    "weightPercent": "权重 %",
-    "reliability": "可靠性",
-    "latency": "延迟",
-    "status": "状态",
-    "topContributor": "Top Contributor"
-  },
+      "title": "数据发布方贡献分析",
+      "subtitle": "聚合价格贡献权重分布",
+      "totalPublishers": "总数据发布方",
+      "avgReliability": "平均可靠性",
+      "avgLatency": "平均延迟",
+      "contributionWeight": "贡献权重",
+      "weightDistribution": "贡献权重分布",
+      "weightComparisonChart": "权重对比条形图",
+      "weightDetails": "贡献权重详情",
+      "weightCalculation": "权重计算说明",
+      "reliabilityScore": "可靠性分数",
+      "reliabilityScoreDesc": "基于历史可靠性评分",
+      "latencyFactor": "延迟因子",
+      "latencyFactorDesc": "响应速度权重",
+      "statusFactor": "状态因子",
+      "statusFactorDesc": "当前运行状态",
+      "accuracyFactor": "准确度因子",
+      "accuracyFactorDesc": "价格准确度评分",
+      "rank": "排名",
+      "publisher": "数据发布方",
+      "weightPercent": "权重 %",
+      "reliability": "可靠性",
+      "latency": "延迟",
+      "status": "状态",
+      "topContributor": "头部贡献者"
+    },
   "airnodeDeployment": {
     "totalAirnodes": "Airnode 总数",
     "globallyDeployedNodes": "全球部署节点",
@@ -3670,9 +3774,9 @@
     "validator": "验证者",
     "cumulativeRatio": "累计占比",
     "riskLevel": {
-      "low": "低风险",
+      "low": "低风险等级",
       "medium": "中等风险",
-      "high": "高风险",
+      "high": "高风险等级",
       "critical": "严重风险"
     },
     "concentrationWarning": "质押集中度警告",
@@ -4260,7 +4364,7 @@
       "activeValidators": "活跃验证者",
       "makerDAOSupport": "MakerDAO 支持",
       "stakingApr": "质押 APR",
-      "networkUptime": "网络在线率",
+      "networkUptime": "网络可用率",
       "volume24h": "24h 交易量",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量"
@@ -4347,7 +4451,7 @@
     },
     "network": {
       "status": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "responseTime": "响应时间",
       "dataFeeds": "数据喂价",
       "uptime": "在线率",
@@ -4399,7 +4503,7 @@
       "activeNodes": "活跃节点",
       "tronIntegrations": "TRON 集成",
       "stakingApr": "质押 APR",
-      "networkUptime": "网络在线率",
+      "networkUptime": "网络可用率",
       "volume24h": "24h 交易量",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
@@ -4520,7 +4624,7 @@
     "pageTitles": {
       "market": "市场数据",
       "network": "网络状态",
-      "validators": "验证者",
+      "validators": "验证节点",
       "disputes": "争议解决",
       "ecosystem": "生态系统",
       "risk": "风险评估",
@@ -4530,7 +4634,7 @@
     "tabs": {
       "market": "市场",
       "makerdao": "MakerDAO",
-      "validators": "验证者",
+      "validators": "验证节点",
       "network": "网络",
       "scuttlebutt": "Scuttlebutt",
       "risk": "风险"
@@ -4679,9 +4783,9 @@
     },
     "riskScore": {
       "levels": {
-        "low": "低风险",
-        "medium": "中风险",
-        "high": "高风险"
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
       }
     }
   },
@@ -4936,7 +5040,7 @@
     "totalRequests": "总请求量",
     "avgGasCost": "平均Gas成本",
     "totalTokens": "支持代币总数",
-    "avgResponseTime": "平均响应时间",
+    "avgResponseTime": "平均响应延迟",
     "requestComparison": "请求量对比",
     "gasCostComparison": "Gas 成本对比",
     "responseTimeComparison": "响应时间对比",
@@ -4964,7 +5068,7 @@
       "avgGasCost": "平均Gas成本",
       "tokenCount": "支持代币数量",
       "supportedTokens": "支持代币",
-      "avgResponseTime": "平均响应时间(ms)",
+      "avgResponseTime": "平均响应延迟(ms)",
       "reliability": "可靠性(%)"
     },
     "chainName": "链名称",
@@ -5379,7 +5483,7 @@
       "votingPower": "投票权",
       "time": "时间",
       "reputation": "声誉",
-      "validators": "验证者",
+      "validators": "验证节点",
       "validator": "验证者",
       "percentage": "占比",
       "noVotesFound": "没有找到匹配的投票记录"
