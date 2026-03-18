@@ -491,7 +491,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'cross-chain', labelKey: 'redstone.tabs.crossChain' },
       { id: 'ecosystem', labelKey: 'redstone.tabs.ecosystem' },
       { id: 'cross-oracle', labelKey: 'redstone.tabs.crossOracle' },
-      { id: 'risk', labelKey: 'redstone.tabs.risk' },
+      { id: 'risk', labelKey: 'redstone.tabs.riskAssessment' },
     ],
   },
   [OracleProvider.DIA]: {
@@ -559,7 +559,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'nft-data', labelKey: 'dia.tabs.nftData' },
       { id: 'staking', labelKey: 'dia.tabs.staking' },
       { id: 'ecosystem', labelKey: 'dia.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'dia.tabs.risk' },
+      { id: 'risk', labelKey: 'dia.tabs.riskAssessment' },
     ],
   },
   [OracleProvider.TELLOR]: {
@@ -630,7 +630,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'market-depth', labelKey: 'tellor.tabs.marketDepth' },
       { id: 'multi-chain', labelKey: 'tellor.tabs.multiChain' },
       { id: 'ecosystem', labelKey: 'tellor.tabs.ecosystem' },
-      { id: 'risk', labelKey: 'tellor.tabs.risk' },
+      { id: 'risk', labelKey: 'tellor.tabs.riskAssessment' },
     ],
   },
   [OracleProvider.CHRONICLE]: {
@@ -696,7 +696,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'validators', labelKey: 'chronicle.tabs.validators' },
       { id: 'network', labelKey: 'chronicle.tabs.network' },
       { id: 'scuttlebutt', labelKey: 'chronicle.tabs.scuttlebutt' },
-      { id: 'risk', labelKey: 'chronicle.tabs.risk' },
+      { id: 'risk', labelKey: 'chronicle.tabs.riskAssessment' },
     ],
   },
   [OracleProvider.WINKLINK]: {
@@ -757,7 +757,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       { id: 'staking', labelKey: 'winklink.tabs.staking' },
       { id: 'gaming', labelKey: 'winklink.tabs.gaming' },
       { id: 'cross-oracle', labelKey: 'winklink.tabs.crossOracle' },
-      { id: 'risk', labelKey: 'winklink.tabs.risk' },
+      { id: 'risk', labelKey: 'winklink.tabs.riskAssessment' },
     ],
   },
 };

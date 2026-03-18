@@ -1048,7 +1048,8 @@
       "nftData": "NFT Data",
       "staking": "Staking",
       "ecosystem": "Ecosystem",
-      "risk": "Risk"
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
@@ -1296,7 +1297,8 @@
       "marketDepth": "Market Depth",
       "multiChain": "Multi-Chain",
       "ecosystem": "Ecosystem",
-      "risk": "Risk"
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
@@ -1886,7 +1888,8 @@
       "crossChain": "Cross-Chain",
       "ecosystem": "Ecosystem",
       "crossOracle": "Cross-Oracle",
-      "risk": "Risk"
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
@@ -4410,7 +4413,8 @@
       "validators": "Validators",
       "network": "Network",
       "scuttlebutt": "Scuttlebutt",
-      "risk": "Risk"
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",
@@ -4549,7 +4553,8 @@
       "staking": "Staking",
       "gaming": "Gaming",
       "crossOracle": "Cross-Oracle",
-      "risk": "Risk"
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
     },
     "stats": {
       "activeNodes": "Active Nodes",
@@ -4904,7 +4909,31 @@
     "all": "All"
   },
   "validatorPanel": {
-    "all": "All"
+    "all": "All",
+    "loading": "Loading validators...",
+    "title": "Validators",
+    "subtitle": "{count} validators",
+    "filtered": "(filtered)",
+    "totalStaked": "Total Staked:",
+    "rank": "Rank",
+    "stakeAmount": "Stake Amount",
+    "commissionRate": "Commission",
+    "uptime": "Uptime",
+    "status": "Status",
+    "active": "Active",
+    "jailed": "Jailed",
+    "quickFilter": "Quick Filter",
+    "lowCommission": "Low Commission (<5%)",
+    "highStake": "High Stake (Top 20%)",
+    "highUptime": "High Uptime (≥99.9%)",
+    "selectedForComparison": "{count} selected",
+    "clearSelection": "Clear",
+    "region": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "other": "Other"
+    }
   },
   "redStoneMetrics": {
     "title": "RedStone Core Metrics",
