@@ -17,7 +17,7 @@ interface FilterPanelProps {
   activeFilterCount: number;
   onClearFilters: () => void;
   getFilterSummary: () => string[];
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 export function FilterPanel({
@@ -37,7 +37,7 @@ export function FilterPanel({
   if (!isOpen) return null;
 
   const oracleOptions = [
-    { value: 'all' as const, label: '全部预言机' },
+    { value: 'all' as const, label: t('crossOracle.filter.allOracles') },
     ...getOracleProvidersSortedByMarketCap().map((oracle) => ({
       value: oracle as OracleProvider | 'all',
       label: oracleNames[oracle],
@@ -51,13 +51,13 @@ export function FilterPanel({
           <div className="mb-4 pb-3 border-b border-gray-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                当前筛选
+                {t('crossOracle.filter.currentFilters')}
               </span>
               <button
                 onClick={onClearFilters}
                 className="text-xs text-blue-600 hover:text-blue-700 font-medium"
               >
-                清除全部
+                {t('crossOracle.filter.clearAll')}
               </button>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -75,7 +75,7 @@ export function FilterPanel({
 
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            时间范围
+            {t('crossOracle.filter.timeRange')}
           </label>
           <div className="flex flex-wrap gap-1">
             {timeRanges.map((range) => (
@@ -96,11 +96,11 @@ export function FilterPanel({
 
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            偏差范围
+            {t('crossOracle.filter.deviationRange')}
           </label>
           <div className="flex flex-wrap gap-1">
             {[
-              { value: 'all' as const, label: '全部' },
+              { value: 'all' as const, label: t('crossOracle.filter.all') },
               { value: 'excellent' as const, label: '<0.1%' },
               { value: 'good' as const, label: '0.1-0.5%' },
               { value: 'poor' as const, label: '>0.5%' },
@@ -122,7 +122,7 @@ export function FilterPanel({
 
         <div>
           <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-            预言机筛选
+            {t('crossOracle.filter.oracleFilter')}
           </label>
           <DropdownSelect
             options={oracleOptions}
@@ -135,13 +135,15 @@ export function FilterPanel({
 
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <span className="text-xs text-gray-500">
-          {activeFilterCount > 0 ? `已应用 ${activeFilterCount} 个筛选` : '无筛选条件'}
+          {activeFilterCount > 0 
+            ? t('crossOracle.filter.filtersApplied', { count: activeFilterCount }) 
+            : t('crossOracle.filter.noFilters')}
         </span>
         <button
           onClick={onClose}
           className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
         >
-          确定
+          {t('crossOracle.filter.confirm')}
         </button>
       </div>
     </div>

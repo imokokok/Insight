@@ -1,9 +1,89 @@
 {
+  "common": {
+    "actions": {
+      "refresh": "刷新",
+      "export": "导出",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "删除",
+      "edit": "编辑",
+      "apply": "应用",
+      "retry": "重试",
+      "confirm": "确定",
+      "clear": "清除",
+      "close": "关闭",
+      "reset": "重置",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "viewFullscreen": "全屏查看"
+    },
+    "status": {
+      "loading": "加载中...",
+      "noData": "暂无数据",
+      "success": "成功",
+      "error": "错误",
+      "live": "实时",
+      "online": "在线",
+      "offline": "离线"
+    },
+    "consistency": {
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差"
+    },
+    "activity": {
+      "active": "活跃",
+      "inactive": "未激活",
+      "degraded": "降级"
+    },
+    "alert": {
+      "normal": "正常",
+      "warning": "警告",
+      "critical": "异常"
+    },
+    "time": {
+      "lastUpdated": "最后更新",
+      "justNow": "刚刚",
+      "secondsAgo": "{seconds}秒前",
+      "minutesAgo": "{minutes}分钟前",
+      "hoursAgo": "{hours}小时前",
+      "daysAgo": "{days}天前"
+    },
+    "price": {
+      "price": "价格",
+      "averagePrice": "平均价格",
+      "highestPrice": "最高价格",
+      "lowestPrice": "最低价格",
+      "priceRange": "价格区间"
+    },
+    "statistics": {
+      "deviation": "偏差",
+      "standardDeviation": "标准差",
+      "median": "中位数",
+      "average": "平均值",
+      "variance": "方差"
+    },
+    "filters": {
+      "filter": "筛选",
+      "clearAll": "清除全部",
+      "currentFilters": "当前筛选",
+      "noFilters": "无筛选条件",
+      "filtersApplied": "已应用 {count} 个筛选",
+      "all": "全部"
+    },
+    "deviation": {
+      "all": "全部",
+      "excellent": "<0.1%",
+      "good": "0.1-0.5%",
+      "poor": ">0.5%"
+    }
+  },
   "navbar": {
     "home": "首页",
     "marketOverview": "市场概览",
     "priceQuery": "价格查询",
-    "crossOracle": "跨预言机比较",
+    "crossOracle": "跨预言机分析",
     "crossChain": "跨链比较",
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
@@ -17,7 +97,7 @@
     "openMenu": "打开菜单",
     "marketOverviewDesc": "全面的市场数据和趋势",
     "priceQueryDesc": "从任意预言机查询实时价格",
-    "crossOracleDesc": "对比不同预言机的价格数据",
+    "crossOracleDesc": "多源预言机价格对比与偏差分析",
     "crossChainDesc": "分析预言机在各链上的性能",
     "chainlinkDesc": "去中心化预言机网络领导者",
     "bandProtocolDesc": "基于Cosmos的跨链数据预言机",
@@ -151,12 +231,12 @@
     }
   },
   "crossOracle": {
-    "title": "跨预言机比较",
-    "subtitle": "多预言机价格比对与监控",
+    "title": "跨预言机价格分析",
+    "subtitle": "多源预言机实时价格对比与偏差分析",
     "refresh": "刷新",
     "lastUpdated": "最后更新",
     "currentPriceComparison": "当前价格对比",
-    "priceTrend": "价格趋势（过去24小时）",
+    "priceTrend": "24小时价格走势",
     "oracle": "预言机",
     "price": "价格",
     "confidence": "置信度",
@@ -170,14 +250,14 @@
     "deviation": "偏差百分比",
     "standardDeviation": "标准差",
     "variance": "方差",
-    "consistencyRating": "一致性评级",
+    "consistencyRating": "价格一致性评分",
     "consistency": {
       "excellent": "优秀",
       "good": "良好",
       "fair": "一般",
       "poor": "较差"
     },
-    "basedOnStdDev": "基于标准差",
+    "basedOnStdDev": "基于标准差评估",
     "historyRange": "历史范围",
     "ofAverage": "占均价",
     "weighted": "加权",
@@ -197,7 +277,7 @@
       "highestPrice": "最高价格",
       "lowestPrice": "最低价格",
       "maxPriceDifference": "最大价格差异",
-      "deviationFromAverage": "偏离平均值",
+      "deviationFromAverage": "均值偏离度",
       "avgResponseTime": "平均响应时间"
     },
     "selectTradingPair": "选择交易对",
@@ -244,11 +324,133 @@
       "accuracyFactorDesc": "价格准确度评分",
       "rank": "排名"
     },
-    "tabOverview": "核心概览",
+    "tabOverview": "数据概览",
     "tabCharts": "图表分析",
     "tabAdvanced": "高级分析",
     "tabSnapshots": "快照与对比",
-    "tabPerformance": "性能分析"
+    "tabPerformance": "性能分析",
+    "freshness": "数据时效",
+    "filter": {
+      "button": "数据筛选",
+      "allOracles": "全部预言机",
+      "currentFilters": "当前筛选",
+      "clearAll": "清除全部",
+      "timeRange": "时间范围",
+      "deviationRange": "偏差范围",
+      "all": "全部",
+      "oracleFilter": "预言机筛选",
+      "filtersApplied": "已应用 {count} 个筛选",
+      "noFilters": "无筛选条件",
+      "confirm": "确定"
+    },
+    "filterSummary": {
+      "deviation": "偏差",
+      "oracle": "预言机",
+      "time": "时间"
+    },
+    "pairSelector": {
+      "loading": "加载中...",
+      "searchPlaceholder": "搜索交易对...",
+      "noResults": "未找到匹配的交易对",
+      "keyboardHint": "使用 ↑↓ 导航，Enter 选择",
+      "totalCount": "共 {count} 个",
+      "categoryAll": "全部",
+      "categoryLayer1": "Layer 1",
+      "categoryDeFi": "DeFi",
+      "categoryStablecoin": "稳定币"
+    },
+    "priceTable": {
+      "highest": "最高",
+      "lowest": "最低",
+      "status": "状态",
+      "outlier": "异常值",
+      "normal": "正常",
+      "deviationRate": "偏离度",
+      "updateTime": "更新时间"
+    },
+    "chartTooltip": {
+      "avgPrice": "平均价格",
+      "stdDev": "标准差",
+      "oraclePrices": "预言机价格"
+    },
+    "timeRange": {
+      "1H": "1 小时",
+      "24H": "24 小时",
+      "7D": "7 天",
+      "30D": "30 天",
+      "90D": "90 天",
+      "1Y": "1 年",
+      "ALL": "全部时间"
+    },
+    "chart": {
+      "fullscreen": "全屏查看",
+      "zoomOut": "缩小",
+      "zoomIn": "放大",
+      "resetZoom": "重置缩放",
+      "reset": "重置",
+      "avgPriceLine": "平均价格"
+    },
+    "chartLegend": {
+      "avgPriceLine": "平均价格线",
+      "dataPoint": "数据更新点",
+      "stdDev1": "±1 标准差范围",
+      "stdDev2": "±2 标准差范围",
+      "pinchZoom": "双指缩放查看更多细节"
+    },
+    "chartsTab": {
+      "detailedAnalysis": "价格趋势详细分析"
+    },
+    "snapshotsTab": {
+      "selectSnapshot": "选择一个快照进行对比",
+      "selectHint": "从左侧快照列表中选择一个历史快照"
+    },
+    "advancedTab": {
+      "movingAverage": "移动平均线分析",
+      "dataQuality": "数据质量趋势"
+    },
+    "performanceTab": {
+      "performanceComparison": "性能对比分析",
+      "selectOracle": "选择预言机查看延迟数据",
+      "allOracles": "所有预言机",
+      "selectOraclePlaceholder": "选择预言机",
+      "summary": "预言机性能摘要",
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "stability": "稳定性",
+      "advancedAnalysis": "高级分析",
+      "tooltip": "{name} - 响应时间: {responseTime}ms, 准确率: {accuracy}%, 稳定性: {stability}%"
+    },
+    "outliers": {
+      "detected": "检测到价格异常值",
+      "count": "{count} 个异常",
+      "outlierOracles": "异常预言机",
+      "andMore": "等 {count} 个",
+      "avgDeviation": "平均偏差",
+      "viewDetails": "查看详情"
+    },
+    "accessibility": {
+      "standardColors": "切换标准颜色",
+      "colorBlindMode": "切换色盲友好颜色",
+      "standardMode": "标准模式",
+      "colorBlindModeShort": "色盲模式"
+    },
+    "favorites": {
+      "button": "收藏",
+      "quickAccess": "快速访问收藏",
+      "viewAll": "查看全部收藏"
+    },
+    "freshness": {
+      "justNow": "刚刚",
+      "secondsAgo": "{seconds}秒前",
+      "minutesAgo": "{minutes}分钟前",
+      "hoursAgo": "{hours}小时前"
+    },
+    "refreshOptions": {
+      "off": "关闭",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟"
+    }
   },
   "crossChain": {
     "title": "跨链价格比较",
@@ -485,7 +687,7 @@
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
-      "crossOracleComparison": "跨预言机对比",
+      "crossOracleComparison": "跨预言机分析",
       "ecosystem": "生态系统",
       "riskAssessment": "风险评估",
       "nodes": "节点",
@@ -704,7 +906,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     }
   },
   "dia": {
@@ -949,7 +1151,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "tabs": {
       "market": "市场",
@@ -1181,7 +1383,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "tabs": {
       "market": "市场",
@@ -1205,7 +1407,7 @@
       "staking": "质押",
       "riskAssessment": "风险评估",
       "ecosystem": "生态系统",
-      "crossOracleComparison": "跨预言机对比"
+      "crossOracleComparison": "跨预言机分析"
     },
     "stats": {
       "supportedChains": "支持的链",
@@ -1328,7 +1530,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     }
   },
   "redstone": {
@@ -1448,7 +1650,7 @@
       "integrations": "集成项目"
     },
     "crossOracle": {
-      "title": "跨预言机对比"
+      "title": "跨预言机价格分析"
     },
     "pageTitles": {
       "market": "市场数据",
@@ -1458,7 +1660,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "tabs": {
       "market": "市场",
@@ -1542,7 +1744,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     }
   },
   "pyth": {
@@ -1555,7 +1757,7 @@
       "networkHealth": "网络健康度",
       "priceFeeds": "价格源",
       "crossChain": "跨链",
-      "crossOracleComparison": "跨预言机对比",
+      "crossOracleComparison": "跨预言机分析",
       "riskAssessment": "风险评估"
     },
     "tabs": {
@@ -1624,7 +1826,7 @@
       "description": "Pyth 通过 Wormhole 跨链协议支持多条区块链，实现亚秒级价格更新。"
     },
     "crossOracle": {
-      "title": "跨预言机对比"
+      "title": "跨预言机价格分析"
     },
     "pageTitles": {
       "market": "市场数据",
@@ -1634,7 +1836,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "menu": {
       "marketData": "市场数据",
@@ -1643,7 +1845,7 @@
       "networkHealth": "网络健康度",
       "priceFeeds": "价格源",
       "crossChain": "跨链",
-      "crossOracleComparison": "跨预言机对比",
+      "crossOracleComparison": "跨预言机分析",
       "riskAssessment": "风险评估"
     },
     "riskAssessment": {
@@ -1691,7 +1893,7 @@
     "title": "API3",
     "subtitle": "第一方预言机网络，实现去中心化 API 连接",
     "menu": {
-      "crossOracleComparison": "跨预言机对比"
+      "crossOracleComparison": "跨预言机分析"
     },
     "firstPartyOracle": {
       "title": "第一方预言机分析"
@@ -1741,7 +1943,7 @@
     },
     "crossOracle": {
       "overview": {
-        "title": "跨预言机对比",
+        "title": "跨预言机价格分析",
         "description": "将 API3 性能指标与其他领先预言机提供商进行对比，包括 Chainlink、Pyth、Band Protocol 和 DIA。"
       },
       "responseTime": {
@@ -1792,7 +1994,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "tabs": {
       "market": "市场",
@@ -2674,7 +2876,7 @@
       "dataFeeds": "数据馈送",
       "staking": "质押",
       "ecosystem": "生态系统",
-      "crossOracle": "跨预言机对比",
+      "crossOracle": "跨预言机分析",
       "riskAssessment": "风险评估"
     },
     "activeValidators": "活跃验证者",
@@ -2695,7 +2897,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "riskAssessment": {
       "overallRiskScore": "整体风险评分",
@@ -3800,7 +4002,7 @@
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "tabs": {
-      "crossOracle": "跨预言机对比",
+      "crossOracle": "跨预言机分析",
       "market": "市场",
       "network": "网络",
       "tron": "TRON",
@@ -3932,7 +4134,7 @@
       "ecosystem": "生态系统",
       "risk": "风险评估",
       "crossChain": "跨链",
-      "crossOracle": "跨预言机对比"
+      "crossOracle": "跨预言机分析"
     },
     "tabs": {
       "market": "市场",

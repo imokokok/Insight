@@ -162,10 +162,10 @@ export function CrossOracleComparison() {
   const consistencyScore = calculateConsistencyScore();
 
   const getConsistencyLabel = (score: number): string => {
-    if (score >= 90) return t('crossOracle.consistency.excellent');
-    if (score >= 70) return t('crossOracle.consistency.good');
-    if (score >= 50) return t('crossOracle.consistency.fair');
-    return t('crossOracle.consistency.poor');
+    if (score >= 90) return t('common.consistency.excellent');
+    if (score >= 70) return t('common.consistency.good');
+    if (score >= 50) return t('common.consistency.fair');
+    return t('common.consistency.poor');
   };
 
   const getConsistencyColor = (score: number): string => {
@@ -456,14 +456,14 @@ export function CrossOracleComparison() {
             fileName={`cross-oracle-comparison-${selectedSymbol}-${lastUpdated.toISOString().split('T')[0]}`}
           />
           <span className="text-sm text-gray-500">
-            {t('crossOracle.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
+            {t('common.time.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
           </span>
           <button
             onClick={fetchPrices}
             disabled={isLoading}
             className="px-4 py-2 bg-blue-600 text-white  hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
-            {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
+            {isLoading ? t('common.status.loading') : t('common.actions.refresh')}
           </button>
         </div>
       </div>

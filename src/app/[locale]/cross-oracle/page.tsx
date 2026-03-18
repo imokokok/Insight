@@ -163,7 +163,7 @@ export default function CrossOraclePage() {
         {avgValue !== undefined && (
           <div className="mb-3 pb-2 border-b border-gray-100">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-600">平均价格</span>
+              <span className="text-gray-600">{t('crossOracle.chartTooltip.avgPrice')}</span>
               <span className="font-semibold text-gray-900">
                 $
                 {avgValue.toLocaleString(undefined, {
@@ -174,7 +174,7 @@ export default function CrossOraclePage() {
             </div>
             {stdDevValue !== undefined && (
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>标准差</span>
+                <span>{t('crossOracle.chartTooltip.stdDev')}</span>
                 <span>
                   ±$
                   {stdDevValue.toLocaleString(undefined, {
@@ -187,7 +187,7 @@ export default function CrossOraclePage() {
           </div>
         )}
         <div className="space-y-1.5">
-          <div className="text-xs text-gray-500 mb-2">预言机价格</div>
+          <div className="text-xs text-gray-500 mb-2">{t('crossOracle.chartTooltip.oraclePrices')}</div>
           {oraclePrices.map((entry, index) => {
             const deviation = avgValue ? ((entry.value - avgValue) / avgValue) * 100 : null;
             return (
@@ -275,17 +275,7 @@ export default function CrossOraclePage() {
             {timeRange !== 'ALL' && (
               <span className="text-sm text-gray-500 ml-2">
                 (
-                {timeRange === '1H'
-                  ? '1 小时'
-                  : timeRange === '24H'
-                    ? '24 小时'
-                    : timeRange === '7D'
-                      ? '7 天'
-                      : timeRange === '30D'
-                        ? '30 天'
-                        : timeRange === '90D'
-                          ? '90 天'
-                          : '1 年'}
+                {t(`crossOracle.timeRange.${timeRange}`)}
                 )
               </span>
             )}
@@ -294,7 +284,7 @@ export default function CrossOraclePage() {
             <button
               onClick={() => setIsChartFullscreen(true)}
               className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors md:hidden"
-              title="全屏查看"
+              title={t('crossOracle.chart.fullscreen')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -309,7 +299,7 @@ export default function CrossOraclePage() {
               <button
                 onClick={handleZoomOut}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title="缩小"
+                title={t('crossOracle.chart.zoomOut')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -321,7 +311,7 @@ export default function CrossOraclePage() {
               <button
                 onClick={handleZoomIn}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title="放大"
+                title={t('crossOracle.chart.zoomIn')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -336,9 +326,9 @@ export default function CrossOraclePage() {
             <button
               onClick={handleResetZoom}
               className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              title="重置缩放"
+              title={t('crossOracle.chart.resetZoom')}
             >
-              重置
+              {t('crossOracle.chart.reset')}
             </button>
           </div>
         </div>
@@ -427,7 +417,7 @@ export default function CrossOraclePage() {
                   strokeDasharray="5 5"
                   dot={false}
                   activeDot={false}
-                  name="平均价格"
+                  name={t('crossOracle.chart.avgPriceLine')}
                 />
                 {selectedOracles.map((oracle) => (
                   <Line
@@ -465,13 +455,13 @@ export default function CrossOraclePage() {
     <>
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">价格趋势详细分析</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('crossOracle.chartsTab.detailedAnalysis')}</h2>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-gray-100 p-0.5">
               <button
                 onClick={handleZoomOut}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title="缩小"
+                title={t('crossOracle.chart.zoomOut')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -483,7 +473,7 @@ export default function CrossOraclePage() {
               <button
                 onClick={handleZoomIn}
                 className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
-                title="放大"
+                title={t('crossOracle.chart.zoomIn')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -499,7 +489,7 @@ export default function CrossOraclePage() {
               onClick={handleResetZoom}
               className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             >
-              重置
+              {t('crossOracle.chart.reset')}
             </button>
           </div>
         </div>
@@ -572,7 +562,7 @@ export default function CrossOraclePage() {
                 strokeDasharray="5 5"
                 dot={false}
                 activeDot={false}
-                name="平均价格"
+                name={t('crossOracle.chart.avgPriceLine')}
               />
               {selectedOracles.map((oracle) => (
                 <Line
@@ -660,8 +650,8 @@ export default function CrossOraclePage() {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <p className="text-sm text-gray-500">选择一个快照进行对比</p>
-              <p className="text-xs text-gray-400 mt-1">从左侧快照列表中选择一个历史快照</p>
+              <p className="text-sm text-gray-500">{t('crossOracle.snapshotsTab.selectSnapshot')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('crossOracle.snapshotsTab.selectHint')}</p>
             </div>
           </div>
         )}
@@ -673,14 +663,14 @@ export default function CrossOraclePage() {
     return (
       <>
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">移动平均线分析</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.advancedTab.movingAverage')}</h2>
           {maData.some((d) => d.prices.length > 0) && (
             <MovingAverageChart data={maData} oracleNames={oracleNames} />
           )}
         </div>
 
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">数据质量趋势</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.advancedTab.dataQuality')}</h2>
           {qualityTrendData.some((d) => d.data.length > 0) && (
             <DataQualityTrend data={qualityTrendData} oracleNames={oracleNames} />
           )}
@@ -692,16 +682,16 @@ export default function CrossOraclePage() {
   const renderPerformanceTab = () => (
     <>
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">性能对比分析</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.performanceComparison')}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-gray-200 p-5">
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                选择预言机查看延迟数据
+                {t('crossOracle.performanceTab.selectOracle')}
               </label>
               <DropdownSelect
                 options={[
-                  { value: '', label: '所有预言机' },
+                  { value: '', label: t('crossOracle.performanceTab.allOracles') },
                   ...selectedOracles.map((oracle) => ({
                     value: oracle,
                     label: oracleNames[oracle],
@@ -713,19 +703,19 @@ export default function CrossOraclePage() {
                     value ? (value as OracleProvider) : null
                   )
                 }
-                placeholder="选择预言机"
+                placeholder={t('crossOracle.performanceTab.selectOraclePlaceholder')}
                 className="w-full"
               />
             </div>
             <LatencyDistributionHistogram
               data={getOracleLatencyData(selectedPerformanceOracle)}
               oracleName={
-                selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : '所有预言机'
+                selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : t('crossOracle.performanceTab.allOracles')
               }
             />
           </div>
           <div className="bg-white border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">预言机性能摘要</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.summary')}</h3>
             <div className="space-y-3">
               {performanceData.map((data) => (
                 <div
@@ -737,7 +727,12 @@ export default function CrossOraclePage() {
                   }`}
                   onClick={() => setSelectedPerformanceOracle(data.provider)}
                   style={{ cursor: 'pointer' }}
-                  title={`${data.name} - 响应时间: ${data.responseTime}ms, 准确率: ${data.accuracy.toFixed(1)}%, 稳定性: ${data.stability.toFixed(1)}%`}
+                  title={t('crossOracle.performanceTab.tooltip', { 
+                    name: data.name, 
+                    responseTime: data.responseTime, 
+                    accuracy: data.accuracy.toFixed(1), 
+                    stability: data.stability.toFixed(1) 
+                  })}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
@@ -748,15 +743,15 @@ export default function CrossOraclePage() {
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
                     <div className="text-center">
-                      <p className="text-gray-400">响应时间</p>
+                      <p className="text-gray-400">{t('crossOracle.performanceTab.responseTime')}</p>
                       <p className="font-semibold text-gray-900 truncate">{data.responseTime}ms</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400">准确率</p>
+                      <p className="text-gray-400">{t('crossOracle.performanceTab.accuracy')}</p>
                       <p className="font-semibold text-green-600">{data.accuracy.toFixed(1)}%</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-gray-400">稳定性</p>
+                      <p className="text-gray-400">{t('crossOracle.performanceTab.stability')}</p>
                       <p className="font-semibold text-blue-600">{data.stability.toFixed(1)}%</p>
                     </div>
                   </div>
@@ -768,7 +763,7 @@ export default function CrossOraclePage() {
       </div>
 
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">高级分析</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.advancedAnalysis')}</h2>
         {correlationData.length >= 2 && (
           <div className="mb-6">
             <PriceCorrelationMatrix data={correlationData} oracleNames={oracleNames} />
@@ -822,22 +817,22 @@ export default function CrossOraclePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-amber-800">检测到价格异常值</h3>
+                  <h3 className="text-sm font-semibold text-amber-800">{t('crossOracle.outliers.detected')}</h3>
                   <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-                    {outlierStats.count} 个异常
+                    {t('crossOracle.outliers.count', { count: outlierStats.count })}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-amber-700">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-amber-600 font-medium">异常预言机:</span>
+                    <span className="text-amber-600 font-medium">{t('crossOracle.outliers.outlierOracles')}:</span>
                     <span className="font-medium">
                       {outlierStats.oracleNames.slice(0, 3).join('、')}
                       {outlierStats.oracleNames.length > 3 &&
-                        ` 等${outlierStats.oracleNames.length}个`}
+                        ` ${t('crossOracle.outliers.andMore', { count: outlierStats.oracleNames.length })}`}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-amber-600 font-medium">平均偏差:</span>
+                    <span className="text-amber-600 font-medium">{t('crossOracle.outliers.avgDeviation')}:</span>
                     <span className="font-medium">{outlierStats.avgDeviation.toFixed(3)}%</span>
                   </div>
                 </div>
@@ -846,7 +841,7 @@ export default function CrossOraclePage() {
                 onClick={scrollToOutlier}
                 className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 transition-colors border border-amber-200"
               >
-                查看详情
+                {t('crossOracle.outliers.viewDetails')}
               </button>
             </div>
           </div>
@@ -865,6 +860,7 @@ export default function CrossOraclePage() {
               onSymbolChange={setSelectedSymbol}
               symbols={symbols}
               isLoading={isLoading}
+              t={t}
             />
           </div>
         </div>
@@ -878,7 +874,12 @@ export default function CrossOraclePage() {
                   : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -886,7 +887,7 @@ export default function CrossOraclePage() {
                   d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                 />
               </svg>
-              <span>筛选</span>
+              <span>{t('crossOracle.filter.button')}</span>
               {activeFilterCount > 0 && (
                 <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-medium bg-blue-600 text-white rounded-full">
                   {activeFilterCount}
@@ -929,25 +930,25 @@ export default function CrossOraclePage() {
                 ? 'bg-purple-50 border-purple-300 text-purple-700'
                 : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
-            title={useAccessibleColors ? '切换标准颜色' : '切换色盲友好颜色'}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            <span className="hidden sm:inline">
-              {useAccessibleColors ? '色盲模式' : '标准模式'}
-            </span>
+            title={useAccessibleColors ? t('crossOracle.accessibility.standardColors') : t('crossOracle.accessibility.colorBlindMode')}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+              <span className="hidden sm:inline">
+                {useAccessibleColors ? t('crossOracle.accessibility.standardMode') : t('crossOracle.accessibility.colorBlindMode')}
+              </span>
           </button>
 
           <button
@@ -967,7 +968,7 @@ export default function CrossOraclePage() {
                 />
               </svg>
             )}
-            {isLoading ? t('crossOracle.loading') : t('crossOracle.refresh')}
+            {isLoading ? t('common.status.loading') : t('common.actions.refresh')}
           </button>
 
           {user && (
@@ -999,7 +1000,7 @@ export default function CrossOraclePage() {
                     d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                   />
                 </svg>
-                <span>收藏</span>
+                <span>{t('crossOracle.favorites.button')}</span>
                 <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
                   {oracleFavorites.length}
                 </span>
@@ -1021,7 +1022,7 @@ export default function CrossOraclePage() {
               {showFavoritesDropdown && (
                 <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 z-50 max-h-96 overflow-y-auto">
                   <div className="p-2 border-b border-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-900">快速访问收藏</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">{t('crossOracle.favorites.quickAccess')}</h3>
                   </div>
                   <div className="p-1">
                     {oracleFavorites.map((favorite) => {
@@ -1065,7 +1066,7 @@ export default function CrossOraclePage() {
                       }}
                       className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      查看全部收藏
+                      {t('crossOracle.favorites.viewAll')}
                     </button>
                   </div>
                 </div>
@@ -1131,7 +1132,7 @@ export default function CrossOraclePage() {
                 onClick={handleResetZoom}
                 className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               >
-                重置
+                {t('crossOracle.chart.reset')}
               </button>
               <button
                 onClick={() => setIsChartFullscreen(false)}
@@ -1224,9 +1225,9 @@ export default function CrossOraclePage() {
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
-                  activeDot={false}
-                  name="平均价格"
-                />
+                activeDot={false}
+                name={t('crossOracle.chart.avgPriceLine')}
+              />
                 {selectedOracles.map((oracle) => (
                   <Line
                     key={oracle}
@@ -1252,23 +1253,23 @@ export default function CrossOraclePage() {
                 className="w-5 h-0.5 bg-indigo-500"
                 style={{ borderTop: `2px dashed ${chartColors.chart.indigoLight}` }}
               />
-              <span>平均价格线</span>
+              <span>{t('crossOracle.chartLegend.avgPriceLine')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-indigo-500 border border-white" />
-              <span>数据更新点</span>
+              <span>{t('crossOracle.chartLegend.dataPoint')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-5 h-3" style={{ backgroundColor: chartColors.chart.blueLight }} />
-              <span>±1 标准差范围</span>
+              <span>{t('crossOracle.chartLegend.stdDev1')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-5 h-3" style={{ backgroundColor: baseColors.primary[300] }} />
-              <span>±2 标准差范围</span>
+              <span>{t('crossOracle.chartLegend.stdDev2')}</span>
             </div>
           </div>
           <div className="p-3 bg-gray-50 border-t border-gray-200 text-center">
-            <p className="text-xs text-gray-500">双指缩放查看更多细节</p>
+            <p className="text-xs text-gray-500">{t('crossOracle.chartLegend.pinchZoom')}</p>
           </div>
         </div>
       )}

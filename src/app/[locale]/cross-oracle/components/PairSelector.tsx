@@ -11,17 +11,17 @@ interface PairSelectorProps {
   onSymbolChange: (symbol: string) => void;
   symbols: string[];
   isLoading?: boolean;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 type Category = 'all' | 'layer1' | 'defi' | 'stablecoin';
 
-// 分类标签配置
-const categoryLabels: Record<Category, string> = {
-  all: '全部',
-  layer1: 'Layer 1',
-  defi: 'DeFi',
-  stablecoin: '稳定币',
-};
+const getCategoryLabels = (t: (key: string) => string): Record<Category, string> => ({
+  all: t('crossOracle.pairSelector.categoryAll'),
+  layer1: t('crossOracle.pairSelector.categoryLayer1'),
+  defi: t('crossOracle.pairSelector.categoryDeFi'),
+  stablecoin: t('crossOracle.pairSelector.categoryStablecoin'),
+});
 
 // 加密货币到logo文件的映射
 const cryptoLogoMap: Record<string, string> = {
@@ -101,7 +101,9 @@ export function PairSelector({
   selectedSymbol,
   onSymbolChange,
   isLoading = false,
+  t,
 }: PairSelectorProps) {
+  const categoryLabels = useMemo(() => getCategoryLabels(t), [t]);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
@@ -235,7 +237,7 @@ export function PairSelector({
               }}
             />
             <span className="text-sm font-medium" style={{ color: baseColors.gray[700] }}>
-              加载中...
+              {t('crossOracle.pairSelector.loading')}
             </span>
           </div>
         ) : (
@@ -286,7 +288,7 @@ export function PairSelector({
                   setSearchQuery(e.target.value);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="搜索交易对..."
+                placeholder={t('crossOracle.pairSelector.searchPlaceholder')}
                 className="
                   w-full pl-8 pr-3 py-1.5 text-sm rounded
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
@@ -344,7 +346,7 @@ export function PairSelector({
                 className="px-3 py-4 text-sm text-center"
                 style={{ color: baseColors.gray[500] }}
               >
-                未找到匹配的交易对
+                {t('crossOracle.pairSelector.noResults')}
               </div>
             ) : (
               filteredPairs.map((pair, index) => {
@@ -424,8 +426,8 @@ export function PairSelector({
               color: baseColors.gray[400],
             }}
           >
-            <span>使用 ↑↓ 导航，Enter 选择</span>
-            <span>共 {filteredPairs.length} 个</span>
+            <span>{t('crossOracle.pairSelector.keyboardHint')}</span>
+            <span>{t('crossOracle.pairSelector.totalCount', { count: filteredPairs.length })}</span>
           </div>
         </div>
       )}

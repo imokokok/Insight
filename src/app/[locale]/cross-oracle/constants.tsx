@@ -111,7 +111,8 @@ export const getDeviationBgClass = (deviationPercent: number | null): string => 
 };
 
 export const getFreshnessInfo = (
-  timestamp: number
+  timestamp: number,
+  t?: (key: string, params?: Record<string, string | number>) => string
 ): { text: string; colorClass: string; seconds: number } => {
   const now = Date.now();
   const seconds = Math.floor((now - timestamp) / 1000);
@@ -120,18 +121,20 @@ export const getFreshnessInfo = (
   let colorClass: string;
 
   if (seconds < 30) {
-    text = seconds <= 1 ? '刚刚' : `${seconds}秒前`;
+    text = seconds <= 1 
+      ? (t ? t('crossOracle.freshness.justNow') : 'Just now') 
+      : (t ? t('crossOracle.freshness.secondsAgo', { seconds }) : `${seconds}s ago`);
     colorClass = `text-[${semanticColors.success.dark}]`;
   } else if (seconds < 60) {
-    text = `${seconds}秒前`;
+    text = t ? t('crossOracle.freshness.secondsAgo', { seconds }) : `${seconds}s ago`;
     colorClass = `text-[${semanticColors.warning.dark}]`;
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    text = `${minutes}分钟前`;
+    text = t ? t('crossOracle.freshness.minutesAgo', { minutes }) : `${minutes}m ago`;
     colorClass = `text-[${semanticColors.danger.dark}]`;
   } else {
     const hours = Math.floor(seconds / 3600);
-    text = `${hours}小时前`;
+    text = t ? t('crossOracle.freshness.hoursAgo', { hours }) : `${hours}h ago`;
     colorClass = `text-[${semanticColors.danger.dark}]`;
   }
 
@@ -539,14 +542,14 @@ export const exportToJSON = (
   document.body.removeChild(link);
 };
 
-export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
-
-export const refreshOptions: { value: RefreshInterval; label: string }[] = [
-  { value: 0, label: '关闭' },
-  { value: 30000, label: '30秒' },
-  { value: 60000, label: '1分钟' },
-  { value: 300000, label: '5分钟' },
+export const getRefreshOptions = (t?: (key: string) => string): { value: RefreshInterval; label: string }[] => [
+  { value: 0, label: t ? t('crossOracle.refreshOptions.off') : 'Off' },
+  { value: 30000, label: t ? t('crossOracle.refreshOptions.30s') : '30s' },
+  { value: 60000, label: t ? t('crossOracle.refreshOptions.1m') : '1m' },
+  { value: 300000, label: t ? t('crossOracle.refreshOptions.5m') : '5m' },
 ];
+
+export const timeRanges: TimeRange[] = ['1H', '24H', '7D', '30D', '90D', '1Y', 'ALL'];
 
 export interface HistoryMinMax {
   avgPrice: { min: number; max: number };
