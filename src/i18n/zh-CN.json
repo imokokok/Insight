@@ -571,6 +571,37 @@
       "30s": "30秒",
       "1m": "1分钟",
       "5m": "5分钟"
+    },
+    "dataSources": {
+      "title": "对比数据来源"
+    },
+    "comparison": {
+      "summary": "对比摘要",
+      "avgPrice": "平均价格",
+      "priceRange": "价格范围",
+      "consistency": "一致性评分",
+      "oracleCount": "预言机数量"
+    },
+    "benchmark": {
+      "title": "行业基准对比"
+    }
+  },
+  "crossOracleComparison": {
+    "title": "多预言机比较分析",
+    "subtitle": "全面的多源价格聚合与趋同分析",
+    "consistencyScore": "一致性评分",
+    "quickCompare": "快速对比",
+    "deviation": "偏差",
+    "avgResponseTime": "平均响应时间",
+    "highDeviation": "高偏差",
+    "dataSources": "数据源",
+    "supportedChains": "支持的链",
+    "radar": {
+      "responseTime": "响应时间",
+      "updateFrequency": "更新频率",
+      "dataSources": "数据源",
+      "supportedChains": "支持的链",
+      "reliability": "可靠性"
     }
   },
   "crossChain": {
@@ -2817,6 +2848,12 @@
       "source": "来源",
       "change24h": "24h变化",
       "confidence": "置信度"
+    },
+    "dataSources": {
+      "title": "数据来源"
+    },
+    "comparison": {
+      "title": "时间对比"
     }
   },
   "priceDeviation": {
@@ -6153,29 +6190,6 @@
       "content": "本页面提供的方法论仅供技术参考，实际数据处理方式可能因市场条件和技术发展而调整。我们不对因使用本平台数据而产生的任何损失承担责任。"
     }
   },
-  "priceQuery": {
-    "dataSources": {
-      "title": "查询数据来源"
-    },
-    "comparison": {
-      "title": "时间对比分析"
-    }
-  },
-  "crossOracle": {
-    "dataSources": {
-      "title": "对比数据来源"
-    },
-    "comparison": {
-      "summary": "对比摘要",
-      "avgPrice": "平均价格",
-      "priceRange": "价格范围",
-      "consistency": "一致性评分",
-      "oracleCount": "预言机数量"
-    },
-    "benchmark": {
-      "title": "行业基准对比"
-    }
-  },
   "crossChain": {
     "dataSources": {
       "title": "跨链数据来源"
@@ -6381,7 +6395,9 @@
       "difference": "差异",
       "percentChange": "变化百分比",
       "currentAvg": "当前平均值",
-      "comparisonAvg": "对比平均值"
+      "comparisonAvg": "对比平均值",
+      "yoy": "同比",
+      "mom": "环比"
     },
     "oracleComparison": {
       "title": "多预言机对比",
