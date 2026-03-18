@@ -21,12 +21,11 @@ interface ServiceData {
   icon: React.ReactNode;
 }
 
-const servicesData: ServiceData[] = [
+const getServicesData = (t: ReturnType<typeof useTranslations>): ServiceData[] => [
   {
     id: 'ccip',
-    name: 'CCIP',
-    description:
-      'Cross-Chain Interoperability Protocol for secure cross-chain messaging and token transfers',
+    name: t('chainlink.services.ccip.name'),
+    description: t('chainlink.services.ccip.description'),
     status: 'active',
     metrics: [
       {
@@ -55,17 +54,17 @@ const servicesData: ServiceData[] = [
       },
     ],
     features: [
-      'Arbitrary messaging across chains',
-      'Token transfers with lock-and-mint',
-      'Programmable token bridge',
-      'Rate limiting for security',
-      'Risk management network',
+      t('chainlink.services.ccip.feature1', { defaultValue: 'Arbitrary messaging across chains' }),
+      t('chainlink.services.ccip.feature2', { defaultValue: 'Token transfers with lock-and-mint' }),
+      t('chainlink.services.ccip.feature3', { defaultValue: 'Programmable token bridge' }),
+      t('chainlink.services.ccip.feature4', { defaultValue: 'Rate limiting for security' }),
+      t('chainlink.services.ccip.feature5', { defaultValue: 'Risk management network' }),
     ],
     useCases: [
-      'Cross-chain DeFi',
-      'Multi-chain NFTs',
-      'Cross-chain governance',
-      'Interoperable gaming',
+      t('chainlink.services.ccip.useCase1', { defaultValue: 'Cross-chain DeFi' }),
+      t('chainlink.services.ccip.useCase2', { defaultValue: 'Multi-chain NFTs' }),
+      t('chainlink.services.ccip.useCase3', { defaultValue: 'Cross-chain governance' }),
+      t('chainlink.services.ccip.useCase4', { defaultValue: 'Interoperable gaming' }),
     ],
     color: 'blue',
     icon: (
@@ -81,9 +80,8 @@ const servicesData: ServiceData[] = [
   },
   {
     id: 'functions',
-    name: 'Functions',
-    description:
-      'Serverless Web3 platform for fetching data from any API and running custom computations',
+    name: t('chainlink.services.functions.name'),
+    description: t('chainlink.services.functions.description'),
     status: 'active',
     metrics: [
       {
@@ -112,13 +110,18 @@ const servicesData: ServiceData[] = [
       },
     ],
     features: [
-      'Connect to any API',
-      'Custom JavaScript computations',
-      'Decentralized execution',
-      'Secrets management',
-      'Serverless architecture',
+      t('chainlink.services.functions.feature1', { defaultValue: 'Connect to any API' }),
+      t('chainlink.services.functions.feature2', { defaultValue: 'Custom JavaScript computations' }),
+      t('chainlink.services.functions.feature3', { defaultValue: 'Decentralized execution' }),
+      t('chainlink.services.functions.feature4', { defaultValue: 'Secrets management' }),
+      t('chainlink.services.functions.feature5', { defaultValue: 'Serverless architecture' }),
     ],
-    useCases: ['DeFi integrations', 'AI/ML oracles', 'Real-world data', 'Custom price feeds'],
+    useCases: [
+      t('chainlink.services.functions.useCase1', { defaultValue: 'DeFi integrations' }),
+      t('chainlink.services.functions.useCase2', { defaultValue: 'AI/ML oracles' }),
+      t('chainlink.services.functions.useCase3', { defaultValue: 'Real-world data' }),
+      t('chainlink.services.functions.useCase4', { defaultValue: 'Custom price feeds' }),
+    ],
     color: 'purple',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,8 +136,8 @@ const servicesData: ServiceData[] = [
   },
   {
     id: 'automation',
-    name: 'Automation',
-    description: 'Reliable and performant smart contract automation for conditional execution',
+    name: t('chainlink.services.automation.name'),
+    description: t('chainlink.services.automation.description'),
     status: 'active',
     metrics: [
       {
@@ -163,13 +166,18 @@ const servicesData: ServiceData[] = [
       },
     ],
     features: [
-      'Time-based triggers',
-      'Custom logic triggers',
-      'Log-based triggers',
-      'Off-chain computation',
-      'Gas-optimized execution',
+      t('chainlink.services.automation.feature1', { defaultValue: 'Time-based triggers' }),
+      t('chainlink.services.automation.feature2', { defaultValue: 'Custom logic triggers' }),
+      t('chainlink.services.automation.feature3', { defaultValue: 'Log-based triggers' }),
+      t('chainlink.services.automation.feature4', { defaultValue: 'Off-chain computation' }),
+      t('chainlink.services.automation.feature5', { defaultValue: 'Gas-optimized execution' }),
     ],
-    useCases: ['Liquidation bots', 'Yield harvesting', 'Rebalancing', 'Reward distribution'],
+    useCases: [
+      t('chainlink.services.automation.useCase1', { defaultValue: 'Liquidation bots' }),
+      t('chainlink.services.automation.useCase2', { defaultValue: 'Yield harvesting' }),
+      t('chainlink.services.automation.useCase3', { defaultValue: 'Rebalancing' }),
+      t('chainlink.services.automation.useCase4', { defaultValue: 'Reward distribution' }),
+    ],
     color: 'green',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,8 +192,8 @@ const servicesData: ServiceData[] = [
   },
   {
     id: 'vrf',
-    name: 'VRF',
-    description: 'Verifiable Random Function for provably fair and tamper-proof randomness',
+    name: t('chainlink.services.vrf.name'),
+    description: t('chainlink.services.vrf.description'),
     status: 'active',
     metrics: [
       {
@@ -214,13 +222,18 @@ const servicesData: ServiceData[] = [
       },
     ],
     features: [
-      'Cryptographically proven randomness',
-      'On-chain verification',
-      'VRF V2.5 with native payment',
-      'Custom callback gas limit',
-      'Multiple random numbers per request',
+      t('chainlink.services.vrf.feature1', { defaultValue: 'Cryptographically proven randomness' }),
+      t('chainlink.services.vrf.feature2', { defaultValue: 'On-chain verification' }),
+      t('chainlink.services.vrf.feature3', { defaultValue: 'VRF V2.5 with native payment' }),
+      t('chainlink.services.vrf.feature4', { defaultValue: 'Custom callback gas limit' }),
+      t('chainlink.services.vrf.feature5', { defaultValue: 'Multiple random numbers per request' }),
     ],
-    useCases: ['NFT minting', 'Gaming & gambling', 'Random giveaways', 'Fair selection'],
+    useCases: [
+      t('chainlink.services.vrf.useCase1', { defaultValue: 'NFT minting' }),
+      t('chainlink.services.vrf.useCase2', { defaultValue: 'Gaming & gambling' }),
+      t('chainlink.services.vrf.useCase3', { defaultValue: 'Random giveaways' }),
+      t('chainlink.services.vrf.useCase4', { defaultValue: 'Fair selection' }),
+    ],
     color: 'pink',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,8 +248,8 @@ const servicesData: ServiceData[] = [
   },
   {
     id: 'por',
-    name: 'Proof of Reserve',
-    description: 'Transparent on-chain attestation of off-chain or cross-chain asset reserves',
+    name: t('chainlink.services.por.name'),
+    description: t('chainlink.services.por.description'),
     status: 'active',
     metrics: [
       {
@@ -265,17 +278,17 @@ const servicesData: ServiceData[] = [
       },
     ],
     features: [
-      'Real-time reserve monitoring',
-      'Multi-signature verification',
-      'Automated attestations',
-      'Cross-chain reserve tracking',
-      'DeFi collateral verification',
+      t('chainlink.services.por.feature1', { defaultValue: 'Real-time reserve monitoring' }),
+      t('chainlink.services.por.feature2', { defaultValue: 'Multi-signature verification' }),
+      t('chainlink.services.por.feature3', { defaultValue: 'Automated attestations' }),
+      t('chainlink.services.por.feature4', { defaultValue: 'Cross-chain reserve tracking' }),
+      t('chainlink.services.por.feature5', { defaultValue: 'DeFi collateral verification' }),
     ],
     useCases: [
-      'Stablecoin transparency',
-      'Wrapped assets',
-      'Cross-chain bridges',
-      'DeFi collateral',
+      t('chainlink.services.por.useCase1', { defaultValue: 'Stablecoin transparency' }),
+      t('chainlink.services.por.useCase2', { defaultValue: 'Wrapped assets' }),
+      t('chainlink.services.por.useCase3', { defaultValue: 'Cross-chain bridges' }),
+      t('chainlink.services.por.useCase4', { defaultValue: 'DeFi collateral' }),
     ],
     color: 'amber',
     icon: (
@@ -291,18 +304,20 @@ const servicesData: ServiceData[] = [
   },
 ];
 
-const ccipChainData = [
-  { name: 'Ethereum', messages: 850000, value: 5200000000 },
-  { name: 'Arbitrum', messages: 420000, value: 1800000000 },
-  { name: 'Optimism', messages: 380000, value: 1500000000 },
-  { name: 'Polygon', messages: 320000, value: 1200000000 },
-  { name: 'Base', messages: 280000, value: 980000000 },
-  { name: 'Avalanche', messages: 150000, value: 650000000 },
+const getCcipChainData = (t: ReturnType<typeof useTranslations>) => [
+  { name: t('common.chains.ethereum', { defaultValue: 'Ethereum' }), messages: 850000, value: 5200000000 },
+  { name: t('common.chains.arbitrum', { defaultValue: 'Arbitrum' }), messages: 420000, value: 1800000000 },
+  { name: t('common.chains.optimism', { defaultValue: 'Optimism' }), messages: 380000, value: 1500000000 },
+  { name: t('common.chains.polygon', { defaultValue: 'Polygon' }), messages: 320000, value: 1200000000 },
+  { name: t('common.chains.base', { defaultValue: 'Base' }), messages: 280000, value: 980000000 },
+  { name: t('common.chains.avalanche', { defaultValue: 'Avalanche' }), messages: 150000, value: 650000000 },
 ];
 
 export function ChainlinkServicesPanel() {
   const t = useTranslations();
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const servicesData = getServicesData(t);
+  const ccipChainData = getCcipChainData(t);
 
   const getStatusColor = (status: string) => {
     switch (status) {

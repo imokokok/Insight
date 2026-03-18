@@ -6,6 +6,7 @@
       "cancel": "取消",
       "save": "保存",
       "delete": "删除",
+      "deleting": "删除中...",
       "edit": "编辑",
       "apply": "应用",
       "retry": "重试",
@@ -15,7 +16,8 @@
       "reset": "重置",
       "zoomIn": "放大",
       "zoomOut": "缩小",
-      "viewFullscreen": "全屏查看"
+      "viewFullscreen": "全屏查看",
+      "search": "搜索"
     },
     "status": {
       "loading": "加载中...",
@@ -27,19 +29,19 @@
       "offline": "离线"
     },
     "consistency": {
-      "excellent": "优秀",
-      "good": "良好",
-      "fair": "一般",
-      "poor": "较差"
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界"
     },
     "activity": {
-      "active": "活跃",
-      "inactive": "未激活",
+      "active": "运行中",
+      "inactive": "离线",
       "degraded": "降级"
     },
     "alert": {
-      "normal": "正常",
-      "warning": "警告",
+      "normal": "标准",
+      "warning": "注意",
       "critical": "异常"
     },
     "time": {
@@ -64,6 +66,14 @@
       "average": "平均值",
       "variance": "方差"
     },
+    "chains": {
+      "ethereum": "以太坊",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "polygon": "Polygon",
+      "base": "Base",
+      "avalanche": "Avalanche"
+    },
     "filters": {
       "filter": "筛选",
       "clearAll": "清除全部",
@@ -77,14 +87,28 @@
       "excellent": "<0.1%",
       "good": "0.1-0.5%",
       "poor": ">0.5%"
-    }
+    },
+    "frequency": {
+      "daily": "每日",
+      "monthly": "每月",
+      "weekly": "每周",
+      "yearly": "每年"
+    },
+    "importance": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "locale": "zh-CN",
+    "favorite": "收藏",
+    "favorited": "已收藏"
   },
   "navbar": {
     "home": "首页",
     "marketOverview": "市场概览",
     "priceQuery": "价格查询",
     "crossOracle": "跨预言机分析",
-    "crossChain": "跨链比较",
+    "crossChain": "跨链分析",
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
     "uma": "UMA",
@@ -95,25 +119,25 @@
     "oracleDetails": "预言机详情",
     "menu": "菜单",
     "openMenu": "打开菜单",
-    "marketOverviewDesc": "全面的市场数据和趋势",
-    "priceQueryDesc": "从任意预言机查询实时价格",
-    "crossOracleDesc": "多源预言机价格对比与偏差分析",
-    "crossChainDesc": "分析预言机在各链上的性能",
-    "chainlinkDesc": "去中心化预言机网络领导者",
-    "bandProtocolDesc": "基于Cosmos的跨链数据预言机",
-    "pythNetworkDesc": "高频金融数据预言机",
-    "api3Desc": "第一方预言机网络",
-    "umaDesc": "乐观预言机协议",
+    "marketOverviewDesc": "实时市场情报，包含全面的预言机 TVL、市场份额和协议采用指标",
+    "priceQueryDesc": "跨所有主流预言机网络的即时价格查询，支持历史趋势分析",
+    "crossOracleDesc": "实时多预言机价格比较与偏差分析",
+    "crossChainDesc": "跨链预言机性能基准测试和可靠性分析",
+    "chainlinkDesc": "领先的去中心化预言机基础设施，保障数十亿 TVL",
+    "bandProtocolDesc": "为 Cosmos 生态系统应用提供支持的跨链数据预言机",
+    "pythNetworkDesc": "机构级低延迟金融数据喂价",
+    "api3Desc": "DAO 治理数据喂价的第一方预言机网络",
+    "umaDesc": "支持可定制数据验证的乐观预言机",
     "redstone": "Redstone",
-    "redstoneDesc": "模块化预言机解决方案",
+    "redstoneDesc": "兼容 EVM+ 的模块化预言机堆栈",
     "dia": "DIA",
-    "diaDesc": "去中心化信息资产跨链数据预言机",
+    "diaDesc": "具有众包数据验证的透明跨链预言机",
     "tellor": "Tellor",
-    "tellorDesc": "去中心化加密原生预言机，专注透明度和去中心化",
+    "tellorDesc": "专注透明度和去中心化的去中心化加密原生预言机",
     "chronicle": "Chronicle",
-    "chronicleDesc": "MakerDAO 原生预言机，Scuttlebutt 安全协议",
+    "chronicleDesc": "采用 Scuttlebutt 安全协议的 MakerDAO 原生预言机",
     "winklink": "WINkLink",
-    "winklinkDesc": "TRON 生态预言机，专注游戏和 DeFi",
+    "winklinkDesc": "专注游戏和 DeFi 的 TRON 生态预言机",
     "favorites": "收藏",
     "alerts": "告警",
     "settings": "设置",
@@ -168,14 +192,14 @@
   },
   "home": {
     "hero": {
-      "badge": "专业预言机数据平台",
+      "badge": "企业级预言机分析平台",
       "title": {
-        "part1": "洞察预言机数据",
-        "part2": "驱动智能决策"
+        "part1": "预言机智能分析",
+        "part2": "驱动数据决策"
       },
-      "description": "全面分析和比较 Chainlink、Band Protocol、UMA、Pyth、API3 等主流预言机协议。实时监控价格数据，评估协议性能，助力 Web3 开发者和分析师做出明智决策。",
-      "ctaPrimary": "开始探索",
-      "ctaSecondary": "查看文档",
+      "description": "统一预言机分析平台，为 Chainlink、Pyth、API3 等主流预言机网络提供实时价格监控、跨协议基准测试和全面的性能指标。为 DeFi 协议、开发者和分析师提供可操作的洞察。",
+      "ctaPrimary": "探索平台",
+      "ctaSecondary": "技术文档",
       "metrics": {
         "totalValueSecured": "总保障价值",
         "activeOracles": "活跃预言机",
@@ -231,33 +255,33 @@
     }
   },
   "crossOracle": {
-    "title": "跨预言机价格分析",
-    "subtitle": "多源预言机实时价格对比与偏差分析",
+    "title": "多预言机比较分析",
+    "subtitle": "全面的多源价格聚合与趋同分析",
     "refresh": "刷新",
     "lastUpdated": "最后更新",
     "currentPriceComparison": "当前价格对比",
-    "priceTrend": "24小时价格走势",
+    "priceTrend": "24小时价格趋势",
     "oracle": "预言机",
     "price": "价格",
     "confidence": "置信度",
     "live": "实时",
     "crossOraclePriceComparison": "跨预言机价格比对",
     "oracleCount": "预言机数量",
-    "dataQuality": "数据质量",
-    "averagePrice": "预言机均价",
-    "highestPrice": "预言机最高价",
+    "dataQuality": "数据完整性评分",
+    "averagePrice": "共识价格",
+    "highestPrice": "最高价格",
     "priceRange": "价格区间",
     "deviation": "偏差百分比",
     "standardDeviation": "标准差",
     "variance": "方差",
-    "consistencyRating": "价格一致性评分",
+    "consistencyRating": "价格趋同指数",
     "consistency": {
-      "excellent": "优秀",
-      "good": "良好",
-      "fair": "一般",
-      "poor": "较差"
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界"
     },
-    "basedOnStdDev": "基于标准差评估",
+    "basedOnStdDev": "标准差分析",
     "historyRange": "历史范围",
     "ofAverage": "占均价",
     "weighted": "加权",
@@ -283,8 +307,8 @@
     "selectTradingPair": "选择交易对",
     "priceDeviationThreshold": "价格偏离预警阈值:",
     "priceDeviationAlert": "价格偏离预警",
-    "differenceAnalysisPanel": "差异分析面板",
-    "priceDifferenceVisualization": "价格差异可视化",
+    "differenceAnalysisPanel": "偏差分析仪表板",
+    "priceDifferenceVisualization": "价格偏离可视化",
     "aboveAverage": "高于平均值",
     "belowAverage": "低于平均值",
     "zeroLineAverage": "零线（平均值）",
@@ -329,7 +353,7 @@
     "tabAdvanced": "高级分析",
     "tabSnapshots": "快照与对比",
     "tabPerformance": "性能分析",
-    "freshness": "数据时效",
+    "freshness": "数据时效性",
     "filter": {
       "button": "数据筛选",
       "allOracles": "全部预言机",
@@ -453,7 +477,7 @@
     }
   },
   "crossChain": {
-    "title": "跨链价格比较",
+    "title": "跨链价格趋同分析",
     "oracleProvider": "预言机提供商",
     "symbol": "交易对",
     "timeRange": "时间范围",
@@ -470,13 +494,13 @@
     "highestPrice": "最高价格",
     "priceRange": "价格区间",
     "standardDeviation": "标准差",
-    "coefficientOfVariation": "变异系数",
-    "consistencyRating": "一致性评级",
+    "coefficientOfVariation": "相对波动率指数",
+    "consistencyRating": "趋同指数",
     "consistency": {
-      "excellent": "优秀",
-      "good": "良好",
-      "fair": "一般",
-      "poor": "较差"
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界"
     },
     "stability": {
       "stable": "稳定",
@@ -484,16 +508,16 @@
       "highlyUnstable": "高度不稳定",
       "moderate": "中等"
     },
-    "stabilityAnalysis": "稳定性与同步性分析",
-    "priceVolatility": "价格波动率",
-    "stabilityRating": "稳定性评级",
+    "stabilityAnalysis": "稳定性与同步分析",
+    "priceVolatility": "价格方差",
+    "stabilityRating": "稳定性指数",
     "baseChain": "基准链",
     "export": "导出",
-    "priceSpreadHeatmap": "跨链价差热力图",
+    "priceSpreadHeatmap": "跨链价格偏离热力图",
     "priceDifference": "价格差异",
-    "smallSpread": "价差小",
-    "mediumSpread": "价差中等",
-    "largeSpread": "价差大",
+    "smallSpread": "最小偏离",
+    "mediumSpread": "中等偏离",
+    "largeSpread": "显著偏离",
     "outlier": "异常",
     "autoRefresh": "自动:",
     "autoRefreshOff": "关闭",
@@ -514,7 +538,7 @@
     "visibleChains": "可见链",
     "difference": "差异",
     "dataPoints": "数据点数",
-    "deviationAlert": "检测到 {count} 条链价格偏离超过阈值",
+    "deviationAlert": "警告：检测到 {count} 条链价格偏离超过可接受方差阈值 - 可能存在套利机会或预言机延迟",
     "median": "中位数",
     "iqr": "四分位距 (IQR)",
     "maPeriod": "MA周期",
@@ -841,6 +865,26 @@
       "securityAudit": "安全审计",
       "decentralizedGovernance": "去中心化治理"
     },
+    "staking": {
+      "upgradeTitle": "Staking v0.2 升级",
+      "migrationStatus": "迁移状态",
+      "completed": "已完成",
+      "v0_2Staked": "v0.2 质押量",
+      "participationRate": "参与率",
+      "communityPool": "社区池",
+      "lockupPeriod": "锁定期",
+      "aprHistory": "APR 历史",
+      "deprecated": "已弃用",
+      "active": "活跃",
+      "upcoming": "即将上线",
+      "slashingConditions": "惩罚条件",
+      "downtime": "停机时间",
+      "downtimeDesc": "节点未能在规定时间窗口内响应",
+      "incorrectData": "数据错误",
+      "incorrectDataDesc": "节点提供的价格数据超出可接受偏差范围",
+      "malicious": "恶意行为",
+      "maliciousDesc": "故意操纵或攻击网络"
+    },
     "risk": {
       "securityEvents": {
         "stakingV2Upgrade": {
@@ -860,6 +904,116 @@
           "description": "跨链互操作协议正式上线，支持多链数据传输"
         }
       }
+    },
+    "services": {
+      "totalServices": "服务总数",
+      "activeServices": "活跃服务",
+      "totalRequests": "总请求数",
+      "thisMonth": "本月",
+      "totalValueSecured": "保障总价值",
+      "acrossAllServices": "覆盖所有服务",
+      "avgUptime": "平均在线率",
+      "serviceAvailability": "服务可用性",
+      "status": {
+        "active": "活跃",
+        "beta": "测试版",
+        "coming_soon": "即将上线",
+        "status": "状态"
+      },
+      "keyFeatures": "核心功能",
+      "ccip": {
+        "name": "CCIP",
+        "description": "跨链互操作协议，支持安全的跨链消息传递和代币转移",
+        "messagesTransferred": "消息转移数",
+        "valueTransferred": "转移价值",
+        "avgTransferTime": "平均转移时间",
+        "supportedChains": "支持的链",
+        "crossChainActivity": "跨链活动",
+        "messages": "消息",
+        "value": "价值",
+        "feature1": "跨链任意消息传递",
+        "feature2": "锁仓铸造代币转移",
+        "feature3": "可编程代币桥",
+        "feature4": "安全速率限制",
+        "feature5": "风险管理网络",
+        "useCase1": "跨链 DeFi",
+        "useCase2": "多链 NFT",
+        "useCase3": "跨链治理",
+        "useCase4": "互操作游戏"
+      },
+      "functions": {
+        "name": "Functions",
+        "description": "无服务器 Web3 平台，可从任意 API 获取数据并运行自定义计算",
+        "totalCalls": "总调用数",
+        "avgExecutionTime": "平均执行时间",
+        "supportedApis": "支持的 API",
+        "successRate": "成功率",
+        "feature1": "连接任意 API",
+        "feature2": "自定义 JavaScript 计算",
+        "feature3": "去中心化执行",
+        "feature4": "密钥管理",
+        "feature5": "无服务器架构",
+        "useCase1": "DeFi 集成",
+        "useCase2": "AI/ML 预言机",
+        "useCase3": "现实世界数据",
+        "useCase4": "自定义价格源"
+      },
+      "automation": {
+        "name": "Automation",
+        "description": "可靠且高性能的智能合约自动化，支持条件执行",
+        "tasksRegistered": "注册任务数",
+        "dailyExecutions": "日执行数",
+        "gasSavings": "Gas 节省",
+        "uptime": "在线率",
+        "feature1": "基于时间的触发器",
+        "feature2": "自定义逻辑触发器",
+        "feature3": "基于日志的触发器",
+        "feature4": "链下计算",
+        "feature5": "Gas 优化执行",
+        "useCase1": "清算机器人",
+        "useCase2": "收益收割",
+        "useCase3": "再平衡",
+        "useCase4": "奖励分配"
+      },
+      "vrf": {
+        "name": "VRF",
+        "description": "可验证随机函数，提供可证明公平且防篡改的随机数",
+        "requestsFulfilled": "已完成请求",
+        "v2_5Adoption": "V2.5 采用率",
+        "avgFulfillmentTime": "平均完成时间",
+        "gamingUsage": "游戏使用率",
+        "feature1": "加密证明的随机性",
+        "feature2": "链上验证",
+        "feature3": "VRF V2.5 原生支付",
+        "feature4": "自定义回调 Gas 限制",
+        "feature5": "单次请求多个随机数",
+        "useCase1": "NFT 铸造",
+        "useCase2": "游戏与博彩",
+        "useCase3": "随机抽奖",
+        "useCase4": "公平选择"
+      },
+      "por": {
+        "name": "储备证明",
+        "description": "透明的链上证明，用于验证链下或跨链资产储备",
+        "assetsMonitored": "监控资产数",
+        "valueAttested": "证明价值",
+        "auditFrequency": "审计频率",
+        "integratedProtocols": "集成协议数",
+        "feature1": "实时监控储备",
+        "feature2": "多签验证",
+        "feature3": "自动证明",
+        "feature4": "跨链储备追踪",
+        "feature5": "DeFi 抵押品验证",
+        "useCase1": "稳定币透明化",
+        "useCase2": "封装资产",
+        "useCase3": "跨链桥",
+        "useCase4": "DeFi 抵押品"
+      },
+      "comparison": "服务对比",
+      "serviceName": "服务",
+      "requests": "请求数",
+      "avgResponse": "平均响应",
+      "topUseCases": "主要用例"
     },
     "quickStats": "快速统计",
     "24hVolume": "24小时交易量",
@@ -918,6 +1072,7 @@
     "stats": {
       "stakingApr": "质押 APR",
       "networkUptime": "网络在线率",
+      "nodeUptime": "节点在线率",
       "volume24h": "24小时交易量",
       "marketCap": "市值",
       "circulatingSupply": "流通供应量",
@@ -1011,7 +1166,8 @@
       "allChains": "全部链",
       "dataSources": "数据源",
       "supportedChains": "支持的链",
-      "noFeeds": "暂无数据馈送"
+      "noFeeds": "暂无数据馈送",
+      "showingCount": "显示 {count} 个，共 {total} 个数据源"
     },
     "nftData": {
       "title": "NFT 地板价数据",
@@ -1256,6 +1412,9 @@
       "latencyRisk": "延迟风险",
       "updateFrequencyRisk": "更新频率风险",
       "alerts": "风险预警",
+      "riskLevelLabel": "风险等级",
+      "timeAgo": "{hours}小时前",
+      "now": "现在",
       "securityEvents": {
         "tellorLayerLaunch": {
           "title": "Tellor Layer 上线",
@@ -1399,6 +1558,8 @@
     }
   },
   "uma": {
+    "subtitle": "去中心化金融合约的乐观预言机，通过经济担保机制确保数据可靠性",
+    "analytics": "UMA 数据分析",
     "menu": {
       "marketData": "市场数据",
       "networkHealth": "网络健康度",
@@ -1484,6 +1645,92 @@
     "dataQuality": {
       "title": "数据质量"
     },
+    "network": {
+      "activeValidators": "活跃验证者",
+      "validatorUptime": "验证者在线率",
+      "avgResponseTime": "平均响应时间",
+      "totalStaked": "总质押量",
+      "totalDisputes": "总争议数",
+      "disputeSuccessRate": "争议成功率",
+      "activeDisputes": "活跃争议",
+      "avgResolutionTime": "平均解决时间",
+      "disputeStatistics": "争议统计",
+      "verificationActivity": "验证活动",
+      "disputeTrends": "争议趋势",
+      "earningsTrends": "收益趋势",
+      "dataSources": "数据源",
+      "verifications": "验证次数",
+      "total24h": "24小时总计",
+      "peakHour": "峰值小时",
+      "avgPerHour": "平均每小时",
+      "disputesFiled": "提交的争议",
+      "disputesResolved": "已解决的争议",
+      "dailyEarnings": "每日收益",
+      "cumulativeEarnings": "累计收益",
+      "primaryDataSource": "主要数据源",
+      "updateFrequency": "更新频率",
+      "supportedChains": "支持的链"
+    },
+    "ecosystem": {
+      "ooTitle": "Optimistic Oracle",
+      "ooDescription": "UMA的Optimistic Oracle (OO) 是一种去中心化的事实验证机制，允许任何人为任何数据提供答案，并通过经济激励确保答案的正确性。",
+      "stats": {
+        "requests": "累计请求数",
+        "protocols": "集成协议",
+        "secured": "保障价值"
+      },
+      "requestDistribution": "请求类型分布",
+      "useCases": "Optimistic Oracle 用例",
+      "protocolsTitle": "使用UMA的协议",
+      "chainsDescription": "UMA已部署到以下区块链网络，提供跨链预言机服务：",
+      "category": {
+        "bridge": "跨链桥",
+        "prediction": "预测市场",
+        "insurance": "保险",
+        "treasury": "财库管理"
+      },
+      "protocols": {
+        "across": "使用UMA进行快速、低成本的跨链转账",
+        "polymarket": "使用UMA OO解决预测市场结果",
+        "sherlock": "使用UMA进行智能合约审计争议解决",
+        "outcome": "使用UMA进行结构化产品"
+      },
+      "useCases": {
+        "insurance": {
+          "title": "保险与风险管理",
+          "desc": "为智能合约保险、参数保险等提供去中心化理赔验证"
+        },
+        "prediction": {
+          "title": "预测市场",
+          "desc": "为预测市场提供公正、及时的结果验证机制"
+        },
+        "bridge": {
+          "title": "跨链桥",
+          "desc": "为跨链桥提供快速、安全的转账验证"
+        },
+        "treasury": {
+          "title": "财库与结构化产品",
+          "desc": "为DAO财库管理和结构化金融产品提供支持"
+        }
+      },
+      "requestTypes": {
+        "price": "价格请求",
+        "state": "状态验证",
+        "custom": "自定义数据",
+        "other": "其他"
+      },
+      "examples": {
+        "insurance": ["智能合约保险", "参数保险", "作物保险"],
+        "prediction": ["政治事件", "体育赛事", "加密市场预测"],
+        "bridge": ["快速跨链转账", "流动性桥接", "消息传递"],
+        "treasury": ["KPI期权", "结构化产品", "财库多元化"]
+      }
+    },
+    "dashboard": {
+      "networkHealth": "网络健康指标",
+      "detailedStatus": "详细状态",
+      "dataSources": "数据源状态"
+    },
     "validatorComparison": {
       "selectValidators": "选择验证者进行对比",
       "selectHint": "选择最多4个验证者进行性能对比分析",
@@ -1564,7 +1811,8 @@
       "filter": "筛选",
       "all": "全部",
       "highReputation": "高声誉",
-      "mostData": "最多数据"
+      "mostData": "最多数据",
+      "loading": "加载提供者..."
     },
     "dataStreams": {
       "title": "数据流",
@@ -1572,7 +1820,19 @@
       "modularFee": "模块化费用",
       "freshnessScore": "新鲜度评分",
       "providerCount": "提供者数量",
-      "avgReputation": "平均声誉"
+      "avgReputation": "平均声誉",
+      "activeDataStreams": "活跃数据流",
+      "outOf100": "满分 100",
+      "perUpdate": "每次更新",
+      "activeProviders": "活跃提供者",
+      "streamTypes": "数据流类型",
+      "priceFeeds": "价格馈送",
+      "customData": "自定义数据",
+      "l2Data": "L2 数据",
+      "updateFrequencyTitle": "更新频率",
+      "highFrequency": "高频",
+      "standard": "标准",
+      "lowFrequency": "低频"
     },
     "crossChain": {
       "supportedChains": "支持的链",
@@ -1580,7 +1840,13 @@
       "updateFrequency": "更新频率",
       "latency": "延迟",
       "active": "活跃",
-      "inactive": "非活跃"
+      "inactive": "非活跃",
+      "activeNetworks": "活跃网络",
+      "averageAcrossChains": "跨链平均",
+      "fastestChain": "最快链",
+      "latencyMs": "{{latency}}ms 延迟",
+      "uptime": "正常运行时间",
+      "allChains": "所有链"
     },
     "risk": {
       "securityEvents": {
@@ -1647,7 +1913,19 @@
       "realTimeMonitoring": "实时监控"
     },
     "ecosystem": {
-      "integrations": "集成项目"
+      "integrations": "集成项目",
+      "categories": {
+        "infrastructure": "基础设施",
+        "defi": "去中心化金融",
+        "nft": "NFT",
+        "gaming": "游戏"
+      },
+      "projectsIntegrated": "已集成项目",
+      "defiProtocols": "DeFi 协议",
+      "usingRedstone": "使用 RedStone",
+      "infrastructurePartners": "合作伙伴",
+      "nftAndGaming": "NFT 与游戏",
+      "projects": "项目"
     },
     "crossOracle": {
       "title": "跨预言机价格分析"
@@ -1685,12 +1963,12 @@
       "publisherReliabilityDesc": "基于 Publisher 的平均可靠性分数",
       "updateLatency": "更新延迟",
       "updateLatencyDesc": "基于价格更新的延迟表现",
-      "crossChainConsistency": "跨链一致性",
-      "crossChainConsistencyDesc": "基于各链价格偏差评估",
-      "excellent": "优秀",
-      "good": "良好",
-      "fair": "一般",
-      "poor": "较差",
+      "crossChainConsistency": "跨链价格趋同",
+      "crossChainConsistencyDesc": "监控集成链之间的价格偏差",
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界",
       "avgConfidenceWidth": "平均置信区间宽度",
       "activePublishers": "活跃 Publishers",
       "avgReliability": "平均可靠性",
@@ -1896,7 +2174,31 @@
       "crossOracleComparison": "跨预言机分析"
     },
     "firstPartyOracle": {
-      "title": "第一方预言机分析"
+      "title": "第一方预言机分析",
+      "noMiddlemen": "无中间商",
+      "sourceTransparency": "数据源透明",
+      "responseTime": "响应时间",
+      "directConnection": "直接连接",
+      "hasMiddlemen": "有中间商",
+      "traceable": "可追溯",
+      "notTransparent": "不透明",
+      "comparisonTitle": "API3 与传统预言机对比",
+      "feature": "特性",
+      "api3Name": "API3",
+      "traditionalOracle": "传统预言机",
+      "dataSourceTransparency": "数据源透明度",
+      "fullTransparency": "完全透明",
+      "partialTransparency": "部分透明",
+      "middlemen": "中间商",
+      "none": "无",
+      "has": "有",
+      "insuranceMechanism": "保险机制",
+      "hasInsurance": "有保险",
+      "noInsurance": "无保险",
+      "advantagesTitle": "第一方预言机优势",
+      "advantagesDesc": "API3 的第一方预言机架构消除了中间层，提供更高的透明度、更低的延迟和更强的安全保证。",
+      "responseTimeValue": "180ms",
+      "traditionalResponseTime": "200-500ms"
     },
     "risk": {
       "overview": {
@@ -1936,9 +2238,36 @@
         "riskScore": "质押风险评分",
         "apr": "质押 APR",
         "lockup": "锁定期",
+        "lockupValue": "7 天",
         "moderate": "风险适中，收益可持续",
         "elevatedRisk": "APR 过高，风险升高",
         "highYieldRisk": "高收益风险，收益水平不可持续"
+      },
+      "securityEvents": {
+        "oevNetworkLaunch": {
+          "title": "OEV 网络上线",
+          "description": "推出 Oracle Extractable Value 网络，改进 MEV 保护机制"
+        },
+        "airnodeV2Release": {
+          "title": "Airnode V2 发布",
+          "description": "Airnode 重大升级，优化 Gas 效率和监控功能"
+        },
+        "dapiCoverageExpansion": {
+          "title": "dAPI 覆盖扩展",
+          "description": "新增 50+ dAPI，改进冗余机制"
+        },
+        "infrastructureUpgrade": {
+          "title": "第一方预言机基础设施升级",
+          "description": "第一方预言机节点例行基础设施优化"
+        }
+      },
+      "mitigationMeasures": {
+        "firstPartyOracle": "第一方预言机架构",
+        "coveragePoolStaking": "覆盖池质押",
+        "daoGovernance": "DAO 治理",
+        "serviceCoverage": "服务覆盖",
+        "oevProtection": "OEV 保护",
+        "multiChainDeployment": "多链部署"
       }
     },
     "crossOracle": {
@@ -1982,7 +2311,8 @@
       "stakingApr": "质押 APR",
       "volume24h": "24小时交易量",
       "marketCap": "市值",
-      "circulatingSupply": "流通供应量"
+      "circulatingSupply": "流通供应量",
+      "networkUptime": "网络正常运行时间"
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
@@ -2092,10 +2422,10 @@
       "collapse": "收起",
       "expand": "查看更多",
       "consistency": {
-        "excellent": "优秀",
-        "good": "良好",
-        "fair": "一般",
-        "poor": "较差"
+        "excellent": "最优",
+        "good": "正常",
+        "fair": "次优",
+        "poor": "临界"
       }
     },
     "chart": {
@@ -2153,10 +2483,10 @@
     },
     "quickLinks": {
       "title": "快速跳转",
-      "crossChain": "跨链比较",
-      "crossChainDesc": "单个预言机在不同链上的价格比较",
-      "crossOracle": "跨预言机比较",
-      "crossOracleDesc": "多个预言机在同一条链上的价格比较",
+      "crossChain": "跨链分析",
+      "crossChainDesc": "比较单个预言机在不同链上的价格",
+      "crossOracle": "跨预言机分析",
+      "crossOracleDesc": "多源预言机价格比较与偏差分析",
       "chainlinkDesc": "去中心化预言机网络"
     },
     "config": {
@@ -2702,6 +3032,7 @@
     "title": "保险池概览",
     "totalValue": "保险池总价值",
     "coverageRatio": "覆盖比率",
+    "coverageDescription": "当前覆盖比率为 {ratio}%，表示保险池资金相对于风险敞口的充足程度",
     "historicalPayouts": "历史赔付总额",
     "mechanismTitle": "保险机制说明",
     "mechanismDescription": "Coverage Pool 通过质押资金为预言机数据提供保险保障。当数据出现异常或错误时，受影响的用户可以从保险池中获得赔偿。质押者通过提供资金获得收益分成，同时承担一定的风险敞口。",
@@ -2821,7 +3152,9 @@
       "peakHour": "峰值时段",
       "avgPerHour": "平均/小时",
       "peakRequests": "峰值请求",
-      "requests": "请求"
+      "requests": "请求",
+      "low": "低",
+      "high": "高"
     },
     "performanceDashboard": {
       "title": "性能仪表盘",
@@ -2919,6 +3252,62 @@
       "ibcRelayers": "IBC中继器",
       "oracleScripts": "预言机脚本",
       "crossChainRisk": "跨链风险"
+    },
+    "crossChain": {
+      "title": "跨链数据",
+      "subtitle": "Band Protocol 跨链数据传输统计",
+      "totalRequests24h": "BAND.CROSSCHAIN.TOTALREQUESTS24H",
+      "totalRequests7d": "BAND.CROSSCHAIN.TOTALREQUESTS7D",
+      "totalRequests30d": "BAND.CROSSCHAIN.TOTALREQUESTS30D",
+      "supportedChains": "BAND.CROSSCHAIN.SUPPORTEDCHAINS",
+      "chainDataRequests": "band.crossChain.chainDataRequests",
+      "chainName": "band.crossChain.chainName",
+      "requests24h": "band.crossChain.requests24h",
+      "requests7d": "band.crossChain.requests7d",
+      "requests30d": "band.crossChain.requests30d",
+      "avgGasCost": "band.crossChain.avgGasCost",
+      "supportedSymbols": "band.crossChain.supportedSymbols",
+      "ibcInfo": "band.crossChain.ibcInfo",
+      "ibcTransfers": "band.crossChain.ibcTransfers",
+      "ibcChannels": "band.crossChain.ibcChannels",
+      "avgLatency": "band.crossChain.avgLatency",
+      "last24Hours": "最近24小时",
+      "last7Days": "最近7天",
+      "last30Days": "最近30天",
+      "activeChains": "活跃链",
+      "tokenBand": "BAND",
+      "transfers24h": "24小时转账",
+      "activeChannels": "活跃通道",
+      "crossChainLatency": "跨链延迟",
+      "failedToLoad": "加载跨链数据失败"
+    },
+    "ecosystem": {
+      "cosmosSdkVersion": "Cosmos SDK 版本",
+      "cosmosSdk": "Cosmos SDK",
+      "ibcConnections": "IBC 连接数",
+      "activeIBCChannels": "活跃 IBC 通道",
+      "totalIBCTVL": "IBC 总锁仓价值",
+      "totalValueLocked": "总锁仓价值",
+      "ibcVolume24h": "24小时 IBC 交易量",
+      "volumeChange": "24小时 IBC 交易量",
+      "chainName": "链名称",
+      "chainId": "链 ID",
+      "channelId": "通道 ID",
+      "tvl": "TVL",
+      "volume24h": "24小时交易量",
+      "status": "状态",
+      "active": "活跃",
+      "bandInCosmos": "Band 在 Cosmos 生态",
+      "keyFeatures": "核心特性",
+      "feature1": "跨链数据预言机基础设施",
+      "feature2": "去中心化验证者网络",
+      "feature3": "实时价格数据更新",
+      "feature4": "支持 IBC 的互操作性",
+      "integrations": "集成",
+      "dApps": "去中心化应用",
+      "blockchains": "区块链",
+      "dataFeeds": "数据馈送",
+      "tvlSecured": "保障的 TVL"
     }
   },
   "crossChainPanel": {
@@ -2935,7 +3324,7 @@
     "loadingCrossChainData": "加载跨链数据...",
     "retry": "重试",
     "fetchCrossChainDataFailed": "获取跨链数据失败",
-    "crossChainRequestStats": "跨链数据请求统计",
+    "crossChainRequestStats": "跨链请求统计",
     "bandProtocolDistribution": "Band Protocol 跨链数据请求分布",
     "totalRequests24h": "24小时请求总量",
     "totalRequests7d": "7天请求总量",
@@ -2961,7 +3350,7 @@
     "maxDeviation": "最大偏差",
     "avgLatency": "平均延迟",
     "deviationStatus": {
-      "good": "一致性良好",
+      "good": "一致性最优",
       "slight": "存在轻微偏差",
       "large": "偏差较大"
     },
@@ -3006,6 +3395,34 @@
     "bandMechanism2": "Cosmos Hub 作为主要数据源，通过 IBC 向其他链传输价格数据",
     "bandMechanism3": "支持 EVM 链（Ethereum、Polygon 等）通过 Band Bridge 获取数据",
     "bandMechanism4": "价格偏离阈值：<0.1% 为正常，0.1%-0.5% 为警告，>0.5% 需关注"
+  },
+  "band": {
+    "riskAssessment": {
+      "overallRiskScore": "整体风险评分",
+      "comprehensiveAssessment": "综合评估",
+      "dimensionScores": "维度评分",
+      "decentralization": "去中心化",
+      "security": "安全性",
+      "stability": "稳定性",
+      "dataQuality": "数据质量",
+      "scoreTrend": "评分趋势",
+      "overall": "综合",
+      "riskMetrics": "风险指标",
+      "validatorConcentration": "验证者集中度",
+      "topValidatorsShare": "头部验证者份额",
+      "top10ValidatorsShare": "前10验证者份额",
+      "giniCoefficient": "基尼系数",
+      "ibcMetrics": "IBC指标",
+      "connectedChains": "已连接链",
+      "ibcRelayers": "IBC中继器",
+      "oracleScripts": "预言机脚本",
+      "crossChainRisk": "跨链风险",
+      "riskLevel": {
+        "low": "低风险",
+        "medium": "中等风险",
+        "high": "高风险"
+      }
+    }
   },
   "publisherAnalysis": {
     "anomalyTypeDistribution": "异常类型分布：",
@@ -3060,7 +3477,7 @@
     "concentrationRisk": "数据源集中度风险",
     "concentrationRiskDesc": "评估数据源的多样性和去中心化程度",
     "crossChainRisk": "跨链一致性风险",
-    "crossChainRiskDesc": "评估不同链上价格的一致性",
+    "crossChainRiskDesc": "评估不同链之间的价格一致性",
     "riskDetailsTitle": "风险评估详情",
     "pythOnlyMessage": "完整的风险评估功能目前仅支持 Pyth",
     "comingSoonMessage": "其他 Oracle 提供商的风险评估功能即将推出"
@@ -3185,8 +3602,8 @@
   "crossChainRisk": {
     "title": "跨链一致性风险分析",
     "status": {
-      "normal": "正常",
-      "warning": "警告",
+      "normal": "标准",
+      "warning": "注意",
       "critical": "异常"
     },
     "arbitrageOpportunity": {
@@ -3195,7 +3612,7 @@
     "stats": {
       "supportedChains": "支持链数量",
       "avgLatency": "平均延迟",
-      "maxDeviation": "最大价差",
+      "maxDeviation": "最大价格偏离",
       "abnormalChains": "异常链数"
     },
     "priceDetails": {
@@ -3242,6 +3659,7 @@
     "othersValidators": "其他验证者",
     "nakamotoCoefficient": "Nakamoto 系数",
     "validators": "个验证者",
+    "nakamotoDesc": "需要 {count} 个验证者合作即可控制 33.3% 质押量",
     "top3Ratio": "Top 3 占比",
     "top5Ratio": "Top 5 占比",
     "herfindahlIndex": "Herfindahl 指数",
@@ -3258,6 +3676,7 @@
       "critical": "严重风险"
     },
     "concentrationWarning": "质押集中度警告",
+    "concentrationWarningDesc": "网络质押高度集中，前 {count} 名验证者即可控制 33.3% 的质押量，存在安全风险。",
     "concentrationReminder": "质押集中度提醒",
     "concentrationReminderDesc": "网络质押分布存在一定集中风险，建议持续监控验证者质押变化情况。",
     "metricsExplanation": "指标说明",
@@ -3712,48 +4131,6 @@
       }
     }
   },
-  "common": {
-    "cancel": "取消",
-    "save": "保存",
-    "edit": "编辑",
-    "delete": "删除",
-    "deleting": "删除中...",
-    "search": "搜索",
-    "refresh": "刷新",
-    "export": "导出",
-    "apply": "应用",
-    "daily": "每日",
-    "monthly": "每月",
-    "weekly": "每周",
-    "yearly": "每年",
-    "close": "关闭",
-    "noData": "暂无数据",
-    "loading": "加载中...",
-    "current": "当前",
-    "stable": "持平",
-    "unit": "单位",
-    "justNow": "刚刚",
-    "low": "低",
-    "high": "高",
-    "locale": "zh-CN",
-    "importance": {
-      "high": "高",
-      "medium": "中",
-      "low": "低"
-    },
-    "time": {
-      "justUpdated": "刚刚更新",
-      "secondsAgo": "{seconds}秒前",
-      "minutesAgo": "{minutes}分钟前",
-      "hoursAgo": "{hours}小时前",
-      "seconds": "秒",
-      "minutes": "分",
-      "hours": "时"
-    },
-    "retry": "重试",
-    "favorite": "收藏",
-    "favorited": "已收藏"
-  },
   "annotation": {
     "priority": "优先级",
     "type": {
@@ -3958,7 +4335,15 @@
       "verificationStatus": "验证状态",
       "scuttlebuttIntegration": "Scuttlebutt 安全集成",
       "scuttlebuttNote": "Scuttlebutt 安全：",
-      "scuttlebuttNoteDesc": "Chronicle 使用 Scuttlebutt 协议确保数据传输安全和验证者身份验证。"
+      "scuttlebuttNoteDesc": "Chronicle 使用 Scuttlebutt 协议确保数据传输安全和验证者身份验证。",
+      "mitigationMeasures": {
+        "scuttlebuttVerification": "Scuttlebutt 验证",
+        "validatorRotation": "验证者轮换",
+        "multiChainValidation": "多链验证",
+        "thresholdSignature": "阈值签名方案",
+        "decentralizedGovernance": "去中心化治理",
+        "monitoring": "24/7 监控"
+      }
     },
     "network": {
       "status": "网络状态",
@@ -4045,7 +4430,8 @@
       "tier": "等级",
       "staked": "质押",
       "uptime": "在线率",
-      "rewards": "奖励"
+      "rewards": "奖励",
+      "aprLabel": "APR"
     },
     "gaming": {
       "title": "游戏与娱乐数据",
@@ -4060,7 +4446,11 @@
       "chains": "链",
       "requests": "请求",
       "avgResponse": "平均响应",
-      "security": "安全"
+      "security": "安全",
+      "games": "游戏",
+      "vrfUseCases": "VRF 用例",
+      "usageCount": "使用次数",
+      "categoryDistribution": "分类分布"
     },
     "risk": {
       "title": "风险评估",
@@ -4079,6 +4469,7 @@
       "high": "高",
       "lowRisk": "低风险",
       "mediumRisk": "中风险",
+      "riskLevel": "风险",
       "fourDimensions": "四维度风险评估",
       "decentralization": "去中心化程度",
       "decentralizationDesc": "基于节点地理分布和质押分散度评估",
@@ -4243,6 +4634,20 @@
       "lastUpdated": "最后更新",
       "stale": "已过期"
     },
+    "securityTimeline": {
+      "title": "安全时间线",
+      "noEvents": "暂无安全事件",
+      "types": {
+        "upgrade": "升级",
+        "vulnerability": "漏洞",
+        "response": "响应",
+        "maintenance": "维护"
+      },
+      "status": {
+        "resolved": "已解决",
+        "monitoring": "监控中"
+      }
+    },
     "mitigationMeasures": {
       "title": "缓解措施",
       "noMeasures": "暂无缓解措施",
@@ -4260,7 +4665,17 @@
         "high": "高效",
         "medium": "中等",
         "low": "低效"
-      }
+      },
+      "tendermintConsensus": "Tendermint共识",
+      "validatorSlashing": "验证者惩罚",
+      "multiSourceAggregation": "多源聚合",
+      "cryptographicVerification": "加密验证",
+      "anomalyDetection": "异常检测",
+      "continuousAuditing": "持续审计",
+      "incidentResponse": "事件响应",
+      "ibcSecurity": "IBC安全",
+      "decentralizedGovernance": "去中心化治理",
+      "continuousMonitoring": "持续监控"
     },
     "riskScore": {
       "levels": {

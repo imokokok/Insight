@@ -77,7 +77,7 @@ export function MitigationMeasuresGrid({ measures, className = '' }: MitigationM
             >
               <div className="flex items-start justify-between mb-3">
                 <h4 className="text-sm font-medium text-gray-900 flex-1 pr-2">
-                  {t(`oracleCommon.mitigationMeasures.${measure.name}` as any, {
+                  {t(measure.name as any, {
                     defaultValue: measure.name,
                   })}
                 </h4>
