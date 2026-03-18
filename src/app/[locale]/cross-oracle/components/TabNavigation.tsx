@@ -1,24 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 export type TabId = 'overview' | 'charts' | 'advanced' | 'snapshots' | 'performance';
 
 interface Tab {
   id: TabId;
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
 }
 
 interface TabNavigationProps {
   activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
+  onTabChange: (tabId: TabId) => void;
 }
 
-const TABS: Tab[] = [
+const getTabs = (t: (key: string) => string): Tab[] => [
   {
     id: 'overview',
-    label: '核心概览',
+    labelKey: 'crossOracle.tabOverview',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -32,7 +33,7 @@ const TABS: Tab[] = [
   },
   {
     id: 'charts',
-    label: '图表分析',
+    labelKey: 'crossOracle.tabCharts',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -46,7 +47,7 @@ const TABS: Tab[] = [
   },
   {
     id: 'advanced',
-    label: '高级分析',
+    labelKey: 'crossOracle.tabAdvanced',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -60,7 +61,7 @@ const TABS: Tab[] = [
   },
   {
     id: 'snapshots',
-    label: '快照与对比',
+    labelKey: 'crossOracle.tabSnapshots',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -74,7 +75,7 @@ const TABS: Tab[] = [
   },
   {
     id: 'performance',
-    label: '性能分析',
+    labelKey: 'crossOracle.tabPerformance',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -91,13 +92,16 @@ const TABS: Tab[] = [
 const STORAGE_KEY = 'cross-oracle-active-tab';
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const t = useTranslations();
+  const tabs = getTabs(t);
+
   return (
     <div className="border-b border-gray-200 mb-6">
       <nav
         className="flex space-x-1 overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
@@ -112,7 +116,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
             `}
           >
             {tab.icon}
-            <span>{tab.label}</span>
+            <span>{t(tab.labelKey)}</span>
           </button>
         ))}
       </nav>
@@ -125,7 +129,7 @@ export function useTabNavigation() {
 
   useEffect(() => {
     const savedTab = localStorage.getItem(STORAGE_KEY) as TabId | null;
-    if (savedTab && TABS.some((tab) => tab.id === savedTab)) {
+    if (savedTab && getTabs(() => '').some((tab) => tab.id === savedTab)) {
       setActiveTab(savedTab);
     }
   }, []);
