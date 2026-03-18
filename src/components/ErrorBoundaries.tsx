@@ -2,7 +2,6 @@
 
 import React, { Component, ReactNode, useEffect } from 'react';
 import { createLogger } from '@/lib/utils/logger';
-import { useTranslations } from 'next-intl';
 import {
   isAppError,
   ValidationError,
@@ -14,6 +13,28 @@ import { captureException, setUser } from '@/lib/monitoring';
 import { useAuthStore } from '@/stores/authStore';
 
 const logger = createLogger('ErrorBoundaries');
+
+const FALLBACK_TRANSLATIONS = {
+  'error.boundary.somethingWrong': 'Something went wrong',
+  'error.boundary.tryAgain': 'Try again',
+  'error.boundary.global.title': 'Something went wrong',
+  'error.boundary.global.description': "We're sorry, but something unexpected happened. Please try refreshing the page.",
+  'error.boundary.section.title': 'Section Error',
+  'error.boundary.section.description': 'This section encountered an error. You can try again or continue with other parts of the page.',
+  'error.boundary.refreshPage': 'Refresh page',
+  'error.validation.title': 'Validation Error',
+  'error.notFound.title': 'Not Found',
+  'error.notFound.description': 'The requested resource was not found.',
+  'error.priceFetch.title': 'Price Fetch Error',
+  'error.priceFetch.retryable': 'Failed to fetch price data. Please try again.',
+  'error.priceFetch.description': 'Failed to fetch price data.',
+  'error.rateLimit.title': 'Rate Limit Exceeded',
+  'error.rateLimit.description': 'Too many requests. Please try again later.',
+};
+
+function getFallbackTranslation(key: string): string {
+  return FALLBACK_TRANSLATIONS[key as keyof typeof FALLBACK_TRANSLATIONS] || key;
+}
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -184,7 +205,6 @@ function getErrorConfig(error?: Error): {
 }
 
 function DefaultErrorFallback({ error, onReset, translations: _translations }: ErrorFallbackProps) {
-  const t = useTranslations();
   const config = getErrorConfig(error);
 
   const colorMap: Record<string, { bg: string; text: string; button: string }> = {
@@ -215,8 +235,12 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
         <div className={`mx-auto w-16 h-16 ${colors.bg}  flex items-center justify-center mb-4`}>
           <span className="text-3xl">{config.icon}</span>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t(config.title)}</h2>
-        <p className="text-gray-600 mb-6">{t(config.message)}</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          {config.title.startsWith('error.') ? getFallbackTranslation(config.title) : config.title}
+        </h2>
+        <p className="text-gray-600 mb-6">
+          {config.message.startsWith('error.') ? getFallbackTranslation(config.message) : config.message}
+        </p>
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-4 p-3 bg-gray-100  text-left">
             <p className="text-xs text-gray-500 font-mono break-all">{error.message}</p>
@@ -227,7 +251,7 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
           onClick={onReset}
           className={`inline-flex items-center px-4 py-2 text-white  transition-colors ${colors.button}`}
         >
-          {t('error.boundary.tryAgain')}
+          {getFallbackTranslation('error.boundary.tryAgain')}
         </button>
       </div>
     </div>
@@ -235,12 +259,12 @@ function DefaultErrorFallback({ error, onReset, translations: _translations }: E
 }
 
 export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
-  const title = translations?.globalTitle || 'Something went wrong';
+  const title = translations?.globalTitle || getFallbackTranslation('error.boundary.global.title');
   const description =
     translations?.globalDescription ||
-    "We're sorry, but something unexpected happened. Please try refreshing the page.";
-  const tryAgain = translations?.tryAgain || 'Try again';
-  const refreshPage = translations?.refreshPage || 'Refresh page';
+    getFallbackTranslation('error.boundary.global.description');
+  const tryAgain = translations?.tryAgain || getFallbackTranslation('error.boundary.tryAgain');
+  const refreshPage = translations?.refreshPage || getFallbackTranslation('error.boundary.refreshPage');
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
@@ -286,11 +310,11 @@ export function GlobalErrorFallback({ error, onReset, translations }: ErrorFallb
 }
 
 export function SectionErrorFallback({ error, onReset, translations }: ErrorFallbackProps) {
-  const title = translations?.sectionTitle || 'Section Error';
+  const title = translations?.sectionTitle || getFallbackTranslation('error.boundary.section.title');
   const description =
     translations?.sectionDescription ||
-    'This section encountered an error. You can try again or continue with other parts of the page.';
-  const tryAgain = translations?.tryAgain || 'Try again';
+    getFallbackTranslation('error.boundary.section.description');
+  const tryAgain = translations?.tryAgain || getFallbackTranslation('error.boundary.tryAgain');
 
   return (
     <div className="min-h-[300px] flex items-center justify-center p-6 bg-white border border-gray-200 ">
@@ -345,16 +369,15 @@ function useSentryUserContext() {
 }
 
 function useErrorTranslations() {
-  const t = useTranslations();
   useSentryUserContext();
   return {
-    somethingWrong: t('error.boundary.somethingWrong'),
-    tryAgain: t('error.boundary.tryAgain'),
-    globalTitle: t('error.boundary.global.title'),
-    globalDescription: t('error.boundary.global.description'),
-    sectionTitle: t('error.boundary.section.title'),
-    sectionDescription: t('error.boundary.section.description'),
-    refreshPage: t('error.boundary.refreshPage'),
+    somethingWrong: getFallbackTranslation('error.boundary.somethingWrong'),
+    tryAgain: getFallbackTranslation('error.boundary.tryAgain'),
+    globalTitle: getFallbackTranslation('error.boundary.global.title'),
+    globalDescription: getFallbackTranslation('error.boundary.global.description'),
+    sectionTitle: getFallbackTranslation('error.boundary.section.title'),
+    sectionDescription: getFallbackTranslation('error.boundary.section.description'),
+    refreshPage: getFallbackTranslation('error.boundary.refreshPage'),
   };
 }
 

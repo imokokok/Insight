@@ -396,3 +396,82 @@ export interface PriceAlert {
   createdAt: string;
   updatedAt: string;
 }
+
+export type RefreshStatus = 'idle' | 'refreshing' | 'success' | 'error';
+
+export interface UseMarketOverviewDataReturn {
+  oracleData: OracleMarketData[];
+  assets: AssetData[];
+  trendData: TVSTrendData[];
+  marketStats: MarketStats;
+  chainBreakdown: ChainBreakdown[];
+  protocolDetails: ProtocolDetail[];
+  assetCategories: AssetCategory[];
+  comparisonData: ComparisonData[];
+  benchmarkData: BenchmarkData[];
+  correlationData: CorrelationData;
+  riskMetrics: RiskMetrics | null;
+  anomalies: AnomalyData[];
+  loading: boolean;
+  loadingEnhanced: boolean;
+  loadingComparison: boolean;
+  loadingRiskMetrics: boolean;
+  loadingAnomalies: boolean;
+  lastUpdated: Date | null;
+
+  selectedTimeRange: string;
+  setSelectedTimeRange: (range: string) => void;
+  activeChart: ChartType;
+  setActiveChart: (chart: ChartType) => void;
+  viewType: ViewType;
+  setViewType: (view: ViewType) => void;
+  hoveredItem: string | null;
+  setHoveredItem: (item: string | null) => void;
+  selectedItem: string | null;
+  setSelectedItem: (item: string | null) => void;
+  refreshInterval: import('@/lib/constants').RefreshInterval;
+  setRefreshInterval: (interval: import('@/lib/constants').RefreshInterval) => void;
+
+  refreshStatus: RefreshStatus;
+  showRefreshSuccess: boolean;
+
+  error: string | null;
+  isUsingMockData: boolean;
+
+  fetchData: () => Promise<void>;
+  fetchEnhancedData: () => Promise<void>;
+  exportToCSV: () => void;
+  exportToJSON: () => void;
+  checkApiHealth: () => Promise<{ healthy: boolean; message: string }>;
+  acknowledgeAnomaly: (id: string) => void;
+
+  sortedOracleData: OracleMarketData[];
+  topGainers: AssetData[];
+  topLosers: AssetData[];
+  totalTVS: string;
+  totalChains: number;
+  totalProtocols: number;
+
+  wsStatus: import('@/lib/realtime/websocket').WebSocketStatus;
+  wsLastMessage: import('@/lib/realtime/websocket').WebSocketMessage<unknown> | null;
+  wsLastUpdated: Date | null;
+  wsReconnect: () => void;
+  wsMessageCount: number;
+  wsConnectedChannels: string[];
+
+  priceAlerts: import('@/lib/realtime/priceAlerts').PriceAlert[];
+  alertHistory: import('@/lib/realtime/priceAlerts').AlertHistory[];
+  addPriceAlert: (
+    alert: Omit<
+      import('@/lib/realtime/priceAlerts').PriceAlert,
+      'id' | 'createdAt' | 'triggeredCount'
+    >
+  ) => void;
+  removePriceAlert: (id: string) => void;
+  togglePriceAlert: (id: string) => void;
+  acknowledgeAlertHistory: (historyId: string) => void;
+  clearAlertHistory: () => void;
+  requestNotificationPermission: () => Promise<boolean>;
+  hasNotificationPermission: boolean;
+  triggeredAlerts: import('@/lib/realtime/priceAlerts').AlertCheckResult[];
+}

@@ -2,8 +2,6 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { BenchmarkComparison } from '@/components/comparison';
-import { BenchmarkData } from '@/components/comparison/types';
 
 interface ChainPriceData {
   chain: string;
@@ -22,8 +20,7 @@ export function BenchmarkComparisonSection({
 }: BenchmarkComparisonSectionProps) {
   const t = useTranslations();
 
-  // Convert chain price data to benchmark data format
-  const benchmarkData = useMemo((): BenchmarkData => {
+  const benchmarkData = useMemo(() => {
     if (chainPrices.length === 0) {
       return {
         industryAverage: 0,
@@ -43,7 +40,6 @@ export function BenchmarkComparisonSection({
       : 0;
     const bestPrice = sortedPrices.length > 0 ? sortedPrices[sortedPrices.length - 1] : 0;
 
-    // Calculate metrics for each chain
     const metrics = chainPrices.map((data) => {
       const diffFromAvg = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
       const diffFromMedian = medianPrice > 0 ? ((data.price - medianPrice) / medianPrice) * 100 : 0;
@@ -79,11 +75,63 @@ export function BenchmarkComparisonSection({
         </h3>
       </div>
       <div className="p-4">
-        <BenchmarkComparison
-          data={benchmarkData}
-          loading={loading}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">平均值</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {benchmarkData.industryAverage.toFixed(2)}
+            </p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">中位数</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {benchmarkData.industryMedian.toFixed(2)}
+            </p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">最高价格</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {benchmarkData.industryBest.toFixed(2)}
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  链
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  价格
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  与平均差值
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  排名
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {benchmarkData.metrics.map((metric, index) => (
+                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{metric.name}</td>
+                  <td className="px-4 py-3 text-right font-mono">{metric.value.toFixed(2)}</td>
+                  <td className={`px-4 py-3 text-right font-mono ${
+                    metric.diffFromAvg > 0 ? 'text-green-600' : metric.diffFromAvg < 0 ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    {metric.diffFromAvg >= 0 ? '+' : ''}{metric.diffFromAvg.toFixed(2)}%
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">#{metric.rank}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
+
+export default BenchmarkComparisonSection;
