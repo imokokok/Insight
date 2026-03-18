@@ -569,6 +569,37 @@
       "30s": "30s",
       "1m": "1m",
       "5m": "5m"
+    },
+    "dataSources": {
+      "title": "Comparison Data Sources"
+    },
+    "comparison": {
+      "summary": "Comparison Summary",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "consistency": "Consistency Score",
+      "oracleCount": "Oracle Count"
+    },
+    "benchmark": {
+      "title": "Industry Benchmark Comparison"
+    }
+  },
+  "crossOracleComparison": {
+    "title": "Multi-Oracle Comparative Analytics",
+    "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
+    "consistencyScore": "Consistency Score",
+    "quickCompare": "Quick Compare",
+    "deviation": "Deviation",
+    "avgResponseTime": "Avg Response Time",
+    "highDeviation": "High Deviation",
+    "dataSources": "Data Sources",
+    "supportedChains": "Supported Chains",
+    "radar": {
+      "responseTime": "Response Time",
+      "updateFrequency": "Update Frequency",
+      "dataSources": "Data Sources",
+      "supportedChains": "Supported Chains",
+      "reliability": "Reliability"
     }
   },
   "crossChain": {
@@ -2670,6 +2701,12 @@
       "source": "Source",
       "change24h": "24h Change",
       "confidence": "Confidence"
+    },
+    "dataSources": {
+      "title": "Data Sources"
+    },
+    "comparison": {
+      "title": "Time Comparison"
     }
   },
   "priceDeviation": {
@@ -5981,29 +6018,6 @@
       "content": "The methodology provided on this page is for technical reference only. Actual data processing methods may be adjusted based on market conditions and technological developments. We are not responsible for any losses resulting from the use of data from this platform."
     }
   },
-  "priceQuery": {
-    "dataSources": {
-      "title": "Query Data Sources"
-    },
-    "comparison": {
-      "title": "Time Comparison Analysis"
-    }
-  },
-  "crossOracle": {
-    "dataSources": {
-      "title": "Comparison Data Sources"
-    },
-    "comparison": {
-      "summary": "Comparison Summary",
-      "avgPrice": "Average Price",
-      "priceRange": "Price Range",
-      "consistency": "Consistency Score",
-      "oracleCount": "Oracle Count"
-    },
-    "benchmark": {
-      "title": "Industry Benchmark Comparison"
-    }
-  },
   "crossChain": {
     "dataSources": {
       "title": "Cross-Chain Data Sources"
@@ -6209,7 +6223,9 @@
       "difference": "Difference",
       "percentChange": "Percent Change",
       "currentAvg": "Current Average",
-      "comparisonAvg": "Comparison Average"
+      "comparisonAvg": "Comparison Average",
+      "yoy": "Year-over-Year",
+      "mom": "Month-over-Month"
     },
     "oracleComparison": {
       "title": "Multi-Oracle Comparison",
