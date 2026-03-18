@@ -4601,6 +4601,71 @@
       "collateralRatio": "抵押率",
       "stabilityFee": "稳定费"
     },
+    "assetType": {
+      "stablecoin": "稳定币",
+      "crypto": "加密货币"
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "不活跃",
+      "jailed": "被监禁"
+    },
+    "network": {
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线",
+      "excellent": "优秀",
+      "good": "良好",
+      "fair": "一般",
+      "poor": "较差",
+      "status": "网络状态",
+      "validators": "验证者",
+      "responseTime": "响应时间",
+      "dataFeeds": "数据喂价",
+      "uptime": "在线时间",
+      "activeValidators": "活跃验证者",
+      "avgLatency": "平均延迟",
+      "activeFeeds": "活跃喂价",
+      "healthOverview": "网络健康概览",
+      "networkHealthStatus": "网络健康状态",
+      "totalStaked": "总质押",
+      "updateFrequency": "更新频率",
+      "avgReputation": "平均声誉",
+      "latency": "延迟",
+      "validatorDistribution": "验证者分布",
+      "active": "活跃",
+      "inactive": "不活跃",
+      "stakingDistribution": "质押分布",
+      "hourlyActivity": "每小时网络活动",
+      "features": "网络特性",
+      "decentralized": "去中心化架构",
+      "decentralizedDesc": "分布式验证者网络，无单点故障",
+      "realtime": "实时更新",
+      "realtimeDesc": "高频数据喂价，亚秒级价格更新",
+      "scalable": "高可扩展性",
+      "scalableDesc": "可同时处理数千个价格喂价",
+      "reliable": "可靠的基础设施",
+      "reliableDesc": "企业级可用性，冗余验证者节点",
+      "secure": "安全设计",
+      "secureDesc": "多层安全，加密验证",
+      "monitoring": "24/7 监控",
+      "monitoringDesc": "持续网络监控和自动警报"
+    },
+    "securityLevel": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "verificationStatus": {
+      "verified": "已验证",
+      "pending": "待验证",
+      "failed": "验证失败"
+    },
+    "severity": {
+      "critical": "严重",
+      "warning": "警告",
+      "info": "信息"
+    },
     "validators": {
       "title": "验证者网络",
       "total": "总验证者",
@@ -4633,6 +4698,7 @@
       "incidentSummary": "事件摘要",
       "incidents30d": "事件数 (30天)",
       "lastIncident": "最近事件",
+      "lastAudit": "上次审计",
       "riskFactors": "风险因素",
       "factor1Title": "去中心化验证",
       "factor1Desc": "多个独立验证者确保无单点故障",
@@ -4657,40 +4723,6 @@
         "decentralizedGovernance": "去中心化治理",
         "monitoring": "24/7 监控"
       }
-    },
-    "network": {
-      "status": "网络状态",
-      "validators": "验证节点",
-      "responseTime": "响应时间",
-      "dataFeeds": "数据喂价",
-      "uptime": "在线率",
-      "activeValidators": "活跃验证者",
-      "avgLatency": "平均延迟",
-      "activeFeeds": "活跃喂价",
-      "healthOverview": "网络健康概览",
-      "networkHealthStatus": "网络健康状态",
-      "totalStaked": "总质押",
-      "updateFrequency": "更新频率",
-      "avgReputation": "平均声誉",
-      "latency": "延迟",
-      "validatorDistribution": "验证者分布",
-      "active": "活跃",
-      "inactive": "非活跃",
-      "stakingDistribution": "质押分布",
-      "hourlyActivity": "每小时网络活动",
-      "features": "网络特性",
-      "decentralized": "去中心化架构",
-      "decentralizedDesc": "分布式验证者网络，无单点故障",
-      "realtime": "实时更新",
-      "realtimeDesc": "亚秒级价格更新，高频数据喂价",
-      "scalable": "高可扩展性",
-      "scalableDesc": "可同时处理数千个价格喂价",
-      "reliable": "可靠的基础设施",
-      "reliableDesc": "企业级正常运行时间，冗余验证者节点",
-      "secure": "安全设计",
-      "secureDesc": "多层安全，加密验证",
-      "monitoring": "24/7 监控",
-      "monitoringDesc": "持续网络监控和自动警报"
     }
   },
   "winklink": {
@@ -4729,7 +4761,9 @@
       "dailyTransactions": "日交易数",
       "integratedDApps": "集成 DApps",
       "users": "用户",
-      "volume24h": "24h 交易量"
+      "volume24h": "24h 交易量",
+      "tvl": "TVL",
+      "integrationCoverage": "集成覆盖率"
     },
     "staking": {
       "title": "节点质押",
