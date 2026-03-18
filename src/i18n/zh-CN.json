@@ -1067,6 +1067,16 @@
     "title": "DIA",
     "subtitle": "开源的跨链数据预言机平台，提供透明且可验证的金融数据馈送",
     "analytics": "DIA 数据分析",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "dataFeeds": "数据馈送",
+      "nftData": "NFT 数据",
+      "staking": "质押",
+      "ecosystem": "生态",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
+    },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "stats": {
@@ -1242,6 +1252,7 @@
     "ecosystem": {
       "title": "生态系统",
       "totalProtocols": "总协议数",
+      "totalTVL": "总锁仓价值",
       "visitWebsite": "访问官网",
       "category": {
         "all": "全部",
@@ -1316,13 +1327,27 @@
       "nftData": "NFT 数据",
       "staking": "质押",
       "ecosystem": "生态系统",
-      "risk": "风险"
+      "risk": "风险",
+      "riskAssessment": "风险评估"
     }
   },
   "tellor": {
     "title": "Tellor",
     "subtitle": "去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性",
     "analytics": "Tellor 数据分析",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "reporters": "报告者",
+      "disputes": "争议",
+      "staking": "质押",
+      "priceStream": "价格流",
+      "marketDepth": "市场深度",
+      "multiChain": "多链",
+      "ecosystem": "生态",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
+    },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "stats": {
@@ -1554,7 +1579,8 @@
       "marketDepth": "市场深度",
       "multiChain": "多链",
       "ecosystem": "生态系统",
-      "risk": "风险"
+      "risk": "风险",
+      "riskAssessment": "风险评估"
     }
   },
   "uma": {
@@ -1926,6 +1952,17 @@
     "title": "Redstone",
     "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
     "analytics": "Redstone 数据分析",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "providers": "提供者",
+      "dataStreams": "数据流",
+      "crossChain": "跨链",
+      "ecosystem": "生态",
+      "crossOracle": "跨预言机",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
+    },
     "stats": {
       "activeNodes": "活跃节点",
       "dataFeeds": "数据源",
@@ -2090,7 +2127,8 @@
       "crossChain": "跨链",
       "ecosystem": "生态系统",
       "crossOracle": "跨预言机",
-      "risk": "风险"
+      "risk": "风险",
+      "riskAssessment": "风险评估"
     }
   },
   "pythNetwork": {
@@ -2312,6 +2350,19 @@
   "api3": {
     "title": "API3",
     "subtitle": "第一方预言机网络，实现去中心化 API 连接",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "staking": "质押",
+      "advantages": "优势",
+      "analytics": "分析",
+      "gas": "Gas",
+      "crossOracle": "跨预言机",
+      "ecosystem": "生态",
+      "risk": "风险"
+    },
     "menu": {
       "crossOracleComparison": "跨预言机分析"
     },
@@ -4507,6 +4558,15 @@
     "title": "Chronicle",
     "subtitle": "MakerDAO 原生预言机，采用 Scuttlebutt 安全协议提供高安全性的去中心化价格喂价",
     "analytics": "Chronicle 数据分析",
+    "tabs": {
+      "market": "市场",
+      "makerdao": "MakerDAO",
+      "validators": "验证者",
+      "network": "网络",
+      "scuttlebutt": "Scuttlebutt",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
+    },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "stats": {
@@ -4640,13 +4700,14 @@
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",
     "tabs": {
-      "crossOracle": "跨预言机分析",
       "market": "市场",
       "network": "网络",
       "tron": "TRON",
       "staking": "质押",
       "gaming": "游戏",
-      "risk": "风险"
+      "crossOracle": "跨预言机",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
     },
     "stats": {
       "activeNodes": "活跃节点",
@@ -4779,14 +4840,6 @@
       "risk": "风险评估",
       "crossChain": "跨链",
       "crossOracle": "跨预言机分析"
-    },
-    "tabs": {
-      "market": "市场",
-      "makerdao": "MakerDAO",
-      "validators": "验证节点",
-      "network": "网络",
-      "scuttlebutt": "Scuttlebutt",
-      "risk": "风险"
     }
   },
   "validator": {
@@ -4823,6 +4876,12 @@
     "reconnect": "重新连接",
     "title": "实时连接状态:"
   },
+  "multiSourceAggregation": "多源聚合",
+  "cryptographicVerification": "加密验证",
+  "anomalyDetection": "异常检测",
+  "decentralizedGovernance": "去中心化治理",
+  "continuousAuditing": "持续审计",
+  "incidentResponse": "事件响应",
   "oracleCommon": {
     "stakingCalculator": {
       "title": "质押收益计算器",
@@ -5019,7 +5078,31 @@
     "all": "全部"
   },
   "validatorPanel": {
-    "all": "全部"
+    "all": "全部",
+    "loading": "加载验证者数据...",
+    "title": "验证者列表",
+    "subtitle": "共 {count} 个验证者",
+    "filtered": "(已筛选)",
+    "totalStaked": "总质押:",
+    "rank": "排名",
+    "stakeAmount": "质押数量",
+    "commissionRate": "佣金率",
+    "uptime": "在线率",
+    "status": "状态",
+    "active": "活跃",
+    "jailed": "被监禁",
+    "quickFilter": "快速筛选",
+    "lowCommission": "低佣金 (<5%)",
+    "highStake": "高质押 (前20%)",
+    "highUptime": "高在线率 (≥99.9%)",
+    "selectedForComparison": "已选择 {count} 个",
+    "clearSelection": "清除选择",
+    "region": {
+      "northAmerica": "北美",
+      "europe": "欧洲",
+      "asia": "亚洲",
+      "other": "其他"
+    }
   },
   "redStoneMetrics": {
     "title": "RedStone 核心指标",
