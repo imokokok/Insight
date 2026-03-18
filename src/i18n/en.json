@@ -602,6 +602,201 @@
       "reliability": "Reliability"
     }
   },
+  "priceQuery": {
+    "title": "Price Query",
+    "description": "Query real-time price data across multiple oracles and blockchains",
+    "loading": "Loading",
+    "loadingData": "Loading data...",
+    "query": "Query",
+    "querying": "Querying...",
+    "noResults": {
+      "title": "No results found for {symbol}",
+      "description": "No price data available for the selected criteria",
+      "suggestion": "Try adjusting your oracle, blockchain, or symbol selection",
+      "popularTokens": "Popular tokens"
+    },
+    "results": {
+      "title": "results",
+      "empty": "No results to display",
+      "table": {
+        "oracle": "Oracle",
+        "blockchain": "Blockchain",
+        "price": "Price",
+        "change24h": "24h Change",
+        "freshness": "Freshness",
+        "confidence": "Confidence",
+        "source": "Source"
+      }
+    },
+    "filter": {
+      "placeholder": "Filter results...",
+      "noResults": "No results match your filter"
+    },
+    "pagination": {
+      "perPage": "per page",
+      "items": "items",
+      "prevPage": "Previous",
+      "nextPage": "Next"
+    },
+    "selectors": {
+      "symbol": "Symbol",
+      "oracle": "Oracles",
+      "blockchain": "Blockchains",
+      "timeRange": "Time Range",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "advancedOptions": "Advanced Options",
+      "compareMode": "Compare Mode",
+      "showBaseline": "Show Baseline",
+      "compareTime": "Compare Time"
+    },
+    "stats": {
+      "avgPrice": "Average Price",
+      "change24h": "24h Change",
+      "volatility": "Volatility",
+      "annualized": "Annualized",
+      "dataPoints": "Data Points",
+      "maxPrice": "Maximum Price",
+      "minPrice": "Minimum Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "absoluteValue": "Absolute",
+      "queryDuration": "Query Duration",
+      "compare": "Compare",
+      "consistency": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      }
+    },
+    "export": {
+      "header": "Price Query Export",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "timestamp": "Timestamp",
+      "source": "Source"
+    },
+    "comparison": {
+      "title": "Time Comparison"
+    },
+    "dataSources": {
+      "title": "Data Sources"
+    },
+    "autoRefresh": {
+      "title": "Auto Refresh",
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m",
+      "refreshing": "Refreshing...",
+      "countdown": "Next refresh in {seconds}s"
+    },
+    "lastUpdated": "Last updated",
+    "progress": "Progress",
+    "error": {
+      "fetchFailed": "Failed to fetch price data",
+      "retry": "Retry",
+      "retrying": "Retrying...",
+      "lastSuccessfulFetch": "Last successful fetch: {time}",
+      "noSuccessfulFetch": "No successful fetch yet"
+    },
+    "chart": {
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "reset": "Reset",
+      "granularity": {
+        "label": "Granularity",
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day"
+      },
+      "indicators": {
+        "ma7": "MA 7",
+        "ma14": "MA 14",
+        "ma30": "MA 30",
+        "bollingerBands": "Bollinger Bands",
+        "rsi": "RSI",
+        "macd": "MACD",
+        "volume": "Volume"
+      },
+      "timeRange": {
+        "label": "Time Range",
+        "all": "All"
+      },
+      "timeComparison": {
+        "title": "Time Comparison",
+        "period1": "Period 1",
+        "period2": "Period 2",
+        "to": "to"
+      },
+      "realtimeStatus": {
+        "live": "Live",
+        "connecting": "Connecting",
+        "reconnecting": "Reconnecting",
+        "disconnected": "Disconnected"
+      },
+      "tooltip": {
+        "time": "Time",
+        "dataPoints": "Data Points"
+      }
+    },
+    "consistency": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1 Hour",
+      "timeRange6Hours": "6 Hours",
+      "timeRange24Hours": "24 Hours",
+      "timeRange7Days": "7 Days"
+    },
+    "quickLinks": {
+      "chainlink": "Chainlink"
+    }
+  },
+  "dataQuality": {
+    "completenessScore": "Completeness Score",
+    "completenessDesc": "Percentage of expected data points received",
+    "avgScore": "Average Score",
+    "dataSources": "Data Sources",
+    "excellentRate": "Excellent Rate",
+    "dataPoints": "Data Points",
+    "continuity": "Continuity",
+    "missing": "Missing",
+    "latencyDistribution": "Latency Distribution",
+    "latencyDistributionDesc": "Distribution of response times across all data sources",
+    "excellent": "Excellent",
+    "good": "Good",
+    "warning": "Warning",
+    "critical": "Critical",
+    "latencyRange": "Latency Range",
+    "percentage": "Percentage",
+    "sampleCount": "Sample Count",
+    "level": "Level",
+    "freshnessTrend": "Freshness Trend",
+    "freshnessTrendDesc": "Data freshness over time",
+    "fresh": "Fresh",
+    "stale": "Stale",
+    "delayed": "Delayed",
+    "dataQualityAnalysis": "Data Quality Analysis",
+    "oracleDataQualityMetrics": "Oracle Data Quality Metrics",
+    "lastUpdated": "Last Updated",
+    "refreshData": "Refresh Data"
+  },
+  "comparison": {
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "yoy": "Year over Year",
+      "mom": "Month over Month"
+    }
+  },
+  "common": {
+    "refresh": "Refresh"
+  },
   "crossChain": {
     "title": "Cross-Chain Price Convergence Analysis",
     "oracleProvider": "Oracle Provider",
@@ -6016,14 +6211,6 @@
     "disclaimer": {
       "title": "Disclaimer",
       "content": "The methodology provided on this page is for technical reference only. Actual data processing methods may be adjusted based on market conditions and technological developments. We are not responsible for any losses resulting from the use of data from this platform."
-    }
-  },
-  "crossChain": {
-    "dataSources": {
-      "title": "Cross-Chain Data Sources"
-    },
-    "benchmark": {
-      "title": "Cross-Chain Benchmark Comparison"
     }
   },
   "mobile": {
