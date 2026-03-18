@@ -437,10 +437,7 @@ function HeatmapTooltip({
           <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100">
             <span className="text-gray-600">{t('crossChain.historicalPercentile')}</span>
             <span className={`font-mono font-medium ${getPercentileColor(historicalPercentile)}`}>
-              {t('crossChain.higherThanPercent').replace(
-                '{percent}',
-                historicalPercentile.toFixed(0)
-              )}
+              {t('crossChain.higherThanPercent', { percent: historicalPercentile.toFixed(0) })}
             </span>
           </div>
         )}

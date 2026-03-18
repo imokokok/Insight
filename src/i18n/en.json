@@ -558,7 +558,7 @@
       "quickAccess": "Quick Access Favorites",
       "viewAll": "View All Favorites"
     },
-    "freshness": {
+    "freshnessOptions": {
       "justNow": "Just now",
       "secondsAgo": "{seconds}s ago",
       "minutesAgo": "{minutes}m ago",
@@ -810,6 +810,7 @@
     "price": "Price",
     "differenceVs": "Difference (vs {chain})",
     "percentDifference": "Percent Difference",
+    "trend": "Trend",
     "priceChart": "Price Chart",
     "averagePrice": "Average Price",
     "highestPrice": "Highest Price",
@@ -903,6 +904,9 @@
     "recommended": "Recommended",
     "refreshSuccess": "Refreshed",
     "filter": "Filter",
+    "filterAll": "All",
+    "filterAbnormal": "Abnormal",
+    "filterNormal": "Normal",
     "residualDiagnostics": "Residual Diagnostics",
     "autocorrelationFunction": "Autocorrelation Function (ACF)",
     "autocorrelationCoefficient": "Autocorrelation Coefficient",
@@ -2762,6 +2766,7 @@
       "timeRange7Days": "7 Days"
     },
     "query": "Query",
+    "querying": "Querying...",
     "loading": "Loading...",
     "loadingData": "Loading data...",
     "pagination": {

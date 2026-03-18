@@ -122,19 +122,19 @@ export const getFreshnessInfo = (
 
   if (seconds < 30) {
     text = seconds <= 1 
-      ? (t ? t('crossOracle.freshness.justNow') : 'Just now') 
-      : (t ? t('crossOracle.freshness.secondsAgo', { seconds }) : `${seconds}s ago`);
+      ? (t ? t('crossOracle.freshnessOptions.justNow') : 'Just now') 
+      : (t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`);
     colorClass = `text-[${semanticColors.success.dark}]`;
   } else if (seconds < 60) {
-    text = t ? t('crossOracle.freshness.secondsAgo', { seconds }) : `${seconds}s ago`;
+    text = t ? t('crossOracle.freshnessOptions.secondsAgo', { seconds }) : `${seconds}s ago`;
     colorClass = `text-[${semanticColors.warning.dark}]`;
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    text = t ? t('crossOracle.freshness.minutesAgo', { minutes }) : `${minutes}m ago`;
+    text = t ? t('crossOracle.freshnessOptions.minutesAgo', { minutes }) : `${minutes}m ago`;
     colorClass = `text-[${semanticColors.danger.dark}]`;
   } else {
     const hours = Math.floor(seconds / 3600);
-    text = t ? t('crossOracle.freshness.hoursAgo', { hours }) : `${hours}h ago`;
+    text = t ? t('crossOracle.freshnessOptions.hoursAgo', { hours }) : `${hours}h ago`;
     colorClass = `text-[${semanticColors.danger.dark}]`;
   }
 

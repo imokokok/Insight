@@ -188,7 +188,7 @@ export function BenchmarkComparison({
           <div>
             {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900">{actualValue.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-gray-900">{actualValue?.toFixed(2) ?? '-'}</span>
               <span className="text-sm text-gray-500">{t('actualValue')}</span>
             </div>
           </div>
@@ -196,7 +196,7 @@ export function BenchmarkComparison({
           <div className="flex items-center gap-6">
             <div className="text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wider">{benchmarkLabel}</p>
-              <p className="text-xl font-semibold text-gray-700">{benchmarkValue.toFixed(2)}</p>
+              <p className="text-xl font-semibold text-gray-700">{benchmarkValue?.toFixed(2) ?? '-'}</p>
             </div>
 
             <div className="w-px h-12 bg-gray-300" />
@@ -205,7 +205,7 @@ export function BenchmarkComparison({
               <p className="text-xs text-gray-500 uppercase tracking-wider">{t('difference')}</p>
               <div className={`flex items-center gap-1 text-xl font-semibold ${getPerformanceColor(comparison.performance)}`}>
                 <span>{getPerformanceIcon(comparison.performance)}</span>
-                <span>{Math.abs(comparison.percentDiff).toFixed(2)}%</span>
+                <span>{Math.abs(comparison.percentDiff)?.toFixed(2) ?? '-'}%</span>
               </div>
             </div>
           </div>
@@ -238,7 +238,7 @@ export function BenchmarkComparison({
           </div>
           <span className="text-sm text-gray-500">
             {comparison.difference >= 0 ? '+' : ''}
-            {comparison.difference.toFixed(2)} {t('unitsFromBenchmark')}
+            {comparison.difference?.toFixed(2) ?? '-'} {t('unitsFromBenchmark')}
           </span>
         </div>
       </div>
@@ -372,11 +372,11 @@ export function BenchmarkComparison({
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">{metric.name}</td>
                       <td className="px-4 py-3 text-right font-mono">
-                        {metric.value.toFixed(2)}
+                        {metric.value?.toFixed(2) ?? '-'}
                         {metric.unit && <span className="text-gray-400 ml-1">{metric.unit}</span>}
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-gray-600">
-                        {metric.benchmark.toFixed(2)}
+                        {metric.benchmark?.toFixed(2) ?? '-'}
                         {metric.unit && <span className="text-gray-400 ml-1">{metric.unit}</span>}
                       </td>
                       <td className="px-4 py-3 text-right">

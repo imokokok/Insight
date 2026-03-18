@@ -69,7 +69,7 @@ export function DataSourceSection({
   isLoading,
   error,
 }: DataSourceSectionProps) {
-  const t = useTranslations();
+  const t = useTranslations('crossChain');
 
   const dataSources: DataSourceGroup[] = useMemo(() => {
     return dataPoints.map((point) => {
@@ -98,7 +98,7 @@ export function DataSourceSection({
         onRefresh={onRefresh}
         isLoading={isLoading}
         error={error}
-        title={t('crossChain.dataSources.title')}
+        title={t('dataSources.title')}
         className="shadow-sm"
         showUpdateTime
         initiallyExpanded={false}
