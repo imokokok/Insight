@@ -1,9 +1,89 @@
 {
+  "common": {
+    "actions": {
+      "refresh": "Refresh",
+      "export": "Export",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "apply": "Apply",
+      "retry": "Retry",
+      "confirm": "Confirm",
+      "clear": "Clear",
+      "close": "Close",
+      "reset": "Reset",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "viewFullscreen": "View Fullscreen"
+    },
+    "status": {
+      "loading": "Loading...",
+      "noData": "No Data",
+      "success": "Success",
+      "error": "Error",
+      "live": "LIVE",
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "consistency": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "activity": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "degraded": "Degraded"
+    },
+    "alert": {
+      "normal": "Normal",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "time": {
+      "lastUpdated": "Last updated",
+      "justNow": "Just now",
+      "secondsAgo": "{seconds}s ago",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
+      "daysAgo": "{days}d ago"
+    },
+    "price": {
+      "price": "Price",
+      "averagePrice": "Average Price",
+      "highestPrice": "Highest Price",
+      "lowestPrice": "Lowest Price",
+      "priceRange": "Price Range"
+    },
+    "statistics": {
+      "deviation": "Deviation",
+      "standardDeviation": "Standard Deviation",
+      "median": "Median",
+      "average": "Average",
+      "variance": "Variance"
+    },
+    "filters": {
+      "filter": "Filter",
+      "clearAll": "Clear All",
+      "currentFilters": "Current Filters",
+      "noFilters": "No filters",
+      "filtersApplied": "{count} filter(s) applied",
+      "all": "All"
+    },
+    "deviation": {
+      "all": "All",
+      "excellent": "<0.1%",
+      "good": "0.1-0.5%",
+      "poor": ">0.5%"
+    }
+  },
   "navbar": {
     "home": "Home",
     "marketOverview": "Market Overview",
     "priceQuery": "Price Query",
-    "crossOracle": "Cross-Oracle Comparison",
+    "crossOracle": "Cross-Oracle Analysis",
     "crossChain": "Cross-Chain Comparison",
     "chainlink": "Chainlink",
     "bandProtocol": "Band Protocol",
@@ -17,7 +97,7 @@
     "openMenu": "Open menu",
     "marketOverviewDesc": "Comprehensive market data and trends",
     "priceQueryDesc": "Query real-time prices from any oracle",
-    "crossOracleDesc": "Compare prices across different oracles",
+    "crossOracleDesc": "Multi-source oracle price comparison & deviation analysis",
     "crossChainDesc": "Analyze oracle performance across chains",
     "chainlinkDesc": "Decentralized oracle network leader",
     "bandProtocolDesc": "Cross-chain data oracle on Cosmos",
@@ -151,12 +231,12 @@
     }
   },
   "crossOracle": {
-    "title": "Cross-Oracle Comparison",
-    "subtitle": "Multi-oracle price comparison and monitoring",
+    "title": "Cross-Oracle Price Analysis",
+    "subtitle": "Multi-source Oracle Real-time Price Comparison & Deviation Analysis",
     "refresh": "Refresh",
     "lastUpdated": "Last updated",
     "currentPriceComparison": "Current Price Comparison",
-    "priceTrend": "Price Trend (Last 24 Hours)",
+    "priceTrend": "24h Price Trend",
     "oracle": "Oracle",
     "price": "Price",
     "confidence": "Confidence",
@@ -170,17 +250,17 @@
     "deviation": "Deviation (%)",
     "standardDeviation": "Standard Deviation",
     "variance": "Variance",
-    "consistencyRating": "Consistency Rating",
+    "consistencyRating": "Price Consistency Score",
     "consistency": {
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
       "poor": "Poor"
     },
-    "basedOnStdDev": "Based on Std Dev",
+    "basedOnStdDev": "Std Dev-based Assessment",
     "historyRange": "History Range",
     "ofAverage": "% of Avg",
-    "weighted": "Wtd",
+    "weighted": "Weighted",
     "low": "Low",
     "outlier": "Outlier",
     "trend": "Trend",
@@ -197,7 +277,7 @@
       "highestPrice": "Highest Price",
       "lowestPrice": "Lowest Price",
       "maxPriceDifference": "Max Price Difference",
-      "deviationFromAverage": "Deviation from Average",
+      "deviationFromAverage": "Mean Deviation",
       "avgResponseTime": "Avg Response Time"
     },
     "selectTradingPair": "Select Trading Pair",
@@ -242,11 +322,133 @@
     "oraclePerformanceRanking": {
       "rank": "Rank"
     },
-    "tabOverview": "Overview",
+    "tabOverview": "Data Overview",
     "tabCharts": "Charts",
     "tabAdvanced": "Advanced",
     "tabSnapshots": "Snapshots",
-    "tabPerformance": "Performance"
+    "tabPerformance": "Performance",
+    "freshness": "Data Timeliness",
+    "filter": {
+      "button": "Data Filter",
+      "allOracles": "All Oracles",
+      "currentFilters": "Current Filters",
+      "clearAll": "Clear All",
+      "timeRange": "Time Range",
+      "deviationRange": "Deviation Range",
+      "all": "All",
+      "oracleFilter": "Oracle Filter",
+      "filtersApplied": "{count} filter(s) applied",
+      "noFilters": "No filters",
+      "confirm": "Confirm"
+    },
+    "filterSummary": {
+      "deviation": "Deviation",
+      "oracle": "Oracle",
+      "time": "Time"
+    },
+    "pairSelector": {
+      "loading": "Loading...",
+      "searchPlaceholder": "Search trading pairs...",
+      "noResults": "No matching trading pairs found",
+      "keyboardHint": "Use ↑↓ to navigate, Enter to select",
+      "totalCount": "{count} total",
+      "categoryAll": "All",
+      "categoryLayer1": "Layer 1",
+      "categoryDeFi": "DeFi",
+      "categoryStablecoin": "Stablecoin"
+    },
+    "priceTable": {
+      "highest": "Highest",
+      "lowest": "Lowest",
+      "status": "Status",
+      "outlier": "Outlier",
+      "normal": "Normal",
+      "deviationRate": "Deviation Rate",
+      "updateTime": "Update Time"
+    },
+    "chartTooltip": {
+      "avgPrice": "Average Price",
+      "stdDev": "Standard Deviation",
+      "oraclePrices": "Oracle Prices"
+    },
+    "timeRange": {
+      "1H": "1 Hour",
+      "24H": "24 Hours",
+      "7D": "7 Days",
+      "30D": "30 Days",
+      "90D": "90 Days",
+      "1Y": "1 Year",
+      "ALL": "All Time"
+    },
+    "chart": {
+      "fullscreen": "Fullscreen View",
+      "zoomOut": "Zoom Out",
+      "zoomIn": "Zoom In",
+      "resetZoom": "Reset Zoom",
+      "reset": "Reset",
+      "avgPriceLine": "Average Price"
+    },
+    "chartLegend": {
+      "avgPriceLine": "Average Price Line",
+      "dataPoint": "Data Update Point",
+      "stdDev1": "±1 Std Dev Range",
+      "stdDev2": "±2 Std Dev Range",
+      "pinchZoom": "Pinch to zoom for more details"
+    },
+    "chartsTab": {
+      "detailedAnalysis": "Price Trend Detailed Analysis"
+    },
+    "snapshotsTab": {
+      "selectSnapshot": "Select a snapshot to compare",
+      "selectHint": "Select a historical snapshot from the left panel"
+    },
+    "advancedTab": {
+      "movingAverage": "Moving Average Analysis",
+      "dataQuality": "Data Quality Trend"
+    },
+    "performanceTab": {
+      "performanceComparison": "Performance Comparison Analysis",
+      "selectOracle": "Select oracle to view latency data",
+      "allOracles": "All Oracles",
+      "selectOraclePlaceholder": "Select Oracle",
+      "summary": "Oracle Performance Summary",
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "advancedAnalysis": "Advanced Analysis",
+      "tooltip": "{name} - Response Time: {responseTime}ms, Accuracy: {accuracy}%, Stability: {stability}%"
+    },
+    "outliers": {
+      "detected": "Price outliers detected",
+      "count": "{count} outlier(s)",
+      "outlierOracles": "Outlier Oracles",
+      "andMore": "and {count} more",
+      "avgDeviation": "Avg Deviation",
+      "viewDetails": "View Details"
+    },
+    "accessibility": {
+      "standardColors": "Switch to standard colors",
+      "colorBlindMode": "Switch to color-blind friendly colors",
+      "standardMode": "Standard Mode",
+      "colorBlindModeShort": "Color Blind Mode"
+    },
+    "favorites": {
+      "button": "Favorites",
+      "quickAccess": "Quick Access Favorites",
+      "viewAll": "View All Favorites"
+    },
+    "freshness": {
+      "justNow": "Just now",
+      "secondsAgo": "{seconds}s ago",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago"
+    },
+    "refreshOptions": {
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m"
+    }
   },
   "crossChain": {
     "title": "Cross-Chain Price Comparison",
@@ -474,7 +676,7 @@
     "menu": {
       "marketData": "Market Data",
       "networkHealth": "Network Health",
-      "crossOracleComparison": "Cross-Oracle Comparison",
+      "crossOracleComparison": "Cross-Oracle Analysis",
       "ecosystem": "Ecosystem",
       "riskAssessment": "Risk Assessment",
       "nodes": "Nodes",
@@ -1158,7 +1360,7 @@
       "staking": "Staking",
       "riskAssessment": "Risk Assessment",
       "ecosystem": "Ecosystem",
-      "crossOracleComparison": "Cross-Oracle Comparison"
+      "crossOracleComparison": "Cross-Oracle Analysis"
     },
     "stats": {
       "supportedChains": "Supported Chains",
@@ -1400,7 +1602,7 @@
       "integrations": "Integrations"
     },
     "crossOracle": {
-      "title": "Cross-Oracle Comparison"
+      "title": "Cross-Oracle Price Analysis"
     }
   },
   "pythNetwork": {
@@ -1466,7 +1668,7 @@
       "networkHealth": "Network Health",
       "priceFeeds": "Price Feeds",
       "crossChain": "Cross-Chain",
-      "crossOracleComparison": "Cross-Oracle Comparison",
+      "crossOracleComparison": "Cross-Oracle Analysis",
       "riskAssessment": "Risk Assessment"
     },
     "tabs": {
@@ -1535,7 +1737,7 @@
       "description": "Pyth supports multiple blockchains through Wormhole cross-chain protocol, enabling sub-second price updates."
     },
     "crossOracle": {
-      "title": "Cross-Oracle Comparison"
+      "title": "Cross-Oracle Price Analysis"
     },
     "pageTitles": {
       "market": "Market Data",
@@ -1545,7 +1747,7 @@
       "ecosystem": "Ecosystem",
       "risk": "Risk Assessment",
       "crossChain": "Cross-Chain",
-      "crossOracle": "Cross-Oracle Comparison"
+      "crossOracle": "Cross-Oracle Analysis"
     },
     "menu": {
       "marketData": "Market Data",
@@ -1554,7 +1756,7 @@
       "networkHealth": "Network Health",
       "priceFeeds": "Price Feeds",
       "crossChain": "Cross-Chain",
-      "crossOracleComparison": "Cross-Oracle Comparison",
+      "crossOracleComparison": "Cross-Oracle Analysis",
       "riskAssessment": "Risk Assessment"
     },
     "riskAssessment": {
@@ -1662,7 +1864,7 @@
     },
     "crossOracle": {
       "overview": {
-        "title": "Cross-Oracle Comparison",
+        "title": "Cross-Oracle Price Analysis",
         "description": "Compare API3 performance metrics against other leading oracle providers including Chainlink, Pyth, Band Protocol, and DIA."
       },
       "responseTime": {
@@ -1847,8 +2049,8 @@
       "title": "Quick Links",
       "crossChain": "Cross-Chain Comparison",
       "crossChainDesc": "Compare prices of a single oracle across different chains",
-      "crossOracle": "Cross-Oracle Comparison",
-      "crossOracleDesc": "Compare prices of multiple oracles on the same chain",
+      "crossOracle": "Cross-Oracle Analysis",
+      "crossOracleDesc": "Multi-source oracle price comparison & deviation analysis",
       "chainlinkDesc": "Decentralized oracle network"
     },
     "config": {
@@ -2589,7 +2791,7 @@
       "ecosystem": "Ecosystem",
       "risk": "Risk Assessment",
       "crossChain": "Cross-Chain",
-      "crossOracle": "Cross-Oracle Comparison"
+      "crossOracle": "Cross-Oracle Analysis"
     },
     "riskAssessment": {
       "overallRiskScore": "Overall Risk Score",

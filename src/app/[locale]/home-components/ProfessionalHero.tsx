@@ -91,6 +91,7 @@ export default function ProfessionalHero() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [isComposing, setIsComposing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
@@ -169,6 +170,7 @@ export default function ProfessionalHero() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isComposing) return;
     if (highlightedIndex >= 0 && highlightedIndex < dropdownItems.length) {
       const selectedItem = dropdownItems[highlightedIndex];
       if (selectedItem.type === 'search' && 'score' in selectedItem.item) {
@@ -187,6 +189,8 @@ export default function ProfessionalHero() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isComposing) return;
+
     if (!isDropdownOpen) {
       if (e.key === 'ArrowDown' && dropdownItems.length > 0) {
         e.preventDefault();
@@ -356,6 +360,8 @@ export default function ProfessionalHero() {
                   }}
                   onBlur={() => setIsSearchFocused(false)}
                   onKeyDown={handleKeyDown}
+                  onCompositionStart={() => setIsComposing(true)}
+                  onCompositionEnd={() => setIsComposing(false)}
                   placeholder={t('home.hero.searchPlaceholder')}
                   className="flex-1 px-4 sm:px-5 py-4 sm:py-5 text-sm sm:text-base text-gray-900 placeholder-gray-400 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 focus:border-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 min-w-0 !outline-none"
                   style={{ outline: 'none', boxShadow: 'none' }}

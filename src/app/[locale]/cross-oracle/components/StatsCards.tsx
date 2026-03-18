@@ -32,7 +32,7 @@ const ConsistencyBadge = ({ rating, t }: { rating: string; t: (key: string) => s
     <span
       className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${colors[rating] || colors.poor}`}
     >
-      {t(`crossOracle.consistency.${rating}`) || rating}
+      {t(`common.consistency.${rating}`) || rating}
     </span>
   );
 };

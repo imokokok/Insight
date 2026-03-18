@@ -178,7 +178,7 @@ export default function CrossChainPage() {
       label: t('crossChain.consistencyRating'),
       value:
         standardDeviationPercent > 0
-          ? t(`crossChain.consistency.${getConsistencyRating(standardDeviationPercent)}`)
+          ? t(`common.consistency.${getConsistencyRating(standardDeviationPercent)}`)
           : '-',
       trend: null,
       tooltip: t('crossChain.tooltip.consistencyRating'),
@@ -586,14 +586,14 @@ export default function CrossChainPage() {
             }}
           >
             {refreshStatus === 'refreshing'
-              ? t('crossChain.loading')
+              ? t('common.status.loading')
               : showRefreshSuccess
                 ? t('crossChain.refreshSuccess')
-                : t('crossChain.refresh')}
+                : t('common.actions.refresh')}
           </button>
           {lastUpdated && (
             <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-              {t('crossChain.lastUpdated')} {lastUpdated.toLocaleTimeString()}
+              {t('common.time.lastUpdated')} {lastUpdated.toLocaleTimeString()}
             </span>
           )}
         </div>

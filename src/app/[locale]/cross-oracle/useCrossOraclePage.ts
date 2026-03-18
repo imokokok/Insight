@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useI18n } from '@/lib/i18n/provider';
 import { OracleProvider, PriceData, saveSnapshot, SnapshotStats } from '@/types/oracle';
 import {
   oracleClients,
@@ -87,7 +87,7 @@ export interface UseCrossOraclePageReturn {
   selectedPerformanceOracle: OracleProvider | null;
   setSelectedPerformanceOracle: React.Dispatch<React.SetStateAction<OracleProvider | null>>;
   getOracleLatencyData: (oracle: OracleProvider | null) => number[];
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   router: ReturnType<typeof useRouter>;
   user: ReturnType<typeof useUser>;
   oracleFavorites: ReturnType<typeof useFavorites>['favorites'];
@@ -166,7 +166,7 @@ export interface UseCrossOraclePageReturn {
 }
 
 export function useCrossOraclePage(): UseCrossOraclePageReturn {
-  const t = useTranslations();
+  const { t } = useI18n();
   const router = useRouter();
   const user = useUser();
 
@@ -481,16 +481,16 @@ export function useCrossOraclePage(): UseCrossOraclePageReturn {
           : deviationFilter === 'good'
             ? '0.1-0.5%'
             : '>0.5%';
-      summary.push(`偏差: ${label}`);
+      summary.push(`${t('crossOracle.filterSummary.deviation')}: ${label}`);
     }
     if (oracleFilter !== 'all') {
-      summary.push(`预言机: ${oracleNames[oracleFilter]}`);
+      summary.push(`${t('crossOracle.filterSummary.oracle')}: ${oracleNames[oracleFilter]}`);
     }
     if (timeRange !== '24H') {
-      summary.push(`时间: ${timeRange}`);
+      summary.push(`${t('crossOracle.filterSummary.time')}: ${timeRange}`);
     }
     return summary;
-  }, [deviationFilter, oracleFilter, timeRange]);
+  }, [deviationFilter, oracleFilter, timeRange, t]);
 
   const toggleOracle = (oracle: OracleProvider) => {
     setSelectedOracles((prev) =>
