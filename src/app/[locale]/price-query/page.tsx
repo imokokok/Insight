@@ -38,6 +38,9 @@ import {
   ExportConfig,
   ExportConfigData,
   DataQualityPanel,
+  DataSourceSection,
+  UnifiedExportSection,
+  TimeComparisonSection,
 } from './components';
 import { ChartSkeleton } from '@/components/ui/ChartSkeleton';
 import { createLogger } from '@/lib/utils/logger';
@@ -101,6 +104,17 @@ export default function PriceQueryPage() {
   const [showBaseline, setShowBaseline] = useState<boolean>(false);
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // Time comparison configuration
+  const [timeComparisonConfig, setTimeComparisonConfig] = useState<{
+    primaryRange: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+    comparisonMode: 'yoy' | 'mom' | 'custom';
+    customStartDate?: Date;
+    customEndDate?: Date;
+  }>({
+    primaryRange: '24h',
+    comparisonMode: 'mom',
+  });
 
   // 使用 state 来跟踪 URL 参数是否已解析
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
@@ -828,6 +842,27 @@ export default function PriceQueryPage() {
 
               <DataQualityPanel results={queryResults} historicalData={historicalData} />
 
+              <div className="flex items-center justify-between gap-4">
+                <DataSourceSection
+                  results={queryResults}
+                  lastUpdated={queryResults.length > 0 ? new Date(Math.max(...queryResults.map(r => r.priceData.timestamp))) : null}
+                  onRefresh={fetchQueryData}
+                  isLoading={loading}
+                />
+                <UnifiedExportSection
+                  loading={loading}
+                  queryResults={queryResults}
+                  chartContainerRef={chartContainerRef}
+                  selectedSymbol={selectedSymbol}
+                  avgPrice={avgPrice}
+                  maxPrice={maxPrice}
+                  minPrice={minPrice}
+                  priceRange={priceRange}
+                  standardDeviation={standardDeviation}
+                  standardDeviationPercent={standardDeviationPercent}
+                />
+              </div>
+
               <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
                 <PriceResultsTable
                   results={queryResults}
@@ -859,6 +894,31 @@ export default function PriceQueryPage() {
                   />
                 </div>
               </div>
+
+              {/* Time Comparison Section - Only show when compare mode is enabled */}
+              {compareMode && chartData.length > 0 && compareChartData.length > 0 && (
+                <TimeComparisonSection
+                  chartData={chartData}
+                  compareChartData={compareChartData}
+                  queryResults={queryResults}
+                  compareQueryResults={compareQueryResults}
+                  timeConfig={{
+                    primaryRange: timeComparisonConfig.primaryRange,
+                    comparisonMode: timeComparisonConfig.comparisonMode,
+                    customStartDate: timeComparisonConfig.customStartDate,
+                    customEndDate: timeComparisonConfig.customEndDate,
+                  }}
+                  onTimeConfigChange={(config) => {
+                    setTimeComparisonConfig({
+                      primaryRange: config.primaryRange,
+                      comparisonMode: config.comparisonMode,
+                      customStartDate: config.customStartDate,
+                      customEndDate: config.customEndDate,
+                    });
+                  }}
+                  hiddenSeries={hiddenSeries}
+                />
+              )}
 
               <QuickLinks />
             </div>

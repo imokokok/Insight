@@ -577,21 +577,21 @@ export default function ChartRenderer({
       return (
         <div className="h-full overflow-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   {isChineseLocale(locale) ? '预言机' : 'Oracle'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   {isChineseLocale(locale) ? '支持链数' : 'Chains'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   {isChineseLocale(locale) ? '协议数' : 'Protocols'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   {isChineseLocale(locale) ? '市场份额' : 'Share'}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                   TVS
                 </th>
               </tr>
@@ -639,12 +639,12 @@ export default function ChartRenderer({
     return (
       <div className="h-full overflow-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 sticky top-0">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            <tr className="border-b border-gray-200">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                 {isChineseLocale(locale) ? '预言机' : 'Oracle'}
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                 {activeChart === 'pie'
                   ? isChineseLocale(locale)
                     ? '市场份额'
@@ -655,13 +655,13 @@ export default function ChartRenderer({
               </th>
               {activeChart === 'pie' && (
                 <>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                     TVS
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                     {isChineseLocale(locale) ? '支持链数' : 'Chains'}
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">
                     {isChineseLocale(locale) ? '24h变化' : '24h Change'}
                   </th>
                 </>
@@ -718,7 +718,10 @@ export default function ChartRenderer({
     );
   };
 
-  if (viewType === 'table' && !['chain', 'protocol', 'asset'].includes(activeChart)) {
+  if (
+    viewType === 'table' &&
+    !['chain', 'protocol', 'asset', 'pie', 'trend', 'bar'].includes(activeChart)
+  ) {
     return renderTable();
   }
 

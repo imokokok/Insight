@@ -1,0 +1,378 @@
+/* ============================================
+   High Contrast Mode Styles
+   ============================================ */
+
+.theme-high-contrast {
+  /* Background Colors */
+  --background: #ffffff;
+  --foreground: #000000;
+  
+  /* High Contrast Brand Colors */
+  --finance-primary: #0000ff;
+  --finance-secondary: #0000cc;
+  --finance-accent: #000099;
+  
+  /* High Contrast Status Colors */
+  --finance-success: #008000;
+  --finance-success-light: #e6f3e6;
+  --finance-warning: #ff8c00;
+  --finance-warning-light: #fff4e6;
+  --finance-danger: #ff0000;
+  --finance-danger-light: #ffe6e6;
+  --finance-neutral: #000000;
+  --finance-neutral-light: #f0f0f0;
+  
+  /* Borders */
+  --border-dune-separator: #000000;
+  
+  /* Focus */
+  --focus-color: #0000ff;
+  --focus-width: 4px;
+}
+
+.theme-high-contrast body {
+  background: #ffffff;
+  color: #000000;
+}
+
+.theme-high-contrast .card,
+.theme-high-contrast .card-hover {
+  background: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: none;
+}
+
+.theme-high-contrast .card-hover:hover {
+  border-color: #0000ff;
+  background: #f0f8ff;
+}
+
+.theme-high-contrast .input {
+  border: 2px solid #000000;
+  background: #ffffff;
+}
+
+.theme-high-contrast .input:focus {
+  border-color: #0000ff;
+  outline: 3px solid #0000ff;
+  outline-offset: 2px;
+}
+
+.theme-high-contrast .btn-primary {
+  background-color: #0000ff;
+  color: #ffffff;
+  border: 2px solid #0000ff;
+}
+
+.theme-high-contrast .btn-primary:hover:not(:disabled) {
+  background-color: #000000;
+  border-color: #000000;
+}
+
+.theme-high-contrast .btn-secondary {
+  background-color: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+}
+
+.theme-high-contrast .btn-secondary:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+/* Enhanced Focus Styles */
+.theme-high-contrast :focus,
+.theme-high-contrast :focus-visible {
+  outline: 4px solid #0000ff;
+  outline-offset: 2px;
+}
+
+.theme-high-contrast button:focus,
+.theme-high-contrast a:focus,
+.theme-high-contrast input:focus,
+.theme-high-contrast select:focus,
+.theme-high-contrast textarea:focus {
+  outline: 4px solid #0000ff;
+  outline-offset: 2px;
+}
+
+/* Table Styles */
+.theme-high-contrast .table th {
+  background-color: #000000;
+  color: #ffffff;
+  border-bottom: 2px solid #000000;
+}
+
+.theme-high-contrast .table td {
+  border-bottom: 1px solid #000000;
+}
+
+.theme-high-contrast .table tr:hover {
+  background-color: #f0f8ff;
+}
+
+/* Links */
+.theme-high-contrast a {
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+.theme-high-contrast a:hover {
+  color: #000000;
+  background-color: #ffff00;
+}
+
+.theme-high-contrast a:visited {
+  color: #800080;
+}
+
+/* Selection */
+.theme-high-contrast ::selection {
+  background-color: #0000ff;
+  color: #ffffff;
+}
+
+/* Scrollbar */
+.theme-high-contrast ::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.theme-high-contrast ::-webkit-scrollbar-thumb {
+  background: #000000;
+}
+
+.theme-high-contrast ::-webkit-scrollbar-thumb:hover {
+  background: #0000ff;
+}
+
+/* ============================================
+   Enhanced Focus Indicator
+   ============================================ */
+
+.focus-enhanced :focus,
+.focus-enhanced :focus-visible {
+  outline: 3px solid var(--finance-primary);
+  outline-offset: 3px;
+}
+
+.focus-enhanced button:focus,
+.focus-enhanced a:focus,
+.focus-enhanced input:focus,
+.focus-enhanced select:focus,
+.focus-enhanced textarea:focus {
+  outline: 3px solid var(--finance-primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(30, 64, 175, 0.2);
+}
+
+/* ============================================
+   Font Size Adjustments
+   ============================================ */
+
+.font-large {
+  font-size: 112.5%;
+}
+
+.font-large .text-xs {
+  font-size: 0.875rem;
+}
+
+.font-large .text-sm {
+  font-size: 1rem;
+}
+
+.font-large .text-base {
+  font-size: 1.125rem;
+}
+
+.font-large .text-lg {
+  font-size: 1.25rem;
+}
+
+.font-large .text-xl {
+  font-size: 1.5rem;
+}
+
+.font-x-large {
+  font-size: 125%;
+}
+
+.font-x-large .text-xs {
+  font-size: 1rem;
+}
+
+.font-x-large .text-sm {
+  font-size: 1.125rem;
+}
+
+.font-x-large .text-base {
+  font-size: 1.25rem;
+}
+
+.font-x-large .text-lg {
+  font-size: 1.5rem;
+}
+
+.font-x-large .text-xl {
+  font-size: 1.75rem;
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .animate-pulse-finance,
+.reduce-motion .animate-pulse-live,
+.reduce-motion .animate-pulse-ring,
+.reduce-motion .animate-fade-in,
+.reduce-motion .animate-fade-out,
+.reduce-motion .animate-fade-in-up,
+.reduce-motion .animate-fade-in-down,
+.reduce-motion .animate-slide-in-left,
+.reduce-motion .animate-slide-in-right,
+.reduce-motion .skeleton-shimmer::after {
+  animation: none !important;
+}
+
+/* ============================================
+   Color Vision Deficiency Filters
+   ============================================ */
+
+.color-protanopia {
+  filter: url('#protanopia');
+}
+
+.color-deuteranopia {
+  filter: url('#deuteranopia');
+}
+
+.color-tritanopia {
+  filter: url('#tritanopia');
+}
+
+.color-achromatopsia {
+  filter: grayscale(100%);
+}
+
+/* ============================================
+   Skip Link
+   ============================================ */
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000000;
+  color: #ffffff;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 10000;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ============================================
+   Screen Reader Only
+   ============================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ============================================
+   ARIA Live Regions
+   ============================================ */
+
+[aria-live="polite"],
+[aria-live="assertive"] {
+  position: relative;
+}
+
+/* ============================================
+   Touch Target Sizes
+   ============================================ */
+
+.touch-target-min {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ============================================
+   Dark Mode (Basic)
+   ============================================ */
+
+.theme-dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --finance-primary: #60a5fa;
+  --finance-secondary: #3b82f6;
+  --finance-accent: #1e40af;
+  --finance-success: #34d399;
+  --finance-warning: #fbbf24;
+  --finance-danger: #f87171;
+  --finance-neutral: #9ca3af;
+  --finance-neutral-light: #1f2937;
+  --border-dune-separator: #374151;
+}
+
+.theme-dark body {
+  background: #0a0a0a;
+  color: #ededed;
+}
+
+.theme-dark .card,
+.theme-dark .card-hover {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.theme-dark .input {
+  background: #1f2937;
+  border-color: #374151;
+  color: #ededed;
+}
+
+.theme-dark .table th {
+  background-color: #1f2937;
+  color: #ededed;
+}
+
+.theme-dark .table td {
+  border-color: #374151;
+}
+
+.theme-dark .table tr:hover {
+  background-color: #374151;
+}

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '../components/accessibility/accessibility.css';
 
 @theme {
   --color-background: var(--background);
@@ -694,4 +695,215 @@ body {
 .non-critical-content {
   content-visibility: auto;
   contain-intrinsic-size: auto 300px;
+}
+
+/* ============================================
+   Mobile Optimizations
+   ============================================ */
+
+/* Safe area insets for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Touch target optimization - minimum 44x44px */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.touch-target-sm {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.touch-target-lg {
+  min-width: 56px;
+  min-height: 56px;
+}
+
+/* Touch feedback */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling for mobile */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-specific animations */
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s ease-out;
+}
+
+/* Pull to refresh indicator */
+.pull-indicator {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.2s ease;
+}
+
+/* Mobile card styles */
+.mobile-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 8px 0;
+  padding: 16px;
+}
+
+/* Bottom sheet styles */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 12px auto;
+}
+
+/* Mobile navigation */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 50;
+}
+
+/* Responsive typography for mobile */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Mobile-optimized form inputs */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Touch action optimization */
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+/* Mobile chart optimizations */
+.mobile-chart {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Loading skeleton for mobile */
+.skeleton-mobile {
+  background: linear-gradient(
+    90deg,
+    #f3f4f6 25%,
+    #e5e7eb 50%,
+    #f3f4f6 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in-up,
+  .skeleton-mobile {
+    animation: none;
+  }
+
+  .touch-feedback {
+    transition: none;
+  }
 }

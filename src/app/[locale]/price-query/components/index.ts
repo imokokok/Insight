@@ -14,3 +14,6 @@ export { ConfidenceBadge } from './ConfidenceBadge';
 export { ExportConfig } from './ExportConfig';
 export type { ExportConfigData, ExportFormat, ExportField } from './ExportConfig';
 export { DataQualityPanel } from './DataQualityPanel';
+export { DataSourceSection } from './DataSourceSection';
+export { default as UnifiedExportSection } from './UnifiedExportSection';
+export { TimeComparisonSection } from './TimeComparisonSection';

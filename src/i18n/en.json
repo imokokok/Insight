@@ -99,6 +99,15 @@
       "medium": "Medium",
       "low": "Low"
     },
+    "days": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
     "locale": "en-US",
     "favorite": "Favorite",
     "favorited": "Favorited"
@@ -237,6 +246,94 @@
     "default": {
       "title": "No content",
       "description": "There is no content to display at the moment"
+    },
+    "folder": {
+      "title": "No items yet",
+      "description": "This folder is empty. Add some items to get started."
+    },
+    "offline": {
+      "title": "You're offline",
+      "description": "Please check your internet connection and try again."
+    },
+    "empty": {
+      "title": "Nothing here",
+      "description": "There's nothing to show at the moment."
+    },
+    "new": {
+      "title": "Get started",
+      "description": "Welcome! Let's get you set up with a quick guide."
+    },
+    "custom": {
+      "title": "Custom state",
+      "description": "This is a custom empty state message."
+    },
+    "viewExample": "View Example",
+    "quickStart": "Quick Start",
+    "tryExampleData": "Try Example Data",
+    "createNew": "Create New",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "retrying": "Retrying...",
+    "contactSupport": "Contact Support",
+    "errorDetails": "Error Details",
+    "noResultsFor": "No results for",
+    "clearSearch": "Clear Search",
+    "trySearching": "Try searching for:",
+    "lastSynced": "Last synced",
+    "retryConnection": "Retry Connection",
+    "favorites": {
+      "title": "No favorites yet",
+      "description": "Add items to your favorites for quick access",
+      "browse": "Browse Items"
+    }
+  },
+  "loading": {
+    "loadingData": "Loading Data",
+    "fetchingData": "Fetching data...",
+    "cancel": "Cancel",
+    "elapsedTime": "Elapsed time",
+    "estimatedTime": "Estimated time",
+    "completed": "Completed",
+    "failed": "Failed",
+    "total": "Total",
+    "progress": "Progress"
+  },
+  "tutorial": {
+    "welcomeTitle": "Welcome to Oracle Insight",
+    "welcomeDescription": "Let us show you around with a quick interactive tour of the platform's key features.",
+    "startTutorial": "Start Tutorial",
+    "skip": "Skip",
+    "skipForNow": "Skip for now",
+    "dontShowAgain": "Don't show again",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "complete": "Complete",
+    "finish": "Finish",
+    "steps": "steps",
+    "interactive": "Interactive",
+    "goToStep": "Go to step {step}",
+    "completionTitle": "Tutorial Complete!",
+    "completionDescription": "You're all set! Start exploring the platform and discover powerful oracle analytics.",
+    "startUsing": "Start Using",
+    "viewSummary": "View Summary",
+    "steps": {
+      "welcome": {
+        "title": "Welcome",
+        "description": "Discover powerful oracle analytics and real-time price monitoring capabilities."
+      },
+      "explore": {
+        "title": "Explore",
+        "description": "Navigate through different oracle providers and compare their performance metrics."
+      },
+      "analyze": {
+        "title": "Analyze",
+        "description": "Dive deep into price trends, deviations, and cross-chain comparisons."
+      },
+      "customize": {
+        "title": "Customize",
+        "description": "Personalize your dashboard and set up alerts for important price movements."
+      }
     }
   },
   "error": {
@@ -4384,6 +4481,91 @@
       "changePercent": "Price change {change}% reached target {target}%",
       "changePercentSimple": "Price change reached target {target}%",
       "default": "Condition met"
+    },
+    "templates": {
+      "title": "Quick Templates",
+      "categories": {
+        "all": "All",
+        "price": "Price",
+        "volatility": "Volatility",
+        "data": "Data"
+      },
+      "showMore": "Show More",
+      "showLess": "Show Less",
+      "priceBreakout": {
+        "name": "Price Breakout",
+        "description": "Alert when price breaks above resistance level"
+      },
+      "priceDrop": {
+        "name": "Price Drop Alert",
+        "description": "Alert when price drops below support level"
+      },
+      "volatilitySpike": {
+        "name": "Volatility Spike",
+        "description": "Alert when price changes exceed threshold"
+      },
+      "deviationAlert": {
+        "name": "Deviation Alert",
+        "description": "Alert on significant price deviation"
+      },
+      "dataDelay": {
+        "name": "Data Delay Alert",
+        "description": "Alert when oracle data is delayed"
+      }
+    },
+    "batch": {
+      "selectAll": "Select all {count} alerts",
+      "selectedCount": "{count} selected",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "clearSelection": "Clear selection",
+      "deleteConfirm": "Are you sure you want to delete {count} selected alerts?"
+    },
+    "mute": {
+      "title": "Mute Period",
+      "description": "Temporarily suppress alert notifications",
+      "settings": "Mute Settings",
+      "enabledHint": "Mute period is enabled",
+      "disabledHint": "Click to configure mute period",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "durationLabel": "Duration",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "recurring": "Recurring Schedule",
+      "daysOfWeek": "Days of Week",
+      "notice": "During mute period, alerts will still be triggered but notifications will be suppressed",
+      "duration": {
+        "15": "15 minutes",
+        "30": "30 minutes",
+        "60": "1 hour",
+        "120": "2 hours",
+        "240": "4 hours",
+        "480": "8 hours",
+        "1440": "24 hours",
+        "-1": "Custom schedule"
+      }
+    },
+    "create": {
+      "title": "Create Price Alert",
+      "nameLabel": "Alert Name",
+      "nameOptional": "(Optional)",
+      "namePlaceholder": "Give your alert a name",
+      "symbolLabel": "Trading Pair",
+      "providerLabel": "Oracle",
+      "providerOptional": "(Optional)",
+      "allProviders": "All Oracles",
+      "chainLabel": "Chain",
+      "chainOptional": "(Optional)",
+      "allChains": "All Chains",
+      "selectProviderFirst": "Please select an oracle first",
+      "conditionLabel": "Alert Condition",
+      "targetValueLabel": "Target Value",
+      "enableAlert": "Enable Alert",
+      "submitting": "Creating...",
+      "submit": "Create Alert",
+      "customConfig": "Custom Configuration"
     }
   },
   "favorites": {
@@ -5658,5 +5840,544 @@
     "cancel": "Cancel",
     "generating": "Generating...",
     "generateFullReport": "Generate Full Report"
+  },
+  "dataTransparency": {
+    "title": "Data Transparency",
+    "dataSources": "Data Sources",
+    "providers": "Oracles",
+    "chains": "Chains",
+    "dataPoints": "Data Points",
+    "showMore": "Show More ({count})",
+    "showLess": "Show Less",
+    "noSources": "No data sources available",
+    "chain": "Chain",
+    "source": "Source",
+    "confidence": "Confidence",
+    "viewProof": "View Verification Proof",
+    "nextRefresh": "Next Refresh",
+    "credibility": {
+      "high": "High Credibility",
+      "medium": "Medium Credibility",
+      "low": "Low Credibility",
+      "unverified": "Unverified"
+    },
+    "freshness": {
+      "fresh": "Fresh",
+      "stale": "Stale",
+      "expired": "Expired"
+    }
+  },
+  "methodology": {
+    "title": "Data Methodology",
+    "subtitle": "Learn about our price aggregation algorithms and risk assessment framework",
+    "aggregation": {
+      "title": "Price Aggregation",
+      "description": "Multi-source data fusion and price calculation",
+      "sectionTitle": "Price Aggregation Algorithms",
+      "intro": "We employ multiple price aggregation algorithms that dynamically select the optimal approach based on data quality and market conditions, ensuring price accuracy and manipulation resistance.",
+      "simpleAverage": {
+        "title": "Simple Average",
+        "description": "Arithmetic mean of all valid data source prices, suitable for scenarios where data sources have similar quality."
+      },
+      "weightedAverage": {
+        "title": "Weighted Average",
+        "description": "Assigns weights based on liquidity, trading volume, and historical accuracy of each data source for more accurate market price reflection."
+      },
+      "median": {
+        "title": "Median",
+        "description": "Takes the middle value of all prices, effectively resisting extreme values and anomalous data."
+      },
+      "trimmedMean": {
+        "title": "Trimmed Mean",
+        "description": "Calculates average after removing highest and lowest percentages, balancing advantages of mean and median."
+      },
+      "weightFactors": "Weight Factors",
+      "factors": {
+        "liquidity": "Liquidity Depth",
+        "volume": "Trading Volume",
+        "reputation": "Data Source Reputation",
+        "freshness": "Data Freshness"
+      }
+    },
+    "riskAssessment": {
+      "title": "Risk Assessment",
+      "description": "Multi-dimensional risk identification and quantification",
+      "sectionTitle": "Risk Assessment Dimensions",
+      "intro": "Our risk assessment framework analyzes oracle data risk from multiple dimensions, helping users identify potential issues and make informed decisions."
+    },
+    "risk": {
+      "centralization": {
+        "title": "Centralization Risk",
+        "description": "Evaluates the decentralization level of data providers; higher concentration means greater risk.",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "freshness": {
+        "title": "Data Freshness Risk",
+        "description": "Evaluates data update frequency and timeliness; stale data may lead to poor decisions.",
+        "fresh": "Fresh",
+        "stale": "Stale",
+        "expired": "Expired"
+      },
+      "deviation": {
+        "title": "Price Deviation Risk",
+        "description": "Monitors price differences between data sources; abnormal deviations may indicate market manipulation or technical issues.",
+        "normal": "Normal",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "liquidity": {
+        "title": "Liquidity Risk",
+        "description": "Evaluates underlying market liquidity conditions; low liquidity may cause price distortion.",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "dataQuality": {
+      "title": "Data Quality",
+      "description": "Comprehensive data quality monitoring system",
+      "sectionTitle": "Data Quality Dimensions",
+      "intro": "We have established a complete data quality management system that continuously monitors and evaluates data quality from multiple dimensions.",
+      "completeness": {
+        "title": "Completeness",
+        "description": "The completeness of data records, including field completeness and time series continuity."
+      },
+      "accuracy": {
+        "title": "Accuracy",
+        "description": "The closeness of data to true values, assessed through multi-source comparison and historical validation."
+      },
+      "consistency": {
+        "title": "Consistency",
+        "description": "Consistency of data across different times and sources; abnormal fluctuations may indicate data issues."
+      },
+      "timeliness": {
+        "title": "Timeliness",
+        "description": "The time delay from data generation to availability, particularly important for high-frequency trading scenarios."
+      }
+    },
+    "confidenceScore": {
+      "title": "Confidence Score",
+      "intro": "We use a comprehensive scoring model to calculate the confidence level of each data point, helping users assess data reliability.",
+      "formula": "Scoring Formula",
+      "freshness": "Data Freshness",
+      "completeness": "Data Completeness",
+      "consistency": "Data Consistency",
+      "reliability": "Source Reliability"
+    },
+    "dataSources": {
+      "title": "Data Sources & Verification",
+      "intro": "Our data comes from multiple tiers of sources, each with different verification requirements and credibility levels.",
+      "primary": "Primary Sources",
+      "primaryDesc": "Directly from top-tier exchanges and official oracle networks, rigorously verified",
+      "secondary": "Secondary Sources",
+      "secondaryDesc": "From reputable data aggregators and verified nodes, reliable quality",
+      "tertiary": "Tertiary Sources",
+      "tertiaryDesc": "From community nodes and supplementary sources, for reference and cross-validation"
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "content": "The methodology provided on this page is for technical reference only. Actual data processing methods may be adjusted based on market conditions and technological developments. We are not responsible for any losses resulting from the use of data from this platform."
+    }
+  },
+  "priceQuery": {
+    "dataSources": {
+      "title": "Query Data Sources"
+    },
+    "comparison": {
+      "title": "Time Comparison Analysis"
+    }
+  },
+  "crossOracle": {
+    "dataSources": {
+      "title": "Comparison Data Sources"
+    },
+    "comparison": {
+      "summary": "Comparison Summary",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "consistency": "Consistency Score",
+      "oracleCount": "Oracle Count"
+    },
+    "benchmark": {
+      "title": "Industry Benchmark Comparison"
+    }
+  },
+  "crossChain": {
+    "dataSources": {
+      "title": "Cross-Chain Data Sources"
+    },
+    "benchmark": {
+      "title": "Cross-Chain Benchmark Comparison"
+    }
+  },
+  "mobile": {
+    "chart": {
+      "pan": "Pan",
+      "zoom": "Pinch to Zoom",
+      "swipe": "Swipe"
+    },
+    "pullToRefresh": {
+      "pull": "Pull to refresh",
+      "release": "Release to refresh",
+      "refreshing": "Refreshing..."
+    },
+    "settings": {
+      "title": "Mobile Settings",
+      "subtitle": "Customize your mobile experience",
+      "appearance": "Appearance",
+      "theme": "Theme",
+      "themeDesc": "Choose your preferred theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "compactMode": "Compact Mode",
+      "compactModeDesc": "Show more content with less spacing",
+      "notifications": "Notifications",
+      "enableNotifications": "Enable Notifications",
+      "notificationsDesc": "Receive updates and alerts",
+      "pushAlerts": "Push Alerts",
+      "pushAlertsDesc": "Get notified for price alerts",
+      "dataPerformance": "Data & Performance",
+      "dataMode": "Data Usage",
+      "dataModeDesc": "Control how data is loaded",
+      "auto": "Auto",
+      "wifiOnly": "Wi-Fi Only",
+      "lowData": "Low Data",
+      "highPerformance": "High Performance",
+      "highPerformanceDesc": "Enable smooth animations",
+      "hideBalances": "Hide Balances",
+      "hideBalancesDesc": "Mask sensitive financial data",
+      "language": "Language",
+      "currentLanguage": "Current language",
+      "about": "About",
+      "version": "Version"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search oracles, pairs, blockchains, pages...",
+    "noResults": "No results found",
+    "noResultsDesc": "No results found for \"{query}\", try different keywords",
+    "initialTitle": "Start Searching",
+    "initialDesc": "Type to search oracles, trading pairs, blockchains, pages, and features",
+    "groups": {
+      "oracles": "Oracles",
+      "pairs": "Trading Pairs",
+      "blockchains": "Blockchains",
+      "pages": "Pages",
+      "features": "Features",
+      "documentation": "Documentation"
+    },
+    "oracles": {
+      "chainlinkDesc": "Leading decentralized oracle network",
+      "pythDesc": "Institutional-grade low-latency financial data",
+      "bandDesc": "Cross-chain data oracle for Cosmos ecosystem",
+      "api3Desc": "First-party DAO-governed oracle",
+      "redstoneDesc": "Modular EVM+ compatible oracle stack",
+      "umaDesc": "Optimistic oracle with customizable verification",
+      "diaDesc": "Transparent crowd-sourced data validation oracle",
+      "tellorDesc": "Decentralized transparent oracle",
+      "chronicleDesc": "MakerDAO infrastructure oracle",
+      "winklinkDesc": "TRON ecosystem oracle"
+    },
+    "pairs": {
+      "priceFeed": "Price feed"
+    },
+    "pages": {
+      "home": "Home",
+      "homeDesc": "Insight dashboard homepage",
+      "marketOverview": "Market Overview",
+      "marketOverviewDesc": "Real-time market intelligence and metrics",
+      "priceQuery": "Price Query",
+      "priceQueryDesc": "Cross-oracle network price lookup",
+      "crossOracle": "Cross-Oracle Analysis",
+      "crossOracleDesc": "Multi-oracle price comparison analysis",
+      "crossChain": "Cross-Chain Analysis",
+      "crossChainDesc": "Cross-chain price analysis and benchmarking",
+      "favorites": "Favorites",
+      "favoritesDesc": "Manage your favorite assets",
+      "alerts": "Alerts",
+      "alertsDesc": "Price alerts and notifications",
+      "settings": "Settings",
+      "settingsDesc": "User preference settings"
+    },
+    "features": {
+      "realtimePrice": "Real-time Price",
+      "realtimePriceDesc": "Real-time price data streaming",
+      "priceComparison": "Price Comparison",
+      "priceComparisonDesc": "Cross-oracle price comparison",
+      "priceAlerts": "Price Alerts",
+      "priceAlertsDesc": "Custom price alert notifications",
+      "dataExport": "Data Export",
+      "dataExportDesc": "Export market data",
+      "charts": "Charts",
+      "chartsDesc": "Interactive price charts"
+    },
+    "docs": {
+      "methodology": "Methodology",
+      "methodologyDesc": "Data and methodology documentation",
+      "apiReference": "API Reference",
+      "apiReferenceDesc": "API reference documentation",
+      "help": "Help",
+      "helpDesc": "Help and support center"
+    },
+    "shortcuts": {
+      "navigate": "to navigate",
+      "select": "to select",
+      "close": "to close"
+    },
+    "footer": {
+      "navigate": "Navigate",
+      "select": "Select"
+    }
+  },
+  "unifiedExport": {
+    "export": "Export",
+    "exporting": "Exporting...",
+    "selectFormat": "Select Format",
+    "exportConfig": "Export Config",
+    "selectFields": "Select Fields",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "includeMetadata": "Include Metadata",
+    "includeChart": "Include Chart",
+    "includeStats": "Include Statistics",
+    "dataPreview": "Data Preview",
+    "recordCount": "Record Count",
+    "selectedFields": "Selected Fields",
+    "cancel": "Cancel",
+    "history": "History",
+    "history": {
+      "title": "Export History",
+      "all": "All",
+      "completed": "Completed",
+      "failed": "Failed",
+      "noHistory": "No export history",
+      "reDownload": "Download Again",
+      "delete": "Delete",
+      "clearAll": "Clear All History"
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "subtitle": "Press any key combination to quickly navigate and control the app",
+    "refresh": "Refresh Data",
+    "search": "Open Search",
+    "close": "Close Dialog",
+    "fullscreen": "Fullscreen Chart",
+    "export": "Export Data",
+    "help": "Show Help",
+    "unknown": "Unknown Shortcut",
+    "categories": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "general": "General"
+    },
+    "tips": {
+      "title": "Pro Tip",
+      "description": "Press '?' anytime to show this help panel. Shortcuts work globally across the app."
+    },
+    "footer": {
+      "hint": "Press ? to toggle this panel"
+    }
+  },
+  "comparison": {
+    "timeRange": {
+      "last1h": "Last 1 Hour",
+      "last24h": "Last 24 Hours",
+      "last7d": "Last 7 Days",
+      "last30d": "Last 30 Days",
+      "last90d": "Last 90 Days",
+      "last1y": "Last 1 Year",
+      "custom": "Custom",
+      "yearOverYear": "Year over Year",
+      "previousPeriod": "Previous Period",
+      "currentYear": "Current Year",
+      "previousYear": "Previous Year",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "currentPeriod": "Current Period",
+      "comparisonPeriod": "Comparison Period"
+    },
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "comparisonPeriod": "Comparison Period",
+      "difference": "Difference",
+      "percentChange": "Percent Change",
+      "currentAvg": "Current Average",
+      "comparisonAvg": "Comparison Average"
+    },
+    "oracleComparison": {
+      "title": "Multi-Oracle Comparison",
+      "averagePrice": "Average Price",
+      "medianPrice": "Median Price",
+      "consistencyScore": "Consistency Score",
+      "maxDeviation": "Max Deviation",
+      "priceComparison": "Price Comparison",
+      "deviationFromAverage": "Deviation from Average",
+      "performanceRadar": "Performance Radar",
+      "detailedComparison": "Detailed Comparison",
+      "oracle": "Oracle",
+      "price": "Price",
+      "deviation": "Deviation",
+      "confidence": "Confidence",
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "benchmark": "Benchmark",
+      "sortBy": "Sort By",
+      "consistency": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      },
+      "metrics": {
+        "price": "Price",
+        "confidence": "Confidence",
+        "responseTime": "Response Time",
+        "accuracy": "Accuracy",
+        "reliability": "Reliability",
+        "deviation": "Deviation"
+      }
+    },
+    "benchmark": {
+      "title": "Industry Benchmark Comparison",
+      "industryAverage": "Industry Average",
+      "marketLeader": "Market Leader",
+      "customBenchmark": "Custom Benchmark",
+      "actualValue": "Actual Value",
+      "benchmark": "Benchmark",
+      "difference": "Difference",
+      "gap": "Gap",
+      "performanceGap": "Performance Gap",
+      "aboveBenchmark": "Above Benchmark",
+      "belowBenchmark": "Below Benchmark",
+      "atBenchmark": "At Benchmark",
+      "unitsFromBenchmark": "units from benchmark",
+      "benchmarkComparison": "Benchmark Comparison",
+      "detailedComparison": "Detailed Comparison",
+      "metric": "Metric",
+      "actual": "Actual",
+      "status": "Status"
+    },
+    "difference": {
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "noChange": "No Change",
+      "positive": "Positive",
+      "negative": "Negative",
+      "neutral": "Neutral"
+    }
+  },
+  "error": {
+    "defaultTitle": "An error occurred",
+    "errorCode": "Error Code",
+    "cause": "Cause",
+    "suggestedActions": "Suggested Actions",
+    "showDetails": "Show Technical Details",
+    "hideDetails": "Hide Technical Details",
+    "timestamp": "Timestamp",
+    "report": "Report Error",
+    "reporting": "Reporting...",
+    "formValidation": {
+      "title": "Please correct the following errors"
+    },
+    "suggestions": {
+      "checkConnection": {
+        "title": "Check your internet connection",
+        "description": "Make sure you're connected to the internet and try again."
+      },
+      "retryLater": {
+        "title": "Try again later",
+        "description": "The server might be temporarily unavailable. Please wait a moment and retry."
+      },
+      "slowNetwork": {
+        "title": "Slow network detected",
+        "description": "Your connection seems slow. Try refreshing the page or checking your network."
+      },
+      "reduceData": {
+        "title": "Reduce data load",
+        "description": "Try filtering data to a smaller time range or fewer items."
+      },
+      "relogin": {
+        "title": "Sign in again",
+        "description": "Your session may have expired. Please sign in again to continue."
+      },
+      "refreshPage": {
+        "title": "Refresh the page",
+        "description": "Sometimes a simple page refresh can resolve temporary issues."
+      },
+      "contactSupport": {
+        "title": "Contact support",
+        "description": "If the problem persists, please contact our support team for assistance."
+      }
+    }
+  },
+  "accessibility": {
+    "title": "Accessibility Settings",
+    "description": "Customize your experience to better suit your needs",
+    "skipLink": "Skip to main content",
+    "resetSettings": "Reset to Defaults",
+    "sections": {
+      "theme": "Theme",
+      "colorVision": "Color Vision",
+      "fontSize": "Font Size",
+      "focusIndicator": "Focus Indicator",
+      "motion": "Motion"
+    },
+    "theme": {
+      "default": "Default",
+      "defaultDescription": "Standard color scheme",
+      "highContrast": "High Contrast",
+      "highContrastDescription": "Enhanced contrast for better visibility",
+      "dark": "Dark Mode",
+      "darkDescription": "Dark background with light text"
+    },
+    "colorScheme": {
+      "normal": "Normal",
+      "normalDescription": "Standard color vision",
+      "protanopia": "Protanopia",
+      "protanopiaDescription": "Red-blind friendly colors",
+      "deuteranopia": "Deuteranopia",
+      "deuteranopiaDescription": "Green-blind friendly colors",
+      "tritanopia": "Tritanopia",
+      "tritanopiaDescription": "Blue-blind friendly colors",
+      "achromatopsia": "Achromatopsia",
+      "achromatopsiaDescription": "Grayscale mode"
+    },
+    "fontSize": {
+      "normal": "Normal",
+      "normalDescription": "Standard text size",
+      "large": "Large",
+      "largeDescription": "112.5% text size",
+      "xLarge": "Extra Large",
+      "xLargeDescription": "125% text size"
+    },
+    "focusIndicator": {
+      "default": "Default",
+      "defaultDescription": "Standard focus ring",
+      "enhanced": "Enhanced",
+      "enhancedDescription": "Larger, more visible focus indicator"
+    },
+    "reduceMotion": "Reduce Motion",
+    "reduceMotionDescription": "Minimize animations and transitions",
+    "preview": {
+      "title": "Preview",
+      "description": "See how your settings will look",
+      "sampleText": "Sample text",
+      "sampleButton": "Button",
+      "sampleLink": "Link"
+    },
+    "highContrast": "High Contrast",
+    "highContrastOn": "High Contrast On",
+    "enableHighContrast": "Enable high contrast mode",
+    "disableHighContrast": "Disable high contrast mode"
+  },
+  "ui": {
+    "closeNotification": "Close notification"
   }
 }
