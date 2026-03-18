@@ -426,30 +426,34 @@ export function DesktopValidatorTable({
       </table>
       <div ref={parentRef} className="overflow-auto max-h-[500px] relative">
         <table className="w-full">
-          <tbody className="block">
+          <tbody style={{ display: 'block' }}>
             {validators.length === 0 ? (
-              <tr className="hidden"></tr>
+              <tr style={{ display: 'none' }}></tr>
             ) : (
-              <tr className="block">
-                <td className="block p-0" style={{ height: virtualizer.getTotalSize() }}>
+              <tr style={{ display: 'block' }}>
+                <td style={{ display: 'block', padding: 0, height: virtualizer.getTotalSize() }}>
                   {virtualizer.getVirtualItems().map((virtualRow) => {
                     const validator = validators[virtualRow.index];
                     return (
-                      <div
+                      <tr
                         key={validator.operatorAddress}
-                        className="absolute w-full"
                         style={{
+                          display: 'block',
+                          position: 'absolute',
+                          width: '100%',
                           height: virtualRow.size,
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
-                        <ValidatorRow
-                          validator={validator}
-                          onClick={() => onValidatorClick(validator)}
-                          isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
-                          onToggleSelect={(e) => onToggleSelect(e, validator.operatorAddress)}
-                        />
-                      </div>
+                        <td style={{ display: 'block', padding: 0 }}>
+                          <ValidatorRow
+                            validator={validator}
+                            onClick={() => onValidatorClick(validator)}
+                            isSelected={selectedValidatorAddresses.has(validator.operatorAddress)}
+                            onToggleSelect={(e) => onToggleSelect(e, validator.operatorAddress)}
+                          />
+                        </td>
+                      </tr>
                     );
                   })}
                 </td>
