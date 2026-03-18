@@ -300,7 +300,7 @@ export function ValidatorPanel({
 
         <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-500 mr-1">{t('validatorPanel.status')}:</span>
+            <span className="text-xs text-gray-500 mr-1">{t('validatorPanel.statusLabel')}:</span>
             <FilterButton
               status="all"
               currentStatus={filterStatus}
@@ -312,14 +312,14 @@ export function ValidatorPanel({
               status="active"
               currentStatus={filterStatus}
               onFilter={setFilterStatus}
-              label={t('validatorPanel.active')}
+              label={t('validatorPanel.status.active')}
               count={activeCount}
             />
             <FilterButton
               status="jailed"
               currentStatus={filterStatus}
               onFilter={setFilterStatus}
-              label={t('validatorPanel.jailed')}
+              label={t('validatorPanel.status.jailed')}
               count={jailedCount}
             />
           </div>

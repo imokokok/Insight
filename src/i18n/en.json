@@ -4953,9 +4953,11 @@
     "stakeAmount": "Stake Amount",
     "commissionRate": "Commission",
     "uptime": "Uptime",
-    "status": "Status",
-    "active": "Active",
-    "jailed": "Jailed",
+    "statusLabel": "Status",
+    "status": {
+      "active": "Active",
+      "jailed": "Jailed"
+    },
     "quickFilter": "Quick Filter",
     "lowCommission": "Low Commission (<5%)",
     "highStake": "High Stake (Top 20%)",
