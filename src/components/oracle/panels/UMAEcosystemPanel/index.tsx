@@ -188,7 +188,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
       </DashboardCard>
 
       {/* 用例展示 */}
-      <DashboardCard title={t('uma.ecosystem.useCases')}>
+      <DashboardCard title={t('uma.ecosystem.useCasesTitle')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {useCases.map((useCase, index) => (
             <div

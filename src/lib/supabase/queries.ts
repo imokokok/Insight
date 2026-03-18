@@ -109,7 +109,7 @@ export interface UserFavoriteInsert {
 export interface PriceAlert {
   id: string;
   user_id: string;
-  name: string;
+  name: string | null;
   symbol: string;
   chain: string | null;
   condition_type: 'above' | 'below' | 'change_percent';
@@ -123,7 +123,7 @@ export interface PriceAlert {
 
 export interface PriceAlertInsert {
   user_id: string;
-  name: string;
+  name?: string | null;
   symbol: string;
   chain?: string | null;
   condition_type: 'above' | 'below' | 'change_percent';

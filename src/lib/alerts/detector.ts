@@ -6,6 +6,7 @@ import type {
   PriceRecord,
 } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
+import { formatConditionMetWithI18n } from './messages';
 
 const logger = createLogger('alert-detector');
 
@@ -165,25 +166,11 @@ export function formatConditionMet(
   conditionType: AlertConditionType,
   currentPrice: number,
   targetValue: number,
-  previousPrice?: number
+  previousPrice?: number,
+  locale: string = 'zh-CN'
 ): string {
-  switch (conditionType) {
-    case 'above':
-      return `价格 ${currentPrice.toFixed(4)} 达到目标 ${targetValue.toFixed(4)}`;
-
-    case 'below':
-      return `价格 ${currentPrice.toFixed(4)} 低于目标 ${targetValue.toFixed(4)}`;
-
-    case 'change_percent':
-      if (previousPrice && previousPrice !== 0) {
-        const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
-        return `价格变化 ${changePercent.toFixed(2)}% 达到目标 ${targetValue.toFixed(2)}%`;
-      }
-      return `价格变化达到目标 ${targetValue.toFixed(2)}%`;
-
-    default:
-      return '条件已满足';
-  }
+  const { formatConditionMet: formatWithLocale } = require('./messages');
+  return formatWithLocale(conditionType, currentPrice, targetValue, previousPrice, locale);
 }
 
 export async function checkAlertConditions(

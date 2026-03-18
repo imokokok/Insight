@@ -608,7 +608,7 @@ export class MockWebSocketManager extends WebSocketManager {
           this.addToBatch(mockMessage);
         }
       });
-    }, 2000);
+    }, 60000);
   }
 
   private stopMockDataStream(): void {
