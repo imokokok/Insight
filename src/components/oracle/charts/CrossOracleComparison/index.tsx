@@ -180,8 +180,16 @@ export function CrossOracleComparison() {
 
   return (
     <div className="space-y-6" ref={chartRef}>
-      {/* 子选项卡导航 */}
-      <CrossOracleSubTabs activeTab={activeSubTab} onTabChange={setActiveSubTab} />
+      {/* 子选项卡导航 - 独立卡片 */}
+      <div className="bg-white border border-gray-200">
+        <div className="px-5 py-1">
+          <CrossOracleSubTabs activeTab={activeSubTab} onTabChange={setActiveSubTab} />
+        </div>
+      </div>
+
+      {/* 内容区域 - 卡片容器 */}
+      <div className="bg-white border border-gray-200">
+        <div className="p-5">
 
       {/* 概览视图 */}
       {activeSubTab === 'overview' && (
@@ -249,6 +257,8 @@ export function CrossOracleComparison() {
           isLoading={isLoading}
         />
       )}
+        </div>
+      </div>
     </div>
   );
 }

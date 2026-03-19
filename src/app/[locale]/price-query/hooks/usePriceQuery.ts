@@ -44,10 +44,21 @@ const oracleClients = {
 };
 
 export interface TimeComparisonConfig {
-  primaryRange: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
-  comparisonMode: 'yoy' | 'mom' | 'custom';
-  customStartDate?: Date;
-  customEndDate?: Date;
+  primaryPeriod: {
+    id: string;
+    label: string;
+    startDate: Date;
+    endDate: Date;
+    range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+  };
+  comparisonPeriod: {
+    id: string;
+    label: string;
+    startDate: Date;
+    endDate: Date;
+    range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+  };
+  comparisonType: 'previous' | 'custom' | 'year_over_year';
 }
 
 export interface UsePriceQueryReturn {
@@ -173,9 +184,26 @@ export function usePriceQuery(): UsePriceQueryReturn {
   const [showExportConfig, setShowExportConfig] = useState(false);
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  const [timeComparisonConfig, setTimeComparisonConfig] = useState<TimeComparisonConfig>({
-    primaryRange: '24h',
-    comparisonMode: 'mom',
+  const [timeComparisonConfig, setTimeComparisonConfig] = useState<TimeComparisonConfig>(() => {
+    const now = new Date();
+    const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    return {
+      primaryPeriod: {
+        id: 'primary-24h',
+        label: 'Last 24h',
+        startDate: start,
+        endDate: now,
+        range: '24h',
+      },
+      comparisonPeriod: {
+        id: 'comparison-24h',
+        label: 'Previous Period',
+        startDate: new Date(start.getTime() - 24 * 60 * 60 * 1000),
+        endDate: start,
+        range: '24h',
+      },
+      comparisonType: 'previous',
+    };
   });
 
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);

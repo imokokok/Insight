@@ -26,11 +26,18 @@ interface ChartDataPoint {
   [key: string]: number | string;
 }
 
+interface TimePeriod {
+  id: string;
+  label: string;
+  startDate: Date;
+  endDate: Date;
+  range: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
+}
+
 interface TimeComparisonConfig {
-  primaryRange: '1h' | '24h' | '7d' | '30d' | '90d' | '1y' | 'custom';
-  comparisonMode: 'yoy' | 'mom' | 'custom';
-  customStartDate?: Date;
-  customEndDate?: Date;
+  primaryPeriod: TimePeriod;
+  comparisonPeriod: TimePeriod;
+  comparisonType: 'previous' | 'custom' | 'year_over_year';
 }
 
 interface QueryResultsProps {
