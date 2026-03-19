@@ -34,13 +34,10 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
   return (
     <div className="space-y-6">
       {/* Overall Health */}
-      <div
-        className={`p-6 rounded-lg border-2 ${data.overallHealth >= 90 ? 'border-green-200 bg-green-50' : data.overallHealth >= 70 ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}`}
-      >
+      <DashboardCard title={t('tellor.network.overallHealth')}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">{t('tellor.network.overallHealth')}</h3>
-            <p className="text-sm opacity-80 mt-1">{t('tellor.network.basedOnMetrics')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('tellor.network.basedOnMetrics')}</p>
           </div>
           <div className="text-right">
             <span className={`text-4xl font-bold ${getHealthColor(data.overallHealth)}`}>
@@ -55,7 +52,7 @@ export function TellorNetworkPanel({ data }: TellorNetworkPanelProps) {
             style={{ width: `${data.overallHealth}%` }}
           />
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Reporter Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

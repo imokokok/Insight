@@ -43,7 +43,7 @@ function generateMockData(t: (key: string) => string): DeviationDataPoint[] {
     const pythPrice = marketAvg * (1 + deviation / 100);
 
     data.push({
-      timestamp: timestamp.toLocaleTimeString(t('common.locale') || 'zh-CN', {
+      timestamp: timestamp.toLocaleTimeString(t('locale') || 'zh-CN', {
         hour: '2-digit',
         minute: '2-digit',
       }),

@@ -211,7 +211,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           <button
             onClick={() => onEdit?.(favorite)}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100  transition-colors"
-            title={t('common.edit')}
+            title={t('actions.edit')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -225,7 +225,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isRemoving}
             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50  transition-colors disabled:opacity-50"
-            title={t('common.delete')}
+            title={t('actions.delete')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -246,7 +246,7 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
           onClick={handleApply}
           className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700  transition-colors"
         >
-          {t('common.apply')}
+          {t('actions.apply')}
         </button>
       </div>
 
@@ -264,14 +264,14 @@ export function FavoriteCard({ favorite, onApply, onEdit, onDelete }: FavoriteCa
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200  transition-colors"
               >
-                {t('common.cancel')}
+                {t('actions.cancel')}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isRemoving}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700  transition-colors disabled:opacity-50"
               >
-                {isRemoving ? t('common.deleting') : t('common.delete')}
+                {isRemoving ? t('actions.deleting') : t('actions.delete')}
               </button>
             </div>
           </div>

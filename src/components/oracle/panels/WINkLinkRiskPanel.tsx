@@ -310,8 +310,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
       />
 
       {/* Original 4 Basic Metric Cards */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.risk.title')}</h3>
+      <DashboardCard title={t('winklink.risk.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -320,7 +319,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             </div>
             <p className="text-xl font-bold text-gray-900">{data.dataQualityScore}%</p>
             <span
-              className={`text-xs px-2 py-1 rounded ${dataQualityRisk.bgColor} ${dataQualityRisk.color}`}
+              className={`text-xs px-2 py-1 rounded-md ${dataQualityRisk.bgColor} ${dataQualityRisk.color}`}
             >
               {t(`winklink.risk.${dataQualityRisk.level}Risk`)}
             </span>
@@ -332,7 +331,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             </div>
             <p className="text-xl font-bold text-gray-900">{data.priceDeviation}%</p>
             <span
-              className={`text-xs px-2 py-1 rounded ${deviationRisk.bgColor} ${deviationRisk.color}`}
+              className={`text-xs px-2 py-1 rounded-md ${deviationRisk.bgColor} ${deviationRisk.color}`}
             >
               {t(`winklink.risk.${deviationRisk.level}Risk`)}
             </span>
@@ -343,7 +342,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
               <p className="text-xs text-gray-500">{t('winklink.risk.nodeConcentration')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">{data.nodeConcentrationRisk}%</p>
-            <span className={`text-xs px-2 py-1 rounded ${nodeRisk.bgColor} ${nodeRisk.color}`}>
+            <span className={`text-xs px-2 py-1 rounded-md ${nodeRisk.bgColor} ${nodeRisk.color}`}>
               {t(`winklink.risk.${nodeRisk.level}Risk`)}
             </span>
           </div>
@@ -355,16 +354,17 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <p className="text-xl font-bold text-gray-900">
               {(100 - data.uptimeRisk * 100).toFixed(2)}%
             </p>
-            <span className={`text-xs px-2 py-1 rounded ${uptimeRisk.bgColor} ${uptimeRisk.color}`}>
+            <span
+              className={`text-xs px-2 py-1 rounded-md ${uptimeRisk.bgColor} ${uptimeRisk.color}`}
+            >
               {t(`winklink.risk.${uptimeRisk.level}Risk`)}
             </span>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Four-Dimension Risk Score Cards */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.risk.fourDimensions')}</h3>
+      <DashboardCard title={t('winklink.risk.fourDimensions')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {riskScores.map((score, index) => (
             <RiskScoreCard
@@ -377,7 +377,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             />
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Risk Trend Chart */}
       <DashboardCard title={t('winklink.risk.trendTitle')}>
@@ -533,8 +533,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
       <MitigationMeasuresGrid measures={mitigationMeasures} />
 
       {/* Risk Details */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.risk.details')}</h3>
+      <DashboardCard title={t('winklink.risk.details')}>
         <div className="space-y-4">
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-600">
@@ -559,7 +558,7 @@ export function WINkLinkRiskPanel({ data }: WINkLinkRiskPanelProps) {
             <span className="text-sm font-medium text-green-600">{t('winklink.risk.high')}</span>
           </div>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

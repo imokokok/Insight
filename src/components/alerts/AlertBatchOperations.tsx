@@ -152,14 +152,14 @@ export function AlertBatchOperations({
                 disabled={isProcessing}
                 className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded transition-colors disabled:opacity-50"
               >
-                {t('common.actions.confirm')}
+                {t('actions.confirm')}
               </button>
               <button
                 onClick={handleCancelDelete}
                 disabled={isProcessing}
                 className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
               >
-                {t('common.actions.cancel')}
+                {t('actions.cancel')}
               </button>
             </div>
           )}

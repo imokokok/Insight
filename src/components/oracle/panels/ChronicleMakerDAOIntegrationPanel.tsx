@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { MakerDAOIntegration, MakerDAOAsset } from '@/lib/oracles/chronicle';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Landmark, DollarSign, TrendingUp, Shield, Database } from 'lucide-react';
 
 interface ChronicleMakerDAOIntegrationPanelProps {
@@ -43,8 +44,7 @@ export function ChronicleMakerDAOIntegrationPanel({
   return (
     <div className="space-y-6">
       {/* Key Metrics */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.makerdao.title')}</h3>
+      <DashboardCard title={t('chronicle.makerdao.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -85,11 +85,10 @@ export function ChronicleMakerDAOIntegrationPanel({
             <span className="font-medium text-gray-900">{data.integrationVersion}</span>
           </p>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Supported Assets */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.makerdao.supportedAssets')}</h3>
+      <DashboardCard title={t('chronicle.makerdao.supportedAssets')}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -145,7 +144,7 @@ export function ChronicleMakerDAOIntegrationPanel({
             </tbody>
           </table>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

@@ -4,7 +4,7 @@
     "subtitle": "去中心化加密原生预言机，通过质押挖矿机制确保数据透明度和安全性",
     "analytics": "Tellor 数据分析",
     "tabs": {
-      "market": "市场",
+      "market": "市场数据",
       "network": "网络",
       "reporters": "报告者",
       "disputes": "争议",

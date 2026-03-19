@@ -32,7 +32,7 @@ import { DataQualityTrend } from '@/components/oracle/charts/DataQualityTrend';
 import { EcosystemPanel } from '@/components/oracle/panels/EcosystemPanel';
 import { BollingerBands } from '@/components/oracle/indicators/BollingerBands';
 import { API3RiskAssessmentPanel } from '@/components/oracle/panels/API3RiskAssessmentPanel';
-import { API3CrossOraclePanel } from '@/components/oracle/panels/API3CrossOraclePanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 
 export default function API3Page() {
   const t = useTranslations();
@@ -363,7 +363,13 @@ export default function API3Page() {
             />
           )}
 
-          {activeTab === 'cross-oracle' && <API3CrossOraclePanel />}
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('api3.tabs.crossOracle')}>
+                <CrossOracleComparison />
+              </DashboardCard>
+            </div>
+          )}
 
           {activeTab === 'ecosystem' && <EcosystemPanel />}
         </div>

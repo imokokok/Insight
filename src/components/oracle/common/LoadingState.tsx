@@ -19,7 +19,7 @@ export function LoadingState({ themeColor = 'blue', message }: LoadingStateProps
         <div
           className={`w-12 h-12 border-4 ${borderColorClass} ${spinnerColorClass} rounded-full animate-spin`}
         />
-        <p className="text-gray-500">{message || t('common.status.loading')}</p>
+        <p className="text-gray-500">{message || t('status.loading')}</p>
       </div>
     </div>
   );

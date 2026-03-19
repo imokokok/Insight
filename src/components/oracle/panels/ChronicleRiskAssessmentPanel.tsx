@@ -100,19 +100,16 @@ export function ChronicleRiskAssessmentPanel({
       />
 
       {/* Overall Risk Overview */}
-      <div className="bg-white border border-gray-200 p-6">
+      <DashboardCard title={t('chronicle.risk.overviewTitle')}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {t('chronicle.risk.overviewTitle')}
-            </h3>
             <p className="text-sm text-gray-500 mt-1">{t('chronicle.risk.overviewDescription')}</p>
           </div>
           <div className="text-right">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">{t('chronicle.risk.overallRiskScore')}</span>
               <span
-                className={`px-3 py-1 text-sm font-medium ${
+                className={`px-3 py-1 text-sm font-medium rounded-md ${
                   riskData.overallRiskScore >= 90
                     ? 'bg-green-100 text-green-700'
                     : riskData.overallRiskScore >= 70
@@ -150,9 +147,9 @@ export function ChronicleRiskAssessmentPanel({
           </div>
         </div>
 
-        <div className="w-full bg-gray-200 h-3 mb-6">
+        <div className="w-full bg-gray-200 rounded-full h-3">
           <div
-            className={`h-3 transition-all duration-500 ${
+            className={`h-3 rounded-full transition-all duration-500 ${
               riskData.overallRiskScore >= 90
                 ? 'bg-green-500'
                 : riskData.overallRiskScore >= 70
@@ -164,7 +161,7 @@ export function ChronicleRiskAssessmentPanel({
             style={{ width: `${riskData.overallRiskScore}%` }}
           />
         </div>
-      </div>
+      </DashboardCard>
 
       {/* 四维度评分卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

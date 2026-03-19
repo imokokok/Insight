@@ -115,19 +115,19 @@ export const defaultPerformanceData: OraclePerformance[] = [
   {
     provider: OracleProvider.CHAINLINK,
     responseTime: 85,
-    updateFrequency: 30,
+    updateFrequency: 3600, // 1小时（秒）
     dataSources: 350,
-    supportedChains: 12,
-    reliability: 99.8,
+    supportedChains: 15,
+    reliability: 99.9,
     accuracy: 99.5,
     decentralization: 95,
   },
   {
     provider: OracleProvider.PYTH,
     responseTime: 45,
-    updateFrequency: 0.4,
+    updateFrequency: 0.4, // 400ms（秒）
     dataSources: 180,
-    supportedChains: 8,
+    supportedChains: 10,
     reliability: 99.9,
     accuracy: 99.7,
     decentralization: 90,
@@ -135,8 +135,8 @@ export const defaultPerformanceData: OraclePerformance[] = [
   {
     provider: OracleProvider.BAND_PROTOCOL,
     responseTime: 150,
-    updateFrequency: 30,
-    dataSources: 180,
+    updateFrequency: 1800, // 30分钟（秒）
+    dataSources: 150,
     supportedChains: 8,
     reliability: 99.5,
     accuracy: 99.2,
@@ -145,21 +145,64 @@ export const defaultPerformanceData: OraclePerformance[] = [
   {
     provider: OracleProvider.API3,
     responseTime: 180,
-    updateFrequency: 60,
+    updateFrequency: 3600, // 1小时（秒）
     dataSources: 168,
-    supportedChains: 3,
+    supportedChains: 5,
     reliability: 99.7,
     accuracy: 99.4,
     decentralization: 80,
   },
   {
-    provider: OracleProvider.UMA,
-    responseTime: 300,
-    updateFrequency: 120,
-    dataSources: 50,
-    supportedChains: 2,
+    provider: OracleProvider.REDSTONE,
+    responseTime: 30,
+    updateFrequency: 0.1, // 100ms（秒）- 实时流式
+    dataSources: 120,
+    supportedChains: 6,
+    reliability: 99.8,
+    accuracy: 99.6,
+    decentralization: 85,
+  },
+  {
+    provider: OracleProvider.DIA,
+    responseTime: 200,
+    updateFrequency: 3600, // 1小时（秒）
+    dataSources: 80,
+    supportedChains: 12,
     reliability: 99.5,
+    accuracy: 99.3,
+    decentralization: 75,
+  },
+  {
+    provider: OracleProvider.TELLOR,
+    responseTime: 300,
+    updateFrequency: 7200, // 2小时（秒）- 按需
+    dataSources: 50,
+    supportedChains: 4,
+    reliability: 99.0,
     accuracy: 98.8,
-    decentralization: 88,
+    decentralization: 95, // PoW 机制，高度去中心化
   },
 ];
+
+// 预言机特性分组
+export const ORACLE_GROUPS = {
+  HIGH_FREQUENCY: [OracleProvider.PYTH, OracleProvider.REDSTONE],
+  STANDARD: [
+    OracleProvider.CHAINLINK,
+    OracleProvider.BAND_PROTOCOL,
+    OracleProvider.API3,
+    OracleProvider.DIA,
+    OracleProvider.TELLOR,
+  ],
+  ALL: [
+    OracleProvider.CHAINLINK,
+    OracleProvider.PYTH,
+    OracleProvider.BAND_PROTOCOL,
+    OracleProvider.API3,
+    OracleProvider.REDSTONE,
+    OracleProvider.DIA,
+    OracleProvider.TELLOR,
+  ],
+} as const;
+
+export type OracleGroup = 'HIGH_FREQUENCY' | 'STANDARD' | 'ALL';

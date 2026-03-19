@@ -1,7 +1,9 @@
 'use client';
 
-import { MarketDepth } from '@/lib/oracles/tellor';
 import { useTranslations } from 'next-intl';
+import { MarketDepth, OrderBookLevel } from '@/lib/oracles/tellor';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { BarChart3, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface TellorMarketDepthPanelProps {
   data: MarketDepth;
@@ -16,75 +18,76 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
   const askLevels = data.levels.filter((l) => l.askVolume > 0);
 
   return (
-    <div className="py-4 border-b border-gray-100">
-      <h3 className="text-sm font-semibold mb-3">{t('tellor.marketDepth.title')}</h3>
-      <div className="space-y-6">
+    <DashboardCard title={t('tellor.marketDepth.title')}>
+      <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
-            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.symbol')}</p>
-            <p className="text-lg font-bold text-cyan-600">{data.symbol}</p>
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBidVolume')}</p>
+            <p className="text-xl font-bold text-green-600">{data.totalBidVolume.toLocaleString()}</p>
           </div>
           <div className="py-2">
-            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalBid')}</p>
-            <p className="text-lg font-bold text-green-600">
-              {data.totalBidVolume.toLocaleString()}
-            </p>
-          </div>
-          <div className="py-2">
-            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAsk')}</p>
-            <p className="text-lg font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.totalAskVolume')}</p>
+            <p className="text-xl font-bold text-red-600">{data.totalAskVolume.toLocaleString()}</p>
           </div>
           <div className="py-2">
             <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.spread')}</p>
-            <p className="text-lg font-bold text-cyan-600">{data.spreadPercent.toFixed(4)}%</p>
+            <p className="text-xl font-bold text-cyan-600">{data.spread.toFixed(4)}%</p>
+          </div>
+          <div className="py-2">
+            <p className="text-xs text-gray-600 mb-1">{t('tellor.marketDepth.imbalanceRatio')}</p>
+            <p className="text-xl font-bold text-cyan-600">{data.imbalanceRatio.toFixed(2)}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-xs font-medium text-green-700 mb-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Bids */}
+          <div className="bg-green-50 border border-green-200 rounded-md p-4">
+            <h4 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+              <ArrowUp className="w-4 h-4" />
               {t('tellor.marketDepth.bids')}
             </h4>
             <div className="space-y-2">
-              {bidLevels.map((level, index) => (
-                <div key={index} className="relative">
-                  <div
-                    className="absolute inset-0 bg-green-100 rounded"
-                    style={{ width: `${(level.bidVolume / maxVolume) * 100}%` }}
-                  />
-                  <div className="relative flex items-center justify-between py-2 px-3">
-                    <span className="font-medium text-gray-900">${level.price.toFixed(4)}</span>
-                    <div className="text-right">
-                      <span className="text-sm text-gray-700">
-                        {level.bidVolume.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-gray-500 ml-2">({level.bidCount})</span>
+              {data.bids.map((level, index) => (
+                <div key={index} className="flex items-center justify-between py-1">
+                  <span className="text-sm font-medium text-green-700">
+                    ${level.price.toFixed(4)}
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <div className="w-32 bg-green-200 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: `${(level.volume / data.totalBidVolume) * 100}%` }}
+                      />
                     </div>
+                    <span className="text-sm text-gray-600 w-20 text-right">
+                      {level.volume.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
-            <h4 className="text-xs font-medium text-red-700 mb-3">
+          {/* Asks */}
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <h4 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+              <ArrowDown className="w-4 h-4" />
               {t('tellor.marketDepth.asks')}
             </h4>
             <div className="space-y-2">
-              {askLevels.map((level, index) => (
-                <div key={index} className="relative">
-                  <div
-                    className="absolute inset-0 bg-red-100 rounded"
-                    style={{ width: `${(level.askVolume / maxVolume) * 100}%` }}
-                  />
-                  <div className="relative flex items-center justify-between py-2 px-3">
-                    <span className="font-medium text-gray-900">${level.price.toFixed(4)}</span>
-                    <div className="text-right">
-                      <span className="text-sm text-gray-700">
-                        {level.askVolume.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-gray-500 ml-2">({level.askCount})</span>
+              {data.asks.map((level, index) => (
+                <div key={index} className="flex items-center justify-between py-1">
+                  <span className="text-sm font-medium text-red-700">${level.price.toFixed(4)}</span>
+                  <div className="flex items-center gap-4">
+                    <div className="w-32 bg-red-200 rounded-full h-2">
+                      <div
+                        className="bg-red-500 h-2 rounded-full"
+                        style={{ width: `${(level.volume / data.totalAskVolume) * 100}%` }}
+                      />
                     </div>
+                    <span className="text-sm text-gray-600 w-20 text-right">
+                      {level.volume.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -92,7 +95,7 @@ export function TellorMarketDepthPanel({ data }: TellorMarketDepthPanelProps) {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardCard>
   );
 }
 

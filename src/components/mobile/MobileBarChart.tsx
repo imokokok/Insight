@@ -127,7 +127,7 @@ function MobileBarChartBase({
         className="flex items-center justify-center bg-gray-50 border border-gray-200"
         style={{ height }}
       >
-        <p className="text-sm text-gray-500">{t('common.status.noData')}</p>
+        <p className="text-sm text-gray-500">{t('status.noData')}</p>
       </div>
     );
   }

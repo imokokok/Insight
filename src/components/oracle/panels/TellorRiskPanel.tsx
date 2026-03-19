@@ -131,18 +131,27 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
       />
 
       {/* Overall Risk Level */}
-      <div className={`p-6 rounded-lg border-2 ${getRiskLevelColor(data.overallRiskLevel)}`}>
+      <DashboardCard title={t('tellor.risk.overallLevel')}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">{t('tellor.risk.overallLevel')}</h3>
-            <p className="text-sm opacity-80 mt-1">{t('tellor.risk.basedOnMetrics')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('tellor.risk.basedOnMetrics')}</p>
           </div>
           <div className="text-right">
-            <span className="text-3xl font-bold uppercase">{data.overallRiskLevel}</span>
+            <span
+              className={`text-3xl font-bold uppercase ${
+                data.overallRiskLevel === 'low'
+                  ? 'text-green-600'
+                  : data.overallRiskLevel === 'medium'
+                    ? 'text-yellow-600'
+                    : 'text-red-600'
+              }`}
+            >
+              {data.overallRiskLevel}
+            </span>
             <p className="text-sm mt-1">{t('tellor.risk.riskLevelLabel')}</p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

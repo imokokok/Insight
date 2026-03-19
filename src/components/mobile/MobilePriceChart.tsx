@@ -210,7 +210,7 @@ function MobilePriceChartBase({
       >
         <div className="text-center">
           <Minus className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-sm text-gray-500">{t('common.status.noData')}</p>
+          <p className="text-sm text-gray-500">{t('status.noData')}</p>
         </div>
       </div>
     );

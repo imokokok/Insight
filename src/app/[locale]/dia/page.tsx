@@ -21,6 +21,7 @@ import {
   DIAEcosystemPanel,
   DIARiskAssessmentPanel,
 } from '@/components/oracle/panels';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -692,6 +693,14 @@ export default function DIAPage() {
           {activeTab === 'risk' && (
             <div className="space-y-6">
               <DIARiskAssessmentPanel />
+            </div>
+          )}
+
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('dia.tabs.crossOracle')}>
+                <CrossOracleComparison />
+              </DashboardCard>
             </div>
           )}
         </div>

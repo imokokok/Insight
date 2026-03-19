@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { TRONEcosystem, TRONDApp, TRONNetworkGrowth } from '@/lib/oracles/winklink';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import {
   Globe,
   Zap,
@@ -95,8 +96,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
   return (
     <div className="space-y-6">
       {/* Network Stats */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.title')}</h3>
+      <DashboardCard title={t('winklink.tron.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -133,7 +133,7 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             </p>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
           <div className="py-2">
             <p className="text-xs text-gray-500">{t('winklink.tron.tvl')}</p>
             <p className="text-lg font-bold text-gray-900">
@@ -145,14 +145,13 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             <p className="text-lg font-bold text-gray-900">{data.integrationCoverage}%</p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Integrated DApps */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.integratedDApps')}</h3>
+      <DashboardCard title={t('winklink.tron.integratedDApps')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.integratedDApps.map((dapp, index) => (
-            <div key={index} className="py-4 border-b border-gray-100 last:border-0">
+            <div key={index} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className={`p-2 rounded-md ${getCategoryColor(dapp.category)}`}>
@@ -185,12 +184,11 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Network Growth */}
       {data.networkGrowth && (
-        <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.networkGrowth')}</h3>
+        <DashboardCard title={t('winklink.tron.networkGrowth')}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -252,33 +250,32 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
               </tbody>
             </table>
           </div>
-        </div>
+        </DashboardCard>
       )}
 
       {/* Market Share */}
       {data.marketShare && (
-        <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">{t('winklink.tron.marketShare')}</h3>
+        <DashboardCard title={t('winklink.tron.marketShare')}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center py-4">
+            <div className="text-center py-4 bg-gray-50 rounded-lg">
               <p className="text-3xl font-bold text-pink-600">{data.marketShare.oracleUsage}%</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.oracleUsage')}</p>
               <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.ofTRONDApps')}</p>
             </div>
-            <div className="text-center py-4">
+            <div className="text-center py-4 bg-gray-50 rounded-lg">
               <p className="text-3xl font-bold text-blue-600">{data.marketShare.integratedDapps}</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integratedDapps')}</p>
               <p className="text-sm text-gray-600 mt-2">
                 {t('winklink.tron.outOf')} {data.marketShare.totalDapps}
               </p>
             </div>
-            <div className="text-center py-4">
+            <div className="text-center py-4 bg-gray-50 rounded-lg">
               <p className="text-3xl font-bold text-green-600">{data.integrationCoverage}%</p>
               <p className="text-xs text-gray-500 mt-1">{t('winklink.tron.integrationCoverage')}</p>
               <p className="text-sm text-gray-600 mt-2">{t('winklink.tron.dataCoverage')}</p>
             </div>
           </div>
-        </div>
+        </DashboardCard>
       )}
     </div>
   );

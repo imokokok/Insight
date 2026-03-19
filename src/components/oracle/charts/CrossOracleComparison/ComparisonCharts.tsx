@@ -22,7 +22,7 @@ import {
 import { OracleProvider } from '@/types/oracle';
 import { baseColors, chartColors } from '@/lib/config/colors';
 import { PriceDeviationHistoryChart } from '../PriceDeviationHistoryChart';
-import { oracleNames, oracleColors, PriceComparisonData } from './crossOracleConfig';
+import { oracleNames, oracleColors, PriceComparisonData, defaultPerformanceData } from './crossOracleConfig';
 
 interface PriceStats {
   avg: number;
@@ -65,6 +65,7 @@ interface ComparisonChartsProps {
   selectedOracles: OracleProvider[];
   priceHistory: Record<OracleProvider, { timestamp: number; price: number }[]>;
   priceData: PriceComparisonData[];
+  performanceData?: typeof defaultPerformanceData;
 }
 
 export function ComparisonCharts({
@@ -76,6 +77,7 @@ export function ComparisonCharts({
   selectedOracles,
   priceHistory,
   priceData,
+  performanceData = defaultPerformanceData,
 }: ComparisonChartsProps) {
   const t = useTranslations();
 
@@ -257,6 +259,62 @@ export function ComparisonCharts({
                 ))}
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-4 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {t('crossOracle.updateFrequencyComparison')}
+        </h3>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={performanceData.map((p) => ({
+                name: oracleNames[p.provider],
+                frequency: p.updateFrequency,
+                color: oracleColors[p.provider],
+              }))}
+              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[100]} />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis
+                scale="log"
+                domain={[0.01, 10000]}
+                tickFormatter={(value) => {
+                  if (value < 1) return `${(value * 1000).toFixed(0)}ms`;
+                  if (value < 60) return `${value.toFixed(0)}s`;
+                  if (value < 3600) return `${(value / 60).toFixed(0)}m`;
+                  return `${(value / 3600).toFixed(0)}h`;
+                }}
+                tick={{ fontSize: 11 }}
+              />
+              <Tooltip
+                formatter={(value) => {
+                  const numValue = Number(value);
+                  if (numValue < 1) return [`${(numValue * 1000).toFixed(0)} ms`, t('crossOracle.updateFrequency')];
+                  if (numValue < 60) return [`${numValue.toFixed(1)} s`, t('crossOracle.updateFrequency')];
+                  if (numValue < 3600) return [`${(numValue / 60).toFixed(0)} min`, t('crossOracle.updateFrequency')];
+                  return [`${(numValue / 3600).toFixed(1)} h`, t('crossOracle.updateFrequency')];
+                }}
+              />
+              <Bar dataKey="frequency">
+                {performanceData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={oracleColors[entry.provider]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-center gap-6 mt-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
+            <span className="text-gray-600">{t('crossOracle.highFrequency')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-gray-400"></div>
+            <span className="text-gray-600">{t('crossOracle.standardFrequency')}</span>
           </div>
         </div>
       </div>

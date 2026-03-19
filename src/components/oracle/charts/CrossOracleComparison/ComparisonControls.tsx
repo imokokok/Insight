@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { OracleProvider } from '@/types/oracle';
 import { SegmentedControl, DropdownSelect } from '@/components/ui/selectors';
-import { symbols, oracleNames, oracleColors } from './crossOracleConfig';
+import { symbols, oracleNames, oracleColors, OracleGroup, ORACLE_GROUPS } from './crossOracleConfig';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface DeviationAlert {
@@ -18,12 +18,14 @@ interface ComparisonControlsProps {
   deviationAlerts: DeviationAlert[];
   autoRefresh: boolean;
   refreshInterval: number;
+  selectedGroup: OracleGroup;
   onSymbolChange: (symbol: string) => void;
   onToggleOracle: (provider: OracleProvider) => void;
   onDeviationThresholdChange: (threshold: number) => void;
   onAutoRefreshChange: (enabled: boolean) => void;
   onRefreshIntervalChange: (interval: number) => void;
   onQuickCompare: () => void;
+  onGroupChange: (group: OracleGroup) => void;
 }
 
 export function ComparisonControls({
@@ -33,12 +35,14 @@ export function ComparisonControls({
   deviationAlerts,
   autoRefresh,
   refreshInterval,
+  selectedGroup,
   onSymbolChange,
   onToggleOracle,
   onDeviationThresholdChange,
   onAutoRefreshChange,
   onRefreshIntervalChange,
   onQuickCompare,
+  onGroupChange,
 }: ComparisonControlsProps) {
   const t = useTranslations();
 
@@ -61,14 +65,14 @@ export function ComparisonControls({
 
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              {t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/3)
+              {t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/5)
             </h3>
             <div className="flex flex-wrap gap-2 mb-3">
               {getOracleProvidersSortedByMarketCap().map((provider) => (
                 <button
                   key={provider}
                   onClick={() => onToggleOracle(provider)}
-                  disabled={!selectedOracles.includes(provider) && selectedOracles.length >= 3}
+                  disabled={!selectedOracles.includes(provider) && selectedOracles.length >= 5}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                     selectedOracles.includes(provider)
                       ? 'text-white'
@@ -97,6 +101,20 @@ export function ComparisonControls({
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="py-4 border-b border-gray-100">
+        <SegmentedControl
+          label={t('crossOracle.selectGroup')}
+          options={[
+            { value: 'ALL', label: t('crossOracle.groups.all') },
+            { value: 'HIGH_FREQUENCY', label: t('crossOracle.groups.highFrequency') },
+            { value: 'STANDARD', label: t('crossOracle.groups.standard') },
+          ]}
+          value={selectedGroup}
+          onChange={(value) => onGroupChange(value as OracleGroup)}
+          size="sm"
+        />
       </div>
 
       <div className="py-4 border-b border-gray-100">

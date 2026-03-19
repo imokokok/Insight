@@ -169,7 +169,7 @@ export function ShortcutHelpPanel() {
                 <button
                   onClick={closeHelp}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label={t('common.actions.close')}
+                  aria-label={t('actions.close')}
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>

@@ -55,7 +55,7 @@ export function NetworkStatusIndicator({ status }: { status: NetworkStatus }) {
             <span className={`text-2xl font-bold ${config.textColor}`}>{config.label}</span>
           </div>
           <p className="text-gray-400 text-xs mt-2">
-            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('common.time.justNow')}
+            {t('networkHealth.monitoring')} • {t('networkHealth.lastCheck')}: {t('time.justNow')}
           </p>
         </div>
         <div className={`p-4 ${config.bgColor} bg-opacity-20`}>

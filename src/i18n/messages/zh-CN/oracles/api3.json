@@ -3,7 +3,7 @@
     "title": "API3",
     "subtitle": "第一方预言机网络，实现去中心化 API 连接",
     "tabs": {
-      "market": "市场",
+      "market": "市场数据",
       "network": "网络",
       "airnode": "Airnode",
       "dapi": "dAPI",

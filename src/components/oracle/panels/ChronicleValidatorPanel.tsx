@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ValidatorNetwork, ChronicleValidator } from '@/lib/oracles/chronicle';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Users, Activity, Award, Coins, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface ChronicleValidatorPanelProps {
@@ -59,8 +60,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
   return (
     <div className="space-y-6">
       {/* Validator Stats */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.validators.title')}</h3>
+      <DashboardCard title={t('chronicle.validators.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -101,11 +101,10 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
             </span>
           </p>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Validators List */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.validators.list')}</h3>
+      <DashboardCard title={t('chronicle.validators.list')}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -141,9 +140,9 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                   </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 bg-gray-200  overflow-hidden">
+                      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-amber-500 "
+                          className="h-full bg-amber-500 rounded-full"
                           style={{ width: `${validator.reputationScore}%` }}
                         />
                       </div>
@@ -170,7 +169,7 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
             </tbody>
           </table>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

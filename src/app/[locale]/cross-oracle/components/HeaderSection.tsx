@@ -194,7 +194,7 @@ export function HeaderSection({
               />
             </svg>
           )}
-          {isLoading ? t('common.status.loading') : t('common.actions.refresh')}
+          {isLoading ? t('status.loading') : t('actions.refresh')}
         </button>
 
         {user && (

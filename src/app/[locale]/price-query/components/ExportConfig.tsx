@@ -315,7 +315,7 @@ export function ExportConfig({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
           >
-            {t('common.cancel') || '取消'}
+            {t('actions.cancel') || '取消'}
           </button>
           <button
             onClick={handleExport}

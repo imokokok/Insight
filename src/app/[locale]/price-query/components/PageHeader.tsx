@@ -84,7 +84,7 @@ export function PageHeader({
             }`}
           >
             <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-            {isFavorite ? t('common.favorited') : t('common.favorite')}
+            {isFavorite ? t('favorited') : t('favorite')}
           </button>
         )}
 
@@ -94,7 +94,7 @@ export function PageHeader({
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
           >
             <Download className="w-4 h-4" />
-            {t('common.export')}
+            {t('export')}
           </button>
         )}
 
@@ -105,7 +105,7 @@ export function PageHeader({
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300 transition-colors font-medium disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('common.refresh')}
+            {t('actions.refresh')}
           </button>
         )}
       </div>

@@ -93,7 +93,7 @@ function TrendIcon({
       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
       </svg>
-      {t('common.stable')}
+      {t('stable')}
     </span>
   );
 }
@@ -197,7 +197,7 @@ function EarningsHistoryChart({
   if (data.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
-        {t('common.noData')}
+        {t('noData')}
       </div>
     );
   }
@@ -371,10 +371,10 @@ export function ValidatorEarningsBreakdown({
   };
 
   const periodLabels: Record<typeof period, string> = {
-    daily: t('common.daily'),
-    weekly: t('common.weekly'),
-    monthly: t('common.monthly'),
-    yearly: t('common.yearly'),
+    daily: t('frequency.daily'),
+    weekly: t('frequency.weekly'),
+    monthly: t('frequency.monthly'),
+    yearly: t('frequency.yearly'),
   };
 
   if (loading) {
@@ -383,7 +383,7 @@ export function ValidatorEarningsBreakdown({
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <div className="animate-spin  h-10 w-10 border-b-2 border-blue-600" />
-            <p className="text-gray-500 text-sm">{t('common.loading')}</p>
+            <p className="text-gray-500 text-sm">{t('status.loading')}</p>
           </div>
         </div>
       </DashboardCard>
@@ -394,7 +394,7 @@ export function ValidatorEarningsBreakdown({
     return (
       <DashboardCard title={t('validator.earningsAttribution')}>
         <div className="flex items-center justify-center h-64 text-gray-400">
-          {t('common.noData')}
+          {t('noData')}
         </div>
       </DashboardCard>
     );
@@ -612,11 +612,11 @@ export function ValidatorEarningsBreakdown({
                     {performer.validatorName}
                   </span>
                   {performer.validatorId === selectedValidator && (
-                    <span className="text-xs text-blue-600 font-medium">{t('common.current')}</span>
+                    <span className="text-xs text-blue-600 font-medium">{t('current')}</span>
                   )}
                 </div>
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatNumber(performer.earningsPerStaked, 6)} UMA/{t('common.unit')}
+                  {formatNumber(performer.earningsPerStaked, 6)} UMA/{t('unit')}
                 </span>
               </div>
             ))}

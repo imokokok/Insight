@@ -272,6 +272,24 @@
       "warningCount": "Warning Count"
     }
   },
+  "oracle": {
+    "chart": {
+      "granularity": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day"
+      },
+      "timeRange": {
+        "1h": "1h",
+        "24h": "24h",
+        "7d": "7d",
+        "30d": "30d",
+        "90d": "90d",
+        "1y": "1y",
+        "all": "All"
+      }
+    }
+  },
   "priceChart": {
     "status": {
       "realtime": "Realtime",
