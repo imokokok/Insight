@@ -452,12 +452,12 @@ export function PriceChart({
       {/* 表头 */}
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.chart className="w-4 h-4" />
+          <Icons.chart className="w-4 h-4 text-gray-500" />
           {t('priceQuery.chart.title')}
         </h2>
         <button
           onClick={handleExportChart}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors rounded"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded"
         >
           <Icons.image className="w-3.5 h-3.5" />
           {t('priceQuery.chart.exportImage')}
@@ -465,12 +465,12 @@ export function PriceChart({
       </div>
 
       {/* 指标控制 */}
-      <div className="px-4 py-2 bg-gray-50/50 border-b border-gray-200">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="text-xs font-medium text-gray-600">
+      <div className="px-4 py-2.5 bg-gray-50/50 border-b border-gray-200">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-xs font-medium text-gray-500">
             {t('priceQuery.chart.indicators')}:
           </span>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showMA7}
@@ -479,7 +479,7 @@ export function PriceChart({
             />
             <span className="text-xs text-gray-600">MA7</span>
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showMA30}
@@ -488,7 +488,7 @@ export function PriceChart({
             />
             <span className="text-xs text-gray-600">MA30</span>
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showBollingerBands}
@@ -497,7 +497,7 @@ export function PriceChart({
             />
             <span className="text-xs text-gray-600">{t('priceQuery.chart.bollingerBands')}</span>
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showConfidenceInterval}
@@ -511,12 +511,12 @@ export function PriceChart({
         </div>
 
         {/* 图表注释控制 */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 pt-2 border-t border-gray-200">
-          <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2 pt-2 border-t border-gray-200">
+          <span className="text-xs font-medium text-gray-500 flex items-center gap-1">
             <Icons.alert className="w-3 h-3" />
             {t('priceQuery.chart.annotations')}:
           </span>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showAnomalies}
@@ -528,7 +528,7 @@ export function PriceChart({
               <span className="text-[10px] text-red-600 font-medium">({anomalyPoints.length})</span>
             )}
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showPriceSpikes}
@@ -542,7 +542,7 @@ export function PriceChart({
               </span>
             )}
           </label>
-          <label className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 px-1.5 py-0.5 rounded transition-colors">
             <input
               type="checkbox"
               checked={showValueLabels}

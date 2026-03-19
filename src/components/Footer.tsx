@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Twitter/X Icon
 function TwitterIcon({ className }: { className?: string }) {
@@ -126,9 +127,12 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-blue-600 border border-blue-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">I</span>
-              </div>
+              <Image
+                src="/logos/owl-logo-white.svg"
+                alt="Insight Logo"
+                width={32}
+                height={28}
+              />
               <span className="text-white font-bold text-xl">Insight</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">

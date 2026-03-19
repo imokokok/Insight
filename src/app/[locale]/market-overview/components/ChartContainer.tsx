@@ -201,9 +201,9 @@ export default function ChartContainer({
     <div className="space-y-6">
       <div className="py-4 border-b border-gray-100">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div className="flex items-center gap-6 flex-wrap">
-            <div className="flex items-center">
-              {getMainChartTypes().map((item) => {
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center bg-gray-50/80 border border-gray-200 p-1">
+              {getMainChartTypes().map((item, index) => {
                 const type = chartTypes.find((t) => t.key === item.key);
                 if (!type) return null;
                 const Icon = type.icon;
@@ -212,11 +212,11 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'text-blue-600 border-blue-600'
-                        : 'text-gray-500 border-transparent hover:text-gray-700'
-                    }`}
+                        ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    } ${index !== getMainChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
                   >
                     <Icon className="w-4 h-4" />
@@ -226,10 +226,8 @@ export default function ChartContainer({
               })}
             </div>
 
-            <div className="h-4 w-px bg-gray-300 hidden md:block" />
-
-            <div className="flex items-center">
-              {getSecondaryChartTypes().map((item) => {
+            <div className="flex items-center bg-gray-50/80 border border-gray-200 p-1">
+              {getSecondaryChartTypes().map((item, index) => {
                 const type = chartTypes.find((t) => t.key === item.key);
                 if (!type) return null;
                 const Icon = type.icon;
@@ -238,11 +236,11 @@ export default function ChartContainer({
                   <button
                     key={item.key}
                     onClick={() => setActiveChart(item.key as ChartType)}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'text-blue-600 border-blue-600'
-                        : 'text-gray-500 border-transparent hover:text-gray-700'
-                    }`}
+                        ? 'text-blue-600 bg-white border border-gray-200 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    } ${index !== getSecondaryChartTypes().length - 1 ? 'mr-0.5' : ''}`}
                     title={isChineseLocale(locale) ? type.labelZh : type.label}
                   >
                     <Icon className="w-4 h-4" />

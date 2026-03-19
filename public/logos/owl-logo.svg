@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180">
+  <defs>
+    <!-- 品牌蓝渐变 -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF"/>
+      <stop offset="50%" style="stop-color:#3B82F6"/>
+      <stop offset="100%" style="stop-color:#60A5FA"/>
+    </linearGradient>
+    <!-- 眼睛高光 -->
+    <radialGradient id="eyeHighlight" cx="30%" cy="30%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 猫头鹰主体轮廓 -->
+  <g fill="url(#brandGradient)" stroke="#1E3A8A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 左耳 -->
+    <path d="M45 55 L35 25 L65 45 Q60 50 55 52 Q50 54 45 55" fill="url(#brandGradient)"/>
+    <!-- 右耳 -->
+    <path d="M155 55 L165 25 L135 45 Q140 50 145 52 Q150 54 155 55" fill="url(#brandGradient)"/>
+
+    <!-- 头顶羽毛 -->
+    <path d="M65 45 Q75 35 85 42 Q95 30 100 38 Q105 30 115 42 Q125 35 135 45" fill="none" stroke-width="2"/>
+
+    <!-- 身体轮廓 -->
+    <path d="M45 55
+             Q30 70 25 95
+             Q20 125 35 145
+             Q40 150 50 145
+             L55 140
+             Q60 145 65 140
+             L70 145
+             Q80 150 100 150
+             Q120 150 130 145
+             L135 140
+             Q140 145 145 140
+             L150 145
+             Q160 150 165 145
+             Q180 125 175 95
+             Q170 70 155 55
+             Q130 40 100 40
+             Q70 40 45 55" fill="url(#brandGradient)"/>
+
+    <!-- 左眼外圈 -->
+    <circle cx="72" cy="85" r="28" fill="#FFFFFF" stroke-width="2.5"/>
+    <!-- 右眼外圈 -->
+    <circle cx="128" cy="85" r="28" fill="#FFFFFF" stroke-width="2.5"/>
+
+    <!-- 左眼内圈 -->
+    <circle cx="72" cy="85" r="20" fill="none" stroke-width="2"/>
+    <!-- 右眼内圈 -->
+    <circle cx="128" cy="85" r="20" fill="none" stroke-width="2"/>
+
+    <!-- 左眼弯月（闭眼微笑） -->
+    <path d="M58 88 Q72 78 86 88" fill="none" stroke-width="3"/>
+    <!-- 右眼弯月（闭眼微笑） -->
+    <path d="M114 88 Q128 78 142 88" fill="none" stroke-width="3"/>
+
+    <!-- 眼睛高光 -->
+    <circle cx="65" cy="78" r="6" fill="url(#eyeHighlight)" stroke="none"/>
+    <circle cx="121" cy="78" r="6" fill="url(#eyeHighlight)" stroke="none"/>
+
+    <!-- 喙 -->
+    <path d="M92 105 L100 125 L108 105 Q100 110 92 105" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
+
+    <!-- 左翅膀 -->
+    <path d="M35 100 Q25 115 30 135 Q35 140 40 135" fill="none" stroke-width="2.5"/>
+    <path d="M38 110 Q32 120 35 130" fill="none" stroke-width="2"/>
+
+    <!-- 右翅膀 -->
+    <path d="M165 100 Q175 115 170 135 Q165 140 160 135" fill="none" stroke-width="2.5"/>
+    <path d="M162 110 Q168 120 165 130" fill="none" stroke-width="2"/>
+
+    <!-- 左脚 -->
+    <path d="M70 150 L70 160 Q65 165 60 160 Q55 165 50 160 Q55 155 60 158 Q65 155 70 160" fill="none" stroke-width="2.5"/>
+    <!-- 右脚 -->
+    <path d="M130 150 L130 160 Q135 165 140 160 Q145 165 150 160 Q145 155 140 158 Q135 155 130 160" fill="none" stroke-width="2.5"/>
+  </g>
+
+  <!-- 肚子区域（稍浅） -->
+  <ellipse cx="100" cy="125" rx="35" ry="20" fill="#93C5FD" opacity="0.3" stroke="none"/>
+</svg>

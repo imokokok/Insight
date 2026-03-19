@@ -332,10 +332,10 @@ export default function ProfessionalHero() {
             <div className="relative max-w-2xl mx-auto mb-4 z-[100]" ref={dropdownRef}>
               <form
                 onSubmit={handleSubmit}
-                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border transition-all duration-300 ease-out overflow-visible ${
+                className={`relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-md border transition-all duration-300 ease-out overflow-visible ${
                   isSearchFocused
-                    ? 'shadow-xl shadow-emerald-500/10 border-emerald-300/50 scale-[1.02]'
-                    : 'border-gray-200/80 hover:border-gray-300 hover:shadow-xl'
+                    ? 'shadow-lg shadow-emerald-500/10 border-emerald-300/50 scale-[1.02]'
+                    : 'border-gray-200/80 hover:border-gray-300 hover:shadow-lg'
                 }`}
               >
                 <div className="pl-5">
@@ -506,7 +506,7 @@ export default function ProfessionalHero() {
             {/* 热门币种快捷标签 */}
             <div className="max-w-2xl mx-auto mb-10">
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                <span className="text-xs text-gray-400 mr-1">热门:</span>
+                <span className="text-xs text-gray-400">热门:</span>
                 {POPULAR_TOKENS.map((token) => (
                   <button
                     key={token}
@@ -570,8 +570,8 @@ export default function ProfessionalHero() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-3">{metric.value}</div>
-                    <div className="h-12 w-full">
+                    <div className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">{metric.value}</div>
+                    <div className="h-14 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={metric.trend}>
                           <defs>

@@ -315,12 +315,12 @@ export function PriceResultsTable({
                     aria-selected={isSelected}
                   >
                     <div
-                      className={`py-2.5 px-3 border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -334,12 +334,12 @@ export function PriceResultsTable({
                       </div>
                     </div>
                     <div
-                      className={`py-2.5 px-3 border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2 px-3 border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -353,12 +353,12 @@ export function PriceResultsTable({
                       </div>
                     </div>
                     <div
-                      className={`py-2.5 px-3 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
+                      className={`py-2 px-3 text-right border-b border-gray-100 font-mono text-gray-900 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <div className="flex items-center justify-end gap-1.5">
@@ -373,8 +373,8 @@ export function PriceResultsTable({
                           <span
                             className={`text-[10px] px-1 py-0.5 rounded flex-shrink-0 ${
                               deviation > 0
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-green-100 text-green-700'
+                                ? 'bg-red-50 text-red-600'
+                                : 'bg-green-50 text-green-600'
                             }`}
                           >
                             {deviation > 0 ? '+' : ''}
@@ -384,12 +384,12 @@ export function PriceResultsTable({
                       </div>
                     </div>
                     <div
-                      className={`py-2.5 px-3 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
+                      className={`py-2 px-3 text-right border-b border-gray-100 font-mono transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       {result.priceData.change24hPercent !== undefined ? (
@@ -408,34 +408,34 @@ export function PriceResultsTable({
                       )}
                     </div>
                     <div
-                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <FreshnessIndicator timestamp={result.priceData.timestamp} />
                     </div>
                     <div
-                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <DataQualityBadge score={completenessScore} />
                     </div>
                     <div
-                      className={`py-2.5 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
+                      className={`py-2 px-3 text-right border-b border-gray-100 transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-100'
+                          ? 'bg-blue-50/30 border-l-2 border-l-blue-500'
                           : isHighDeviation
-                            ? 'bg-amber-50/50 hover:bg-blue-50/60'
-                            : 'hover:bg-blue-50/60'
+                            ? 'bg-amber-50/30 hover:bg-blue-50/20'
+                            : 'hover:bg-gray-50/50'
                       }`}
                     >
                       <ConfidenceBadge score={result.priceData.confidence} />
@@ -450,8 +450,8 @@ export function PriceResultsTable({
 
       {/* 分页 */}
       {filteredResults.length > 10 && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
+        <div className="px-3 py-2.5 bg-gray-50/80 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
             <span>{t('priceQuery.pagination.perPage')}</span>
             <SegmentedControl
               options={pageSizeOptions}
@@ -459,8 +459,7 @@ export function PriceResultsTable({
               onChange={(value) => handlePageSizeChange(value as number)}
               size="sm"
             />
-            <span>{t('priceQuery.pagination.items')}</span>
-            <span className="ml-2 text-gray-500">
+            <span className="text-gray-400">
               {t('priceQuery.pagination.total', { count: filteredResults.length })}
             </span>
           </div>
@@ -469,7 +468,7 @@ export function PriceResultsTable({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded"
             >
               {t('priceQuery.pagination.prevPage')}
             </button>
@@ -477,14 +476,14 @@ export function PriceResultsTable({
             {getPageNumbers().map((page, index) => (
               <div key={index}>
                 {page === '...' ? (
-                  <span className="px-1.5 text-gray-400 text-xs">...</span>
+                  <span className="px-1.5 text-gray-300 text-xs">...</span>
                 ) : (
                   <button
                     onClick={() => handlePageChange(page as number)}
-                    className={`px-2.5 py-1 text-xs border rounded transition-colors ${
+                    className={`px-2 py-1 text-xs rounded transition-colors ${
                       currentPage === page
-                        ? 'bg-gray-900 text-white border-gray-900'
-                        : 'border-gray-300 hover:bg-white bg-white'
+                        ? 'bg-gray-800 text-white font-medium'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     {page}
@@ -496,7 +495,7 @@ export function PriceResultsTable({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded"
             >
               {t('priceQuery.pagination.nextPage')}
             </button>

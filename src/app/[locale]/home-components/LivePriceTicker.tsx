@@ -75,9 +75,9 @@ function TickerItem({ pair, priceData }: TickerItemProps) {
   const color = isPositive ? semanticColors.success.main : semanticColors.danger.main;
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white border border-gray-200 hover:border-gray-300 transition-colors duration-200 min-w-[240px] sm:min-w-[280px]">
+    <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 min-w-[240px] sm:min-w-[280px]">
       <div className="flex items-center gap-2 sm:gap-3 min-w-[80px] sm:min-w-[100px]">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-900 flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs sm:text-sm flex-shrink-0 rounded">
           {pair.symbol.slice(0, 2)}
         </div>
         <div className="min-w-0">
@@ -188,7 +188,7 @@ export default function LivePriceTicker() {
         <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
 
         <div
-          className={`flex gap-4 ${isPaused ? '' : 'animate-scroll-ticker'}`}
+          className={`flex gap-3 ${isPaused ? '' : 'animate-scroll-ticker'}`}
           style={{
             animationPlayState: isPaused ? 'paused' : 'running',
           }}
@@ -213,7 +213,7 @@ export default function LivePriceTicker() {
         }
 
         .animate-scroll-ticker {
-          animation: scroll-ticker 40s linear infinite;
+          animation: scroll-ticker 35s linear infinite;
         }
       `}</style>
     </div>
