@@ -78,10 +78,10 @@ export function QueryHeader({
         <div className="relative">
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
               showHistory
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             <History className="w-4 h-4" />
@@ -95,7 +95,7 @@ export function QueryHeader({
 
           {/* History Dropdown */}
           {showHistory && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
               <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">
                   {t('priceQuery.history.title')}
@@ -143,14 +143,14 @@ export function QueryHeader({
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={loading || queryResultsLength === 0}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             {t('export')}
           </button>
 
           {showExportMenu && (
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
               <button
                 onClick={() => {
                   onExportCSV();

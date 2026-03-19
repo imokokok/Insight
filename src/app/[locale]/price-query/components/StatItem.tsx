@@ -26,13 +26,13 @@ export function StatItem({
 
   if (compact) {
     return (
-      <div className="py-1">
-        <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
+      <div className="py-0.5">
+        <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0.5">
           {label}
         </div>
         <div className="flex items-baseline gap-0.5">
-          {prefix && <span className="text-xs text-gray-400">{prefix}</span>}
-          <span className={`text-lg font-bold ${trendColor}`}>
+          {prefix && <span className="text-xs text-gray-400 font-mono">{prefix}</span>}
+          <span className={`text-xl font-bold font-mono ${trendColor}`}>
             {trend === 'up' && (
               <ArrowUpIcon
                 className="inline-block w-3.5 h-3.5 mr-0.5 align-text-bottom"
@@ -47,9 +47,9 @@ export function StatItem({
             )}
             {value}
           </span>
-          {suffix && <span className="text-xs text-gray-400">{suffix}</span>}
+          {suffix && <span className="text-xs text-gray-400 font-mono">{suffix}</span>}
         </div>
-        {subValue && <div className="text-[10px] text-gray-500 mt-0.5 truncate">{subValue}</div>}
+        {subValue && <div className="text-[10px] text-gray-400 mt-0.5 truncate">{subValue}</div>}
       </div>
     );
   }

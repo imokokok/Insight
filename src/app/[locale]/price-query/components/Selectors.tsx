@@ -87,16 +87,16 @@ export function Selectors({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
-      <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-200 flex items-center justify-between">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <Icons.currency className="w-4 h-4 text-gray-600" />
+          <Icons.currency className="w-4 h-4 text-gray-500" />
           {t('priceQuery.title')}
         </h2>
         <button
           onClick={onQuery}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all rounded-lg shadow-sm hover:shadow"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md"
         >
           {loading ? (
             <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin" />
@@ -107,8 +107,8 @@ export function Selectors({
         </button>
       </div>
 
-      <div className="p-4 space-y-5">
-        <div className="bg-gray-50/50 rounded-lg p-3">
+      <div className="p-4 space-y-4">
+        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <SegmentedControl
             options={symbolOptions}
             value={selectedSymbol}
@@ -117,7 +117,7 @@ export function Selectors({
           />
         </div>
 
-        <div className="bg-gray-50/50 rounded-lg p-3">
+        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <MultiSelect
             options={oracleOptions}
             value={selectedOracles}
@@ -129,7 +129,7 @@ export function Selectors({
           />
         </div>
 
-        <div className="bg-gray-50/50 rounded-lg p-3">
+        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <MultiSelect
             options={chainOptions}
             value={selectedChains}
@@ -142,7 +142,7 @@ export function Selectors({
           />
         </div>
 
-        <div className="bg-gray-50/50 rounded-lg p-3">
+        <div className="bg-gray-50/50 rounded-lg p-3 border border-gray-100">
           <SegmentedControl
             options={timeRangeOptions}
             value={selectedTimeRange}
@@ -151,16 +151,16 @@ export function Selectors({
           />
         </div>
 
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50"
+            className="w-full flex items-center justify-between gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50/80"
           >
             <span className="text-[11px] font-semibold uppercase tracking-wider">
               {t('priceQuery.selectors.advancedOptions')}
             </span>
             <svg
-              className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -175,7 +175,7 @@ export function Selectors({
           </button>
 
           {showAdvanced && (
-            <div className="mt-2 space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="mt-2 space-y-2 p-3 bg-gray-50/80 rounded-lg border border-gray-100 animate-in slide-in-from-top-1 duration-200">
               <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-md hover:bg-white transition-colors">
                 <input
                   type="checkbox"

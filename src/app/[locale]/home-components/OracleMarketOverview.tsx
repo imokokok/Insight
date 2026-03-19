@@ -672,12 +672,11 @@ function OracleMarketOverviewBase() {
               <button
                 key={range.key}
                 onClick={() => setSelectedRange(range.key)}
-                className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-                  selectedRange === range.key ? 'bg-white border' : ''
+                className={`px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap border ${
+                  selectedRange === range.key ? 'bg-white border-gray-300' : 'border-transparent'
                 }`}
                 style={{
                   color: selectedRange === range.key ? baseColors.gray[900] : baseColors.gray[600],
-                  borderColor: selectedRange === range.key ? baseColors.gray[200] : 'transparent',
                 }}
               >
                 {range.label}
@@ -688,7 +687,7 @@ function OracleMarketOverviewBase() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div
-            className="bg-white border p-4 transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -712,7 +711,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -732,7 +731,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -752,7 +751,7 @@ function OracleMarketOverviewBase() {
           </div>
 
           <div
-            className="bg-white border p-4 transition-colors"
+            className="bg-white border p-4 h-full flex flex-col justify-center transition-colors"
             style={{ borderColor: baseColors.gray[200] }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -856,8 +855,7 @@ function OracleMarketOverviewBase() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div
-            className="lg:col-span-2 bg-white border p-6"
-            style={{ borderColor: baseColors.gray[200] }}
+            className="lg:col-span-2 bg-white p-6 shadow-sm"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
@@ -926,7 +924,7 @@ function OracleMarketOverviewBase() {
                   {isChineseLocale(locale) ? 'TVS / 份额' : 'TVS / Share'}
                 </span>
               </div>
-              <div className="max-h-[320px] overflow-y-auto">
+              <div className="max-h-[320px] overflow-y-auto divide-y divide-gray-100">
                 {marketShareData.map((item, index) => (
                   <OraclePrefetchCard
                     key={item.name}

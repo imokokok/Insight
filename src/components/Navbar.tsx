@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, User, LogOut, Heart, Bell, Settings } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -66,7 +67,15 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="flex-shrink-0 flex items-center group">
+              <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
+                <Image
+                  src="/logos/owl-logo.svg"
+                  alt="Insight Logo"
+                  width={36}
+                  height={32}
+                  className="group-hover:scale-105 transition-transform duration-300"
+                  priority
+                />
                 <div className="text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
                   Insight
                 </div>

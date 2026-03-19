@@ -93,24 +93,24 @@ export function StatsGrid({
     return ((current - compare) / compare) * 100;
   };
 
-  // 获取差异显示样式
+  // 获取差异显示样式 - 使用更 subtle 的展示
   const getDiffStyle = (diff: number): { text: string; color: string; bgColor: string } => {
     if (diff > 0) {
       return {
         text: `+${diff.toFixed(2)}%`,
-        color: 'text-green-700',
-        bgColor: 'bg-green-50',
+        color: 'text-green-600',
+        bgColor: 'bg-gray-50',
       };
     } else if (diff < 0) {
       return {
         text: `${diff.toFixed(2)}%`,
-        color: 'text-red-700',
-        bgColor: 'bg-red-50',
+        color: 'text-red-600',
+        bgColor: 'bg-gray-50',
       };
     }
     return {
       text: '0.00%',
-      color: 'text-gray-600',
+      color: 'text-gray-500',
       bgColor: 'bg-gray-50',
     };
   };
@@ -129,7 +129,7 @@ export function StatsGrid({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* 主统计区域 - 紧凑布局 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-        <div className="px-4 py-3 border-r border-gray-100">
+        <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.avgPrice')}
             value={
@@ -145,13 +145,13 @@ export function StatsGrid({
           />
           {compareMode && avgPrice > 0 && compareAvgPrice > 0 && (
             <div
-              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${avgPriceDiffStyle.bgColor} ${avgPriceDiffStyle.color}`}
             >
-              {t('priceQuery.stats.compare')}: {avgPriceDiffStyle.text}
+              {avgPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-3 border-r border-gray-100">
+        <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.change24h')}
             value={
@@ -172,13 +172,13 @@ export function StatsGrid({
           {compareMode &&
             avgChange24hPercent !== undefined &&
             compareAvgChange24hPercent !== undefined && (
-              <div className="mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block bg-gray-50 text-gray-600">
-                {t('priceQuery.stats.compare')}: {compareAvgChange24hPercent >= 0 ? '+' : ''}
+              <div className="mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-50 text-gray-500">
+                {compareAvgChange24hPercent >= 0 ? '+' : ''}
                 {compareAvgChange24hPercent.toFixed(2)}%
               </div>
             )}
         </div>
-        <div className="px-4 py-3 border-r border-gray-100">
+        <div className="px-3 py-2.5 border-r border-gray-100">
           <StatItem
             label={t('priceQuery.stats.volatility')}
             value={volatility !== null ? volatility.toFixed(2) : '-'}
@@ -187,7 +187,7 @@ export function StatsGrid({
             compact
           />
         </div>
-        <div className="px-4 py-3">
+        <div className="px-3 py-2.5">
           <StatItem
             label={t('priceQuery.stats.dataPoints')}
             value={dataPoints.toString()}
@@ -202,7 +202,7 @@ export function StatsGrid({
           isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
+        <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.maxPrice')}
             value={
@@ -218,13 +218,13 @@ export function StatsGrid({
           />
           {compareMode && maxPrice > 0 && compareMaxPrice > 0 && (
             <div
-              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${maxPriceDiffStyle.bgColor} ${maxPriceDiffStyle.color}`}
             >
-              {t('priceQuery.stats.compare')}: {maxPriceDiffStyle.text}
+              {maxPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
+        <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.minPrice')}
             value={
@@ -240,13 +240,13 @@ export function StatsGrid({
           />
           {compareMode && minPrice > 0 && compareMinPrice > 0 && (
             <div
-              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${minPriceDiffStyle.bgColor} ${minPriceDiffStyle.color}`}
             >
-              {t('priceQuery.stats.compare')}: {minPriceDiffStyle.text}
+              {minPriceDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
+        <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.priceRange')}
             value={
@@ -262,13 +262,13 @@ export function StatsGrid({
           />
           {compareMode && priceRange > 0 && comparePriceRange > 0 && (
             <div
-              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded inline-block ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
+              className={`mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${priceRangeDiffStyle.bgColor} ${priceRangeDiffStyle.color}`}
             >
-              {t('priceQuery.stats.compare')}: {priceRangeDiffStyle.text}
+              {priceRangeDiffStyle.text}
             </div>
           )}
         </div>
-        <div className="px-4 py-3 border-t border-gray-50">
+        <div className="px-3 py-2.5 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.standardDeviation')}
             value={standardDeviation > 0 ? standardDeviationPercent.toFixed(4) : '-'}
@@ -281,7 +281,7 @@ export function StatsGrid({
             compact
           />
         </div>
-        <div className="px-4 py-3 border-r border-gray-100 border-t border-gray-50">
+        <div className="px-3 py-2.5 border-r border-gray-100 border-t border-gray-50">
           <StatItem
             label={t('priceQuery.stats.queryDuration')}
             value={queryDuration !== null ? queryDuration.toString() : '-'}
@@ -289,9 +289,9 @@ export function StatsGrid({
             compact
           />
         </div>
-        <div className="px-4 py-3 border-t border-gray-50">
-          <div className="py-2">
-            <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">
+        <div className="px-3 py-2.5 border-t border-gray-50">
+          <div className="py-0.5">
+            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0.5">
               {t('priceQuery.stats.consistencyRating')}
             </div>
             <div

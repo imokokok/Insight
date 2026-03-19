@@ -201,7 +201,7 @@ function LiveIndicator() {
 
   return (
     <div
-      className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5"
+      className="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5"
       style={{
         backgroundColor: semanticColors.success.light,
         border: `1px solid ${semanticColors.success.light}`,
@@ -439,8 +439,8 @@ export default function BentoMetricsGrid() {
     }
 
     return (
-      <div className="h-14 mt-3 w-full">
-        <ResponsiveContainer width="100%" height={56}>
+      <div className="h-16 mt-3 w-full">
+        <ResponsiveContainer width="100%" height={64}>
           <LineChart data={card.chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <Tooltip
               content={<ChartTooltip />}
@@ -517,7 +517,7 @@ export default function BentoMetricsGrid() {
               >
                 {card.hasLiveIndicator && <LiveIndicator />}
 
-                <div className="p-4 sm:p-5 h-full flex flex-col">
+                <div className="p-5 h-full flex flex-col">
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2" style={{ backgroundColor: baseColors.gray[100] }}>
                       <Icon

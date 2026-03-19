@@ -81,7 +81,7 @@ export default function MarketOverviewPage() {
           wsReconnect={wsReconnect}
         />
 
-        <div className="bg-white border border-gray-200 p-6">
+        <div className="bg-white border border-gray-200 p-6 transition-all duration-200 hover:border-gray-300">
           <MarketStats
             marketStats={marketStats}
             totalTVS={totalTVS}
@@ -93,7 +93,7 @@ export default function MarketOverviewPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white border border-gray-200 p-6">
+              <div className="bg-white border border-gray-200 p-6 transition-all duration-200 hover:border-gray-300">
                 <ChartContainer
                   chartContainerRef={chartContainerRef}
                   activeChart={activeChart}
@@ -136,7 +136,7 @@ export default function MarketOverviewPage() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6">
+            <div className="bg-white border border-gray-200 p-6 transition-all duration-200 hover:border-gray-300">
               <MarketSidebar
                 selectedTimeRange={selectedTimeRange}
                 lastUpdated={lastUpdated}
@@ -150,7 +150,7 @@ export default function MarketOverviewPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 p-6">
+          <div className="bg-white border border-gray-200 p-6 transition-all duration-200 hover:border-gray-300">
             <AssetsTable assets={assets} />
           </div>
         </div>
