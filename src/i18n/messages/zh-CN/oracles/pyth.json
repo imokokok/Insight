@@ -1,0 +1,208 @@
+{
+  "pythNetwork": {
+    "analytics": "Pyth 数据分析",
+    "dataQuality": {
+      "title": "数据质量综合评分",
+      "subtitle": "多维度数据质量评估与监控",
+      "compositeScore": "综合评分",
+      "confidenceInterval": "置信区间质量",
+      "confidenceIntervalDesc": "基于置信区间宽度和稳定性评估",
+      "publisherReliability": "Publisher 可靠性",
+      "publisherReliabilityDesc": "基于 Publisher 的平均可靠性分数",
+      "updateLatency": "更新延迟",
+      "updateLatencyDesc": "基于价格更新的延迟表现",
+      "crossChainConsistency": "跨链价格趋同",
+      "crossChainConsistencyDesc": "监控集成链之间的价格偏差",
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界",
+      "avgConfidenceWidth": "平均置信区间宽度",
+      "activePublishers": "活跃 Publishers",
+      "avgReliability": "平均可靠性",
+      "avgLatency": "平均延迟",
+      "p99Latency": "P99 延迟",
+      "targetThreshold": "目标阈值",
+      "scoreHistory": "评分历史趋势",
+      "lowConfidenceScore": "置信区间质量评分过低，建议检查数据源稳定性",
+      "publisherReliabilityDeclining": "Publisher 可靠性呈下降趋势，请关注 Publisher 运行状态"
+    },
+    "stats": {
+      "updateFrequencyPerSecond": "价格更新频率",
+      "updatesPerSecond": "次/秒",
+      "avgConfidenceWidth": "平均置信区间宽度",
+      "publisherCount": "Publisher 数量",
+      "crossChainSupport": "跨链支持"
+    },
+    "solana": {
+      "title": "Solana 网络状态",
+      "subtitle": "Pyth 主要部署链",
+      "pythProgramStatus": "Pyth 程序状态",
+      "blockConfirmationTime": "区块确认时间",
+      "avgConfirmation": "平均确认时间",
+      "slotHeight": "Slot 高度",
+      "currentSlot": "当前 Slot",
+      "tps": "TPS",
+      "transactionsPerSecond": "每秒交易数",
+      "validators": "验证节点",
+      "totalStake": "总质押量",
+      "status": {
+        "active": "活跃",
+        "inactive": "未激活",
+        "degraded": "性能降级"
+      }
+    },
+    "ema": {
+      "title": "EMA 价格",
+      "description": "指数移动平均价格",
+      "calculationMethod": "基于指数加权平均计算",
+      "trend": {
+        "up": "上涨",
+        "down": "下跌",
+        "neutral": "平稳"
+      }
+    },
+    "pageTitles": {
+      "market": "市场数据",
+      "network": "网络状态",
+      "validators": "验证节点",
+      "disputes": "争议解决",
+      "ecosystem": "生态系统",
+      "risk": "风险评估",
+      "crossChain": "跨链",
+      "crossOracle": "跨预言机分析"
+    }
+  },
+  "pyth": {
+    "title": "Pyth Network",
+    "subtitle": "高频金融数据预言机",
+    "menu": {
+      "marketData": "市场数据",
+      "publishers": "数据发布方",
+      "validators": "验证节点",
+      "networkHealth": "网络健康度",
+      "priceFeeds": "价格馈送",
+      "crossChain": "跨链",
+      "crossOracleComparison": "跨预言机分析",
+      "riskAssessment": "风险评估"
+    },
+    "tabs": {
+      "stats": "统计",
+      "extreme": "极端事件",
+      "trend": "趋势分析"
+    },
+    "stats": {
+      "updateFrequency": "更新频率",
+      "publisherCount": "发布者数量",
+      "crossChainSupport": "跨链支持",
+      "networkUptime": "网络正常运行时间",
+      "volume24h": "24h 成交额",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量"
+    },
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "publishers": {
+      "title": "数据发布方",
+      "stake": "质押",
+      "accuracy": "准确率",
+      "searchPlaceholder": "搜索数据发布方...",
+      "sortByStake": "按质押排序",
+      "sortByAccuracy": "按准确率排序",
+      "sortByName": "按名称排序",
+      "totalPublishers": "数据发布方总数",
+      "totalStaked": "总质押",
+      "avgAccuracy": "平均准确率",
+      "topPublisher": "头部数据发布方",
+      "contribution": "贡献度"
+    },
+    "priceFeeds": {
+      "title": "价格馈送",
+      "priceFeeds": "个价格馈送",
+      "categories": {
+        "crypto": "加密货币",
+        "equities": "股票",
+        "commodities": "商品",
+        "forex": "外汇"
+      },
+      "totalDescription": "Pyth 提供 {count}+ 个价格源，覆盖加密货币、股票、商品和外汇等多个资产类别。"
+    },
+    "validators": {
+      "title": "验证节点列表",
+      "totalValidators": "验证节点总数",
+      "activeValidators": "活跃验证节点",
+      "totalStaked": "总质押",
+      "avgUptime": "平均在线率",
+      "name": "名称",
+      "status": "状态",
+      "stake": "质押",
+      "uptime": "在线率",
+      "rewards": "奖励",
+      "statusActive": "活跃",
+      "statusInactive": "离线",
+      "statusJailed": "监禁"
+    },
+    "crossChain": {
+      "title": "跨链支持",
+      "supported": "已支持",
+      "updateFrequency": "更新频率",
+      "latency": "延迟",
+      "status": "状态",
+      "online": "在线",
+      "description": "Pyth 通过 Wormhole 跨链协议支持多条区块链，实现亚秒级价格更新。"
+    },
+    "crossOracle": {
+      "title": "跨预言机价格分析"
+    },
+    "pageTitles": {
+      "market": "市场数据",
+      "network": "网络状态",
+      "validators": "验证节点",
+      "disputes": "争议解决",
+      "ecosystem": "生态系统",
+      "risk": "风险评估",
+      "crossChain": "跨链",
+      "crossOracle": "跨预言机分析"
+    },
+    "riskAssessment": {
+      "overallRiskScore": "综合风险评级",
+      "comprehensiveAssessment": "综合风险评估",
+      "dimensionScores": "维度评分",
+      "riskMetrics": "风险指标",
+      "publisherConcentration": "数据发布方集中度",
+      "topPublishersShare": "头部数据发布方占比",
+      "top10PublishersShare": "前10数据发布方占比",
+      "giniCoefficient": "基尼系数",
+      "dataQuality": "数据完整性",
+      "updateFrequency": "更新频率",
+      "confidenceInterval": "置信区间",
+      "priceFeeds": "价格馈送",
+      "securityTimeline": "安全时间线",
+      "resolved": "已解决",
+      "monitoring": "监控中",
+      "crossChainRisk": "跨链风险",
+      "mitigationMeasures": "缓解措施",
+      "riskLevel": {
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
+      },
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "eventTypes": {
+        "upgrade": "升级",
+        "maintenance": "维护",
+        "response": "响应"
+      },
+      "active": "活跃",
+      "inactive": "未激活",
+      "publisherStaking": "数据发布方质押",
+      "confidenceIntervals": "置信区间",
+      "multiSourceAggregation": "多源聚合",
+      "slashingConditions": "惩罚条件",
+      "decentralizedGovernance": "去中心化治理",
+      "realTimeMonitoring": "实时监控"
+    }
+  }
+}

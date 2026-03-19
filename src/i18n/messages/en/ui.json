@@ -1,0 +1,117 @@
+{
+  "emptyState": {
+    "search": {
+      "title": "No results found",
+      "description": "Try adjusting your search keywords or filters"
+    },
+    "data": {
+      "title": "No data available",
+      "description": "There is no data to display at the moment, please try again later"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "An error occurred while loading data, please refresh the page and try again"
+    },
+    "filter": {
+      "title": "No matching results",
+      "description": "There are no matching results for the current filters, please adjust your filter criteria"
+    },
+    "default": {
+      "title": "No content",
+      "description": "There is no content to display at the moment"
+    },
+    "folder": {
+      "title": "No items yet",
+      "description": "This folder is empty. Add some items to get started."
+    },
+    "offline": {
+      "title": "You're offline",
+      "description": "Please check your internet connection and try again."
+    },
+    "empty": {
+      "title": "Nothing here",
+      "description": "There's nothing to show at the moment."
+    },
+    "new": {
+      "title": "Get started",
+      "description": "Welcome! Let's get you set up with a quick guide."
+    },
+    "custom": {
+      "title": "Custom state",
+      "description": "This is a custom empty state message."
+    },
+    "viewExample": "View Example",
+    "quickStart": "Quick Start",
+    "tryExampleData": "Try Example Data",
+    "createNew": "Create New",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "retrying": "Retrying...",
+    "contactSupport": "Contact Support",
+    "errorDetails": "Error Details",
+    "noResultsFor": "No results for"
+  },
+  "loading": {
+    "loadingData": "Loading data",
+    "fetchingData": "Fetching data...",
+    "cancel": "Cancel",
+    "elapsedTime": "Elapsed time",
+    "estimatedTime": "Estimated time",
+    "completed": "Completed",
+    "failed": "Failed",
+    "total": "Total",
+    "progress": "Progress"
+  },
+  "error": {
+    "boundary": {
+      "somethingWrong": "Something went wrong",
+      "tryAgain": "Try again",
+      "global": {
+        "title": "Something went wrong",
+        "description": "We're sorry, but something unexpected happened. Please try refreshing the page."
+      },
+      "section": {
+        "title": "Section Error",
+        "description": "This section encountered an error. You can try again or continue with other parts of the page."
+      },
+      "refreshPage": "Refresh page"
+    }
+  },
+  "tutorial": {
+    "welcomeTitle": "Welcome to Oracle Insight",
+    "welcomeDescription": "Let us show you around with a quick interactive tour of the platform's key features.",
+    "startTutorial": "Start Tutorial",
+    "skip": "Skip",
+    "skipForNow": "Skip for now",
+    "dontShowAgain": "Don't show again",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "complete": "Complete",
+    "finish": "Finish",
+    "steps": {
+      "welcome": {
+        "title": "Welcome",
+        "description": "Discover powerful oracle analytics and real-time price monitoring capabilities."
+      },
+      "explore": {
+        "title": "Explore",
+        "description": "Navigate through different oracle providers and compare their performance metrics."
+      },
+      "analyze": {
+        "title": "Analyze",
+        "description": "Dive deep into price trends, deviations, and cross-chain comparisons."
+      },
+      "customize": {
+        "title": "Customize",
+        "description": "Personalize your dashboard and set up alerts for important price movements."
+      }
+    },
+    "interactive": "Interactive",
+    "goToStep": "Go to step {step}",
+    "completionTitle": "Tutorial Complete!",
+    "completionDescription": "You're all set! Start exploring the platform and discover powerful oracle analytics.",
+    "startUsing": "Start Using",
+    "viewSummary": "View Summary"
+  }
+}

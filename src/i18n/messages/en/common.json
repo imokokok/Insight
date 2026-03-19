@@ -1,0 +1,113 @@
+{
+  "actions": {
+    "refresh": "Refresh",
+    "export": "Export",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "edit": "Edit",
+    "apply": "Apply",
+    "retry": "Retry",
+    "confirm": "Confirm",
+    "clear": "Clear",
+    "close": "Close",
+    "reset": "Reset",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "viewFullscreen": "Fullscreen",
+    "search": "Search"
+  },
+  "status": {
+    "loading": "Loading...",
+    "noData": "No Data",
+    "success": "Success",
+    "error": "Error",
+    "live": "LIVE",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "consistency": {
+    "excellent": "Optimal",
+    "good": "Normal",
+    "fair": "Suboptimal",
+    "poor": "Critical"
+  },
+  "activity": {
+    "active": "Operational",
+    "inactive": "Offline",
+    "degraded": "Degraded"
+  },
+  "alert": {
+    "normal": "Standard",
+    "warning": "Caution",
+    "critical": "Critical"
+  },
+  "time": {
+    "lastUpdated": "Last updated",
+    "justNow": "Just now",
+    "secondsAgo": "{seconds}s ago",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "daysAgo": "{days}d ago"
+  },
+  "price": {
+    "price": "Price",
+    "averagePrice": "Average Price",
+    "highestPrice": "Highest Price",
+    "lowestPrice": "Lowest Price",
+    "priceRange": "Price Range"
+  },
+  "statistics": {
+    "deviation": "Deviation",
+    "standardDeviation": "Standard Deviation",
+    "median": "Median",
+    "average": "Average",
+    "variance": "Variance"
+  },
+  "chains": {
+    "ethereum": "Ethereum",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "base": "Base",
+    "avalanche": "Avalanche"
+  },
+  "filters": {
+    "filter": "Filter",
+    "clearAll": "Clear All",
+    "currentFilters": "Current Filters",
+    "noFilters": "No filters",
+    "filtersApplied": "{count} filter(s) applied",
+    "all": "All"
+  },
+  "deviation": {
+    "all": "All",
+    "excellent": "<0.1%",
+    "good": "0.1-0.5%",
+    "poor": ">0.5%"
+  },
+  "frequency": {
+    "daily": "Daily",
+    "monthly": "Monthly",
+    "weekly": "Weekly",
+    "yearly": "Yearly"
+  },
+  "importance": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "days": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
+  "locale": "en-US",
+  "favorite": "Favorite",
+  "favorited": "Favorited"
+}

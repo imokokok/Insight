@@ -1,0 +1,29 @@
+{
+  "home": {
+    "hero": {
+      "badge": "专业级预言机数据分析平台",
+      "title": {
+        "part1": "预言机智能分析",
+        "part2": "驱动数据决策"
+      },
+      "description": "统一预言机分析平台，为 Chainlink、Pyth、API3 等主流预言机网络提供实时价格监控、跨协议基准测试和全面的性能指标。为 DeFi 协议、开发者和分析师提供可操作的洞察。",
+      "ctaPrimary": "进入平台",
+      "ctaSecondary": "查看文档",
+      "metrics": {
+        "totalValueSecured": "总保障价值(TVS)",
+        "activeOracles": "活跃预言机数量",
+        "supportedPairs": "支持交易对数量"
+      },
+      "liveData": "实时数据",
+      "searchPlaceholder": "搜索交易对、预言机或区块链..."
+    },
+    "features": {
+      "sectionBadge": "核心功能",
+      "sectionTitle": "功能入口",
+      "sectionDescription": "探索平台核心功能，获取全面的预言机数据分析",
+      "liveData": "实时数据",
+      "learnMore": "了解更多 →"
+    },
+    "loading": "加载中..."
+  }
+}

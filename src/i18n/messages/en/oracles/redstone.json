@@ -1,0 +1,200 @@
+{
+  "redstone": {
+    "title": "Redstone Analytics",
+    "subtitle": "Modular Oracle Solution",
+    "stats": {
+      "activeNodes": "Active Nodes",
+      "dataFeeds": "Data Feeds",
+      "avgResponse": "Avg Response",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "networkUptime": "Network Uptime",
+      "circulatingSupply": "Circulating Supply",
+      "stakingApr": "Staking APR"
+    },
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "providers": "Providers",
+      "dataStreams": "Data Streams",
+      "crossChain": "Cross-Chain",
+      "ecosystem": "Ecosystem",
+      "crossOracle": "Cross-Oracle",
+      "risk": "Risk",
+      "riskAssessment": "Risk Assessment"
+    },
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "providers": {
+      "title": "Data Providers",
+      "dataSources": "Data Sources",
+      "activeSources": "Active Sources",
+      "updateFrequency": "Update Frequency",
+      "avgUpdateTime": "Average Update Time",
+      "dataQuality": "Data Quality",
+      "accuracyRate": "Accuracy Rate",
+      "reputation": "Reputation",
+      "dataPoints": "Data Points",
+      "lastUpdate": "Last Update",
+      "sortBy": "Sort By",
+      "filter": "Filter",
+      "all": "All",
+      "highReputation": "High Reputation",
+      "mostData": "Most Data Points",
+      "loading": "Loading providers..."
+    },
+    "dataStreams": {
+      "title": "Data Streams",
+      "streamCount": "Active Streams",
+      "modularFee": "Modular Fee",
+      "freshnessScore": "Freshness Score",
+      "providerCount": "Provider Count",
+      "avgReputation": "Avg Reputation",
+      "activeDataStreams": "Active data streams",
+      "outOf100": "Out of 100",
+      "perUpdate": "Per update",
+      "activeProviders": "Active providers",
+      "streamTypes": "Stream Types",
+      "priceFeeds": "Price Feeds",
+      "customData": "Custom Data",
+      "l2Data": "L2 Data",
+      "updateFrequencyTitle": "Update Frequency",
+      "highFrequency": "High Frequency",
+      "standard": "Standard",
+      "lowFrequency": "Low Frequency"
+    },
+    "crossChain": {
+      "supportedChains": "Supported Chains",
+      "chainList": "Chain List",
+      "updateFrequency": "Update Frequency",
+      "latency": "Latency",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activeNetworks": "Active networks",
+      "averageAcrossChains": "Average across chains",
+      "fastestChain": "Fastest Chain",
+      "latencyMs": "{{latency}}ms latency",
+      "uptime": "Uptime",
+      "allChains": "All chains"
+    },
+    "risk": {
+      "securityEvents": {
+        "dataStreamsV2": {
+          "title": "Data Streams V2 Launch",
+          "description": "Enhanced data stream protocol with improved efficiency"
+        },
+        "providerNetworkExpansion": {
+          "title": "Provider Network Expansion",
+          "description": "Added new data providers to increase decentralization"
+        },
+        "marketVolatilityHandling": {
+          "title": "Market Volatility Handling",
+          "description": "Successfully handled high market volatility with accurate price delivery"
+        },
+        "arweaveIntegration": {
+          "title": "Arweave Integration",
+          "description": "Integrated permanent data storage on Arweave"
+        }
+      }
+    },
+    "riskAssessment": {
+      "overallRiskScore": "Overall Risk Score",
+      "comprehensiveAssessment": "Comprehensive Risk Assessment",
+      "dimensionScores": "Dimension Scores",
+      "riskMetrics": "Risk Metrics",
+      "providerConcentration": "Provider Concentration",
+      "topProvidersShare": "Top Providers Share",
+      "top5ProvidersShare": "Top 5 Providers Share",
+      "giniCoefficient": "Gini Coefficient",
+      "dataStreamMetrics": "Data Stream Metrics",
+      "activeStreams": "Active Streams",
+      "freshnessScore": "Freshness Score",
+      "avgUpdateTime": "Average Update Time",
+      "securityTimeline": "Security Timeline",
+      "resolved": "Resolved",
+      "monitoring": "Monitoring",
+      "modularArchitecture": "Modular Architecture",
+      "lastAudit": "Last Audit",
+      "mitigationMeasures": "Mitigation Measures",
+      "scoreTrend": "Score Trend",
+      "score": "Score",
+      "riskLevel": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      },
+      "decentralization": "Decentralization",
+      "security": "Security",
+      "stability": "Stability",
+      "dataQuality": "Data Quality",
+      "eventTypes": {
+        "upgrade": "Upgrade",
+        "maintenance": "Maintenance",
+        "response": "Response"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "cryptographicVerification": "Cryptographic Verification",
+      "permanentStorage": "Permanent Storage",
+      "multiProviderAggregation": "Multi-Provider Aggregation",
+      "realTimeMonitoring": "Real-Time Monitoring"
+    },
+    "ecosystem": {
+      "integrations": "Integrations",
+      "categories": {
+        "infrastructure": "Infrastructure",
+        "defi": "DeFi",
+        "nft": "NFT",
+        "gaming": "Gaming"
+      },
+      "projectsIntegrated": "Projects integrated",
+      "defiProtocols": "DeFi Protocols",
+      "usingRedstone": "Using RedStone",
+      "infrastructurePartners": "Partners",
+      "nftAndGaming": "NFT & Gaming",
+      "projects": "Projects"
+    },
+    "crossOracle": {
+      "title": "Cross-Oracle Price Analysis"
+    },
+    "pageTitles": {
+      "market": "Market Data",
+      "network": "Network Status",
+      "validators": "Validators",
+      "disputes": "Disputes",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk",
+      "crossChain": "Cross-Chain",
+      "crossOracle": "Cross-Oracle Analysis"
+    },
+    "redStoneMetrics": {
+      "title": "RedStone Core Metrics",
+      "modularFee": "Modular Fee",
+      "perDataPull": "Per data pull",
+      "savings": "Save 70% vs traditional",
+      "dataFreshnessScore": "Data Freshness Score",
+      "providerCount": "Data Providers",
+      "activeProviders": "Active providers",
+      "decentralizedNetwork": "Decentralized network",
+      "avgReputationScore": "Avg Reputation Score",
+      "providerReputation": "Provider reputation",
+      "providerDetails": "Provider Details",
+      "providerName": "Provider Name",
+      "reputationScore": "Reputation Score",
+      "dataPoints": "Data Points",
+      "lastUpdate": "Last Update",
+      "architecture": "RedStone Modular Architecture",
+      "dataLayer": "Data Layer",
+      "dataLayerDesc": "Independent data provider network delivering high-quality price data through signed data packages",
+      "onDemandPull": "On-Demand Pull",
+      "onDemandPullDesc": "Pull-based data model, fetching data only when needed, significantly reducing Gas costs",
+      "dataVerification": "Data Verification",
+      "dataVerificationDesc": "All data is multi-signature verified to ensure accuracy and tamper-resistance",
+      "assetCoverage": "Asset Coverage",
+      "totalAssets": "Total Assets",
+      "cryptoAssets": "Crypto Assets",
+      "longTailAssets": "Long-tail Assets",
+      "rwaAssets": "RWA Assets"
+    }
+  }
+}

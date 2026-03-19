@@ -1,0 +1,405 @@
+{
+  "priceQuery": {
+    "title": "Price Query",
+    "description": "Query real-time price data across multiple oracles and blockchains",
+    "loading": "Loading",
+    "loadingData": "Loading data...",
+    "query": "Query",
+    "querying": "Querying...",
+    "noResults": {
+      "title": "No results found for {symbol}",
+      "description": "No price data available for the selected criteria",
+      "suggestion": "Try adjusting your oracle, blockchain, or symbol selection",
+      "popularTokens": "Popular tokens"
+    },
+    "results": {
+      "title": "results",
+      "empty": "No results to display",
+      "table": {
+        "oracle": "Oracle",
+        "blockchain": "Blockchain",
+        "price": "Price",
+        "change24h": "24h Change",
+        "freshness": "Freshness",
+        "confidence": "Confidence",
+        "source": "Source"
+      }
+    },
+    "filter": {
+      "placeholder": "Filter results...",
+      "noResults": "No results match your filter"
+    },
+    "pagination": {
+      "perPage": "per page",
+      "items": "items",
+      "prevPage": "Previous",
+      "nextPage": "Next"
+    },
+    "selectors": {
+      "symbol": "Symbol",
+      "oracle": "Oracles",
+      "blockchain": "Blockchains",
+      "timeRange": "Time Range",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "advancedOptions": "Advanced Options",
+      "compareMode": "Compare Mode",
+      "showBaseline": "Show Baseline",
+      "compareTime": "Compare Time"
+    },
+    "stats": {
+      "avgPrice": "Average Price",
+      "change24h": "24h Change",
+      "volatility": "Volatility",
+      "annualized": "Annualized",
+      "dataPoints": "Data Points",
+      "maxPrice": "Maximum Price",
+      "minPrice": "Minimum Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "absoluteValue": "Absolute",
+      "queryDuration": "Query Duration",
+      "compare": "Compare",
+      "consistency": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+      }
+    },
+    "export": {
+      "header": "Price Query Export",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "price": "Price",
+      "timestamp": "Timestamp",
+      "source": "Source",
+      "change24h": "24h Change",
+      "confidence": "Confidence"
+    },
+    "comparison": {
+      "title": "Time Comparison"
+    },
+    "dataSources": {
+      "title": "Data Sources"
+    },
+    "autoRefresh": {
+      "title": "Auto Refresh",
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m",
+      "refreshing": "Refreshing...",
+      "countdown": "Next refresh in {seconds}s"
+    },
+    "lastUpdated": "Last updated",
+    "progress": "Progress",
+    "error": {
+      "fetchFailed": "Failed to fetch price data",
+      "retry": "Retry",
+      "retrying": "Retrying...",
+      "lastSuccessfulFetch": "Last successful fetch: {time}",
+      "noSuccessfulFetch": "No successful fetch yet"
+    },
+    "chart": {
+      "title": "Price Trend Chart",
+      "exportImage": "Export Image",
+      "indicators": "Indicators",
+      "bollingerBands": "Bollinger Bands",
+      "confidenceInterval": "Confidence Interval",
+      "annotations": "Annotations",
+      "anomalyMarkers": "Anomaly Markers",
+      "priceSpikes": "Price Spikes",
+      "valueLabels": "Value Labels",
+      "baseline": "Baseline",
+      "compareSuffix": "Compare",
+      "priceHigh": "Price High",
+      "priceLow": "Price Low",
+      "realtime": "Realtime",
+      "realtimeUpdate": "Realtime Update",
+      "realtimePrice": "Realtime Price",
+      "lastUpdate": "Last Update",
+      "connectionStatus": {
+        "connected": "Connected",
+        "connecting": "Connecting...",
+        "reconnecting": "Reconnecting...",
+        "disconnected": "Disconnected",
+        "error": "Connection Error"
+      },
+      "stats": {
+        "high24h": "24h High",
+        "low24h": "24h Low",
+        "volume24h": "24h Volume"
+      },
+      "tooltip": {
+        "open": "Open:",
+        "high": "High:",
+        "low": "Low:",
+        "close": "Close:",
+        "price": "Price:",
+        "ma7": "MA7:",
+        "ma14": "MA14:",
+        "ma30": "MA30:",
+        "bollingerBands": "Bollinger Bands",
+        "upperBand": "Upper Band:",
+        "middleBand": "Middle Band:",
+        "lowerBand": "Lower Band:",
+        "predictionUpper": "Prediction Upper:",
+        "predictionLower": "Prediction Lower:",
+        "volume": "Volume:",
+        "rsi": "RSI:",
+        "macd": "MACD",
+        "macdValue": "MACD:",
+        "signal": "Signal:",
+        "histogram": "Histogram:"
+      },
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "reset": "Reset",
+      "granularity": {
+        "label": "Granularity",
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day"
+      },
+      "indicators": {
+        "ma7": "MA 7",
+        "ma14": "MA 14",
+        "ma30": "MA 30",
+        "bollingerBands": "Bollinger Bands",
+        "rsi": "RSI",
+        "macd": "MACD",
+        "volume": "Volume"
+      },
+      "timeRange": {
+        "label": "Time Range",
+        "all": "All"
+      },
+      "timeComparison": {
+        "title": "Time Comparison",
+        "period1": "Period 1",
+        "period2": "Period 2",
+        "to": "to"
+      },
+      "realtimeStatus": {
+        "live": "Live",
+        "connecting": "Connecting",
+        "reconnecting": "Reconnecting",
+        "disconnected": "Disconnected"
+      }
+    },
+    "consistency": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1 Hour",
+      "timeRange6Hours": "6 Hours",
+      "timeRange24Hours": "24 Hours",
+      "timeRange7Days": "7 Days"
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "chainlink": "Chainlink",
+      "crossChain": "Cross-Chain Comparison",
+      "crossChainDesc": "Compare prices of a single oracle across different chains",
+      "crossOracle": "Cross-Oracle Analysis",
+      "crossOracleDesc": "Multi-source oracle price comparison & deviation analysis",
+      "chainlinkDesc": "Decentralized oracle network"
+    },
+    "scrollHint": "← Swipe to view more →",
+    "filter": {
+      "placeholder": "Search oracle or blockchain...",
+      "results": "Showing {count} / {total} results",
+      "noResults": "No matching results found"
+    },
+    "noResults": {
+      "title": "No price data found for \"{symbol}\"",
+      "description": "This token may not exist or is not currently supported by any oracle",
+      "suggestion": "Please check the token symbol or try searching for popular tokens below",
+      "popularTokens": "Popular Tokens"
+    },
+    "selectors": {
+      "symbol": "Trading Pair",
+      "oracle": "Oracle",
+      "blockchain": "Blockchain",
+      "timeRange": "Time Range",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "advancedOptions": "Advanced Options",
+      "compareMode": "Compare Mode",
+      "showBaseline": "Show Baseline",
+      "compareTime": "Compare Time"
+    },
+    "query": "Query",
+    "querying": "Querying...",
+    "loading": "Loading...",
+    "pagination": {
+      "perPage": "Per page",
+      "items": "items",
+      "total": "Total {count} items",
+      "prevPage": "Previous",
+      "nextPage": "Next"
+    },
+    "results": {
+      "title": "Price Query Results",
+      "empty": "Please select oracles and blockchains to query",
+      "table": {
+        "oracle": "Oracle",
+        "blockchain": "Blockchain",
+        "price": "Price",
+        "timestamp": "Timestamp",
+        "change24h": "24h Change",
+        "freshness": "Freshness",
+        "confidence": "Confidence"
+      },
+      "qualityScore": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning",
+        "critical": "Critical"
+      }
+    },
+    "stats": {
+      "avgPrice": "Average Price",
+      "maxPrice": "Highest Price",
+      "minPrice": "Lowest Price",
+      "priceRange": "Price Range",
+      "standardDeviation": "Standard Deviation",
+      "dataPoints": "Data Points",
+      "consistencyRating": "Consistency Rating",
+      "absoluteValue": "Absolute Value",
+      "queryDuration": "Query Duration",
+      "change24h": "24h Change",
+      "volatility": "Volatility",
+      "annualized": "Annualized",
+      "compare": "Compare",
+      "collapse": "Collapse",
+      "expand": "View More"
+    },
+    "config": {
+      "save": "Save Config",
+      "load": "Load Config",
+      "name": "Config Name",
+      "saved": "Config saved",
+      "loaded": "Config loaded",
+      "deleted": "Config deleted",
+      "empty": "No saved configs",
+      "placeholder": "Enter config name"
+    },
+    "alert": {
+      "title": "Price Alert",
+      "setAlert": "Set Alert",
+      "priceThreshold": "Price Threshold",
+      "differenceThreshold": "Difference Threshold",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "triggered": "Alert Triggered"
+    }
+  },
+  "priceDeviation": {
+    "selectSymbol": "Select Symbol",
+    "selectChain": "Select Chain",
+    "autoRefresh": "Auto Refresh",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "chainlinkPrice": "Chainlink Price",
+    "referencePrice": "Reference Price",
+    "avgDeviation": "Avg Deviation",
+    "avgDeviationDesc": "Average deviation across all oracles",
+    "maxDeviation": "Max Deviation",
+    "maxDeviationDesc": "Maximum price deviation percentage",
+    "deviationDuration": "Deviation Duration",
+    "deviationDurationDesc": "Duration of deviation alert",
+    "currentComparison": "Current Price Comparison",
+    "provider": "Oracle",
+    "price": "Price",
+    "deviation": "Deviation",
+    "deviationPercent": "Deviation %",
+    "status": "Status",
+    "status_normal": "Normal",
+    "status_warning": "Warning",
+    "status_critical": "Critical",
+    "lastUpdated": "Last Updated",
+    "deviationBarChart": "Deviation Bar Chart",
+    "priceTrendChart": "Price Trend Comparison",
+    "deviationTrendChart": "Deviation History Trend",
+    "warningThreshold": "Warning Threshold",
+    "criticalThreshold": "Critical Threshold"
+  },
+  "priceChart": {
+    "status": {
+      "realtime": "Realtime",
+      "connecting": "Connecting",
+      "reconnecting": "Reconnecting",
+      "disconnected": "Disconnected"
+    },
+    "confidence": "Confidence",
+    "granularity": "Granularity",
+    "indicators": "Indicators",
+    "bollingerBands": "Bollinger Bands",
+    "ma7": "MA7",
+    "ma14": "MA14",
+    "ma30": "MA30",
+    "rsi": "RSI",
+    "macd": "MACD",
+    "volume": "Volume",
+    "timeComparison": "Time Period Comparison",
+    "timePeriod1": "Period 1",
+    "timePeriod2": "Period 2",
+    "to": "to",
+    "startComparison": "Start Comparison",
+    "cancelComparison": "Cancel",
+    "rsiPeriod": "14 Period",
+    "macdPeriod": "12,26,9",
+    "price": "Price",
+    "comparisonPrice": "Comparison Price",
+    "signal": "Signal",
+    "anomalyPoints": "Anomaly Points",
+    "moreOptions": "More Options",
+    "more": "More",
+    "advancedFeatures": "Advanced Features",
+    "timeComparisonDescription": "Compare price trends between two time periods",
+    "anomalyDetection": "Anomaly Detection",
+    "anomalyDetectionDescription": "Detect abnormal price fluctuations",
+    "viewStats": "View Statistics",
+    "viewAnomalyStats": "View Anomaly Statistics",
+    "predictionInterval": "Prediction Interval",
+    "predictionIntervalDescription": "Display price prediction confidence intervals",
+    "confidenceSelection": "Confidence Selection",
+    "export": {
+      "title": "Export",
+      "exportChart": "Export Chart",
+      "exporting": "Exporting...",
+      "exportComplete": "Export Complete",
+      "exportFailed": "Export Failed",
+      "settings": "Export Settings",
+      "settingsDescription": "Customize export options",
+      "range": "Export Range",
+      "currentView": "Current View",
+      "allData": "All Data",
+      "dateRange": "Date Range",
+      "filenameTemplate": "Filename Template",
+      "filenameTemplateHint": "Available variables: {title}, {date}, {time}, {source}",
+      "customFilename": "Custom Filename",
+      "includeMetadata": "Include Metadata",
+      "includeWatermark": "Add Watermark",
+      "cancel": "Cancel",
+      "confirmExport": "Confirm Export",
+      "batchExport": "Batch Export",
+      "batchExportDescription": "Select charts to export",
+      "resolution": "Resolution",
+      "selectResolution": "Select Resolution",
+      "selectCharts": "Select Charts",
+      "selected": "Selected",
+      "preview": "Export Preview",
+      "previewDescription": "Preview export content",
+      "filename": "Filename",
+      "dataRange": "Data Range",
+      "recordCount": "Record Count",
+      "close": "Close"
+    }
+  }
+}

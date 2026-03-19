@@ -1,0 +1,113 @@
+{
+  "actions": {
+    "refresh": "刷新",
+    "export": "导出",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "deleting": "删除中...",
+    "edit": "编辑",
+    "apply": "应用",
+    "retry": "重试",
+    "confirm": "确定",
+    "clear": "清除",
+    "close": "关闭",
+    "reset": "重置",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "viewFullscreen": "全屏查看",
+    "search": "搜索"
+  },
+  "status": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "success": "成功",
+    "error": "错误",
+    "live": "实时",
+    "online": "在线",
+    "offline": "离线"
+  },
+  "consistency": {
+    "excellent": "最优",
+    "good": "正常",
+    "fair": "次优",
+    "poor": "临界"
+  },
+  "activity": {
+    "active": "正常运行",
+    "inactive": "服务中断",
+    "degraded": "性能降级"
+  },
+  "alert": {
+    "normal": "标准",
+    "warning": "注意",
+    "critical": "异常"
+  },
+  "time": {
+    "lastUpdated": "最后更新",
+    "justNow": "刚刚",
+    "secondsAgo": "{seconds}秒前",
+    "minutesAgo": "{minutes}分钟前",
+    "hoursAgo": "{hours}小时前",
+    "daysAgo": "{days}天前"
+  },
+  "price": {
+    "price": "价格",
+    "averagePrice": "平均价格",
+    "highestPrice": "最高价格",
+    "lowestPrice": "最低价格",
+    "priceRange": "价格区间"
+  },
+  "statistics": {
+    "deviation": "偏差",
+    "standardDeviation": "标准差",
+    "median": "中位数",
+    "average": "平均值",
+    "variance": "方差"
+  },
+  "chains": {
+    "ethereum": "以太坊",
+    "arbitrum": "Arbitrum",
+    "optimism": "Optimism",
+    "polygon": "Polygon",
+    "base": "Base",
+    "avalanche": "Avalanche"
+  },
+  "filters": {
+    "filter": "筛选",
+    "clearAll": "清除全部",
+    "currentFilters": "当前筛选",
+    "noFilters": "无筛选条件",
+    "filtersApplied": "已应用 {count} 个筛选",
+    "all": "全部"
+  },
+  "deviation": {
+    "all": "全部",
+    "excellent": "<0.1%",
+    "good": "0.1-0.5%",
+    "poor": ">0.5%"
+  },
+  "frequency": {
+    "daily": "每日",
+    "monthly": "每月",
+    "weekly": "每周",
+    "yearly": "每年"
+  },
+  "importance": {
+    "high": "高",
+    "medium": "中",
+    "low": "低"
+  },
+  "days": {
+    "0": "周日",
+    "1": "周一",
+    "2": "周二",
+    "3": "周三",
+    "4": "周四",
+    "5": "周五",
+    "6": "周六"
+  },
+  "locale": "zh-CN",
+  "favorite": "收藏",
+  "favorited": "已收藏"
+}

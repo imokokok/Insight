@@ -1,0 +1,260 @@
+{
+  "crossOracle": {
+    "title": "Multi-Oracle Comparative Analytics",
+    "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
+    "refresh": "Refresh",
+    "lastUpdated": "Last updated",
+    "currentPriceComparison": "Current Price Comparison",
+    "priceTrend": "24h Price Trend",
+    "oracle": "Oracle",
+    "price": "Price",
+    "confidence": "Confidence",
+    "live": "LIVE",
+    "crossOraclePriceComparison": "Cross-Oracle Price Comparison",
+    "oracleCount": "Oracle Count",
+    "dataQuality": "Data Integrity Score",
+    "averagePrice": "Consensus Price",
+    "highestPrice": "Maximum Price",
+    "priceRange": "Price Range",
+    "deviation": "Deviation (%)",
+    "standardDeviation": "Standard Deviation",
+    "variance": "Variance",
+    "consistencyRating": "Price Convergence Index",
+    "consistency": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "basedOnStdDev": "Standard Deviation Analysis",
+    "historyRange": "History Range",
+    "ofAverage": "% of Avg",
+    "weighted": "Weighted",
+    "low": "Low",
+    "outlier": "Outlier",
+    "trend": "Trend",
+    "loading": "Loading...",
+    "updated": "Updated:",
+    "selectOraclesTitle": "Select Oracles",
+    "source": "Source",
+    "high": "High",
+    "metrics": {
+      "accuracy": "Accuracy",
+      "decentralization": "Decentralization"
+    },
+    "stats": {
+      "highestPrice": "Highest Price",
+      "lowestPrice": "Lowest Price",
+      "maxPriceDifference": "Max Price Difference",
+      "deviationFromAverage": "Mean Deviation",
+      "avgResponseTime": "Avg Response Time"
+    },
+    "selectTradingPair": "Select Trading Pair",
+    "priceDeviationThreshold": "Price Deviation Alert Threshold:",
+    "priceDeviationAlert": "Price Deviation Alert",
+    "differenceAnalysisPanel": "Deviation Analytics Dashboard",
+    "priceDifferenceVisualization": "Price Divergence Visualization",
+    "aboveAverage": "Above Average",
+    "belowAverage": "Below Average",
+    "zeroLineAverage": "Zero Line (Average)",
+    "multiOraclePriceComparison": "Multi-Oracle Price Comparison",
+    "priceHistory": "Price History",
+    "average": "Average",
+    "priceComparisonDetails": "Price Comparison Details",
+    "priceTrendComparison": "Price Trend Comparison",
+    "performanceComparison": "Performance Comparison",
+    "comprehensivePerformanceRadar": "Comprehensive Performance Radar",
+    "enableAutoRefresh": "Enable Auto Refresh",
+    "dataQualityScoreCard": {
+      "dimensions": {
+        "reliability": "Reliability"
+      },
+      "metrics": {
+        "updateFrequency": "Update Frequency"
+      }
+    },
+    "latencyDistribution": {
+      "title": "Latency Distribution Histogram",
+      "subtitle": "Data update latency distribution",
+      "p50": "P50 (Median)",
+      "avgLatency": "Avg Latency",
+      "minLatency": "Min Latency",
+      "maxLatency": "Max Latency",
+      "stdDev": "Std Dev",
+      "samples": "Samples",
+      "tooltip": {
+        "p50Desc": "50% of requests have latency below this value",
+        "p95Desc": "95% of requests have latency below this value",
+        "p99Desc": "99% of requests have latency below this value"
+      }
+    },
+    "oraclePerformanceRanking": {
+      "rank": "Rank"
+    },
+    "tabOverview": "Data Overview",
+    "tabCharts": "Charts",
+    "tabAdvanced": "Advanced",
+    "tabSnapshots": "Snapshots",
+    "tabPerformance": "Performance",
+    "freshness": "Data Timeliness",
+    "filter": {
+      "button": "Data Filter",
+      "allOracles": "All Oracles",
+      "currentFilters": "Current Filters",
+      "clearAll": "Clear All",
+      "timeRange": "Time Range",
+      "deviationRange": "Deviation Range",
+      "all": "All",
+      "oracleFilter": "Oracle Filter",
+      "filtersApplied": "{count} filter(s) applied",
+      "noFilters": "No filters",
+      "confirm": "Confirm"
+    },
+    "filterSummary": {
+      "deviation": "Deviation",
+      "oracle": "Oracle",
+      "time": "Time"
+    },
+    "pairSelector": {
+      "loading": "Loading...",
+      "searchPlaceholder": "Search trading pairs...",
+      "noResults": "No matching trading pairs found",
+      "keyboardHint": "Use ↑↓ to navigate, Enter to select",
+      "totalCount": "{count} total",
+      "categoryAll": "All",
+      "categoryLayer1": "Layer 1",
+      "categoryDeFi": "DeFi",
+      "categoryStablecoin": "Stablecoin"
+    },
+    "priceTable": {
+      "highest": "Highest",
+      "lowest": "Lowest",
+      "status": "Status",
+      "outlier": "Outlier",
+      "normal": "Normal",
+      "deviationRate": "Deviation Rate",
+      "updateTime": "Update Time"
+    },
+    "chartTooltip": {
+      "avgPrice": "Average Price",
+      "stdDev": "Standard Deviation",
+      "oraclePrices": "Oracle Prices"
+    },
+    "timeRange": {
+      "1H": "1 Hour",
+      "24H": "24 Hours",
+      "7D": "7 Days",
+      "30D": "30 Days",
+      "90D": "90 Days",
+      "1Y": "1 Year",
+      "ALL": "All Time"
+    },
+    "chart": {
+      "fullscreen": "Fullscreen View",
+      "zoomOut": "Zoom Out",
+      "zoomIn": "Zoom In",
+      "resetZoom": "Reset Zoom",
+      "reset": "Reset",
+      "avgPriceLine": "Average Price"
+    },
+    "chartLegend": {
+      "avgPriceLine": "Average Price Line",
+      "dataPoint": "Data Update Point",
+      "stdDev1": "±1 Std Dev Range",
+      "stdDev2": "±2 Std Dev Range",
+      "pinchZoom": "Pinch to zoom for more details"
+    },
+    "chartsTab": {
+      "detailedAnalysis": "Price Trend Detailed Analysis"
+    },
+    "snapshotsTab": {
+      "selectSnapshot": "Select a snapshot to compare",
+      "selectHint": "Select a historical snapshot from the left panel"
+    },
+    "advancedTab": {
+      "movingAverage": "Moving Average Analysis",
+      "dataQuality": "Data Quality Trend"
+    },
+    "performanceTab": {
+      "performanceComparison": "Performance Comparison Analysis",
+      "selectOracle": "Select oracle to view latency data",
+      "allOracles": "All Oracles",
+      "selectOraclePlaceholder": "Select Oracle",
+      "summary": "Oracle Performance Summary",
+      "responseTime": "Response Time",
+      "accuracy": "Accuracy",
+      "stability": "Stability",
+      "advancedAnalysis": "Advanced Analysis",
+      "tooltip": "{name} - Response Time: {responseTime}ms, Accuracy: {accuracy}%, Stability: {stability}%"
+    },
+    "outliers": {
+      "detected": "Price outliers detected",
+      "count": "{count} outlier(s)",
+      "outlierOracles": "Outlier Oracles",
+      "andMore": "and {count} more",
+      "avgDeviation": "Avg Deviation",
+      "viewDetails": "View Details"
+    },
+    "accessibility": {
+      "standardColors": "Switch to standard colors",
+      "colorBlindMode": "Switch to color-blind friendly colors",
+      "standardMode": "Standard Mode",
+      "colorBlindModeShort": "Color Blind Mode"
+    },
+    "favorites": {
+      "button": "Favorites",
+      "quickAccess": "Quick Access Favorites",
+      "viewAll": "View All Favorites"
+    },
+    "freshnessOptions": {
+      "justNow": "Just now",
+      "secondsAgo": "{seconds}s ago",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago"
+    },
+    "refreshOptions": {
+      "off": "Off",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m"
+    },
+    "dataSources": {
+      "title": "Comparison Data Sources"
+    },
+    "comparison": {
+      "summary": "Comparison Summary",
+      "avgPrice": "Average Price",
+      "priceRange": "Price Range",
+      "consistency": "Consistency Score",
+      "oracleCount": "Oracle Count"
+    },
+    "benchmark": {
+      "title": "Industry Benchmark Comparison"
+    }
+  },
+  "crossOracleComparison": {
+    "title": "Multi-Oracle Comparative Analytics",
+    "subtitle": "Comprehensive Multi-Source Price Aggregation & Convergence Analysis",
+    "consistencyScore": "Consistency Score",
+    "quickCompare": "Quick Compare",
+    "deviation": "Deviation",
+    "avgResponseTime": "Avg Response Time",
+    "highDeviation": "High Deviation",
+    "dataSources": "Data Sources",
+    "supportedChains": "Supported Chains",
+    "radar": {
+      "responseTime": "Response Time",
+      "updateFrequency": "Update Frequency",
+      "dataSources": "Data Sources",
+      "supportedChains": "Supported Chains",
+      "reliability": "Reliability"
+    }
+  },
+  "comparison": {
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "yoy": "Year over Year",
+      "mom": "Month over Month"
+    }
+  }
+}

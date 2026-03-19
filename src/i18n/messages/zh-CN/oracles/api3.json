@@ -1,0 +1,230 @@
+{
+  "api3": {
+    "title": "API3",
+    "subtitle": "第一方预言机网络，实现去中心化 API 连接",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "staking": "质押",
+      "advantages": "优势",
+      "analytics": "分析",
+      "gas": "Gas",
+      "crossOracle": "跨预言机",
+      "ecosystem": "生态",
+      "risk": "风险"
+    },
+    "menu": {
+      "crossOracleComparison": "跨预言机分析"
+    },
+    "firstPartyOracle": {
+      "title": "第一方预言机分析",
+      "noMiddlemen": "无中间商",
+      "sourceTransparency": "数据源透明",
+      "responseTime": "响应时间",
+      "directConnection": "直接连接",
+      "hasMiddlemen": "有中间商",
+      "traceable": "可追溯",
+      "notTransparent": "不透明",
+      "comparisonTitle": "API3 与传统预言机对比",
+      "feature": "特性",
+      "api3Name": "API3",
+      "traditionalOracle": "传统预言机",
+      "dataSourceTransparency": "数据源透明度",
+      "fullTransparency": "完全透明",
+      "partialTransparency": "部分透明",
+      "middlemen": "中间商",
+      "none": "无",
+      "has": "有",
+      "insuranceMechanism": "保险机制",
+      "hasInsurance": "有保险",
+      "noInsurance": "无保险",
+      "advantagesTitle": "第一方预言机优势",
+      "advantagesDesc": "API3 的第一方预言机架构消除了中间层，提供更高的透明度、更低的延迟和更强的安全保证。",
+      "responseTimeValue": "180ms",
+      "traditionalResponseTime": "200-500ms"
+    },
+    "risk": {
+      "overview": {
+        "title": "风险评估概览",
+        "description": "API3 网络的综合风险分析，包括覆盖池抵押率、数据源集中度、网络健康和质押风险。"
+      },
+      "coveragePool": {
+        "title": "覆盖池风险",
+        "collateralization": "抵押率",
+        "ratio": "覆盖比率",
+        "totalStaked": "总质押量",
+        "lowRisk": "覆盖池健康，抵押充足",
+        "mediumRisk": "中等风险，覆盖比率低于最优水平",
+        "criticalRisk": "严重风险，覆盖抵押不足"
+      },
+      "concentration": {
+        "title": "数据源集中度",
+        "diversificationScore": "多元化评分",
+        "cryptoAssets": "加密资产",
+        "totalDapis": "总 dAPI 数",
+        "concentration": "集中度",
+        "diversified": "资产类型分布良好",
+        "mediumConcentration": "加密资产集中度中等",
+        "highConcentration": "集中度高，过度依赖加密资产"
+      },
+      "network": {
+        "title": "网络健康风险",
+        "healthScore": "网络健康评分",
+        "uptime": "节点在线率",
+        "responseTime": "平均响应延迟",
+        "excellent": "网络健康和性能优秀",
+        "fair": "网络健康一般，检测到轻微问题",
+        "poor": "网络健康较差，存在重大风险"
+      },
+      "staking": {
+        "title": "质押风险",
+        "riskScore": "质押风险评分",
+        "apr": "质押 APR",
+        "lockup": "锁定期",
+        "lockupValue": "7 天",
+        "moderate": "风险适中，收益可持续",
+        "elevatedRisk": "APR 过高，风险升高",
+        "highYieldRisk": "高收益风险，收益水平不可持续"
+      },
+      "securityEvents": {
+        "oevNetworkLaunch": {
+          "title": "OEV 网络上线",
+          "description": "推出 Oracle Extractable Value 网络，改进 MEV 保护机制"
+        },
+        "airnodeV2Release": {
+          "title": "Airnode V2 发布",
+          "description": "Airnode 重大升级，优化 Gas 效率和监控功能"
+        },
+        "dapiCoverageExpansion": {
+          "title": "dAPI 覆盖扩展",
+          "description": "新增 50+ dAPI，改进冗余机制"
+        },
+        "infrastructureUpgrade": {
+          "title": "第一方预言机基础设施升级",
+          "description": "第一方预言机节点例行基础设施优化"
+        }
+      },
+      "mitigationMeasures": {
+        "firstPartyOracle": "第一方预言机架构",
+        "coveragePoolStaking": "覆盖池质押",
+        "daoGovernance": "DAO 治理",
+        "serviceCoverage": "服务覆盖",
+        "oevProtection": "OEV 保护",
+        "multiChainDeployment": "多链部署"
+      },
+      "dimensions": {
+        "decentralization": "去中心化",
+        "decentralizationDesc": "数据源和节点运营商的分布情况",
+        "security": "安全性",
+        "securityDesc": "覆盖池偿付能力和保险机制",
+        "stability": "稳定性",
+        "stabilityDesc": "网络可用率和运营一致性",
+        "dataQuality": "数据质量",
+        "dataQualityDesc": "价格喂价的准确性和可靠性"
+      }
+    },
+    "crossOracle": {
+      "overview": {
+        "title": "跨预言机价格分析",
+        "description": "将 API3 性能指标与其他领先预言机提供商进行对比，包括 Chainlink、Pyth、Band Protocol 和 DIA。"
+      },
+      "responseTime": {
+        "title": "响应时间对比",
+        "description": "响应时间越短表示数据传输越快"
+      },
+      "accuracy": {
+        "title": "数据准确性对比",
+        "description": "准确性越高表示价格数据越可靠"
+      },
+      "availability": {
+        "title": "网络可用性",
+        "description": "过去 30 天的在线率百分比"
+      },
+      "costEfficiency": {
+        "title": "成本效率",
+        "description": "基于 Gas 费用和更新频率的成本效益评分"
+      },
+      "updateFrequency": {
+        "title": "更新频率",
+        "description": "价格更新之间的平均时间（秒）"
+      },
+      "advantages": {
+        "title": "API3 竞争优势",
+        "firstParty": "第一方架构",
+        "firstPartyValue": "直接连接 API 提供商，消除中间商",
+        "quantifiableSecurity": "可量化安全",
+        "quantifiableSecurityValue": "链上覆盖池提供透明的安全保障",
+        "dapi": "dAPI 服务",
+        "dapiValue": "来自多个来源的去中心化聚合数据"
+      }
+    },
+    "stats": {
+      "activeAirnodes": "活跃 Airnodes",
+      "dapiFeeds": "dAPI 数据源",
+      "stakingApr": "质押 APR",
+      "volume24h": "24h 成交额",
+      "marketCap": "市值",
+      "circulatingSupply": "流通供应量",
+      "networkUptime": "网络正常运行时间"
+    },
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "pageTitles": {
+      "market": "市场数据",
+      "network": "网络状态",
+      "validators": "验证节点",
+      "disputes": "争议解决",
+      "ecosystem": "生态系统",
+      "risk": "风险评估",
+      "crossChain": "跨链",
+      "crossOracle": "跨预言机分析"
+    }
+  },
+  "dapiCoverage": {
+    "totalDapis": "dAPI 总数",
+    "activeDataSources": "活跃数据源",
+    "byChainDistribution": "按链分布",
+    "updateFrequencyDistribution": "更新频率分布",
+    "highFrequency": "高频",
+    "perSecondUpdate": "每秒更新",
+    "mediumFrequency": "中频",
+    "perMinuteUpdate": "每分钟更新",
+    "lowFrequency": "低频",
+    "perHourUpdate": "每小时更新",
+    "total": "总计",
+    "byAssetTypeDistribution": "资产类型分布",
+    "crypto": "加密货币",
+    "forex": "外汇",
+    "commodities": "大宗商品",
+    "stocks": "股票"
+  },
+  "airnodeDeployment": {
+    "totalAirnodes": "Airnode 总数",
+    "globallyDeployedNodes": "全球部署节点",
+    "regionDistribution": {
+      "title": "地区分布",
+      "subtitle": "按地理位置划分"
+    },
+    "chainDistribution": {
+      "title": "链分布",
+      "subtitle": "按区块链网络划分"
+    },
+    "providerTypeDistribution": {
+      "title": "提供商类型分布",
+      "subtitle": "按数据提供商类型划分"
+    },
+    "regions": {
+      "northAmerica": "北美",
+      "europe": "欧洲",
+      "asia": "亚洲",
+      "others": "其他"
+    },
+    "providerTypes": {
+      "exchanges": "交易所",
+      "traditionalFinance": "传统金融",
+      "others": "其他"
+    }
+  }
+}

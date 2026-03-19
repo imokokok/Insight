@@ -1,0 +1,80 @@
+{
+  "search": {
+    "title": "搜索",
+    "placeholder": "搜索预言机、交易对、区块链、页面...",
+    "noResults": "未找到结果",
+    "noResultsDesc": "未找到与 \"{query}\" 相关的结果，请尝试其他关键词",
+    "initialTitle": "开始搜索",
+    "initialDesc": "输入关键词搜索预言机、交易对、区块链、页面和功能",
+    "groups": {
+      "oracles": "预言机",
+      "pairs": "交易对",
+      "blockchains": "区块链",
+      "pages": "页面",
+      "features": "功能",
+      "documentation": "文档"
+    },
+    "oracles": {
+      "chainlinkDesc": "领先的去中心化预言机网络",
+      "pythDesc": "机构级低延迟金融数据",
+      "bandDesc": "Cosmos 生态系统跨链数据预言机",
+      "api3Desc": "第一方 DAO 治理预言机",
+      "redstoneDesc": "模块化 EVM+ 预言机堆栈",
+      "umaDesc": "乐观预言机自定义数据验证",
+      "diaDesc": "透明众包数据验证预言机",
+      "tellorDesc": "去中心化透明预言机",
+      "chronicleDesc": "MakerDAO 基础设施预言机",
+      "winklinkDesc": "TRON 生态系统预言机"
+    },
+    "pairs": {
+      "priceFeed": "价格数据喂价"
+    },
+    "pages": {
+      "home": "首页",
+      "homeDesc": "Insight 仪表板主页",
+      "marketOverview": "市场概览",
+      "marketOverviewDesc": "实时市场情报和指标",
+      "priceQuery": "价格查询",
+      "priceQueryDesc": "跨预言机网络价格查询",
+      "crossOracle": "多预言机对比",
+      "crossOracleDesc": "多预言机价格比较分析",
+      "crossChain": "跨链分析",
+      "crossChainDesc": "跨链价格分析和基准测试",
+      "favorites": "收藏",
+      "favoritesDesc": "管理您的收藏资产",
+      "alerts": "提醒",
+      "alertsDesc": "价格提醒和通知",
+      "settings": "设置",
+      "settingsDesc": "用户偏好设置"
+    },
+    "features": {
+      "realtimePrice": "实时价格",
+      "realtimePriceDesc": "实时价格数据流",
+      "priceComparison": "价格对比",
+      "priceComparisonDesc": "跨预言机价格比较",
+      "priceAlerts": "价格提醒",
+      "priceAlertsDesc": "自定义价格提醒通知",
+      "dataExport": "数据导出",
+      "dataExportDesc": "导出市场数据",
+      "charts": "图表",
+      "chartsDesc": "交互式价格图表"
+    },
+    "docs": {
+      "methodology": "方法论",
+      "methodologyDesc": "数据和方法论说明",
+      "apiReference": "API 文档",
+      "apiReferenceDesc": "API 参考文档",
+      "help": "帮助",
+      "helpDesc": "帮助和支持中心"
+    },
+    "shortcuts": {
+      "navigate": "导航",
+      "select": "选择",
+      "close": "关闭"
+    },
+    "footer": {
+      "navigate": "导航",
+      "select": "选择"
+    }
+  }
+}

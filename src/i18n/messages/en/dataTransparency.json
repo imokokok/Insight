@@ -1,0 +1,36 @@
+{
+  "dataTransparency": {
+    "title": "Data Transparency",
+    "dataSources": "Data Sources",
+    "providers": "Oracles",
+    "chains": "Chains",
+    "dataPoints": "Data Points",
+    "showMore": "Show More ({count})",
+    "showLess": "Show Less",
+    "noSources": "No data sources available",
+    "chain": "Chain",
+    "source": "Source",
+    "confidence": "Confidence",
+    "viewProof": "View Verification Proof",
+    "nextRefresh": "Next Refresh",
+    "totalSources": "Total Sources",
+    "activeSources": "Active Sources",
+    "avgCredibility": "Avg Credibility",
+    "sourceName": "Source Name",
+    "type": "Type",
+    "credibility": "Credibility",
+    "status": "Status",
+    "verification": "Verification Method",
+    "credibilityLevel": {
+      "high": "High Credibility",
+      "medium": "Medium Credibility",
+      "low": "Low Credibility",
+      "unverified": "Unverified"
+    },
+    "freshness": {
+      "fresh": "Fresh",
+      "stale": "Stale",
+      "expired": "Expired"
+    }
+  }
+}
