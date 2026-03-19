@@ -1,0 +1,29 @@
+{
+  "home": {
+    "hero": {
+      "badge": "Enterprise-Grade Oracle Analytics",
+      "title": {
+        "part1": "Oracle Intelligence",
+        "part2": "Driving Data-Driven Decisions"
+      },
+      "description": "Unified oracle analytics platform delivering real-time price monitoring, cross-protocol benchmarking, and comprehensive performance metrics for Chainlink, Pyth, API3, and leading oracle networks. Empowering DeFi protocols, developers, and analysts with actionable insights.",
+      "ctaPrimary": "Explore Platform",
+      "ctaSecondary": "Documentation",
+      "metrics": {
+        "totalValueSecured": "Total Value Secured",
+        "activeOracles": "Active Oracles",
+        "supportedPairs": "Supported Pairs"
+      },
+      "liveData": "Live Data",
+      "searchPlaceholder": "Search trading pairs, oracles, or blockchains..."
+    },
+    "features": {
+      "sectionBadge": "Core Features",
+      "sectionTitle": "Features",
+      "sectionDescription": "Explore core platform features for comprehensive oracle data analysis",
+      "liveData": "Live Data",
+      "learnMore": "Learn more →"
+    },
+    "loading": "Loading..."
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "redstone": {
+    "title": "Redstone",
+    "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
+    "analytics": "Redstone 数据分析",
+    "tabs": {
+      "market": "市场",
+      "network": "网络",
+      "providers": "提供者",
+      "dataStreams": "数据流",
+      "crossChain": "跨链",
+      "ecosystem": "生态系统",
+      "crossOracle": "跨预言机",
+      "risk": "风险",
+      "riskAssessment": "风险评估"
+    },
+    "stats": {
+      "activeNodes": "活跃节点",
+      "dataFeeds": "数据源",
+      "avgResponse": "平均响应",
+      "volume24h": "24h 交易量",
+      "marketCap": "市值",
+      "networkUptime": "网络正常运行",
+      "circulatingSupply": "流通供应量",
+      "stakingApr": "质押 APR"
+    },
+    "priceTrend": "价格趋势",
+    "quickStats": "快速统计",
+    "providers": {
+      "title": "数据提供者",
+      "dataSources": "数据源",
+      "activeSources": "活跃数据源",
+      "updateFrequency": "更新频率",
+      "avgUpdateTime": "平均更新时间",
+      "dataQuality": "数据质量",
+      "accuracyRate": "准确率",
+      "reputation": "声誉",
+      "dataPoints": "数据点数",
+      "lastUpdate": "最后更新",
+      "sortBy": "排序方式",
+      "filter": "筛选",
+      "all": "全部",
+      "highReputation": "高声誉",
+      "mostData": "最多数据",
+      "loading": "加载提供者..."
+    },
+    "dataStreams": {
+      "title": "数据流",
+      "streamCount": "活跃流数",
+      "modularFee": "模块化费用",
+      "freshnessScore": "新鲜度评分",
+      "providerCount": "提供者数量",
+      "avgReputation": "平均声誉",
+      "activeDataStreams": "活跃数据流",
+      "outOf100": "满分 100",
+      "perUpdate": "每次更新",
+      "activeProviders": "活跃提供者",
+      "streamTypes": "数据流类型",
+      "priceFeeds": "价格馈送",
+      "customData": "自定义数据",
+      "l2Data": "L2 数据",
+      "updateFrequencyTitle": "更新频率",
+      "highFrequency": "高频",
+      "standard": "标准",
+      "lowFrequency": "低频"
+    },
+    "crossChain": {
+      "supportedChains": "支持的链",
+      "chainList": "链列表",
+      "updateFrequency": "更新频率",
+      "latency": "延迟",
+      "active": "活跃",
+      "inactive": "非活跃",
+      "activeNetworks": "活跃网络",
+      "averageAcrossChains": "跨链平均",
+      "fastestChain": "最快链",
+      "latencyMs": "{{latency}}ms 延迟",
+      "uptime": "正常运行时间",
+      "allChains": "所有链"
+    },
+    "risk": {
+      "securityEvents": {
+        "dataStreamsV2": {
+          "title": "数据流 V2 上线",
+          "description": "增强数据流协议，提升效率"
+        },
+        "providerNetworkExpansion": {
+          "title": "提供者网络扩展",
+          "description": "新增数据提供者以提升去中心化程度"
+        },
+        "marketVolatilityHandling": {
+          "title": "市场波动处理",
+          "description": "成功应对高市场波动，提供准确价格"
+        },
+        "arweaveIntegration": {
+          "title": "Arweave 集成",
+          "description": "集成 Arweave 永久数据存储"
+        }
+      }
+    },
+    "riskAssessment": {
+      "overallRiskScore": "综合风险评级",
+      "comprehensiveAssessment": "综合风险评估",
+      "dimensionScores": "维度评分",
+      "riskMetrics": "风险指标",
+      "providerConcentration": "提供者集中度",
+      "topProvidersShare": "头部提供者占比",
+      "top5ProvidersShare": "前5提供者占比",
+      "giniCoefficient": "基尼系数",
+      "dataStreamMetrics": "数据流指标",
+      "activeStreams": "活跃流数",
+      "freshnessScore": "新鲜度评分",
+      "avgUpdateTime": "平均更新时间",
+      "securityTimeline": "安全时间线",
+      "resolved": "已解决",
+      "monitoring": "监控中",
+      "modularArchitecture": "模块化架构",
+      "lastAudit": "上次审计",
+      "mitigationMeasures": "缓解措施",
+      "scoreTrend": "评分趋势",
+      "score": "评分",
+      "riskLevel": {
+        "low": "低风险等级",
+        "medium": "中等风险等级",
+        "high": "高风险等级"
+      },
+      "decentralization": "去中心化程度",
+      "security": "安全架构",
+      "stability": "运行稳定性",
+      "dataQuality": "数据完整性",
+      "eventTypes": {
+        "upgrade": "升级",
+        "maintenance": "维护",
+        "response": "响应"
+      },
+      "active": "活跃",
+      "inactive": "未激活",
+      "cryptographicVerification": "加密验证",
+      "permanentStorage": "永久存储",
+      "multiProviderAggregation": "多提供者聚合",
+      "decentralizedGovernance": "去中心化治理",
+      "realTimeMonitoring": "实时监控"
+    },
+    "ecosystem": {
+      "integrations": "集成项目",
+      "categories": {
+        "infrastructure": "基础设施",
+        "defi": "去中心化金融",
+        "nft": "NFT",
+        "gaming": "游戏"
+      },
+      "projectsIntegrated": "已集成项目",
+      "defiProtocols": "DeFi 协议",
+      "usingRedstone": "使用 RedStone",
+      "infrastructurePartners": "合作伙伴",
+      "nftAndGaming": "NFT 与游戏",
+      "projects": "项目"
+    },
+    "crossOracle": {
+      "title": "跨预言机价格分析"
+    },
+    "pageTitles": {
+      "market": "市场数据",
+      "network": "网络状态",
+      "validators": "验证节点",
+      "disputes": "争议解决",
+      "ecosystem": "生态系统",
+      "risk": "风险评估",
+      "crossChain": "跨链",
+      "crossOracle": "跨预言机分析"
+    },
+    "redStoneMetrics": {
+      "title": "RedStone 核心指标",
+      "modularFee": "模块化费用",
+      "perDataPull": "每次数据拉取",
+      "savings": "比传统模式节省 70%",
+      "dataFreshnessScore": "数据新鲜度分数",
+      "providerCount": "数据提供者数量",
+      "activeProviders": "活跃提供者",
+      "decentralizedNetwork": "去中心化网络",
+      "avgReputationScore": "平均声誉评分",
+      "providerReputation": "提供者信誉",
+      "providerDetails": "数据提供者详情",
+      "providerName": "提供者名称",
+      "reputationScore": "声誉评分",
+      "dataPoints": "数据点数",
+      "lastUpdate": "最后更新",
+      "architecture": "RedStone 模块化架构",
+      "dataLayer": "数据层",
+      "dataLayerDesc": "独立的数据提供者网络，通过签名数据包提供高质量价格数据",
+      "onDemandPull": "按需拉取",
+      "onDemandPullDesc": "Pull-based 数据模型，仅在需要时获取数据，大幅降低 Gas 成本",
+      "dataVerification": "数据验证",
+      "dataVerificationDesc": "所有数据经过多重签名验证，确保数据的准确性和抗篡改性",
+      "assetCoverage": "资产覆盖范围",
+      "totalAssets": "总资产数",
+      "cryptoAssets": "加密货币",
+      "longTailAssets": "长尾资产",
+      "rwaAssets": "RWA 资产"
+    }
+  }
+}

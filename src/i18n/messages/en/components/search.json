@@ -1,0 +1,80 @@
+{
+  "search": {
+    "title": "Search",
+    "placeholder": "Search oracles, pairs, blockchains, pages...",
+    "noResults": "No results found",
+    "noResultsDesc": "No results found for \"{query}\", try different keywords",
+    "initialTitle": "Start Searching",
+    "initialDesc": "Type to search oracles, trading pairs, blockchains, pages, and features",
+    "groups": {
+      "oracles": "Oracles",
+      "pairs": "Trading Pairs",
+      "blockchains": "Blockchains",
+      "pages": "Pages",
+      "features": "Features",
+      "documentation": "Documentation"
+    },
+    "oracles": {
+      "chainlinkDesc": "Leading decentralized oracle network",
+      "pythDesc": "Institutional-grade low-latency financial data",
+      "bandDesc": "Cross-chain data oracle for Cosmos ecosystem",
+      "api3Desc": "First-party DAO-governed oracle",
+      "redstoneDesc": "Modular EVM+ compatible oracle stack",
+      "umaDesc": "Optimistic oracle with customizable verification",
+      "diaDesc": "Transparent crowd-sourced data validation oracle",
+      "tellorDesc": "Decentralized transparent oracle",
+      "chronicleDesc": "MakerDAO infrastructure oracle",
+      "winklinkDesc": "TRON ecosystem oracle"
+    },
+    "pairs": {
+      "priceFeed": "Price feed"
+    },
+    "pages": {
+      "home": "Home",
+      "homeDesc": "Insight dashboard homepage",
+      "marketOverview": "Market Overview",
+      "marketOverviewDesc": "Real-time market intelligence and metrics",
+      "priceQuery": "Price Query",
+      "priceQueryDesc": "Cross-oracle network price lookup",
+      "crossOracle": "Cross-Oracle Analysis",
+      "crossOracleDesc": "Multi-oracle price comparison analysis",
+      "crossChain": "Cross-Chain Analysis",
+      "crossChainDesc": "Cross-chain price analysis and benchmarking",
+      "favorites": "Favorites",
+      "favoritesDesc": "Manage your favorite assets",
+      "alerts": "Alerts",
+      "alertsDesc": "Price alerts and notifications",
+      "settings": "Settings",
+      "settingsDesc": "User preference settings"
+    },
+    "features": {
+      "realtimePrice": "Real-time Price",
+      "realtimePriceDesc": "Real-time price data streaming",
+      "priceComparison": "Price Comparison",
+      "priceComparisonDesc": "Cross-oracle price comparison",
+      "priceAlerts": "Price Alerts",
+      "priceAlertsDesc": "Custom price alert notifications",
+      "dataExport": "Data Export",
+      "dataExportDesc": "Export market data",
+      "charts": "Charts",
+      "chartsDesc": "Interactive price charts"
+    },
+    "docs": {
+      "methodology": "Methodology",
+      "methodologyDesc": "Data and methodology documentation",
+      "apiReference": "API Reference",
+      "apiReferenceDesc": "API reference documentation",
+      "help": "Help",
+      "helpDesc": "Help and support center"
+    },
+    "shortcuts": {
+      "navigate": "to navigate",
+      "select": "to select",
+      "close": "to close"
+    },
+    "footer": {
+      "navigate": "Navigate",
+      "select": "Select"
+    }
+  }
+}

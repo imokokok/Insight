@@ -1,0 +1,224 @@
+{
+  "api3": {
+    "title": "API3",
+    "subtitle": "First-party oracle network enabling decentralized API connectivity",
+    "tabs": {
+      "market": "Market",
+      "network": "Network",
+      "airnode": "Airnode",
+      "dapi": "dAPI",
+      "staking": "Staking",
+      "advantages": "Advantages",
+      "analytics": "Analytics",
+      "gas": "Gas",
+      "crossOracle": "Cross-Oracle",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk"
+    },
+    "firstPartyOracle": {
+      "title": "First-Party Oracle Infrastructure",
+      "subtitle": "Direct API provider integration eliminating intermediary layers",
+      "architecture": "Architecture Overview",
+      "airnodeCount": "Active Airnodes",
+      "apiProviderCount": "API Providers",
+      "directIntegration": "Direct Integration",
+      "transparency": "On-Chain Transparency",
+      "efficiency": "Operational Efficiency",
+      "noMiddlemen": "No Middlemen",
+      "sourceTransparency": "Source Transparency",
+      "responseTime": "Response Time",
+      "directConnection": "Direct Connection",
+      "hasMiddlemen": "Has Middlemen",
+      "traceable": "Traceable",
+      "notTransparent": "Not Transparent",
+      "comparisonTitle": "API3 vs Traditional Oracle Comparison",
+      "feature": "Feature",
+      "api3Name": "API3",
+      "traditionalOracle": "Traditional Oracle",
+      "dataSourceTransparency": "Data Source Transparency",
+      "fullTransparency": "Full Transparency",
+      "partialTransparency": "Partial Transparency",
+      "middlemen": "Middlemen",
+      "none": "None",
+      "has": "Has",
+      "insuranceMechanism": "Insurance Mechanism",
+      "hasInsurance": "Has Insurance",
+      "noInsurance": "No Insurance",
+      "advantagesTitle": "First-Party Oracle Advantages",
+      "advantagesDesc": "API3's first-party oracle architecture eliminates intermediary layers, providing higher transparency, lower latency, and stronger security guarantees.",
+      "responseTimeValue": "180ms",
+      "traditionalResponseTime": "200-500ms"
+    },
+    "risk": {
+      "overview": {
+        "title": "Risk Assessment Dashboard",
+        "description": "Comprehensive risk evaluation covering coverage pool solvency, data source diversification, network operational health, and staking mechanism stability."
+      },
+      "coveragePool": {
+        "title": "Coverage Pool Solvency",
+        "collateralization": "Collateralization Ratio",
+        "ratio": "Solvency Ratio",
+        "totalStaked": "Total Staked Collateral",
+        "lowRisk": "Robust coverage pool with adequate collateral reserves",
+        "mediumRisk": "Elevated risk - coverage ratio below recommended threshold",
+        "criticalRisk": "Critical risk - insufficient collateral to cover potential claims"
+      },
+      "concentration": {
+        "title": "Data Source Concentration Risk",
+        "diversificationScore": "Diversification Index",
+        "cryptoAssets": "Cryptocurrency Exposure",
+        "totalDapis": "Total dAPI Services",
+        "concentration": "Concentration Risk Ratio",
+        "diversified": "Well-diversified across multiple asset classes and providers",
+        "mediumConcentration": "Moderate concentration - elevated exposure to crypto assets",
+        "highConcentration": "High concentration risk - excessive reliance on single asset class"
+      },
+      "network": {
+        "title": "Network Operational Risk",
+        "healthScore": "Operational Health Score",
+        "uptime": "Node Availability",
+        "responseTime": "Mean Response Latency",
+        "excellent": "Optimal network health with strong performance metrics",
+        "fair": "Acceptable network health with minor performance degradation",
+        "poor": "Suboptimal network health - significant operational risks identified"
+      },
+      "staking": {
+        "title": "Staking Mechanism Risk",
+        "riskScore": "Staking Risk Rating",
+        "apr": "Staking Yield Rate",
+        "lockup": "Token Lockup Duration",
+        "lockupValue": "7 days",
+        "moderate": "Acceptable risk profile with sustainable yield structure",
+        "elevatedRisk": "Elevated risk - yield rate may indicate unsustainable incentives",
+        "highYieldRisk": "High risk profile - excessive yields suggest potential instability"
+      },
+      "securityEvents": {
+        "oevNetworkLaunch": {
+          "title": "OEV Network Launch",
+          "description": "Introduction of Oracle Extractable Value network for improved MEV protection"
+        },
+        "airnodeV2Release": {
+          "title": "Airnode V2 Release",
+          "description": "Major upgrade to Airnode with enhanced gas optimization and monitoring"
+        },
+        "dapiCoverageExpansion": {
+          "title": "dAPI Coverage Expansion",
+          "description": "Added 50+ new dAPIs with improved redundancy mechanisms"
+        },
+        "infrastructureUpgrade": {
+          "title": "First-Party Oracle Infrastructure Upgrade",
+          "description": "Routine infrastructure optimization for first-party oracle nodes"
+        }
+      },
+      "mitigationMeasures": {
+        "firstPartyOracle": "First-Party Oracle Architecture",
+        "coveragePoolStaking": "Coverage Pool Staking",
+        "daoGovernance": "DAO Governance",
+        "serviceCoverage": "Service Coverage",
+        "oevProtection": "OEV Protection",
+        "multiChainDeployment": "Multi-Chain Deployment"
+      },
+      "dimensions": {
+        "decentralization": "Decentralization",
+        "decentralizationDesc": "Distribution of data sources and node operators",
+        "security": "Security",
+        "securityDesc": "Coverage pool solvency and insurance mechanisms",
+        "stability": "Stability",
+        "stabilityDesc": "Network uptime and operational consistency",
+        "dataQuality": "Data Quality",
+        "dataQualityDesc": "Accuracy and reliability of price feeds"
+      }
+    },
+    "crossOracle": {
+      "overview": {
+        "title": "Multi-Oracle Comparative Analysis",
+        "description": "Benchmark API3 performance against leading oracle networks: Chainlink, Pyth Network, Band Protocol, and DIA. Evaluate key metrics across latency, precision, reliability, and cost-effectiveness."
+      },
+      "responseTime": {
+        "title": "Latency Performance Benchmark",
+        "description": "Measures end-to-end data delivery speed. Lower values indicate superior responsiveness."
+      },
+      "accuracy": {
+        "title": "Data Precision Comparison",
+        "description": "Evaluates price accuracy against reference benchmarks. Higher scores reflect greater reliability."
+      },
+      "availability": {
+        "title": "Service Availability Metrics",
+        "description": "Network uptime percentage measured over trailing 30-day period."
+      },
+      "costEfficiency": {
+        "title": "Cost-Effectiveness Analysis",
+        "description": "Composite score integrating gas costs, update frequency, and operational overhead."
+      },
+      "updateFrequency": {
+        "title": "Update Cadence Benchmark",
+        "description": "Mean interval between consecutive price updates, measured in seconds."
+      },
+      "advantages": {
+        "title": "API3 Differentiation Factors",
+        "firstParty": "First-Party Architecture",
+        "firstPartyValue": "Direct API provider relationships eliminate intermediary trust assumptions",
+        "quantifiableSecurity": "Quantifiable Security Model",
+        "quantifiableSecurityValue": "On-chain coverage pools deliver transparent, auditable security guarantees",
+        "dapi": "Decentralized API Services",
+        "dapiValue": "Aggregated first-party data feeds with DAO-governed parameters"
+      }
+    },
+    "stats": {
+      "activeAirnodes": "Active Airnodes",
+      "dapiFeeds": "dAPI Feeds",
+      "stakingApr": "Staking APR",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply",
+      "networkUptime": "Network Uptime"
+    },
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats"
+  },
+  "dapiCoverage": {
+    "totalDapis": "Total dAPIs",
+    "activeDataSources": "Active Data Sources",
+    "byChainDistribution": "Distribution by Chain",
+    "updateFrequencyDistribution": "Update Frequency Distribution",
+    "highFrequency": "High Frequency",
+    "perSecondUpdate": "Per Second",
+    "mediumFrequency": "Medium Frequency",
+    "perMinuteUpdate": "Per Minute",
+    "lowFrequency": "Low Frequency",
+    "perHourUpdate": "Per Hour",
+    "total": "Total",
+    "byAssetTypeDistribution": "Distribution by Asset Type",
+    "crypto": "Cryptocurrency",
+    "forex": "Forex",
+    "commodities": "Commodities",
+    "stocks": "Stocks"
+  },
+  "airnodeDeployment": {
+    "totalAirnodes": "Total Airnodes",
+    "globallyDeployedNodes": "Globally Deployed Nodes",
+    "regionDistribution": {
+      "title": "Region Distribution",
+      "subtitle": "By Geographic Location"
+    },
+    "chainDistribution": {
+      "title": "Chain Distribution",
+      "subtitle": "By Blockchain Network"
+    },
+    "providerTypeDistribution": {
+      "title": "Provider Type Distribution",
+      "subtitle": "By Data Provider Type"
+    },
+    "regions": {
+      "northAmerica": "North America",
+      "europe": "Europe",
+      "asia": "Asia",
+      "others": "Others"
+    },
+    "providerTypes": {
+      "exchanges": "Exchanges",
+      "traditionalFinance": "Traditional Finance",
+      "others": "Others"
+    }
+  }
+}

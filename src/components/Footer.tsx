@@ -98,6 +98,11 @@ export default function Footer() {
     { label: t('navbar.uma'), href: '/uma' },
     { label: t('navbar.pythNetwork'), href: '/pyth-network' },
     { label: t('navbar.api3'), href: '/api3' },
+    { label: t('navbar.redstone'), href: '/redstone' },
+    { label: t('navbar.dia'), href: '/dia' },
+    { label: t('navbar.tellor'), href: '/tellor' },
+    { label: t('navbar.chronicle'), href: '/chronicle' },
+    { label: t('navbar.winklink'), href: '/winklink' },
   ];
 
   const resourceLinks = [
@@ -171,18 +176,17 @@ export default function Footer() {
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
               {t('footer.links.oracles')}
             </h3>
-            <ul className="space-y-3">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3">
               {oracleLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-slate-400 hover:text-white text-sm transition-colors duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-slate-400 hover:text-white text-sm transition-colors duration-200"
+                >
+                  {link.label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
 
           {/* Resources Links */}

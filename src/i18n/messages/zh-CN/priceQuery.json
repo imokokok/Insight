@@ -1,0 +1,407 @@
+{
+  "priceQuery": {
+    "title": "价格查询",
+    "description": "查询多个预言机和区块链的实时价格数据",
+    "loading": "加载中",
+    "loadingData": "加载数据中...",
+    "query": "查询",
+    "querying": "正在查询...",
+    "noResults": {
+      "title": "未找到 {symbol} 的结果",
+      "description": "所选条件下没有可用的价格数据",
+      "suggestion": "尝试调整您的预言机、区块链或币种选择",
+      "popularTokens": "热门代币"
+    },
+    "results": {
+      "title": "结果",
+      "empty": "没有要显示的结果",
+      "table": {
+        "oracle": "预言机",
+        "blockchain": "区块链",
+        "price": "价格",
+        "change24h": "24小时涨跌",
+        "freshness": "新鲜度",
+        "confidence": "置信度",
+        "source": "来源"
+      }
+    },
+    "filter": {
+      "placeholder": "筛选结果...",
+      "noResults": "没有匹配筛选条件的结果"
+    },
+    "pagination": {
+      "perPage": "每页",
+      "items": "条",
+      "prevPage": "上一页",
+      "nextPage": "下一页"
+    },
+    "selectors": {
+      "symbol": "币种",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "timeRange": "时间范围",
+      "selectAll": "全选",
+      "deselectAll": "取消全选",
+      "advancedOptions": "高级选项",
+      "compareMode": "对比模式",
+      "showBaseline": "显示基准线",
+      "compareTime": "对比时间"
+    },
+    "stats": {
+      "avgPrice": "平均价格",
+      "change24h": "24小时涨跌",
+      "volatility": "波动率",
+      "annualized": "年化",
+      "dataPoints": "数据点数",
+      "maxPrice": "最高价格",
+      "minPrice": "最低价格",
+      "priceRange": "价格区间",
+      "standardDeviation": "标准差",
+      "absoluteValue": "绝对值",
+      "queryDuration": "查询耗时",
+      "compare": "对比",
+      "consistency": {
+        "excellent": "最优",
+        "good": "正常",
+        "fair": "次优",
+        "poor": "临界"
+      }
+    },
+    "export": {
+      "header": "价格查询导出",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "price": "价格",
+      "timestamp": "时间戳",
+      "source": "来源",
+      "change24h": "24h变化",
+      "confidence": "置信度"
+    },
+    "comparison": {
+      "title": "时间对比"
+    },
+    "dataSources": {
+      "title": "数据来源"
+    },
+    "autoRefresh": {
+      "title": "自动刷新",
+      "off": "关闭",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟",
+      "refreshing": "刷新中...",
+      "countdown": "下次刷新还有 {seconds} 秒"
+    },
+    "lastUpdated": "最后更新",
+    "progress": "进度",
+    "error": {
+      "fetchFailed": "获取价格数据失败",
+      "retry": "重试",
+      "retrying": "重试中...",
+      "lastSuccessfulFetch": "上次成功获取: {time}",
+      "noSuccessfulFetch": "尚未成功获取"
+    },
+    "chart": {
+      "title": "价格趋势图表",
+      "exportImage": "导出图片",
+      "indicators": "指标",
+      "bollingerBands": "布林带",
+      "confidenceInterval": "置信区间",
+      "annotations": "注释",
+      "anomalyMarkers": "异常标记",
+      "priceSpikes": "价格突变",
+      "valueLabels": "数值标签",
+      "baseline": "基准线",
+      "compareSuffix": "对比",
+      "priceHigh": "价格偏高",
+      "priceLow": "价格偏低",
+      "realtime": "实时",
+      "realtimeUpdate": "实时更新",
+      "realtimePrice": "实时价格",
+      "lastUpdate": "最后更新",
+      "connectionStatus": {
+        "connected": "已连接",
+        "connecting": "连接中...",
+        "reconnecting": "重连中...",
+        "disconnected": "已断开",
+        "error": "连接错误"
+      },
+      "stats": {
+        "high24h": "24h 最高",
+        "low24h": "24h 最低",
+        "volume24h": "24h 成交量"
+      },
+      "tooltip": {
+        "open": "开盘:",
+        "high": "最高:",
+        "low": "最低:",
+        "close": "收盘:",
+        "price": "价格:",
+        "ma7": "MA7:",
+        "ma14": "MA14:",
+        "ma30": "MA30:",
+        "bollingerBands": "布林带",
+        "upperBand": "上轨:",
+        "middleBand": "中轨:",
+        "lowerBand": "下轨:",
+        "predictionUpper": "预测上界:",
+        "predictionLower": "预测下界:",
+        "volume": "成交量:",
+        "rsi": "RSI:",
+        "macd": "MACD",
+        "macdValue": "MACD:",
+        "signal": "信号:",
+        "histogram": "柱状:"
+      },
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "reset": "重置",
+      "granularity": {
+        "label": "粒度",
+        "minute": "分钟",
+        "hour": "小时",
+        "day": "天"
+      },
+      "indicators": {
+        "ma7": "MA 7",
+        "ma14": "MA 14",
+        "ma30": "MA 30",
+        "bollingerBands": "布林带",
+        "rsi": "RSI",
+        "macd": "MACD",
+        "volume": "成交量"
+      },
+      "timeRange": {
+        "label": "时间范围",
+        "all": "全部"
+      },
+      "timeComparison": {
+        "title": "时间对比",
+        "period1": "时间段 1",
+        "period2": "时间段 2",
+        "to": "至"
+      },
+      "realtimeStatus": {
+        "live": "实时",
+        "connecting": "连接中",
+        "reconnecting": "重连中",
+        "disconnected": "断开"
+      }
+    },
+    "consistency": {
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界"
+    },
+    "timeRanges": {
+      "timeRange1Hour": "1小时",
+      "timeRange6Hours": "6小时",
+      "timeRange24Hours": "24小时",
+      "timeRange7Days": "7天"
+    },
+    "quickLinks": {
+      "title": "快速跳转",
+      "chainlink": "Chainlink",
+      "crossChain": "跨链分析",
+      "crossChainDesc": "比较单个预言机在不同链上的价格",
+      "crossOracle": "跨预言机分析",
+      "crossOracleDesc": "多源预言机价格比较与偏差分析",
+      "chainlinkDesc": "去中心化预言机网络"
+    },
+    "scrollHint": "← 左右滑动查看更多 →",
+    "filter": {
+      "placeholder": "搜索预言机或区块链...",
+      "results": "显示 {count} / {total} 条结果",
+      "noResults": "未找到匹配的结果"
+    },
+    "noResults": {
+      "title": "未找到 \"{symbol}\" 的价格数据",
+      "description": "该币种可能不存在或暂未被任何预言机支持",
+      "suggestion": "请检查币种代码或尝试搜索下方的热门币种",
+      "popularTokens": "热门币种"
+    },
+    "selectors": {
+      "symbol": "交易对",
+      "oracle": "预言机",
+      "blockchain": "区块链",
+      "timeRange": "时间范围",
+      "selectAll": "全选",
+      "deselectAll": "取消",
+      "advancedOptions": "高级选项",
+      "compareMode": "对比模式",
+      "showBaseline": "显示基准线",
+      "compareTime": "对比时间"
+    },
+    "query": "查询",
+    "querying": "正在查询...",
+    "loading": "加载中...",
+    "pagination": {
+      "perPage": "每页",
+      "items": "条",
+      "total": "共 {count} 条",
+      "prevPage": "上一页",
+      "nextPage": "下一页"
+    },
+    "results": {
+      "title": "价格查询结果",
+      "empty": "请选择预言机和区块链进行查询",
+      "table": {
+        "oracle": "预言机",
+        "blockchain": "区块链",
+        "price": "价格",
+        "timestamp": "时间戳",
+        "change24h": "24小时涨跌",
+        "freshness": "数据新鲜度",
+        "confidence": "置信度"
+      },
+      "qualityScore": {
+        "excellent": "优秀",
+        "good": "良好",
+        "warning": "警告",
+        "critical": "异常"
+      }
+    },
+    "stats": {
+      "avgPrice": "平均价格",
+      "maxPrice": "最高价格",
+      "minPrice": "最低价格",
+      "priceRange": "价格区间",
+      "standardDeviation": "标准差",
+      "dataPoints": "数据点数",
+      "consistencyRating": "一致性评级",
+      "absoluteValue": "绝对值",
+      "maxDifference": "最大差异",
+      "avgDifference": "平均差异",
+      "queryDuration": "查询耗时",
+      "change24h": "24小时涨跌",
+      "volatility": "波动率",
+      "annualized": "年化",
+      "compare": "对比",
+      "collapse": "收起",
+      "expand": "查看更多"
+    },
+    "config": {
+      "save": "保存配置",
+      "load": "加载配置",
+      "name": "配置名称",
+      "saved": "配置已保存",
+      "loaded": "配置已加载",
+      "deleted": "配置已删除",
+      "empty": "暂无保存的配置",
+      "placeholder": "请输入配置名称"
+    },
+    "alert": {
+      "title": "价格预警",
+      "setAlert": "设置预警",
+      "priceThreshold": "价格阈值",
+      "differenceThreshold": "差异阈值",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "triggered": "预警触发"
+    }
+  },
+  "priceDeviation": {
+    "selectSymbol": "选择交易对",
+    "selectChain": "选择区块链",
+    "autoRefresh": "自动刷新",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "chainlinkPrice": "Chainlink 价格",
+    "referencePrice": "参考价格",
+    "avgDeviation": "平均偏离度",
+    "avgDeviationDesc": "所有预言机平均偏离",
+    "maxDeviation": "最大偏离度",
+    "maxDeviationDesc": "最大价格偏离百分比",
+    "deviationDuration": "偏离持续时间",
+    "deviationDurationDesc": "持续偏离预警时间",
+    "currentComparison": "当前价格比较",
+    "provider": "预言机",
+    "price": "价格",
+    "deviation": "偏离值",
+    "deviationPercent": "偏离百分比",
+    "status": "状态",
+    "status_normal": "正常",
+    "status_warning": "警告",
+    "status_critical": "异常",
+    "lastUpdated": "最后更新",
+    "deviationBarChart": "偏离度柱状图",
+    "priceTrendChart": "价格趋势对比",
+    "deviationTrendChart": "偏离度历史趋势",
+    "warningThreshold": "警告阈值",
+    "criticalThreshold": "异常阈值"
+  },
+  "priceChart": {
+    "status": {
+      "realtime": "实时",
+      "connecting": "连接中",
+      "reconnecting": "重连中",
+      "disconnected": "断开"
+    },
+    "confidence": "置信度",
+    "granularity": "粒度",
+    "indicators": "指标",
+    "bollingerBands": "布林带",
+    "ma7": "MA7",
+    "ma14": "MA14",
+    "ma30": "MA30",
+    "rsi": "RSI",
+    "macd": "MACD",
+    "volume": "成交量",
+    "timeComparison": "时间段对比",
+    "timePeriod1": "时间段 1",
+    "timePeriod2": "时间段 2",
+    "to": "至",
+    "startComparison": "开始对比",
+    "cancelComparison": "取消对比",
+    "rsiPeriod": "14周期",
+    "macdPeriod": "12,26,9",
+    "price": "价格",
+    "comparisonPrice": "对比价格",
+    "signal": "信号",
+    "anomalyPoints": "异常点",
+    "moreOptions": "更多选项",
+    "more": "更多",
+    "advancedFeatures": "高级功能",
+    "timeComparisonDescription": "对比两个时间段的价格走势",
+    "anomalyDetection": "异常检测",
+    "anomalyDetectionDescription": "检测价格异常波动",
+    "viewStats": "查看统计",
+    "viewAnomalyStats": "查看异常统计",
+    "predictionInterval": "预测区间",
+    "predictionIntervalDescription": "显示价格预测置信区间",
+    "confidenceSelection": "置信度选择",
+    "export": {
+      "title": "导出",
+      "exportChart": "导出图表",
+      "exporting": "导出中...",
+      "exportComplete": "导出完成",
+      "exportFailed": "导出失败",
+      "settings": "导出设置",
+      "settingsDescription": "自定义导出选项",
+      "range": "导出范围",
+      "currentView": "当前视图",
+      "allData": "全部数据",
+      "dateRange": "日期范围",
+      "filenameTemplate": "文件名模板",
+      "filenameTemplateHint": "可用变量: {title}, {date}, {time}, {source}",
+      "customFilename": "自定义文件名",
+      "includeMetadata": "包含元数据",
+      "includeWatermark": "添加水印",
+      "cancel": "取消",
+      "confirmExport": "确认导出",
+      "batchExport": "批量导出",
+      "batchExportDescription": "选择要导出的图表",
+      "resolution": "分辨率",
+      "selectResolution": "选择分辨率",
+      "selectCharts": "选择图表",
+      "selected": "已选",
+      "preview": "导出预览",
+      "previewDescription": "预览导出内容",
+      "filename": "文件名",
+      "dataRange": "数据范围",
+      "recordCount": "记录数",
+      "close": "关闭"
+    }
+  }
+}

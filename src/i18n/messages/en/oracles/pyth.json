@@ -1,0 +1,187 @@
+{
+  "pythNetwork": {
+    "dataQuality": {
+      "title": "Data Quality Assessment",
+      "subtitle": "Comprehensive multi-dimensional data quality evaluation",
+      "compositeScore": "Quality Composite Index",
+      "confidenceInterval": "Confidence Interval Precision",
+      "confidenceIntervalDesc": "Evaluates confidence interval tightness and temporal stability",
+      "publisherReliability": "Publisher Trust Score",
+      "publisherReliabilityDesc": "Aggregated publisher performance and reputation metrics",
+      "updateLatency": "Update Latency Performance",
+      "updateLatencyDesc": "Measures price update propagation speed",
+      "crossChainConsistency": "Cross-Chain Price Convergence",
+      "crossChainConsistencyDesc": "Monitors price deviation across integrated chains",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "avgConfidenceWidth": "Mean Confidence Width",
+      "activePublishers": "Active Data Publishers",
+      "avgReliability": "Mean Reliability Score",
+      "avgLatency": "Mean Latency",
+      "p99Latency": "P99 Latency (Tail)",
+      "targetThreshold": "Performance Target",
+      "scoreHistory": "Quality Score Trend",
+      "lowConfidenceScore": "Confidence interval quality below threshold - investigate data source stability",
+      "publisherReliabilityDeclining": "Publisher reliability trend declining - immediate attention required"
+    },
+    "stats": {
+      "updateFrequencyPerSecond": "Price Update Throughput",
+      "updatesPerSecond": "updates/sec",
+      "avgConfidenceWidth": "Confidence Interval Width",
+      "publisherCount": "Active Publishers",
+      "crossChainSupport": "Chain Integrations"
+    },
+    "solana": {
+      "title": "Solana Network Status",
+      "subtitle": "Pyth primary deployment chain",
+      "pythProgramStatus": "Pyth Program Status",
+      "blockConfirmationTime": "Block Confirmation Time",
+      "avgConfirmation": "Avg Confirmation",
+      "slotHeight": "Slot Height",
+      "currentSlot": "Current Slot",
+      "tps": "TPS",
+      "transactionsPerSecond": "Transactions Per Second",
+      "validators": "Validators",
+      "totalStake": "Total Stake",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "degraded": "Degraded"
+      }
+    }
+  },
+  "pyth": {
+    "title": "Pyth Network",
+    "subtitle": "High-frequency financial data oracle",
+    "menu": {
+      "marketData": "Market Data",
+      "publishers": "Publishers",
+      "validators": "Validators",
+      "networkHealth": "Network Health",
+      "priceFeeds": "Price Feeds",
+      "crossChain": "Cross-Chain",
+      "crossOracleComparison": "Cross-Oracle Analysis",
+      "riskAssessment": "Risk Assessment"
+    },
+    "tabs": {
+      "stats": "Statistics",
+      "extreme": "Extreme Events",
+      "trend": "Trend Analysis"
+    },
+    "stats": {
+      "updateFrequency": "Update Frequency",
+      "publisherCount": "Publishers",
+      "crossChainSupport": "Cross-chain Support",
+      "networkUptime": "Network Uptime",
+      "volume24h": "24h Volume",
+      "marketCap": "Market Cap",
+      "circulatingSupply": "Circulating Supply"
+    },
+    "priceTrend": "Price Trend",
+    "quickStats": "Quick Stats",
+    "publishers": {
+      "title": "Data Publishers",
+      "stake": "Staked Amount",
+      "accuracy": "Data Accuracy",
+      "searchPlaceholder": "Search publishers by name or address...",
+      "sortByStake": "Sort by Stake Amount",
+      "sortByAccuracy": "Sort by Accuracy Score",
+      "sortByName": "Sort Alphabetically",
+      "totalPublishers": "Registered Publishers",
+      "totalStaked": "Total Staked Value",
+      "avgAccuracy": "Mean Accuracy Rate",
+      "topPublisher": "Leading Publisher",
+      "contribution": "Network Contribution"
+    },
+    "priceFeeds": {
+      "title": "Price Feeds",
+      "priceFeeds": "price feeds",
+      "categories": {
+        "crypto": "Crypto",
+        "equities": "Equities",
+        "commodities": "Commodities",
+        "forex": "Forex"
+      },
+      "totalDescription": "Pyth provides {count}+ price feeds covering crypto, equities, commodities, and forex."
+    },
+    "validators": {
+      "title": "Validators",
+      "totalValidators": "Total Validators",
+      "activeValidators": "Active Validators",
+      "totalStaked": "Total Staked",
+      "avgUptime": "Avg Uptime",
+      "name": "Name",
+      "status": "Status",
+      "stake": "Stake",
+      "uptime": "Uptime",
+      "rewards": "Rewards",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusJailed": "Jailed"
+    },
+    "crossChain": {
+      "title": "Cross-Chain Support",
+      "supported": "Supported",
+      "updateFrequency": "Update Frequency",
+      "latency": "Latency",
+      "status": "Status",
+      "online": "Online",
+      "description": "Pyth supports multiple blockchains through Wormhole cross-chain protocol, enabling sub-second price updates."
+    },
+    "crossOracle": {
+      "title": "Cross-Oracle Price Analysis"
+    },
+    "pageTitles": {
+      "market": "Market Data",
+      "network": "Network Status",
+      "validators": "Validators",
+      "disputes": "Disputes",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment",
+      "crossChain": "Cross-Chain",
+      "crossOracle": "Cross-Oracle Analysis"
+    },
+    "riskAssessment": {
+      "overallRiskScore": "Overall Risk Score",
+      "comprehensiveAssessment": "Comprehensive Risk Assessment",
+      "dimensionScores": "Dimension Scores",
+      "riskMetrics": "Risk Metrics",
+      "publisherConcentration": "Publisher Concentration",
+      "topPublishersShare": "Top Publishers Share",
+      "top10PublishersShare": "Top 10 Publishers Share",
+      "giniCoefficient": "Gini Coefficient",
+      "dataQuality": "Data Quality",
+      "updateFrequency": "Update Frequency",
+      "confidenceInterval": "Confidence Interval",
+      "priceFeeds": "Price Feeds",
+      "securityTimeline": "Security Timeline",
+      "resolved": "Resolved",
+      "monitoring": "Monitoring",
+      "crossChainRisk": "Cross-Chain Risk",
+      "mitigationMeasures": "Mitigation Measures",
+      "riskLevel": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      },
+      "decentralization": "Decentralization",
+      "security": "Security",
+      "stability": "Stability",
+      "eventTypes": {
+        "upgrade": "Upgrade",
+        "maintenance": "Maintenance",
+        "response": "Response"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "publisherStaking": "Publisher Staking",
+      "confidenceIntervals": "Confidence Intervals",
+      "multiSourceAggregation": "Multi-Source Aggregation",
+      "slashingConditions": "Slashing Conditions",
+      "decentralizedGovernance": "Decentralized Governance",
+      "realTimeMonitoring": "Real-Time Monitoring"
+    }
+  }
+}

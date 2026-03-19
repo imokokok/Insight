@@ -1,0 +1,54 @@
+{
+  "marketOverview": {
+    "export": {
+      "title": "Export",
+      "csv": "CSV",
+      "json": "JSON",
+      "image": "Image",
+      "exporting": "Exporting...",
+      "exportTime": "Exported",
+      "exportFailed": "Failed to export image, please try again"
+    },
+    "scheduledExport": {
+      "title": "Scheduled Exports",
+      "add": "Add",
+      "scheduleName": "Schedule Name",
+      "frequency": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "email": "Email Address",
+      "save": "Save",
+      "cancel": "Cancel",
+      "lastRun": "Last run",
+      "success": "Success",
+      "failed": "Failed",
+      "noSchedules": "No scheduled exports",
+      "createSchedule": "Click add button to create one"
+    },
+    "exportConfig": {
+      "exportFormat": "Export Format",
+      "timeRange": "Time Range",
+      "includeMetrics": "Include Metrics",
+      "metrics": {
+        "tvs": "TVS",
+        "tvl": "TVL",
+        "volume": "Volume",
+        "fees": "Fees",
+        "revenue": "Revenue",
+        "users": "Users"
+      },
+      "timeRanges": {
+        "7d": "7D",
+        "30d": "30D",
+        "90d": "90D",
+        "1y": "1Y",
+        "all": "All"
+      },
+      "includeMetadata": "Include metadata",
+      "includeCharts": "Include charts",
+      "exportData": "Export Data"
+    }
+  }
+}

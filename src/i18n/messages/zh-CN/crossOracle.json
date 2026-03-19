@@ -1,0 +1,347 @@
+{
+  "crossOracle": {
+    "title": "多预言机比较分析",
+    "subtitle": "全面的多源价格聚合与趋同分析",
+    "refresh": "刷新",
+    "lastUpdated": "最后更新",
+    "currentPriceComparison": "当前价格对比",
+    "priceTrend": "24小时价格趋势",
+    "oracle": "预言机",
+    "price": "价格",
+    "confidence": "置信度",
+    "live": "实时",
+    "crossOraclePriceComparison": "跨预言机价格比对",
+    "oracleCount": "预言机数量",
+    "dataQuality": "数据完整性指数",
+    "averagePrice": "共识价格",
+    "highestPrice": "最高价格",
+    "priceRange": "价格区间",
+    "deviation": "偏差百分比",
+    "standardDeviation": "标准差",
+    "variance": "方差",
+    "consistencyRating": "价格趋同性指数",
+    "consistency": {
+      "excellent": "最优",
+      "good": "正常",
+      "fair": "次优",
+      "poor": "临界"
+    },
+    "basedOnStdDev": "标准差分析",
+    "historyRange": "历史范围",
+    "ofAverage": "占均价",
+    "weighted": "加权",
+    "low": "低",
+    "outlier": "异常",
+    "trend": "趋势",
+    "loading": "加载中...",
+    "updated": "更新时间:",
+    "selectOraclesTitle": "选择预言机",
+    "source": "来源",
+    "high": "高",
+    "metrics": {
+      "accuracy": "准确性",
+      "decentralization": "去中心化"
+    },
+    "stats": {
+      "highestPrice": "最高价格",
+      "lowestPrice": "最低价格",
+      "maxPriceDifference": "最大价格差异",
+      "deviationFromAverage": "均值偏离度",
+      "avgResponseTime": "平均响应延迟"
+    },
+    "selectTradingPair": "选择交易对",
+    "priceDeviationThreshold": "价格偏离预警阈值:",
+    "priceDeviationAlert": "价格偏离预警",
+    "differenceAnalysisPanel": "偏差分析仪表板",
+    "priceDifferenceVisualization": "价格偏离可视化",
+    "aboveAverage": "高于平均值",
+    "belowAverage": "低于平均值",
+    "zeroLineAverage": "零线（平均值）",
+    "multiOraclePriceComparison": "多预言机价格对比",
+    "priceHistory": "价格历史",
+    "average": "平均值",
+    "priceComparisonDetails": "价格对比详情",
+    "priceTrendComparison": "价格趋势对比",
+    "performanceComparison": "性能对比",
+    "comprehensivePerformanceRadar": "综合性能雷达图",
+    "enableAutoRefresh": "启用自动刷新",
+    "dataQualityScoreCard": {
+      "dimensions": {
+        "reliability": "可靠性"
+      },
+      "metrics": {
+        "updateFrequency": "更新频率"
+      }
+    },
+    "latencyDistribution": {
+      "title": "延迟分布直方图",
+      "subtitle": "数据更新延迟分布",
+      "p50": "P50 (中位数)",
+      "avgLatency": "平均延迟",
+      "minLatency": "最小延迟",
+      "maxLatency": "最大延迟",
+      "stdDev": "标准差",
+      "samples": "样本数",
+      "tooltip": {
+        "p50Desc": "50%的请求延迟低于此值",
+        "p95Desc": "95%的请求延迟低于此值",
+        "p99Desc": "99%的请求延迟低于此值"
+      }
+    },
+    "oraclePerformanceRanking": {
+      "accuracyFactor": "准确度因子",
+      "accuracyFactorDesc": "价格准确度评分",
+      "rank": "排名"
+    },
+    "tabOverview": "数据概览",
+    "tabCharts": "图表分析",
+    "tabAdvanced": "高级分析",
+    "tabSnapshots": "快照与对比",
+    "tabPerformance": "性能分析",
+    "freshness": "数据时效性",
+    "filter": {
+      "button": "数据筛选",
+      "allOracles": "全部预言机",
+      "currentFilters": "当前筛选",
+      "clearAll": "清除全部",
+      "timeRange": "时间范围",
+      "deviationRange": "偏差范围",
+      "all": "全部",
+      "oracleFilter": "预言机筛选",
+      "filtersApplied": "已应用 {count} 个筛选",
+      "noFilters": "无筛选条件",
+      "confirm": "确定"
+    },
+    "filterSummary": {
+      "deviation": "偏差",
+      "oracle": "预言机",
+      "time": "时间"
+    },
+    "pairSelector": {
+      "loading": "加载中...",
+      "searchPlaceholder": "搜索交易对...",
+      "noResults": "未找到匹配的交易对",
+      "keyboardHint": "使用 ↑↓ 导航，Enter 选择",
+      "totalCount": "共 {count} 个",
+      "categoryAll": "全部",
+      "categoryLayer1": "Layer 1",
+      "categoryDeFi": "DeFi",
+      "categoryStablecoin": "稳定币"
+    },
+    "priceTable": {
+      "highest": "最高",
+      "lowest": "最低",
+      "status": "状态",
+      "outlier": "异常值",
+      "normal": "正常",
+      "deviationRate": "偏离度",
+      "updateTime": "更新时间"
+    },
+    "chartTooltip": {
+      "avgPrice": "平均价格",
+      "stdDev": "标准差",
+      "oraclePrices": "预言机价格"
+    },
+    "timeRange": {
+      "1H": "1 小时",
+      "24H": "24 小时",
+      "7D": "7 天",
+      "30D": "30 天",
+      "90D": "90 天",
+      "1Y": "1 年",
+      "ALL": "全部时间"
+    },
+    "chart": {
+      "fullscreen": "全屏查看",
+      "zoomOut": "缩小",
+      "zoomIn": "放大",
+      "resetZoom": "重置缩放",
+      "reset": "重置",
+      "avgPriceLine": "平均价格"
+    },
+    "chartLegend": {
+      "avgPriceLine": "平均价格线",
+      "dataPoint": "数据更新点",
+      "stdDev1": "±1 标准差范围",
+      "stdDev2": "±2 标准差范围",
+      "pinchZoom": "双指缩放查看更多细节"
+    },
+    "chartsTab": {
+      "detailedAnalysis": "价格趋势详细分析"
+    },
+    "snapshotsTab": {
+      "selectSnapshot": "选择一个快照进行对比",
+      "selectHint": "从左侧快照列表中选择一个历史快照"
+    },
+    "advancedTab": {
+      "movingAverage": "移动平均线分析",
+      "dataQuality": "数据质量趋势"
+    },
+    "performanceTab": {
+      "performanceComparison": "性能对比分析",
+      "selectOracle": "选择预言机查看延迟数据",
+      "allOracles": "所有预言机",
+      "selectOraclePlaceholder": "选择预言机",
+      "summary": "预言机性能摘要",
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "stability": "稳定性",
+      "advancedAnalysis": "高级分析",
+      "tooltip": "{name} - 响应时间: {responseTime}ms, 准确率: {accuracy}%, 稳定性: {stability}%"
+    },
+    "outliers": {
+      "detected": "检测到价格异常值",
+      "count": "{count} 个异常",
+      "outlierOracles": "异常预言机",
+      "andMore": "等 {count} 个",
+      "avgDeviation": "平均偏差",
+      "viewDetails": "查看详情"
+    },
+    "accessibility": {
+      "standardColors": "切换标准颜色",
+      "colorBlindMode": "切换色盲友好颜色",
+      "standardMode": "标准模式",
+      "colorBlindModeShort": "色盲模式"
+    },
+    "favorites": {
+      "button": "收藏",
+      "quickAccess": "快速访问收藏",
+      "viewAll": "查看全部收藏"
+    },
+    "freshnessOptions": {
+      "justNow": "刚刚",
+      "secondsAgo": "{seconds}秒前",
+      "minutesAgo": "{minutes}分钟前",
+      "hoursAgo": "{hours}小时前"
+    },
+    "refreshOptions": {
+      "off": "关闭",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟"
+    },
+    "dataSources": {
+      "title": "对比数据来源"
+    },
+    "comparison": {
+      "summary": "对比摘要",
+      "avgPrice": "平均价格",
+      "priceRange": "价格范围",
+      "consistency": "一致性评分",
+      "oracleCount": "预言机数量"
+    },
+    "benchmark": {
+      "title": "行业基准对比"
+    }
+  },
+  "crossOracleComparison": {
+    "title": "多预言机比较分析",
+    "subtitle": "全面的多源价格聚合与趋同分析",
+    "consistencyScore": "一致性评分",
+    "quickCompare": "快速对比",
+    "deviation": "偏差",
+    "avgResponseTime": "平均响应时间",
+    "highDeviation": "高偏差",
+    "dataSources": "数据源",
+    "supportedChains": "支持的链",
+    "radar": {
+      "responseTime": "响应时间",
+      "updateFrequency": "更新频率",
+      "dataSources": "数据源",
+      "supportedChains": "支持的链",
+      "reliability": "可靠性"
+    }
+  },
+  "comparison": {
+    "timeRange": {
+      "last1h": "最近1小时",
+      "last24h": "最近24小时",
+      "last7d": "最近7天",
+      "last30d": "最近30天",
+      "last90d": "最近90天",
+      "last1y": "最近1年",
+      "custom": "自定义",
+      "yearOverYear": "同比",
+      "previousPeriod": "上一周期",
+      "currentYear": "今年",
+      "previousYear": "去年",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "cancel": "取消",
+      "apply": "应用",
+      "currentPeriod": "当前周期",
+      "comparisonPeriod": "对比周期"
+    },
+    "timeComparison": {
+      "currentPeriod": "当前周期",
+      "comparisonPeriod": "对比周期",
+      "difference": "差异",
+      "percentChange": "变化百分比",
+      "currentAvg": "当前平均值",
+      "comparisonAvg": "对比平均值",
+      "yoy": "同比",
+      "mom": "环比"
+    },
+    "oracleComparison": {
+      "title": "多预言机对比",
+      "averagePrice": "平均价格",
+      "medianPrice": "中位数价格",
+      "consistencyScore": "一致性评分",
+      "maxDeviation": "最大偏差",
+      "priceComparison": "价格对比",
+      "deviationFromAverage": "与平均值偏差",
+      "performanceRadar": "性能雷达图",
+      "detailedComparison": "详细对比",
+      "oracle": "预言机",
+      "price": "价格",
+      "deviation": "偏差",
+      "confidence": "置信度",
+      "responseTime": "响应时间",
+      "accuracy": "准确率",
+      "benchmark": "基准",
+      "sortBy": "排序方式",
+      "consistency": {
+        "excellent": "优秀",
+        "good": "良好",
+        "fair": "一般",
+        "poor": "较差"
+      },
+      "metrics": {
+        "price": "价格",
+        "confidence": "置信度",
+        "responseTime": "响应时间",
+        "accuracy": "准确率",
+        "reliability": "可靠性",
+        "deviation": "偏差"
+      }
+    },
+    "benchmark": {
+      "title": "行业基准对比",
+      "industryAverage": "行业平均",
+      "marketLeader": "市场领导者",
+      "customBenchmark": "自定义基准",
+      "actualValue": "实际值",
+      "benchmark": "基准值",
+      "difference": "差异",
+      "gap": "差距",
+      "performanceGap": "性能差距",
+      "aboveBenchmark": "高于基准",
+      "belowBenchmark": "低于基准",
+      "atBenchmark": "持平",
+      "unitsFromBenchmark": "单位差异",
+      "benchmarkComparison": "基准对比",
+      "detailedComparison": "详细对比",
+      "metric": "指标",
+      "actual": "实际",
+      "status": "状态"
+    },
+    "difference": {
+      "increase": "上涨",
+      "decrease": "下跌",
+      "noChange": "无变化",
+      "positive": "正向",
+      "negative": "负向",
+      "neutral": "中性"
+    }
+  }
+}

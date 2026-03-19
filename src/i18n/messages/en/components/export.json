@@ -1,0 +1,27 @@
+{
+  "export": "Export",
+  "exporting": "Exporting...",
+  "selectFormat": "Select Format",
+  "exportConfig": "Export Config",
+  "selectFields": "Select Fields",
+  "selectAll": "Select All",
+  "deselectAll": "Deselect All",
+  "includeMetadata": "Include Metadata",
+  "includeChart": "Include Chart",
+  "includeStats": "Include Statistics",
+  "dataPreview": "Data Preview",
+  "recordCount": "Record Count",
+  "selectedFields": "Selected Fields",
+  "cancel": "Cancel",
+  "history": "History",
+  "history": {
+    "title": "Export History",
+    "all": "All",
+    "completed": "Completed",
+    "failed": "Failed",
+    "noHistory": "No export history",
+    "reDownload": "Download Again",
+    "delete": "Delete",
+    "clearAll": "Clear All History"
+  }
+}
