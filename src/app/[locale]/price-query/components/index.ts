@@ -17,3 +17,6 @@ export { DataQualityPanel } from './DataQualityPanel';
 export { DataSourceSection } from './DataSourceSection';
 export { default as UnifiedExportSection } from './UnifiedExportSection';
 export { TimeComparisonSection } from './TimeComparisonSection';
+export { QueryHeader } from './QueryHeader';
+export { QueryForm } from './QueryForm';
+export { QueryResults } from './QueryResults';
