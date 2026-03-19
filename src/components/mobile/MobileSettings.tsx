@@ -276,7 +276,7 @@ export function MobileSettings({ className = '' }: MobileSettingsProps) {
             }}
           >
             <div className="flex items-center gap-1 text-gray-500">
-              <span className="text-sm">{t('common.locale')}</span>
+              <span className="text-sm">{t('locale')}</span>
               <ChevronRight className="w-4 h-4" />
             </div>
           </SettingItem>

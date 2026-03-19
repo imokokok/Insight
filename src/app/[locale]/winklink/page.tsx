@@ -18,7 +18,6 @@ import { WINkLinkTRONEcosystemPanel as WINkLinkTRONIntegrationPanel } from '@/co
 import { WINkLinkStakingPanel } from '@/components/oracle/panels/WINkLinkStakingPanel';
 import { WINkLinkGamingDataPanel as WINkLinkGamingPanel } from '@/components/oracle/panels/WINkLinkGamingDataPanel';
 import { WINkLinkRiskPanel } from '@/components/oracle/panels/WINkLinkRiskPanel';
-import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -312,12 +311,6 @@ export default function WINkLinkPage() {
           {activeTab === 'gaming' && gaming && <WINkLinkGamingPanel data={gaming} />}
 
           {activeTab === 'risk' && riskMetrics && <WINkLinkRiskPanel data={riskMetrics} />}
-
-          {activeTab === 'cross-oracle' && (
-            <DashboardCard title={t('winklink.tabs.crossOracle')}>
-              <CrossOracleComparison />
-            </DashboardCard>
-          )}
         </div>
       </main>
     </div>

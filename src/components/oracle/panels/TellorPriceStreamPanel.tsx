@@ -3,6 +3,8 @@
 import { PriceStreamPoint } from '@/lib/oracles/tellor';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
+import { TrendingUp, TrendingDown, Activity, Clock } from 'lucide-react';
 
 interface TellorPriceStreamPanelProps {
   data: PriceStreamPoint[];
@@ -35,8 +37,7 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
   const volume24h = data.reduce((acc, p) => acc + p.volume, 0);
 
   return (
-    <div className="py-4 border-b border-gray-100">
-      <h3 className="text-sm font-semibold mb-3">{t('tellor.priceStream.title')}</h3>
+    <DashboardCard title={t('tellor.priceStream.title')}>
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           <div className="py-2">
@@ -88,7 +89,7 @@ export function TellorPriceStreamPanel({ data }: TellorPriceStreamPanelProps) {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardCard>
   );
 }
 

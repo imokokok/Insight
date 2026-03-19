@@ -31,13 +31,13 @@ function formatLastUpdate(
   const diff = now - timestamp;
 
   if (diff < 5000) {
-    return t('common.time.justUpdated');
+    return t('time.justUpdated');
   } else if (diff < 60000) {
-    return t('common.time.secondsAgo', { seconds: Math.floor(diff / 1000) });
+    return t('time.secondsAgo', { seconds: Math.floor(diff / 1000) });
   } else if (diff < 3600000) {
-    return t('common.time.minutesAgo', { minutes: Math.floor(diff / 60000) });
+    return t('time.minutesAgo', { minutes: Math.floor(diff / 60000) });
   } else {
-    return t('common.time.hoursAgo', { hours: Math.floor(diff / 3600000) });
+    return t('time.hoursAgo', { hours: Math.floor(diff / 3600000) });
   }
 }
 
@@ -160,7 +160,7 @@ export function PageHeader({
               </div>
 
               {showJustUpdated && (
-                <span className="text-xs text-green-600">{t('common.time.justUpdated')}</span>
+                <span className="text-xs text-green-600">{t('time.justUpdated')}</span>
               )}
 
               {!showJustUpdated && lastUpdateTime && displayTime && (

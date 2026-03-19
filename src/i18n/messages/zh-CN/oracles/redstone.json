@@ -4,7 +4,7 @@
     "subtitle": "模块化预言机解决方案，支持高效的数据流和灵活的集成选项",
     "analytics": "Redstone 数据分析",
     "tabs": {
-      "market": "市场",
+      "market": "市场数据",
       "network": "网络",
       "providers": "提供者",
       "dataStreams": "数据流",

@@ -250,7 +250,7 @@ export function RealtimeUpdateControl({
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {isAutoUpdateEnabled ? `${countdown}${t('common.unit')}` : '--'}
+              {isAutoUpdateEnabled ? `${countdown}${t('unit')}` : '--'}
             </p>
           </div>
 

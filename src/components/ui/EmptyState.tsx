@@ -84,7 +84,7 @@ export function NoDataEmptyState({ onRefresh, className = '' }: NoDataEmptyState
   return (
     <EmptyState
       type="data"
-      actionLabel={onRefresh ? t('common.actions.refresh') : undefined}
+      actionLabel={onRefresh ? t('actions.refresh') : undefined}
       onAction={onRefresh}
       className={className}
     />

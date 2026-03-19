@@ -618,14 +618,14 @@ export default function CrossChainPage() {
             }}
           >
             {refreshStatus === 'refreshing'
-              ? t('common.status.loading')
+              ? t('status.loading')
               : showRefreshSuccess
                 ? t('crossChain.refreshSuccess')
-                : t('common.actions.refresh')}
+                : t('actions.refresh')}
           </button>
           {lastUpdated && (
             <span className="text-xs" style={{ color: baseColors.gray[400] }}>
-              {t('common.time.lastUpdated')} {lastUpdated.toLocaleTimeString()}
+              {t('time.lastUpdated')} {lastUpdated.toLocaleTimeString()}
             </span>
           )}
         </div>

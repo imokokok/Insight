@@ -266,5 +266,87 @@
   "cdfChart": {
     "title": "累积分布函数",
     "subtitle": "显示延迟值的累积概率分布"
+  },
+  "oracleCommon": {
+    "performanceGauge": {
+      "levels": {
+        "excellent": "优秀",
+        "good": "良好",
+        "warning": "警告",
+        "danger": "危险"
+      },
+      "timesPerMinute": "次/分",
+      "range": "范围: {value}"
+    }
+  },
+  "networkHealth": {
+    "status": {
+      "online": "在线",
+      "warning": "警告",
+      "offline": "离线"
+    },
+    "networkStatus": "网络状态",
+    "monitoring": "实时监控中",
+    "lastCheck": "最后检查",
+    "vsLastWeek": "较上周",
+    "activeNodes": "活跃节点数",
+    "nodeUptime": "节点在线率",
+    "avgResponseTime": "平均响应延迟",
+    "updateFrequency": "数据更新频率",
+    "every": "每",
+    "seconds": "秒",
+    "totalStaked": "网络质押总量",
+    "dataFeeds": "数据源数量",
+    "activityHeatmap": {
+      "title": "网络活动热力图",
+      "subtitle": "24小时数据请求分布",
+      "totalRequests": "总请求量",
+      "peakHour": "峰值时段",
+      "avgPerHour": "平均/小时",
+      "peakRequests": "峰值请求",
+      "requests": "请求",
+      "low": "低",
+      "high": "高"
+    },
+    "performanceDashboard": {
+      "title": "性能仪表盘",
+      "subtitle": "实时网络性能指标可视化",
+      "responseTime": "响应时间",
+      "uptime": "在线率",
+      "updateFreq": "更新频率",
+      "validatorActiveRate": "验证者活跃率",
+      "stakingRate": "质押率",
+      "blockTime": "区块时间"
+    },
+    "bandProtocolDashboard": {
+      "title": "Band Protocol 性能仪表盘",
+      "subtitle": "链上验证者与网络性能指标"
+    },
+    "bandProtocol": {
+      "title": "Band Protocol 网络指标",
+      "subtitle": "链上验证者与质押数据",
+      "activeValidators": "活跃验证者",
+      "activePercent": "活跃",
+      "stakedTokens": "质押代币总量",
+      "stakingRate": "质押率",
+      "blockHeight": "区块高度",
+      "blockTime": "区块时间",
+      "inflationRate": "通胀率",
+      "annualInflation": "年化通胀",
+      "communityPoolBalance": "社区池余额",
+      "communityPool": "社区资金池"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "subtitle": "实时数据同步状态",
+      "lastUpdated": "最后更新",
+      "dataLatency": "数据延迟",
+      "excellent": "优秀",
+      "good": "良好",
+      "slow": "缓慢",
+      "secondsAgo": "秒前",
+      "minutesAgo": "分钟前",
+      "hoursAgo": "小时前"
+    }
   }
 }

@@ -83,12 +83,12 @@ export function formatDuration(ms: number, t: (key: string) => string): string {
   const hours = Math.floor(minutes / 60);
 
   if (hours > 0) {
-    return `${hours}${t('common.time.hours')} ${minutes % 60}${t('common.time.minutes')}`;
+    return `${hours}${t('time.hours')} ${minutes % 60}${t('time.minutes')}`;
   }
   if (minutes > 0) {
-    return `${minutes}${t('common.time.minutes')} ${seconds % 60}${t('common.time.seconds')}`;
+    return `${minutes}${t('time.minutes')} ${seconds % 60}${t('time.seconds')}`;
   }
-  return `${seconds}${t('common.time.seconds')}`;
+  return `${seconds}${t('time.seconds')}`;
 }
 
 export function generateAnomalyId(): string {

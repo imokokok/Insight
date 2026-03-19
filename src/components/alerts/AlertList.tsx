@@ -314,13 +314,13 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                                     disabled={isUpdating}
                                     className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                                   >
-                                    {t('common.save')}
+                                    {t('actions.save')}
                                   </button>
                                   <button
                                     onClick={handleCancelEdit}
                                     className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                                   >
-                                    {t('common.cancel')}
+                                    {t('actions.cancel')}
                                   </button>
                                 </div>
                               ) : (
@@ -359,7 +359,7 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                             onClick={() => handleEdit(alert)}
                             disabled={editingId === alert.id}
                             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                            title={t('common.edit')}
+                            title={t('actions.edit')}
                           >
                             <svg
                               className="w-4 h-4"
@@ -388,14 +388,14 @@ export function AlertList({ alerts, isLoading, onRefresh }: AlertListProps) {
                                 onClick={() => setDeleteConfirmId(null)}
                                 className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                               >
-                                {t('common.cancel')}
+                                {t('actions.cancel')}
                               </button>
                             </div>
                           ) : (
                             <button
                               onClick={() => setDeleteConfirmId(alert.id!)}
                               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                              title={t('common.delete')}
+                              title={t('actions.delete')}
                             >
                               <svg
                                 className="w-4 h-4"

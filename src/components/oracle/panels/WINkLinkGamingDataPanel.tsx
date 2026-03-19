@@ -8,6 +8,7 @@ import {
   VRFUseCase,
   GamingCategoryDistribution,
 } from '@/lib/oracles/winklink';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Gamepad2, Dices, Shield, Clock, Users, DollarSign, Zap } from 'lucide-react';
 
 interface WINkLinkGamingDataPanelProps {
@@ -88,8 +89,7 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
   return (
     <div className="space-y-6">
       {/* Gaming Stats */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.title')}</h3>
+      <DashboardCard title={t('winklink.gaming.title')}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -117,14 +117,13 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
             </p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Data Sources */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.dataSources')}</h3>
+      <DashboardCard title={t('winklink.gaming.dataSources')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.dataSources.map((source, index) => (
-            <div key={index} className="py-4 border-b border-gray-100 last:border-0">
+            <div key={index} className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-gray-900">{source.name}</h4>
                 <div className="flex gap-1">
@@ -168,16 +167,15 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Random Number Services */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.rngServices')}</h3>
+      <DashboardCard title={t('winklink.gaming.rngServices')}>
         <div className="space-y-3">
           {data.randomNumberServices.map((service, index) => (
             <div
               key={index}
-              className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-4"
+              className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-lg gap-4"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -215,15 +213,14 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* VRF Use Cases */}
       {data.vrfUseCases && (
-        <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">{t('winklink.gaming.vrfUseCases')}</h3>
+        <DashboardCard title={t('winklink.gaming.vrfUseCases')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.vrfUseCases.map((useCase, index) => (
-              <div key={index} className="py-4 border-b border-gray-100 last:border-0">
+              <div key={index} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-900">{useCase.name}</h4>
                   <span
@@ -248,15 +245,12 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
               </div>
             ))}
           </div>
-        </div>
+        </DashboardCard>
       )}
 
       {/* Category Distribution */}
       {data.categoryDistribution && (
-        <div className="py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">
-            {t('winklink.gaming.categoryDistribution')}
-          </h3>
+        <DashboardCard title={t('winklink.gaming.categoryDistribution')}>
           <div className="space-y-3">
             {data.categoryDistribution.map((category, index) => (
               <div key={index} className="flex items-center gap-4">
@@ -272,14 +266,16 @@ export function WINkLinkGamingDataPanel({ data }: WINkLinkGamingDataPanelProps) 
                 <div className="w-20 text-right text-sm font-medium text-gray-900">
                   {category.percentage}%
                 </div>
-                <div className="w-24 text-right text-sm text-gray-500">{category.count} {t('winklink.gaming.games')}</div>
+                <div className="w-24 text-right text-sm text-gray-500">
+                  {category.count} {t('winklink.gaming.games')}
+                </div>
                 <div className="w-28 text-right text-sm font-medium text-gray-900">
                   ${(category.volume24h / 1e6).toFixed(1)}M
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </DashboardCard>
       )}
     </div>
   );

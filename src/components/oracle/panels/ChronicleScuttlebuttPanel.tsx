@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ScuttlebuttData } from '@/lib/oracles/chronicle';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Shield, CheckCircle, AlertTriangle, Info, Clock } from 'lucide-react';
 
 interface ChronicleScuttlebuttPanelProps {
@@ -57,8 +58,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
   return (
     <div className="space-y-6">
       {/* Security Overview */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('chronicle.scuttlebutt.title')}</h3>
+      <DashboardCard title={t('chronicle.scuttlebutt.title')}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="py-2">
             <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.securityLevel')}</p>
@@ -71,9 +71,9 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
           <div className="py-2">
             <p className="text-xs text-gray-500 mb-1">{t('chronicle.scuttlebutt.auditScore')}</p>
             <p className="text-xl font-bold text-gray-900">{data.auditScore}/100</p>
-            <div className="mt-2 w-full bg-gray-200  h-2">
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-amber-500 h-2  transition-all duration-500"
+                className="bg-amber-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${data.auditScore}%` }}
               />
             </div>
@@ -93,13 +93,10 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             </p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Security Features */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">
-          {t('chronicle.scuttlebutt.securityFeatures')}
-        </h3>
+      <DashboardCard title={t('chronicle.scuttlebutt.securityFeatures')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.securityFeatures.map((feature, index) => (
             <div key={index} className="flex items-center gap-3 py-2">
@@ -108,13 +105,10 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Historical Events */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">
-          {t('chronicle.scuttlebutt.historicalEvents')}
-        </h3>
+      <DashboardCard title={t('chronicle.scuttlebutt.historicalEvents')}>
         <div className="space-y-3">
           {data.historicalEvents.map((event, index) => (
             <div
@@ -136,7 +130,7 @@ export function ChronicleScuttlebuttPanel({ data }: ChronicleScuttlebuttPanelPro
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

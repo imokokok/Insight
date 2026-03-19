@@ -177,7 +177,7 @@ export function ErrorDisplay({
             <button
               onClick={onRetry}
               className={`ml-auto p-1 ${config.iconColor} hover:opacity-70 transition-opacity`}
-              aria-label={t('common.actions.retry')}
+              aria-label={t('actions.retry')}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -266,7 +266,7 @@ export function ErrorDisplay({
             <button
               onClick={onDismiss}
               className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label={t('common.actions.close')}
+              aria-label={t('actions.close')}
             >
               <X className="w-5 h-5" />
             </button>
@@ -280,7 +280,7 @@ export function ErrorDisplay({
               className={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium ${config.buttonBg} ${config.buttonHover} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-${details.severity}-500`}
             >
               <RefreshCw className="w-4 h-4" aria-hidden="true" />
-              {t('common.actions.retry')}
+              {t('actions.retry')}
             </button>
           )}
 
@@ -372,7 +372,7 @@ export function InlineError({
           className="flex items-center gap-1 text-red-600 hover:text-red-700 underline"
         >
           <RefreshCw className="w-3 h-3" />
-          {t('common.actions.retry')}
+          {t('actions.retry')}
         </button>
       )}
     </div>

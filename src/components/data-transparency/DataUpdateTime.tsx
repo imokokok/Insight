@@ -40,18 +40,18 @@ function formatTimeAgo(timeAgo: TimeAgo, t: ReturnType<typeof useTranslations>):
   const { value, unit } = timeAgo;
 
   if (value === 0 && unit === 'seconds') {
-    return t('common.time.justNow');
+    return t('time.justNow');
   }
 
   switch (unit) {
     case 'seconds':
-      return t('common.time.secondsAgo', { seconds: value });
+      return t('time.secondsAgo', { seconds: value });
     case 'minutes':
-      return t('common.time.minutesAgo', { minutes: value });
+      return t('time.minutesAgo', { minutes: value });
     case 'hours':
-      return t('common.time.hoursAgo', { hours: value });
+      return t('time.hoursAgo', { hours: value });
     case 'days':
-      return t('common.time.daysAgo', { days: value });
+      return t('time.daysAgo', { days: value });
     default:
       return '';
   }
@@ -165,7 +165,7 @@ export function DataUpdateTime({
       <div className={`inline-flex items-center gap-1.5 ${className}`}>
         <div className={`w-2 h-2 rounded-full ${config.dotColor}`} />
         <span className="text-xs text-gray-500">
-          {timeAgo ? formatTimeAgo(timeAgo, t) : t('common.status.noData')}
+          {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
         </span>
       </div>
     );
@@ -187,7 +187,7 @@ export function DataUpdateTime({
                 {isLoading && <RefreshCw size={14} className="animate-spin text-gray-400" />}
               </div>
               <p className="text-xs text-gray-500">
-                {timeAgo ? formatTimeAgo(timeAgo, t) : t('common.status.noData')}
+                {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export function DataUpdateTime({
           <div className="mt-3 pt-3 border-t border-red-200">
             <p className="text-xs text-red-600 flex items-center gap-1">
               <AlertCircle size={12} />
-              {error.message || t('common.status.error')}
+              {error.message || t('status.error')}
             </p>
           </div>
         )}
@@ -223,12 +223,12 @@ export function DataUpdateTime({
               {isLoading ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
-                  {t('common.status.loading')}
+                  {t('status.loading')}
                 </>
               ) : (
                 <>
                   <RefreshCw size={14} />
-                  {t('common.actions.refresh')}
+                  {t('actions.refresh')}
                 </>
               )}
             </button>
@@ -247,7 +247,7 @@ export function DataUpdateTime({
         <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
         <StatusIcon size={12} className={config.color} />
         <span className={`text-xs font-medium ${config.color}`}>
-          {timeAgo ? formatTimeAgo(timeAgo, t) : t('common.status.noData')}
+          {timeAgo ? formatTimeAgo(timeAgo, t) : t('status.noData')}
         </span>
       </div>
 
@@ -260,7 +260,7 @@ export function DataUpdateTime({
           onClick={onRefresh}
           disabled={isLoading}
           className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title={t('common.actions.refresh')}
+          title={t('actions.refresh')}
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
         </button>

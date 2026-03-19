@@ -170,9 +170,9 @@ const getAnnotationIcon = (type: AnnotationType): string => {
 
 const getImportanceLabel = (importance: ImportanceLevel, t: (key: string) => string): string => {
   const labels: Record<ImportanceLevel, string> = {
-    high: t('common.importance.high'),
-    medium: t('common.importance.medium'),
-    low: t('common.importance.low'),
+    high: t('importance.high'),
+    medium: t('importance.medium'),
+    low: t('importance.low'),
   };
   return labels[importance];
 };

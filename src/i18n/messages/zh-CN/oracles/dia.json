@@ -3,7 +3,7 @@
     "title": "DIA",
     "subtitle": "去中心化信息资产跨链数据预言机",
     "tabs": {
-      "market": "市场",
+      "market": "市场数据",
       "network": "网络",
       "dataFeeds": "数据馈送",
       "nftData": "NFT 数据",

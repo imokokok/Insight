@@ -22,6 +22,7 @@ import { TellorNetworkPanel } from '@/components/oracle/panels/TellorNetworkPane
 import { TellorEcosystemPanel } from '@/components/oracle/panels/TellorEcosystemPanel';
 import { TellorStakingCalculator } from '@/components/oracle/panels/TellorStakingCalculator';
 import { TellorDisputesPanel } from '@/components/oracle/panels/TellorDisputesPanel';
+import { CrossOracleComparison } from '@/components/oracle/charts/CrossOracleComparison';
 import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
@@ -270,6 +271,14 @@ export default function TellorPage() {
           {activeTab === 'risk' && risk && <TellorRiskPanel data={risk} />}
 
           {activeTab === 'ecosystem' && ecosystem && <TellorEcosystemPanel data={ecosystem} />}
+
+          {activeTab === 'cross-oracle' && (
+            <div className="space-y-6">
+              <DashboardCard title={t('tellor.tabs.crossOracle')}>
+                <CrossOracleComparison />
+              </DashboardCard>
+            </div>
+          )}
         </div>
       </main>
     </div>

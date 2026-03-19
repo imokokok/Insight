@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { NodeStakingData, WINkLinkNode } from '@/lib/oracles/winklink';
+import { DashboardCard } from '@/components/oracle/common/DashboardCard';
 import { Coins, Users, TrendingUp, Award, Globe, CheckCircle } from 'lucide-react';
 
 interface WINkLinkStakingPanelProps {
@@ -54,8 +55,7 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
   return (
     <div className="space-y-6">
       {/* Staking Stats */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.staking.title')}</h3>
+      <DashboardCard title={t('winklink.staking.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -86,20 +86,19 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
             <p className="text-xl font-bold text-gray-900">{formatNumber(data.rewardPool)} WIN</p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Staking Tiers */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.staking.tiers')}</h3>
+      <DashboardCard title={t('winklink.staking.tiers')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {data.stakingTiers.map((tier, index) => (
             <div
               key={index}
-              className={`py-4 border-b border-gray-100 text-center ${getTierColor(tier.tier.toLowerCase())}`}
+              className={`p-4 rounded-lg text-center ${getTierColor(tier.tier.toLowerCase())}`}
             >
               <h4 className="font-bold text-sm capitalize mb-2">{tier.tier}</h4>
               <div
-                className={`w-10 h-10 mx-auto mb-3  bg-gradient-to-br ${getTierGradient(tier.tier.toLowerCase())} flex items-center justify-center`}
+                className={`w-10 h-10 mx-auto mb-3 rounded-full bg-gradient-to-br ${getTierGradient(tier.tier.toLowerCase())} flex items-center justify-center`}
               >
                 <Award className="w-5 h-5 text-white" />
               </div>
@@ -114,11 +113,10 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
             </div>
           ))}
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Top Nodes */}
-      <div className="py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold mb-3">{t('winklink.staking.topNodes')}</h3>
+      <DashboardCard title={t('winklink.staking.topNodes')}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -178,7 +176,7 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
             </tbody>
           </table>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

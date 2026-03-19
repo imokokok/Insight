@@ -4,7 +4,7 @@
     "subtitle": "MakerDAO 原生预言机，采用 Scuttlebutt 安全协议提供高安全性的去中心化价格喂价",
     "analytics": "Chronicle 数据分析",
     "tabs": {
-      "market": "市场",
+      "market": "市场数据",
       "makerdao": "MakerDAO",
       "validators": "验证者",
       "network": "网络",

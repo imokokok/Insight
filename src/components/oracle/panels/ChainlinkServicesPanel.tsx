@@ -305,12 +305,12 @@ const getServicesData = (t: ReturnType<typeof useTranslations>): ServiceData[] =
 ];
 
 const getCcipChainData = (t: ReturnType<typeof useTranslations>) => [
-  { name: t('common.chains.ethereum', { defaultValue: 'Ethereum' }), messages: 850000, value: 5200000000 },
-  { name: t('common.chains.arbitrum', { defaultValue: 'Arbitrum' }), messages: 420000, value: 1800000000 },
-  { name: t('common.chains.optimism', { defaultValue: 'Optimism' }), messages: 380000, value: 1500000000 },
-  { name: t('common.chains.polygon', { defaultValue: 'Polygon' }), messages: 320000, value: 1200000000 },
-  { name: t('common.chains.base', { defaultValue: 'Base' }), messages: 280000, value: 980000000 },
-  { name: t('common.chains.avalanche', { defaultValue: 'Avalanche' }), messages: 150000, value: 650000000 },
+  { name: t('chains.ethereum', { defaultValue: 'Ethereum' }), messages: 850000, value: 5200000000 },
+  { name: t('chains.arbitrum', { defaultValue: 'Arbitrum' }), messages: 420000, value: 1800000000 },
+  { name: t('chains.optimism', { defaultValue: 'Optimism' }), messages: 380000, value: 1500000000 },
+  { name: t('chains.polygon', { defaultValue: 'Polygon' }), messages: 320000, value: 1200000000 },
+  { name: t('chains.base', { defaultValue: 'Base' }), messages: 280000, value: 980000000 },
+  { name: t('chains.avalanche', { defaultValue: 'Avalanche' }), messages: 150000, value: 650000000 },
 ];
 
 export function ChainlinkServicesPanel() {

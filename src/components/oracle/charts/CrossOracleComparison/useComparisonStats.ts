@@ -10,6 +10,7 @@ import {
   oracleNames,
   oracleColors,
   defaultPerformanceData,
+  symbols,
 } from './crossOracleConfig';
 
 interface PriceStats {
@@ -103,6 +104,11 @@ interface UseComparisonStatsReturn {
   exportData: ExportData;
   getConsistencyLabel: (score: number) => string;
   getConsistencyColor: (score: number) => string;
+  heatmapData: Array<{
+    asset: string;
+    oracle: string;
+    deviation: number;
+  }>;
 }
 
 export function useComparisonStats({
@@ -135,10 +141,10 @@ export function useComparisonStats({
   const consistencyScore = calculateConsistencyScore();
 
   const getConsistencyLabel = (score: number): string => {
-    if (score >= 90) return t('common.consistency.excellent');
-    if (score >= 70) return t('common.consistency.good');
-    if (score >= 50) return t('common.consistency.fair');
-    return t('common.consistency.poor');
+    if (score >= 90) return t('consistency.excellent');
+    if (score >= 70) return t('consistency.good');
+    if (score >= 50) return t('consistency.fair');
+    return t('consistency.poor');
   };
 
   const getConsistencyColor = (score: number): string => {
@@ -389,6 +395,30 @@ export function useComparisonStats({
     };
   }, [priceData, priceStats, selectedSymbol, lastUpdated]);
 
+  const heatmapData = useMemo(() => {
+    // 模拟多资产偏差数据
+    const data: Array<{ asset: string; oracle: string; deviation: number }> = [];
+
+    symbols.forEach((symbol) => {
+      selectedOracles.forEach((provider) => {
+        // 模拟不同资产在不同预言机间的偏差
+        const baseDeviation = Math.random() * 2 - 1; // -1% 到 +1%
+        const oracleSpecificFactor =
+          provider === OracleProvider.PYTH || provider === OracleProvider.REDSTONE
+            ? 0.3 // 高频预言机偏差更小
+            : 0.8; // 标准预言机偏差较大
+
+        data.push({
+          asset: symbol,
+          oracle: oracleNames[provider],
+          deviation: Number((baseDeviation * oracleSpecificFactor).toFixed(3)),
+        });
+      });
+    });
+
+    return data;
+  }, [selectedOracles]);
+
   return {
     performanceData,
     priceStats,
@@ -404,5 +434,6 @@ export function useComparisonStats({
     exportData,
     getConsistencyLabel,
     getConsistencyColor,
+    heatmapData,
   };
 }

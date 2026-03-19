@@ -105,7 +105,7 @@ export function QueryHeader({
                     onClick={handleClearHistory}
                     className="text-xs text-red-600 hover:text-red-700 font-medium"
                   >
-                    {t('common.clear')}
+                    {t('clear')}
                   </button>
                 )}
               </div>
@@ -146,7 +146,7 @@ export function QueryHeader({
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
-            {t('common.export')}
+            {t('export')}
           </button>
 
           {showExportMenu && (

@@ -54,7 +54,7 @@ const DEVIATION_THRESHOLDS = {
 function formatTime(index: number, t: (key: string) => string): string {
   const now = new Date();
   now.setMinutes(now.getMinutes() - (19 - index) * 3);
-  return now.toLocaleTimeString(t('common.locale') || 'zh-CN', {
+  return now.toLocaleTimeString(t('locale') || 'zh-CN', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -271,7 +271,7 @@ export function PriceDeviationHistoryChart({
   const formatMaxDeviationTime = (timestamp: number): string => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString(t('common.locale') || 'zh-CN', {
+    return date.toLocaleTimeString(t('locale') || 'zh-CN', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',

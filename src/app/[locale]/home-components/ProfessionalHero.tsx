@@ -382,7 +382,7 @@ export default function ProfessionalHero() {
                   type="submit"
                   className="mr-2 px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold rounded-xl hover:from-gray-800 hover:to-gray-700 hover:shadow-lg hover:shadow-gray-900/25 active:scale-95 transition-all duration-200 text-sm sm:text-base whitespace-nowrap"
                 >
-                  {t('common.actions.search')}
+                  {t('actions.search')}
                 </button>
 
                 {isDropdownOpen && dropdownItems.length > 0 && (

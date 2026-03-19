@@ -266,5 +266,87 @@
   "cdfChart": {
     "title": "Cumulative Distribution Function",
     "subtitle": "Shows cumulative probability distribution of latency values"
+  },
+  "oracleCommon": {
+    "performanceGauge": {
+      "levels": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "warning": "Warning",
+        "danger": "Danger"
+      },
+      "timesPerMinute": "times/min",
+      "range": "Range: {value}"
+    }
+  },
+  "networkHealth": {
+    "status": {
+      "online": "Online",
+      "warning": "Warning",
+      "offline": "Offline"
+    },
+    "networkStatus": "Network Status",
+    "monitoring": "Real-time monitoring",
+    "lastCheck": "Last check",
+    "vsLastWeek": "vs last week",
+    "activeNodes": "Active Nodes",
+    "nodeUptime": "Node Uptime",
+    "avgResponseTime": "Avg Response Time",
+    "updateFrequency": "Update Frequency",
+    "every": "Every",
+    "seconds": "seconds",
+    "totalStaked": "Total Staked",
+    "dataFeeds": "Data Feeds",
+    "activityHeatmap": {
+      "title": "Network Activity Heatmap",
+      "subtitle": "24-hour data request distribution",
+      "totalRequests": "Total Requests",
+      "peakHour": "Peak Hour",
+      "avgPerHour": "Avg/Hour",
+      "peakRequests": "Peak Requests",
+      "requests": "requests",
+      "low": "Low",
+      "high": "High"
+    },
+    "performanceDashboard": {
+      "title": "Performance Dashboard",
+      "subtitle": "Real-time network performance visualization",
+      "responseTime": "Response Time",
+      "uptime": "Uptime",
+      "updateFreq": "Update Frequency",
+      "validatorActiveRate": "Validator Active Rate",
+      "stakingRate": "Staking Rate",
+      "blockTime": "Block Time"
+    },
+    "bandProtocolDashboard": {
+      "title": "Band Protocol Performance Dashboard",
+      "subtitle": "On-chain validators and network performance metrics"
+    },
+    "bandProtocol": {
+      "title": "Band Protocol Network Metrics",
+      "subtitle": "On-chain validator performance and staking analytics",
+      "activeValidators": "Active Validators",
+      "activePercent": "participation rate",
+      "stakedTokens": "Total Staked BAND",
+      "stakingRate": "Network Staking Ratio",
+      "blockHeight": "Current Block Height",
+      "blockTime": "Mean Block Time",
+      "inflationRate": "Annual Inflation Rate",
+      "annualInflation": "Yearly Inflation",
+      "communityPoolBalance": "Community Treasury Balance",
+      "communityPool": "Governance Treasury"
+    },
+    "dataFreshness": {
+      "title": "Data Freshness",
+      "subtitle": "Real-time data sync status",
+      "lastUpdated": "Last Updated",
+      "dataLatency": "Data Latency",
+      "excellent": "Excellent",
+      "good": "Good",
+      "slow": "Slow",
+      "secondsAgo": "s ago",
+      "minutesAgo": "m ago",
+      "hoursAgo": "h ago"
+    }
   }
 }

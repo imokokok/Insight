@@ -50,7 +50,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
             <button
               onClick={onClose}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100  transition-colors"
-              aria-label={t('common.close')}
+              aria-label={t('actions.close')}
             >
               <X className="w-5 h-5" />
             </button>
