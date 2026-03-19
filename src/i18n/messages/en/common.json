@@ -196,7 +196,14 @@
     "title": "Cross-Chain Price Consistency"
   },
   "confidenceInterval": {
-    "title": "Confidence Interval"
+    "title": "Confidence Interval",
+    "bid": "Bid",
+    "ask": "Ask",
+    "spread": "Spread",
+    "bidLabel": "Bid",
+    "askLabel": "Ask",
+    "width": "Width",
+    "threshold": "Threshold"
   },
   "updateFrequency": {
     "title": "Update Frequency"
@@ -287,6 +294,32 @@
       "refresh": "Refresh",
       "lastUpdated": "Last Updated",
       "stale": "Stale"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "Mitigation Measures",
+      "noMeasures": "No mitigation measures",
+      "effectivenessLabel": "Effectiveness",
+      "types": {
+        "technical": "Technical",
+        "governance": "Governance",
+        "operational": "Operational"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "effectiveness": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
     }
   },
   "networkHealth": {

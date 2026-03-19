@@ -71,6 +71,12 @@ export default function PriceQueryPage() {
     handleClearHistory,
     handleExportCSV,
     handleExportJSON,
+    symbolFavorites,
+    currentFavoriteConfig,
+    showFavoritesDropdown,
+    setShowFavoritesDropdown,
+    favoritesDropdownRef,
+    handleApplyFavorite,
   } = usePriceQuery();
 
   // Keyboard shortcuts
@@ -150,6 +156,12 @@ export default function PriceQueryPage() {
         setSelectedChains={setSelectedChains}
         setSelectedSymbol={setSelectedSymbol}
         setSelectedTimeRange={setSelectedTimeRange}
+        symbolFavorites={symbolFavorites}
+        currentFavoriteConfig={currentFavoriteConfig}
+        showFavoritesDropdown={showFavoritesDropdown}
+        setShowFavoritesDropdown={setShowFavoritesDropdown}
+        favoritesDropdownRef={favoritesDropdownRef}
+        handleApplyFavorite={handleApplyFavorite}
       />
 
       {/* 左右分栏布局 */}

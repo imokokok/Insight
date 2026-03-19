@@ -9,7 +9,11 @@ async function loadMessages(locale: Locale) {
   try {
     // 核心模块 - 始终加载
     const common = await import(`./messages/${locale}/common.json`);
-    Object.assign(messages, common.default || common);
+    const commonData = common.default || common;
+    // 将 common.json 的内容包裹在 common 键下（支持 common.xxx 访问方式）
+    messages.common = commonData;
+    // 同时将 common.json 的内容合并到根级别（支持直接 xxx 访问方式）
+    Object.assign(messages, commonData);
   } catch {
     // 如果新结构不存在，回退到旧文件
     const fallback = await import(`./${locale}.json`);
