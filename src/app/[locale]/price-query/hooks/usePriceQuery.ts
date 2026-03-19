@@ -27,6 +27,8 @@ import {
 import { parseQueryParams, updateUrlParams, QueryConfig } from '@/utils/urlParams';
 import { QueryResult, providerNames, chainNames, oracleI18nKeys } from '../constants';
 import { createLogger } from '@/lib/utils/logger';
+import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
+import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('price-query-hook');
 
@@ -102,6 +104,14 @@ export interface UsePriceQueryReturn {
   timeComparisonConfig: TimeComparisonConfig;
   setTimeComparisonConfig: (config: TimeComparisonConfig) => void;
   urlParamsParsed: boolean;
+  // Favorites
+  user: ReturnType<typeof useUser>;
+  symbolFavorites: ReturnType<typeof useFavorites>['favorites'];
+  currentFavoriteConfig: FavoriteConfig;
+  showFavoritesDropdown: boolean;
+  setShowFavoritesDropdown: (show: boolean) => void;
+  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
+  handleApplyFavorite: (config: FavoriteConfig) => void;
 
   // Computed values
   chartData: ChartDataPoint[];
@@ -145,6 +155,8 @@ export interface ChartDataPoint {
 export function usePriceQuery(): UsePriceQueryReturn {
   const t = useTranslations();
   const { preferences, isLoading: isPrefsLoading } = usePreferences();
+  const user = useUser();
+  const { favorites: symbolFavorites } = useFavorites({ configType: 'symbol' });
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
     OracleProvider.CHAINLINK,
@@ -207,6 +219,8 @@ export function usePriceQuery(): UsePriceQueryReturn {
   });
 
   const [urlParamsParsed, setUrlParamsParsed] = useState(false);
+  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
 
   const applyPreferences = useCallback(() => {
     if (isPrefsLoading) return;
@@ -742,6 +756,45 @@ export function usePriceQuery(): UsePriceQueryReturn {
     setHistoryItems([]);
   }, []);
 
+  const currentFavoriteConfig: FavoriteConfig = useMemo(
+    () => ({
+      symbol: selectedSymbol,
+      selectedOracles: selectedOracles.map((o) => o as string),
+      chains: selectedChains.map((c) => c as string),
+    }),
+    [selectedSymbol, selectedOracles, selectedChains]
+  );
+
+  const handleApplyFavorite = useCallback((config: FavoriteConfig) => {
+    if (config.symbol) {
+      setSelectedSymbol(config.symbol);
+    }
+    if (config.selectedOracles) {
+      setSelectedOracles(config.selectedOracles as OracleProvider[]);
+    }
+    if (config.chains) {
+      setSelectedChains(config.chains as Blockchain[]);
+    }
+    setShowFavoritesDropdown(false);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        favoritesDropdownRef.current &&
+        !favoritesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowFavoritesDropdown(false);
+      }
+    };
+    if (showFavoritesDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFavoritesDropdown]);
+
   return {
     selectedOracles,
     setSelectedOracles,
@@ -810,5 +863,12 @@ export function usePriceQuery(): UsePriceQueryReturn {
     generateFilename,
     handleExportCSV,
     handleExportJSON,
+    user,
+    symbolFavorites,
+    currentFavoriteConfig,
+    showFavoritesDropdown,
+    setShowFavoritesDropdown,
+    favoritesDropdownRef,
+    handleApplyFavorite,
   };
 }

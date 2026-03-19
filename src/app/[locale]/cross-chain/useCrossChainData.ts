@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import { OracleProvider, Blockchain, PriceData } from '@/lib/oracles';
 import {
   ChainlinkClient,
@@ -37,6 +37,8 @@ import {
 } from './utils';
 import { useCrossChainStore } from '@/stores/crossChainStore';
 import { createLogger } from '@/lib/utils/logger';
+import { useFavorites, FavoriteConfig } from '@/hooks/useFavorites';
+import { useUser } from '@/stores/authStore';
 
 const logger = createLogger('useCrossChainData');
 
@@ -163,9 +165,22 @@ export interface UseCrossChainDataReturn {
   handleSort: (column: string) => void;
   exportToCSV: () => void;
   exportToJSON: () => void;
+  // Favorites
+  user: ReturnType<typeof useUser>;
+  chainFavorites: ReturnType<typeof useFavorites>['favorites'];
+  currentFavoriteConfig: FavoriteConfig;
+  showFavoritesDropdown: boolean;
+  setShowFavoritesDropdown: (show: boolean) => void;
+  favoritesDropdownRef: React.RefObject<HTMLDivElement | null>;
+  handleApplyFavorite: (config: FavoriteConfig) => void;
 }
 
 export function useCrossChainData(): UseCrossChainDataReturn {
+  const user = useUser();
+  const { favorites: chainFavorites } = useFavorites({ configType: 'chain_config' });
+  const [showFavoritesDropdown, setShowFavoritesDropdown] = useState(false);
+  const favoritesDropdownRef = useRef<HTMLDivElement>(null);
+
   const {
     selectedProvider,
     selectedSymbol,
@@ -1074,6 +1089,28 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     document.body.removeChild(link);
   }, [priceDifferences, historicalPrices, filteredChains, selectedSymbol]);
 
+  const currentFavoriteConfig: FavoriteConfig = useMemo(
+    () => ({
+      chain: selectedProvider,
+      symbol: selectedSymbol,
+      chains: visibleChains.map((c) => c as string),
+    }),
+    [selectedProvider, selectedSymbol, visibleChains]
+  );
+
+  const handleApplyFavorite = useCallback((config: FavoriteConfig) => {
+    if (config.chain) {
+      setSelectedProvider(config.chain as OracleProvider);
+    }
+    if (config.symbol) {
+      setSelectedSymbol(config.symbol);
+    }
+    if (config.chains) {
+      setVisibleChains(config.chains as Blockchain[]);
+    }
+    setShowFavoritesDropdown(false);
+  }, []);
+
   const exportToJSON = useCallback(() => {
     const providerNames: Record<OracleProvider, string> = {
       [OracleProvider.CHAINLINK]: 'Chainlink',
@@ -1244,5 +1281,12 @@ export function useCrossChainData(): UseCrossChainDataReturn {
     handleSort,
     exportToCSV,
     exportToJSON,
+    user,
+    chainFavorites,
+    currentFavoriteConfig,
+    showFavoritesDropdown,
+    setShowFavoritesDropdown,
+    favoritesDropdownRef,
+    handleApplyFavorite,
   };
 }

@@ -196,7 +196,14 @@
     "title": "跨链价格一致性"
   },
   "confidenceInterval": {
-    "title": "置信区间"
+    "title": "置信区间",
+    "bid": "买入价",
+    "ask": "卖出价",
+    "spread": "价差",
+    "bidLabel": "买",
+    "askLabel": "卖",
+    "width": "宽度",
+    "threshold": "阈值"
   },
   "updateFrequency": {
     "title": "更新频率"
@@ -287,6 +294,32 @@
       "refresh": "刷新",
       "lastUpdated": "最后更新",
       "stale": "已过期"
+    },
+    "riskScore": {
+      "levels": {
+        "low": "低风险",
+        "medium": "中风险",
+        "high": "高风险"
+      }
+    },
+    "mitigationMeasures": {
+      "title": "缓解措施",
+      "noMeasures": "暂无缓解措施",
+      "effectivenessLabel": "有效性",
+      "types": {
+        "technical": "技术",
+        "governance": "治理",
+        "operational": "运营"
+      },
+      "status": {
+        "active": "活跃",
+        "inactive": "非活跃"
+      },
+      "effectiveness": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      }
     }
   },
   "networkHealth": {
