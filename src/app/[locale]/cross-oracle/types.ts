@@ -2,6 +2,18 @@ import { OracleProvider, PriceData, SnapshotStats } from '@/types/oracle';
 import { SortColumn, SortDirection, TimeRange, DeviationFilter, RefreshInterval } from './constants';
 import { TabId } from './components/TabNavigation';
 
+// 跨预言机对比数据
+export interface CrossOracleData {
+  asset?: string;
+  oracle?: string;
+  provider?: string;
+  chain?: string;
+  price: number;
+  timestamp: number;
+  deviation?: number;
+  confidence?: number;
+}
+
 export interface UseCrossOraclePageReturn {
   selectedOracles: OracleProvider[];
   setSelectedOracles: React.Dispatch<React.SetStateAction<OracleProvider[]>>;

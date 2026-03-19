@@ -141,7 +141,7 @@ export function EmptyStateEnhanced({
 // 行动引导空状态组件
 // ============================================
 
-interface ActionButton {
+export interface ActionButton {
   label: string;
   onClick: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -227,7 +227,7 @@ export function EmptyStateWithActions({
 // 快速开始空状态组件
 // ============================================
 
-interface QuickStartItem {
+export interface QuickStartItem {
   id: string;
   title: string;
   description: string;
@@ -288,7 +288,7 @@ export function EmptyStateQuickStart({
 // 示例数据空状态组件
 // ============================================
 
-interface ExampleDataItem {
+export interface ExampleDataItem {
   id: string;
   name: string;
   description: string;

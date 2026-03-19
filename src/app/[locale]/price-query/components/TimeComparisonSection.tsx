@@ -34,13 +34,9 @@ export function TimeComparisonSection({
   const t = useTranslations();
 
   // Convert chart data to comparison chart data format
-  const comparisonData = useMemo((): ComparisonChartData => {
+  const comparisonData = useMemo((): ComparisonChartData[] => {
     if (chartData.length === 0 || compareChartData.length === 0) {
-      return {
-        currentPeriod: { data: [], label: '', startDate: new Date(), endDate: new Date() },
-        comparisonPeriod: { data: [], label: '', startDate: new Date(), endDate: new Date() },
-        differences: [],
-      };
+      return [];
     }
 
     // Get the first series label for comparison
@@ -49,49 +45,45 @@ export function TimeComparisonSection({
       ? `${t(`navbar.${firstResult.provider.toLowerCase()}`)} (${t(`blockchain.${firstResult.chain.toLowerCase()}`)})`
       : '';
 
-    // Map current period data
-    const currentData = chartData.map((point) => ({
-      timestamp: point.timestamp,
-      time: point.time,
-      value: point[label] as number,
-    }));
+    // Map data to ComparisonChartData format
+    const maxLength = Math.max(chartData.length, compareChartData.length);
+    const result: ComparisonChartData[] = [];
 
-    // Map comparison period data
-    const comparisonDataPoints = compareChartData.map((point) => ({
-      timestamp: point.timestamp,
-      time: point.time,
-      value: point[label] as number,
-    }));
+    for (let i = 0; i < maxLength; i++) {
+      const currentPoint = chartData[i];
+      const comparePoint = compareChartData[i];
 
-    // Calculate differences
-    const differences = currentData.map((point, index) => {
-      const comparePoint = comparisonDataPoints[index];
-      if (!comparePoint || comparePoint.value === 0) return 0;
-      return ((point.value - comparePoint.value) / comparePoint.value) * 100;
-    });
+      if (currentPoint && comparePoint) {
+        const primary = (currentPoint[label] as number) || 0;
+        const comparison = (comparePoint[label] as number) || 0;
+        const difference = comparison !== 0 ? ((primary - comparison) / comparison) * 100 : 0;
 
-    return {
-      currentPeriod: {
-        data: currentData,
-        label: t('comparison.timeComparison.currentPeriod'),
-        startDate: new Date(currentData[0]?.timestamp || Date.now()),
-        endDate: new Date(currentData[currentData.length - 1]?.timestamp || Date.now()),
-      },
-      comparisonPeriod: {
-        data: comparisonDataPoints,
-        label: timeConfig.comparisonMode === 'yoy'
-          ? t('comparison.timeComparison.yoy')
-          : t('comparison.timeComparison.mom'),
-        startDate: new Date(comparisonDataPoints[0]?.timestamp || Date.now()),
-        endDate: new Date(comparisonDataPoints[comparisonDataPoints.length - 1]?.timestamp || Date.now()),
-      },
-      differences,
-    };
-  }, [chartData, compareChartData, queryResults, timeConfig.comparisonMode, t]);
+        result.push({
+          timestamp: currentPoint.timestamp,
+          primary,
+          comparison,
+          difference,
+          label: currentPoint.time as string,
+        });
+      }
+    }
+
+    return result;
+  }, [chartData, compareChartData, queryResults, t]);
 
   if (chartData.length === 0 || compareChartData.length === 0) {
     return null;
   }
+
+  const primaryLabel = queryResults[0]
+    ? `${t(`navbar.${queryResults[0].provider.toLowerCase()}`)} (${t(`blockchain.${queryResults[0].chain.toLowerCase()}`)})`
+    : t('comparison.timeComparison.currentPeriod');
+
+  const comparisonLabel = compareQueryResults[0]
+    ? `${t(`navbar.${compareQueryResults[0].provider.toLowerCase()}`)} (${t(`blockchain.${compareQueryResults[0].chain.toLowerCase()}`)})`
+    : timeConfig.comparisonType === 'year_over_year'
+      ? t('comparison.timeComparison.yoy')
+      : t('comparison.timeComparison.mom');
 
   return (
     <div className="space-y-4">
@@ -109,7 +101,8 @@ export function TimeComparisonSection({
         data={comparisonData}
         title={t('priceQuery.comparison.title')}
         showDifference={true}
-        showStats={true}
+        primaryLabel={primaryLabel}
+        comparisonLabel={comparisonLabel}
         valueFormatter={(value) => `$${value.toFixed(2)}`}
         height={350}
       />

@@ -422,7 +422,6 @@ export function ValidatorEarningsBreakdown({
               }))}
               value={selectedValidator}
               onChange={(value) => handleValidatorChange(value)}
-              size="md"
             />
           </div>
           <div>

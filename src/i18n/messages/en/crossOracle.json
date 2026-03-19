@@ -230,7 +230,30 @@
     },
     "benchmark": {
       "title": "Industry Benchmark Comparison"
-    }
+    },
+    "comparisonSettings": "Comparison Settings",
+    "priceComparisonTable": "Price Comparison Table",
+    "deviationAnalysis": "Deviation Analysis",
+    "selectGroup": "Select Group",
+    "subTabs": {
+      "overview": "Overview",
+      "charts": "Charts",
+      "data": "Data",
+      "settings": "Settings"
+    },
+    "selectedOracles": "Selected Oracles",
+    "range": "Range",
+    "more": "more",
+    "actions": "Actions",
+    "autoRefresh": "Auto Refresh",
+    "groups": {
+      "all": "All",
+      "highFrequency": "High Frequency",
+      "standard": "Standard"
+    },
+    "updateFrequencyComparison": "Update Frequency Comparison",
+    "highFrequency": "High Frequency",
+    "standardFrequency": "Standard Frequency"
   },
   "crossOracleComparison": {
     "title": "Multi-Oracle Comparative Analytics",

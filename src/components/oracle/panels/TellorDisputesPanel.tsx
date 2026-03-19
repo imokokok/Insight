@@ -64,7 +64,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
               <Clock className="w-4 h-4 text-yellow-600" />
               <p className="text-xs text-gray-500">{t('tellor.disputes.pending')}</p>
             </div>
-            <p className="text-xl font-bold text-yellow-600">{data.pendingDisputes}</p>
+            <p className="text-xl font-bold text-yellow-600">{data.openDisputes}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
@@ -84,7 +84,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
               key={index}
               className={`p-4 rounded-lg border ${
                 dispute.status === 'resolved'
-                  ? dispute.resolution === 'valid'
+                  ? dispute.outcome === 'reporter_won'
                     ? 'bg-green-50 border-green-200'
                     : 'bg-red-50 border-red-200'
                   : 'bg-yellow-50 border-yellow-200'
@@ -100,7 +100,7 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                 <span
                   className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${
                     dispute.status === 'resolved'
-                      ? dispute.resolution === 'valid'
+                      ? dispute.outcome === 'reporter_won'
                         ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
                       : 'bg-yellow-100 text-yellow-700'
@@ -109,15 +109,14 @@ export function TellorDisputesPanel({ data }: TellorDisputesPanelProps) {
                   {dispute.status}
                 </span>
               </div>
-              <p className="text-sm text-gray-700 mb-2">{dispute.reason}</p>
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>{t('tellor.disputes.stakeAmount')}: {dispute.stakeAmount} TRB</span>
-                <span>{new Date(dispute.timestamp).toLocaleString()}</span>
+                <span>{new Date(dispute.createdAt).toLocaleString()}</span>
               </div>
-              {dispute.resolution && (
+              {dispute.outcome && (
                 <div className="mt-2 pt-2 border-t border-gray-200">
-                  <p className="text-sm text-gray-600">
-                    {t('tellor.disputes.resolution')}: {dispute.resolution}
+                  <p className={`text-sm ${getOutcomeColor(dispute.outcome)}`}>
+                    {t('tellor.disputes.outcome')}: {dispute.outcome}
                   </p>
                 </div>
               )}

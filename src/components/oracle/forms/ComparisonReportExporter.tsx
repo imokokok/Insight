@@ -27,7 +27,7 @@ interface ComparisonReportExporterProps {
       median: number;
     };
   };
-  chartRef?: React.RefObject<HTMLDivElement>;
+  chartRef?: React.RefObject<HTMLDivElement | null>;
   fileName?: string;
 }
 

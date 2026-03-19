@@ -18,6 +18,10 @@
     "viewFullscreen": "全屏查看",
     "search": "搜索"
   },
+  "forms": {
+    "exportData": "导出数据",
+    "noDataToExport": "没有数据可导出"
+  },
   "status": {
     "loading": "加载中...",
     "noData": "暂无数据",

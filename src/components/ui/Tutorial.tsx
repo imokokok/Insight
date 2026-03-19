@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 // 教程上下文和 Hook
 // ============================================
 
-interface TutorialContextType {
+export interface TutorialContextType {
   currentStep: number;
   totalSteps: number;
   isActive: boolean;
@@ -715,7 +715,7 @@ export function TutorialManager({
               targetSelector={currentStepData.targetSelector}
               title={currentStepData.title}
               description={currentStepData.description}
-              placement={currentStepData.placement}
+              placement={currentStepData.placement === 'center' ? 'top' : currentStepData.placement}
               onNext={isLastStep ? completeTutorial : nextStep}
               onPrev={!isFirstStep ? prevStep : undefined}
               onSkip={skipTutorial}

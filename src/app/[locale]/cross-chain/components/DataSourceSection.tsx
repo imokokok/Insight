@@ -45,7 +45,7 @@ function getCredibilityLevel(
 
 // Get provider based on chain
 function getProviderForChain(chain: Blockchain): OracleProvider {
-  const providerMap: Record<Blockchain, OracleProvider> = {
+  const providerMap: Partial<Record<Blockchain, OracleProvider>> = {
     [Blockchain.ETHEREUM]: OracleProvider.CHAINLINK,
     [Blockchain.ARBITRUM]: OracleProvider.CHAINLINK,
     [Blockchain.OPTIMISM]: OracleProvider.CHAINLINK,

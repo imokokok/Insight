@@ -12,11 +12,11 @@ import { CointegrationAnalysis } from './components/CointegrationAnalysis';
 import { StandardBoxPlot } from './components/StandardBoxPlot';
 import { InteractivePriceChart } from './components/InteractivePriceChart';
 import { VolatilitySurface } from './components/VolatilitySurface';
-import { ProgressBar as OldProgressBar, JumpIndicator } from './components/SmallComponents';
+import { ProgressBar as CrossChainProgressBar, JumpIndicator } from './components/SmallComponents';
 import { CompactStatsGrid } from './components/CompactStatsGrid';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
-import { ProgressBar, DataLoadingProgress } from '@/components/ui/LoadingProgress';
+import { ProgressBar as LoadingProgressBar, DataLoadingProgress } from '@/components/ui/LoadingProgress';
 import { TabNavigation, TabId } from './components/TabNavigation';
 import { CollapsibleSection } from './components/CollapsibleSection';
 import { DataSourceSection } from './components/DataSourceSection';
@@ -324,10 +324,10 @@ export default function CrossChainPage() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <ProgressBar value={integrity} color={getIntegrityColor(integrity)} />
+                      <CrossChainProgressBar value={integrity} color={getIntegrityColor(integrity)} />
                     </td>
                     <td className="px-3 py-2.5">
-                      <ProgressBar
+                      <CrossChainProgressBar
                         value={volatility}
                         color={getVolatilityColor(volatility)}
                         max={1}
