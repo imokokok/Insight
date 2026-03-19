@@ -79,8 +79,8 @@ const getStaticMetrics = (t: (key: string) => string): Omit<Metric, 'trend'>[] =
   },
 ];
 
-// 热门币种
-const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'LINK', 'UNI', 'AAVE', 'MKR'];
+// 热门币种（使用价格查询页面的前七个币种）
+const POPULAR_TOKENS = ['BTC', 'ETH', 'SOL', 'AVAX', 'NEAR', 'MATIC', 'ARB'];
 
 export default function ProfessionalHero() {
   const t = useTranslations();

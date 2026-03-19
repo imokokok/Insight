@@ -84,11 +84,11 @@ export function ChartsTab({
   const t = useTranslations();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* 价格偏差可视化 */}
       {deviationChartData.length > 0 && (
-        <div>
-          <h3 className="text-xs text-gray-500 mb-3">
+        <div className="bg-gray-50 border border-gray-100 p-4">
+          <h3 className="text-xs font-medium text-gray-700 mb-4">
             {t('crossOracle.priceDifferenceVisualization')}
           </h3>
           <div className="h-56">
@@ -163,10 +163,10 @@ export function ChartsTab({
       )}
 
       {/* 多预言机价格对比 & 价格趋势对比 - 2列网格 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 当前价格对比 */}
-        <div>
-          <h3 className="text-xs text-gray-500 mb-3">
+        <div className="bg-gray-50 border border-gray-100 p-4">
+          <h3 className="text-xs font-medium text-gray-700 mb-4">
             {t('crossOracle.currentPriceComparison')}
           </h3>
           <div className="h-56">
@@ -201,8 +201,8 @@ export function ChartsTab({
         </div>
 
         {/* 价格趋势对比 */}
-        <div>
-          <h3 className="text-xs text-gray-500 mb-3">
+        <div className="bg-gray-50 border border-gray-100 p-4">
+          <h3 className="text-xs font-medium text-gray-700 mb-4">
             {t('crossOracle.priceTrendComparison')}
           </h3>
           <div className="h-56">
@@ -236,8 +236,8 @@ export function ChartsTab({
       </div>
 
       {/* 价格历史趋势 */}
-      <div>
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-4">
           {t('crossOracle.multiOraclePriceComparison')}
         </h3>
         <div className="h-56">
@@ -281,8 +281,8 @@ export function ChartsTab({
       </div>
 
       {/* 更新频率对比 */}
-      <div>
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-4">
           {t('crossOracle.updateFrequencyComparison')}
         </h3>
         <div className="h-56">
@@ -347,8 +347,8 @@ export function ChartsTab({
       </div>
 
       {/* 综合性能雷达图 */}
-      <div>
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-4">
           {t('crossOracle.comprehensivePerformanceRadar')}
         </h3>
         <div className="h-64">

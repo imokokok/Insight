@@ -39,42 +39,51 @@ export function DataTab({
   const t = useTranslations();
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-4">
       {/* 价格对比表格 - 默认展开 */}
-      <CollapsiblePanel
-        title={t('crossOracle.priceComparisonTable')}
-        defaultExpanded={true}
-        storageKey="price-comparison-table"
-        contentClassName="py-2"
-      >
-        <PriceComparisonTable
-          sortedPriceData={sortedPriceData}
-          priceStats={priceStats}
-          deviationData={deviationData}
-          handleSort={handleSort}
-          getSortIcon={getSortIcon}
-        />
-      </CollapsiblePanel>
+      <div className="bg-gray-50 border border-gray-100">
+        <CollapsiblePanel
+          title={t('crossOracle.priceComparisonTable')}
+          defaultExpanded={true}
+          storageKey="price-comparison-table"
+          contentClassName="py-2 px-4"
+          headerClassName="px-4"
+        >
+          <PriceComparisonTable
+            sortedPriceData={sortedPriceData}
+            priceStats={priceStats}
+            deviationData={deviationData}
+            handleSort={handleSort}
+            getSortIcon={getSortIcon}
+          />
+        </CollapsiblePanel>
+      </div>
 
       {/* 偏差分析表格 - 默认展开 */}
-      <CollapsiblePanel
-        title={t('crossOracle.deviationAnalysis')}
-        defaultExpanded={true}
-        storageKey="deviation-table"
-        contentClassName="py-2"
-      >
-        <DeviationTable deviationData={deviationData} />
-      </CollapsiblePanel>
+      <div className="bg-gray-50 border border-gray-100">
+        <CollapsiblePanel
+          title={t('crossOracle.deviationAnalysis')}
+          defaultExpanded={true}
+          storageKey="deviation-table"
+          contentClassName="py-2 px-4"
+          headerClassName="px-4"
+        >
+          <DeviationTable deviationData={deviationData} />
+        </CollapsiblePanel>
+      </div>
 
       {/* 性能对比表格 - 默认折叠 */}
-      <CollapsiblePanel
-        title={t('crossOracle.performanceComparison')}
-        defaultExpanded={false}
-        storageKey="performance-table"
-        contentClassName="py-2"
-      >
-        <PerformanceTable performanceData={performanceData} selectedOracles={selectedOracles} />
-      </CollapsiblePanel>
+      <div className="bg-gray-50 border border-gray-100">
+        <CollapsiblePanel
+          title={t('crossOracle.performanceComparison')}
+          defaultExpanded={false}
+          storageKey="performance-table"
+          contentClassName="py-2 px-4"
+          headerClassName="px-4"
+        >
+          <PerformanceTable performanceData={performanceData} selectedOracles={selectedOracles} />
+        </CollapsiblePanel>
+      </div>
     </div>
   );
 }

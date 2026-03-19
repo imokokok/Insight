@@ -84,10 +84,10 @@ export function SettingsTab({
   const t = useTranslations();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 交易对选择 */}
-      <div>
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.selectTradingPair')}
         </h3>
         <SegmentedControl
@@ -102,8 +102,8 @@ export function SettingsTab({
       </div>
 
       {/* 预言机选择 */}
-      <div className="pt-4 border-t border-gray-200/60">
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/5)
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -142,8 +142,8 @@ export function SettingsTab({
       </div>
 
       {/* 分组选择 */}
-      <div className="pt-4 border-t border-gray-200/60">
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.selectGroup')}
         </h3>
         <SegmentedControl
@@ -159,8 +159,8 @@ export function SettingsTab({
       </div>
 
       {/* 偏差阈值设置 */}
-      <div className="pt-4 border-t border-gray-200/60">
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.priceDeviationThreshold')}
         </h3>
         <div className="flex items-center gap-3">
@@ -194,8 +194,8 @@ export function SettingsTab({
       </div>
 
       {/* 自动刷新设置 */}
-      <div className="pt-4 border-t border-gray-200/60">
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.autoRefresh')}
         </h3>
         <div className="flex flex-col gap-3">
@@ -224,8 +224,8 @@ export function SettingsTab({
       </div>
 
       {/* 手动刷新和导出 */}
-      <div className="pt-4 border-t border-gray-200/60">
-        <h3 className="text-xs text-gray-500 mb-3">
+      <div className="bg-gray-50 border border-gray-100 p-4">
+        <h3 className="text-xs font-medium text-gray-700 mb-3">
           {t('crossOracle.actions')}
         </h3>
         <div className="flex flex-col gap-3">

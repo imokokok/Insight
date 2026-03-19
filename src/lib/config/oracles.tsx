@@ -775,13 +775,29 @@ export function getAllOracleConfigs(): OracleConfig[] {
 }
 
 export function getAllOracleConfigsSortedByMarketCap(): OracleConfig[] {
-  return Object.values(oracleConfigs).sort(
-    (a, b) => b.marketData.marketCap - a.marketData.marketCap
-  );
+  return Object.values(oracleConfigs).sort((a, b) => {
+    // 特殊处理：API3 排在 RedStone 前面
+    if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
+      return -1;
+    }
+    if (a.provider === OracleProvider.REDSTONE && b.provider === OracleProvider.API3) {
+      return 1;
+    }
+    return b.marketData.marketCap - a.marketData.marketCap;
+  });
 }
 
 export function getOracleProvidersSortedByMarketCap(): OracleProvider[] {
   return Object.values(oracleConfigs)
-    .sort((a, b) => b.marketData.marketCap - a.marketData.marketCap)
+    .sort((a, b) => {
+      // 特殊处理：API3 排在 RedStone 前面
+      if (a.provider === OracleProvider.API3 && b.provider === OracleProvider.REDSTONE) {
+        return -1;
+      }
+      if (a.provider === OracleProvider.REDSTONE && b.provider === OracleProvider.API3) {
+        return 1;
+      }
+      return b.marketData.marketCap - a.marketData.marketCap;
+    })
     .map((config) => config.provider);
 }
