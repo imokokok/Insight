@@ -182,7 +182,7 @@ export default function Navbar() {
                         <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50">
                           <div className="px-4 py-2 border-b border-gray-100">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {profile?.display_name || '用户'}
+                              {profile?.display_name || t('user')}
                             </p>
                             <p className="text-xs text-gray-500 truncate">{user.email}</p>
                           </div>

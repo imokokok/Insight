@@ -33,6 +33,7 @@ interface MarketDataConfig {
   low24h: number;
   change24h: number;
   change24hValue: number;
+  stakingApr?: number;
 }
 
 function PriceDisplay({ price }: { price: number }) {

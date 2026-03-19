@@ -68,6 +68,7 @@
       "other": "其他"
     }
   },
+  "user": "用户",
   "actions": {
     "refresh": "刷新",
     "export": "导出",

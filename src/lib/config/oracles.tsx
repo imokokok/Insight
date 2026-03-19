@@ -85,6 +85,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       low24h: 22.18,
       change24h: 5.67,
       change24hValue: 1.25,
+      stakingApr: 4.32,
     },
     networkData: {
       activeNodes: 1847,

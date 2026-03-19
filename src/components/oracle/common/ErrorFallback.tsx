@@ -20,7 +20,7 @@ export function ErrorFallback({ error, onRetry, themeColor = 'blue' }: ErrorFall
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="py-4 border-b border-gray-100 max-w-md w-full mx-4">
         <div
-          className={`flex items-center justify-center w-12 h-12 ${bgColorClass} rounded-full mb-4 mx-auto`}
+          className={`flex items-center justify-center w-12 h-12 ${bgColorClass} mb-4 mx-auto`}
         >
           <svg
             className={`w-6 h-6 ${textColorClass}`}
@@ -44,7 +44,7 @@ export function ErrorFallback({ error, onRetry, themeColor = 'blue' }: ErrorFall
         </p>
         <button
           onClick={onRetry}
-          className={`w-full px-3 py-1.5 ${buttonBgClass} text-white rounded-md text-sm ${buttonHoverClass} transition-colors`}
+          className={`w-full px-3 py-1.5 ${buttonBgClass} text-white text-sm ${buttonHoverClass} transition-colors`}
         >
           {t('actions.retry')}
         </button>

@@ -690,7 +690,9 @@ export function OraclePageTemplate({
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-sm text-gray-600">{t('chainlink.stakingApr')}</span>
-                        <span className="text-sm font-semibold text-green-600">4.32%</span>
+                        <span className="text-sm font-semibold text-green-600">
+                          {config.marketData.stakingApr ? `${config.marketData.stakingApr}%` : '-'}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <span className="text-sm text-gray-600">
