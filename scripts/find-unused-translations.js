@@ -9,7 +9,9 @@ const fs = require('fs');
 const path = require('path');
 
 // 配置
-const TRANSLATION_FILE = path.join(__dirname, '../src/i18n/en.json');
+const MESSAGES_DIR = path.join(__dirname, '../src/i18n/messages');
+const EN_MESSAGES_DIR = path.join(MESSAGES_DIR, 'en');
+const ZH_MESSAGES_DIR = path.join(MESSAGES_DIR, 'zh-CN');
 const SOURCE_DIRS = [
   path.join(__dirname, '../src/app'),
   path.join(__dirname, '../src/components'),
@@ -18,10 +20,56 @@ const SOURCE_DIRS = [
 ];
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
-// 读取翻译文件
-function loadTranslations(filePath) {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(content);
+// 读取单个翻译文件
+function loadTranslationFile(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(content);
+  } catch {
+    return {};
+  }
+}
+
+// 递归扫描目录获取所有 JSON 文件
+function getJsonFiles(dir) {
+  const files = [];
+  if (!fs.existsSync(dir)) return files;
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...getJsonFiles(fullPath));
+    } else if (entry.name.endsWith('.json')) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+// 加载模块化翻译文件
+function loadTranslations(messagesDir) {
+  const messages = {};
+  const jsonFiles = getJsonFiles(messagesDir);
+
+  for (const filePath of jsonFiles) {
+    const relativePath = path.relative(messagesDir, filePath);
+    const namespace = relativePath.replace(/\.json$/, '').replace(/[/\\]/g, '/');
+    const content = loadTranslationFile(filePath);
+
+    // 对于 common.json，同时包裹在 common 键下并合并到根级别
+    if (namespace === 'common') {
+      messages.common = content;
+      Object.assign(messages, content);
+    } else if (namespace === 'components/export') {
+      // export.json 使用 unifiedExport 作为命名空间
+      messages.unifiedExport = content;
+    } else {
+      Object.assign(messages, content);
+    }
+  }
+
+  return messages;
 }
 
 // 递归获取所有翻译键（扁平化）
@@ -228,7 +276,7 @@ async function main() {
   console.log('🔍 扫描翻译键...\n');
 
   // 1. 加载翻译文件
-  const translations = loadTranslations(TRANSLATION_FILE);
+  const translations = loadTranslations(EN_MESSAGES_DIR);
   const allKeys = flattenKeys(translations);
   const nestedKeys = getNestedKeys(translations);
 
@@ -300,20 +348,31 @@ async function main() {
     console.log('🧹 生成清理后的翻译文件...');
     const cleanedTranslations = removeUnusedKeys(translations, unusedKeys);
 
-    const cleanedEnPath = path.join(__dirname, '../src/i18n/en.cleaned.json');
-    const cleanedZhPath = path.join(__dirname, '../src/i18n/zh-CN.cleaned.json');
+    const cleanedEnDir = path.join(__dirname, '../src/i18n/messages/en.cleaned');
+    const cleanedZhDir = path.join(__dirname, '../src/i18n/messages/zh-CN.cleaned');
 
+    // 创建清理后的目录
+    fs.mkdirSync(cleanedEnDir, { recursive: true });
+    fs.mkdirSync(cleanedZhDir, { recursive: true });
+
+    // 保存合并后的清理文件
+    const cleanedEnPath = path.join(cleanedEnDir, 'merged.json');
     fs.writeFileSync(cleanedEnPath, JSON.stringify(cleanedTranslations, null, 2));
     console.log(`   ✅ ${cleanedEnPath}`);
 
     // 同时处理中文文件
-    const zhTranslations = loadTranslations(path.join(__dirname, '../src/i18n/zh-CN.json'));
+    const zhTranslations = loadTranslations(ZH_MESSAGES_DIR);
     const cleanedZhTranslations = removeUnusedKeys(zhTranslations, unusedKeys);
+    const cleanedZhPath = path.join(cleanedZhDir, 'merged.json');
     fs.writeFileSync(cleanedZhPath, JSON.stringify(cleanedZhTranslations, null, 2));
     console.log(`   ✅ ${cleanedZhPath}\n`);
 
     // 统计节省的空间
-    const originalSize = fs.statSync(TRANSLATION_FILE).size;
+    const enJsonFiles = getJsonFiles(EN_MESSAGES_DIR);
+    let originalSize = 0;
+    for (const file of enJsonFiles) {
+      originalSize += fs.statSync(file).size;
+    }
     const cleanedSize = fs.statSync(cleanedEnPath).size;
     const savedPercent = (((originalSize - cleanedSize) / originalSize) * 100).toFixed(1);
 
@@ -323,9 +382,7 @@ async function main() {
     console.log(`   节省: ${savedPercent}%\n`);
 
     console.log('⚠️  注意: 请仔细检查未使用的键列表，确认后再替换原始文件！');
-    console.log('   执行以下命令替换原始文件:');
-    console.log(`   mv ${cleanedEnPath} ${TRANSLATION_FILE}`);
-    console.log(`   mv ${cleanedZhPath} ${path.join(__dirname, '../src/i18n/zh-CN.json')}`);
+    console.log(`   清理后的文件位于: ${cleanedEnDir} 和 ${cleanedZhDir}`);
   } else {
     console.log('✨ 没有发现未使用的翻译键！');
   }

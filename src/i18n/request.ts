@@ -2,96 +2,121 @@ import { getRequestConfig } from 'next-intl/server';
 import { getValidLocale } from './routing';
 import type { Locale } from './config';
 
-// 动态加载翻译文件的辅助函数
-async function loadMessages(locale: Locale) {
+async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   const messages: Record<string, unknown> = {};
 
+  // Load common first
   try {
-    // 核心模块 - 始终加载
-    const common = await import(`./messages/${locale}/common.json`);
-    const commonData = common.default || common;
-    // 将 common.json 的内容包裹在 common 键下（支持 common.xxx 访问方式）
-    messages.common = commonData;
-    // 同时将 common.json 的内容合并到根级别（支持直接 xxx 访问方式）
-    Object.assign(messages, commonData);
+    const common = (
+      await import(`./messages/${locale}/common.json`)
+    ).default;
+    Object.assign(messages, common);
   } catch {
-    // 如果新结构不存在，回退到旧文件
-    const fallback = await import(`./${locale}.json`);
-    return fallback.default || fallback;
+    // ignore
   }
 
+  // Load navigation
   try {
-    const navigation = await import(`./messages/${locale}/navigation.json`);
-    Object.assign(messages, navigation.default || navigation);
+    const navigation = (
+      await import(`./messages/${locale}/navigation.json`)
+    ).default;
+    Object.assign(messages, navigation);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load home
   try {
-    const home = await import(`./messages/${locale}/home.json`);
-    Object.assign(messages, home.default || home);
+    const home = (
+      await import(`./messages/${locale}/home.json`)
+    ).default;
+    Object.assign(messages, home);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load ui
   try {
-    const ui = await import(`./messages/${locale}/ui.json`);
-    Object.assign(messages, ui.default || ui);
+    const ui = (
+      await import(`./messages/${locale}/ui.json`)
+    ).default;
+    Object.assign(messages, ui);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load marketOverview
   try {
-    const marketOverview = await import(`./messages/${locale}/marketOverview.json`);
-    Object.assign(messages, marketOverview.default || marketOverview);
+    const marketOverview = (
+      await import(`./messages/${locale}/marketOverview.json`)
+    ).default;
+    Object.assign(messages, marketOverview);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load priceQuery
   try {
-    const priceQuery = await import(`./messages/${locale}/priceQuery.json`);
-    Object.assign(messages, priceQuery.default || priceQuery);
+    const priceQuery = (
+      await import(`./messages/${locale}/priceQuery.json`)
+    ).default;
+    Object.assign(messages, priceQuery);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load comparison
   try {
-    const comparison = await import(`./messages/${locale}/comparison.json`);
-    Object.assign(messages, comparison.default || comparison);
+    const comparison = (
+      await import(`./messages/${locale}/comparison.json`)
+    ).default;
+    Object.assign(messages, comparison);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load crossOracle
   try {
-    const crossOracle = await import(`./messages/${locale}/crossOracle.json`);
-    Object.assign(messages, crossOracle.default || crossOracle);
+    const crossOracle = (
+      await import(`./messages/${locale}/crossOracle.json`)
+    ).default;
+    Object.assign(messages, crossOracle);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load crossChain
   try {
-    const crossChain = await import(`./messages/${locale}/crossChain.json`);
-    Object.assign(messages, crossChain.default || crossChain);
+    const crossChain = (
+      await import(`./messages/${locale}/crossChain.json`)
+    ).default;
+    Object.assign(messages, crossChain);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load dataQuality
   try {
-    const dataQuality = await import(`./messages/${locale}/dataQuality.json`);
-    Object.assign(messages, dataQuality.default || dataQuality);
+    const dataQuality = (
+      await import(`./messages/${locale}/dataQuality.json`)
+    ).default;
+    Object.assign(messages, dataQuality);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
+  // Load dataTransparency
   try {
-    const dataTransparency = await import(`./messages/${locale}/dataTransparency.json`);
-    Object.assign(messages, dataTransparency.default || dataTransparency);
+    const dataTransparency = (
+      await import(`./messages/${locale}/dataTransparency.json`)
+    ).default;
+    Object.assign(messages, dataTransparency);
   } catch {
-    /* 可选模块 */
+    // ignore
   }
 
-  // 加载 oracles 目录下的所有文件
-  const oracleFiles = [
+  // Load oracle files
+  const oracles = [
     'chainlink',
     'pyth',
     'api3',
@@ -104,39 +129,50 @@ async function loadMessages(locale: Locale) {
     'winklink',
   ];
 
-  for (const oracle of oracleFiles) {
+  for (const oracle of oracles) {
     try {
-      const oracleMessages = await import(`./messages/${locale}/oracles/${oracle}.json`);
-      Object.assign(messages, oracleMessages.default || oracleMessages);
+      const oracleMessages = (
+        await import(`./messages/${locale}/oracles/${oracle}.json`)
+      ).default;
+      Object.assign(messages, oracleMessages);
     } catch {
-      /* 可选模块 */
+      // ignore
     }
   }
 
-  // 加载 components 目录下的文件
-  const componentFiles = ['charts', 'alerts', 'export', 'favorites', 'search'];
-  for (const component of componentFiles) {
+  // Load component files
+  const components = ['charts', 'alerts', 'favorites', 'search'];
+  for (const component of components) {
     try {
-      const componentMessages = await import(`./messages/${locale}/components/${component}.json`);
-      // export.json 使用 unifiedExport 作为命名空间
-      if (component === 'export') {
-        messages.unifiedExport = componentMessages.default || componentMessages;
-      } else {
-        Object.assign(messages, componentMessages.default || componentMessages);
-      }
+      const componentMessages = (
+        await import(`./messages/${locale}/components/${component}.json`)
+      ).default;
+      Object.assign(messages, componentMessages);
     } catch {
-      /* 可选模块 */
+      // ignore
     }
   }
 
-  // 加载 features 目录下的文件
-  const featureFiles = ['settings', 'auth', 'methodology'];
-  for (const feature of featureFiles) {
+  // Load export with namespace
+  try {
+    const exportMessages = (
+      await import(`./messages/${locale}/components/export.json`)
+    ).default;
+    messages.unifiedExport = exportMessages;
+  } catch {
+    // ignore
+  }
+
+  // Load feature files
+  const features = ['settings', 'auth', 'methodology'];
+  for (const feature of features) {
     try {
-      const featureMessages = await import(`./messages/${locale}/features/${feature}.json`);
-      Object.assign(messages, featureMessages.default || featureMessages);
+      const featureMessages = (
+        await import(`./messages/${locale}/features/${feature}.json`)
+      ).default;
+      Object.assign(messages, featureMessages);
     } catch {
-      /* 可选模块 */
+      // ignore
     }
   }
 
@@ -144,13 +180,8 @@ async function loadMessages(locale: Locale) {
 }
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  // 从请求中获取 locale
   const requestedLocale = await requestLocale;
-
-  // 使用 getValidLocale 处理：中文显示中文，其他都显示英文
   const locale = getValidLocale(requestedLocale);
-
-  // 动态加载翻译文件
   const messages = await loadMessages(locale);
 
   return {
