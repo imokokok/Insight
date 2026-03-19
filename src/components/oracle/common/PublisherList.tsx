@@ -238,7 +238,6 @@ export function PublisherList({
             ]}
             value={filter}
             onChange={(value) => setFilter(value)}
-            size="sm"
           />
         </div>
         <div className="text-sm text-gray-500">

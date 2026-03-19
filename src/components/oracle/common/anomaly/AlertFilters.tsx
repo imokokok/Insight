@@ -24,7 +24,6 @@ export function AlertFilters({ filter, onFilterChange }: AlertFiltersProps) {
         ]}
         value={filter.type}
         onChange={(value) => onFilterChange({ ...filter, type: value as AnomalyType | 'all' })}
-        size="sm"
       />
 
       <DropdownSelect
@@ -36,7 +35,6 @@ export function AlertFilters({ filter, onFilterChange }: AlertFiltersProps) {
         ]}
         value={filter.severity}
         onChange={(value) => onFilterChange({ ...filter, severity: value as AnomalySeverity | 'all' })}
-        size="sm"
       />
 
       <DropdownSelect
@@ -52,7 +50,6 @@ export function AlertFilters({ filter, onFilterChange }: AlertFiltersProps) {
             acknowledged: value === 'all' ? 'all' : value === 'true',
           })
         }
-        size="sm"
       />
     </div>
   );

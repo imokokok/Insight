@@ -541,7 +541,6 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               ]}
               value={filter}
               onChange={(value) => setFilter(value)}
-              size="sm"
             />
           </div>
 
@@ -557,7 +556,6 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               ]}
               value={typeFilter}
               onChange={(value) => setTypeFilter(value as DisputeType | 'all')}
-              size="sm"
             />
           </div>
 
@@ -570,7 +568,6 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               ]}
               value={sortBy}
               onChange={(value) => setSortBy(value as 'timestamp' | 'reward')}
-              size="sm"
             />
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}

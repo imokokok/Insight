@@ -502,7 +502,6 @@ export function ChartExportButton({
           }))}
           value={selectedResolution}
           onChange={(value) => setSelectedResolution(value as Resolution)}
-          size="sm"
         />
       </div>
 

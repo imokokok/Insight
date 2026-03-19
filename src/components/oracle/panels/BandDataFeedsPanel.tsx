@@ -348,7 +348,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                   { value: 'stablecoin', label: t('band.dataFeeds.stablecoin') },
                 ]}
                 value={selectedCategory}
-                onChange={(value) => setSelectedCategory(value)}
+                onChange={(value) => setSelectedCategory(value as string)}
                 size="sm"
               />
             </div>

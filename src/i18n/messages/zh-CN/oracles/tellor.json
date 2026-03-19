@@ -14,7 +14,8 @@
       "multiChain": "多链",
       "ecosystem": "生态",
       "risk": "风险",
-      "riskAssessment": "风险评估"
+      "riskAssessment": "风险评估",
+      "crossOracle": "跨预言机分析"
     },
     "priceTrend": "价格趋势",
     "quickStats": "快速统计",

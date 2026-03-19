@@ -18,6 +18,10 @@
     "viewFullscreen": "Fullscreen",
     "search": "Search"
   },
+  "forms": {
+    "exportData": "Export Data",
+    "noDataToExport": "No Data to Export"
+  },
   "status": {
     "loading": "Loading...",
     "noData": "No Data",

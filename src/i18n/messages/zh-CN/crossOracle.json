@@ -232,7 +232,30 @@
     },
     "benchmark": {
       "title": "行业基准对比"
-    }
+    },
+    "comparisonSettings": "对比设置",
+    "priceComparisonTable": "价格对比表格",
+    "deviationAnalysis": "偏差分析",
+    "selectGroup": "选择分组",
+    "subTabs": {
+      "overview": "概览",
+      "charts": "图表",
+      "data": "数据",
+      "settings": "设置"
+    },
+    "selectedOracles": "已选预言机",
+    "range": "范围",
+    "more": "更多",
+    "actions": "操作",
+    "autoRefresh": "自动刷新",
+    "groups": {
+      "all": "全部",
+      "highFrequency": "高频",
+      "standard": "标准"
+    },
+    "updateFrequencyComparison": "更新频率对比",
+    "highFrequency": "高频",
+    "standardFrequency": "标准频率"
   },
   "crossOracleComparison": {
     "title": "多预言机比较分析",

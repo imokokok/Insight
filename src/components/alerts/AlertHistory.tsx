@@ -88,7 +88,6 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
               ]}
               value={filterStatus}
               onChange={(value) => setFilterStatus(value as FilterStatus)}
-              size="sm"
             />
           </div>
 
@@ -101,7 +100,6 @@ export function AlertHistory({ events, isLoading, onRefresh }: AlertHistoryProps
               ]}
               value={sortOrder}
               onChange={(value) => setSortOrder(value as SortOrder)}
-              size="sm"
             />
           </div>
         </div>

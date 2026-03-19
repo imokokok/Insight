@@ -617,12 +617,12 @@ export function PageSkeleton({
               <Skeleton width={200} height={32} animate={animate} />
               <Skeleton width={120} height={36} animate={animate} delay={100} />
             </div>
-            <StatsGridSkeleton items={4} animate={animate} delay={200} />
+            <StatsGridSkeleton items={4} animate={animate} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CardSkeleton variant="chart" animate={animate} />
-              <CardSkeleton variant="chart" animate={animate} delay={100} />
+              <CardSkeleton variant="chart" animate={animate} />
             </div>
-            <TableSkeleton rows={5} animate={animate} delay={300} />
+            <TableSkeleton rows={5} animate={animate} />
           </div>
         );
       case 'list':
@@ -636,7 +636,7 @@ export function PageSkeleton({
               <Skeleton width={200} height={40} animate={animate} delay={150} />
               <Skeleton width={120} height={40} animate={animate} delay={200} />
             </div>
-            <ListSkeleton items={8} animate={animate} delay={250} />
+            <ListSkeleton items={8} animate={animate} />
           </div>
         );
       case 'detail':

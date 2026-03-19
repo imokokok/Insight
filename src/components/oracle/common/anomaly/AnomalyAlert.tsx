@@ -14,7 +14,7 @@ import {
 } from '@/lib/oracles';
 import { createLogger } from '@/lib/utils/logger';
 import { AnomalyEvent, AnomalyStats, AnomalyDetectionConfig, AnomalyFilter } from './types';
-import { PROVIDER_NAMES, formatTime, generateAnomalyId } from './anomalyUtils';
+import { PROVIDER_NAMES, formatTime, formatDuration, generateAnomalyId } from './anomalyUtils';
 import { AlertItem } from './AlertItem';
 import { AlertFilters } from './AlertFilters';
 import { AlertStats } from './AlertStats';

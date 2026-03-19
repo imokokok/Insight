@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerQueries } from '@/lib/supabase/server';
-import { UserPreferences } from '@/lib/supabase/database.types';
+import { UserProfileUpdate } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';
 import { getUserId } from '@/lib/api/utils';
 
@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { display_name, preferences } = body;
 
-    const updateData: { display_name?: string; preferences?: UserPreferences } = {};
+    const updateData: UserProfileUpdate = {};
     if (display_name !== undefined) updateData.display_name = display_name;
     if (preferences !== undefined) updateData.preferences = preferences;
 

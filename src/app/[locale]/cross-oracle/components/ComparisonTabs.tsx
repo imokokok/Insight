@@ -77,7 +77,6 @@ interface ComparisonTabsProps {
   boxPlotData: import('@/components/oracle/charts/PriceDistributionBoxPlot').OraclePriceData[];
   volatilityData: import('@/components/oracle/charts/PriceVolatilityChart').OraclePriceHistory[];
   correlationData: import('@/components/oracle/charts/PriceCorrelationMatrix').OraclePriceSeries[];
-  latencyData: number[];
   performanceData: import('@/components/oracle/common/OraclePerformanceRanking').OraclePerformanceData[];
   maData: { oracle: OracleProvider; prices: { timestamp: number; price: number }[] }[];
   qualityTrendData: { oracle: OracleProvider; data: any[] }[];

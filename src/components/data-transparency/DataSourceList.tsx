@@ -94,7 +94,7 @@ export function DataSourceList({
         <div className="flex items-center gap-3">
           {showUpdateTime && (
             <DataUpdateTime
-              lastUpdated={lastUpdated}
+              lastUpdated={lastUpdated || null}
               refreshInterval={refreshInterval}
               onRefresh={onRefresh}
               isLoading={isLoading}

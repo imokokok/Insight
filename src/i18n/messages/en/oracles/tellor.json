@@ -13,7 +13,8 @@
       "multiChain": "Multi-Chain",
       "ecosystem": "Ecosystem",
       "risk": "Risk",
-      "riskAssessment": "Risk Assessment"
+      "riskAssessment": "Risk Assessment",
+      "crossOracle": "Cross-Oracle Analysis"
     },
     "priceTrend": "Price Trend",
     "quickStats": "Quick Stats",

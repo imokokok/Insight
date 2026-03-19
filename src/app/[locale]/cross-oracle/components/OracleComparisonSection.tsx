@@ -2,19 +2,8 @@
 
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { OracleComparisonView, DifferenceBadge } from '@/components/comparison';
-import { OracleComparisonItem } from '@/components/comparison/types';
-import { OracleProvider } from '@/lib/oracles';
-
-interface PriceData {
-  provider: OracleProvider;
-  chain: string;
-  price: number;
-  timestamp: number;
-  confidence?: number;
-  latency?: number;
-  deviation?: number;
-}
+import { OracleProvider, PriceData } from '@/types/oracle';
+import { oracleColors } from '@/components/oracle/charts/CrossOracleComparison/crossOracleConfig';
 
 interface OracleComparisonSectionProps {
   priceData: PriceData[];
@@ -33,35 +22,11 @@ export function OracleComparisonSection({
 }: OracleComparisonSectionProps) {
   const t = useTranslations();
 
-  // Convert price data to oracle comparison items
-  const oracleItems = useMemo((): OracleComparisonItem[] => {
-    if (priceData.length === 0) return [];
-
-    // Calculate average price for deviation calculation
-    const prices = priceData.map((d) => d.price).filter((p) => p > 0);
-    const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-
-    return priceData.map((data) => {
-      const deviation = avgPrice > 0 ? ((data.price - avgPrice) / avgPrice) * 100 : 0;
-
-      return {
-        provider: data.provider,
-        chain: data.chain,
-        price: data.price,
-        timestamp: data.timestamp,
-        confidence: data.confidence ?? 0.95,
-        latency: data.latency ?? 500,
-        deviation,
-        isBenchmark: data.provider === benchmarkOracle,
-      };
-    });
-  }, [priceData, benchmarkOracle]);
-
   // Calculate statistics
   const stats = useMemo(() => {
-    if (oracleItems.length === 0) return null;
+    if (priceData.length === 0) return null;
 
-    const prices = oracleItems.map((item) => item.price);
+    const prices = priceData.map((item) => item.price);
     const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
     const maxPrice = Math.max(...prices);
     const minPrice = Math.min(...prices);
@@ -79,9 +44,9 @@ export function OracleComparisonSection({
       minPrice,
       priceRange,
       consistencyScore,
-      oracleCount: oracleItems.length,
+      oracleCount: priceData.length,
     };
-  }, [oracleItems]);
+  }, [priceData]);
 
   if (priceData.length === 0) {
     return null;
@@ -89,9 +54,9 @@ export function OracleComparisonSection({
 
   return (
     <div className="space-y-4">
-      {/* Stats Summary with Difference Badges */}
+      {/* Stats Summary */}
       {stats && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="bg-white border border-gray-200 p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">
             {t('crossOracle.comparison.summary')}
           </h3>
@@ -107,12 +72,6 @@ export function OracleComparisonSection({
               <div className="text-lg font-semibold text-gray-900">
                 ${stats.priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <DifferenceBadge
-                value={stats.priceRange / stats.avgPrice * 100}
-                type="percentage"
-                size="sm"
-                showIcon={false}
-              />
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">{t('crossOracle.comparison.consistency')}</div>
@@ -130,14 +89,83 @@ export function OracleComparisonSection({
         </div>
       )}
 
-      {/* Oracle Comparison View */}
-      <OracleComparisonView
-        oracles={oracleItems}
-        benchmarkOracle={benchmarkOracle}
-        showCharts={showCharts}
-        showRadar={showRadar}
-        showTable={showTable}
-      />
+      {/* Price Comparison Table */}
+      {showTable && (
+        <div className="bg-white border border-gray-200 overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900">
+              {t('crossOracle.priceComparisonDetails')}
+            </h3>
+          </div>
+          <div className="p-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      {t('crossOracle.oracle')}
+                    </th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                      {t('crossOracle.price')}
+                    </th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                      {t('crossOracle.deviation')}
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                      {t('crossOracle.confidence')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priceData.map((data) => {
+                    const deviation = stats?.avgPrice
+                      ? ((data.price - stats.avgPrice) / stats.avgPrice) * 100
+                      : 0;
+                    const isBenchmark = data.provider === benchmarkOracle;
+
+                    return (
+                      <tr
+                        key={data.provider}
+                        className={`border-b border-gray-100 hover:bg-gray-50 ${
+                          isBenchmark ? 'bg-blue-50/50' : ''
+                        }`}
+                      >
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5"
+                              style={{ backgroundColor: oracleColors[data.provider] }}
+                            />
+                            <span className="font-medium text-gray-900">
+                              {data.provider}
+                            </span>
+                            {isBenchmark && (
+                              <span className="text-xs text-blue-600">
+                                ({t('comparison.oracleComparison.benchmark')})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono">
+                          ${data.price.toFixed(2)}
+                        </td>
+                        <td className={`px-3 py-2 text-right font-mono ${
+                          deviation > 0 ? 'text-green-600' : deviation < 0 ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {deviation > 0 ? '+' : ''}{deviation.toFixed(3)}%
+                        </td>
+                        <td className="px-3 py-2 text-center text-gray-500">
+                          {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
