@@ -63,7 +63,7 @@ export default function MarketOverviewPage() {
   } = useMarketPage();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-dune">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <MarketHeader
           loading={loading}
@@ -81,70 +81,78 @@ export default function MarketOverviewPage() {
           wsReconnect={wsReconnect}
         />
 
-        <MarketStats
-          marketStats={marketStats}
-          totalTVS={totalTVS}
-          totalChains={totalChains}
-          totalProtocols={totalProtocols}
-        />
+        <div className="bg-white border border-gray-200 p-6">
+          <MarketStats
+            marketStats={marketStats}
+            totalTVS={totalTVS}
+            totalChains={totalChains}
+            totalProtocols={totalProtocols}
+          />
+        </div>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <ChartContainer
-                chartContainerRef={chartContainerRef}
-                activeChart={activeChart}
-                setActiveChart={setActiveChart}
-                viewType={viewType}
-                setViewType={setViewType}
+              <div className="bg-white border border-gray-200 p-6">
+                <ChartContainer
+                  chartContainerRef={chartContainerRef}
+                  activeChart={activeChart}
+                  setActiveChart={setActiveChart}
+                  viewType={viewType}
+                  setViewType={setViewType}
+                  selectedTimeRange={selectedTimeRange}
+                  setSelectedTimeRange={setSelectedTimeRange}
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                  hoveredItem={hoveredItem}
+                  setHoveredItem={setHoveredItem}
+                  linkedOracle={linkedOracle}
+                  setLinkedOracle={setLinkedOracle}
+                  zoomRange={zoomRange}
+                  setZoomRange={setZoomRange}
+                  anomalyThreshold={anomalyThreshold}
+                  setAnomalyThreshold={setAnomalyThreshold}
+                  selectedAnomaly={selectedAnomaly}
+                  setSelectedAnomaly={setSelectedAnomaly}
+                  comparisonMode={comparisonMode}
+                  setComparisonMode={setComparisonMode}
+                  trendComparisonData={trendComparisonData}
+                  setTrendComparisonData={setTrendComparisonData}
+                  showConfidenceInterval={showConfidenceInterval}
+                  setShowConfidenceInterval={setShowConfidenceInterval}
+                  getChartTitle={getChartTitle}
+                  loading={loading}
+                  loadingEnhanced={loadingEnhanced}
+                  loadingComparison={loadingComparison}
+                  sortedOracleData={sortedOracleData}
+                  trendData={trendData}
+                  chainBreakdown={chainBreakdown}
+                  protocolDetails={protocolDetails}
+                  assetCategories={assetCategories}
+                  comparisonData={comparisonData}
+                  benchmarkData={benchmarkData}
+                  correlationData={correlationData}
+                />
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 p-6">
+              <MarketSidebar
                 selectedTimeRange={selectedTimeRange}
-                setSelectedTimeRange={setSelectedTimeRange}
+                lastUpdated={lastUpdated}
+                sortedOracleData={sortedOracleData}
                 selectedItem={selectedItem}
                 setSelectedItem={setSelectedItem}
                 hoveredItem={hoveredItem}
                 setHoveredItem={setHoveredItem}
-                linkedOracle={linkedOracle}
-                setLinkedOracle={setLinkedOracle}
-                zoomRange={zoomRange}
-                setZoomRange={setZoomRange}
-                anomalyThreshold={anomalyThreshold}
-                setAnomalyThreshold={setAnomalyThreshold}
-                selectedAnomaly={selectedAnomaly}
-                setSelectedAnomaly={setSelectedAnomaly}
-                comparisonMode={comparisonMode}
-                setComparisonMode={setComparisonMode}
-                trendComparisonData={trendComparisonData}
-                setTrendComparisonData={setTrendComparisonData}
-                showConfidenceInterval={showConfidenceInterval}
-                setShowConfidenceInterval={setShowConfidenceInterval}
-                getChartTitle={getChartTitle}
-                loading={loading}
-                loadingEnhanced={loadingEnhanced}
-                loadingComparison={loadingComparison}
-                sortedOracleData={sortedOracleData}
-                trendData={trendData}
-                chainBreakdown={chainBreakdown}
-                protocolDetails={protocolDetails}
-                assetCategories={assetCategories}
-                comparisonData={comparisonData}
-                benchmarkData={benchmarkData}
-                correlationData={correlationData}
+                marketStats={marketStats}
               />
             </div>
-
-            <MarketSidebar
-              selectedTimeRange={selectedTimeRange}
-              lastUpdated={lastUpdated}
-              sortedOracleData={sortedOracleData}
-              selectedItem={selectedItem}
-              setSelectedItem={setSelectedItem}
-              hoveredItem={hoveredItem}
-              setHoveredItem={setHoveredItem}
-              marketStats={marketStats}
-            />
           </div>
 
-          <AssetsTable assets={assets} />
+          <div className="bg-white border border-gray-200 p-6">
+            <AssetsTable assets={assets} />
+          </div>
         </div>
       </div>
 

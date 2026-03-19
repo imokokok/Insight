@@ -9,7 +9,7 @@ async function loadMessages(locale: Locale) {
   try {
     // 核心模块 - 始终加载
     const common = await import(`./messages/${locale}/common.json`);
-    Object.assign(messages, common.default || common);
+    messages.common = common.default || common;
   } catch {
     // 如果新结构不存在，回退到旧文件
     const fallback = await import(`./${locale}.json`);
@@ -39,6 +39,11 @@ async function loadMessages(locale: Locale) {
   try {
     const priceQuery = await import(`./messages/${locale}/priceQuery.json`);
     Object.assign(messages, priceQuery.default || priceQuery);
+  } catch { /* 可选模块 */ }
+
+  try {
+    const comparison = await import(`./messages/${locale}/comparison.json`);
+    Object.assign(messages, comparison.default || comparison);
   } catch { /* 可选模块 */ }
 
   try {
@@ -78,7 +83,12 @@ async function loadMessages(locale: Locale) {
   for (const component of componentFiles) {
     try {
       const componentMessages = await import(`./messages/${locale}/components/${component}.json`);
-      Object.assign(messages, componentMessages.default || componentMessages);
+      // export.json 使用 unifiedExport 作为命名空间
+      if (component === 'export') {
+        messages.unifiedExport = componentMessages.default || componentMessages;
+      } else {
+        Object.assign(messages, componentMessages.default || componentMessages);
+      }
     } catch { /* 可选模块 */ }
   }
 

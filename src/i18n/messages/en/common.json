@@ -49,7 +49,10 @@
     "secondsAgo": "{seconds}s ago",
     "minutesAgo": "{minutes}m ago",
     "hoursAgo": "{hours}h ago",
-    "daysAgo": "{days}d ago"
+    "daysAgo": "{days}d ago",
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "hours": "hours"
   },
   "price": {
     "price": "Price",
@@ -109,5 +112,159 @@
   },
   "locale": "en-US",
   "favorite": "Favorite",
-  "favorited": "Favorited"
+  "favorited": "Favorited",
+  "export": "Export",
+  "clear": "Clear",
+  "marketDataPanel": {
+    "marketCap": "Market Cap",
+    "volume24h": "24h Volume",
+    "circulatingSupply": "Circulating Supply",
+    "ofTotalSupply": "of total supply",
+    "fullyDilutedValuation": "Fully Diluted Valuation",
+    "atCurrentPrice": "at current price",
+    "marketCapRank": "Market Cap Rank",
+    "amongAllCryptocurrencies": "among all cryptocurrencies",
+    "supplyRatio": "Supply Ratio",
+    "loading": "Loading...",
+    "lastUpdated": "Last updated",
+    "24hHigh": "24h High",
+    "24hLow": "24h Low"
+  },
+  "validatorPanel": {
+    "title": "Validators",
+    "subtitle": "{count} validators total",
+    "loading": "Loading..."
+  },
+  "confidenceScore": {
+    "title": "Confidence Score",
+    "subtitle": "Data Quality Assessment",
+    "loading": "Loading..."
+  },
+  "nodeReputation": {
+    "title": "Node Reputation",
+    "loading": "Loading..."
+  },
+  "crossChainPanel": {
+    "loadingCrossChainData": "Loading cross-chain data..."
+  },
+  "priceDeviation": {
+    "loading": "Loading..."
+  },
+  "uma": {
+    "loading": "Loading..."
+  },
+  "home": {
+    "loading": "Loading..."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": {
+      "loadingFailed": "Loading failed"
+    }
+  },
+  "comparison": {
+    "title": "Comparison"
+  },
+  "price": {
+    "title": "Price"
+  },
+  "indicators": {
+    "title": "Indicators"
+  },
+  "crossOracleComparison": {
+    "title": "Cross-Oracle Comparison",
+    "subtitle": "Multi-oracle price comparison analysis"
+  },
+  "chainComparison": {
+    "title": "Chain Comparison"
+  },
+  "bandCrossChainPriceConsistency": {
+    "title": "Cross-Chain Price Consistency",
+    "subtitle": "Band Protocol cross-chain price monitoring"
+  },
+  "snapshot": {
+    "title": "Snapshot"
+  },
+  "gasFeeComparison": {
+    "title": "Gas Fee Comparison"
+  },
+  "crossChainPriceConsistency": {
+    "title": "Cross-Chain Price Consistency"
+  },
+  "confidenceInterval": {
+    "title": "Confidence Interval"
+  },
+  "updateFrequency": {
+    "title": "Update Frequency"
+  },
+  "stakingMetrics": {
+    "title": "Staking Metrics"
+  },
+  "publisherContribution": {
+    "title": "Publisher Contribution",
+    "subtitle": "Data publisher contribution analysis"
+  },
+  "coveragePool": {
+    "title": "Coverage Pool"
+  },
+  "confidenceAlert": {
+    "title": "Confidence Alert"
+  },
+  "volatilityAlert": {
+    "title": "Volatility Alert"
+  },
+  "requestTypeDistribution": {
+    "title": "Request Type Distribution",
+    "subtitle": "Distribution of request types"
+  },
+  "realtimeUpdate": {
+    "title": "Realtime Update"
+  },
+  "oraclePerformanceRanking": {
+    "title": "Oracle Performance Ranking",
+    "subtitle": "Comprehensive ranking based on multi-dimensional metrics"
+  },
+  "latencyAnalysis": {
+    "title": "Latency Analysis",
+    "subtitle": "Network latency performance assessment"
+  },
+  "integratedProtocols": {
+    "title": "Integrated Protocols"
+  },
+  "dataSourceCoverage": {
+    "title": "Data Source Coverage"
+  },
+  "dataQualityScoreCard": {
+    "title": "Data Quality Score",
+    "subtitle": "Comprehensive data quality assessment"
+  },
+  "stakingDistribution": {
+    "title": "Staking Distribution"
+  },
+  "requestTrend": {
+    "title": "Request Trend",
+    "loading": "Loading..."
+  },
+  "priceVolatility": {
+    "title": "Price Volatility"
+  },
+  "priceDistribution": {
+    "title": "Price Distribution"
+  },
+  "priceDeviationHeatmap": {
+    "title": "Price Deviation Heatmap"
+  },
+  "priceCorrelation": {
+    "title": "Price Correlation"
+  },
+  "crossChainRisk": {
+    "title": "Cross-Chain Risk"
+  },
+  "concentrationRisk": {
+    "title": "Concentration Risk"
+  },
+  "cdfChart": {
+    "title": "Cumulative Distribution Function",
+    "subtitle": "Shows cumulative probability distribution of latency values"
+  }
 }

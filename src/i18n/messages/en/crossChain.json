@@ -361,5 +361,33 @@
     "bandMechanism2": "Cosmos Hub serves as the primary data source, transmitting price data to other chains via IBC",
     "bandMechanism3": "Supports EVM chains (Ethereum, Polygon, etc.) to fetch data through Band Bridge",
     "bandMechanism4": "Price deviation thresholds: <0.1% is normal, 0.1%-0.5% is warning, >0.5% requires attention"
+  },
+  "priceDeviationHeatmap": {
+    "title": "Price Deviation Heatmap",
+    "timePoints": "Time Points",
+    "oracles": "Oracles",
+    "avgDeviation": "Avg Deviation",
+    "maxDeviation": "Max Deviation",
+    "minDeviation": "Min Deviation",
+    "anomalyDataPoints": "Anomaly Data Points",
+    "time": "Time",
+    "price": "Price",
+    "deviation": "Deviation",
+    "legend": "Deviation Legend",
+    "deviationDistribution": "Deviation Distribution",
+    "oracleDeviationRanking": "Oracle Deviation Ranking",
+    "highDeviationDetected": "High Deviation Data Points Detected",
+    "anomalyWarning": "Found {count} anomaly data points (deviation > 1%), recommend checking data source consistency",
+    "range": {
+      "extremelyLow": "Extremely Low",
+      "low": "Low",
+      "lower": "Lower",
+      "medium": "Medium",
+      "higher": "Higher",
+      "high": "High",
+      "veryHigh": "Very High",
+      "extremelyHigh": "Extremely High",
+      "anomaly": "Anomaly"
+    }
   }
 }

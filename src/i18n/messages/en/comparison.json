@@ -1,0 +1,14 @@
+{
+  "comparison": {
+    "title": "Comparison",
+    "previous": "Previous",
+    "current": "Current",
+    "timeComparison": {
+      "currentPeriod": "Current Period",
+      "yoy": "Year over Year",
+      "mom": "Month over Month"
+    }
+  },
+  "comparisonPeriod": "Comparison Period",
+  "comparisonAvg": "Comparison Average"
+}

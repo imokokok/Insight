@@ -25,7 +25,12 @@
       "targetThreshold": "目标阈值",
       "scoreHistory": "评分历史趋势",
       "lowConfidenceScore": "置信区间质量评分过低，建议检查数据源稳定性",
-      "publisherReliabilityDeclining": "Publisher 可靠性呈下降趋势，请关注 Publisher 运行状态"
+      "publisherReliabilityDeclining": "Publisher 可靠性呈下降趋势，请关注 Publisher 运行状态",
+      "confidenceIntervalDetails": "置信区间详情",
+      "publisherReliabilityDetails": "发布者可靠性详情",
+      "updateLatencyDetails": "更新延迟详情",
+      "crossChainConsistencyDetails": "跨链一致性详情",
+      "decliningTrend": "下降趋势"
     },
     "stats": {
       "updateFrequencyPerSecond": "价格更新频率",
@@ -38,6 +43,7 @@
       "title": "Solana 网络状态",
       "subtitle": "Pyth 主要部署链",
       "pythProgramStatus": "Pyth 程序状态",
+      "pythProgramAccount": "Pyth 程序账户",
       "blockConfirmationTime": "区块确认时间",
       "avgConfirmation": "平均确认时间",
       "slotHeight": "Slot 高度",
@@ -153,6 +159,36 @@
     },
     "crossOracle": {
       "title": "跨预言机价格分析"
+    },
+    "trend": {
+      "accuracy": "准确率",
+      "deviation": "偏差",
+      "event": "事件",
+      "title": "趋势分析",
+      "avgAccuracy": "平均准确率",
+      "maxAccuracy": "最高准确率",
+      "minAccuracy": "最低准确率",
+      "importantEvents": "重要事件"
+    },
+    "accuracy": {
+      "trendImproving": "准确率呈上升趋势",
+      "trendDeclining": "准确率呈下降趋势",
+      "trendStable": "准确率保持稳定",
+      "normalMarket": "市场状况正常",
+      "volatileMarket": "市场波动较大",
+      "extremeMarket": "市场极端波动",
+      "title": "准确率统计",
+      "overallScore": "综合评分",
+      "basedOn": "基于",
+      "dataPoints": "个数据点",
+      "avgDeviation": "平均偏差",
+      "maxDeviation": "最大偏差"
+    },
+    "info": {
+      "title": "信息",
+      "description": "Pyth Network 提供高频金融数据预言机服务",
+      "learnMore": "了解更多",
+      "documentation": "文档"
     },
     "pageTitles": {
       "market": "市场数据",

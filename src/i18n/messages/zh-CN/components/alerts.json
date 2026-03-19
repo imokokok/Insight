@@ -214,7 +214,11 @@
     "type_price_drop": "价格下跌",
     "severity_high": "高",
     "severity_medium": "中",
-    "severity_low": "低"
+    "severity_low": "低",
+    "priceSpikeMessage": "{symbol} 价格突变 detected: 当前 {current}, 变化 {change}",
+    "priceDropMessage": "{symbol} 价格急剧下跌: 当前 {current}, 下跌 {drop}",
+    "dataDelayMessage": "{symbol} 数据延迟: 已延迟 {delay}",
+    "priceDeviationMessage": "{symbol} 价格偏离: 当前 {current}, 偏离度 {deviation}"
   },
   "confidenceAlert": {
     "title": "置信区间实时预警",
