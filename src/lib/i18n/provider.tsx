@@ -1,9 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { NextIntlClientProvider } from 'next-intl';
-import en from '@/i18n/en.json';
-import zhCN from '@/i18n/zh-CN.json';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useLocale as useNextIntlLocale, useTranslations } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 
 type Locale = 'en' | 'zh-CN';
 
@@ -15,87 +14,36 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-const messages: Record<Locale, Record<string, unknown>> = {
-  en,
-  'zh-CN': zhCN,
-};
-
-function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
-  const keys = path.split('.');
-  let value: unknown = obj;
-
-  for (const key of keys) {
-    if (value && typeof value === 'object' && key in value) {
-      value = (value as Record<string, unknown>)[key];
-    } else {
-      return undefined;
-    }
-  }
-
-  return typeof value === 'string' ? value : undefined;
-}
-
-function translate(
-  messages: Record<string, unknown>,
-  key: string,
-  params?: Record<string, string | number>
-): string {
-  const value = getNestedValue(messages, key);
-
-  if (value === undefined) {
-    return key;
-  }
-
-  if (params) {
-    return Object.entries(params).reduce((str, [paramKey, paramValue]) => {
-      return str.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue));
-    }, value);
-  }
-
-  return value;
-}
-
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [locale, setLocaleState] = useState<Locale>('en');
-
-  React.useEffect(() => {
-    setMounted(true);
-    const savedLocale = localStorage.getItem('preferredLocale') as Locale;
-    if (savedLocale && ['en', 'zh-CN'].includes(savedLocale)) {
-      setLocaleState(savedLocale);
-    } else if (navigator.language.startsWith('zh')) {
-      setLocaleState('zh-CN');
-    }
-  }, []);
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = useNextIntlLocale() as Locale;
+  const tNextIntl = useTranslations();
 
   const setLocale = (newLocale: Locale) => {
-    setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
       localStorage.setItem('preferredLocale', newLocale);
+
+      // 构建新的路径，替换语言前缀
+      const newPathname = pathname.replace(/^\/(en|zh-CN)/, `/${newLocale}`);
+      router.push(newPathname);
     }
   };
 
-  const t = (key: string, params?: Record<string, string | number>) => {
-    return translate(messages[locale], key, params);
+  // 包装 next-intl 的 t 函数，提供兼容的接口
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    try {
+      return tNextIntl(key, params);
+    } catch {
+      // 如果翻译键不存在，返回键名作为 fallback
+      return key;
+    }
   };
 
-  if (!mounted) {
-    return (
-      <NextIntlClientProvider locale="en" messages={messages['en']}>
-        <I18nContext.Provider
-          value={{ locale: 'en', setLocale, t: (key) => translate(messages['en'], key) }}
-        >
-          {children}
-        </I18nContext.Provider>
-      </NextIntlClientProvider>
-    );
-  }
-
   return (
-    <NextIntlClientProvider locale={locale} messages={messages[locale]}>
-      <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>
-    </NextIntlClientProvider>
+    <I18nContext.Provider value={{ locale: currentLocale, setLocale, t }}>
+      {children}
+    </I18nContext.Provider>
   );
 }
 

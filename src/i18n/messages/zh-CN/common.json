@@ -128,7 +128,7 @@
     "hours": "小时"
   },
   "price": {
-    "price": "价格",
+    "label": "价格",
     "averagePrice": "平均价格",
     "highestPrice": "最高价格",
     "lowestPrice": "最低价格",

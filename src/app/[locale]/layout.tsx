@@ -13,6 +13,7 @@ import { AppInitializer } from '@/components/AppInitializer';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
+import { I18nProvider } from '@/lib/i18n/provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -62,24 +63,26 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <NextIntlClientProvider messages={messages}>
-          <ReactQueryProvider>
-            <ToastProvider>
-              <ErrorBoundary>
-                <AppInitializer>
-                  <Navbar />
-                  <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
-                    {children}
-                  </main>
-                  <Footer />
-                  <ConnectionStatusIndicator
-                    showLabel={false}
-                    showReconnectButton={true}
-                    className="fixed bottom-4 right-4 z-50"
-                  />
-                </AppInitializer>
-              </ErrorBoundary>
-            </ToastProvider>
-          </ReactQueryProvider>
+          <I18nProvider>
+            <ReactQueryProvider>
+              <ToastProvider>
+                <ErrorBoundary>
+                  <AppInitializer>
+                    <Navbar />
+                    <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
+                      {children}
+                    </main>
+                    <Footer />
+                    <ConnectionStatusIndicator
+                      showLabel={false}
+                      showReconnectButton={true}
+                      className="fixed bottom-4 right-4 z-50"
+                    />
+                  </AppInitializer>
+                </ErrorBoundary>
+              </ToastProvider>
+            </ReactQueryProvider>
+          </I18nProvider>
         </NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
