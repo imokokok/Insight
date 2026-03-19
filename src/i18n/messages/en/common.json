@@ -128,7 +128,7 @@
     "hours": "hours"
   },
   "price": {
-    "price": "Price",
+    "label": "Price",
     "averagePrice": "Average Price",
     "highestPrice": "Highest Price",
     "lowestPrice": "Lowest Price",
