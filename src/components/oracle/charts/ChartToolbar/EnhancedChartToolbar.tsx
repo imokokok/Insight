@@ -95,9 +95,7 @@ function Tooltip({ content, shortcut, children, position = 'bottom' }: TooltipPr
           }}
         >
           <div className="font-medium">{content}</div>
-          {shortcut && (
-            <div className="text-gray-400 mt-0.5 text-[10px]">{shortcut}</div>
-          )}
+          {shortcut && <div className="text-gray-400 mt-0.5 text-[10px]">{shortcut}</div>}
           <div
             className={`absolute w-0 h-0 border-4 border-transparent ${arrowClasses[position]}`}
           />
@@ -191,7 +189,10 @@ function ToolbarButtonComponent({ button, size = 'md', isMobile = false }: Toolb
           <span
             className="ml-1 px-1.5 py-0.5 text-[10px] font-semibold rounded-full"
             style={{
-              backgroundColor: button.variant === 'danger' ? semanticColors.danger.DEFAULT : baseColors.primary[500],
+              backgroundColor:
+                button.variant === 'danger'
+                  ? semanticColors.danger.DEFAULT
+                  : baseColors.primary[500],
               color: '#ffffff',
             }}
           >
@@ -224,9 +225,7 @@ function PriceDisplay({ symbol, currentPrice, priceChange, isMobile = false }: P
           >
             ${currentPrice.toFixed(4)}
           </span>
-          <span
-            className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}
-          >
+          <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
             {isPositive ? '+' : ''}
             {priceChange.percent.toFixed(2)}%
           </span>
@@ -268,12 +267,12 @@ export function EnhancedChartToolbar({
 
   const handleRefresh = useCallback(() => {
     if (isRefreshing || isLoading) return;
-    
+
     setIsRefreshing(true);
     logger.info('Refreshing chart data');
-    
+
     onRefresh?.();
-    
+
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
@@ -437,9 +436,7 @@ export function EnhancedChartToolbar({
           {groups.map((group) => (
             <div key={group.id} className="flex items-center gap-2">
               {group.title && !isMobile && (
-                <span className="text-xs font-medium text-gray-500 mr-1">
-                  {group.title}:
-                </span>
+                <span className="text-xs font-medium text-gray-500 mr-1">{group.title}:</span>
               )}
               <div className="flex items-center gap-1">
                 {group.buttons.map((button) => (
@@ -457,11 +454,7 @@ export function EnhancedChartToolbar({
       )}
 
       {/* Additional Content */}
-      {children && (
-        <div className="pt-2 border-t border-gray-200">
-          {children}
-        </div>
-      )}
+      {children && <div className="pt-2 border-t border-gray-200">{children}</div>}
 
       {/* CSS Animation for Tooltip */}
       <style jsx global>{`

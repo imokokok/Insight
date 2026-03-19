@@ -360,10 +360,7 @@ export function InlineError({
   const t = useTranslations();
 
   return (
-    <div
-      role="alert"
-      className={`flex items-center gap-2 text-red-600 text-sm ${className}`}
-    >
+    <div role="alert" className={`flex items-center gap-2 text-red-600 text-sm ${className}`}>
       <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
       <span className="flex-1">{message}</span>
       {onRetry && (
@@ -400,9 +397,7 @@ export function FormError({
       <div className="flex items-start gap-2">
         <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div className="flex-1">
-          <h4 className="text-sm font-medium text-red-900">
-            {t('error.formValidation.title')}
-          </h4>
+          <h4 className="text-sm font-medium text-red-900">{t('error.formValidation.title')}</h4>
           <ul className="mt-1 space-y-1">
             {errorEntries.map(([field, message]) => (
               <li key={field} className="text-sm text-red-700">

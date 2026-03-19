@@ -3,15 +3,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import {
-  Search,
-  X,
-  Command,
-  ArrowUp,
-  ArrowDown,
-  CornerDownLeft,
-  Loader2,
-} from 'lucide-react';
+import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGlobalSearch } from './useGlobalSearch';
 import { useSearchKeyboardNavigation } from './useSearchKeyboardNavigation';
@@ -92,9 +84,7 @@ function SearchResultItem({
         <ResultIcon result={result} />
       </div>
       <div className="flex-1 min-w-0">
-        <div
-          className={`font-medium truncate ${isActive ? 'text-blue-900' : 'text-gray-900'}`}
-        >
+        <div className={`font-medium truncate ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
           {t.has(result.title) ? t(result.title) : result.title}
         </div>
         {result.description && (
@@ -103,9 +93,7 @@ function SearchResultItem({
           </div>
         )}
       </div>
-      {isActive && (
-        <CornerDownLeft className="w-4 h-4 text-blue-500 flex-shrink-0" />
-      )}
+      {isActive && <CornerDownLeft className="w-4 h-4 text-blue-500 flex-shrink-0" />}
     </div>
   );
 }
@@ -160,12 +148,8 @@ function EmptyState({ query }: { query: string }) {
       <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
         <Search className="w-8 h-8 text-gray-400" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">
-        {t('search.noResults')}
-      </h3>
-      <p className="text-sm text-gray-500 max-w-xs">
-        {t('search.noResultsDesc', { query })}
-      </p>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.noResults')}</h3>
+      <p className="text-sm text-gray-500 max-w-xs">{t('search.noResultsDesc', { query })}</p>
     </div>
   );
 }
@@ -185,18 +169,11 @@ function InitialState() {
       <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
         <Search className="w-8 h-8 text-blue-500" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">
-        {t('search.initialTitle')}
-      </h3>
-      <p className="text-sm text-gray-500 mb-6">
-        {t('search.initialDesc')}
-      </p>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">{t('search.initialTitle')}</h3>
+      <p className="text-sm text-gray-500 mb-6">{t('search.initialDesc')}</p>
       <div className="flex flex-wrap justify-center gap-3">
         {shortcuts.map((shortcut) => (
-          <div
-            key={shortcut.key}
-            className="flex items-center gap-2 text-xs text-gray-500"
-          >
+          <div key={shortcut.key} className="flex items-center gap-2 text-xs text-gray-500">
             <kbd className="px-2 py-1 bg-gray-100 rounded text-gray-700 font-mono">
               {shortcut.key}
             </kbd>
@@ -433,7 +410,12 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                         activeItemIndex={activeItemIndex}
                         onSelect={handleSelect}
                         onHover={setPosition}
-                        getItemRef={setItemRef as (groupIndex: number, itemIndex: number) => (el: HTMLDivElement | null) => void}
+                        getItemRef={
+                          setItemRef as (
+                            groupIndex: number,
+                            itemIndex: number
+                          ) => (el: HTMLDivElement | null) => void
+                        }
                       />
                     ))}
                   </div>

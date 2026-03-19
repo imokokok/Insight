@@ -98,8 +98,8 @@ export function ProfilePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <User className="w-5 h-5 text-gray-400" />
             {t('settings.profile.title')}
@@ -109,13 +109,13 @@ export function ProfilePanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -141,7 +141,7 @@ export function ProfilePanel() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder={t('settings.profile.displayNamePlaceholder')}
-                    className="w-full px-4 py-2.5 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200"
                   />
                 </div>
 
@@ -154,7 +154,7 @@ export function ProfilePanel() {
                     type="email"
                     value={user?.email || ''}
                     disabled
-                    className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {t('settings.profile.emailNotEditable')}
@@ -168,7 +168,7 @@ export function ProfilePanel() {
             <button
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -181,8 +181,8 @@ export function ProfilePanel() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Key className="w-5 h-5 text-gray-400" />
             {t('settings.profile.passwordManagement')}
@@ -196,7 +196,7 @@ export function ProfilePanel() {
           {!showPasswordForm ? (
             <button
               onClick={() => setShowPasswordForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
             >
               <Key className="w-4 h-4" />
               {t('settings.profile.changePassword')}
@@ -212,7 +212,7 @@ export function ProfilePanel() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder={t('settings.profile.newPasswordPlaceholder')}
-                  className="w-full px-4 py-2.5 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200"
                 />
               </div>
 
@@ -225,7 +225,7 @@ export function ProfilePanel() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder={t('settings.profile.confirmNewPasswordPlaceholder')}
-                  className="w-full px-4 py-2.5 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export function ProfilePanel() {
                 <button
                   onClick={handleChangePassword}
                   disabled={isChangingPassword}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium text-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
                 >
                   {isChangingPassword ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -248,7 +248,7 @@ export function ProfilePanel() {
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="px-4 py-2.5 border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
+                  className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 font-medium text-sm"
                 >
                   {t('settings.profile.cancel')}
                 </button>

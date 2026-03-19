@@ -17,13 +17,13 @@ export function ChronicleMakerDAOIntegrationPanel({
   const getAssetTypeColor = (type: string) => {
     switch (type) {
       case 'stablecoin':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'crypto':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'rwa':
-        return 'bg-green-100 text-green-700';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -124,7 +124,7 @@ export function ChronicleMakerDAOIntegrationPanel({
                   </td>
                   <td className="py-2 px-3">
                     <span
-                      className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getAssetTypeColor(asset.type)}`}
+                      className={`px-2 py-1 text-xs font-medium capitalize border ${getAssetTypeColor(asset.type)}`}
                     >
                       {t(`chronicle.assetType.${asset.type}`)}
                     </span>

@@ -110,7 +110,10 @@ export default function ScheduledExportConfig({
                 options={[
                   { value: 'daily', label: t('marketOverview.scheduledExport.frequency.daily') },
                   { value: 'weekly', label: t('marketOverview.scheduledExport.frequency.weekly') },
-                  { value: 'monthly', label: t('marketOverview.scheduledExport.frequency.monthly') },
+                  {
+                    value: 'monthly',
+                    label: t('marketOverview.scheduledExport.frequency.monthly'),
+                  },
                 ]}
                 value={newSchedule.frequency}
                 onChange={(value) =>

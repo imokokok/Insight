@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { Server, Link2, TrendingUp, Shield } from 'lucide-react';
 import { WINkLinkClient } from '@/lib/oracles/winklink';
 import {
   PageHeader,
@@ -72,9 +73,6 @@ export default function WINkLinkPage() {
     const tronIntegrationCount = tronIntegration?.integratedDApps?.length ?? 0;
     const stakingApr = staking?.averageApr ?? 15.5;
     const nodeUptime = networkStats?.nodeUptime ?? 99.9;
-    const dailyRandomRequests = gaming?.dailyRandomRequests ?? 0;
-    const totalGamingVolume = gaming?.totalGamingVolume ?? 0;
-    const activeGames = gaming?.activeGames ?? 0;
 
     return [
       {
@@ -82,121 +80,31 @@ export default function WINkLinkPage() {
         value: activeNodes > 0 ? `${activeNodes}+` : '-',
         change: '+5%',
         changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        ),
+        icon: <Server className="w-5 h-5" />,
       },
       {
         title: t('winklink.stats.tronIntegrations'),
         value: tronIntegrationCount > 0 ? `${tronIntegrationCount}` : '-',
         change: '+8',
         changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-            />
-          </svg>
-        ),
+        icon: <Link2 className="w-5 h-5" />,
       },
       {
         title: t('winklink.stats.stakingApr'),
         value: `${stakingApr}%`,
         change: '+2.5%',
         changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            />
-          </svg>
-        ),
+        icon: <TrendingUp className="w-5 h-5" />,
       },
       {
         title: t('winklink.stats.networkUptime'),
         value: `${nodeUptime}%`,
         change: '+0.05%',
         changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('winklink.stats.vrfDailyRequests'),
-        value: dailyRandomRequests > 0 ? `${dailyRandomRequests.toLocaleString()}` : '-',
-        change: '+12%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('winklink.stats.gamingVolume'),
-        value: totalGamingVolume > 0 ? `$${(totalGamingVolume / 1e6).toFixed(1)}M` : '-',
-        change: '+8.5%',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
-            />
-          </svg>
-        ),
-      },
-      {
-        title: t('winklink.stats.activeGames'),
-        value: activeGames > 0 ? `${activeGames}` : '-',
-        change: '+3',
-        changeType: 'positive' as const,
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        ),
+        icon: <Shield className="w-5 h-5" />,
       },
     ];
-  }, [networkStats, tronIntegration, staking, gaming, t]);
+  }, [networkStats, tronIntegration, staking, t]);
 
   if (isLoading) {
     return <LoadingState themeColor={config.themeColor} />;
@@ -230,9 +138,9 @@ export default function WINkLinkPage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <StatCard key={index} {...stat} isFirst={index === 0} />
             ))}
           </div>
 

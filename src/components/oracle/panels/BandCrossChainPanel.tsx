@@ -183,7 +183,9 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
             <p className="text-2xl font-bold text-purple-700">
               {formatNumber(stats.totalRequests24h * 0.4)}
             </p>
-            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.transfers24h')}</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('bandProtocol.crossChain.transfers24h')}
+            </p>
           </div>
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
@@ -193,7 +195,9 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
               </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">12</p>
-            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.activeChannels')}</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('bandProtocol.crossChain.activeChannels')}
+            </p>
           </div>
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
@@ -203,7 +207,9 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
               </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">2.8s</p>
-            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.crossChainLatency')}</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('bandProtocol.crossChain.crossChainLatency')}
+            </p>
           </div>
         </div>
       </DashboardCard>

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { EcosystemIntegration } from '@/lib/oracles/dia';
 import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
+import { DashboardCard } from '@/components/oracle';
 
 type Category = 'all' | 'dex' | 'lending' | 'derivatives' | 'yield' | 'insurance';
 
@@ -24,13 +25,13 @@ function formatTVL(value: number): string {
 function getCategoryBadgeColor(category: string): string {
   switch (category) {
     case 'dex':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
     case 'lending':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'derivatives':
       return 'bg-purple-100 text-purple-800 border-purple-200';
     case 'yield':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      return 'bg-amber-100 text-amber-800 border-amber-200';
     case 'insurance':
       return 'bg-red-100 text-red-800 border-red-200';
     default:
@@ -110,46 +111,46 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 p-6">
+      <DashboardCard className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.ecosystem.title')}</h3>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <div className="bg-gray-50 border border-gray-200 p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.totalProtocols}</p>
+          <DashboardCard className="p-4 text-center">
+            <p className="text-2xl font-bold text-indigo-600">{stats.totalProtocols}</p>
             <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.totalProtocols')}
             </p>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 p-4 text-center">
-            <p className="text-2xl font-bold text-blue-900">{stats.byCategory.dex}</p>
-            <p className="text-xs text-blue-600 uppercase tracking-wider mt-1">
+          </DashboardCard>
+          <DashboardCard className="p-4 text-center">
+            <p className="text-2xl font-bold text-indigo-600">{stats.byCategory.dex}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.category.dex')}
             </p>
-          </div>
-          <div className="bg-green-50 border border-green-200 p-4 text-center">
-            <p className="text-2xl font-bold text-green-900">{stats.byCategory.lending}</p>
-            <p className="text-xs text-green-600 uppercase tracking-wider mt-1">
+          </DashboardCard>
+          <DashboardCard className="p-4 text-center">
+            <p className="text-2xl font-bold text-blue-600">{stats.byCategory.lending}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.category.lending')}
             </p>
-          </div>
-          <div className="bg-purple-50 border border-purple-200 p-4 text-center">
-            <p className="text-2xl font-bold text-purple-900">{stats.byCategory.derivatives}</p>
-            <p className="text-xs text-purple-600 uppercase tracking-wider mt-1">
+          </DashboardCard>
+          <DashboardCard className="p-4 text-center">
+            <p className="text-2xl font-bold text-purple-600">{stats.byCategory.derivatives}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.category.derivatives')}
             </p>
-          </div>
-          <div className="bg-yellow-50 border border-yellow-200 p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-900">{stats.byCategory.yield}</p>
-            <p className="text-xs text-yellow-600 uppercase tracking-wider mt-1">
+          </DashboardCard>
+          <DashboardCard className="p-4 text-center">
+            <p className="text-2xl font-bold text-amber-600">{stats.byCategory.yield}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.category.yield')}
             </p>
-          </div>
-          <div className="bg-gray-50 border border-gray-200 p-4 text-center">
+          </DashboardCard>
+          <DashboardCard className="p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">{formatTVL(stats.totalTVL)}</p>
             <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">
               {t('dia.ecosystem.totalTVL')}
             </p>
-          </div>
+          </DashboardCard>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
@@ -157,10 +158,10 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
             <button
               key={category.key}
               onClick={() => setSelectedCategory(category.key)}
-              className={`px-4 py-2 text-sm font-medium border transition-colors duration-200 ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                 selectedCategory === category.key
-                  ? 'bg-purple-600 text-white border-purple-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {t(category.label)}
@@ -172,9 +173,9 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
           {filteredIntegrations.map((integration) => {
             const depthBadge = getIntegrationDepthBadge(integration.integrationDepth);
             return (
-              <div
+              <DashboardCard
                 key={integration.protocolId}
-                className="bg-white border border-gray-200 p-4 hover:border-purple-300 transition-colors duration-200"
+                className="p-4 hover:border-indigo-300 transition-colors duration-200"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
@@ -186,7 +187,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
                     </p>
                   </div>
                   <span
-                    className={`text-xs font-medium px-2 py-1 border ${getCategoryBadgeColor(
+                    className={`text-xs font-medium px-2 py-1 rounded border ${getCategoryBadgeColor(
                       integration.category
                     )}`}
                   >
@@ -198,7 +199,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
                   <span className="text-lg font-bold text-gray-900">
                     {formatTVL(integration.tvl)}
                   </span>
-                  <span className={`text-xs font-medium px-2 py-1 ${depthBadge.color}`}>
+                  <span className={`text-xs font-medium px-2 py-1 rounded ${depthBadge.color}`}>
                     {t(depthBadge.label)}
                   </span>
                 </div>
@@ -212,7 +213,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
                   href={integration.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-sm text-purple-600 hover:text-purple-800 transition-colors duration-200"
+                  className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
                 >
                   {t('dia.ecosystem.visitWebsite')}
                   <svg
@@ -229,7 +230,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
                     />
                   </svg>
                 </a>
-              </div>
+              </DashboardCard>
             );
           })}
         </div>
@@ -239,7 +240,7 @@ export function DIAEcosystemPanel({ integrations }: DIAEcosystemPanelProps) {
             <p className="text-gray-500">{t('dia.ecosystem.noProtocols')}</p>
           </div>
         )}
-      </div>
+      </DashboardCard>
     </div>
   );
 }

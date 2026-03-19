@@ -10,6 +10,8 @@ import {
   NetworkHealthPanel,
   DashboardCard,
   StatCard,
+  StatGrid,
+  StatGridItem,
   TabNavigation,
   LoadingState,
   ErrorFallback,
@@ -264,11 +266,11 @@ export default function RedStonePage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatGrid className="mb-6">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <StatGridItem key={index} {...stat} />
             ))}
-          </div>
+          </StatGrid>
 
           {activeTab === 'market' && (
             <>
@@ -336,48 +338,77 @@ export default function RedStonePage() {
 
           {activeTab === 'providers' && (
             <div className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.providers.dataSources')}
-                  </h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">{providers?.length || 4}</p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {t('redstone.providers.activeSources')}
-                  </p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.providers.updateFrequency')}
-                  </h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">~60s</p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {t('redstone.providers.avgUpdateTime')}
-                  </p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.providers.dataQuality')}
-                  </h4>
-                  <p className="text-2xl font-bold text-green-600 mt-2">99.8%</p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {t('redstone.providers.accuracyRate')}
-                  </p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.dataStreams.avgReputation')}
-                  </h4>
-                  <p className="text-2xl font-bold text-blue-600 mt-2">
-                    {metrics?.avgProviderReputation
+              {/* Stats Cards - Dune Style */}
+              <StatGrid>
+                <StatGridItem
+                  title={t('redstone.providers.dataSources')}
+                  value={String(providers?.length || 4)}
+                  change="+1"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.providers.updateFrequency')}
+                  value="~60s"
+                  change="-5s"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.providers.dataQuality')}
+                  value="99.8%"
+                  change="+0.1%"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.dataStreams.avgReputation')}
+                  value={`${
+                    metrics?.avgProviderReputation
                       ? (metrics.avgProviderReputation * 100).toFixed(1)
-                      : '93.5'}
-                    %
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.providers.reputation')}</p>
-                </div>
-              </div>
+                      : '93.5'
+                  }%`}
+                  change="+0.5%"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      />
+                    </svg>
+                  }
+                />
+              </StatGrid>
 
               {/* Controls */}
               <DashboardCard title={t('redstone.providers.title')}>
@@ -410,15 +441,17 @@ export default function RedStonePage() {
                   </div>
                 </div>
 
-                {/* Providers List */}
-                <div className="space-y-3">
+                {/* Providers List - Dune Style */}
+                <div className="border border-gray-200 divide-y divide-gray-200">
                   {providersLoading ? (
-                    <div className="text-center py-8 text-gray-500">{t('redstone.providers.loading')}</div>
+                    <div className="text-center py-8 text-gray-500">
+                      {t('redstone.providers.loading')}
+                    </div>
                   ) : (
                     sortedProviders.map((provider, index) => (
                       <div
                         key={provider.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => setSelectedProvider(provider)}
                       >
                         <div className="flex items-center gap-4">
@@ -531,7 +564,9 @@ export default function RedStonePage() {
                     {t('redstone.dataStreams.streamCount')}
                   </h4>
                   <p className="text-2xl font-bold text-red-600 mt-2">1,250+</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.activeDataStreams')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.dataStreams.activeDataStreams')}
+                  </p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
@@ -549,7 +584,9 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-blue-600 mt-2">
                     {metrics?.modularFee ? (metrics.modularFee * 100).toFixed(3) : '0.015'}%
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.perUpdate')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.dataStreams.perUpdate')}
+                  </p>
                 </div>
                 <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-semibold text-gray-900 text-sm">
@@ -558,7 +595,9 @@ export default function RedStonePage() {
                   <p className="text-2xl font-bold text-purple-600 mt-2">
                     {metrics?.providerCount || 18}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.dataStreams.activeProviders')}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {t('redstone.dataStreams.activeProviders')}
+                  </p>
                 </div>
               </div>
 
@@ -567,35 +606,51 @@ export default function RedStonePage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.dataStreams.streamTypes')}</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        {t('redstone.dataStreams.streamTypes')}
+                      </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.priceFeeds')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.priceFeeds')}
+                          </span>
                           <span className="text-sm font-medium">1,000+</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.customData')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.customData')}
+                          </span>
                           <span className="text-sm font-medium">150+</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.l2Data')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.l2Data')}
+                          </span>
                           <span className="text-sm font-medium">100+</span>
                         </div>
                       </div>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">{t('redstone.dataStreams.updateFrequencyTitle')}</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        {t('redstone.dataStreams.updateFrequencyTitle')}
+                      </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.highFrequency')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.highFrequency')}
+                          </span>
                           <span className="text-sm font-medium">~10s</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.standard')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.standard')}
+                          </span>
                           <span className="text-sm font-medium">~60s</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">{t('redstone.dataStreams.lowFrequency')}</span>
+                          <span className="text-sm text-gray-600">
+                            {t('redstone.dataStreams.lowFrequency')}
+                          </span>
                           <span className="text-sm font-medium">~300s</span>
                         </div>
                       </div>
@@ -608,41 +663,81 @@ export default function RedStonePage() {
 
           {activeTab === 'cross-chain' && (
             <div className="space-y-6">
-              {/* Cross Chain Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.crossChain.supportedChains')}
-                  </h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">{SUPPORTED_CHAINS.length}</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.activeNetworks')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.stats.avgResponse')}
-                  </h4>
-                  <p className="text-2xl font-bold text-green-600 mt-2">75ms</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.averageAcrossChains')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.crossChain.fastestChain')}</h4>
-                  <p className="text-2xl font-bold text-blue-600 mt-2">Base</p>
-                  <p className="text-xs text-gray-600 mt-1">60ms {t('redstone.crossChain.latency')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.crossChain.uptime')}</h4>
-                  <p className="text-2xl font-bold text-purple-600 mt-2">99.9%</p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.crossChain.allChains')}</p>
-                </div>
-              </div>
+              {/* Cross Chain Stats - Dune Style */}
+              <StatGrid>
+                <StatGridItem
+                  title={t('redstone.crossChain.supportedChains')}
+                  value={String(SUPPORTED_CHAINS.length)}
+                  change="+2"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.stats.avgResponse')}
+                  value="75ms"
+                  change="-5ms"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.crossChain.fastestChain')}
+                  value="Base"
+                  change="60ms"
+                  changeType="neutral"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.crossChain.uptime')}
+                  value="99.9%"
+                  change="+0.01%"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                />
+              </StatGrid>
 
-              {/* Chain List */}
+              {/* Chain List - Dune Style */}
               <DashboardCard title={t('redstone.crossChain.chainList')}>
-                <div className="space-y-3">
+                <div className="border border-gray-200 divide-y divide-gray-200">
                   {SUPPORTED_CHAINS.map((chain, index) => (
                     <div
                       key={chain.chain}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-sm font-medium text-gray-400 w-6">#{index + 1}</span>
@@ -665,10 +760,10 @@ export default function RedStonePage() {
                           </div>
                         </div>
                         <span
-                          className={`px-2 py-1 text-xs rounded-full ${
+                          className={`px-2 py-1 text-xs border ${
                             chain.status === 'active'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
+                              ? 'border-green-200 text-green-700 bg-green-50'
+                              : 'border-gray-200 text-gray-600 bg-gray-50'
                           }`}
                         >
                           {chain.status === 'active'
@@ -685,56 +780,100 @@ export default function RedStonePage() {
 
           {activeTab === 'ecosystem' && (
             <div className="space-y-6">
-              {/* Ecosystem Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">
-                    {t('redstone.ecosystem.integrations')}
-                  </h4>
-                  <p className="text-2xl font-bold text-red-600 mt-2">
-                    {ECOSYSTEM_INTEGRATIONS.length}+
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.projectsIntegrated')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.defiProtocols')}</h4>
-                  <p className="text-2xl font-bold text-blue-600 mt-2">
-                    {ecosystemByCategory.defi?.length || 6}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.usingRedstone')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.categories.infrastructure')}</h4>
-                  <p className="text-2xl font-bold text-green-600 mt-2">
-                    {ecosystemByCategory.infrastructure?.length || 3}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.infrastructurePartners')}</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm">{t('redstone.ecosystem.nftAndGaming')}</h4>
-                  <p className="text-2xl font-bold text-purple-600 mt-2">
-                    {(ecosystemByCategory.nft?.length || 2) +
-                      (ecosystemByCategory.gaming?.length || 0)}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{t('redstone.ecosystem.projects')}</p>
-                </div>
-              </div>
+              {/* Ecosystem Stats - Dune Style */}
+              <StatGrid>
+                <StatGridItem
+                  title={t('redstone.ecosystem.integrations')}
+                  value={`${ECOSYSTEM_INTEGRATIONS.length}+`}
+                  change="+3"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.ecosystem.defiProtocols')}
+                  value={String(ecosystemByCategory.defi?.length || 6)}
+                  change="+1"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08.402-2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.ecosystem.categories.infrastructure')}
+                  value={String(ecosystemByCategory.infrastructure?.length || 3)}
+                  change="+1"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  }
+                />
+                <StatGridItem
+                  title={t('redstone.ecosystem.nftAndGaming')}
+                  value={String(
+                    (ecosystemByCategory.nft?.length || 2) +
+                      (ecosystemByCategory.gaming?.length || 0)
+                  )}
+                  change="+1"
+                  changeType="positive"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                />
+              </StatGrid>
 
-              {/* Categorized Integrations */}
+              {/* Categorized Integrations - Dune Style */}
               {Object.entries(ecosystemByCategory).map(([category, items]) => (
                 <DashboardCard
                   key={category}
                   title={t(`redstone.ecosystem.categories.${category}`)}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="border border-gray-200 divide-y divide-gray-200">
                     {items.map((integration, index) => (
                       <div
                         key={index}
-                        className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                       >
-                        <h4 className="font-semibold text-gray-900">{integration.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{integration.description}</p>
-                        <span className="inline-block mt-2 text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{integration.name}</h4>
+                          <p className="text-sm text-gray-600 mt-0.5">{integration.description}</p>
+                        </div>
+                        <span className="px-2 py-1 text-xs border border-gray-200 text-gray-600 bg-gray-50">
                           {t(`redstone.ecosystem.categories.${integration.category}`)}
                         </span>
                       </div>

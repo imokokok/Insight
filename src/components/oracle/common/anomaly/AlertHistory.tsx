@@ -27,17 +27,12 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
           <div className="bg-gray-50  p-4">
             <div className="text-sm text-gray-600 mb-2">{t('anomalyAlert.last7Days')}</div>
             <div className="text-3xl font-bold text-gray-900">
-              {
-                anomalies.filter((a) => Date.now() - a.timestamp < 7 * 24 * 60 * 60 * 1000)
-                  .length
-              }
+              {anomalies.filter((a) => Date.now() - a.timestamp < 7 * 24 * 60 * 60 * 1000).length}
             </div>
           </div>
 
           <div className="bg-gray-50  p-4">
-            <div className="text-sm text-gray-600 mb-2">
-              {t('anomalyAlert.avgResolutionTime')}
-            </div>
+            <div className="text-sm text-gray-600 mb-2">{t('anomalyAlert.avgResolutionTime')}</div>
             <div className="text-3xl font-bold text-gray-900">
               {stats.avgResolutionTime > 0 ? formatDuration(stats.avgResolutionTime, t) : '--'}
             </div>
@@ -50,9 +45,7 @@ export function AlertHistory({ anomalies, stats }: AlertHistoryProps) {
           </h4>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                {t('anomalyAlert.type_price_spike')}
-              </span>
+              <span className="text-sm text-gray-600">{t('anomalyAlert.type_price_spike')}</span>
               <div className="flex items-center gap-2">
                 <div className="w-32 bg-gray-200  h-2">
                   <div

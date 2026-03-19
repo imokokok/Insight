@@ -53,7 +53,7 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
     fetchData();
   }, [client]);
 
-  // 验证者类型分布
+  // Validator type distribution
   const validatorTypeDistribution = [
     {
       name: t('uma.risk.institution'),
@@ -232,23 +232,23 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
 
       {/* 经济安全指标 */}
       <DashboardCard title={t('uma.risk.economicSecurity')}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-200">
           {economicSecurityMetrics.map((metric, index) => (
-            <div key={index} className="p-4 bg-gray-50 rounded-lg">
+            <div key={index} className={`p-4 bg-gray-50 ${index < economicSecurityMetrics.length - 1 ? 'border-r border-gray-200' : ''}`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">{metric.label}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wider">{metric.label}</span>
                 <span
-                  className={`w-2 h-2 rounded-full ${
+                  className={`w-2.5 h-2.5 rounded-full ${
                     metric.status === 'healthy'
-                      ? 'bg-green-500'
+                      ? 'bg-emerald-500'
                       : metric.status === 'warning'
-                        ? 'bg-yellow-500'
+                        ? 'bg-amber-500'
                         : 'bg-red-500'
                   }`}
                 />
               </div>
               <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+              <p className="text-xs text-gray-400 mt-1.5">{metric.description}</p>
             </div>
           ))}
         </div>
@@ -276,9 +276,11 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#fff',
-                    borderRadius: '8px',
                     border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   }}
+                  labelStyle={{ color: '#374151', fontSize: 12 }}
+                  itemStyle={{ color: '#111827', fontSize: 12 }}
                   formatter={(value, name) => [String(value), name]}
                 />
               </PieChart>
@@ -329,12 +331,12 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               {t('uma.risk.top10ValidatorsControl', { percentage: top10Percentage.toFixed(1) })}
             </p>
             <p
-              className={`text-sm font-medium mt-1 ${
+              className={`text-sm font-semibold mt-1.5 ${
                 concentrationRisk === 'high'
                   ? 'text-red-600'
                   : concentrationRisk === 'medium'
-                    ? 'text-yellow-600'
-                    : 'text-green-600'
+                    ? 'text-amber-600'
+                    : 'text-emerald-600'
               }`}
             >
               {concentrationRisk === 'high'
@@ -353,31 +355,33 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={resolutionTimeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="range" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+                <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#fff',
-                    borderRadius: '8px',
                     border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   }}
+                  labelStyle={{ color: '#374151', fontSize: 12 }}
+                  itemStyle={{ color: '#111827', fontSize: 12 }}
                   formatter={(value) => [String(value), t('uma.risk.disputeCount')]}
                 />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">{t('uma.risk.avgResolutionTime')}</p>
-              <p className="text-lg font-semibold">
+          <div className="mt-4 grid grid-cols-2 gap-0 border border-gray-200">
+            <div className="p-4 bg-gray-50 text-center border-r border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">{t('uma.risk.avgResolutionTime')}</p>
+              <p className="text-xl font-bold text-gray-900">
                 {disputeStats?.avgResolutionTime.toFixed(1) ?? 4.2}h
               </p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">{t('uma.risk.medianResolutionTime')}</p>
-              <p className="text-lg font-semibold">{disputeStats?.medianResolutionTime ?? 4}h</p>
+            <div className="p-4 bg-gray-50 text-center">
+              <p className="text-xs text-gray-500 mb-1">{t('uma.risk.medianResolutionTime')}</p>
+              <p className="text-xl font-bold text-gray-900">{disputeStats?.medianResolutionTime ?? 4}h</p>
             </div>
           </div>
         </DashboardCard>
@@ -386,15 +390,17 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={successRateData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#fff',
-                    borderRadius: '8px',
                     border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   }}
+                  labelStyle={{ color: '#374151', fontSize: 12 }}
+                  itemStyle={{ color: '#111827', fontSize: 12 }}
                   formatter={(value) => [`${Number(value).toFixed(1)}%`, t('uma.risk.successRate')]}
                 />
                 <Line
@@ -402,12 +408,12 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                   dataKey="rate"
                   stroke="#10b981"
                   strokeWidth={2}
-                  dot={{ fill: '#10b981', strokeWidth: 2 }}
+                  dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200">
             <p className="text-sm text-gray-600">
               {t('uma.risk.disputeSuccessRateDescription', {
                 rate:
@@ -422,10 +428,10 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
 
       {/* 风险评估总结 */}
       <DashboardCard title={t('uma.risk.assessmentSummary')}>
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-200">
             <svg
-              className="w-5 h-5 text-green-600 mt-0.5"
+              className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -438,13 +444,13 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               />
             </svg>
             <div>
-              <p className="font-medium text-green-900">{t('uma.risk.networkHealth')}</p>
-              <p className="text-sm text-green-700">{t('uma.risk.networkHealthDesc')}</p>
+              <p className="font-semibold text-emerald-900">{t('uma.risk.networkHealth')}</p>
+              <p className="text-sm text-emerald-700 mt-0.5">{t('uma.risk.networkHealthDesc')}</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200">
             <svg
-              className="w-5 h-5 text-blue-600 mt-0.5"
+              className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -457,14 +463,14 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               />
             </svg>
             <div>
-              <p className="font-medium text-blue-900">{t('uma.risk.economicSecurity')}</p>
-              <p className="text-sm text-blue-700">{t('uma.risk.economicSecurityDesc')}</p>
+              <p className="font-semibold text-blue-900">{t('uma.risk.economicSecurity')}</p>
+              <p className="text-sm text-blue-700 mt-0.5">{t('uma.risk.economicSecurityDesc')}</p>
             </div>
           </div>
           {concentrationRisk !== 'low' && (
-            <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200">
               <svg
-                className="w-5 h-5 text-yellow-600 mt-0.5"
+                className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -477,8 +483,8 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
                 />
               </svg>
               <div>
-                <p className="font-medium text-yellow-900">{t('uma.risk.concentrationRisk')}</p>
-                <p className="text-sm text-yellow-700">{t('uma.risk.concentrationRiskDesc')}</p>
+                <p className="font-semibold text-amber-900">{t('uma.risk.concentrationRisk')}</p>
+                <p className="text-sm text-amber-700 mt-0.5">{t('uma.risk.concentrationRiskDesc')}</p>
               </div>
             </div>
           )}

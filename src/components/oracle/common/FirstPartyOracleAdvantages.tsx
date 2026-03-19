@@ -133,7 +133,9 @@ export function FirstPartyOracleAdvantages({ data }: FirstPartyOracleAdvantagesP
                 <p className="text-xs text-gray-600 uppercase tracking-wider">
                   {t('api3.firstPartyOracle.responseTime')}
                 </p>
-                <p className="text-lg font-semibold text-gray-900">{t('api3.firstPartyOracle.responseTimeValue')}</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {t('api3.firstPartyOracle.responseTimeValue')}
+                </p>
               </div>
             </div>
           </div>

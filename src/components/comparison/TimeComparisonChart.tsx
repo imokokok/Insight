@@ -65,8 +65,12 @@ export function TimeComparisonChart({
     const primaryAvg = primaryValues.reduce((a, b) => a + b, 0) / primaryValues.length;
     const comparisonAvg = comparisonValues.reduce((a, b) => a + b, 0) / comparisonValues.length;
 
-    const primaryChange = ((primaryValues[primaryValues.length - 1] - primaryValues[0]) / primaryValues[0]) * 100;
-    const comparisonChange = ((comparisonValues[comparisonValues.length - 1] - comparisonValues[0]) / comparisonValues[0]) * 100;
+    const primaryChange =
+      ((primaryValues[primaryValues.length - 1] - primaryValues[0]) / primaryValues[0]) * 100;
+    const comparisonChange =
+      ((comparisonValues[comparisonValues.length - 1] - comparisonValues[0]) /
+        comparisonValues[0]) *
+      100;
 
     return {
       primaryAvg,
@@ -78,7 +82,11 @@ export function TimeComparisonChart({
     };
   }, [data]);
 
-  const CustomTooltip = ({ active, payload, label }: {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
     active?: boolean;
     payload?: Array<{ dataKey: string; value: number; color: string }>;
     label?: number;
@@ -87,26 +95,23 @@ export function TimeComparisonChart({
 
     const primaryValue = payload.find((p) => p.dataKey === 'primary')?.value;
     const comparisonValue = payload.find((p) => p.dataKey === 'comparison')?.value;
-    const difference = primaryValue !== undefined && comparisonValue !== undefined
-      ? primaryValue - comparisonValue
-      : null;
-    const percentDiff = difference !== null && comparisonValue && comparisonValue !== 0
-      ? (difference / comparisonValue) * 100
-      : null;
+    const difference =
+      primaryValue !== undefined && comparisonValue !== undefined
+        ? primaryValue - comparisonValue
+        : null;
+    const percentDiff =
+      difference !== null && comparisonValue && comparisonValue !== 0
+        ? (difference / comparisonValue) * 100
+        : null;
 
     return (
       <div className="bg-white border border-gray-200 p-3 shadow-lg">
-        <div className="text-sm font-semibold text-gray-900 mb-2">
-          {formatDate(label || 0)}
-        </div>
+        <div className="text-sm font-semibold text-gray-900 mb-2">{formatDate(label || 0)}</div>
         <div className="space-y-1">
           {payload.map((entry, index) => (
             <div key={index} className="flex items-center justify-between gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                 <span className="text-gray-600">
                   {entry.dataKey === 'primary' ? defaultPrimaryLabel : defaultComparisonLabel}
                 </span>
@@ -120,19 +125,23 @@ export function TimeComparisonChart({
             <div className="pt-2 mt-2 border-t border-gray-100">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">{t('difference')}</span>
-                <span className={`font-mono font-medium ${
-                  difference >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {difference >= 0 ? '+' : ''}{valueFormatter(difference)}
+                <span
+                  className={`font-mono font-medium ${
+                    difference >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {difference >= 0 ? '+' : ''}
+                  {valueFormatter(difference)}
                 </span>
               </div>
               {percentDiff !== null && (
                 <div className="flex items-center justify-between text-xs mt-1">
                   <span className="text-gray-400">{t('percentChange')}</span>
-                  <span className={`font-mono ${
-                    percentDiff >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {percentDiff >= 0 ? '+' : ''}{percentDiff.toFixed(2)}%
+                  <span
+                    className={`font-mono ${percentDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {percentDiff >= 0 ? '+' : ''}
+                    {percentDiff.toFixed(2)}%
                   </span>
                 </div>
               )}
@@ -145,30 +154,38 @@ export function TimeComparisonChart({
 
   return (
     <div className="space-y-4">
-      {title && (
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      )}
+      {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 border border-gray-200">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('currentAvg')}</p>
-            <p className="text-lg font-semibold text-blue-600">{valueFormatter(stats.primaryAvg)}</p>
+            <p className="text-lg font-semibold text-blue-600">
+              {valueFormatter(stats.primaryAvg)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('comparisonAvg')}</p>
-            <p className="text-lg font-semibold text-purple-600">{valueFormatter(stats.comparisonAvg)}</p>
+            <p className="text-lg font-semibold text-purple-600">
+              {valueFormatter(stats.comparisonAvg)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('difference')}</p>
-            <p className={`text-lg font-semibold ${stats.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {stats.difference >= 0 ? '+' : ''}{valueFormatter(stats.difference)}
+            <p
+              className={`text-lg font-semibold ${stats.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {stats.difference >= 0 ? '+' : ''}
+              {valueFormatter(stats.difference)}
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-wider">{t('percentChange')}</p>
-            <p className={`text-lg font-semibold ${stats.percentDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {stats.percentDiff >= 0 ? '+' : ''}{stats.percentDiff.toFixed(2)}%
+            <p
+              className={`text-lg font-semibold ${stats.percentDiff >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {stats.percentDiff >= 0 ? '+' : ''}
+              {stats.percentDiff.toFixed(2)}%
             </p>
           </div>
         </div>
@@ -272,7 +289,11 @@ export function TimeComparisonChart({
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.difference >= 0 ? chartColors.semantic.positive : chartColors.semantic.negative}
+                    fill={
+                      entry.difference >= 0
+                        ? chartColors.semantic.positive
+                        : chartColors.semantic.negative
+                    }
                   />
                 ))}
               </Bar>

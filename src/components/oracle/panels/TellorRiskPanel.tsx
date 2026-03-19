@@ -105,15 +105,15 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
+    if (score >= 80) return 'text-emerald-600';
+    if (score >= 60) return 'text-amber-600';
     return 'text-red-600';
   };
 
   const getProgressColor = (value: number, max: number = 100) => {
     const percentage = (value / max) * 100;
-    if (percentage <= 30) return 'bg-green-500';
-    if (percentage <= 70) return 'bg-yellow-500';
+    if (percentage <= 30) return 'bg-emerald-500';
+    if (percentage <= 70) return 'bg-amber-500';
     return 'bg-red-500';
   };
 
@@ -140,9 +140,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <span
               className={`text-3xl font-bold uppercase ${
                 data.overallRiskLevel === 'low'
-                  ? 'text-green-600'
+                  ? 'text-emerald-600'
                   : data.overallRiskLevel === 'medium'
-                    ? 'text-yellow-600'
+                    ? 'text-amber-600'
                     : 'text-red-600'
               }`}
             >
@@ -163,9 +163,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
               </span>
               <span className="text-sm text-gray-500">/ 100</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-gray-100 h-2">
               <div
-                className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(data.dataQualityScore)}`}
+                className={`h-2 transition-all duration-500 ${getProgressColor(data.dataQualityScore)}`}
                 style={{ width: `${data.dataQualityScore}%` }}
               />
             </div>
@@ -184,7 +184,7 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">{t('tellor.risk.max24h')}</span>
-              <span className="text-sm font-medium text-yellow-600">
+              <span className="text-sm font-medium text-amber-600">
                 {data.priceDeviation.max24h.toFixed(4)}%
               </span>
             </div>
@@ -228,9 +228,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                   {data.stakingRisk.concentrationRisk.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(data.stakingRisk.concentrationRisk)}`}
+                  className={`h-2 transition-all duration-500 ${getProgressColor(data.stakingRisk.concentrationRisk)}`}
                   style={{ width: `${data.stakingRisk.concentrationRisk}%` }}
                 />
               </div>
@@ -238,13 +238,13 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.slashRisk')}</span>
-                <span className="text-sm font-medium text-green-600">
+                <span className="text-sm font-medium text-emerald-600">
                   {data.stakingRisk.slashRisk.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-2 transition-all duration-500"
                   style={{ width: `${data.stakingRisk.slashRisk}%` }}
                 />
               </div>
@@ -252,13 +252,13 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.rewardStability')}</span>
-                <span className="text-sm font-medium text-green-600">
+                <span className="text-sm font-medium text-emerald-600">
                   {data.stakingRisk.rewardStability.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-2 transition-all duration-500"
                   style={{ width: `${data.stakingRisk.rewardStability}%` }}
                 />
               </div>
@@ -271,13 +271,13 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">{t('tellor.risk.uptimeRisk')}</span>
-                <span className="text-sm font-medium text-green-600">
+                <span className="text-sm font-medium text-emerald-600">
                   {data.networkRisk.uptimeRisk.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-2 transition-all duration-500"
                   style={{ width: `${data.networkRisk.uptimeRisk}%` }}
                 />
               </div>
@@ -289,9 +289,9 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                   {data.networkRisk.latencyRisk.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(data.networkRisk.latencyRisk)}`}
+                  className={`h-2 transition-all duration-500 ${getProgressColor(data.networkRisk.latencyRisk)}`}
                   style={{ width: `${data.networkRisk.latencyRisk}%` }}
                 />
               </div>
@@ -301,13 +301,13 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                 <span className="text-sm text-gray-600">
                   {t('tellor.risk.updateFrequencyRisk')}
                 </span>
-                <span className="text-sm font-medium text-green-600">
+                <span className="text-sm font-medium text-emerald-600">
                   {data.networkRisk.updateFrequencyRisk.toFixed(1)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-gray-100 h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-2 transition-all duration-500"
                   style={{ width: `${data.networkRisk.updateFrequencyRisk}%` }}
                 />
               </div>
@@ -328,20 +328,20 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
           {data.alerts.map((alert, index) => (
             <div
               key={index}
-              className={`flex items-start gap-3 p-3 rounded-lg ${
+              className={`flex items-start gap-3 p-3 ${
                 alert.type === 'critical'
                   ? 'bg-red-50 border border-red-200'
                   : alert.type === 'warning'
-                    ? 'bg-yellow-50 border border-yellow-200'
+                    ? 'bg-amber-50 border border-amber-200'
                     : 'bg-blue-50 border border-blue-200'
               }`}
             >
               <div
-                className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                className={`w-2 h-2 mt-2 flex-shrink-0 ${
                   alert.type === 'critical'
                     ? 'bg-red-500'
                     : alert.type === 'warning'
-                      ? 'bg-yellow-500'
+                      ? 'bg-amber-500'
                       : 'bg-blue-500'
                 }`}
               />
@@ -352,11 +352,11 @@ export function TellorRiskPanel({ data }: TellorRiskPanelProps) {
                 </p>
               </div>
               <span
-                className={`text-xs px-2 py-1 rounded-full uppercase ${
+                className={`text-xs px-2 py-1 uppercase ${
                   alert.type === 'critical'
                     ? 'bg-red-100 text-red-700'
                     : alert.type === 'warning'
-                      ? 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-amber-100 text-amber-700'
                       : 'bg-blue-100 text-blue-700'
                 }`}
               >

@@ -2,12 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { chartColors } from '@/lib/config/colors';
-import {
-  QualityScore,
-  QualityStatus,
-  getStatusConfig,
-  getStatusFromScore,
-} from './qualityUtils';
+import { QualityScore, QualityStatus, getStatusConfig, getStatusFromScore } from './qualityUtils';
 
 interface QualityScoreCardProps {
   score: QualityScore;

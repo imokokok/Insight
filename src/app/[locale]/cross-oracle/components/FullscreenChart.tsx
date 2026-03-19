@@ -60,12 +60,7 @@ export function FullscreenChart({
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 12H4"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
               </svg>
             </button>
             <span className="px-3 text-sm text-gray-600 min-w-[4rem] text-center font-medium">
@@ -112,19 +107,11 @@ export function FullscreenChart({
             <defs>
               <linearGradient id="stdDevGradient1Fullscreen" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.15} />
-                <stop
-                  offset="100%"
-                  stopColor={chartColors.recharts.primary}
-                  stopOpacity={0.05}
-                />
+                <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
               </linearGradient>
               <linearGradient id="stdDevGradient2Fullscreen" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={chartColors.recharts.primary} stopOpacity={0.05} />
-                <stop
-                  offset="100%"
-                  stopColor={chartColors.recharts.primary}
-                  stopOpacity={0.01}
-                />
+                <stop offset="100%" stopColor={chartColors.recharts.primary} stopOpacity={0.01} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />

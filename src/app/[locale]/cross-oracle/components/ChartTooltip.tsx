@@ -16,14 +16,9 @@ interface ChartTooltipProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-export function ChartTooltip({
-  active,
-  payload,
-  label,
-  t,
-}: ChartTooltipProps) {
+export function ChartTooltip({ active, payload, label, t }: ChartTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
-  
+
   const avgPriceData = payload.find((p) => p.dataKey === 'avgPrice');
   const oraclePrices = payload.filter((p) =>
     Object.values(oracleNames).includes(p.dataKey as OracleProvider)
@@ -63,7 +58,9 @@ export function ChartTooltip({
         </div>
       )}
       <div className="space-y-1.5">
-        <div className="text-xs text-gray-500 mb-2">{t('crossOracle.chartTooltip.oraclePrices')}</div>
+        <div className="text-xs text-gray-500 mb-2">
+          {t('crossOracle.chartTooltip.oraclePrices')}
+        </div>
         {oraclePrices.map((entry, index) => {
           const deviation = avgValue ? ((entry.value - avgValue) / avgValue) * 100 : null;
           return (
@@ -84,9 +81,7 @@ export function ChartTooltip({
                   })}
                 </span>
                 {deviation !== null && (
-                  <span
-                    className={`text-xs ${deviation >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
+                  <span className={`text-xs ${deviation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     ({deviation >= 0 ? '+' : ''}
                     {deviation.toFixed(3)}%)
                   </span>

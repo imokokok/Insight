@@ -310,11 +310,15 @@ export function PriceTable({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">{t('crossOracle.priceTable.status')}</span>
+                            <span className="text-gray-500">
+                              {t('crossOracle.priceTable.status')}
+                            </span>
                             <span
                               className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
                             >
-                              {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
+                              {outlier
+                                ? t('crossOracle.priceTable.outlier')
+                                : t('crossOracle.priceTable.normal')}
                             </span>
                           </div>
                         </div>
@@ -327,13 +331,17 @@ export function PriceTable({
                     <td colSpan={6} className="py-3 px-4">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.oracle')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.oracle')}
+                          </span>
                           <span className="font-medium text-gray-900">
                             {oracleNames[data.provider]}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.price')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.price')}
+                          </span>
                           <span className="font-mono text-gray-900">
                             $
                             {data.price.toLocaleString(undefined, {
@@ -343,7 +351,9 @@ export function PriceTable({
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.priceTable.deviationRate')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.priceTable.deviationRate')}
+                          </span>
                           <span
                             className={`font-medium ${getDeviationColorClass(deviationPercent).split(' ')[0]}`}
                           >
@@ -353,17 +363,23 @@ export function PriceTable({
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.confidence')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.confidence')}
+                          </span>
                           <span className="text-gray-900">
                             {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.source')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.source')}
+                          </span>
                           <span className="text-gray-900">{data.source || '-'}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.priceTable.updateTime')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.priceTable.updateTime')}
+                          </span>
                           <span className="text-gray-900">
                             {new Date(data.timestamp).toLocaleString()}
                           </span>
@@ -377,11 +393,15 @@ export function PriceTable({
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 block text-xs">{t('crossOracle.priceTable.status')}</span>
+                          <span className="text-gray-500 block text-xs">
+                            {t('crossOracle.priceTable.status')}
+                          </span>
                           <span
                             className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${outlier ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}
                           >
-                            {outlier ? t('crossOracle.priceTable.outlier') : t('crossOracle.priceTable.normal')}
+                            {outlier
+                              ? t('crossOracle.priceTable.outlier')
+                              : t('crossOracle.priceTable.normal')}
                           </span>
                         </div>
                       </div>

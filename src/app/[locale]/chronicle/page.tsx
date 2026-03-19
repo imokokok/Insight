@@ -88,6 +88,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
+        iconBgColor: 'bg-amber-50',
+        iconColor: 'text-amber-600',
       },
       {
         title: t('chronicle.stats.makerDAOSupport'),
@@ -104,6 +106,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
+        iconBgColor: 'bg-blue-50',
+        iconColor: 'text-blue-600',
       },
       {
         title: t('chronicle.stats.stakingApr'),
@@ -120,6 +124,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
+        iconBgColor: 'bg-green-50',
+        iconColor: 'text-green-600',
       },
       {
         title: t('chronicle.stats.networkUptime'),
@@ -136,6 +142,8 @@ export default function ChroniclePage() {
             />
           </svg>
         ),
+        iconBgColor: 'bg-purple-50',
+        iconColor: 'text-purple-600',
       },
     ];
   }, [validatorMetrics, makerDAO, staking, t]);
@@ -172,9 +180,19 @@ export default function ChroniclePage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <StatCard
+                key={index}
+                title={stat.title}
+                value={stat.value}
+                change={stat.change}
+                changeType={stat.changeType}
+                icon={stat.icon}
+                isFirst={index === 0}
+                iconBgColor={stat.iconBgColor}
+                iconColor={stat.iconColor}
+              />
             ))}
           </div>
 

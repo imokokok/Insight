@@ -33,7 +33,8 @@ export function OracleComparisonSection({
     const priceRange = maxPrice - minPrice;
 
     // Calculate consistency score (based on coefficient of variation)
-    const variance = prices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) / prices.length;
+    const variance =
+      prices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) / prices.length;
     const stdDev = Math.sqrt(variance);
     const cv = avgPrice > 0 ? stdDev / avgPrice : 0;
     const consistencyScore = Math.max(0, Math.min(100, 100 - cv * 100));
@@ -62,28 +63,42 @@ export function OracleComparisonSection({
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">{t('crossOracle.comparison.avgPrice')}</div>
+              <div className="text-xs text-gray-500 mb-1">
+                {t('crossOracle.comparison.avgPrice')}
+              </div>
               <div className="text-lg font-semibold text-gray-900">
-                ${stats.avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {stats.avgPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">{t('crossOracle.comparison.priceRange')}</div>
+              <div className="text-xs text-gray-500 mb-1">
+                {t('crossOracle.comparison.priceRange')}
+              </div>
               <div className="text-lg font-semibold text-gray-900">
-                ${stats.priceRange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {stats.priceRange.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">{t('crossOracle.comparison.consistency')}</div>
+              <div className="text-xs text-gray-500 mb-1">
+                {t('crossOracle.comparison.consistency')}
+              </div>
               <div className="text-lg font-semibold text-gray-900">
                 {stats.consistencyScore.toFixed(1)}%
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">{t('crossOracle.comparison.oracleCount')}</div>
-              <div className="text-lg font-semibold text-gray-900">
-                {stats.oracleCount}
+              <div className="text-xs text-gray-500 mb-1">
+                {t('crossOracle.comparison.oracleCount')}
               </div>
+              <div className="text-lg font-semibold text-gray-900">{stats.oracleCount}</div>
             </div>
           </div>
         </div>
@@ -136,9 +151,7 @@ export function OracleComparisonSection({
                               className="w-2.5 h-2.5"
                               style={{ backgroundColor: oracleColors[data.provider] }}
                             />
-                            <span className="font-medium text-gray-900">
-                              {data.provider}
-                            </span>
+                            <span className="font-medium text-gray-900">{data.provider}</span>
                             {isBenchmark && (
                               <span className="text-xs text-blue-600">
                                 ({t('comparison.oracleComparison.benchmark')})
@@ -146,13 +159,18 @@ export function OracleComparisonSection({
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-right font-mono">
-                          ${data.price.toFixed(2)}
-                        </td>
-                        <td className={`px-3 py-2 text-right font-mono ${
-                          deviation > 0 ? 'text-green-600' : deviation < 0 ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {deviation > 0 ? '+' : ''}{deviation.toFixed(3)}%
+                        <td className="px-3 py-2 text-right font-mono">${data.price.toFixed(2)}</td>
+                        <td
+                          className={`px-3 py-2 text-right font-mono ${
+                            deviation > 0
+                              ? 'text-green-600'
+                              : deviation < 0
+                                ? 'text-red-600'
+                                : 'text-gray-600'
+                          }`}
+                        >
+                          {deviation > 0 ? '+' : ''}
+                          {deviation.toFixed(3)}%
                         </td>
                         <td className="px-3 py-2 text-center text-gray-500">
                           {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}

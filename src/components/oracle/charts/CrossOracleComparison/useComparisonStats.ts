@@ -337,8 +337,10 @@ export function useComparisonStats({
       const point: LineChartDataPoint = { time: i };
       selectedOracles.forEach((provider) => {
         const history = priceHistory[provider] || [];
-        (point as Record<string, number | string | null>)[oracleNames[provider]] = history[i]?.price ?? null;
-        (point as Record<string, number | string | null>)[`${oracleNames[provider]}_time`] = history[i]?.timestamp ?? null;
+        (point as Record<string, number | string | null>)[oracleNames[provider]] =
+          history[i]?.price ?? null;
+        (point as Record<string, number | string | null>)[`${oracleNames[provider]}_time`] =
+          history[i]?.timestamp ?? null;
       });
       return point;
     });

@@ -536,15 +536,14 @@ export default function ChartContainer({
                   </ResponsiveContainer>
                 )}
               </div>
-              {viewType === 'chart' &&
-                !['chain', 'protocol', 'asset'].includes(activeChart) && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                    <Info className="w-4 h-4" />
-                    {isChineseLocale(locale)
-                      ? '悬停查看详情，点击选中项目'
-                      : 'Hover for details, click to select'}
-                  </div>
-                )}
+              {viewType === 'chart' && !['chain', 'protocol', 'asset'].includes(activeChart) && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <Info className="w-4 h-4" />
+                  {isChineseLocale(locale)
+                    ? '悬停查看详情，点击选中项目'
+                    : 'Hover for details, click to select'}
+                </div>
+              )}
             </>
           )}
         </div>

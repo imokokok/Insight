@@ -854,9 +854,7 @@ function OracleMarketOverviewBase() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div
-            className="lg:col-span-2 bg-white p-6 shadow-sm"
-          >
+          <div className="lg:col-span-2 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold" style={{ color: baseColors.gray[900] }}>
                 {getChartTitle()}

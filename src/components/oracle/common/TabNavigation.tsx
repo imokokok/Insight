@@ -556,10 +556,12 @@ export function TabNavigation({
               }
             `}
           >
-            <span className={`
+            <span
+              className={`
               transition-colors duration-200
               ${isActive ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'}
-            `}>
+            `}
+            >
               {tab.icon}
             </span>
             <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>{tab.label}</span>

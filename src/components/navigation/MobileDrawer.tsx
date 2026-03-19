@@ -45,13 +45,7 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <Image
-                src="/logos/owl-logo.svg"
-                alt="Insight Logo"
-                width={32}
-                height={28}
-                priority
-              />
+              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={32} height={28} priority />
               <div className="text-xl font-bold text-blue-600">Insight</div>
               <div className="text-lg font-semibold text-gray-900">{t('navbar.menu')}</div>
             </div>

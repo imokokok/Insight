@@ -184,9 +184,9 @@ export default function TellorPage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <StatCard key={index} {...stat} isFirst={index === 0} />
             ))}
           </div>
 

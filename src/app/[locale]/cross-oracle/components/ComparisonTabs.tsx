@@ -226,10 +226,7 @@ export function ComparisonTabs({
       )}
 
       {priceData.length > 0 && (
-        <BenchmarkComparisonSection
-          priceData={priceData}
-          loading={isLoading}
-        />
+        <BenchmarkComparisonSection priceData={priceData} loading={isLoading} />
       )}
 
       <div className="flex items-center justify-between gap-4">
@@ -433,7 +430,9 @@ export function ComparisonTabs({
     <>
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">{t('crossOracle.chartsTab.detailedAnalysis')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('crossOracle.chartsTab.detailedAnalysis')}
+          </h2>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-gray-100 p-0.5">
               <button
@@ -628,8 +627,12 @@ export function ComparisonTabs({
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <p className="text-sm text-gray-500">{t('crossOracle.snapshotsTab.selectSnapshot')}</p>
-              <p className="text-xs text-gray-400 mt-1">{t('crossOracle.snapshotsTab.selectHint')}</p>
+              <p className="text-sm text-gray-500">
+                {t('crossOracle.snapshotsTab.selectSnapshot')}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {t('crossOracle.snapshotsTab.selectHint')}
+              </p>
             </div>
           </div>
         )}
@@ -641,14 +644,18 @@ export function ComparisonTabs({
     return (
       <>
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.advancedTab.movingAverage')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('crossOracle.advancedTab.movingAverage')}
+          </h2>
           {maData.some((d) => d.prices.length > 0) && (
             <MovingAverageChart data={maData} oracleNames={oracleNames} />
           )}
         </div>
 
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.advancedTab.dataQuality')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('crossOracle.advancedTab.dataQuality')}
+          </h2>
           {qualityTrendData.some((d) => d.data.length > 0) && (
             <DataQualityTrend data={qualityTrendData} oracleNames={oracleNames} />
           )}
@@ -660,7 +667,9 @@ export function ComparisonTabs({
   const renderPerformanceTab = () => (
     <>
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.performanceComparison')}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.performanceTab.performanceComparison')}
+        </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-gray-200 p-5">
             <div className="mb-4">
@@ -677,9 +686,7 @@ export function ComparisonTabs({
                 ]}
                 value={selectedPerformanceOracle || ''}
                 onChange={(value) =>
-                  setSelectedPerformanceOracle(
-                    value ? (value as OracleProvider) : null
-                  )
+                  setSelectedPerformanceOracle(value ? (value as OracleProvider) : null)
                 }
                 placeholder={t('crossOracle.performanceTab.selectOraclePlaceholder')}
                 className="w-full"
@@ -688,12 +695,16 @@ export function ComparisonTabs({
             <LatencyDistributionHistogram
               data={getOracleLatencyData(selectedPerformanceOracle)}
               oracleName={
-                selectedPerformanceOracle ? oracleNames[selectedPerformanceOracle] : t('crossOracle.performanceTab.allOracles')
+                selectedPerformanceOracle
+                  ? oracleNames[selectedPerformanceOracle]
+                  : t('crossOracle.performanceTab.allOracles')
               }
             />
           </div>
           <div className="bg-white border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.summary')}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">
+              {t('crossOracle.performanceTab.summary')}
+            </h3>
             <div className="space-y-3">
               {performanceData.map((data) => (
                 <div
@@ -705,11 +716,11 @@ export function ComparisonTabs({
                   }`}
                   onClick={() => setSelectedPerformanceOracle(data.provider)}
                   style={{ cursor: 'pointer' }}
-                  title={t('crossOracle.performanceTab.tooltip', { 
-                    name: data.name, 
-                    responseTime: data.responseTime, 
-                    accuracy: data.accuracy.toFixed(1), 
-                    stability: data.stability.toFixed(1) 
+                  title={t('crossOracle.performanceTab.tooltip', {
+                    name: data.name,
+                    responseTime: data.responseTime,
+                    accuracy: data.accuracy.toFixed(1),
+                    stability: data.stability.toFixed(1),
                   })}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -721,7 +732,9 @@ export function ComparisonTabs({
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
                     <div className="text-center">
-                      <p className="text-gray-400">{t('crossOracle.performanceTab.responseTime')}</p>
+                      <p className="text-gray-400">
+                        {t('crossOracle.performanceTab.responseTime')}
+                      </p>
                       <p className="font-semibold text-gray-900 truncate">{data.responseTime}ms</p>
                     </div>
                     <div className="text-center">
@@ -741,7 +754,9 @@ export function ComparisonTabs({
       </div>
 
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('crossOracle.performanceTab.advancedAnalysis')}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('crossOracle.performanceTab.advancedAnalysis')}
+        </h2>
         {correlationData.length >= 2 && (
           <div className="mb-6">
             <PriceCorrelationMatrix data={correlationData} oracleNames={oracleNames} />

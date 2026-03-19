@@ -181,7 +181,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
         <AlertTemplates onSelectTemplate={handleApplyTemplate} selectedSymbol={symbol} />
 
         <div className="border-t border-gray-200 pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">{t('alerts.create.customConfig')}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {t('alerts.create.customConfig')}
+          </h4>
         </div>
 
         <div>
@@ -233,7 +235,9 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             value={chain}
             onChange={(value) => setChain(value as Blockchain | '')}
             disabled={!provider}
-            placeholder={provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')}
+            placeholder={
+              provider ? t('alerts.create.allChains') : t('alerts.create.selectProviderFirst')
+            }
           />
         </div>
 
@@ -310,9 +314,7 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
             <div>
               <h4 className="text-sm font-medium text-gray-700">{t('alerts.mute.settings')}</h4>
               <p className="text-xs text-gray-500">
-                {muteConfig.enabled
-                  ? t('alerts.mute.enabledHint')
-                  : t('alerts.mute.disabledHint')}
+                {muteConfig.enabled ? t('alerts.mute.enabledHint') : t('alerts.mute.disabledHint')}
               </p>
             </div>
             <svg
@@ -323,7 +325,12 @@ export function AlertConfig({ onAlertCreated }: AlertConfigProps) {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 

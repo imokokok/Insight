@@ -318,24 +318,24 @@ function DisputeDistributionChart({ disputes }: { disputes: DisputeData[] }) {
       label: t('uma.disputeResolution.statusActive'),
       value: distribution.active,
       percentage: percentages.active,
-      color: 'bg-yellow-500',
-      lightColor: 'bg-yellow-100',
-      textColor: 'text-yellow-700',
+      color: 'bg-amber-500',
+      lightColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
     },
     {
       label: t('uma.disputeResolution.statusResolved'),
       value: distribution.resolved,
       percentage: percentages.resolved,
-      color: 'bg-green-500',
-      lightColor: 'bg-green-100',
-      textColor: 'text-green-700',
+      color: 'bg-emerald-500',
+      lightColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
     },
     {
       label: t('uma.disputeResolution.statusRejected'),
       value: distribution.rejected,
       percentage: percentages.rejected,
       color: 'bg-red-500',
-      lightColor: 'bg-red-100',
+      lightColor: 'bg-red-50',
       textColor: 'text-red-700',
     },
   ];
@@ -478,9 +478,9 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      active: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      resolved: 'bg-green-100 text-green-700 border-green-200',
-      rejected: 'bg-red-100 text-red-700 border-red-200',
+      active: 'bg-amber-50 text-amber-700 border-amber-200',
+      resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      rejected: 'bg-red-50 text-red-700 border-red-200',
     };
     const labels = {
       active: t('uma.disputeResolution.statusActive'),
@@ -489,7 +489,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
     };
     return (
       <span
-        className={`px-2.5 py-1 text-xs font-medium  border ${styles[status as keyof typeof styles]}`}
+        className={`px-2.5 py-1 text-xs font-semibold border ${styles[status as keyof typeof styles]}`}
       >
         {labels[status as keyof typeof labels]}
       </span>
@@ -597,10 +597,10 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border border-gray-200">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
+              <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('uma.disputeResolution.disputeId')}
                 </th>
@@ -625,23 +625,23 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
               {paginatedDisputes.map((dispute) => (
                 <tr
                   key={dispute.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <td className="py-3 px-4 text-sm font-mono text-gray-900">{dispute.id}</td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
+                  <td className="py-3.5 px-4 text-sm font-mono text-gray-700">{dispute.id}</td>
+                  <td className="py-3.5 px-4 text-sm text-gray-600">
                     {formatDate(dispute.timestamp)}
                   </td>
-                  <td className="py-3 px-4">{getStatusBadge(dispute.status)}</td>
-                  <td className="py-3 px-4">{getTypeBadge(dispute.type)}</td>
-                  <td className="py-3 px-4 text-sm text-right font-semibold text-gray-900">
+                  <td className="py-3.5 px-4">{getStatusBadge(dispute.status)}</td>
+                  <td className="py-3.5 px-4">{getTypeBadge(dispute.type)}</td>
+                  <td className="py-3.5 px-4 text-sm text-right font-semibold text-gray-700">
                     {dispute.reward.toLocaleString()}
                   </td>
-                  <td className="py-3 px-4 text-center">
+                  <td className="py-3.5 px-4 text-center">
                     <a
                       href={`https://etherscan.io/tx/${dispute.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50  transition-colors"
+                      className="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-colors"
                       title={t('disputeResolution.viewOnChain')}
                     >
                       <svg
@@ -685,19 +685,19 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 <button
                   onClick={() => goToPage(1)}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {t('disputeResolution.firstPage')}
                 </button>
                 <button
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {t('disputeResolution.previousPage')}
                 </button>
 
-                <div className="flex items-center gap-1 mx-2">
+                <div className="flex items-center gap-0.5 mx-2">
                   {getPageNumbers().map((page, index) =>
                     page === '...' ? (
                       <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
@@ -707,10 +707,10 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                       <button
                         key={page}
                         onClick={() => goToPage(page as number)}
-                        className={`w-8 h-8 text-sm  focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        className={`w-8 h-8 text-sm font-medium transition-all ${
                           currentPage === page
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-gray-300 hover:bg-gray-50'
+                            ? 'bg-gray-900 text-white'
+                            : 'border border-gray-200 hover:bg-gray-50 text-gray-600'
                         }`}
                       >
                         {page}
@@ -722,14 +722,14 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {t('disputeResolution.nextPage')}
                 </button>
                 <button
                   onClick={() => goToPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 text-sm border border-gray-300  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1.5 text-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {t('disputeResolution.lastPage')}
                 </button>
@@ -755,7 +755,7 @@ function DisputeTable({ disputes }: { disputes: DisputeData[] }) {
                         }
                       }
                     }}
-                    className="w-14 px-2 py-1 text-sm border border-gray-300  focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                    className="w-14 px-2 py-1 text-sm border border-gray-200 focus:outline-none focus:border-gray-400 text-center"
                   />
                   <span className="text-sm text-gray-600">{t('disputeResolution.page')}</span>
                 </div>

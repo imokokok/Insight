@@ -162,10 +162,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                 </span>
               </div>
               <div className="w-full bg-gray-200 h-2 mb-2">
-                <div
-                  className="bg-purple-500 h-2"
-                  style={{ width: `${region.percentage}%` }}
-                />
+                <div className="bg-purple-500 h-2" style={{ width: `${region.percentage}%` }} />
               </div>
               <p className="text-xs text-gray-500">
                 {region.percentage}% {t('band.validators.ofNetwork')}
@@ -192,9 +189,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                   { value: 'commission', label: t('band.validators.commission') },
                 ]}
                 value={sortBy}
-                onChange={(value) =>
-                  setSortBy(value as 'rank' | 'stake' | 'uptime' | 'commission')
-                }
+                onChange={(value) => setSortBy(value as 'rank' | 'stake' | 'uptime' | 'commission')}
                 size="sm"
               />
             </div>
@@ -323,14 +318,10 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">
-                {t('band.validators.maxValidators')}
-              </h4>
+              <h4 className="font-medium text-purple-900">{t('band.validators.maxValidators')}</h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">100</p>
-            <p className="text-sm text-purple-600 mt-1">
-              {t('band.validators.maxValidatorsDesc')}
-            </p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.validators.maxValidatorsDesc')}</p>
           </div>
         </div>
       </DashboardCard>

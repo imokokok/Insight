@@ -15,11 +15,7 @@ interface StatsOverviewProps {
   t: (key: string, params?: Record<string, string | number>) => string;
 }
 
-export function StatsOverview({
-  outlierStats,
-  scrollToOutlier,
-  t,
-}: StatsOverviewProps) {
+export function StatsOverview({ outlierStats, scrollToOutlier, t }: StatsOverviewProps) {
   if (outlierStats.count === 0) return null;
 
   return (
@@ -43,14 +39,18 @@ export function StatsOverview({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-sm font-semibold text-amber-800">{t('crossOracle.outliers.detected')}</h3>
+              <h3 className="text-sm font-semibold text-amber-800">
+                {t('crossOracle.outliers.detected')}
+              </h3>
               <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
                 {t('crossOracle.outliers.count', { count: outlierStats.count })}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-amber-700">
               <div className="flex items-center gap-1.5">
-                <span className="text-amber-600 font-medium">{t('crossOracle.outliers.outlierOracles')}:</span>
+                <span className="text-amber-600 font-medium">
+                  {t('crossOracle.outliers.outlierOracles')}:
+                </span>
                 <span className="font-medium">
                   {outlierStats.oracleNames.slice(0, 3).join('、')}
                   {outlierStats.oracleNames.length > 3 &&
@@ -58,7 +58,9 @@ export function StatsOverview({
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-amber-600 font-medium">{t('crossOracle.outliers.avgDeviation')}:</span>
+                <span className="text-amber-600 font-medium">
+                  {t('crossOracle.outliers.avgDeviation')}:
+                </span>
                 <span className="font-medium">{outlierStats.avgDeviation.toFixed(3)}%</span>
               </div>
             </div>

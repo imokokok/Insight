@@ -144,10 +144,7 @@ function MobileBarChartBase({
         style={{ height }}
       >
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={visibleData}
-            margin={{ top: 10, right: 5, left: 0, bottom: 20 }}
-          >
+          <BarChart data={visibleData} margin={{ top: 10, right: 5, left: 0, bottom: 20 }}>
             {showGrid && (
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -199,16 +196,16 @@ function MobileBarChartBase({
               cursor={{ fill: `${chartColors.recharts.primaryLight}10` }}
             />
 
-            <Bar
-              dataKey="value"
-              radius={[2, 2, 0, 0]}
-              onClick={handleBarClick}
-            >
+            <Bar dataKey="value" radius={[2, 2, 0, 0]} onClick={handleBarClick}>
               {visibleData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={entry.color || barColor}
-                  stroke={selectedIndex === visibleRange.start + index ? chartColors.recharts.primaryDark : 'none'}
+                  stroke={
+                    selectedIndex === visibleRange.start + index
+                      ? chartColors.recharts.primaryDark
+                      : 'none'
+                  }
                   strokeWidth={selectedIndex === visibleRange.start + index ? 2 : 0}
                 />
               ))}
@@ -226,20 +223,22 @@ function MobileBarChartBase({
 
       {/* Pagination indicator */}
       <div className="flex items-center justify-center gap-1 mt-2">
-        {Array.from({ length: Math.ceil(data.length / (visibleRange.end - visibleRange.start)) }).map(
-          (_, i) => {
-            const pageStart = i * (visibleRange.end - visibleRange.start);
-            const isActive = visibleRange.start >= pageStart && visibleRange.start < pageStart + (visibleRange.end - visibleRange.start);
-            return (
-              <div
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  isActive ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
-              />
-            );
-          }
-        )}
+        {Array.from({
+          length: Math.ceil(data.length / (visibleRange.end - visibleRange.start)),
+        }).map((_, i) => {
+          const pageStart = i * (visibleRange.end - visibleRange.start);
+          const isActive =
+            visibleRange.start >= pageStart &&
+            visibleRange.start < pageStart + (visibleRange.end - visibleRange.start);
+          return (
+            <div
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                isActive ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
+            />
+          );
+        })}
       </div>
     </div>
   );

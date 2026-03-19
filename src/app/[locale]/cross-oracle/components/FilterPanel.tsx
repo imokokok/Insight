@@ -135,8 +135,8 @@ export function FilterPanel({
 
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <span className="text-xs text-gray-500">
-          {activeFilterCount > 0 
-            ? t('crossOracle.filter.filtersApplied', { count: activeFilterCount }) 
+          {activeFilterCount > 0
+            ? t('crossOracle.filter.filtersApplied', { count: activeFilterCount })
             : t('crossOracle.filter.noFilters')}
         </span>
         <button

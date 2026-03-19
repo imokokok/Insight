@@ -211,24 +211,34 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
             <ul className="space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-purple-500 mt-1">•</span>
-                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature1')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('bandProtocol.ecosystem.feature1')}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-500 mt-1">•</span>
-                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature2')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('bandProtocol.ecosystem.feature2')}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-500 mt-1">•</span>
-                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature3')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('bandProtocol.ecosystem.feature3')}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-500 mt-1">•</span>
-                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature4')}</span>
+                <span className="text-sm text-gray-600">
+                  {t('bandProtocol.ecosystem.feature4')}
+                </span>
               </li>
             </ul>
           </div>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">{t('bandProtocol.ecosystem.integrations')}</h4>
+            <h4 className="font-medium text-gray-900">
+              {t('bandProtocol.ecosystem.integrations')}
+            </h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-gray-50">
                 <p className="text-lg font-semibold text-gray-900">25+</p>
@@ -257,15 +267,21 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.blockTime')}</h4>
+              <h4 className="font-medium text-purple-900">
+                {t('bandProtocol.ecosystem.blockTime')}
+              </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">~2.8s</p>
-            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.fastFinality')}</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('bandProtocol.ecosystem.fastFinality')}
+            </p>
           </div>
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.interoperability')}</h4>
+              <h4 className="font-medium text-purple-900">
+                {t('bandProtocol.ecosystem.interoperability')}
+              </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">IBC</p>
             <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.nativeIBC')}</p>
@@ -273,7 +289,9 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Database className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.dataSources')}</h4>
+              <h4 className="font-medium text-purple-900">
+                {t('bandProtocol.ecosystem.dataSources')}
+              </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">200+</p>
             <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.priceFeeds')}</p>
@@ -281,10 +299,14 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
           <div className="p-4 bg-purple-50">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-4 h-4 text-purple-700" />
-              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.security')}</h4>
+              <h4 className="font-medium text-purple-900">
+                {t('bandProtocol.ecosystem.security')}
+              </h4>
             </div>
             <p className="text-2xl font-bold text-purple-700">Tendermint</p>
-            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.bftConsensus')}</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('bandProtocol.ecosystem.bftConsensus')}
+            </p>
           </div>
         </div>
       </DashboardCard>

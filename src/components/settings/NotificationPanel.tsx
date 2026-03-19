@@ -44,12 +44,12 @@ function Toggle({
     <button
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-11 items-center  transition-colors ${
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
         enabled ? 'bg-blue-600' : 'bg-gray-200'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-sm'}`}
     >
       <span
-        className={`inline-block h-4 w-4 transform  bg-white transition-transform ${
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-all duration-200 ${
           enabled ? 'translate-x-6' : 'translate-x-1'
         }`}
       />
@@ -124,8 +124,8 @@ export function NotificationPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white  border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-gray-400" />
             {t('settings.notifications.title')}
@@ -135,16 +135,16 @@ export function NotificationPanel() {
 
         <div className="p-6 space-y-6">
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200  text-green-700 text-sm flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 ">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10  bg-blue-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
@@ -162,9 +162,9 @@ export function NotificationPanel() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 ">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10  bg-purple-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
                   <Globe className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
@@ -185,7 +185,7 @@ export function NotificationPanel() {
                 {browserPermission === 'default' && settings.browserNotifications && (
                   <button
                     onClick={requestBrowserPermission}
-                    className="text-xs text-blue-600 hover:text-blue-700 mr-2"
+                    className="text-xs text-blue-600 hover:text-blue-700 mr-2 transition-colors"
                   >
                     {t('settings.notifications.authorize')}
                   </button>
@@ -205,8 +205,8 @@ export function NotificationPanel() {
         </div>
       </div>
 
-      <div className="bg-white  border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-400" />
             {t('settings.notifications.alertNotifications')}
@@ -217,9 +217,9 @@ export function NotificationPanel() {
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between p-4 bg-gray-50 ">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10  bg-orange-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-orange-600" />
               </div>
               <div>
@@ -239,8 +239,8 @@ export function NotificationPanel() {
         </div>
       </div>
 
-      <div className="bg-white  border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-400" />
             {t('settings.notifications.priceChangeNotification')}
@@ -251,9 +251,9 @@ export function NotificationPanel() {
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between p-4 bg-gray-50 ">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10  bg-green-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
@@ -273,7 +273,7 @@ export function NotificationPanel() {
 
           {settings.priceChangeEnabled && (
             <div className="pl-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 {t('settings.notifications.changeThreshold')}
               </label>
               <div className="flex items-center gap-4">
@@ -283,9 +283,9 @@ export function NotificationPanel() {
                   max="20"
                   value={settings.priceChangeThreshold}
                   onChange={(e) => updateSetting('priceChangeThreshold', Number(e.target.value))}
-                  className="flex-1 h-2 bg-gray-200  appearance-none cursor-pointer"
+                  className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-600"
                 />
-                <div className="w-16 text-center">
+                <div className="w-16 text-center bg-gray-50 rounded-lg py-2">
                   <span className="text-lg font-semibold text-gray-900">
                     {settings.priceChangeThreshold}
                   </span>
@@ -304,7 +304,7 @@ export function NotificationPanel() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm hover:shadow-md"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           {t('settings.notifications.saveSettings')}

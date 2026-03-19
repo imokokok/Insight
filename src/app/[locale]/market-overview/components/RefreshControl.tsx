@@ -120,9 +120,7 @@ export default function RefreshControl({
         {showSuccess ? (
           <>
             <Check className="w-3.5 h-3.5 text-green-500" />
-            <span className="text-green-600">
-              {isChineseLocale(locale) ? '已更新' : 'Updated'}
-            </span>
+            <span className="text-green-600">{isChineseLocale(locale) ? '已更新' : 'Updated'}</span>
           </>
         ) : (
           <>

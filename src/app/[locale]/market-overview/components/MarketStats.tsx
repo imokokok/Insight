@@ -58,9 +58,7 @@ function StatItem({ label, value, change, changeValue, suffix, isPrimary }: Stat
               backgroundColor: isPositive
                 ? semanticColors.success.light
                 : semanticColors.danger.light,
-              borderColor: isPositive
-                ? semanticColors.success.light
-                : semanticColors.danger.light,
+              borderColor: isPositive ? semanticColors.success.light : semanticColors.danger.light,
             }}
           >
             {isPositive ? '+' : ''}

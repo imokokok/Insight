@@ -68,8 +68,8 @@ export function QueryHeader({
           {loading
             ? t('priceQuery.loadingData')
             : queryResultsLength > 0
-            ? t('priceQuery.results.count', { count: queryResultsLength })
-            : t('priceQuery.subtitle')}
+              ? t('priceQuery.results.count', { count: queryResultsLength })
+              : t('priceQuery.subtitle')}
         </p>
       </div>
 
@@ -123,12 +123,11 @@ export function QueryHeader({
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-gray-900">{item.symbol}</span>
-                        <span className="text-xs text-gray-500">
-                          {item.timeRange}h
-                        </span>
+                        <span className="text-xs text-gray-500">{item.timeRange}h</span>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {item.oracles.length} {t('priceQuery.oracles')} · {item.chains.length} {t('priceQuery.chains')}
+                        {item.oracles.length} {t('priceQuery.oracles')} · {item.chains.length}{' '}
+                        {t('priceQuery.chains')}
                       </div>
                     </button>
                   ))

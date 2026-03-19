@@ -4,17 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import {
-  Home,
-  BarChart3,
-  Search,
-  Bell,
-  Settings,
-  Menu,
-  X,
-  Heart,
-  Activity,
-} from 'lucide-react';
+import { Home, BarChart3, Search, Bell, Settings, Menu, X, Heart, Activity } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -152,9 +142,7 @@ export function BottomNavigation({ className = '', onMoreClick }: BottomNavigati
                           : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <Icon
-                        className={`w-6 h-6 mb-1 ${active ? 'stroke-[2.5]' : 'stroke-2'}`}
-                      />
+                      <Icon className={`w-6 h-6 mb-1 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
                       <span className="text-xs text-center leading-tight">{item.label}</span>
                     </Link>
                   );

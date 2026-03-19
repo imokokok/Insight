@@ -129,7 +129,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
     {
       type: t('uma.ecosystem.requestTypes.state'),
       percentage: 25,
-      color: 'bg-green-500',
+      color: 'bg-emerald-500',
     },
     {
       type: t('uma.ecosystem.requestTypes.custom'),
@@ -145,18 +145,18 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
       <DashboardCard title={t('uma.ecosystem.ooTitle')}>
         <div className="space-y-4">
           <p className="text-gray-600">{t('uma.ecosystem.ooDescription')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">2,500+</p>
-              <p className="text-sm text-gray-600">{t('uma.ecosystem.stats.requests')}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-gray-200">
+            <div className="bg-gray-50 p-5 text-center border-r border-gray-200">
+              <p className="text-3xl font-bold text-gray-900">2,500+</p>
+              <p className="text-sm text-gray-500 mt-1">{t('uma.ecosystem.stats.requests')}</p>
             </div>
-            <div className="bg-green-50 p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">50+</p>
-              <p className="text-sm text-gray-600">{t('uma.ecosystem.stats.protocols')}</p>
+            <div className="bg-gray-50 p-5 text-center border-r border-gray-200">
+              <p className="text-3xl font-bold text-gray-900">50+</p>
+              <p className="text-sm text-gray-500 mt-1">{t('uma.ecosystem.stats.protocols')}</p>
             </div>
-            <div className="bg-purple-50 p-4 text-center">
-              <p className="text-2xl font-bold text-purple-600">$500M+</p>
-              <p className="text-sm text-gray-600">{t('uma.ecosystem.stats.secured')}</p>
+            <div className="bg-gray-50 p-5 text-center">
+              <p className="text-3xl font-bold text-gray-900">$500M+</p>
+              <p className="text-sm text-gray-500 mt-1">{t('uma.ecosystem.stats.secured')}</p>
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
       {/* 价格请求类型分布 */}
       <DashboardCard title={t('uma.ecosystem.requestDistribution')}>
         <div className="space-y-4">
-          <div className="h-4 bg-gray-200 rounded-full overflow-hidden flex">
+          <div className="h-4 bg-gray-100 overflow-hidden flex">
             {requestTypes.map((item, index) => (
               <div
                 key={index}
@@ -193,16 +193,16 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
           {useCases.map((useCase, index) => (
             <div
               key={index}
-              className="border border-gray-200 p-4 hover:border-blue-300 transition-colors"
+              className="border border-gray-200 p-5 hover:border-gray-400 hover:shadow-sm transition-all duration-200"
             >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 text-blue-600">{useCase.icon}</div>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 text-gray-600 p-2 bg-gray-50 border border-gray-200">{useCase.icon}</div>
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900">{useCase.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{useCase.description}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <p className="text-sm text-gray-500 mt-1.5">{useCase.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {useCase.examples.map((example, i) => (
-                      <span key={i} className="px-2 py-1 bg-gray-100 text-xs text-gray-600">
+                      <span key={i} className="px-2.5 py-1 bg-gray-50 border border-gray-200 text-xs text-gray-600">
                         {example}
                       </span>
                     ))}
@@ -216,26 +216,28 @@ export function UMAEcosystemPanel({ supportedChains }: UMAEcosystemPanelProps) {
 
       {/* 使用UMA的协议 */}
       <DashboardCard title={t('uma.ecosystem.protocolsTitle')}>
-        <div className="space-y-3">
+        <div className="space-y-0 border border-gray-200">
           {protocols.map((protocol, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className={`flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors ${
+                index < protocols.length - 1 ? 'border-b border-gray-200' : ''
+              }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold">
                   {protocol.name.charAt(0)}
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900">{protocol.name}</h4>
-                  <p className="text-xs text-gray-500">{protocol.description}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{protocol.description}</p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs">
+                <span className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-700 text-xs font-medium">
                   {protocol.category}
                 </span>
-                <p className="text-sm font-semibold text-gray-900 mt-1">{protocol.tvl}</p>
+                <p className="text-sm font-bold text-gray-900 mt-1.5">{protocol.tvl}</p>
               </div>
             </div>
           ))}

@@ -110,7 +110,9 @@ export function TellorMultiChainAggregationPanel({ data }: TellorMultiChainAggre
                           style={{ width: `${chain.confidence * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm text-gray-700">{(chain.confidence * 100).toFixed(1)}%</span>
+                      <span className="text-sm text-gray-700">
+                        {(chain.confidence * 100).toFixed(1)}%
+                      </span>
                     </div>
                   </td>
                   <td className="py-2 px-3 text-gray-900">{chain.latency}ms</td>

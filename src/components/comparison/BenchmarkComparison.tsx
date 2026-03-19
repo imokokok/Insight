@@ -16,7 +16,12 @@ import {
   Line,
   Cell,
 } from 'recharts';
-import { BenchmarkType, BenchmarkData, BenchmarkComparisonResult, BenchmarkChartData } from './types';
+import {
+  BenchmarkType,
+  BenchmarkData,
+  BenchmarkComparisonResult,
+  BenchmarkChartData,
+} from './types';
 import { chartColors, baseColors, semanticColors } from '@/lib/config/colors';
 import { DifferenceBadge } from './DifferenceBadge';
 
@@ -86,7 +91,8 @@ export function BenchmarkComparison({
 }: BenchmarkComparisonProps) {
   const t = useTranslations('comparison.benchmark');
 
-  const [selectedBenchmark, setSelectedBenchmark] = useState<keyof typeof industryBenchmarks>('priceDeviation');
+  const [selectedBenchmark, setSelectedBenchmark] =
+    useState<keyof typeof industryBenchmarks>('priceDeviation');
 
   const benchmarkValue = useMemo(() => {
     switch (benchmarkType) {
@@ -188,7 +194,9 @@ export function BenchmarkComparison({
           <div>
             {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900">{actualValue?.toFixed(2) ?? '-'}</span>
+              <span className="text-3xl font-bold text-gray-900">
+                {actualValue?.toFixed(2) ?? '-'}
+              </span>
               <span className="text-sm text-gray-500">{t('actualValue')}</span>
             </div>
           </div>
@@ -196,14 +204,18 @@ export function BenchmarkComparison({
           <div className="flex items-center gap-6">
             <div className="text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wider">{benchmarkLabel}</p>
-              <p className="text-xl font-semibold text-gray-700">{benchmarkValue?.toFixed(2) ?? '-'}</p>
+              <p className="text-xl font-semibold text-gray-700">
+                {benchmarkValue?.toFixed(2) ?? '-'}
+              </p>
             </div>
 
             <div className="w-px h-12 bg-gray-300" />
 
             <div className="text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wider">{t('difference')}</p>
-              <div className={`flex items-center gap-1 text-xl font-semibold ${getPerformanceColor(comparison.performance)}`}>
+              <div
+                className={`flex items-center gap-1 text-xl font-semibold ${getPerformanceColor(comparison.performance)}`}
+              >
                 <span>{getPerformanceIcon(comparison.performance)}</span>
                 <span>{Math.abs(comparison.percentDiff)?.toFixed(2) ?? '-'}%</span>
               </div>
@@ -220,10 +232,10 @@ export function BenchmarkComparison({
                   ? 'bg-red-100 text-red-700'
                   : 'bg-green-100 text-green-700'
                 : comparison.performance === 'below'
-                ? invertColors
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-                : 'bg-gray-100 text-gray-700'
+                  ? invertColors
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                  : 'bg-gray-100 text-gray-700'
             }`}
           >
             {comparison.performance === 'above'
@@ -231,10 +243,10 @@ export function BenchmarkComparison({
                 ? t('belowBenchmark')
                 : t('aboveBenchmark')
               : comparison.performance === 'below'
-              ? invertColors
-                ? t('aboveBenchmark')
-                : t('belowBenchmark')
-              : t('atBenchmark')}
+                ? invertColors
+                  ? t('aboveBenchmark')
+                  : t('belowBenchmark')
+                : t('atBenchmark')}
           </div>
           <span className="text-sm text-gray-500">
             {comparison.difference >= 0 ? '+' : ''}
@@ -270,19 +282,46 @@ export function BenchmarkComparison({
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
-                <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} angle={-45} textAnchor="end" height={80} />
+                <XAxis
+                  dataKey="category"
+                  tick={{ fontSize: 11 }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-                <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickFormatter={(v) => `${v}%`}
+                  tick={{ fontSize: 11 }}
+                />
                 <Tooltip
                   contentStyle={{ fontSize: 12 }}
                   formatter={(value, name) => {
                     if (name === 'gap') return [`${Number(value).toFixed(2)}%`, t('gap')];
-                    return [Number(value).toFixed(2), name === 'actual' ? t('actual') : t('benchmark')];
+                    return [
+                      Number(value).toFixed(2),
+                      name === 'actual' ? t('actual') : t('benchmark'),
+                    ];
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar yAxisId="left" dataKey="actual" name={t('actual')} fill={chartColors.recharts.primary} radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="left" dataKey="benchmark" name={t('benchmark')} fill={chartColors.recharts.purple} radius={[4, 4, 0, 0]} />
+                <Bar
+                  yAxisId="left"
+                  dataKey="actual"
+                  name={t('actual')}
+                  fill={chartColors.recharts.primary}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="benchmark"
+                  name={t('benchmark')}
+                  fill={chartColors.recharts.purple}
+                  radius={[4, 4, 0, 0]}
+                />
                 <Line
                   yAxisId="right"
                   type="monotone"
@@ -304,12 +343,23 @@ export function BenchmarkComparison({
           <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('performanceGap')}</h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} layout="vertical" margin={{ top: 10, right: 30, left: 100, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} horizontal={false} />
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 100, bottom: 10 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={baseColors.gray[200]}
+                  horizontal={false}
+                />
                 <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="category" width={90} tick={{ fontSize: 11 }} />
                 <Tooltip
-                  formatter={(value) => [`${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(2)}%`, t('gap')]}
+                  formatter={(value) => [
+                    `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(2)}%`,
+                    t('gap'),
+                  ]}
                   contentStyle={{ fontSize: 12 }}
                 />
                 <ReferenceLine x={0} stroke={baseColors.gray[400]} />
@@ -323,8 +373,8 @@ export function BenchmarkComparison({
                             ? semanticColors.success.DEFAULT
                             : semanticColors.danger.DEFAULT
                           : entry.gap > 0
-                          ? semanticColors.success.DEFAULT
-                          : semanticColors.danger.DEFAULT
+                            ? semanticColors.success.DEFAULT
+                            : semanticColors.danger.DEFAULT
                       }
                     />
                   ))}

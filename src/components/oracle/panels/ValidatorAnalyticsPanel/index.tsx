@@ -237,71 +237,71 @@ function ValidatorTable({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto border border-gray-200">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {t('uma.validatorAnalytics.rank')}
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('name')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.validatorName')}
                 {getSortIcon('name')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {t('uma.validatorAnalytics.type')}
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('responseTime')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.response')}
                 {getSortIcon('responseTime')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('successRate')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.successRate')}
                 {getSortIcon('successRate')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('reputation')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.reputation')}
                 {getSortIcon('reputation')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('staked')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.staked')}
                 {getSortIcon('staked')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               <button
                 onClick={() => onSort('earnings')}
-                className="flex items-center gap-1 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
               >
                 {t('uma.validatorAnalytics.earnings')}
                 {getSortIcon('earnings')}
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
               {t('uma.validatorAnalytics.actions')}
             </th>
           </tr>
@@ -310,20 +310,20 @@ function ValidatorTable({
           {validators.map((validator, index) => (
             <tr
               key={validator.id}
-              className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
             >
-              <td className="py-3 px-4">
+              <td className="py-3.5 px-4">
                 <span
-                  className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold ${
+                  className={`inline-flex items-center justify-center w-7 h-7 text-xs font-bold ${
                     index < 3 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {index + 1}
                 </span>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3.5 px-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">{validator.name}</span>
+                  <span className="text-sm font-semibold text-gray-900">{validator.name}</span>
                   <a
                     href={`https://etherscan.io/address/${validator.address}`}
                     target="_blank"
@@ -341,59 +341,57 @@ function ValidatorTable({
                   </a>
                 </div>
               </td>
-              <td className="py-3 px-4">{getTypeBadge(validator.type)}</td>
-              <td className="py-3 px-4">
-                <span className="text-sm text-gray-900">{validator.responseTime}ms</span>
+              <td className="py-3.5 px-4">{getTypeBadge(validator.type)}</td>
+              <td className="py-3.5 px-4">
+                <span className="text-sm text-gray-700">{validator.responseTime}ms</span>
               </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-2">
+              <td className="py-3.5 px-4">
+                <div className="flex items-center gap-2.5">
                   <div
-                    className="w-16 h-2 rounded-full overflow-hidden"
-                    style={{ backgroundColor: baseColors.gray[200] }}
+                    className="w-16 h-1.5 overflow-hidden bg-gray-200"
                   >
                     <div
-                      className="h-full rounded-full"
+                      className="h-full"
                       style={{
                         width: `${validator.successRate}%`,
                         backgroundColor: semanticColors.success.DEFAULT,
                       }}
                     />
                   </div>
-                  <span className="text-sm text-gray-900">{validator.successRate}%</span>
+                  <span className="text-sm font-medium text-gray-700">{validator.successRate}%</span>
                 </div>
               </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-2">
+              <td className="py-3.5 px-4">
+                <div className="flex items-center gap-2.5">
                   <div
-                    className="w-16 h-2 rounded-full overflow-hidden"
-                    style={{ backgroundColor: baseColors.gray[200] }}
+                    className="w-16 h-1.5 overflow-hidden bg-gray-200"
                   >
                     <div
-                      className="h-full rounded-full"
+                      className="h-full"
                       style={{
                         width: `${validator.reputation}%`,
                         backgroundColor: baseColors.primary[500],
                       }}
                     />
                   </div>
-                  <span className="text-sm text-gray-900">{validator.reputation}</span>
+                  <span className="text-sm font-medium text-gray-700">{validator.reputation}</span>
                 </div>
               </td>
-              <td className="py-3 px-4">
-                <span className="text-sm text-gray-900">{formatNumber(validator.staked)}</span>
+              <td className="py-3.5 px-4">
+                <span className="text-sm font-medium text-gray-700">{formatNumber(validator.staked)}</span>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3.5 px-4">
                 <span
-                  className="text-sm font-medium"
+                  className="text-sm font-semibold"
                   style={{ color: semanticColors.success.DEFAULT }}
                 >
                   {formatNumber(validator.earnings)}
                 </span>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3.5 px-4">
                 <button
                   onClick={() => onViewHistory(validator)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-colors"
                 >
                   <svg
                     className="w-3.5 h-3.5"
@@ -807,16 +805,16 @@ export function ValidatorAnalyticsPanel() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {t('panels.validatorAnalytics.prevPage')}
             </button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum: number;
                 if (totalPages <= 5) {
@@ -832,10 +830,10 @@ export function ValidatorAnalyticsPanel() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`w-8 h-8 text-sm font-medium transition-all duration-200 ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
                     }`}
                   >
                     {pageNum}
@@ -847,7 +845,7 @@ export function ValidatorAnalyticsPanel() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-3 py-1.5 border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {t('panels.validatorAnalytics.nextPage')}
             </button>

@@ -28,24 +28,24 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-700';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'inactive':
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-50 text-gray-600 border-gray-200';
       case 'jailed':
-        return 'bg-red-100 text-red-700';
+        return 'bg-red-50 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-50 text-gray-600 border-gray-200';
     }
   };
 
   const getNetworkHealthColor = (health: string) => {
     switch (health) {
       case 'excellent':
-        return 'text-green-600';
+        return 'text-emerald-600';
       case 'good':
         return 'text-blue-600';
       case 'fair':
-        return 'text-yellow-600';
+        return 'text-amber-600';
       case 'poor':
         return 'text-red-600';
       default:
@@ -140,9 +140,9 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                   </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-gray-200 overflow-hidden">
                         <div
-                          className="h-full bg-amber-500 rounded-full"
+                          className="h-full bg-amber-500"
                           style={{ width: `${validator.reputationScore}%` }}
                         />
                       </div>
@@ -155,10 +155,10 @@ export function ChronicleValidatorPanel({ data }: ChronicleValidatorPanelProps) 
                     {(validator.stakedAmount / 1e6).toFixed(2)}M
                   </td>
                   <td className="py-2 px-3">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       {getStatusIcon(validator.status)}
                       <span
-                        className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusColor(validator.status)}`}
+                        className={`px-2 py-1 text-xs font-medium capitalize border ${getStatusColor(validator.status)}`}
                       >
                         {t(`chronicle.status.${validator.status}`)}
                       </span>

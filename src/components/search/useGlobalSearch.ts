@@ -3,12 +3,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { useLocale } from 'next-intl';
-import {
-  SearchResult,
-  SearchGroup,
-  UseGlobalSearchOptions,
-  UseGlobalSearchReturn,
-} from './types';
+import { SearchResult, SearchGroup, UseGlobalSearchOptions, UseGlobalSearchReturn } from './types';
 import { getAllSearchResults, searchGroupLabels } from './data';
 
 const DEFAULT_OPTIONS: Required<UseGlobalSearchOptions> = {
@@ -27,9 +22,7 @@ interface FuseResult {
   score: number;
 }
 
-export function useGlobalSearch(
-  options: UseGlobalSearchOptions = {}
-): UseGlobalSearchReturn {
+export function useGlobalSearch(options: UseGlobalSearchOptions = {}): UseGlobalSearchReturn {
   const locale = useLocale();
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
@@ -138,19 +131,16 @@ export function useGlobalSearch(
   );
 
   // Search function
-  const search = useCallback(
-    (query: string) => {
-      setSearchQuery(query);
+  const search = useCallback((query: string) => {
+    setSearchQuery(query);
 
-      if (!query.trim()) {
-        setIsSearching(false);
-        return;
-      }
+    if (!query.trim()) {
+      setIsSearching(false);
+      return;
+    }
 
-      setIsSearching(true);
-    },
-    []
-  );
+    setIsSearching(true);
+  }, []);
 
   // Clear search
   const clearSearch = useCallback(() => {

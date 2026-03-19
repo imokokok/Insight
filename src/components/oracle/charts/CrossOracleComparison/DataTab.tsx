@@ -24,7 +24,9 @@ interface DataTabProps {
   performanceData: OraclePerformance[];
   selectedOracles: OracleProvider[];
   handleSort: (field: 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name') => void;
-  getSortIcon: (field: 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name') => React.ReactNode;
+  getSortIcon: (
+    field: 'price' | 'deviation' | 'confidence' | 'responseTime' | 'name'
+  ) => React.ReactNode;
 }
 
 export function DataTab({

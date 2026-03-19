@@ -207,16 +207,16 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
               <span className="text-sm text-gray-600">{t('panels.disputeVoting.quorum')}</span>
               <span
                 className={`text-sm font-medium ${
-                  isQuorumReached ? 'text-green-600' : 'text-gray-600'
+                  isQuorumReached ? 'text-emerald-600' : 'text-gray-600'
                 }`}
               >
                 {formatNumber(totalVotes, true)} / {formatNumber(votingData.quorum, true)}
               </span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  isQuorumReached ? 'bg-green-500' : 'bg-blue-500'
+                className={`h-full transition-all duration-500 ${
+                  isQuorumReached ? 'bg-emerald-500' : 'bg-blue-500'
                 }`}
                 style={{ width: `${Math.min(quorumProgress, 100)}%` }}
               />
@@ -236,16 +236,16 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
               <span className="text-sm text-gray-600">{t('panels.disputeVoting.threshold')}</span>
               <span
                 className={`text-sm font-medium ${
-                  isThresholdReached ? 'text-green-600' : 'text-gray-600'
+                  isThresholdReached ? 'text-emerald-600' : 'text-gray-600'
                 }`}
               >
                 {supportRate.toFixed(1)}% / {votingData.threshold}%
               </span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  isThresholdReached ? 'bg-green-500' : 'bg-yellow-500'
+                className={`h-full transition-all duration-500 ${
+                  isThresholdReached ? 'bg-emerald-500' : 'bg-amber-500'
                 }`}
                 style={{ width: `${Math.min((supportRate / votingData.threshold) * 100, 100)}%` }}
               />
@@ -255,21 +255,21 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
 
         {/* Status Badge */}
         <div
-          className={`p-3 rounded-lg ${
+          className={`p-3 border ${
             isQuorumReached && isThresholdReached
-              ? 'bg-green-50 border border-green-200'
+              ? 'bg-emerald-50 border-emerald-200'
               : isQuorumReached
-                ? 'bg-yellow-50 border border-yellow-200'
-                : 'bg-blue-50 border border-blue-200'
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-blue-50 border-blue-200'
           }`}
         >
           <div className="flex items-center gap-2">
             <svg
               className={`w-5 h-5 ${
                 isQuorumReached && isThresholdReached
-                  ? 'text-green-600'
+                  ? 'text-emerald-600'
                   : isQuorumReached
-                    ? 'text-yellow-600'
+                    ? 'text-amber-600'
                     : 'text-blue-600'
               }`}
               fill="none"
@@ -291,11 +291,11 @@ function VoteDistributionCard({ votingData }: { votingData: DisputeVotingData })
               )}
             </svg>
             <span
-              className={`text-sm font-medium ${
+              className={`text-sm font-semibold ${
                 isQuorumReached && isThresholdReached
-                  ? 'text-green-800'
+                  ? 'text-emerald-800'
                   : isQuorumReached
-                    ? 'text-yellow-800'
+                    ? 'text-amber-800'
                     : 'text-blue-800'
               }`}
             >
@@ -326,9 +326,9 @@ function ValidatorVoteList({
   const positionConfig = {
     for: {
       label: t('panels.disputeVoting.support'),
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
-      borderColor: 'border-green-200',
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -337,8 +337,8 @@ function ValidatorVoteList({
     },
     against: {
       label: t('panels.disputeVoting.against'),
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-red-700',
+      bgColor: 'bg-red-50',
       borderColor: 'border-red-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,8 +348,8 @@ function ValidatorVoteList({
     },
     abstain: {
       label: t('panels.disputeVoting.abstain'),
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-100',
+      color: 'text-gray-700',
+      bgColor: 'bg-gray-50',
       borderColor: 'border-gray-200',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,47 +438,47 @@ function ValidatorVoteList({
         </div>
 
         {/* Vote Count Summary */}
-        <div className="grid grid-cols-3 gap-3">
-          {(['for', 'against', 'abstain'] as const).map((pos) => {
+        <div className="grid grid-cols-3 gap-0 border border-gray-200">
+          {(['for', 'against', 'abstain'] as const).map((pos, index) => {
             const count = validatorVotes.filter((v) => v.position === pos).length;
             const config = positionConfig[pos];
             return (
               <div
                 key={pos}
-                className={`p-3 rounded-lg border ${config.borderColor} ${config.bgColor}`}
+                className={`p-4 ${config.bgColor} ${index < 2 ? 'border-r border-gray-200' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   <span className={config.color}>{config.icon}</span>
-                  <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+                  <span className={`text-sm font-semibold ${config.color}`}>{config.label}</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{count}</p>
-                <p className="text-xs text-gray-500">{t('panels.disputeVoting.validators')}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{count}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('panels.disputeVoting.validators')}</p>
               </div>
             );
           })}
         </div>
 
         {/* Validator List */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border border-gray-200">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.validator')}
                 </th>
-                <th className="text-center py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.position')}
                 </th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.votingPower')}
                 </th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.percentage')}
                 </th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.reputation')}
                 </th>
-                <th className="text-right py-2 px-3 text-xs font-medium text-gray-500 uppercase">
+                <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   {t('panels.disputeVoting.time')}
                 </th>
               </tr>
@@ -492,41 +492,41 @@ function ValidatorVoteList({
                 return (
                   <tr
                     key={vote.validatorId}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
                   >
-                    <td className="py-3 px-3">
+                    <td className="py-3.5 px-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{vote.validatorName}</p>
+                        <p className="text-sm font-semibold text-gray-900">{vote.validatorName}</p>
                         <p className="text-xs text-gray-400 font-mono">
                           {truncateAddress(vote.validatorAddress)}
                         </p>
                       </div>
                     </td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-3.5 px-3 text-center">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded ${config.bgColor} ${config.color}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold border ${config.bgColor} ${config.color} ${config.borderColor}`}
                       >
                         {config.icon}
                         {config.label}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-right">
-                      <span className="text-sm font-medium text-gray-900">
+                    <td className="py-3.5 px-3 text-right">
+                      <span className="text-sm font-semibold text-gray-700">
                         {formatNumber(vote.votingPower, true)}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3.5 px-3 text-right">
                       <span className="text-sm text-gray-600">{percentage.toFixed(2)}%</span>
                     </td>
-                    <td className="py-3 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <td className="py-3.5 px-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 h-1.5 bg-gray-200 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
+                            className={`h-full ${
                               vote.reputation >= 90
-                                ? 'bg-green-500'
+                                ? 'bg-emerald-500'
                                 : vote.reputation >= 80
-                                  ? 'bg-yellow-500'
+                                  ? 'bg-amber-500'
                                   : 'bg-red-500'
                             }`}
                             style={{ width: `${vote.reputation}%` }}
@@ -535,7 +535,7 @@ function ValidatorVoteList({
                         <span className="text-xs text-gray-600 w-8">{vote.reputation}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3.5 px-3 text-right">
                       <span className="text-xs text-gray-500">{formatTime(vote.timestamp)}</span>
                     </td>
                   </tr>

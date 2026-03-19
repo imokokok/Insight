@@ -1,7 +1,13 @@
 import { useTranslations } from 'next-intl';
 import { OracleProvider } from '@/types/oracle';
 import { SegmentedControl, DropdownSelect } from '@/components/ui/selectors';
-import { symbols, oracleNames, oracleColors, OracleGroup, ORACLE_GROUPS } from './crossOracleConfig';
+import {
+  symbols,
+  oracleNames,
+  oracleColors,
+  OracleGroup,
+  ORACLE_GROUPS,
+} from './crossOracleConfig';
 import { getOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 
 interface DeviationAlert {

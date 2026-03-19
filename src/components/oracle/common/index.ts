@@ -1,4 +1,4 @@
-export { DashboardCard, StatCard, MetricCard } from './DashboardCard';
+export { DashboardCard, StatCard, MetricCard, StatGrid, StatGridItem } from './DashboardCard';
 export { PageHeader } from './PageHeader';
 export { TabNavigation, type TimeRange } from './TabNavigation';
 export { OraclePageTemplate } from './OraclePageTemplate';

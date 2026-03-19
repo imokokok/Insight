@@ -39,10 +39,10 @@ export function UMADashboardPanel({
     switch (status) {
       case 'healthy':
       case 'active':
-        return 'bg-green-500';
+        return 'bg-emerald-500';
       case 'warning':
       case 'syncing':
-        return 'bg-yellow-500';
+        return 'bg-amber-500';
       case 'critical':
       case 'offline':
         return 'bg-red-500';
@@ -68,26 +68,26 @@ export function UMADashboardPanel({
     <DashboardCard title={t('uma.dashboard.networkHealth')}>
       <div className="space-y-6">
         {/* 主要指标 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-gray-50">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-gray-200">
+          <div className="text-center p-4 bg-gray-50 border-r border-gray-200 last:border-r-0">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
               {t('uma.stats.activeValidators')}
             </p>
-            <p className="text-xl font-bold text-gray-900">{activeValidators.toLocaleString()}</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full" />
+            <p className="text-2xl font-bold text-gray-900">{activeValidators.toLocaleString()}</p>
+            <div className="flex items-center justify-center gap-1.5 mt-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full" />
               <span className="text-xs text-gray-500">{t('uma.networkHealth.online')}</span>
             </div>
           </div>
 
-          <div className="text-center p-3 bg-gray-50">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+          <div className="text-center p-4 bg-gray-50 border-r border-gray-200 last:border-r-0">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
               {t('uma.networkHealth.responseTime')}
             </p>
-            <p className="text-xl font-bold text-gray-900">{avgResponseTime}ms</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
+            <p className="text-2xl font-bold text-gray-900">{avgResponseTime}ms</p>
+            <div className="flex items-center justify-center gap-1.5 mt-2">
               <span
-                className={`w-2 h-2 rounded-full ${avgResponseTime < 300 ? 'bg-green-500' : 'bg-yellow-500'}`}
+                className={`w-2 h-2 rounded-full ${avgResponseTime < 300 ? 'bg-emerald-500' : 'bg-amber-500'}`}
               />
               <span className="text-xs text-gray-500">
                 {avgResponseTime < 300
@@ -97,24 +97,24 @@ export function UMADashboardPanel({
             </div>
           </div>
 
-          <div className="text-center p-3 bg-gray-50">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+          <div className="text-center p-4 bg-gray-50 border-r border-gray-200 last:border-r-0">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
               {t('uma.stats.validatorUptime')}
             </p>
-            <p className="text-xl font-bold text-gray-900">{nodeUptime}%</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full" />
+            <p className="text-2xl font-bold text-gray-900">{nodeUptime}%</p>
+            <div className="flex items-center justify-center gap-1.5 mt-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full" />
               <span className="text-xs text-gray-500">{t('uma.networkHealth.online')}</span>
             </div>
           </div>
 
-          <div className="text-center p-3 bg-gray-50">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
+          <div className="text-center p-4 bg-gray-50">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
               {t('uma.stats.dataFeeds')}
             </p>
-            <p className="text-xl font-bold text-gray-900">{dataFeeds}</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full" />
+            <p className="text-2xl font-bold text-gray-900">{dataFeeds}</p>
+            <div className="flex items-center justify-center gap-1.5 mt-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full" />
               <span className="text-xs text-gray-500">{t('uma.networkHealth.active')}</span>
             </div>
           </div>
@@ -123,15 +123,18 @@ export function UMADashboardPanel({
         {/* 详细状态 */}
         {networkStatus.length > 0 && (
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">
               {t('uma.dashboard.detailedStatus')}
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-gray-200">
               {networkStatus.map((item, index) => (
-                <div key={index} className="text-center py-2">
-                  <p className="text-xs text-gray-500 mb-1 truncate">{item.label}</p>
-                  <p className="text-sm font-semibold text-gray-900">{item.value}</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
+                <div
+                  key={index}
+                  className={`text-center py-3 px-2 bg-gray-50 ${index < networkStatus.length - 1 ? 'border-r border-gray-200' : ''}`}
+                >
+                  <p className="text-xs text-gray-500 mb-1.5 truncate">{item.label}</p>
+                  <p className="text-base font-semibold text-gray-900">{item.value}</p>
+                  <div className="flex items-center justify-center gap-1.5 mt-1.5">
                     <span className={`w-2 h-2 rounded-full ${getStatusColor(item.status)}`} />
                     <span className="text-xs text-gray-500">{getStatusText(item.status)}</span>
                   </div>
@@ -144,25 +147,30 @@ export function UMADashboardPanel({
         {/* 数据源状态 */}
         {dataSources.length > 0 && (
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">
               {t('uma.dashboard.dataSources')}
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-0 border border-gray-200">
               {dataSources.map((source, index) => (
-                <div key={index} className="flex items-center justify-between py-1.5">
-                  <div className="flex items-center gap-2 min-w-0">
+                <div
+                  key={index}
+                  className={`flex items-center justify-between py-3 px-4 bg-gray-50 hover:bg-gray-100 transition-colors ${
+                    index < dataSources.length - 1 ? 'border-b border-gray-200' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
                     <span
-                      className={`w-2 h-2 flex-shrink-0 rounded-full ${
+                      className={`w-2.5 h-2.5 flex-shrink-0 rounded-full ${
                         source.status === 'active'
-                          ? 'bg-green-500'
+                          ? 'bg-emerald-500'
                           : source.status === 'syncing'
-                            ? 'bg-yellow-500 animate-pulse'
+                            ? 'bg-amber-500 animate-pulse'
                             : 'bg-red-500'
                       }`}
                     />
                     <span className="text-sm text-gray-700 truncate">{source.name}</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-mono flex-shrink-0">
+                  <span className="text-xs text-gray-500 font-mono flex-shrink-0 bg-white px-2 py-1 border border-gray-200">
                     {source.latency}
                   </span>
                 </div>

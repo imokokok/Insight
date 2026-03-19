@@ -127,12 +127,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Image
-                src="/logos/owl-logo-white.svg"
-                alt="Insight Logo"
-                width={32}
-                height={28}
-              />
+              <Image src="/logos/owl-logo-white.svg" alt="Insight Logo" width={32} height={28} />
               <span className="text-white font-bold text-xl">Insight</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">

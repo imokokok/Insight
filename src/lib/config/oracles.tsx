@@ -508,7 +508,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.BASE,
     ],
     client: new DIAClient(),
-    iconBgColor: `bg-[${chartColors.oracle.dia}]`,
+    iconBgColor: 'bg-indigo-600',
     themeColor: 'indigo',
     icon: <img src="/logos/oracles/dia.svg" alt="DIA" className="w-12 h-12" />,
     marketData: {

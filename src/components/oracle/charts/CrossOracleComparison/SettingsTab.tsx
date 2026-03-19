@@ -108,8 +108,11 @@ export function SettingsTab({
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
           {getOracleProvidersSortedByMarketCap()
-            .filter((provider) =>
-              ![OracleProvider.UMA, OracleProvider.CHRONICLE, OracleProvider.WINKLINK].includes(provider)
+            .filter(
+              (provider) =>
+                ![OracleProvider.UMA, OracleProvider.CHRONICLE, OracleProvider.WINKLINK].includes(
+                  provider
+                )
             )
             .map((provider) => (
               <button
@@ -143,9 +146,7 @@ export function SettingsTab({
 
       {/* 分组选择 */}
       <div className="pb-6 border-b border-gray-100">
-        <h3 className="text-xs font-normal text-gray-500 mb-4">
-          {t('crossOracle.selectGroup')}
-        </h3>
+        <h3 className="text-xs font-normal text-gray-500 mb-4">{t('crossOracle.selectGroup')}</h3>
         <SegmentedControl
           options={[
             { value: 'ALL', label: t('crossOracle.groups.all') },
@@ -195,9 +196,7 @@ export function SettingsTab({
 
       {/* 自动刷新设置 */}
       <div className="pb-6 border-b border-gray-100">
-        <h3 className="text-xs font-normal text-gray-500 mb-4">
-          {t('crossOracle.autoRefresh')}
-        </h3>
+        <h3 className="text-xs font-normal text-gray-500 mb-4">{t('crossOracle.autoRefresh')}</h3>
         <div className="flex flex-col gap-3">
           <label className="flex items-center gap-2">
             <input
@@ -225,9 +224,7 @@ export function SettingsTab({
 
       {/* 手动刷新和导出 */}
       <div>
-        <h3 className="text-xs font-normal text-gray-500 mb-4">
-          {t('crossOracle.actions')}
-        </h3>
+        <h3 className="text-xs font-normal text-gray-500 mb-4">{t('crossOracle.actions')}</h3>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-400">

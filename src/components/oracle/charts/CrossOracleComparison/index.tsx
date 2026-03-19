@@ -26,7 +26,7 @@ export function CrossOracleComparison() {
   const t = useTranslations();
   const chartRef = useRef<HTMLDivElement>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('overview');
-  
+
   // 默认只选择 4 个预言机
   const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC');
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>([
@@ -35,7 +35,7 @@ export function CrossOracleComparison() {
     OracleProvider.BAND_PROTOCOL,
     OracleProvider.API3,
   ]);
-  
+
   const [priceData, setPriceData] = useState<PriceComparisonData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -190,73 +190,72 @@ export function CrossOracleComparison() {
       {/* 内容区域 - 卡片容器 */}
       <div className="bg-white border border-gray-200">
         <div className="p-5">
+          {/* 概览视图 */}
+          {activeSubTab === 'overview' && (
+            <OverviewTab
+              consistencyScore={consistencyScore}
+              priceStats={priceStats}
+              deviationAlerts={deviationAlerts}
+              priceData={priceData}
+              selectedOracles={selectedOracles}
+              getConsistencyLabel={getConsistencyLabel}
+              getConsistencyColor={getConsistencyColor}
+              extendedStats={extendedStats}
+            />
+          )}
 
-      {/* 概览视图 */}
-      {activeSubTab === 'overview' && (
-        <OverviewTab
-          consistencyScore={consistencyScore}
-          priceStats={priceStats}
-          deviationAlerts={deviationAlerts}
-          priceData={priceData}
-          selectedOracles={selectedOracles}
-          getConsistencyLabel={getConsistencyLabel}
-          getConsistencyColor={getConsistencyColor}
-          extendedStats={extendedStats}
-        />
-      )}
+          {/* 图表视图 */}
+          {activeSubTab === 'charts' && (
+            <ChartsTab
+              deviationChartData={deviationChartData}
+              chartData={chartData}
+              radarData={radarData}
+              lineChartData={lineChartData}
+              priceStats={priceStats}
+              selectedOracles={selectedOracles}
+              priceHistory={priceHistory}
+              priceData={priceData}
+              performanceData={performanceData}
+            />
+          )}
 
-      {/* 图表视图 */}
-      {activeSubTab === 'charts' && (
-        <ChartsTab
-          deviationChartData={deviationChartData}
-          chartData={chartData}
-          radarData={radarData}
-          lineChartData={lineChartData}
-          priceStats={priceStats}
-          selectedOracles={selectedOracles}
-          priceHistory={priceHistory}
-          priceData={priceData}
-          performanceData={performanceData}
-        />
-      )}
+          {/* 数据视图 */}
+          {activeSubTab === 'data' && (
+            <DataTab
+              sortedPriceData={sortedPriceData}
+              priceStats={priceStats}
+              deviationData={deviationData}
+              performanceData={performanceData}
+              selectedOracles={selectedOracles}
+              handleSort={handleSort}
+              getSortIcon={getSortIcon}
+            />
+          )}
 
-      {/* 数据视图 */}
-      {activeSubTab === 'data' && (
-        <DataTab
-          sortedPriceData={sortedPriceData}
-          priceStats={priceStats}
-          deviationData={deviationData}
-          performanceData={performanceData}
-          selectedOracles={selectedOracles}
-          handleSort={handleSort}
-          getSortIcon={getSortIcon}
-        />
-      )}
-
-      {/* 设置视图 */}
-      {activeSubTab === 'settings' && (
-        <SettingsTab
-          selectedSymbol={selectedSymbol}
-          selectedOracles={selectedOracles}
-          deviationThreshold={deviationThreshold}
-          deviationAlerts={deviationAlerts}
-          autoRefresh={autoRefresh}
-          refreshInterval={refreshInterval}
-          selectedGroup={selectedGroup}
-          lastUpdated={lastUpdated}
-          exportData={exportData}
-          chartRef={chartRef}
-          onSymbolChange={setSelectedSymbol}
-          onToggleOracle={toggleOracle}
-          onDeviationThresholdChange={setDeviationThreshold}
-          onAutoRefreshChange={setAutoRefresh}
-          onRefreshIntervalChange={setRefreshInterval}
-          onQuickCompare={handleQuickCompare}
-          onGroupChange={handleGroupChange}
-          onManualRefresh={fetchPrices}
-          isLoading={isLoading}
-        />
-      )}
+          {/* 设置视图 */}
+          {activeSubTab === 'settings' && (
+            <SettingsTab
+              selectedSymbol={selectedSymbol}
+              selectedOracles={selectedOracles}
+              deviationThreshold={deviationThreshold}
+              deviationAlerts={deviationAlerts}
+              autoRefresh={autoRefresh}
+              refreshInterval={refreshInterval}
+              selectedGroup={selectedGroup}
+              lastUpdated={lastUpdated}
+              exportData={exportData}
+              chartRef={chartRef}
+              onSymbolChange={setSelectedSymbol}
+              onToggleOracle={toggleOracle}
+              onDeviationThresholdChange={setDeviationThreshold}
+              onAutoRefreshChange={setAutoRefresh}
+              onRefreshIntervalChange={setRefreshInterval}
+              onQuickCompare={handleQuickCompare}
+              onGroupChange={handleGroupChange}
+              onManualRefresh={fetchPrices}
+              isLoading={isLoading}
+            />
+          )}
         </div>
       </div>
     </div>

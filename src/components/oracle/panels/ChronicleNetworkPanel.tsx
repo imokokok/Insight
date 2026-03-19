@@ -29,24 +29,24 @@ export function ChronicleNetworkPanel({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'online':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'offline':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   const getNetworkHealthColor = (health: string) => {
     switch (health) {
       case 'excellent':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       case 'good':
         return 'text-blue-600 bg-blue-50 border-blue-200';
       case 'fair':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        return 'text-amber-600 bg-amber-50 border-amber-200';
       case 'poor':
         return 'text-red-600 bg-red-50 border-red-200';
       default:
@@ -205,9 +205,9 @@ export function ChronicleNetworkPanel({
                     {(validatorMetrics.totalStaked / 1e6).toFixed(2)}M
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 h-2">
                   <div
-                    className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                    className="bg-amber-500 h-2 transition-all duration-500"
                     style={{
                       width: `${Math.min((validatorMetrics.totalStaked / 5e7) * 100, 100)}%`,
                     }}
@@ -225,7 +225,7 @@ export function ChronicleNetworkPanel({
           {networkStats.hourlyActivity.map((activity, index) => (
             <div
               key={index}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 transition-colors rounded-t"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 transition-colors"
               style={{
                 height: `${(activity / maxActivity) * 100}%`,
                 minHeight: '4px',

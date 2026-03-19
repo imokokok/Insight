@@ -45,7 +45,9 @@ export function OracleComparisonView({
 }: OracleComparisonViewProps) {
   const t = useTranslations('comparison.oracleComparison');
 
-  const [sortBy, setSortBy] = useState<'price' | 'deviation' | 'confidence' | 'responseTime'>('price');
+  const [sortBy, setSortBy] = useState<'price' | 'deviation' | 'confidence' | 'responseTime'>(
+    'price'
+  );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const comparisonResult: OracleComparisonResult = useMemo(() => {
@@ -53,9 +55,10 @@ export function OracleComparisonView({
     const prices = validOracles.map((o) => o.metrics.price);
     const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
     const sorted = [...prices].sort((a, b) => a - b);
-    const median = sorted.length % 2 === 0
-      ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
-      : sorted[Math.floor(sorted.length / 2)];
+    const median =
+      sorted.length % 2 === 0
+        ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+        : sorted[Math.floor(sorted.length / 2)];
     const max = Math.max(...prices);
     const min = Math.min(...prices);
     const variance = prices.reduce((sum, p) => sum + Math.pow(p - avg, 2), 0) / prices.length;
@@ -113,20 +116,31 @@ export function OracleComparisonView({
     const validOracles = oracles.filter((o) => o.metrics != null);
     if (validOracles.length === 0) return [];
     const metrics = [
-      { key: 'price', label: t('metrics.price'), max: Math.max(...validOracles.map((o) => o.metrics?.price ?? 0)) * 1.1 || 1 },
+      {
+        key: 'price',
+        label: t('metrics.price'),
+        max: Math.max(...validOracles.map((o) => o.metrics?.price ?? 0)) * 1.1 || 1,
+      },
       { key: 'confidence', label: t('metrics.confidence'), max: 100 },
-      { key: 'responseTime', label: t('metrics.responseTime'), max: Math.max(...validOracles.map((o) => o.metrics?.responseTime || 0)) * 1.2 || 1 },
+      {
+        key: 'responseTime',
+        label: t('metrics.responseTime'),
+        max: Math.max(...validOracles.map((o) => o.metrics?.responseTime || 0)) * 1.2 || 1,
+      },
       { key: 'accuracy', label: t('metrics.accuracy'), max: 100 },
       { key: 'reliability', label: t('metrics.reliability'), max: 100 },
     ];
 
     return metrics.map((m) => ({
       metric: m.label,
-      ...validOracles.reduce((acc, o) => {
-        const val = (o.metrics?.[m.key as keyof typeof o.metrics] as number) || 0;
-        acc[o.name] = (val / m.max) * 100;
-        return acc;
-      }, {} as Record<string, number>),
+      ...validOracles.reduce(
+        (acc, o) => {
+          const val = (o.metrics?.[m.key as keyof typeof o.metrics] as number) || 0;
+          acc[o.name] = (val / m.max) * 100;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     }));
   }, [oracles, t]);
 
@@ -173,10 +187,14 @@ export function OracleComparisonView({
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{t('consistencyScore')}</p>
-          <p className={`text-lg font-semibold ${getConsistencyColor(comparisonResult.consistencyScore)}`}>
+          <p
+            className={`text-lg font-semibold ${getConsistencyColor(comparisonResult.consistencyScore)}`}
+          >
             {comparisonResult.consistencyScore.toFixed(1)}
           </p>
-          <p className="text-xs text-gray-400">{getConsistencyLabel(comparisonResult.consistencyScore)}</p>
+          <p className="text-xs text-gray-400">
+            {getConsistencyLabel(comparisonResult.consistencyScore)}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{t('maxDeviation')}</p>
@@ -194,7 +212,10 @@ export function OracleComparisonView({
             <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('priceComparison')}</h4>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={priceChartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                <BarChart
+                  data={priceChartData}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
                   <YAxis tickFormatter={(v) => `$${v.toFixed(0)}`} tick={{ fontSize: 11 }} />
@@ -214,7 +235,9 @@ export function OracleComparisonView({
 
           {/* Deviation Chart */}
           <div className="bg-white border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">{t('deviationFromAverage')}</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">
+              {t('deviationFromAverage')}
+            </h4>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -222,7 +245,11 @@ export function OracleComparisonView({
                   layout="vertical"
                   margin={{ top: 10, right: 10, left: 80, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={baseColors.gray[200]} horizontal={false} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={baseColors.gray[200]}
+                    horizontal={false}
+                  />
                   <XAxis
                     type="number"
                     tickFormatter={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`}
@@ -230,14 +257,21 @@ export function OracleComparisonView({
                   />
                   <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
                   <Tooltip
-                    formatter={(value) => [`${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(3)}%`, t('deviation')]}
+                    formatter={(value) => [
+                      `${Number(value) >= 0 ? '+' : ''}${Number(value).toFixed(3)}%`,
+                      t('deviation'),
+                    ]}
                     contentStyle={{ fontSize: 12 }}
                   />
                   <Bar dataKey="deviation" radius={[0, 4, 4, 0]}>
                     {priceChartData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={entry.deviation >= 0 ? chartColors.semantic.positive : chartColors.semantic.negative}
+                        fill={
+                          entry.deviation >= 0
+                            ? chartColors.semantic.positive
+                            : chartColors.semantic.negative
+                        }
                       />
                     ))}
                   </Bar>

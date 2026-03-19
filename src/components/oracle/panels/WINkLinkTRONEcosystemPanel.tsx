@@ -98,51 +98,67 @@ export function WINkLinkTRONEcosystemPanel({ data }: WINkLinkTRONEcosystemPanelP
       {/* Network Stats */}
       <DashboardCard title={t('winklink.tron.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-pink-600" />
-              <p className="text-xs text-gray-500">{t('winklink.tron.totalTransactions')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.tron.totalTransactions')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
               {formatNumber(data.networkStats.totalTransactions)}
             </p>
           </div>
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-yellow-600" />
-              <p className="text-xs text-gray-500">{t('winklink.tron.tps')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.tron.tps')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{data.networkStats.tps}</p>
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
+              {data.networkStats.tps}
+            </p>
           </div>
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-blue-600" />
-              <p className="text-xs text-gray-500">{t('winklink.tron.totalAccounts')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.tron.totalAccounts')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
               {formatNumber(data.networkStats.totalAccounts)}
             </p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-green-600" />
-              <p className="text-xs text-gray-500">{t('winklink.tron.dailyTransactions')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.tron.dailyTransactions')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
               {formatNumber(data.dailyTransactions)}
             </p>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
-          <div className="py-2">
-            <p className="text-xs text-gray-500">{t('winklink.tron.tvl')}</p>
-            <p className="text-lg font-bold text-gray-900">
+          <div className="py-2 border-r border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.tron.tvl')}
+            </p>
+            <p className="text-lg font-bold text-gray-900 tracking-tight">
               {formatCurrency(data.totalValueLocked)}
             </p>
           </div>
           <div className="py-2">
-            <p className="text-xs text-gray-500">{t('winklink.tron.integrationCoverage')}</p>
-            <p className="text-lg font-bold text-gray-900">{data.integrationCoverage}%</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">
+              {t('winklink.tron.integrationCoverage')}
+            </p>
+            <p className="text-lg font-bold text-gray-900 tracking-tight">
+              {data.integrationCoverage}%
+            </p>
           </div>
         </div>
       </DashboardCard>

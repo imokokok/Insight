@@ -40,7 +40,9 @@ export default function SnapshotPage() {
       if (data) {
         setSnapshot(data);
       } else {
-        setError(isZh ? '快照不存在或未公开分享' : 'Snapshot does not exist or is not publicly shared');
+        setError(
+          isZh ? '快照不存在或未公开分享' : 'Snapshot does not exist or is not publicly shared'
+        );
       }
     } catch (err) {
       logger.error('Failed to load snapshot', err instanceof Error ? err : new Error(String(err)));
@@ -66,7 +68,10 @@ export default function SnapshotPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-red-50 border border-red-200 rounded p-6 text-center">
-          <p className="text-red-600 mb-4">{error || (isZh ? '快照不存在或已被删除' : 'Snapshot does not exist or has been deleted')}</p>
+          <p className="text-red-600 mb-4">
+            {error ||
+              (isZh ? '快照不存在或已被删除' : 'Snapshot does not exist or has been deleted')}
+          </p>
           <Link
             href="/"
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -104,9 +109,13 @@ export default function SnapshotPage() {
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">
                 {snapshot.symbol} {isZh ? '价格快照' : 'Price Snapshot'}
               </h1>
-              <p className="text-gray-500 text-sm">{isZh ? '创建于' : 'Created at'} {formatTimestamp(snapshot.timestamp)}</p>
+              <p className="text-gray-500 text-sm">
+                {isZh ? '创建于' : 'Created at'} {formatTimestamp(snapshot.timestamp)}
+              </p>
               <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                <span>{isZh ? '交易对' : 'Trading Pair'}: {snapshot.symbol}</span>
+                <span>
+                  {isZh ? '交易对' : 'Trading Pair'}: {snapshot.symbol}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -126,7 +135,9 @@ export default function SnapshotPage() {
         <div className="bg-white border border-gray-200 p-6">
           <div className="p-6">
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">{isZh ? '配置信息' : 'Configuration'}</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                {isZh ? '配置信息' : 'Configuration'}
+              </h3>
               <div className="bg-gray-50 border border-gray-100 p-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -134,7 +145,9 @@ export default function SnapshotPage() {
                     <span className="ml-2 font-medium">{snapshot.symbol}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">{isZh ? '选中的预言机' : 'Selected Oracles'}:</span>
+                    <span className="text-gray-500">
+                      {isZh ? '选中的预言机' : 'Selected Oracles'}:
+                    </span>
                     <span className="ml-2 font-medium">{snapshot.selectedOracles.join(', ')}</span>
                   </div>
                 </div>
@@ -199,7 +212,9 @@ export default function SnapshotPage() {
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">{isZh ? '价格数据' : 'Price Data'}</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                {isZh ? '价格数据' : 'Price Data'}
+              </h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -210,7 +225,9 @@ export default function SnapshotPage() {
                       <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">
                         {isZh ? '交易对' : 'Trading Pair'}
                       </th>
-                      <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">{isZh ? '链' : 'Chain'}</th>
+                      <th className="text-left py-2 px-3 text-sm font-medium text-gray-700">
+                        {isZh ? '链' : 'Chain'}
+                      </th>
                       <th className="text-right py-2 px-3 text-sm font-medium text-gray-700">
                         {isZh ? '价格' : 'Price'}
                       </th>

@@ -57,33 +57,45 @@ export function WINkLinkStakingPanel({ data }: WINkLinkStakingPanelProps) {
       {/* Staking Stats */}
       <DashboardCard title={t('winklink.staking.title')}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Coins className="w-4 h-4 text-pink-600" />
-              <p className="text-xs text-gray-500">{t('winklink.staking.totalStaked')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.staking.totalStaked')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatNumber(data.totalStaked)} WIN</p>
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
+              {formatNumber(data.totalStaked)} WIN
+            </p>
           </div>
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-green-600" />
-              <p className="text-xs text-gray-500">{t('winklink.staking.activeNodes')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.staking.activeNodes')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-green-600">{data.activeNodes}</p>
+            <p className="text-xl font-bold text-green-600 tracking-tight">{data.activeNodes}</p>
           </div>
-          <div className="py-2">
+          <div className="py-2 border-r border-gray-100">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-yellow-600" />
-              <p className="text-xs text-gray-500">{t('winklink.staking.averageApr')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.staking.averageApr')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-yellow-600">{data.averageApr}%</p>
+            <p className="text-xl font-bold text-yellow-600 tracking-tight">{data.averageApr}%</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
               <Award className="w-4 h-4 text-purple-600" />
-              <p className="text-xs text-gray-500">{t('winklink.staking.rewardPool')}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {t('winklink.staking.rewardPool')}
+              </p>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatNumber(data.rewardPool)} WIN</p>
+            <p className="text-xl font-bold text-gray-900 tracking-tight">
+              {formatNumber(data.rewardPool)} WIN
+            </p>
           </div>
         </div>
       </DashboardCard>

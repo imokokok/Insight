@@ -1,6 +1,13 @@
 'use client';
 
-import { forwardRef, ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode, ElementType, ComponentPropsWithoutRef } from 'react';
+import {
+  forwardRef,
+  ButtonHTMLAttributes,
+  AnchorHTMLAttributes,
+  ReactNode,
+  ElementType,
+  ComponentPropsWithoutRef,
+} from 'react';
 import Link from 'next/link';
 
 // Minimum touch target size (44x44 points as per Apple HIG and Material Design)
@@ -38,12 +45,15 @@ export const TouchButton = forwardRef<HTMLButtonElement, TouchButtonProps>(
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200';
+    const baseStyles =
+      'inline-flex items-center justify-center font-medium transition-all duration-200';
 
     const variantStyles = {
       primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300',
-      secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:text-gray-400',
+      secondary:
+        'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400',
+      ghost:
+        'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:text-gray-400',
       danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
     };
 
@@ -124,7 +134,8 @@ export const TouchLink = forwardRef<HTMLAnchorElement, TouchLinkProps>(
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors';
+    const baseStyles =
+      'inline-flex items-center justify-center text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors';
 
     const touchAreaStyles = expandTouchArea
       ? 'relative after:absolute after:inset-0 after:-m-2 after:content-[""]'
@@ -135,9 +146,7 @@ export const TouchLink = forwardRef<HTMLAnchorElement, TouchLinkProps>(
       minHeight: minSize,
     };
 
-    const linkProps = external
-      ? { target: '_blank', rel: 'noopener noreferrer' }
-      : {};
+    const linkProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
     return (
       <Link
@@ -169,14 +178,7 @@ interface TouchIconButtonProps {
 
 export const TouchIconButton = forwardRef<HTMLButtonElement, TouchIconButtonProps>(
   (
-    {
-      icon,
-      label,
-      className = '',
-      minSize = MIN_TOUCH_SIZE,
-      variant = 'default',
-      ...props
-    },
+    { icon, label, className = '', minSize = MIN_TOUCH_SIZE, variant = 'default', ...props },
     ref
   ) => {
     const variantStyles = {

@@ -2,17 +2,13 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
+import { Contrast, Type, Palette, Monitor, Focus, RotateCcw, Check, Eye } from 'lucide-react';
 import {
-  Contrast,
-  Type,
-  Palette,
-  Monitor,
-  Focus,
-  RotateCcw,
-  Check,
-  Eye,
-} from 'lucide-react';
-import { useTheme, type ThemeMode, type ColorScheme, type AccessibilitySettings } from './ThemeContext';
+  useTheme,
+  type ThemeMode,
+  type ColorScheme,
+  type AccessibilitySettings,
+} from './ThemeContext';
 import { motion } from 'framer-motion';
 
 interface SettingSectionProps {
@@ -46,9 +42,10 @@ function OptionButton({ label, isSelected, onClick, description }: OptionButtonP
       onClick={onClick}
       className={`
         w-full text-left p-3 border transition-all
-        ${isSelected 
-          ? 'border-blue-500 bg-blue-50' 
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        ${
+          isSelected
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
         }
       `}
       aria-pressed={isSelected}
@@ -64,9 +61,7 @@ function OptionButton({ label, isSelected, onClick, description }: OptionButtonP
             </p>
           )}
         </div>
-        {isSelected && (
-          <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />
-        )}
+        {isSelected && <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />}
       </div>
     </button>
   );
@@ -85,79 +80,87 @@ export function AccessibilitySettings() {
   } = useTheme();
 
   const themeModes: { value: ThemeMode; label: string; description: string }[] = [
-    { 
-      value: 'default', 
-      label: t('theme.default'), 
-      description: t('theme.defaultDescription') 
+    {
+      value: 'default',
+      label: t('theme.default'),
+      description: t('theme.defaultDescription'),
     },
-    { 
-      value: 'high-contrast', 
-      label: t('theme.highContrast'), 
-      description: t('theme.highContrastDescription') 
+    {
+      value: 'high-contrast',
+      label: t('theme.highContrast'),
+      description: t('theme.highContrastDescription'),
     },
-    { 
-      value: 'dark', 
-      label: t('theme.dark'), 
-      description: t('theme.darkDescription') 
+    {
+      value: 'dark',
+      label: t('theme.dark'),
+      description: t('theme.darkDescription'),
     },
   ];
 
   const colorSchemes: { value: ColorScheme; label: string; description: string }[] = [
-    { 
-      value: 'normal', 
-      label: t('colorScheme.normal'), 
-      description: t('colorScheme.normalDescription') 
+    {
+      value: 'normal',
+      label: t('colorScheme.normal'),
+      description: t('colorScheme.normalDescription'),
     },
-    { 
-      value: 'protanopia', 
-      label: t('colorScheme.protanopia'), 
-      description: t('colorScheme.protanopiaDescription') 
+    {
+      value: 'protanopia',
+      label: t('colorScheme.protanopia'),
+      description: t('colorScheme.protanopiaDescription'),
     },
-    { 
-      value: 'deuteranopia', 
-      label: t('colorScheme.deuteranopia'), 
-      description: t('colorScheme.deuteranopiaDescription') 
+    {
+      value: 'deuteranopia',
+      label: t('colorScheme.deuteranopia'),
+      description: t('colorScheme.deuteranopiaDescription'),
     },
-    { 
-      value: 'tritanopia', 
-      label: t('colorScheme.tritanopia'), 
-      description: t('colorScheme.tritanopiaDescription') 
+    {
+      value: 'tritanopia',
+      label: t('colorScheme.tritanopia'),
+      description: t('colorScheme.tritanopiaDescription'),
     },
-    { 
-      value: 'achromatopsia', 
-      label: t('colorScheme.achromatopsia'), 
-      description: t('colorScheme.achromatopsiaDescription') 
-    },
-  ];
-
-  const fontSizes: { value: AccessibilitySettings['fontSize']; label: string; description: string }[] = [
-    { 
-      value: 'normal', 
-      label: t('fontSize.normal'), 
-      description: t('fontSize.normalDescription') 
-    },
-    { 
-      value: 'large', 
-      label: t('fontSize.large'), 
-      description: t('fontSize.largeDescription') 
-    },
-    { 
-      value: 'x-large', 
-      label: t('fontSize.xLarge'), 
-      description: t('fontSize.xLargeDescription') 
+    {
+      value: 'achromatopsia',
+      label: t('colorScheme.achromatopsia'),
+      description: t('colorScheme.achromatopsiaDescription'),
     },
   ];
 
-  const focusIndicators: { value: AccessibilitySettings['focusIndicator']; label: string; description: string }[] = [
-    { 
-      value: 'default', 
-      label: t('focusIndicator.default'), 
-      description: t('focusIndicator.defaultDescription') 
+  const fontSizes: {
+    value: AccessibilitySettings['fontSize'];
+    label: string;
+    description: string;
+  }[] = [
+    {
+      value: 'normal',
+      label: t('fontSize.normal'),
+      description: t('fontSize.normalDescription'),
     },
-    { 
-      value: 'enhanced', 
-      label: t('focusIndicator.enhanced'), 
-      description: t('focusIndicator.enhancedDescription') 
+    {
+      value: 'large',
+      label: t('fontSize.large'),
+      description: t('fontSize.largeDescription'),
+    },
+    {
+      value: 'x-large',
+      label: t('fontSize.xLarge'),
+      description: t('fontSize.xLargeDescription'),
+    },
+  ];
+
+  const focusIndicators: {
+    value: AccessibilitySettings['focusIndicator'];
+    label: string;
+    description: string;
+  }[] = [
+    {
+      value: 'default',
+      label: t('focusIndicator.default'),
+      description: t('focusIndicator.defaultDescription'),
+    },
+    {
+      value: 'enhanced',
+      label: t('focusIndicator.enhanced'),
+      description: t('focusIndicator.enhancedDescription'),
     },
   ];
 
@@ -273,7 +276,10 @@ export function AccessibilitySettings() {
               <button className="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                 {t('preview.sampleButton')}
               </button>
-              <a href="#" className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-600 underline hover:text-blue-800">
+              <a
+                href="#"
+                className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-600 underline hover:text-blue-800"
+              >
                 {t('preview.sampleLink')}
               </a>
             </div>
@@ -293,9 +299,10 @@ export function AccessibilitySettingsButton() {
       onClick={toggleHighContrast}
       className={`
         inline-flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors
-        ${isHighContrast 
-          ? 'bg-yellow-400 text-black border-2 border-black' 
-          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+        ${
+          isHighContrast
+            ? 'bg-yellow-400 text-black border-2 border-black'
+            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
         }
       `}
       aria-pressed={isHighContrast}

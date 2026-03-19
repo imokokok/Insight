@@ -1,8 +1,9 @@
 'use client';
 
-import { NFTData, NFTCollection } from '@/lib/oracles/dia';
+import { NFTData } from '@/lib/oracles/dia';
 import { useTranslations } from 'next-intl';
 import { Blockchain } from '@/types/oracle';
+import { DashboardCard } from '@/components/oracle';
 
 interface DIANFTDataPanelProps {
   nftData: NFTData | undefined;
@@ -14,11 +15,11 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
   const getChainBadgeColor = (chain: Blockchain) => {
     switch (chain) {
       case Blockchain.ETHEREUM:
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return 'bg-indigo-100 text-indigo-700 border-indigo-200';
       case Blockchain.POLYGON:
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case Blockchain.ARBITRUM:
-        return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case Blockchain.BASE:
         return 'bg-cyan-100 text-cyan-700 border-cyan-200';
       case Blockchain.OPTIMISM:
@@ -88,9 +89,9 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
 
   if (!nftData) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <DashboardCard className="p-6">
         <div className="text-center text-gray-500 py-8">{t('dia.nftData.noData')}</div>
-      </div>
+      </DashboardCard>
     );
   }
 
@@ -102,30 +103,30 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <DashboardCard className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dia.nftData.title')}</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-indigo-50 rounded-lg p-4">
+          <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.totalCollections')}</p>
             <p className="text-2xl font-bold text-indigo-600">{totalCollections}</p>
-          </div>
-          <div className="bg-green-50 rounded-lg p-4">
+          </DashboardCard>
+          <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.trendingCount')}</p>
             <p className="text-2xl font-bold text-green-600">{trending?.length || 0}</p>
-          </div>
-          <div className="bg-purple-50 rounded-lg p-4">
+          </DashboardCard>
+          <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.chainsSupported')}</p>
             <p className="text-2xl font-bold text-purple-600">{chainDistribution.length}</p>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-4">
+          </DashboardCard>
+          <DashboardCard className="p-4">
             <p className="text-sm text-gray-600 mb-1">{t('dia.nftData.avgConfidence')}</p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-indigo-600">
               {collections.length > 0
                 ? `${((collections.reduce((acc, c) => acc + c.confidence, 0) / collections.length) * 100).toFixed(1)}%`
                 : '0%'}
             </p>
-          </div>
+          </DashboardCard>
         </div>
 
         {/* Chain Distribution */}
@@ -144,20 +145,17 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
             </div>
           </div>
         )}
-      </div>
+      </DashboardCard>
 
       {/* Trending Collections */}
       {trending && trending.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <DashboardCard className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             {t('dia.nftData.trendingTitle')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {trending.map((collection) => (
-              <div
-                key={collection.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
+              <DashboardCard key={collection.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h4 className="font-semibold text-gray-900">{collection.name}</h4>
@@ -183,24 +181,21 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
                     </span>
                   </div>
                 </div>
-              </div>
+              </DashboardCard>
             ))}
           </div>
-        </div>
+        </DashboardCard>
       )}
 
       {/* All Collections */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <DashboardCard className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {t('dia.nftData.allCollections')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((collection) => (
-            <div
-              key={collection.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-            >
+            <DashboardCard key={collection.id} className="p-4 hover:shadow-md transition-shadow">
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0 flex-1">
@@ -260,10 +255,10 @@ export function DIANFTDataPanel({ nftData }: DIANFTDataPanelProps) {
               <div className="mt-2 text-xs text-gray-400">
                 {t('dia.nftData.updateFrequency')}: {collection.updateFrequency}s
               </div>
-            </div>
+            </DashboardCard>
           ))}
         </div>
-      </div>
+      </DashboardCard>
     </div>
   );
 }

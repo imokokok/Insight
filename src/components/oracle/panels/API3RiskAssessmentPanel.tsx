@@ -46,11 +46,8 @@ function LegacyRiskScoreCard({ title, score, description, color }: RiskScoreCard
         <span className="text-sm font-medium">{title}</span>
         <span className="text-2xl font-bold">{score}/100</span>
       </div>
-      <div className="w-full h-2 bg-white bg-opacity-50 rounded-full mb-2">
-        <div
-          className={`h-full rounded-full ${progressColorClasses[color]}`}
-          style={{ width: `${score}%` }}
-        />
+      <div className="w-full h-2 bg-white bg-opacity-50 mb-2">
+        <div className={`h-full ${progressColorClasses[color]}`} style={{ width: `${score}%` }} />
       </div>
       <p className="text-xs opacity-80">{description}</p>
     </div>
@@ -98,11 +95,36 @@ const api3MitigationMeasures: MitigationMeasure[] = [
     status: 'active',
     effectiveness: 95,
   },
-  { name: 'api3.risk.mitigationMeasures.coveragePoolStaking', type: 'technical', status: 'active', effectiveness: 90 },
-  { name: 'api3.risk.mitigationMeasures.daoGovernance', type: 'governance', status: 'active', effectiveness: 85 },
-  { name: 'api3.risk.mitigationMeasures.serviceCoverage', type: 'operational', status: 'active', effectiveness: 88 },
-  { name: 'api3.risk.mitigationMeasures.oevProtection', type: 'technical', status: 'active', effectiveness: 92 },
-  { name: 'api3.risk.mitigationMeasures.multiChainDeployment', type: 'operational', status: 'active', effectiveness: 87 },
+  {
+    name: 'api3.risk.mitigationMeasures.coveragePoolStaking',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 90,
+  },
+  {
+    name: 'api3.risk.mitigationMeasures.daoGovernance',
+    type: 'governance',
+    status: 'active',
+    effectiveness: 85,
+  },
+  {
+    name: 'api3.risk.mitigationMeasures.serviceCoverage',
+    type: 'operational',
+    status: 'active',
+    effectiveness: 88,
+  },
+  {
+    name: 'api3.risk.mitigationMeasures.oevProtection',
+    type: 'technical',
+    status: 'active',
+    effectiveness: 92,
+  },
+  {
+    name: 'api3.risk.mitigationMeasures.multiChainDeployment',
+    type: 'operational',
+    status: 'active',
+    effectiveness: 87,
+  },
 ];
 
 function CoveragePoolRisk({ staking }: { staking?: StakingData }) {
@@ -276,7 +298,9 @@ function StakingRisk({ staking }: { staking?: StakingData }) {
           </div>
           <div className="p-3 bg-gray-50 border border-gray-200">
             <p className="text-xs text-gray-500 mb-1">{t('api3.risk.staking.lockup')}</p>
-            <p className="text-lg font-semibold text-gray-900">{t('api3.risk.staking.lockupValue')}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {t('api3.risk.staking.lockupValue')}
+            </p>
           </div>
         </div>
       </div>

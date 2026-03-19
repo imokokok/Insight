@@ -139,7 +139,9 @@ export function QueryResults({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-900">{t('priceQuery.loadingData')}</h3>
-            <span className="text-xs text-gray-500">{queryProgress.completed} / {queryProgress.total}</span>
+            <span className="text-xs text-gray-500">
+              {queryProgress.completed} / {queryProgress.total}
+            </span>
           </div>
           <ProgressBar
             progress={queryProgress.completed}
@@ -149,7 +151,9 @@ export function QueryResults({
             variant="default"
           />
           <p className="text-xs text-gray-500 mt-2">
-            {t('priceQuery.querying')} {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)} {currentQueryTarget.chain && t(`blockchain.${currentQueryTarget.chain.toLowerCase()}`)}
+            {t('priceQuery.querying')}{' '}
+            {currentQueryTarget.oracle && t(`navbar.${currentQueryTarget.oracle.toLowerCase()}`)}{' '}
+            {currentQueryTarget.chain && t(`blockchain.${currentQueryTarget.chain.toLowerCase()}`)}
           </p>
         </div>
         <ChartSkeleton height={300} variant="price" showToolbar={true} />
@@ -214,7 +218,11 @@ export function QueryResults({
       <div className="flex items-center justify-between gap-4">
         <DataSourceSection
           results={queryResults}
-          lastUpdated={queryResults.length > 0 ? new Date(Math.max(...queryResults.map(r => r.priceData.timestamp))) : null}
+          lastUpdated={
+            queryResults.length > 0
+              ? new Date(Math.max(...queryResults.map((r) => r.priceData.timestamp)))
+              : null
+          }
           onRefresh={onRefresh}
           isLoading={loading}
         />

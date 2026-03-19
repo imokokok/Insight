@@ -51,14 +51,14 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-green-600" />
+              <Activity className="w-4 h-4 text-emerald-600" />
               <p className="text-xs text-gray-500">{t('tellor.reporters.active24h')}</p>
             </div>
-            <p className="text-xl font-bold text-green-600">{data.activeReporters}</p>
+            <p className="text-xl font-bold text-emerald-600">{data.activeReporters}</p>
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
+              <TrendingUp className="w-4 h-4 text-cyan-600" />
               <p className="text-xs text-gray-500">{t('tellor.reporters.avgStake')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">
@@ -67,7 +67,7 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
           </div>
           <div className="py-2">
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-4 h-4 text-yellow-600" />
+              <Trophy className="w-4 h-4 text-amber-600" />
               <p className="text-xs text-gray-500">{t('tellor.reporters.totalRewards')}</p>
             </div>
             <p className="text-xl font-bold text-gray-900">
@@ -108,8 +108,14 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                 <tr key={reporter.address} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-2 px-3">
                     <span
-                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-                        index < 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
+                      className={`inline-flex items-center justify-center w-6 h-6 text-xs font-medium ${
+                        index === 0
+                          ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                          : index === 1
+                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                            : index === 2
+                              ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                              : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {index + 1}
@@ -120,7 +126,9 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                       {reporter.address.slice(0, 8)}...{reporter.address.slice(-6)}
                     </span>
                   </td>
-                  <td className="py-2 px-3 text-gray-900">{reporter.totalReports.toLocaleString()}</td>
+                  <td className="py-2 px-3 text-gray-900">
+                    {reporter.totalReports.toLocaleString()}
+                  </td>
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
                       <div className="w-16 bg-gray-200 rounded-full h-2">
@@ -129,13 +137,15 @@ export function TellorReportersPanel({ data }: TellorReportersPanelProps) {
                           style={{ width: `${reporter.successRate * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm text-gray-700">{(reporter.successRate * 100).toFixed(2)}%</span>
+                      <span className="text-sm text-gray-700">
+                        {(reporter.successRate * 100).toFixed(2)}%
+                      </span>
                     </div>
                   </td>
                   <td className="py-2 px-3 text-gray-900">
                     {(reporter.stakedAmount / 1e3).toFixed(1)}k TRB
                   </td>
-                  <td className="py-2 px-3 text-green-600">
+                  <td className="py-2 px-3 text-emerald-600">
                     {(reporter.rewardsEarned / 1e3).toFixed(1)}k TRB
                   </td>
                 </tr>
