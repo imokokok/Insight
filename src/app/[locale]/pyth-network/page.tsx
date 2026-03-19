@@ -20,7 +20,8 @@ import { getOracleConfig } from '@/lib/config/oracles';
 import { OracleProvider } from '@/types/oracle';
 import { useRefresh, useExport } from '@/hooks';
 import { usePythAllData } from '@/hooks/usePythData';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui/selectors';
+import { FlatStatItem } from '@/components/oracle/common/DashboardCard';
 
 type SortField = 'stake' | 'accuracy' | 'name';
 type SortOrder = 'asc' | 'desc';
@@ -257,7 +258,7 @@ export default function PythNetworkPage() {
                       placeholder={t('pyth.publishers.searchPlaceholder') || '搜索发布者...'}
                       value={publisherSearchQuery}
                       onChange={(e) => setPublisherSearchQuery(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -275,50 +276,37 @@ export default function PythNetworkPage() {
                       onClick={() =>
                         setPublisherSortOrder(publisherSortOrder === 'asc' ? 'desc' : 'asc')
                       }
-                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 border border-gray-300 hover:bg-gray-50 transition-colors"
                     >
                       {publisherSortOrder === 'asc' ? '↑' : '↓'}
                     </button>
                   </div>
                 </div>
 
-                {/* 发布者统计 */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-violet-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {t('pyth.publishers.totalPublishers') || '发布者总数'}
-                    </p>
-                    <p className="text-2xl font-bold text-violet-600">{publishers?.length || 0}</p>
-                  </div>
-                  <div className="p-4 bg-violet-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {t('pyth.publishers.totalStaked') || '总质押'}
-                    </p>
-                    <p className="text-2xl font-bold text-violet-600">
-                      {((publishers?.reduce((sum, p) => sum + p.stake, 0) || 0) / 1e9).toFixed(2)}B
-                    </p>
-                  </div>
-                  <div className="p-4 bg-violet-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {t('pyth.publishers.avgAccuracy') || '平均准确率'}
-                    </p>
-                    <p className="text-2xl font-bold text-violet-600">
-                      {publishers?.length
-                        ? (
-                            publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length
-                          ).toFixed(1)
-                        : 0}
-                      %
-                    </p>
-                  </div>
-                  <div className="p-4 bg-violet-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {t('pyth.publishers.topPublisher') || '头部发布者'}
-                    </p>
-                    <p className="text-lg font-bold text-violet-600 truncate">
-                      {publishers?.sort((a, b) => b.stake - a.stake)[0]?.name || '-'}
-                    </p>
-                  </div>
+                {/* 发布者统计 - 使用 FlatStatItem 风格 */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200 mb-6">
+                  <FlatStatItem
+                    label={t('pyth.publishers.totalPublishers') || '发布者总数'}
+                    value={publishers?.length || 0}
+                    className="px-4 py-4 border-r border-gray-200"
+                  />
+                  <FlatStatItem
+                    label={t('pyth.publishers.totalStaked') || '总质押'}
+                    value={`${((publishers?.reduce((sum, p) => sum + p.stake, 0) || 0) / 1e9).toFixed(2)}B`}
+                    className="px-4 py-4 border-r border-gray-200"
+                  />
+                  <FlatStatItem
+                    label={t('pyth.publishers.avgAccuracy') || '平均准确率'}
+                    value={`${publishers?.length
+                      ? (publishers.reduce((sum, p) => sum + p.accuracy, 0) / publishers.length).toFixed(1)
+                      : 0}%`}
+                    className="px-4 py-4 border-r border-gray-200"
+                  />
+                  <FlatStatItem
+                    label={t('pyth.publishers.topPublisher') || '头部发布者'}
+                    value={publishers?.sort((a, b) => b.stake - a.stake)[0]?.name || '-'}
+                    className="px-4 py-4"
+                  />
                 </div>
 
                 {/* 发布者列表 */}
@@ -345,15 +333,15 @@ export default function PythNetworkPage() {
                     ?.map((publisher, index) => (
                       <div
                         key={publisher.id}
-                        className="p-4 bg-gray-50 rounded-lg hover:shadow-md transition-shadow"
+                        className="p-4 border border-gray-200 hover:border-gray-400 transition-colors"
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center justify-between mb-3">
                           <h4 className="font-semibold text-gray-900">{publisher.name}</h4>
-                          <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1">
                             #{index + 1}
                           </span>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">
                               {t('pyth.publishers.stake')}
@@ -362,9 +350,9 @@ export default function PythNetworkPage() {
                               {(publisher.stake / 1e6).toFixed(1)}M PYTH
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 h-1">
                             <div
-                              className="bg-violet-600 h-2 rounded-full"
+                              className="bg-gray-600 h-1"
                               style={{
                                 width: `${Math.min((publisher.stake / (publishers?.[0]?.stake || 1)) * 100, 100)}%`,
                               }}
@@ -382,7 +370,7 @@ export default function PythNetworkPage() {
                               {publisher.accuracy}%
                             </span>
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                             <span className="text-sm text-gray-600">
                               {t('pyth.publishers.contribution') || '贡献度'}
                             </span>
@@ -405,63 +393,50 @@ export default function PythNetworkPage() {
 
           {activeTab === 'validators' && (
             <div className="space-y-6">
-              {/* 验证者统计卡片 */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    {t('pyth.validators.totalValidators') || '验证者总数'}
-                  </p>
-                  <p className="text-2xl font-bold text-violet-600">{validators?.length || 0}</p>
-                </div>
-                <div className="p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    {t('pyth.validators.activeValidators') || '活跃验证者'}
-                  </p>
-                  <p className="text-2xl font-bold text-violet-600">
-                    {validators?.filter((v) => v.status === 'active').length || 0}
-                  </p>
-                </div>
-                <div className="p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    {t('pyth.validators.totalStaked') || '总质押'}
-                  </p>
-                  <p className="text-2xl font-bold text-violet-600">
-                    {((validators?.reduce((sum, v) => sum + v.stake, 0) || 0) / 1e9).toFixed(2)}B
-                  </p>
-                </div>
-                <div className="p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    {t('pyth.validators.avgUptime') || '平均在线率'}
-                  </p>
-                  <p className="text-2xl font-bold text-violet-600">
-                    {validators?.length
-                      ? (
-                          validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length
-                        ).toFixed(1)
-                      : 0}
-                    %
-                  </p>
-                </div>
+              {/* 验证者统计 - 使用 FlatStatItem 风格 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-gray-200">
+                <FlatStatItem
+                  label={t('pyth.validators.totalValidators') || '验证者总数'}
+                  value={validators?.length || 0}
+                  className="px-4 py-4 border-r border-gray-200"
+                />
+                <FlatStatItem
+                  label={t('pyth.validators.activeValidators') || '活跃验证者'}
+                  value={validators?.filter((v) => v.status === 'active').length || 0}
+                  className="px-4 py-4 border-r border-gray-200"
+                />
+                <FlatStatItem
+                  label={t('pyth.validators.totalStaked') || '总质押'}
+                  value={`${((validators?.reduce((sum, v) => sum + v.stake, 0) || 0) / 1e9).toFixed(2)}B`}
+                  className="px-4 py-4 border-r border-gray-200"
+                />
+                <FlatStatItem
+                  label={t('pyth.validators.avgUptime') || '平均在线率'}
+                  value={`${validators?.length
+                    ? (validators.reduce((sum, v) => sum + v.uptime, 0) / validators.length).toFixed(1)
+                    : 0}%`}
+                  className="px-4 py-4"
+                />
               </div>
 
               <DashboardCard title={t('pyth.validators.title') || '验证者列表'}>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
                           {t('pyth.validators.name') || '名称'}
                         </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
                           {t('pyth.validators.status') || '状态'}
                         </th>
-                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                        <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
                           {t('pyth.validators.stake') || '质押'}
                         </th>
-                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                        <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
                           {t('pyth.validators.uptime') || '在线率'}
                         </th>
-                        <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                        <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">
                           {t('pyth.validators.rewards') || '奖励'}
                         </th>
                       </tr>
@@ -479,12 +454,12 @@ export default function PythNetworkPage() {
                             </td>
                             <td className="py-3 px-4">
                               <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                className={`text-xs font-medium ${
                                   validator.status === 'active'
-                                    ? 'bg-green-100 text-green-700'
+                                    ? 'text-green-600'
                                     : validator.status === 'inactive'
-                                      ? 'bg-gray-100 text-gray-700'
-                                      : 'bg-red-100 text-red-700'
+                                      ? 'text-gray-500'
+                                      : 'text-red-600'
                                 }`}
                               >
                                 {validator.status === 'active'
@@ -494,10 +469,10 @@ export default function PythNetworkPage() {
                                     : t('pyth.validators.statusJailed') || '监禁'}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 text-right text-sm">
                               {(validator.stake / 1e6).toFixed(1)}M PYTH
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 text-right text-sm">
                               <span
                                 className={
                                   validator.uptime >= 99
@@ -510,7 +485,7 @@ export default function PythNetworkPage() {
                                 {validator.uptime}%
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3 px-4 text-right text-sm">
                               {(validator.rewards / 1e3).toFixed(1)}K PYTH
                             </td>
                           </tr>
@@ -527,10 +502,10 @@ export default function PythNetworkPage() {
               <DashboardCard title={t('pyth.crossChain.title') || '跨链支持'}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {config.supportedChains.map((chain) => (
-                    <div key={chain} className="p-4 bg-gray-50 rounded-lg">
+                    <div key={chain} className="p-4 border border-gray-200">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center">
-                          <span className="text-violet-600 font-bold">{chain.charAt(0)}</span>
+                        <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
+                          <span className="text-gray-600 font-bold">{chain.charAt(0)}</span>
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">{chain}</h4>
@@ -564,8 +539,8 @@ export default function PythNetworkPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-violet-800">
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-700">
                     {t('pyth.crossChain.description') ||
                       `Pyth 通过 Wormhole 跨链协议支持 ${config.supportedChains.length} 条区块链，实现亚秒级价格更新。`}
                   </p>
@@ -588,16 +563,16 @@ export default function PythNetworkPage() {
                     },
                     { category: t('pyth.priceFeeds.categories.forex'), count: 45, icon: '💱' },
                   ].map((feed) => (
-                    <div key={feed.category} className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div key={feed.category} className="p-4 border border-gray-200 text-center">
                       <div className="text-2xl mb-2">{feed.icon}</div>
-                      <h4 className="font-semibold text-gray-900">{feed.category}</h4>
-                      <p className="text-2xl font-bold text-violet-600 mt-1">{feed.count}</p>
+                      <h4 className="font-semibold text-gray-900 text-sm">{feed.category}</h4>
+                      <p className="text-xl font-bold text-gray-900 mt-1">{feed.count}</p>
                       <p className="text-xs text-gray-500">{t('pyth.priceFeeds.priceFeeds')}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 p-4 bg-violet-50 rounded-lg">
-                  <p className="text-sm text-violet-800">
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-700">
                     {t('pyth.priceFeeds.totalDescription', { count: 520 })}
                   </p>
                 </div>

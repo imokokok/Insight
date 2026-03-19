@@ -527,7 +527,7 @@ export function TabNavigation({
   return (
     <nav
       ref={containerRef}
-      className="relative flex space-x-6 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing border-b border-gray-200"
+      className="relative flex overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing border-b border-gray-200"
       aria-label="Tabs"
       onMouseDown={handleMouseDown}
       onMouseLeave={handleMouseLeave}
@@ -547,16 +547,29 @@ export function TabNavigation({
             }}
             onClick={() => handleTabClick(tab.id)}
             className={`
-              relative flex items-center gap-2 px-1 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-200
+              group relative flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap
+              transition-all duration-200 ease-out
               ${
                 isActive
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
+                  ? 'text-gray-900 bg-gray-50/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }
             `}
           >
-            <span className={`${isActive ? '' : 'lg:inline'}`}>{tab.icon}</span>
+            <span className={`
+              transition-colors duration-200
+              ${isActive ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'}
+            `}>
+              {tab.icon}
+            </span>
             <span className={`${isActive ? 'inline' : 'hidden lg:inline'}`}>{tab.label}</span>
+            {/* Active indicator - bottom border */}
+            <span
+              className={`
+                absolute bottom-0 left-0 right-0 h-[2px] transition-all duration-200 ease-out
+                ${isActive ? 'bg-gray-900' : 'bg-transparent group-hover:bg-gray-300'}
+              `}
+            />
           </button>
         );
       })}

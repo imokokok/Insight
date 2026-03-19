@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { BandProtocolClient, CrossChainStats, ChainDataRequest } from '@/lib/oracles/bandProtocol';
+import { BandProtocolClient, CrossChainStats } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { Activity, TrendingUp, Globe, Zap, Layers, Clock } from 'lucide-react';
 
 interface BandCrossChainPanelProps {
   client: BandProtocolClient;
@@ -33,7 +35,7 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+          <div key={i} className="h-24 bg-gray-100 animate-pulse" />
         ))}
       </div>
     );
@@ -41,11 +43,9 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
 
   if (!stats) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-gray-500 text-center">{t('bandProtocol.crossChain.failedToLoad')}</p>
-        </CardContent>
-      </Card>
+      <DashboardCard>
+        <p className="text-gray-500 text-center">{t('bandProtocol.crossChain.failedToLoad')}</p>
+      </DashboardCard>
     );
   }
 
@@ -63,34 +63,30 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.crossChain.totalRequests24h')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests24h)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 12.5% {t('bandProtocol.crossChain.last24Hours')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.crossChain.totalRequests7d')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests7d)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 8.3% {t('bandProtocol.crossChain.last7Days')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.crossChain.totalRequests30d')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalRequests30d)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 15.2% {t('bandProtocol.crossChain.last30Days')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.crossChain.supportedChains')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{stats.chains.length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('bandProtocol.crossChain.activeChains')}</p>
-        </div>
+        <MetricCard
+          label={t('bandProtocol.crossChain.totalRequests24h')}
+          value={formatNumber(stats.totalRequests24h)}
+          subValue={`↑ 12.5% ${t('bandProtocol.crossChain.last24Hours')}`}
+          icon={<Activity className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.crossChain.totalRequests7d')}
+          value={formatNumber(stats.totalRequests7d)}
+          subValue={`↑ 8.3% ${t('bandProtocol.crossChain.last7Days')}`}
+          icon={<TrendingUp className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.crossChain.totalRequests30d')}
+          value={formatNumber(stats.totalRequests30d)}
+          subValue={`↑ 15.2% ${t('bandProtocol.crossChain.last30Days')}`}
+          icon={<Globe className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.crossChain.supportedChains')}
+          value={stats.chains.length.toString()}
+          subValue={t('bandProtocol.crossChain.activeChains')}
+          icon={<Layers className="w-4 h-4" />}
+        />
       </div>
 
       {/* Chain Data Requests Table */}
@@ -154,13 +150,13 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
                         {chain.supportedSymbols.slice(0, 4).map((symbol) => (
                           <span
                             key={symbol}
-                            className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full"
+                            className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs"
                           >
                             {symbol}
                           </span>
                         ))}
                         {chain.supportedSymbols.length > 4 && (
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">
                             +{chain.supportedSymbols.length - 4}
                           </span>
                         )}
@@ -175,38 +171,42 @@ export function BandCrossChainPanel({ client }: BandCrossChainPanelProps) {
       </Card>
 
       {/* IBC Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('bandProtocol.crossChain.ibcInfo')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="text-sm font-medium text-purple-900 mb-2">
+      <DashboardCard title={t('bandProtocol.crossChain.ibcInfo')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-purple-700" />
+              <h4 className="text-sm font-medium text-purple-900">
                 {t('bandProtocol.crossChain.ibcTransfers')}
               </h4>
-              <p className="text-2xl font-bold text-purple-700">
-                {formatNumber(stats.totalRequests24h * 0.4)}
-              </p>
-              <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.transfers24h')}</p>
             </div>
-            <div className="p-4 bg-indigo-50 rounded-lg">
-              <h4 className="text-sm font-medium text-indigo-900 mb-2">
+            <p className="text-2xl font-bold text-purple-700">
+              {formatNumber(stats.totalRequests24h * 0.4)}
+            </p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.transfers24h')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-4 h-4 text-purple-700" />
+              <h4 className="text-sm font-medium text-purple-900">
                 {t('bandProtocol.crossChain.ibcChannels')}
               </h4>
-              <p className="text-2xl font-bold text-indigo-700">12</p>
-              <p className="text-sm text-indigo-600 mt-1">{t('bandProtocol.crossChain.activeChannels')}</p>
             </div>
-            <div className="p-4 bg-teal-50 rounded-lg">
-              <h4 className="text-sm font-medium text-teal-900 mb-2">
+            <p className="text-2xl font-bold text-purple-700">12</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.activeChannels')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-purple-700" />
+              <h4 className="text-sm font-medium text-purple-900">
                 {t('bandProtocol.crossChain.avgLatency')}
               </h4>
-              <p className="text-2xl font-bold text-teal-700">2.8s</p>
-              <p className="text-sm text-teal-600 mt-1">{t('bandProtocol.crossChain.crossChainLatency')}</p>
             </div>
+            <p className="text-2xl font-bold text-purple-700">2.8s</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.crossChain.crossChainLatency')}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </DashboardCard>
     </div>
   );
 }

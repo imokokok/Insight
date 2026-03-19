@@ -5,7 +5,9 @@ import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui/selectors';
+import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { Database, Server, CheckCircle, Clock, Shield, Zap, Globe } from 'lucide-react';
 
 interface BandDataFeedsPanelProps {
   client: BandProtocolClient;
@@ -255,14 +257,6 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
     return `$${price.toFixed(4)}`;
   };
 
-  const formatTimeAgo = (timestamp: number) => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    return `${Math.floor(minutes / 60)}h ago`;
-  };
-
   const filteredFeeds =
     selectedCategory === 'all'
       ? priceFeeds
@@ -282,10 +276,10 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+            <div key={i} className="h-24 bg-gray-100 animate-pulse" />
           ))}
         </div>
-        <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+        <div className="h-64 bg-gray-100 animate-pulse" />
       </div>
     );
   }
@@ -294,43 +288,32 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
     <div className="space-y-6">
       {/* Data Feeds Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.dataFeeds.totalFeeds')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{priceFeeds.length}</p>
-          <p className="text-xs text-green-600 mt-1">
-            {activeFeeds} {t('band.dataFeeds.active')}
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.dataFeeds.dataSources')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{dataSources.length}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {totalSources} {t('band.dataFeeds.totalSources')}
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.dataFeeds.avgConfidence')}
-          </p>
-          <p className="text-2xl font-bold text-purple-600">{avgConfidence.toFixed(1)}%</p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.dataFeeds.acrossAllFeeds')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.dataFeeds.avgUpdateFreq')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">
-            {Math.round(
-              priceFeeds.reduce((sum, f) => sum + f.updateFrequency, 0) / priceFeeds.length
-            )}
-            s
-          </p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.dataFeeds.updateInterval')}</p>
-        </div>
+        <MetricCard
+          label={t('band.dataFeeds.totalFeeds')}
+          value={priceFeeds.length.toString()}
+          subValue={`${activeFeeds} ${t('band.dataFeeds.active')}`}
+          icon={<Database className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.dataFeeds.dataSources')}
+          value={dataSources.length.toString()}
+          subValue={`${totalSources} ${t('band.dataFeeds.totalSources')}`}
+          icon={<Server className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.dataFeeds.avgConfidence')}
+          value={`${avgConfidence.toFixed(1)}%`}
+          subValue={t('band.dataFeeds.acrossAllFeeds')}
+          icon={<CheckCircle className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.dataFeeds.avgUpdateFreq')}
+          value={`${Math.round(
+            priceFeeds.reduce((sum, f) => sum + f.updateFrequency, 0) / priceFeeds.length
+          )}s`}
+          subValue={t('band.dataFeeds.updateInterval')}
+          icon={<Clock className="w-4 h-4" />}
+        />
       </div>
 
       {/* Price Feeds Table */}
@@ -412,9 +395,9 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                     </td>
                     <td className="text-center py-3 px-4">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                        <div className="w-16 bg-gray-200 h-1.5">
                           <div
-                            className="bg-purple-500 h-1.5 rounded-full"
+                            className="bg-purple-500 h-1.5"
                             style={{ width: `${feed.confidence}%` }}
                           />
                         </div>
@@ -426,7 +409,7 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
                     </td>
                     <td className="text-center py-3 px-4">
                       <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium ${
                           feed.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : feed.status === 'warning'
@@ -446,75 +429,70 @@ export function BandDataFeedsPanel({ client }: BandDataFeedsPanelProps) {
       </Card>
 
       {/* Data Sources */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('band.dataFeeds.dataSources')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {dataSources.map((source) => (
-              <div key={source.name} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-900">{source.name}</span>
-                  <span
-                    className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                      source.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {source.status}
+      <DashboardCard title={t('band.dataFeeds.dataSources')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {dataSources.map((source) => (
+            <div key={source.name} className="bg-gray-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-gray-900">{source.name}</span>
+                <span
+                  className={`inline-flex px-2 py-0.5 text-xs font-medium ${
+                    source.status === 'active'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {source.status}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">{source.type}</p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('band.dataFeeds.feeds')}:</span>
+                  <span className="font-medium text-gray-900">{source.feeds}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('band.dataFeeds.reliability')}:</span>
+                  <span className="font-medium text-green-600">
+                    {source.reliability.toFixed(1)}%
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mb-3">{source.type}</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{t('band.dataFeeds.feeds')}:</span>
-                    <span className="font-medium text-gray-900">{source.feeds}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{t('band.dataFeeds.reliability')}:</span>
-                    <span className="font-medium text-green-600">
-                      {source.reliability.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{t('band.dataFeeds.latency')}:</span>
-                    <span className="font-medium text-gray-900">{source.avgLatency}ms</span>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('band.dataFeeds.latency')}:</span>
+                  <span className="font-medium text-gray-900">{source.avgLatency}ms</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
 
       {/* Data Quality Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('band.dataFeeds.dataQuality')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-medium text-purple-900 mb-2">
-                {t('band.dataFeeds.multiSource')}
-              </h4>
-              <p className="text-sm text-purple-700">{t('band.dataFeeds.multiSourceDesc')}</p>
+      <DashboardCard title={t('band.dataFeeds.dataQuality')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.dataFeeds.multiSource')}</h4>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">{t('band.dataFeeds.realTime')}</h4>
-              <p className="text-sm text-blue-700">{t('band.dataFeeds.realTimeDesc')}</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">
-                {t('band.dataFeeds.decentralized')}
-              </h4>
-              <p className="text-sm text-green-700">{t('band.dataFeeds.decentralizedDesc')}</p>
-            </div>
+            <p className="text-sm text-purple-700">{t('band.dataFeeds.multiSourceDesc')}</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.dataFeeds.realTime')}</h4>
+            </div>
+            <p className="text-sm text-purple-700">{t('band.dataFeeds.realTimeDesc')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.dataFeeds.decentralized')}</h4>
+            </div>
+            <p className="text-sm text-purple-700">{t('band.dataFeeds.decentralizedDesc')}</p>
+          </div>
+        </div>
+      </DashboardCard>
     </div>
   );
 }

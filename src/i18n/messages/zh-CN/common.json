@@ -281,6 +281,12 @@
       },
       "timesPerMinute": "次/分",
       "range": "范围: {value}"
+    },
+    "dataFreshness": {
+      "title": "数据新鲜度",
+      "refresh": "刷新",
+      "lastUpdated": "最后更新",
+      "stale": "已过期"
     }
   },
   "networkHealth": {

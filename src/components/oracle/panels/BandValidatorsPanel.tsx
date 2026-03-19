@@ -5,7 +5,9 @@ import { useTranslations } from 'next-intl';
 import { logger } from '@/lib/utils/logger';
 import { BandProtocolClient, ValidatorInfo } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { SegmentedControl, DropdownSelect, MultiSelect } from '@/components/ui/selectors';
+import { SegmentedControl } from '@/components/ui/selectors';
+import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { Globe, Percent, Clock, MapPin, Shield, Users, Award } from 'lucide-react';
 
 interface BandValidatorsPanelProps {
   client: BandProtocolClient;
@@ -102,21 +104,19 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+            <div key={i} className="h-24 bg-gray-100 animate-pulse" />
           ))}
         </div>
-        <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+        <div className="h-64 bg-gray-100 animate-pulse" />
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-gray-500 text-center">Failed to load validator data</p>
-        </CardContent>
-      </Card>
+      <DashboardCard>
+        <p className="text-gray-500 text-center">Failed to load validator data</p>
+      </DashboardCard>
     );
   }
 
@@ -124,71 +124,56 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
     <div className="space-y-6">
       {/* Validator Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.validators.totalValidators')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{stats.totalValidators}</p>
-          <p className="text-xs text-green-600 mt-1">
-            {stats.activeValidators} {t('band.validators.active')}
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.validators.avgCommission')}
-          </p>
-          <p className="text-2xl font-bold text-purple-600">{stats.avgCommission.toFixed(2)}%</p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.validators.networkAverage')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.validators.avgUptime')}
-          </p>
-          <p className="text-2xl font-bold text-green-600">{stats.avgUptime.toFixed(2)}%</p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.validators.last30Days')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.validators.topRegion')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{stats.topRegion}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {regions[0]?.percentage}% {t('band.validators.ofNetwork')}
-          </p>
-        </div>
+        <MetricCard
+          label={t('band.validators.totalValidators')}
+          value={stats.totalValidators.toString()}
+          subValue={`${stats.activeValidators} ${t('band.validators.active')}`}
+          icon={<Users className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.validators.avgCommission')}
+          value={`${stats.avgCommission.toFixed(2)}%`}
+          subValue={t('band.validators.networkAverage')}
+          icon={<Percent className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.validators.avgUptime')}
+          value={`${stats.avgUptime.toFixed(2)}%`}
+          subValue={t('band.validators.last30Days')}
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.validators.topRegion')}
+          value={stats.topRegion}
+          subValue={`${regions[0]?.percentage}% ${t('band.validators.ofNetwork')}`}
+          icon={<MapPin className="w-4 h-4" />}
+        />
       </div>
 
       {/* Geographic Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.validators.geographicDistribution')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {regions.map((region) => (
-              <div key={region.region} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-700">{region.region}</span>
-                  <span className="text-sm text-gray-500">
-                    {region.count} {t('band.validators.validators')}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                  <div
-                    className="bg-purple-500 h-2 rounded-full"
-                    style={{ width: `${region.percentage}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  {region.percentage}% {t('band.validators.ofNetwork')}
-                </p>
+      <DashboardCard title={t('band.validators.geographicDistribution')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {regions.map((region) => (
+            <div key={region.region} className="bg-gray-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-gray-700">{region.region}</span>
+                <span className="text-sm text-gray-500">
+                  {region.count} {t('band.validators.validators')}
+                </span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="w-full bg-gray-200 h-2 mb-2">
+                <div
+                  className="bg-purple-500 h-2"
+                  style={{ width: `${region.percentage}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                {region.percentage}% {t('band.validators.ofNetwork')}
+              </p>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
 
       {/* Validators Table */}
       <Card>
@@ -248,7 +233,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                   >
                     <td className="py-3 px-4">
                       <span
-                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center justify-center w-6 h-6 text-xs font-medium ${
                           validator.rank <= 3
                             ? 'bg-purple-100 text-purple-700'
                             : 'bg-gray-100 text-gray-600'
@@ -297,7 +282,7 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
                     </td>
                     <td className="text-center py-3 px-4">
                       <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium ${
                           validator.jailed
                             ? 'bg-red-100 text-red-700'
                             : 'bg-green-100 text-green-700'
@@ -317,36 +302,38 @@ export function BandValidatorsPanel({ client }: BandValidatorsPanelProps) {
       </Card>
 
       {/* Validator Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.validators.validatorInfo')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-medium text-purple-900 mb-2">{t('band.validators.minStake')}</h4>
-              <p className="text-2xl font-bold text-purple-700">1 BAND</p>
-              <p className="text-sm text-purple-600 mt-1">{t('band.validators.minStakeDesc')}</p>
+      <DashboardCard title={t('band.validators.validatorInfo')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.validators.minStake')}</h4>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">{t('band.validators.slashing')}</h4>
-              <p className="text-2xl font-bold text-blue-700">5%</p>
-              <p className="text-sm text-blue-600 mt-1">{t('band.validators.slashingDesc')}</p>
+            <p className="text-2xl font-bold text-purple-700">1 BAND</p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.validators.minStakeDesc')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.validators.slashing')}</h4>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">
+            <p className="text-2xl font-bold text-purple-700">5%</p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.validators.slashingDesc')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">
                 {t('band.validators.maxValidators')}
               </h4>
-              <p className="text-2xl font-bold text-green-700">100</p>
-              <p className="text-sm text-green-600 mt-1">
-                {t('band.validators.maxValidatorsDesc')}
-              </p>
             </div>
+            <p className="text-2xl font-bold text-purple-700">100</p>
+            <p className="text-sm text-purple-600 mt-1">
+              {t('band.validators.maxValidatorsDesc')}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </DashboardCard>
     </div>
   );
 }

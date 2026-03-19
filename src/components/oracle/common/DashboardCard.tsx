@@ -18,14 +18,17 @@ export function DashboardCard({
   onClick,
 }: DashboardCardProps) {
   return (
-    <div className={`bg-white border border-gray-200 ${className}`} onClick={onClick}>
+    <div 
+      className={`bg-white border border-gray-200 transition-colors duration-200 hover:border-gray-300 ${className}`} 
+      onClick={onClick}
+    >
       {title && (
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {headerAction && <div>{headerAction}</div>}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50/30">
+          <h3 className="text-sm font-semibold text-gray-900 tracking-tight">{title}</h3>
+          {headerAction && <div className="flex items-center">{headerAction}</div>}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-4">{children}</div>
     </div>
   );
 }
@@ -54,19 +57,20 @@ export function StatCard({
         ? 'text-red-600'
         : 'text-gray-500';
 
-  const changeSymbol = changeType === 'positive' ? '+' : changeType === 'negative' ? '-' : '';
+  const changeSymbol = changeType === 'positive' ? '↑' : changeType === 'negative' ? '↓' : '→';
 
   return (
-    <div className={`px-4 py-2 ${isFirst ? '' : 'border-l border-gray-200'}`}>
-      <div className="flex items-start gap-3">
-        <div className="text-gray-400">{icon}</div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{title}</p>
-          <p className="text-lg font-semibold text-gray-900">{value}</p>
-          <p className={`text-xs ${changeColor}`}>
-            {changeSymbol}
-            {change}
+    <div className={`px-4 py-3 ${isFirst ? '' : 'border-l border-gray-200'}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-xl font-semibold text-gray-900 tracking-tight">{value}</p>
+          <p className={`text-xs mt-1 font-medium ${changeColor}`}>
+            {changeSymbol} {change}
           </p>
+        </div>
+        <div className="p-2 bg-blue-50 border border-blue-100 text-blue-600 flex-shrink-0">
+          {icon}
         </div>
       </div>
     </div>
@@ -97,10 +101,10 @@ export function MetricCard({ label, value, subValue, icon }: MetricCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">{label}</p>
-          <p className="text-gray-900 text-base font-semibold truncate">{value}</p>
+          <p className="text-gray-900 text-base font-semibold truncate tracking-tight">{value}</p>
           {subValue && <p className="text-gray-400 text-[10px] mt-0.5 truncate">{subValue}</p>}
         </div>
-        <div className="p-1.5 bg-gray-100 text-gray-600 flex-shrink-0 ml-2">{icon}</div>
+        <div className="p-1.5 bg-blue-50 border border-blue-100 text-blue-600 flex-shrink-0 ml-2">{icon}</div>
       </div>
     </div>
   );
@@ -146,7 +150,7 @@ export function FlatStatItem({
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-          <p className="text-xl font-semibold text-gray-900">{value}</p>
+          <p className="text-xl font-semibold text-gray-900 tracking-tight">{value}</p>
           {subValue && <p className="text-xs text-gray-400 mt-0.5">{subValue}</p>}
           {trend && trendValue && (
             <p className={`text-xs mt-1 font-medium ${trendColors[trend]}`}>
@@ -154,7 +158,7 @@ export function FlatStatItem({
             </p>
           )}
         </div>
-        {icon && <div className="p-1.5 bg-gray-100 text-gray-500 flex-shrink-0 ml-2">{icon}</div>}
+        {icon && <div className="p-1.5 bg-blue-50 border border-blue-100 text-blue-600 flex-shrink-0 ml-2">{icon}</div>}
       </div>
     </div>
   );

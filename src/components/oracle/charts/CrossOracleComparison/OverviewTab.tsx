@@ -70,20 +70,20 @@ export function OverviewTab({
       {/* 核心指标 - 卡片网格 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 一致性评分 */}
-        <div className="bg-gray-50 border border-gray-100 p-4">
-          <p className="text-xs text-gray-500 mb-1">{t('crossOracleComparison.consistencyScore')}</p>
-          <p className={`text-2xl font-semibold ${getConsistencyColor(consistencyScore)}`}>
+        <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
+          <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracleComparison.consistencyScore')}</p>
+          <p className={`text-3xl font-semibold ${getConsistencyColor(consistencyScore)}`}>
             {consistencyScore}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">{getConsistencyLabel(consistencyScore)}</p>
+          <p className="text-xs text-gray-400 mt-1">{getConsistencyLabel(consistencyScore)}</p>
         </div>
 
         {/* 平均价格 */}
         {priceStats && (
-          <div className="bg-gray-50 border border-gray-100 p-4">
-            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.averagePrice')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${priceStats.avg.toFixed(2)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+          <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
+            <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracle.averagePrice')}</p>
+            <p className="text-3xl font-semibold text-gray-900">${priceStats.avg.toFixed(2)}</p>
+            <p className="text-xs text-gray-400 mt-1">
               {t('crossOracle.range')}: ${priceStats.range.toFixed(2)}
             </p>
           </div>
@@ -91,10 +91,10 @@ export function OverviewTab({
 
         {/* 价格范围 */}
         {priceStats && (
-          <div className="bg-gray-50 border border-gray-100 p-4">
-            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.priceRange')}</p>
-            <p className="text-2xl font-semibold text-gray-900">${priceStats.range.toFixed(2)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+          <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
+            <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracle.priceRange')}</p>
+            <p className="text-3xl font-semibold text-gray-900">${priceStats.range.toFixed(2)}</p>
+            <p className="text-xs text-gray-400 mt-1">
               {((priceStats.range / priceStats.avg) * 100).toFixed(2)}%
             </p>
           </div>
@@ -102,12 +102,12 @@ export function OverviewTab({
 
         {/* 最大偏差 */}
         {extendedStats && (
-          <div className="bg-gray-50 border border-gray-100 p-4">
-            <p className="text-xs text-gray-500 mb-1">{t('crossOracle.stats.maxPriceDifference')}</p>
-            <p className="text-2xl font-semibold text-amber-600">
+          <div className="bg-slate-50/50 p-5 transition-colors hover:bg-slate-50">
+            <p className="text-xs font-normal text-gray-400 mb-2">{t('crossOracle.stats.maxPriceDifference')}</p>
+            <p className="text-3xl font-semibold text-amber-600">
               {extendedStats.maxDeviation.toFixed(3)}%
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 mt-1">
               {t('crossOracle.stats.deviationFromAverage')}
             </p>
           </div>
@@ -159,8 +159,8 @@ export function OverviewTab({
 
       {/* 价格对比图表 */}
       {chartData.length > 0 && (
-        <div className="bg-gray-50 border border-gray-100 p-4">
-          <h3 className="text-xs font-medium text-gray-700 mb-4">
+        <div className="bg-slate-50/30 p-5">
+          <h3 className="text-xs font-normal text-gray-500 mb-4">
             {t('crossOracle.currentPriceComparison')}
           </h3>
           <div className="h-56">
@@ -196,15 +196,15 @@ export function OverviewTab({
       )}
 
       {/* 选中预言机列表 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="bg-slate-50/30 p-5">
+        <h3 className="text-xs font-normal text-gray-500 mb-3">
           {t('crossOracle.selectedOracles')} ({selectedOracles.length}/5)
         </h3>
         <div className="flex flex-wrap gap-2">
           {selectedOracles.map((provider) => (
             <div
               key={provider}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-xs text-gray-700"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-xs text-gray-700"
             >
               <div
                 className="w-2 h-2"

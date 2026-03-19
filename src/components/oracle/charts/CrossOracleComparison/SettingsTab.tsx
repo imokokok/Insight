@@ -84,10 +84,10 @@ export function SettingsTab({
   const t = useTranslations();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* 交易对选择 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="pb-6 border-b border-gray-100">
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.selectTradingPair')}
         </h3>
         <SegmentedControl
@@ -102,8 +102,8 @@ export function SettingsTab({
       </div>
 
       {/* 预言机选择 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="pb-6 border-b border-gray-100">
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.selectOraclesTitle')} ({selectedOracles.length}/5)
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -134,7 +134,7 @@ export function SettingsTab({
         <div className="flex gap-2">
           <button
             onClick={onQuickCompare}
-            className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
           >
             {t('crossOracleComparison.quickCompare')}
           </button>
@@ -142,8 +142,8 @@ export function SettingsTab({
       </div>
 
       {/* 分组选择 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="pb-6 border-b border-gray-100">
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.selectGroup')}
         </h3>
         <SegmentedControl
@@ -159,8 +159,8 @@ export function SettingsTab({
       </div>
 
       {/* 偏差阈值设置 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="pb-6 border-b border-gray-100">
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.priceDeviationThreshold')}
         </h3>
         <div className="flex items-center gap-3">
@@ -194,8 +194,8 @@ export function SettingsTab({
       </div>
 
       {/* 自动刷新设置 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div className="pb-6 border-b border-gray-100">
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.autoRefresh')}
         </h3>
         <div className="flex flex-col gap-3">
@@ -224,19 +224,19 @@ export function SettingsTab({
       </div>
 
       {/* 手动刷新和导出 */}
-      <div className="bg-gray-50 border border-gray-100 p-4">
-        <h3 className="text-xs font-medium text-gray-700 mb-3">
+      <div>
+        <h3 className="text-xs font-normal text-gray-500 mb-4">
           {t('crossOracle.actions')}
         </h3>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-400">
               {t('time.lastUpdated')}: {lastUpdated.toLocaleTimeString()}
             </span>
             <button
               onClick={onManualRefresh}
               disabled={isLoading}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
               {isLoading ? t('status.loading') : t('actions.refresh')}
             </button>

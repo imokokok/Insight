@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { Layers, Link2, Wallet, BarChart3, Zap, Globe, Database, Shield } from 'lucide-react';
 
 interface CosmosEcosystemPanelProps {
   client: BandProtocolClient;
@@ -24,7 +26,6 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock IBC chain data
     const mockIBCChains: IBCChain[] = [
       {
         name: 'Cosmos Hub',
@@ -84,7 +85,7 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+          <div key={i} className="h-24 bg-gray-100 animate-pulse" />
         ))}
       </div>
     );
@@ -108,34 +109,30 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
     <div className="space-y-6">
       {/* Cosmos Ecosystem Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.ecosystem.cosmosSdkVersion')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">v0.47</p>
-          <p className="text-xs text-gray-500 mt-1">{t('bandProtocol.ecosystem.cosmosSdk')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.ecosystem.ibcConnections')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{activeChains}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('bandProtocol.ecosystem.activeIBCChannels')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.ecosystem.totalIBCTVL')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalTVL)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 8.5% {t('bandProtocol.ecosystem.totalValueLocked')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('bandProtocol.ecosystem.ibcVolume24h')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalVolume24h)}</p>
-          <p className="text-xs text-green-600 mt-1">↑ 12.3% {t('bandProtocol.ecosystem.volumeChange')}</p>
-        </div>
+        <MetricCard
+          label={t('bandProtocol.ecosystem.cosmosSdkVersion')}
+          value="v0.47"
+          subValue={t('bandProtocol.ecosystem.cosmosSdk')}
+          icon={<Layers className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.ecosystem.ibcConnections')}
+          value={activeChains.toString()}
+          subValue={t('bandProtocol.ecosystem.activeIBCChannels')}
+          icon={<Link2 className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.ecosystem.totalIBCTVL')}
+          value={formatCurrency(totalTVL)}
+          subValue={`↑ 8.5% ${t('bandProtocol.ecosystem.totalValueLocked')}`}
+          icon={<Wallet className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('bandProtocol.ecosystem.ibcVolume24h')}
+          value={formatCurrency(totalVolume24h)}
+          subValue={`↑ 12.3% ${t('bandProtocol.ecosystem.volumeChange')}`}
+          icon={<BarChart3 className="w-4 h-4" />}
+        />
       </div>
 
       {/* IBC Connections */}
@@ -189,7 +186,7 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
                     </td>
                     <td className="text-center py-3 px-4">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center px-2 py-1 text-xs font-medium ${
                           chain.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-600'
@@ -207,59 +204,90 @@ export function CosmosEcosystemPanel({ client }: CosmosEcosystemPanelProps) {
       </Card>
 
       {/* Band in Cosmos Ecosystem */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('bandProtocol.ecosystem.bandInCosmos')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">{t('bandProtocol.ecosystem.keyFeatures')}</h4>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature1')}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature2')}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature3')}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-1">•</span>
-                  <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature4')}</span>
-                </li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">{t('bandProtocol.ecosystem.integrations')}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900">25+</p>
-                  <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.dApps')}</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900">8</p>
-                  <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.blockchains')}</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900">180+</p>
-                  <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.dataFeeds')}</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900">$850M+</p>
-                  <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.tvlSecured')}</p>
-                </div>
+      <DashboardCard title={t('bandProtocol.ecosystem.bandInCosmos')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">{t('bandProtocol.ecosystem.keyFeatures')}</h4>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-1">•</span>
+                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature1')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-1">•</span>
+                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature2')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-1">•</span>
+                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature3')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-1">•</span>
+                <span className="text-sm text-gray-600">{t('bandProtocol.ecosystem.feature4')}</span>
+              </li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">{t('bandProtocol.ecosystem.integrations')}</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-gray-50">
+                <p className="text-lg font-semibold text-gray-900">25+</p>
+                <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.dApps')}</p>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <p className="text-lg font-semibold text-gray-900">8</p>
+                <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.blockchains')}</p>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <p className="text-lg font-semibold text-gray-900">180+</p>
+                <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.dataFeeds')}</p>
+              </div>
+              <div className="p-3 bg-gray-50">
+                <p className="text-lg font-semibold text-gray-900">$850M+</p>
+                <p className="text-xs text-gray-500">{t('bandProtocol.ecosystem.tvlSecured')}</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </DashboardCard>
+
+      {/* Ecosystem Stats */}
+      <DashboardCard title={t('bandProtocol.ecosystem.ecosystemStats')}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.blockTime')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">~2.8s</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.fastFinality')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.interoperability')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">IBC</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.nativeIBC')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Database className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.dataSources')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">200+</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.priceFeeds')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('bandProtocol.ecosystem.security')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">Tendermint</p>
+            <p className="text-sm text-purple-600 mt-1">{t('bandProtocol.ecosystem.bftConsensus')}</p>
+          </div>
+        </div>
+      </DashboardCard>
     </div>
   );
 }
