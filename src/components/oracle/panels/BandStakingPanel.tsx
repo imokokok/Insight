@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { BandProtocolClient } from '@/lib/oracles/bandProtocol';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { DashboardCard, MetricCard } from '@/components/oracle/common/DashboardCard';
+import { Wallet, Percent, Users, TrendingUp, Clock, Award, PiggyBank } from 'lucide-react';
 
 interface BandStakingPanelProps {
   client: BandProtocolClient;
@@ -60,8 +62,6 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
           inflationRate: networkStats.inflationRate,
           communityPool: networkStats.communityPool,
         };
-
-        const totalStake = validators.reduce((sum, v) => sum + v.tokens, 0);
 
         const tiers: StakingTier[] = [
           {
@@ -129,30 +129,24 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
     return num.toLocaleString();
   };
 
-  const formatCurrency = (num: number) => {
-    return `$${formatNumber(num)}`;
-  };
-
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+            <div key={i} className="h-24 bg-gray-100 animate-pulse" />
           ))}
         </div>
-        <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+        <div className="h-64 bg-gray-100 animate-pulse" />
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-gray-500 text-center">Failed to load staking data</p>
-        </CardContent>
-      </Card>
+      <DashboardCard>
+        <p className="text-gray-500 text-center">Failed to load staking data</p>
+      </DashboardCard>
     );
   }
 
@@ -160,79 +154,64 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
     <div className="space-y-6">
       {/* Staking Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.staking.totalStaked')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalStaked)} BAND</p>
-          <p className="text-xs text-green-600 mt-1">
-            {stats.stakingRatio.toFixed(2)}% {t('band.staking.ofTotalSupply')}
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.staking.stakingApr')}
-          </p>
-          <p className="text-2xl font-bold text-purple-600">{stats.stakingApr.toFixed(2)}%</p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.staking.annualReturn')}</p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.staking.activeValidators')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{stats.activeValidators}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {t('band.staking.outOf')} {stats.totalValidators} {t('band.staking.total')}
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-            {t('band.staking.inflationRate')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{stats.inflationRate.toFixed(2)}%</p>
-          <p className="text-xs text-gray-500 mt-1">{t('band.staking.annual')}</p>
-        </div>
+        <MetricCard
+          label={t('band.staking.totalStaked')}
+          value={`${formatNumber(stats.totalStaked)} BAND`}
+          subValue={`${stats.stakingRatio.toFixed(2)}% ${t('band.staking.ofTotalSupply')}`}
+          icon={<Wallet className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.staking.stakingApr')}
+          value={`${stats.stakingApr.toFixed(2)}%`}
+          subValue={t('band.staking.annualReturn')}
+          icon={<Percent className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.staking.activeValidators')}
+          value={stats.activeValidators.toString()}
+          subValue={`${t('band.staking.outOf')} ${stats.totalValidators} ${t('band.staking.total')}`}
+          icon={<Users className="w-4 h-4" />}
+        />
+        <MetricCard
+          label={t('band.staking.inflationRate')}
+          value={`${stats.inflationRate.toFixed(2)}%`}
+          subValue={t('band.staking.annual')}
+          icon={<TrendingUp className="w-4 h-4" />}
+        />
       </div>
 
       {/* Staking Tiers Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            {t('band.staking.stakingDistribution')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stakingTiers.map((tier) => (
-              <div key={tier.tier} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    {t(`band.staking.tier.${tier.tier.toLowerCase()}`)}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {tier.validatorCount} {t('band.staking.validators')}
-                  </span>
-                </div>
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>{formatNumber(tier.minStake)}</span>
-                    <span>{formatNumber(tier.maxStake)} BAND</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-purple-500 h-2 rounded-full"
-                      style={{ width: `${tier.percentage}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {tier.percentage.toFixed(1)}% {t('band.staking.ofNetwork')}
-                </p>
+      <DashboardCard title={t('band.staking.stakingDistribution')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stakingTiers.map((tier) => (
+            <div key={tier.tier} className="bg-gray-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {t(`band.staking.tier.${tier.tier.toLowerCase()}`)}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {tier.validatorCount} {t('band.staking.validators')}
+                </span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="mb-2">
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>{formatNumber(tier.minStake)}</span>
+                  <span>{formatNumber(tier.maxStake)} BAND</span>
+                </div>
+                <div className="w-full bg-gray-200 h-2">
+                  <div
+                    className="bg-purple-500 h-2"
+                    style={{ width: `${tier.percentage}%` }}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                {tier.percentage.toFixed(1)}% {t('band.staking.ofNetwork')}
+              </p>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
 
       {/* Top Validators by Stake */}
       <Card>
@@ -269,7 +248,7 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
                   >
                     <td className="py-3 px-4">
                       <span
-                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center justify-center w-6 h-6 text-xs font-medium ${
                           validator.rank <= 3
                             ? 'bg-purple-100 text-purple-700'
                             : 'bg-gray-100 text-gray-600'
@@ -318,34 +297,38 @@ export function BandStakingPanel({ client }: BandStakingPanelProps) {
       </Card>
 
       {/* Staking Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('band.staking.stakingInfo')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-medium text-purple-900 mb-2">
+      <DashboardCard title={t('band.staking.stakingInfo')}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">
                 {t('band.staking.unbondingPeriod')}
               </h4>
-              <p className="text-2xl font-bold text-purple-700">21 {t('band.staking.days')}</p>
-              <p className="text-sm text-purple-600 mt-1">{t('band.staking.unbondingDesc')}</p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">{t('band.staking.minStake')}</h4>
-              <p className="text-2xl font-bold text-blue-700">1 BAND</p>
-              <p className="text-sm text-blue-600 mt-1">{t('band.staking.minStakeDesc')}</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">{t('band.staking.communityPool')}</h4>
-              <p className="text-2xl font-bold text-green-700">
-                {formatNumber(stats.communityPool)} BAND
-              </p>
-              <p className="text-sm text-green-600 mt-1">{t('band.staking.communityPoolDesc')}</p>
-            </div>
+            <p className="text-2xl font-bold text-purple-700">21 {t('band.staking.days')}</p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.staking.unbondingDesc')}</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.staking.minStake')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">1 BAND</p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.staking.minStakeDesc')}</p>
+          </div>
+          <div className="p-4 bg-purple-50">
+            <div className="flex items-center gap-2 mb-2">
+              <PiggyBank className="w-4 h-4 text-purple-700" />
+              <h4 className="font-medium text-purple-900">{t('band.staking.communityPool')}</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-700">
+              {formatNumber(stats.communityPool)} BAND
+            </p>
+            <p className="text-sm text-purple-600 mt-1">{t('band.staking.communityPoolDesc')}</p>
+          </div>
+        </div>
+      </DashboardCard>
     </div>
   );
 }

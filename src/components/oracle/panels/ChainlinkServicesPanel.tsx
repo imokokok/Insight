@@ -322,23 +322,23 @@ export function ChainlinkServicesPanel() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-700';
+        return 'bg-emerald-50 border border-emerald-200 text-emerald-700';
       case 'beta':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-amber-50 border border-amber-200 text-amber-700';
       case 'coming_soon':
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-50 border border-gray-200 text-gray-500';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-50 border border-gray-200 text-gray-500';
     }
   };
 
   const getServiceColor = (color: string) => {
-    const colorMap: Record<string, { bg: string; border: string; text: string }> = {
-      blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600' },
-      purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-600' },
-      green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-600' },
-      pink: { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-600' },
-      amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600' },
+    const colorMap: Record<string, { bg: string; border: string; text: string; lightBg: string }> = {
+      blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', lightBg: 'bg-blue-50/50' },
+      purple: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', lightBg: 'bg-indigo-50/50' },
+      green: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', lightBg: 'bg-emerald-50/50' },
+      pink: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', lightBg: 'bg-rose-50/50' },
+      amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', lightBg: 'bg-amber-50/50' },
     };
     return colorMap[color] || colorMap.blue;
   };
@@ -383,11 +383,11 @@ export function ChainlinkServicesPanel() {
               key={service.id}
               title={
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${colors.bg} ${colors.text}`}>{service.icon}</div>
+                  <div className={`p-2 ${colors.bg} ${colors.text} border ${colors.border}`}>{service.icon}</div>
                   <div>
                     <div className="font-semibold text-gray-900">{service.name}</div>
                     <span
-                      className={`px-2 py-0.5 rounded text-xs ${getStatusColor(service.status)}`}
+                      className={`px-2 py-0.5 text-xs ${getStatusColor(service.status)}`}
                     >
                       {t(`chainlink.services.status.${service.status}`)}
                     </span>
@@ -396,8 +396,8 @@ export function ChainlinkServicesPanel() {
               }
               className={`cursor-pointer transition-all ${
                 selectedService === service.id
-                  ? `ring-2 ring-blue-500 ${colors.bg}`
-                  : 'hover:shadow-md'
+                  ? `border-blue-400 ${colors.lightBg}`
+                  : 'hover:border-gray-300'
               }`}
             >
               <p className="text-sm text-gray-600 mb-4">{service.description}</p>
@@ -405,13 +405,13 @@ export function ChainlinkServicesPanel() {
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 {service.metrics.slice(0, 2).map((metric, idx) => (
-                  <div key={idx} className="p-2 bg-gray-50 rounded-lg">
+                  <div key={idx} className="p-2 bg-gray-50 border border-gray-100">
                     <div className="text-xs text-gray-500">{t(metric.label)}</div>
-                    <div className="text-lg font-semibold text-gray-900">{metric.value}</div>
+                    <div className="text-lg font-semibold text-gray-900 tracking-tight">{metric.value}</div>
                     {metric.change && (
                       <div
-                        className={`text-xs ${
-                          metric.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                        className={`text-xs font-medium ${
+                          metric.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
                         }`}
                       >
                         {metric.change}
@@ -430,7 +430,7 @@ export function ChainlinkServicesPanel() {
                   {service.features.slice(0, 3).map((feature, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                      className="px-2 py-0.5 bg-gray-50 border border-gray-100 text-gray-600 text-xs"
                     >
                       {feature}
                     </span>
@@ -448,26 +448,26 @@ export function ChainlinkServicesPanel() {
           {ccipChainData.map((chain) => (
             <div key={chain.name} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <div className="w-2 h-2 bg-blue-600"></div>
                 <span className="text-sm text-gray-700">{chain.name}</span>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-semibold text-gray-900">
                     {(chain.messages / 1000).toFixed(0)}K
                   </div>
                   <div className="text-xs text-gray-500">
                     {t('chainlink.services.ccip.messages')}
                   </div>
                 </div>
-                <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-32 h-1.5 bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full"
+                    className="h-full bg-blue-600"
                     style={{ width: `${(chain.messages / 850000) * 100}%` }}
                   ></div>
                 </div>
                 <div className="text-right w-20">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-semibold text-gray-900">
                     ${(chain.value / 1e9).toFixed(1)}B
                   </div>
                   <div className="text-xs text-gray-500">{t('chainlink.services.ccip.value')}</div>
@@ -513,7 +513,7 @@ export function ChainlinkServicesPanel() {
                   <td className="py-3 text-right text-gray-600">{service.metrics[0].value}</td>
                   <td className="py-3 text-right text-gray-600">{service.metrics[2].value}</td>
                   <td className="py-3 text-center">
-                    <span className={`px-2 py-1 rounded text-xs ${getStatusColor(service.status)}`}>
+                    <span className={`px-2 py-1 text-xs ${getStatusColor(service.status)}`}>
                       {t(`chainlink.services.status.${service.status}`)}
                     </span>
                   </td>
@@ -522,7 +522,7 @@ export function ChainlinkServicesPanel() {
                       {service.useCases.slice(0, 2).map((useCase, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                          className="px-2 py-0.5 bg-gray-50 border border-gray-100 text-gray-600 text-xs"
                         >
                           {useCase}
                         </span>

@@ -139,7 +139,7 @@ export const oracleConfigs: Record<OracleProvider, OracleConfig> = {
       Blockchain.CRONOS,
     ],
     client: new BandProtocolClient(),
-    iconBgColor: `bg-[${chartColors.marketOverview.band}]`,
+    iconBgColor: 'bg-purple-600',
     themeColor: 'purple',
     icon: <img src="/logos/oracles/band.svg" alt="Band Protocol" className="w-12 h-12" />,
     marketData: {

@@ -281,6 +281,12 @@
       },
       "timesPerMinute": "times/min",
       "range": "Range: {value}"
+    },
+    "dataFreshness": {
+      "title": "Data Freshness",
+      "refresh": "Refresh",
+      "lastUpdated": "Last Updated",
+      "stale": "Stale"
     }
   },
   "networkHealth": {

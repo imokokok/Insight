@@ -37,9 +37,9 @@ export function PriceComparisonTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b border-gray-100">
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
@@ -48,7 +48,7 @@ export function PriceComparisonTable({
                 </div>
               </th>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600"
                 onClick={() => handleSort('price')}
               >
                 <div className="flex items-center gap-1">
@@ -57,7 +57,7 @@ export function PriceComparisonTable({
                 </div>
               </th>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600"
                 onClick={() => handleSort('deviation')}
               >
                 <div className="flex items-center gap-1">
@@ -66,7 +66,7 @@ export function PriceComparisonTable({
                 </div>
               </th>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600"
                 onClick={() => handleSort('confidence')}
               >
                 <div className="flex items-center gap-1">
@@ -75,7 +75,7 @@ export function PriceComparisonTable({
                 </div>
               </th>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600"
                 onClick={() => handleSort('responseTime')}
               >
                 <div className="flex items-center gap-1">
@@ -83,13 +83,13 @@ export function PriceComparisonTable({
                   {getSortIcon('responseTime')}
                 </div>
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-normal text-gray-400 uppercase tracking-wider">
                 {t('crossOracle.trend')}
               </th>
             </tr>
           </thead>
           <tbody>
-            {sortedPriceData.map((data) => {
+            {sortedPriceData.map((data, index) => {
               const deviation = priceStats
                 ? ((data.price - priceStats.avg) / priceStats.avg) * 100
                 : 0;
@@ -108,11 +108,11 @@ export function PriceComparisonTable({
               return (
                 <tr
                   key={data.provider}
-                  className={`border-b border-gray-100 hover:bg-gray-50 ${
-                    shouldHighlight ? 'bg-red-50/50' : ''
+                  className={`border-b border-gray-50 hover:bg-slate-50/50 transition-colors ${
+                    shouldHighlight ? 'bg-amber-50/30' : index % 2 === 1 ? 'bg-slate-50/30' : ''
                   }`}
                 >
-                  <td className="px-3 py-2.5 whitespace-nowrap">
+                  <td className="px-3 py-3.5 whitespace-nowrap">
                     <div className="flex items-center">
                       <div
                         className="w-2.5 h-2.5 mr-2"
@@ -122,26 +122,26 @@ export function PriceComparisonTable({
                         {oracleNames[data.provider]}
                       </span>
                       {shouldHighlight && (
-                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">
                           {t('crossOracleComparison.highDeviation')}
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 whitespace-nowrap text-gray-900 font-mono">
+                  <td className="px-3 py-3.5 whitespace-nowrap text-gray-900 font-mono">
                     ${data.price.toFixed(2)}
                   </td>
-                  <td className={`px-3 py-2.5 whitespace-nowrap font-mono ${deviationColor}`}>
+                  <td className={`px-3 py-3.5 whitespace-nowrap font-mono ${deviationColor}`}>
                     {deviation > 0 ? '+' : ''}
                     {deviation.toFixed(3)}%
                   </td>
-                  <td className="px-3 py-2.5 whitespace-nowrap text-gray-500">
+                  <td className="px-3 py-3.5 whitespace-nowrap text-gray-500">
                     {data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '-'}
                   </td>
-                  <td className="px-3 py-2.5 whitespace-nowrap text-gray-500">
+                  <td className="px-3 py-3.5 whitespace-nowrap text-gray-500">
                     {data.responseTime}ms
                   </td>
-                  <td className="px-3 py-2.5 whitespace-nowrap">
+                  <td className="px-3 py-3.5 whitespace-nowrap">
                     <TrendIndicator trend={trend} />
                   </td>
                 </tr>

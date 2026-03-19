@@ -162,9 +162,9 @@ export default function ChainlinkPage() {
 
       <main className="flex-1 bg-dune">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white border border-gray-200">
             {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+              <StatCard key={index} {...stat} isFirst={index === 0} />
             ))}
           </div>
 
@@ -193,12 +193,12 @@ export default function ChainlinkPage() {
                 </DashboardCard>
 
                 <DashboardCard title={t('chainlink.quickStats')}>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">
                         {t('chainlink.stats.volume24h')}
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
                         ${(config.marketData.volume24h / 1e6).toFixed(1)}M
                       </span>
                     </div>
@@ -206,7 +206,7 @@ export default function ChainlinkPage() {
                       <span className="text-sm text-gray-600">
                         {t('chainlink.stats.marketCap')}
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
                         ${(config.marketData.marketCap / 1e9).toFixed(2)}B
                       </span>
                     </div>
@@ -214,7 +214,7 @@ export default function ChainlinkPage() {
                       <span className="text-sm text-gray-600">
                         {t('chainlink.stats.circulatingSupply')}
                       </span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 tracking-tight">
                         {(config.marketData.circulatingSupply / 1e6).toFixed(1)}M LINK
                       </span>
                     </div>
@@ -222,7 +222,7 @@ export default function ChainlinkPage() {
                       <span className="text-sm text-gray-600">
                         {t('chainlink.stats.stakingApr')}
                       </span>
-                      <span className="text-sm font-semibold text-green-600">4.32%</span>
+                      <span className="text-sm font-semibold text-emerald-600">4.32%</span>
                     </div>
                   </div>
                 </DashboardCard>

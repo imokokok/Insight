@@ -48,7 +48,7 @@ export function CrossOracleSubTabs({ activeTab, onTabChange }: CrossOracleSubTab
   ];
 
   return (
-    <nav className="flex space-x-1" aria-label="SubTabs">
+    <nav className="flex space-x-6" aria-label="SubTabs">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -56,11 +56,11 @@ export function CrossOracleSubTabs({ activeTab, onTabChange }: CrossOracleSubTab
             key={tab.id}
             onClick={() => handleTabChange(tab.id)}
             className={`
-              relative px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 rounded-md
+              relative px-1 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200
               ${
                 isActive
-                  ? 'text-gray-900 bg-gray-100'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
               }
             `}
           >
