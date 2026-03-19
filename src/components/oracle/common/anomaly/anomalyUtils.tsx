@@ -1,35 +1,10 @@
 'use client';
 
 import React from 'react';
-import { OracleProvider } from '@/lib/oracles';
-import { chartColors } from '@/lib/config/colors';
-import { AnomalyType, AnomalySeverity } from './types';
+import { providerNames } from '@/lib/constants';
+import { AnomalyType } from './types';
 
-export const PROVIDER_NAMES: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.PYTH]: 'Pyth',
-  [OracleProvider.BAND_PROTOCOL]: 'Band',
-  [OracleProvider.UMA]: 'UMA',
-  [OracleProvider.API3]: 'API3',
-  [OracleProvider.REDSTONE]: 'RedStone',
-  [OracleProvider.DIA]: 'DIA',
-  [OracleProvider.TELLOR]: 'Tellor',
-  [OracleProvider.CHRONICLE]: 'Chronicle',
-  [OracleProvider.WINKLINK]: 'WINkLink',
-};
-
-export const ORACLE_COLORS: Record<OracleProvider, string> = {
-  [OracleProvider.CHAINLINK]: chartColors.oracle.chainlink,
-  [OracleProvider.PYTH]: chartColors.marketOverview.pyth,
-  [OracleProvider.BAND_PROTOCOL]: chartColors.marketOverview.band,
-  [OracleProvider.UMA]: chartColors.marketOverview.uma,
-  [OracleProvider.API3]: chartColors.oracle.api3,
-  [OracleProvider.REDSTONE]: chartColors.oracle.redstone,
-  [OracleProvider.DIA]: chartColors.oracle.dia,
-  [OracleProvider.TELLOR]: chartColors.oracle.tellor,
-  [OracleProvider.CHRONICLE]: chartColors.oracle.chronicle,
-  [OracleProvider.WINKLINK]: chartColors.oracle.winklink,
-};
+export const PROVIDER_NAMES = providerNames;
 
 export const SEVERITY_COLORS = {
   high: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },

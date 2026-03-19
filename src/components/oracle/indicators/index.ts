@@ -10,4 +10,4 @@ export type { BollingerBandsProps } from './BollingerBands';
 export { ATRIndicator } from './ATRIndicator';
 export type { ATRIndicatorProps } from './ATRIndicator';
 
-export type { PriceDataPoint } from '@/lib/indicators';
+export type { OHLCVDataPoint } from '@/lib/indicators';

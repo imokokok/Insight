@@ -310,7 +310,7 @@ class RealtimeManager {
     return () => this.unsubscribe(subscriptionId);
   }
 
-  private buildFilter(filters: Record<string, any>): string {
+  private buildFilter(filters: Record<string, string | number | boolean>): string {
     const filterParts: string[] = [];
 
     if (filters.provider) {

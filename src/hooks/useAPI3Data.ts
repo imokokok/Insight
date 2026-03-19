@@ -14,7 +14,7 @@ import type {
 } from '@/lib/oracles/api3';
 import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import type { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import type { PriceDataPoint } from '@/lib/indicators';
+import type { OHLCVDataPoint } from '@/lib/indicators';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 
 const api3Client = new API3Client();
@@ -341,7 +341,7 @@ export function useAPI3OHLC(options: UseAPI3OHLCOptions) {
   const { symbol, chain, period = 30, enabled = true } = options;
   const queryKey = getAPI3Key('ohlc', { symbol, chain, period });
 
-  const { data, error, isLoading, refetch } = useQuery<PriceDataPoint[], Error>({
+  const { data, error, isLoading, refetch } = useQuery<OHLCVDataPoint[], Error>({
     queryKey,
     queryFn: () => api3Client.getOHLCPrices(symbol, chain, period),
     enabled,
@@ -434,7 +434,7 @@ interface UseAPI3AllDataReturn {
   sourceTrace: DataSourceInfo[];
   coverageEvents: CoveragePoolEvent[];
   gasFees: GasFeeData[];
-  ohlc: PriceDataPoint[];
+  ohlc: OHLCVDataPoint[];
   qualityHistory: QualityDataPoint[];
   crossOracle: {
     oracle: OracleProvider;

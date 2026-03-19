@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import { getTimeAgo } from '@/lib/utils/timestamp';
 
 export function DataFreshnessIndicator({
   lastUpdated,
@@ -30,15 +31,6 @@ export function DataFreshnessIndicator({
   };
 
   const latencyStatus = getLatencyColor(latency);
-
-  const getTimeAgo = () => {
-    const seconds = Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}${t('networkHealth.dataFreshness.secondsAgo')}`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}${t('networkHealth.dataFreshness.minutesAgo')}`;
-    const hours = Math.floor(minutes / 60);
-    return `${hours}${t('networkHealth.dataFreshness.hoursAgo')}`;
-  };
 
   return (
     <div className="bg-white border border-gray-200 p-5">
@@ -96,7 +88,7 @@ export function DataFreshnessIndicator({
                 second: '2-digit',
               })}
             </p>
-            <p className="text-xs text-gray-400">{getTimeAgo()}</p>
+            <p className="text-xs text-gray-400">{getTimeAgo(lastUpdated, t)}</p>
           </div>
         </div>
 

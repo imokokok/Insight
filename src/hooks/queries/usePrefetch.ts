@@ -8,6 +8,7 @@ import {
   type PriceListParams,
 } from '@/lib/queries/queryKeys';
 import { STALE_TIME_CONFIG, GC_TIME_CONFIG } from '@/providers/ReactQueryProvider';
+import type { PriceData, PriceDataForChart } from '@/types/oracle/price';
 
 interface OracleData {
   provider: string;
@@ -19,21 +20,6 @@ interface OracleData {
   updateFrequency: number;
   latency: number;
   reliability: number;
-}
-
-interface PriceData {
-  symbol: string;
-  price: number;
-  change24h: number;
-  timestamp: number;
-  provider: string;
-  chain?: string;
-}
-
-interface PricePoint {
-  timestamp: number;
-  price: number;
-  volume?: number;
 }
 
 export function usePrefetchOracleData() {
@@ -100,7 +86,7 @@ export function usePrefetchPriceHistory() {
 
       await queryClient.prefetchQuery({
         queryKey: priceKeys.history(params),
-        queryFn: async (): Promise<PricePoint[]> => {
+        queryFn: async (): Promise<PriceDataForChart[]> => {
           const searchParams = new URLSearchParams();
           searchParams.set('symbol', params.symbol);
           if (params.provider) searchParams.set('provider', params.provider);

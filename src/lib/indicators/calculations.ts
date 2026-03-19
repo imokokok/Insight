@@ -4,7 +4,7 @@ import type {
   MACDResult,
   MACDExtendedResult,
   ATRResult,
-  PriceDataPoint,
+  OHLCVDataPoint,
   NullableNumber,
 } from './types';
 
@@ -309,7 +309,7 @@ export function calculateBollingerBandsWithNull(
 }
 
 export function calculateBollingerBandsExtended(
-  prices: PriceDataPoint[],
+  prices: OHLCVDataPoint[],
   period: number = 20,
   multiplier: number = 2
 ): BollingerBandsExtendedResult {
@@ -344,8 +344,8 @@ export function calculateBollingerBandsExtended(
 }
 
 export function calculateTrueRange(
-  current: PriceDataPoint,
-  previous: PriceDataPoint | null
+  current: OHLCVDataPoint,
+  previous: OHLCVDataPoint | null
 ): number {
   if (!previous) {
     return (current.high || current.price) - (current.low || current.price);
@@ -362,7 +362,7 @@ export function calculateTrueRange(
   return Math.max(tr1, tr2, tr3);
 }
 
-export function calculateATR(prices: PriceDataPoint[], period: number = 14): ATRResult {
+export function calculateATR(prices: OHLCVDataPoint[], period: number = 14): ATRResult {
   const tr: number[] = [];
   const atr: number[] = [];
 

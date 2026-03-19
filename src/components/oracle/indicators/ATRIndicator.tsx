@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { DashboardCard } from '../common/DashboardCard';
 import { chartColors } from '@/lib/config/colors';
-import { calculateATR, PriceDataPoint } from '@/lib/indicators';
+import { calculateATR, OHLCVDataPoint } from '@/lib/indicators';
 
 export interface ATRDataPoint {
   time: string;
@@ -36,7 +36,7 @@ export interface ATRIndicatorProps {
 
 export function ATRIndicator({ data, period = 14, height = 200 }: ATRIndicatorProps) {
   const atrData = useMemo<ATRDataPoint[]>(() => {
-    const priceData: PriceDataPoint[] = data.map((point) => ({
+    const priceData: OHLCVDataPoint[] = data.map((point) => ({
       price: point.price,
       high: point.high,
       low: point.low,

@@ -368,7 +368,10 @@ export function RedStoneRiskAssessmentPanel() {
       <DashboardCard title={t('redstone.riskAssessment.mitigationMeasures')}>
         <div className="border border-gray-200 divide-y divide-gray-200">
           {mitigationMeasures.map((measure) => (
-            <div key={measure.name} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+            <div
+              key={measure.name}
+              className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">

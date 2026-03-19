@@ -29,7 +29,9 @@ export {
   type SnapshotStats,
   type SnapshotComparisonResult,
 } from '@/types/oracle';
-export { formatTimestamp, getTimeAgo } from '@/types/common';
+export { formatTimestamp } from '@/types/common/timestamps';
+export { getTimeAgo, getTimeAgoDiff, formatTimeAgo } from '@/lib/utils/timestamp';
+export type { TimeAgoResult } from '@/lib/utils/timestamp';
 
 export {
   saveSnapshot as saveSnapshotToLocalStorage,

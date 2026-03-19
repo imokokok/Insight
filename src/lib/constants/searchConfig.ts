@@ -1,5 +1,3 @@
-import { OracleProvider, Blockchain } from '@/types/oracle/enums';
-
 export type SearchItemType = 'token' | 'oracle' | 'chain' | 'protocol';
 
 export interface SearchableItem {

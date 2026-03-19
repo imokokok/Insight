@@ -21,6 +21,7 @@ import {
 import { ChainDataRequest } from '@/lib/oracles/bandProtocol';
 import { DashboardCard } from '../common/DashboardCard';
 import { chainColors, chartColors, animationColors } from '@/lib/config/colors';
+import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 
 type TimeRangeKey = '24h' | '7d' | '30d';
 
@@ -63,13 +64,7 @@ function getChainColor(chainName: string, index: number): string {
 }
 
 function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
-  }
-  return num.toString();
+  return formatNumberCompact(num, true);
 }
 
 function generateExtendedData(chain: ChainDataRequest, index: number): ExtendedChainData {

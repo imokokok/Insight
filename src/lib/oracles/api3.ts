@@ -3,7 +3,7 @@ import { UNIFIED_BASE_PRICES } from '@/lib/config/basePrices';
 import { PriceData, OracleProvider, Blockchain } from '@/types/oracle';
 import type { GasFeeData } from '@/components/oracle/common/GasFeeComparison';
 import { QualityDataPoint } from '@/components/oracle/charts/DataQualityTrend';
-import { PriceDataPoint } from '@/lib/indicators';
+import { OHLCVDataPoint } from '@/lib/indicators';
 
 export interface DapiPriceDeviation {
   symbol: string;
@@ -639,9 +639,9 @@ export class API3Client extends BaseOracleClient {
     symbol: string,
     chain?: Blockchain,
     period: number = 30
-  ): Promise<PriceDataPoint[]> {
+  ): Promise<OHLCVDataPoint[]> {
     const basePrice = UNIFIED_BASE_PRICES[symbol.toUpperCase()] || 100;
-    const prices: PriceDataPoint[] = [];
+    const prices: OHLCVDataPoint[] = [];
     const now = Date.now();
     const interval = 24 * 60 * 60 * 1000; // 1 day
 

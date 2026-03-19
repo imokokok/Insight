@@ -67,3 +67,56 @@ export function toSeconds(timestamp: number | string | Date): number {
 export function normalizeTimestamp(timestamp: number | string | Date): number {
   return toMilliseconds(timestamp);
 }
+
+export interface TimeAgoResult {
+  value: number;
+  unit: 'seconds' | 'minutes' | 'hours' | 'days';
+}
+
+export function getTimeAgoDiff(input: Date | number): TimeAgoResult {
+  const timestamp = input instanceof Date ? input.getTime() : toMilliseconds(input);
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+  if (seconds < 60) {
+    return { value: seconds, unit: 'seconds' };
+  }
+  if (seconds < 3600) {
+    return { value: Math.floor(seconds / 60), unit: 'minutes' };
+  }
+  if (seconds < 86400) {
+    return { value: Math.floor(seconds / 3600), unit: 'hours' };
+  }
+  return { value: Math.floor(seconds / 86400), unit: 'days' };
+}
+
+export function formatTimeAgo(
+  diff: TimeAgoResult,
+  t: (key: string, params?: Record<string, number>) => string
+): string {
+  const { value, unit } = diff;
+
+  if (value === 0 && unit === 'seconds') {
+    return t('time.justNow');
+  }
+
+  switch (unit) {
+    case 'seconds':
+      return t('time.secondsAgo', { seconds: value });
+    case 'minutes':
+      return t('time.minutesAgo', { minutes: value });
+    case 'hours':
+      return t('time.hoursAgo', { hours: value });
+    case 'days':
+      return t('time.daysAgo', { days: value });
+    default:
+      return '';
+  }
+}
+
+export function getTimeAgo(
+  input: Date | number,
+  t: (key: string, params?: Record<string, number>) => string
+): string {
+  const diff = getTimeAgoDiff(input);
+  return formatTimeAgo(diff, t);
+}

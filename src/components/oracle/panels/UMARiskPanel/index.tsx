@@ -234,9 +234,14 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
       <DashboardCard title={t('uma.risk.economicSecurity')}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-200">
           {economicSecurityMetrics.map((metric, index) => (
-            <div key={index} className={`p-4 bg-gray-50 ${index < economicSecurityMetrics.length - 1 ? 'border-r border-gray-200' : ''}`}>
+            <div
+              key={index}
+              className={`p-4 bg-gray-50 ${index < economicSecurityMetrics.length - 1 ? 'border-r border-gray-200' : ''}`}
+            >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 uppercase tracking-wider">{metric.label}</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wider">
+                  {metric.label}
+                </span>
                 <span
                   className={`w-2.5 h-2.5 rounded-full ${
                     metric.status === 'healthy'
@@ -381,7 +386,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
             </div>
             <div className="p-4 bg-gray-50 text-center">
               <p className="text-xs text-gray-500 mb-1">{t('uma.risk.medianResolutionTime')}</p>
-              <p className="text-xl font-bold text-gray-900">{disputeStats?.medianResolutionTime ?? 4}h</p>
+              <p className="text-xl font-bold text-gray-900">
+                {disputeStats?.medianResolutionTime ?? 4}h
+              </p>
             </div>
           </div>
         </DashboardCard>
@@ -484,7 +491,9 @@ export function UMARiskPanel({ client }: UMARiskPanelProps) {
               </svg>
               <div>
                 <p className="font-semibold text-amber-900">{t('uma.risk.concentrationRisk')}</p>
-                <p className="text-sm text-amber-700 mt-0.5">{t('uma.risk.concentrationRiskDesc')}</p>
+                <p className="text-sm text-amber-700 mt-0.5">
+                  {t('uma.risk.concentrationRiskDesc')}
+                </p>
               </div>
             </div>
           )}

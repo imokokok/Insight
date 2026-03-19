@@ -3,6 +3,7 @@
 import { memo, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { baseColors, semanticColors, chartColors } from '@/lib/config/colors';
+import { formatNumber as formatNumberCompact } from '@/lib/utils/format';
 
 // Types
 export interface TooltipDataPoint {
@@ -51,16 +52,7 @@ function formatPercentage(value: number): string {
 }
 
 function formatNumber(value: number): string {
-  if (Math.abs(value) >= 1e9) {
-    return `${(value / 1e9).toFixed(2)}B`;
-  }
-  if (Math.abs(value) >= 1e6) {
-    return `${(value / 1e6).toFixed(2)}M`;
-  }
-  if (Math.abs(value) >= 1e3) {
-    return `${(value / 1e3).toFixed(2)}K`;
-  }
-  return value.toFixed(2);
+  return formatNumberCompact(value, true);
 }
 
 // Comparison Badge Component

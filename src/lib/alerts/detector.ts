@@ -6,7 +6,6 @@ import type {
   PriceRecord,
 } from '@/lib/supabase/database.types';
 import { createLogger } from '@/lib/utils/logger';
-import { formatConditionMetWithI18n } from './messages';
 
 const logger = createLogger('alert-detector');
 

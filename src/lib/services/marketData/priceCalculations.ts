@@ -325,7 +325,7 @@ function exportToExcel(config: ExportConfig, data: ExportDataOptions): Blob {
 function getDataRows(
   dataType: ExportDataType,
   data: ExportDataOptions,
-  fields: { key: string }[]
+  _fields: { key: string }[]
 ): Record<string, unknown>[] {
   switch (dataType) {
     case 'oracleMarket':

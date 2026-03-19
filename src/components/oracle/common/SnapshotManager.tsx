@@ -339,7 +339,7 @@ export function SnapshotManager({
                             {snapshot.symbol}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {getTimeAgo(snapshot.timestamp)}
+                            {getTimeAgo(snapshot.timestamp, t)}
                           </span>
                           {user && shareStates[snapshot.id] && (
                             <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 border border-green-200">
