@@ -68,6 +68,7 @@
       "other": "Other"
     }
   },
+  "user": "User",
   "actions": {
     "refresh": "Refresh",
     "export": "Export",
