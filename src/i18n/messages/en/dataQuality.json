@@ -61,5 +61,17 @@
     "priceAccuracy": "Price Accuracy",
     "latencyPerformance": "Latency Performance",
     "reliability": "Reliability"
+  },
+  "dataQualityScoreCard": {
+    "title": "Data Quality Score",
+    "subtitle": "Comprehensive data quality assessment",
+    "overallScore": "Overall Score",
+    "networkHealth": "Network Health",
+    "dataIntegrity": "Data Integrity",
+    "responseTime": "Response Time",
+    "validatorActivity": "Validator Activity",
+    "improving": "Improving",
+    "declining": "Declining",
+    "stable": "Stable"
   }
 }

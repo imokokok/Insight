@@ -370,5 +370,33 @@
     "bandMechanism2": "Cosmos Hub 作为主要数据源，通过 IBC 将价格数据传输到其他链",
     "bandMechanism3": "支持 EVM 链（Ethereum、Polygon 等）通过 Band Bridge 获取数据",
     "bandMechanism4": "价格偏差阈值：<0.1% 为正常，0.1%-0.5% 为警告，>0.5% 需要关注"
+  },
+  "priceDeviationHeatmap": {
+    "title": "价格偏差热力图",
+    "timePoints": "时间点",
+    "oracles": "预言机",
+    "avgDeviation": "平均偏差",
+    "maxDeviation": "最大偏差",
+    "minDeviation": "最小偏差",
+    "anomalyDataPoints": "异常数据点",
+    "time": "时间",
+    "price": "价格",
+    "deviation": "偏差",
+    "legend": "偏差程度图例",
+    "deviationDistribution": "偏差分布",
+    "oracleDeviationRanking": "预言机偏差排名",
+    "highDeviationDetected": "检测到高偏差数据点",
+    "anomalyWarning": "发现 {count} 个异常数据点（偏差 > 1%），建议检查数据源一致性",
+    "range": {
+      "extremelyLow": "极低",
+      "low": "低",
+      "lower": "较低",
+      "medium": "中等",
+      "higher": "较高",
+      "high": "高",
+      "veryHigh": "很高",
+      "extremelyHigh": "极高",
+      "anomaly": "异常"
+    }
   }
 }

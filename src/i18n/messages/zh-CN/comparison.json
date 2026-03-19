@@ -1,0 +1,14 @@
+{
+  "comparison": {
+    "title": "对比",
+    "previous": "上期",
+    "current": "本期",
+    "timeComparison": {
+      "currentPeriod": "当前周期",
+      "yoy": "同比",
+      "mom": "环比"
+    }
+  },
+  "comparisonPeriod": "对比周期",
+  "comparisonAvg": "对比平均值"
+}

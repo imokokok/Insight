@@ -1,17 +1,22 @@
 {
   "pythNetwork": {
+    "analytics": "Pyth Analytics",
     "dataQuality": {
       "title": "Data Quality Assessment",
       "subtitle": "Comprehensive multi-dimensional data quality evaluation",
       "compositeScore": "Quality Composite Index",
       "confidenceInterval": "Confidence Interval Precision",
       "confidenceIntervalDesc": "Evaluates confidence interval tightness and temporal stability",
+      "confidenceIntervalDetails": "Confidence interval width: {width}%, Score: {score}",
       "publisherReliability": "Publisher Trust Score",
       "publisherReliabilityDesc": "Aggregated publisher performance and reputation metrics",
+      "publisherReliabilityDetails": "Active publishers: {count}, Avg reliability: {reliability}%",
       "updateLatency": "Update Latency Performance",
       "updateLatencyDesc": "Measures price update propagation speed",
+      "updateLatencyDetails": "Avg latency: {latency}ms, P99: {p99}ms",
       "crossChainConsistency": "Cross-Chain Price Convergence",
       "crossChainConsistencyDesc": "Monitors price deviation across integrated chains",
+      "crossChainConsistencyDetails": "Max deviation: {deviation}% across {chains} chains",
       "excellent": "Excellent",
       "good": "Good",
       "fair": "Fair",
@@ -24,7 +29,8 @@
       "targetThreshold": "Performance Target",
       "scoreHistory": "Quality Score Trend",
       "lowConfidenceScore": "Confidence interval quality below threshold - investigate data source stability",
-      "publisherReliabilityDeclining": "Publisher reliability trend declining - immediate attention required"
+      "publisherReliabilityDeclining": "Publisher reliability trend declining - immediate attention required",
+      "decliningTrend": "Quality score declining: {trend}% over last {period}"
     },
     "stats": {
       "updateFrequencyPerSecond": "Price Update Throughput",
@@ -45,11 +51,32 @@
       "transactionsPerSecond": "Transactions Per Second",
       "validators": "Validators",
       "totalStake": "Total Stake",
+      "pythProgramAccount": "Pyth Program Account",
       "status": {
         "active": "Active",
         "inactive": "Inactive",
         "degraded": "Degraded"
       }
+    },
+    "ema": {
+      "title": "EMA Price",
+      "description": "Exponential Moving Average Price",
+      "calculationMethod": "Calculated using exponential weighted average",
+      "trend": {
+        "up": "Up",
+        "down": "Down",
+        "neutral": "Neutral"
+      }
+    },
+    "pageTitles": {
+      "market": "Market Data",
+      "network": "Network Status",
+      "validators": "Validators",
+      "disputes": "Disputes",
+      "ecosystem": "Ecosystem",
+      "risk": "Risk Assessment",
+      "crossChain": "Cross-Chain",
+      "crossOracle": "Cross-Oracle Analysis"
     }
   },
   "pyth": {

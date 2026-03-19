@@ -16,7 +16,7 @@ export default function AssetsTable({ assets }: AssetsTableProps) {
 
   return (
     <div className="overflow-hidden">
-      <div className="py-3 border-b border-gray-200 flex items-center justify-between">
+      <div className="pb-3 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-900">

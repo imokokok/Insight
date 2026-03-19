@@ -20,7 +20,7 @@ export default function MarketStats({
   const locale = useLocale();
 
   return (
-    <div className="flex flex-wrap items-end gap-8 lg:gap-12 mb-8 pb-6 border-b border-gray-200">
+    <div className="flex flex-wrap items-end gap-8 lg:gap-12">
       <div>
         <p className="text-xs text-gray-500 lowercase tracking-wide">
           {isChineseLocale(locale) ? '总 tvs' : 'total tvs'}

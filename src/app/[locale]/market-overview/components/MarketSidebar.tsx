@@ -33,7 +33,7 @@ export default function MarketSidebar({
 
   return (
     <div className="space-y-4">
-      <div className="py-4 border-b border-gray-100">
+      <div className="pb-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-0.5">
@@ -53,7 +53,7 @@ export default function MarketSidebar({
       </div>
 
       <div className="overflow-hidden">
-        <div className="py-2 border-b border-gray-100">
+        <div className="pb-2 border-b border-gray-100">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
             {isChineseLocale(locale) ? '预言机市场份额' : 'Oracle Market Share'}
           </h4>
@@ -113,7 +113,7 @@ export default function MarketSidebar({
         </div>
       </div>
 
-      <div className="py-3 border-t border-gray-100">
+      <div className="pt-3 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-0.5">

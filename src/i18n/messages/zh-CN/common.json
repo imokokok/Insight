@@ -49,7 +49,10 @@
     "secondsAgo": "{seconds}秒前",
     "minutesAgo": "{minutes}分钟前",
     "hoursAgo": "{hours}小时前",
-    "daysAgo": "{days}天前"
+    "daysAgo": "{days}天前",
+    "seconds": "秒",
+    "minutes": "分钟",
+    "hours": "小时"
   },
   "price": {
     "price": "价格",
@@ -109,5 +112,159 @@
   },
   "locale": "zh-CN",
   "favorite": "收藏",
-  "favorited": "已收藏"
+  "favorited": "已收藏",
+  "export": "导出",
+  "clear": "清除",
+  "marketDataPanel": {
+    "marketCap": "市值",
+    "volume24h": "24小时成交额",
+    "circulatingSupply": "流通供应量",
+    "ofTotalSupply": "占总供应量",
+    "fullyDilutedValuation": "完全稀释估值",
+    "atCurrentPrice": "按当前价格",
+    "marketCapRank": "市值排名",
+    "amongAllCryptocurrencies": "在所有加密货币中",
+    "supplyRatio": "供应比例",
+    "loading": "加载中...",
+    "lastUpdated": "最后更新",
+    "24hHigh": "24小时最高",
+    "24hLow": "24小时最低"
+  },
+  "validatorPanel": {
+    "title": "验证节点",
+    "subtitle": "共 {count} 个验证节点",
+    "loading": "加载中..."
+  },
+  "confidenceScore": {
+    "title": "置信度评分",
+    "subtitle": "数据质量评估",
+    "loading": "加载中..."
+  },
+  "nodeReputation": {
+    "title": "节点声誉",
+    "loading": "加载中..."
+  },
+  "crossChainPanel": {
+    "loadingCrossChainData": "加载跨链数据中..."
+  },
+  "priceDeviation": {
+    "loading": "加载中..."
+  },
+  "uma": {
+    "loading": "加载中..."
+  },
+  "home": {
+    "loading": "加载中..."
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": {
+      "loadingFailed": "加载失败"
+    }
+  },
+  "comparison": {
+    "title": "对比"
+  },
+  "price": {
+    "title": "价格"
+  },
+  "indicators": {
+    "title": "指标"
+  },
+  "crossOracleComparison": {
+    "title": "跨预言机对比",
+    "subtitle": "多预言机价格对比分析"
+  },
+  "chainComparison": {
+    "title": "链对比"
+  },
+  "bandCrossChainPriceConsistency": {
+    "title": "跨链价格一致性",
+    "subtitle": "Band Protocol 跨链价格监控"
+  },
+  "snapshot": {
+    "title": "快照"
+  },
+  "gasFeeComparison": {
+    "title": "Gas 费用对比"
+  },
+  "crossChainPriceConsistency": {
+    "title": "跨链价格一致性"
+  },
+  "confidenceInterval": {
+    "title": "置信区间"
+  },
+  "updateFrequency": {
+    "title": "更新频率"
+  },
+  "stakingMetrics": {
+    "title": "质押指标"
+  },
+  "publisherContribution": {
+    "title": "发布者贡献",
+    "subtitle": "数据发布者贡献度分析"
+  },
+  "coveragePool": {
+    "title": "覆盖池"
+  },
+  "confidenceAlert": {
+    "title": "置信度预警"
+  },
+  "volatilityAlert": {
+    "title": "波动率预警"
+  },
+  "requestTypeDistribution": {
+    "title": "请求类型分布",
+    "subtitle": "各类型请求占比"
+  },
+  "realtimeUpdate": {
+    "title": "实时更新"
+  },
+  "oraclePerformanceRanking": {
+    "title": "预言机性能排名",
+    "subtitle": "基于多维度指标的综合排名"
+  },
+  "latencyAnalysis": {
+    "title": "延迟分析",
+    "subtitle": "网络延迟性能评估"
+  },
+  "integratedProtocols": {
+    "title": "集成协议"
+  },
+  "dataSourceCoverage": {
+    "title": "数据源覆盖"
+  },
+  "dataQualityScoreCard": {
+    "title": "数据质量评分",
+    "subtitle": "综合数据质量评估"
+  },
+  "stakingDistribution": {
+    "title": "质押分布"
+  },
+  "requestTrend": {
+    "title": "请求趋势",
+    "loading": "加载中..."
+  },
+  "priceVolatility": {
+    "title": "价格波动率"
+  },
+  "priceDistribution": {
+    "title": "价格分布"
+  },
+  "priceDeviationHeatmap": {
+    "title": "价格偏差热力图"
+  },
+  "priceCorrelation": {
+    "title": "价格相关性"
+  },
+  "crossChainRisk": {
+    "title": "跨链风险"
+  },
+  "concentrationRisk": {
+    "title": "集中度风险"
+  },
+  "cdfChart": {
+    "title": "累积分布函数",
+    "subtitle": "显示延迟值的累积概率分布"
+  }
 }

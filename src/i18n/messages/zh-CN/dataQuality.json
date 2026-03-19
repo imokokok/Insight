@@ -59,6 +59,20 @@
     "freshnessTrendDesc": "数据更新频率随时间变化趋势",
     "fresh": "新鲜",
     "stale": "滞后",
-    "delayed": "延迟"
+    "delayed": "延迟",
+    "secondsSuffix": "秒",
+    "level": "级别"
+  },
+  "dataQualityScoreCard": {
+    "title": "数据质量评分",
+    "subtitle": "综合评估数据质量指标",
+    "overallScore": "综合评分",
+    "networkHealth": "网络健康度",
+    "dataIntegrity": "数据完整性",
+    "responseTime": "响应时间",
+    "validatorActivity": "验证者活动",
+    "improving": "改善中",
+    "declining": "下降中",
+    "stable": "稳定"
   }
 }
